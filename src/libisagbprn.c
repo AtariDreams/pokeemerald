@@ -163,7 +163,7 @@ void AGBAssert(const char *pFile, int nLine, const char *pExpression, int nStopP
     {
         AGBPrintf("ASSERTION FAILED  FILE=[%s] LINE=[%d]  EXP=[%s] \n", pFile, nLine, pExpression);
         AGBPrintFlush();
-        asm(".hword 0xEFFF");
+        __asm__(".hword 0xEFFF");
     }
     else
     {

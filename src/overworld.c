@@ -2934,8 +2934,6 @@ static void ZeroObjectEvent(struct ObjectEvent *objEvent)
 // as special gender and direction values. The types and placement
 // conflict with the usual Event Object struct, thus the definitions.
 #define linkGender(obj) obj->singleMovementActive
-// not even one can reference *byte* aligned bitfield members...
-#define linkDirection(obj) ((u8 *)obj)[offsetof(typeof(*obj), fieldEffectSpriteId) - 1] // -> rangeX
 
 static void SpawnLinkPlayerObjectEvent(u8 linkPlayerId, s16 x, s16 y, u8 gender)
 {
@@ -2953,7 +2951,7 @@ static void SpawnLinkPlayerObjectEvent(u8 linkPlayerId, s16 x, s16 y, u8 gender)
 
     objEvent->active = TRUE;
     linkGender(objEvent) = gender;
-    linkDirection(objEvent) = DIR_NORTH;
+    linkGender(objEvent) = DIR_NORTH;
     objEvent->spriteId = MAX_SPRITES;
 
     InitLinkPlayerObjectEventPos(objEvent, x, y);
@@ -2976,7 +2974,7 @@ static void SetLinkPlayerObjectRange(u8 linkPlayerId, u8 dir)
     {
         u8 objEventId = gLinkPlayerObjectEvents[linkPlayerId].objEventId;
         struct ObjectEvent *objEvent = &gObjectEvents[objEventId];
-        linkDirection(objEvent) = dir;
+        linkGender(objEvent) = dir;
     }
 }
 
@@ -3011,7 +3009,7 @@ static u8 GetLinkPlayerFacingDirection(u8 linkPlayerId)
 {
     u8 objEventId = gLinkPlayerObjectEvents[linkPlayerId].objEventId;
     struct ObjectEvent *objEvent = &gObjectEvents[objEventId];
-    return linkDirection(objEvent);
+    return linkGender(objEvent);
 }
 
 static u8 GetLinkPlayerElevation(u8 linkPlayerId)
@@ -3096,10 +3094,10 @@ static bool8 FacingHandler_DpadMovement(struct LinkPlayerObjectEvent *linkPlayer
 {
     s16 x, y;
 
-    linkDirection(objEvent) = FlipVerticalAndClearForced(dir, linkDirection(objEvent));
-    ObjectEventMoveDestCoords(objEvent, linkDirection(objEvent), &x, &y);
+    linkGender(objEvent) = FlipVerticalAndClearForced(dir, linkGender(objEvent));
+    ObjectEventMoveDestCoords(objEvent, linkGender(objEvent), &x, &y);
 
-    if (LinkPlayerGetCollision(linkPlayerObjEvent->objEventId, linkDirection(objEvent), x, y))
+    if (LinkPlayerDetectCollision(linkPlayerObjEvent->objEventId, linkGender(objEvent), x, y))
     {
         return FALSE;
     }
@@ -3114,7 +3112,7 @@ static bool8 FacingHandler_DpadMovement(struct LinkPlayerObjectEvent *linkPlayer
 
 static bool8 FacingHandler_ForcedFacingChange(struct LinkPlayerObjectEvent *linkPlayerObjEvent, struct ObjectEvent *objEvent, u8 dir)
 {
-    linkDirection(objEvent) = FlipVerticalAndClearForced(dir, linkDirection(objEvent));
+    linkGender(objEvent) = FlipVerticalAndClearForced(dir, linkGender(objEvent));
     return FALSE;
 }
 
@@ -3128,7 +3126,7 @@ static void MovementStatusHandler_TryAdvanceScript(struct LinkPlayerObjectEvent 
 {
     objEvent->directionSequenceIndex--;
     linkPlayerObjEvent->movementMode = MOVEMENT_MODE_FROZEN;
-    MoveCoords(linkDirection(objEvent), &objEvent->initialCoords.x, &objEvent->initialCoords.y);
+    MoveCoords(linkGender(objEvent), &objEvent->initialCoords.x, &objEvent->initialCoords.y);
     if (!objEvent->directionSequenceIndex)
     {
         ShiftStillObjectEventCoords(objEvent);
@@ -3217,9 +3215,9 @@ static void SpriteCB_LinkPlayer(struct Sprite *sprite)
     sprite->oam.priority = ElevationToPriority(objEvent->previousElevation);
 
     if (linkPlayerObjEvent->movementMode == MOVEMENT_MODE_FREE)
-        StartSpriteAnim(sprite, GetFaceDirectionAnimNum(linkDirection(objEvent)));
+        StartSpriteAnim(sprite, GetFaceDirectionAnimNum(linkGender(objEvent)));
     else
-        StartSpriteAnimIfDifferent(sprite, GetMoveDirectionAnimNum(linkDirection(objEvent)));
+        StartSpriteAnimIfDifferent(sprite, GetMoveDirectionAnimNum(linkGender(objEvent)));
 
     UpdateObjectEventSpriteInvisibility(sprite, FALSE);
     if (objEvent->triggerGroundEffectsOnMove)

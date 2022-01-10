@@ -17,11 +17,11 @@
 #include "constants/trainer_hill.h"
 
 // Prevent cross-jump optimization.
-#define BLOCK_CROSS_JUMP asm("");
+#define BLOCK_CROSS_JUMP __asm__("");
 
 // to help in decompiling
-#define asm_comment(x) asm volatile("@ -- " x " -- ")
-#define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
+#define asm_comment(x) __asm__ volatile("@ -- " x " -- ")
+#define asm_unified(x) __asm__(".syntax unified\n" x "\n.syntax divided")
 #define NAKED __attribute__((naked))
 
 /// IDE support

@@ -380,7 +380,7 @@ static u8 GetTrainerHillUnkVal(void)
 
 static bool32 ValidateTrainerChecksum(struct EReaderTrainerHillTrainer * hillTrainer)
 {
-    int checksum = CalcByteArraySum((u8 *)hillTrainer, offsetof(typeof(*hillTrainer), checksum));
+    int checksum = CalcByteArraySum((u8 *)hillTrainer, offsetof(struct EReaderTrainerHillTrainer, checksum));
     if (checksum != hillTrainer->checksum)
         return FALSE;
 

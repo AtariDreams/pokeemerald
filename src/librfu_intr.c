@@ -390,17 +390,17 @@ static void STWI_init_slave(void)
 NAKED
 static void Callback_Dummy_M(int reqCommandId, int error, void (*callbackM)())
 {
-    asm("bx r2");
+    __asm__("bx r2");
 }
 
 NAKED
 static void Callback_Dummy_S(u16 reqCommandId, void (*callbackS)(u16))
 {
-    asm("bx r1");
+    __asm__("bx r1");
 }
 
 NAKED
 static void Callback_Dummy_ID(void (*callbackId)(void))
 {
-    asm("bx r0");
+    __asm__("bx r0");
 }
