@@ -113,8 +113,8 @@ void AgbMain()
 
     gSoftResetDisabled = FALSE;
 
-    if (gFlashMemoryPresent != TRUE)
-        SetMainCallback2(NULL);
+    // if (gFlashMemoryPresent != TRUE)
+    //     SetMainCallback2(NULL);
 
     gLinkTransferringData = FALSE;
     sUnusedVar = 0xFC0;
@@ -172,14 +172,18 @@ static void InitMainCallbacks(void)
     gTrainerHillVBlankCounter = NULL;
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
-    SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+
+        // if (gFlashMemoryPresent != TRUE)
+    //     SetMainCallback2(NULL);
+
+    SetMainCallback2(gFlashMemoryPresent ? CB2_InitCopyrightScreenAfterBootup : NULL);
 
     // None of these assignments are actually needed it seems
-    #ifdef BUGFIX
-    gSaveBlock1Ptr = &gSaveblock1.block;
-    #endif
-    gSaveBlock2Ptr = &gSaveblock2.block;
-    gPokemonStoragePtr = &gPokemonStorage.block;
+    // #ifdef BUGFIX
+    // gSaveBlock1Ptr = &gSaveblock1.block;
+    // #endif
+    // gSaveBlock2Ptr = &gSaveblock2.block;
+    // gPokemonStoragePtr = &gPokemonStorage.block;
 }
 
 static void CallCallbacks(void)
