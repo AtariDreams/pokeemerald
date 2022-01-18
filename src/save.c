@@ -896,8 +896,6 @@ u16 GetSaveBlocksPointersBaseOffset(void)
     struct SaveSector* sector;
 
     sector = gReadWriteSector = &gSaveDataBuffer;
-    if (gFlashMemoryPresent != TRUE)
-        return 0;
     UpdateSaveAddresses();
     GetSaveValidStatus(gRamSaveSectorLocations);
     slotOffset = NUM_SECTORS_PER_SLOT * (gSaveCounter % NUM_SAVE_SLOTS);
