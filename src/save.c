@@ -756,12 +756,6 @@ u8 HandleSavingData(u8 saveType)
 
 u8 TrySavingData(u8 saveType)
 {
-    if (gFlashMemoryPresent != TRUE)
-    {
-        gSaveAttemptStatus = SAVE_STATUS_ERROR;
-        return SAVE_STATUS_ERROR;
-    }
-
     HandleSavingData(saveType);
     if (!gDamagedSaveSectors)
     {
@@ -776,14 +770,11 @@ u8 TrySavingData(u8 saveType)
     }
 }
 
-bool8 LinkFullSave_Init(void)
+void LinkFullSave_Init(void)
 {
-    if (gFlashMemoryPresent != TRUE)
-        return TRUE;
     UpdateSaveAddresses();
     CopyPartyAndObjectsToSave();
     RestoreSaveBackupVarsAndIncrement(gRamSaveSectorLocations);
-    return FALSE;
 }
 
 bool8 LinkFullSave_WriteSector(void)
@@ -801,27 +792,22 @@ bool8 LinkFullSave_WriteSector(void)
         return FALSE;
 }
 
-bool8 LinkFullSave_ReplaceLastSector(void)
+void LinkFullSave_ReplaceLastSector(void)
 {
     HandleReplaceSectorAndVerify(NUM_SECTORS_PER_SLOT, gRamSaveSectorLocations);
     if (gDamagedSaveSectors)
         DoSaveFailedScreen(SAVE_NORMAL);
-    return FALSE;
 }
 
-bool8 LinkFullSave_SetLastSectorSecurity(void)
+void LinkFullSave_SetLastSectorSecurity(void)
 {
     CopySectorSecurityByte(NUM_SECTORS_PER_SLOT, gRamSaveSectorLocations);
     if (gDamagedSaveSectors)
         DoSaveFailedScreen(SAVE_NORMAL);
-    return FALSE;
 }
 
-u8 WriteSaveBlock2(void)
+void WriteSaveBlock2(void)
 {
-    if (gFlashMemoryPresent != TRUE)
-        return TRUE;
-
     UpdateSaveAddresses();
     CopyPartyAndObjectsToSave();
     RestoreSaveBackupVars(gRamSaveSectorLocations);
@@ -829,7 +815,6 @@ u8 WriteSaveBlock2(void)
     // Because RestoreSaveBackupVars is called immediately prior, gIncrementalSectorId will always be 0 below,
     // so this function only saves the first sector (SECTOR_ID_SAVEBLOCK2)
     HandleReplaceSectorAndVerify(gIncrementalSectorId + 1, gRamSaveSectorLocations);
-    return FALSE;
 }
 
 // Used in conjunction with WriteSaveBlock2 to write both for certain link saves.
@@ -837,13 +822,14 @@ u8 WriteSaveBlock2(void)
 // It returns TRUE when finished.
 bool8 WriteSaveBlock1Sector(void)
 {
-    u8 finished = FALSE;
+    u8 finished;
     u16 sectorId = ++gIncrementalSectorId; // Because WriteSaveBlock2 will have been called prior, this will be SECTOR_ID_SAVEBLOCK1_START
     if (sectorId <= SECTOR_ID_SAVEBLOCK1_END)
     {
         // Write a single sector of SaveBlock1
         HandleReplaceSectorAndVerify(gIncrementalSectorId + 1, gRamSaveSectorLocations);
         WriteSectorSecurityByte(sectorId, gRamSaveSectorLocations);
+        finished = FALSE;
     }
     else
     {
@@ -863,12 +849,6 @@ bool8 WriteSaveBlock1Sector(void)
 u8 LoadGameSave(u8 saveType)
 {
     u8 status;
-
-    if (gFlashMemoryPresent != TRUE)
-    {
-        gSaveFileStatus = SAVE_STATUS_NO_FLASH;
-        return SAVE_STATUS_ERROR;
-    }
 
     UpdateSaveAddresses();
     switch (saveType)
