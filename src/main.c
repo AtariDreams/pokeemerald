@@ -173,6 +173,8 @@ static void InitMainCallbacks(void)
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+
+    // None of these assignments are actually needed it seems
     #ifdef BUGFIX
     gSaveBlock1Ptr = &gSaveblock1.block;
     #endif
