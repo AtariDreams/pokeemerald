@@ -185,8 +185,7 @@ static u8 HandleWriteSector(u16 sectorId, const struct SaveSectorLocation *locat
     size = locations[sectorId].size;
 
     // Clear temp save sector
-    for (i = 0; i < SECTOR_SIZE; i++)
-        ((u8 *)gReadWriteSector)[i] = 0;
+    memset(gReadWriteSector, 0, SECTOR_SIZE);
 
     // Set footer data
     gReadWriteSector->id = sectorId;
@@ -208,8 +207,7 @@ static u8 HandleWriteSectorNBytes(u8 sectorId, u8 *data, u16 size)
     struct SaveSector *sector = &gSaveDataBuffer;
 
     // Clear temp save sector
-    for (i = 0; i < SECTOR_SIZE; i++)
-        ((u8 *)sector)[i] = 0;
+    memset(sector, 0, SECTOR_SIZE);
 
     sector->security = SECTOR_SECURITY_NUM;
 
@@ -319,8 +317,7 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveSectorLocation *loc
     size = locations[sectorId].size;
 
     // Clear temp save sector.
-    for (i = 0; i < SECTOR_SIZE; i++)
-        ((u8 *)gReadWriteSector)[i] = 0;
+    memset(gReadWriteSector, 0, SECTOR_SIZE);
 
     // Set footer data
     gReadWriteSector->id = sectorId;
