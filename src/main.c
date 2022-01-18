@@ -155,6 +155,7 @@ void AgbMain()
 
         PlayTimeCounter_Update();
         MapMusicMain();
+
         WaitForVBlank();
     }
 }
@@ -172,6 +173,9 @@ static void InitMainCallbacks(void)
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+    #ifdef BUGFIX
+    gSaveBlock1Ptr = &gSaveblock1.block;
+    #endif
     gSaveBlock2Ptr = &gSaveblock2.block;
     gPokemonStoragePtr = &gPokemonStorage.block;
 }
