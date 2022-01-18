@@ -1,4 +1,3 @@
-	.include "src/decompress.o"
 	.include "src/main.o"
 	.include "gflib/window.o"
 	.include "gflib/text.o"
