@@ -895,8 +895,7 @@ u16 GetSaveBlocksPointersBaseOffset(void)
 
 u32 TryReadSpecialSaveSector(u8 sector, u8* dst)
 {
-    s32 i;
-    s32 size;
+    u32 i;
     u8* savData;
 
     if (sector != SECTOR_ID_TRAINER_HILL && sector != SECTOR_ID_RECORDED_BATTLE)
@@ -907,10 +906,8 @@ u32 TryReadSpecialSaveSector(u8 sector, u8* dst)
         return SAVE_STATUS_ERROR;
 
     // Copies whole save sector except u32 counter
-    i = 0;
-    size = SECTOR_COUNTER_OFFSET - 1;
     savData = &gSaveDataBuffer.data[4]; // data[4] to skip past SPECIAL_SECTOR_SENTINEL
-    for (; i <= size; i++)
+    for (i = 0; i < SECTOR_COUNTER_OFFSET; i++)
         dst[i] = savData[i];
     return SAVE_STATUS_OK;
 }
