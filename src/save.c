@@ -924,10 +924,8 @@ u32 TryWriteSpecialSaveSector(u8 sector, u8* src)
     *(u32*)(savDataBuffer) = SPECIAL_SECTOR_SENTINEL;
 
     // Copies whole save sector except u32 counter
-    i = 0;
-    size = SECTOR_COUNTER_OFFSET - 1;
     savData = &gSaveDataBuffer.data[4]; // data[4] to skip past SPECIAL_SECTOR_SENTINEL
-    for (; i <= size; i++)
+    for (i = 0; i < SECTOR_COUNTER_OFFSET; i++)
         savData[i] = src[i];
     if (ProgramFlashSectorAndVerify(sector, savDataBuffer) != 0)
         return SAVE_STATUS_ERROR;
