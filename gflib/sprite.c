@@ -11,22 +11,22 @@
 #define sAnchorY data[7]
 
 #define SET_SPRITE_TILE_RANGE(index, start, count) \
-    {                                              \
-        sSpriteTileRanges[index][0] = start;       \
-        sSpriteTileRanges[index][1] = count;       \
-    }
+{                                                  \
+    sSpriteTileRanges[index][0] = start;           \
+    sSpriteTileRanges[index][1] = count;           \
+}
 
-#define ALLOC_SPRITE_TILE(n)                                \
-    {                                                       \
-        sSpriteTileAllocBitmap[(n) >> 3] |= (1 << ((n)&7)); \
-    }
+#define ALLOC_SPRITE_TILE(n)                              \
+{                                                         \
+    sSpriteTileAllocBitmap[(n) >> 3] |= (1 << ((n) & 7)); \
+}
 
-#define FREE_SPRITE_TILE(n)                                  \
-    {                                                        \
-        sSpriteTileAllocBitmap[(n) >> 3] &= ~(1 << ((n)&7)); \
-    }
+#define FREE_SPRITE_TILE(n)                                \
+{                                                          \
+    sSpriteTileAllocBitmap[(n) >> 3] &= ~(1 << ((n) & 7)); \
+}
 
-#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1 << ((n)&7)))
+#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1 << ((n) & 7)))
 
 struct SpriteCopyRequest
 {
