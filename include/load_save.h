@@ -29,12 +29,10 @@ extern struct SaveBlock1DMA gSaveblock1;
 extern struct SaveBlock2DMA gSaveblock2;
 extern struct PokemonStorageDMA gPokemonStorage;
 
-extern bool32 gFlashMemoryPresent;
 extern struct SaveBlock1 *gSaveBlock1Ptr;
 extern struct SaveBlock2 *gSaveBlock2Ptr;
 extern struct PokemonStorage *gPokemonStoragePtr;
 
-void CheckForFlashMemory(void);
 void ClearSav2(void);
 void ClearSav1(void);
 void SetSaveBlocksPointers(u16 offset);
