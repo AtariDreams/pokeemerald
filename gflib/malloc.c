@@ -4,7 +4,6 @@
 EWRAM_DATA ALIGNED(4) u8 gHeap [HEAP_SIZE] = {0};
 
 static void *sHeapStart;
-static u32 sHeapSize;
 
 #define MALLOC_SYSTEM_ID 0xA3A3
 
@@ -174,7 +173,6 @@ bool32 CheckMemBlockInternal(void *heapStart, void *pointer)
 void InitHeap(void *heapStart, u32 heapSize)
 {
     sHeapStart = heapStart;
-    sHeapSize = heapSize;
     PutFirstMemBlockHeader(heapStart, heapSize);
 }
 
