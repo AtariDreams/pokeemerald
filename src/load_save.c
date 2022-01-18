@@ -69,7 +69,6 @@ void ClearSav1(void)
 // Offset is the sum of the trainer id bytes
 void SetSaveBlocksPointers(u16 offset)
 {
-    gSaveBlock1Ptr = gSaveBlock1Ptr;
     offset = (offset + Random()) & (SAVEBLOCK_MOVE_RANGE - 4);
 
     gSaveBlock2Ptr = (void*)(&gSaveblock2) + offset;
