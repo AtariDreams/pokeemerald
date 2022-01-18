@@ -42,20 +42,6 @@ struct SaveBlock1 *gSaveBlock1Ptr;
 struct SaveBlock2 *gSaveBlock2Ptr;
 struct PokemonStorage *gPokemonStoragePtr;
 
-// code
-void CheckForFlashMemory(void)
-{
-    if (!IdentifyFlash())
-    {
-        gFlashMemoryPresent = TRUE;
-        InitFlashTimer();
-    }
-    else
-    {
-        gFlashMemoryPresent = FALSE;
-    }
-}
-
 void ClearSav2(void)
 {
     CpuFill16(0, &gSaveblock2, sizeof(struct SaveBlock2DMA));

@@ -55,9 +55,7 @@ const IntrFunc gIntrTableTemplate[] =
     IntrDummy,  // Game Pak interrupt
 };
 
-#define INTR_COUNT ((int)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
-
-static u16 sUnusedVar; // Never read
+#define INTR_COUNT (sizeof(gIntrTableTemplate)/sizeof(IntrFunc))
 
 u16 gKeyRepeatStartDelay;
 bool8 gLinkTransferringData;
@@ -100,7 +98,6 @@ void AgbMain()
     EnableVCountIntrAtLine150();
     InitRFU();
     RtcInit();
-    CheckForFlashMemory();
     InitMainCallbacks();
     InitMapMusic();
 #ifdef BUGFIX
@@ -117,7 +114,6 @@ void AgbMain()
     //     SetMainCallback2(NULL);
 
     gLinkTransferringData = FALSE;
-    sUnusedVar = 0xFC0;
 
     for (;;)
     {
@@ -173,10 +169,15 @@ static void InitMainCallbacks(void)
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
 
-        // if (gFlashMemoryPresent != TRUE)
-    //     SetMainCallback2(NULL);
-
-    SetMainCallback2(gFlashMemoryPresent ? CB2_InitCopyrightScreenAfterBootup : NULL);
+    if (IdentifyFlash() == 0)
+    {
+        SetFlashTimerIntr(2, &gIntrTable[7]);
+        SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+    }
+    else
+    {
+        SetMainCallback2(NULL);
+    }
 
     // None of these assignments are actually needed it seems
     // #ifdef BUGFIX
