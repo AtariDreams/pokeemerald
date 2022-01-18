@@ -235,7 +235,7 @@ static u8 TryWriteSector(u8 sector, u8 *data)
     }
 }
 
-static u32 RestoreSaveBackupVarsAndIncrement(const struct SaveSectorLocation *locations)
+static void RestoreSaveBackupVarsAndIncrement(const struct SaveSectorLocation *locations)
 {
     gReadWriteSector = &gSaveDataBuffer;
     gLastKnownGoodSector = gLastWrittenSector;
@@ -245,17 +245,15 @@ static u32 RestoreSaveBackupVarsAndIncrement(const struct SaveSectorLocation *lo
     gSaveCounter++;
     gIncrementalSectorId = 0;
     gDamagedSaveSectors = 0;
-    return 0;
 }
 
-static u32 RestoreSaveBackupVars(const struct SaveSectorLocation *locations)
+static void RestoreSaveBackupVars(const struct SaveSectorLocation *locations)
 {
     gReadWriteSector = &gSaveDataBuffer;
     gLastKnownGoodSector = gLastWrittenSector;
     gLastSaveCounter = gSaveCounter;
     gIncrementalSectorId = 0;
     gDamagedSaveSectors = 0;
-    return 0;
 }
 
 static u8 HandleWriteIncrementalSector(u16 numSectors, const struct SaveSectorLocation *locations)
