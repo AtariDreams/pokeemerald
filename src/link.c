@@ -2232,7 +2232,7 @@ static void DoRecv(void)
     u8 i;
     u8 index;
 
-    *(u64 *)recv = REG_SIOMLT_RECV;
+    *(vu64 *)recv = REG_SIOMLT_RECV;
     if (gLink.sendCmdIndex == 0)
     {
         for (i = 0; i < gLink.playerCount; i++)
