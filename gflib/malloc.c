@@ -28,6 +28,13 @@ struct MemBlock {
     u8 data[0];
 };
 
+#ifdef PM_DEBUG
+u32  AllocCounter = 0;
+u32  TotalAllocSize = 0;
+u32  RestAllocSize = 0;
+#endif
+
+
 void PutMemBlockHeader(void *block, struct MemBlock *prev, struct MemBlock *next, u32 size)
 {
     struct MemBlock *header = (struct MemBlock *)block;
@@ -176,20 +183,55 @@ void InitHeap(void *heapStart, u32 heapSize)
     sHeapStart = heapStart;
     sHeapSize = heapSize;
     PutFirstMemBlockHeader(heapStart, heapSize);
+#ifdef PM_DEBUG
+	AllocCounter = 0;
+	TotalAllocSize = 0;
+	RestAllocSize = sHeapSize;
+#endif
 }
 
 void *Alloc(u32 size)
 {
+#ifdef PM_DEBUG
+	void *p;
+	u32 alloc_size;
+
+	p = AllocInternal(sHeapStart, size);
+	alloc_size = (((struct MemBlock*)(p - sizeof(struct MemBlock)))->size) + sizeof(struct MemBlock);
+	TotalAllocSize += alloc_size;
+	RestAllocSize -= alloc_size;
+	AllocCounter++;
+	return p;
+#else
     return AllocInternal(sHeapStart, size);
+#endif
 }
 
 void *AllocZeroed(u32 size)
 {
+#ifdef PM_DEBUG
+	void *p;
+	u32 alloc_size;
+
+	p = AllocZeroedInternal(sHeapStart, size);
+	alloc_size = (((struct MemBlock*)(p - sizeof(struct MemBlock)))->size) + sizeof(struct MemBlock);
+	TotalAllocSize += alloc_size;
+	RestAllocSize -= alloc_size;
+	AllocCounter++;
+	return p;
+#else
     return AllocZeroedInternal(sHeapStart, size);
+#endif
 }
 
 void Free(void *pointer)
 {
+#ifdef PM_DEBUG
+	u32  alloc_size = (((struct MemBlock*)(pointer - sizeof(struct MemBlock)))->size) + sizeof(struct MemBlock);
+	TotalAllocSize -= alloc_size;
+	RestAllocSize += alloc_size;
+	AllocCounter--;
+#endif
     FreeInternal(sHeapStart, pointer);
 }
 
@@ -210,3 +252,15 @@ bool32 CheckHeap()
 
     return TRUE;
 }
+
+#ifdef PM_DEBUG
+u32 GetAllocCounter(void)
+{
+	return AllocCounter;
+}
+
+u32 GetRestAllocSize()
+{
+	return RestAllocSize;
+}
+#endif
