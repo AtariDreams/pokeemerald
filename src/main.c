@@ -119,6 +119,9 @@ void AgbMain()
     gLinkTransferringData = FALSE;
     sUnusedVar = 0xFC0;
 
+#ifdef PM_DEBUG
+    msg_default_jp_mode = FALSE;
+#endif
     for (;;)
     {
         ReadKeys();
