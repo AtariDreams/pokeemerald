@@ -1345,7 +1345,11 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
     int glyphWidth;
     s32 width;
 
-    isJapanese = 0;
+#ifdef PM_DEBUG
+	isJapanese = msg_default_jp_mode;
+#else
+	isJapanese = 0;
+#endif
     minGlyphWidth = 0;
 
     func = GetFontWidthFunc(fontId);
