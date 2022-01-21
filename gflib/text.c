@@ -236,6 +236,10 @@ static const u8 sMenuCursorDimensions[][2] =
 
 static const u16 sFontBoldJapaneseGlyphs[] = INCBIN_U16("graphics/fonts/bold.hwjpnfont");
 
+#ifdef PM_DEBUG
+u8 msg_default_jp_mode;
+#endif
+
 static void SetFontsPointer(const struct FontInfo *fonts)
 {
     gFonts = fonts;
@@ -288,7 +292,11 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     sTempTextPrinter.printerTemplate = *printerTemplate;
     sTempTextPrinter.callback = callback;
     sTempTextPrinter.minLetterSpacing = 0;
-    sTempTextPrinter.japanese = 0;
+#ifdef PM_DEBUG
+	sTempTextPrinter.japanese = msg_default_jp_mode;
+#else
+	sTempTextPrinter.japanese = 0;
+#endif
 
     GenerateFontHalfRowLookupTable(printerTemplate->fgColor, printerTemplate->bgColor, printerTemplate->shadowColor);
     if (speed != TEXT_SKIP_DRAW && speed != 0)
