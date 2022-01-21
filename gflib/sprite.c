@@ -482,21 +482,19 @@ void CopyMatricesToOamBuffer(void)
 
 void AddSpritesToOamBuffer(void)
 {
-    u8 i = 0;
-    u8 oamIndex = 0;
+    u8 i;
+    u8 oamIndex;
 
-    while (i < MAX_SPRITES)
+    for (i = 0, oamIndex = 0; i < MAX_SPRITES; i++)
     {
         struct Sprite *sprite = &gSprites[sSpriteOrder[i]];
         if (sprite->inUse && !sprite->invisible && AddSpriteToOamBuffer(sprite, &oamIndex))
             return;
-        i++;
     }
 
-    while (oamIndex < gOamLimit)
+    for (; oamIndex < gOamLimit; oamIndex++)
     {
         gMain.oamBuffer[oamIndex] = gDummyOamData;
-        oamIndex++;
     }
 }
 
