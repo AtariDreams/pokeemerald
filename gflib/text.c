@@ -1103,7 +1103,11 @@ static u16 RenderText(struct TextPrinter *textPrinter)
                 textPrinter->japanese = TRUE;
                 return RENDER_REPEAT;
             case EXT_CTRL_CODE_ENG:
+#ifdef PM_DEBUG
+                textPrinter->japanese = msg_default_jp_mode;
+#else
                 textPrinter->japanese = FALSE;
+#endif
                 return RENDER_REPEAT;
             }
             break;
