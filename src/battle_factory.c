@@ -38,7 +38,7 @@ static void GenerateInitialRentalMons(void);
 static void GetOpponentMostCommonMonType(void);
 static void GetOpponentBattleStyle(void);
 static void RestorePlayerPartyHeldItems(void);
-static u16 GetFactoryMonId(u8 lvlMode, u8 challengeNum, bool8 useBetterRange);
+static u16 GetFactoryPokemon(u8 lvlMode, u8 challengeNum, bool8 useBetterRange);
 static u8 GetMoveBattleStyle(u16 move);
 
 // Number of moves needed on the team to be considered using a certain battle style
@@ -330,7 +330,7 @@ static void GenerateOpponentMons(void)
     i = 0;
     while (i != FRONTIER_PARTY_SIZE)
     {
-        u16 monId = GetFactoryMonId(lvlMode, challengeNum, FALSE);
+        u16 monId = GetFactoryPokemon(lvlMode, challengeNum, FALSE);
         if (gFacilityTrainerMons[monId].species == SPECIES_UNOWN)
             continue;
 
@@ -547,9 +547,9 @@ static void GenerateInitialRentalMons(void)
     while (i != PARTY_SIZE)
     {
         if (i < rentalRank) // The more times the player has rented, the more initial rentals are generated from a better set of pokemon
-            monId = GetFactoryMonId(factoryLvlMode, challengeNum, TRUE);
+            monId = GetFactoryPokemon(factoryLvlMode, challengeNum, TRUE);
         else
-            monId = GetFactoryMonId(factoryLvlMode, challengeNum, FALSE);
+            monId = GetFactoryPokemon(factoryLvlMode, challengeNum, FALSE);
 
         if (gFacilityTrainerMons[monId].species == SPECIES_UNOWN)
             continue;
@@ -598,6 +598,10 @@ static void GenerateInitialRentalMons(void)
 // and NUMBER_OF_MON_TYPES is the result.
 static void GetOpponentMostCommonMonType(void)
 {
+#ifdef PM_DEBUG
+	static u16 d_type[TYPE_MAX];
+	static u16 d_monsno;
+#endif
     u8 i;
     u8 typeCounts[NUMBER_OF_MON_TYPES];
     u8 mostCommonTypes[2];
@@ -606,13 +610,29 @@ static void GetOpponentMostCommonMonType(void)
 
     // Count the number of times each type occurs in the opponent's party.
     for (i = TYPE_NORMAL; i < NUMBER_OF_MON_TYPES; i++)
+    {
         typeCounts[i] = 0;
+#ifdef PM_DEBUG
+		d_type[i]=0;
+#endif	
+    }
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
     {
         u32 species = gFacilityTrainerMons[gFrontierTempParty[i]].species;
-        typeCounts[gBaseStats[species].type1]++;
+        u8 index = gBaseStats[species].type1;
+        typeCounts[index]++;
+#ifdef PM_DEBUG
+		d_type[index]++;
+#endif	
+
         if (gBaseStats[species].type1 != gBaseStats[species].type2)
-            typeCounts[gBaseStats[species].type2]++;
+        {
+            index = gBaseStats[species].type2;
+            typeCounts[index]++;
+#ifdef PM_DEBUG
+			d_type[index]++;
+#endif		
+        }
     }
 
     // Determine which are the two most-common types.
@@ -753,7 +773,7 @@ void FillFactoryBrainParty(void)
 
     while (i != FRONTIER_PARTY_SIZE)
     {
-        u16 monId = GetFactoryMonId(lvlMode, challengeNum, FALSE);
+        u16 monId = GetFactoryPokemon(lvlMode, challengeNum, FALSE);
 
         if (gFacilityTrainerMons[monId].species == SPECIES_UNOWN)
             continue;
@@ -803,8 +823,11 @@ void FillFactoryBrainParty(void)
     }
 }
 
-static u16 GetFactoryMonId(u8 lvlMode, u8 challengeNum, bool8 useBetterRange)
+static u16 GetFactoryPokemon(u8 lvlMode, u8 challengeNum, bool8 useBetterRange)
 {
+ #ifdef	PM_DEBUG
+	static u16 d_num;
+#endif
     u16 numMons, monId;
     u16 adder; // Used to skip past early mons for open level
 
@@ -818,12 +841,18 @@ static u16 GetFactoryMonId(u8 lvlMode, u8 challengeNum, bool8 useBetterRange)
         if (useBetterRange)
         {
             numMons = (sInitialRentalMonRanges[adder + challengeNum + 1][1] - sInitialRentalMonRanges[adder + challengeNum + 1][0]) + 1;
+#ifdef	PM_DEBUG
+	d_num = numMons;
+#endif	
             monId = Random() % numMons;
             monId += sInitialRentalMonRanges[adder + challengeNum + 1][0];
         }
         else
         {
             numMons = (sInitialRentalMonRanges[adder + challengeNum][1] - sInitialRentalMonRanges[adder + challengeNum][0]) + 1;
+#ifdef	PM_DEBUG
+	d_num = numMons;
+#endif	
             monId = Random() % numMons;
             monId += sInitialRentalMonRanges[adder + challengeNum][0];
         }
