@@ -2511,6 +2511,11 @@ void CreateFrontierBrainPokemon(void)
     ZeroEnemyPartyMons();
     monPartyId = 0;
     monLevel = SetFacilityPtrsGetLevel();
+#ifdef	PM_DEBUG
+	if(DebugFightFlag & DEBUG_FIGHT_LV1) {
+		monLevel=1;
+	}
+#endif	//PM_DEBUG
     for (i = 0; i < FRONTIER_PARTY_SIZE; selectedMonBits >>= 1, i++)
     {
         if (!(selectedMonBits & 1))
