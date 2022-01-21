@@ -807,6 +807,10 @@ void RequestSpriteFrameImageCopy(u16 index, u16 tileNum, const struct SpriteFram
         sSpriteCopyRequests[sSpriteCopyRequestCount].size = images[index].size;
         sSpriteCopyRequestCount++;
     }
+#ifdef PM_DEBUG
+	else
+		ErrorMsgPut(actor_dma_over_msg);
+#endif
 }
 
 void RequestSpriteCopy(const u8 *src, u8 *dest, u16 size)
@@ -818,6 +822,10 @@ void RequestSpriteCopy(const u8 *src, u8 *dest, u16 size)
         sSpriteCopyRequests[sSpriteCopyRequestCount].size = size;
         sSpriteCopyRequestCount++;
     }
+#ifdef PM_DEBUG
+	else
+		ErrorMsgPut(actor_dma_over_msg);
+#endif
 }
 
 void CopyFromSprites(u8 *dest)
