@@ -111,20 +111,20 @@ void CallVerdanturfTentFunction(void)
 
 static void InitVerdanturfTentChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = 0;
-    gSaveBlock2Ptr->frontier.curChallengeBattleNum = 0;
-    gSaveBlock2Ptr->frontier.challengePaused = FALSE;
-    SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE);
+    gSaveBlock2.frontier.challengeStatus = 0;
+    gSaveBlock2.frontier.curChallengeBattleNum = 0;
+    gSaveBlock2.frontier.challengePaused = FALSE;
+    SetDynamicWarp(0, gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum, WARP_ID_NONE);
 }
 
 static void GetVerdanturfTentPrize(void)
 {
-    gSpecialVar_Result = gSaveBlock2Ptr->frontier.verdanturfTentPrize;
+    gSpecialVar_Result = gSaveBlock2.frontier.verdanturfTentPrize;
 }
 
 static void SetVerdanturfTentPrize(void)
 {
-    gSaveBlock2Ptr->frontier.verdanturfTentPrize = gSpecialVar_0x8006;
+    gSaveBlock2.frontier.verdanturfTentPrize = gSpecialVar_0x8006;
 }
 
 static void SetVerdanturfTentTrainerGfx(void)
@@ -141,23 +141,23 @@ static void BufferVerdanturfTentTrainerIntro(void)
 
 static void SaveVerdanturfTentChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = gSpecialVar_0x8005;
+    gSaveBlock2.frontier.challengeStatus = gSpecialVar_0x8005;
     VarSet(VAR_TEMP_0, 0);
-    gSaveBlock2Ptr->frontier.challengePaused = TRUE;
+    gSaveBlock2.frontier.challengePaused = TRUE;
     SaveGameFrontier();
 }
 
 static void SetRandomVerdanturfTentPrize(void)
 {
-    gSaveBlock2Ptr->frontier.verdanturfTentPrize = sVerdanturfTentRewards[Random() % ARRAY_COUNT(sVerdanturfTentRewards)];
+    gSaveBlock2.frontier.verdanturfTentPrize = sVerdanturfTentRewards[Random() % ARRAY_COUNT(sVerdanturfTentRewards)];
 }
 
 static void GiveVerdanturfTentPrize(void)
 {
-    if (AddBagItem(gSaveBlock2Ptr->frontier.verdanturfTentPrize, 1) == TRUE)
+    if (AddBagItem(gSaveBlock2.frontier.verdanturfTentPrize, 1) == TRUE)
     {
-        CopyItemName(gSaveBlock2Ptr->frontier.verdanturfTentPrize, gStringVar1);
-        gSaveBlock2Ptr->frontier.verdanturfTentPrize = ITEM_NONE;
+        CopyItemName(gSaveBlock2.frontier.verdanturfTentPrize, gStringVar1);
+        gSaveBlock2.frontier.verdanturfTentPrize = ITEM_NONE;
         gSpecialVar_Result = TRUE;
     }
     else
@@ -173,41 +173,41 @@ void CallFallarborTentFunction(void)
 
 static void InitFallarborTentChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = 0;
-    gSaveBlock2Ptr->frontier.curChallengeBattleNum = 0;
-    gSaveBlock2Ptr->frontier.challengePaused = FALSE;
-    SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE);
+    gSaveBlock2.frontier.challengeStatus = 0;
+    gSaveBlock2.frontier.curChallengeBattleNum = 0;
+    gSaveBlock2.frontier.challengePaused = FALSE;
+    SetDynamicWarp(0, gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum, WARP_ID_NONE);
 }
 
 static void GetFallarborTentPrize(void)
 {
-    gSpecialVar_Result = gSaveBlock2Ptr->frontier.fallarborTentPrize;
+    gSpecialVar_Result = gSaveBlock2.frontier.fallarborTentPrize;
 }
 
 static void SetFallarborTentPrize(void)
 {
-    gSaveBlock2Ptr->frontier.fallarborTentPrize = gSpecialVar_0x8006;
+    gSaveBlock2.frontier.fallarborTentPrize = gSpecialVar_0x8006;
 }
 
 static void SaveFallarborTentChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = gSpecialVar_0x8005;
+    gSaveBlock2.frontier.challengeStatus = gSpecialVar_0x8005;
     VarSet(VAR_TEMP_0, 0);
-    gSaveBlock2Ptr->frontier.challengePaused = TRUE;
+    gSaveBlock2.frontier.challengePaused = TRUE;
     SaveGameFrontier();
 }
 
 static void SetRandomFallarborTentPrize(void)
 {
-    gSaveBlock2Ptr->frontier.fallarborTentPrize = sFallarborTentRewards[Random() % ARRAY_COUNT(sFallarborTentRewards)];
+    gSaveBlock2.frontier.fallarborTentPrize = sFallarborTentRewards[Random() % ARRAY_COUNT(sFallarborTentRewards)];
 }
 
 static void GiveFallarborTentPrize(void)
 {
-    if (AddBagItem(gSaveBlock2Ptr->frontier.fallarborTentPrize, 1) == TRUE)
+    if (AddBagItem(gSaveBlock2.frontier.fallarborTentPrize, 1) == TRUE)
     {
-        CopyItemName(gSaveBlock2Ptr->frontier.fallarborTentPrize, gStringVar1);
-        gSaveBlock2Ptr->frontier.fallarborTentPrize = ITEM_NONE;
+        CopyItemName(gSaveBlock2.frontier.fallarborTentPrize, gStringVar1);
+        gSaveBlock2.frontier.fallarborTentPrize = ITEM_NONE;
         gSpecialVar_Result = TRUE;
     }
     else
@@ -228,41 +228,41 @@ void CallSlateportTentFunction(void)
 
 static void InitSlateportTentChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = 0;
-    gSaveBlock2Ptr->frontier.curChallengeBattleNum = 0;
-    gSaveBlock2Ptr->frontier.challengePaused = FALSE;
-    SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE);
+    gSaveBlock2.frontier.challengeStatus = 0;
+    gSaveBlock2.frontier.curChallengeBattleNum = 0;
+    gSaveBlock2.frontier.challengePaused = FALSE;
+    SetDynamicWarp(0, gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum, WARP_ID_NONE);
 }
 
 static void GetSlateportTentPrize(void)
 {
-    gSpecialVar_Result = gSaveBlock2Ptr->frontier.slateportTentPrize;
+    gSpecialVar_Result = gSaveBlock2.frontier.slateportTentPrize;
 }
 
 static void SetSlateportTentPrize(void)
 {
-    gSaveBlock2Ptr->frontier.slateportTentPrize = gSpecialVar_0x8006;
+    gSaveBlock2.frontier.slateportTentPrize = gSpecialVar_0x8006;
 }
 
 static void SaveSlateportTentChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = gSpecialVar_0x8005;
+    gSaveBlock2.frontier.challengeStatus = gSpecialVar_0x8005;
     VarSet(VAR_TEMP_0, 0);
-    gSaveBlock2Ptr->frontier.challengePaused = TRUE;
+    gSaveBlock2.frontier.challengePaused = TRUE;
     SaveGameFrontier();
 }
 
 static void SetRandomSlateportTentPrize(void)
 {
-    gSaveBlock2Ptr->frontier.slateportTentPrize = sSlateportTentRewards[Random() % ARRAY_COUNT(sSlateportTentRewards)];
+    gSaveBlock2.frontier.slateportTentPrize = sSlateportTentRewards[Random() % ARRAY_COUNT(sSlateportTentRewards)];
 }
 
 static void GiveSlateportTentPrize(void)
 {
-    if (AddBagItem(gSaveBlock2Ptr->frontier.slateportTentPrize, 1) == TRUE)
+    if (AddBagItem(gSaveBlock2.frontier.slateportTentPrize, 1) == TRUE)
     {
-        CopyItemName(gSaveBlock2Ptr->frontier.slateportTentPrize, gStringVar1);
-        gSaveBlock2Ptr->frontier.slateportTentPrize = ITEM_NONE;
+        CopyItemName(gSaveBlock2.frontier.slateportTentPrize, gStringVar1);
+        gSaveBlock2.frontier.slateportTentPrize = ITEM_NONE;
         gSpecialVar_Result = TRUE;
     }
     else
@@ -342,7 +342,7 @@ static void GenerateInitialRentalMons(void)
         if (j != i + firstMonId)
             continue;
 
-        gSaveBlock2Ptr->frontier.rentalMons[i].monId = monSetId;
+        gSaveBlock2.frontier.rentalMons[i].monId = monSetId;
         species[i] = gFacilityTrainerMons[monSetId].species;
         heldItems[i] = gBattleFrontierHeldItems[gFacilityTrainerMons[monSetId].itemTableId];
         monIds[i] = monSetId;
@@ -367,12 +367,12 @@ static void GenerateOpponentMons(void)
         do
         {
             trainerId = Random() % NUM_BATTLE_TENT_TRAINERS;
-            for (i = 0; i < gSaveBlock2Ptr->frontier.curChallengeBattleNum; i++)
+            for (i = 0; i < gSaveBlock2.frontier.curChallengeBattleNum; i++)
             {
-                if (gSaveBlock2Ptr->frontier.trainerIds[i] == trainerId)
+                if (gSaveBlock2.frontier.trainerIds[i] == trainerId)
                     break;
             }
-        } while (i != gSaveBlock2Ptr->frontier.curChallengeBattleNum);
+        } while (i != gSaveBlock2.frontier.curChallengeBattleNum);
 
         gTrainerBattleOpponent_A = trainerId;
         monSet = gFacilityTrainers[gTrainerBattleOpponent_A].monSet;
@@ -383,8 +383,8 @@ static void GenerateOpponentMons(void)
         monId = 0;
     }
 
-    if (gSaveBlock2Ptr->frontier.curChallengeBattleNum < 2)
-        gSaveBlock2Ptr->frontier.trainerIds[gSaveBlock2Ptr->frontier.curChallengeBattleNum] = gTrainerBattleOpponent_A;
+    if (gSaveBlock2.frontier.curChallengeBattleNum < 2)
+        gSaveBlock2.frontier.trainerIds[gSaveBlock2.frontier.curChallengeBattleNum] = gTrainerBattleOpponent_A;
 
     monSet = gFacilityTrainers[gTrainerBattleOpponent_A].monSet;
     i = 0;
@@ -393,7 +393,7 @@ static void GenerateOpponentMons(void)
         sRandMonSetId = monSet[Random() % monId];
         for (j = 0; j < 6; j++)
         {
-            if (gFacilityTrainerMons[sRandMonSetId].species == gFacilityTrainerMons[gSaveBlock2Ptr->frontier.rentalMons[j].monId].species)
+            if (gFacilityTrainerMons[sRandMonSetId].species == gFacilityTrainerMons[gSaveBlock2.frontier.rentalMons[j].monId].species)
                 break;
         }
         if (j != 6)

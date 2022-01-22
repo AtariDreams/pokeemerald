@@ -359,7 +359,7 @@ static const u8 sSwapArrowTextColors[] = {TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRA
 void NewGameInitPCItems(void)
 {
     u8 i = 0;
-    ClearItemSlots(gSaveBlock1Ptr->pcItems, PC_ITEMS_COUNT);
+    ClearItemSlots(gSaveBlock1.pcItems, PC_ITEMS_COUNT);
     for(; sNewGamePCItems[i].itemId != ITEM_NONE && GET_QUANTITY(i) &&
         AddPCItem(sNewGamePCItems[i].itemId, GET_QUANTITY(i)) == TRUE; i++);
 }
@@ -488,7 +488,7 @@ static void PlayerPC_TurnOff(u8 taskId)
 {
     if (sTopMenuNumOptions == NUM_BEDROOM_PC_OPTIONS) // Flimsy way to determine if Bedroom PC is in use
     {
-        if (gSaveBlock2Ptr->playerGender == MALE)
+        if (gSaveBlock2.playerGender == MALE)
             ScriptContext1_SetupScript(LittlerootTown_BrendansHouse_2F_EventScript_TurnOffPlayerPC);
         else
             ScriptContext1_SetupScript(LittlerootTown_MaysHouse_2F_EventScript_TurnOffPlayerPC);
@@ -666,7 +666,7 @@ static u8 GetMailboxMailCount(void)
 
     // Count mail in PC (by first skipping over mail in party)
     for (mailInPC = 0, i = PARTY_SIZE; i < MAIL_COUNT; i++)
-        if (gSaveBlock1Ptr->mail[i].itemId != ITEM_NONE)
+        if (gSaveBlock1.mail[i].itemId != ITEM_NONE)
             mailInPC++;
 
     return mailInPC;
@@ -681,8 +681,8 @@ static void Mailbox_CompactMailList(void)
     {
         for (j = i + 1; j < MAIL_COUNT; j++)
         {
-            if (gSaveBlock1Ptr->mail[i].itemId == ITEM_NONE)
-                SWAP(gSaveBlock1Ptr->mail[i], gSaveBlock1Ptr->mail[j], temp);
+            if (gSaveBlock1.mail[i].itemId == ITEM_NONE)
+                SWAP(gSaveBlock1.mail[i], gSaveBlock1.mail[j], temp);
         }
     }
 }
@@ -731,7 +731,7 @@ static void Mailbox_ProcessInput(u8 taskId)
 
 static void Mailbox_PrintWhatToDoWithPlayerMailText(u8 taskId)
 {
-    StringCopy(gStringVar1, gSaveBlock1Ptr->mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos].playerName);
+    StringCopy(gStringVar1, gSaveBlock1.mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos].playerName);
     ConvertInternationalPlayerNameStripChar(gStringVar1, CHAR_SPACE);
     StringExpandPlaceholders(gStringVar4, gText_WhatToDoWithVar1sMail);
     DisplayItemMessageOnField(taskId, gStringVar4, Mailbox_PrintMailOptions);
@@ -789,7 +789,7 @@ static void Mailbox_FadeAndReadMail(u8 taskId)
     {
         MailboxMenu_Free();
         CleanupOverworldWindowsAndTilemaps();
-        ReadMail(&gSaveBlock1Ptr->mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos], Mailbox_ReturnToFieldFromReadMail, TRUE);
+        ReadMail(&gSaveBlock1.mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos], Mailbox_ReturnToFieldFromReadMail, TRUE);
         DestroyTask(taskId);
     }
 }
@@ -850,7 +850,7 @@ static void Mailbox_HandleConfirmMoveToBag(u8 taskId)
 
 static void Mailbox_DoMailMoveToBag(u8 taskId)
 {
-    struct Mail *mail = &gSaveBlock1Ptr->mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos];
+    struct Mail *mail = &gSaveBlock1.mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos];
     if (!AddBagItem(mail->itemId, 1))
     {
         DisplayItemMessageOnField(taskId, gText_BagIsFull, Mailbox_Cancel);
@@ -982,7 +982,7 @@ void ItemStorage_RefreshListMenu(void)
     // Copy item names for all entries but the last (which is Cancel)
     for(i = 0; i < gPlayerPCItemPageInfo.count - 1; i++)
     {
-        CopyItemName_PlayerPC(&sItemStorageMenu->itemNames[i][0], gSaveBlock1Ptr->pcItems[i].itemId);
+        CopyItemName_PlayerPC(&sItemStorageMenu->itemNames[i][0], gSaveBlock1.pcItems[i].itemId);
         sItemStorageMenu->listItems[i].name = &sItemStorageMenu->itemNames[i][0];
         sItemStorageMenu->listItems[i].id = i;
     }
@@ -1013,7 +1013,7 @@ static void ItemStorage_MoveCursor(s32 id, bool8 onInit, struct ListMenu *list)
     {
         ItemStorage_EraseItemIcon();
         if (id != LIST_CANCEL)
-            ItemStorage_DrawItemIcon(gSaveBlock1Ptr->pcItems[id].itemId);
+            ItemStorage_DrawItemIcon(gSaveBlock1.pcItems[id].itemId);
         else
             ItemStorage_DrawItemIcon(MSG_GO_BACK_TO_PREV);
         ItemStorage_PrintDescription(id);
@@ -1031,7 +1031,7 @@ static void ItemStorage_PrintMenuItem(u8 windowId, u32 id, u8 yOffset)
             else
                 ItemStorage_DrawSwapArrow(yOffset, 0xFF, TEXT_SKIP_DRAW);
         }
-        ConvertIntToDecimalStringN(gStringVar1, gSaveBlock1Ptr->pcItems[id].quantity, STR_CONV_MODE_RIGHT_ALIGN, 3);
+        ConvertIntToDecimalStringN(gStringVar1, gSaveBlock1.pcItems[id].quantity, STR_CONV_MODE_RIGHT_ALIGN, 3);
         StringExpandPlaceholders(gStringVar4, gText_xVar1);
         AddTextPrinterParameterized(windowId, FONT_NARROW, gStringVar4, GetStringRightAlignXOffset(FONT_NARROW, gStringVar4, 104), yOffset, TEXT_SKIP_DRAW, NULL);
     }
@@ -1044,7 +1044,7 @@ static void ItemStorage_PrintDescription(s32 id)
 
     // Get item description (or Cancel text)
     if (id != LIST_CANCEL)
-        description = (u8 *)ItemId_GetDescription(gSaveBlock1Ptr->pcItems[id].itemId);
+        description = (u8 *)ItemId_GetDescription(gSaveBlock1.pcItems[id].itemId);
     else
         description = ItemStorage_GetMessage(MSG_GO_BACK_TO_PREV);
 
@@ -1120,7 +1120,7 @@ static void ItemStorage_EraseItemIcon(void)
 static void ItemStorage_CompactList(void)
 {
     CompactPCItems();
-    SetItemListPerPageCount(gSaveBlock1Ptr->pcItems, PC_ITEMS_COUNT, &gPlayerPCItemPageInfo.pageItems, &gPlayerPCItemPageInfo.count, 8);
+    SetItemListPerPageCount(gSaveBlock1.pcItems, PC_ITEMS_COUNT, &gPlayerPCItemPageInfo.pageItems, &gPlayerPCItemPageInfo.count, 8);
 }
 
 static void ItemStorage_CompactCursor(void)
@@ -1270,7 +1270,7 @@ static void ItemStorage_StartItemSwap(u8 taskId)
     sItemStorageMenu->toSwapPos = gPlayerPCItemPageInfo.itemsAbove + gPlayerPCItemPageInfo.cursorPos;
     ItemStorage_SetSwapArrow(tListTaskId, 0, 0);
     ItemStorage_UpdateSwapLinePos(sItemStorageMenu->toSwapPos);
-    CopyItemName(gSaveBlock1Ptr->pcItems[sItemStorageMenu->toSwapPos].itemId, gStringVar1);
+    CopyItemName(gSaveBlock1.pcItems[sItemStorageMenu->toSwapPos].itemId, gStringVar1);
     ItemStorage_PrintMessage(ItemStorage_GetMessage(MSG_SWITCH_WHICH_ITEM));
     gTasks[taskId].func = ItemStorage_ProcessItemSwapInput;
 }
@@ -1316,7 +1316,7 @@ static void ItemStorage_FinishItemSwap(u8 taskId, bool8 canceled)
 
     if (!canceled && sItemStorageMenu->toSwapPos != newPos && sItemStorageMenu->toSwapPos != newPos - 1)
     {
-        MoveItemSlotInList(gSaveBlock1Ptr->pcItems, sItemStorageMenu->toSwapPos, newPos);
+        MoveItemSlotInList(gSaveBlock1.pcItems, sItemStorageMenu->toSwapPos, newPos);
         ItemStorage_RefreshListMenu();
     }
     if (sItemStorageMenu->toSwapPos < newPos)
@@ -1351,7 +1351,7 @@ static void ItemStorage_DoItemAction(u8 taskId)
 
     if (!tInTossMenu)
     {
-        if (gSaveBlock1Ptr->pcItems[pos].quantity == 1)
+        if (gSaveBlock1.pcItems[pos].quantity == 1)
         {
             // Withdrawing 1 item, do it automatically
             ItemStorage_DoItemWithdraw(taskId);
@@ -1359,12 +1359,12 @@ static void ItemStorage_DoItemAction(u8 taskId)
         }
 
         // Withdrawing multiple items, show "how many" message
-        CopyItemName(gSaveBlock1Ptr->pcItems[pos].itemId, gStringVar1);
+        CopyItemName(gSaveBlock1.pcItems[pos].itemId, gStringVar1);
         ItemStorage_PrintMessage(ItemStorage_GetMessage(MSG_HOW_MANY_TO_WITHDRAW));
     }
     else
     {
-        if (gSaveBlock1Ptr->pcItems[pos].quantity == 1)
+        if (gSaveBlock1.pcItems[pos].quantity == 1)
         {
             // Tossing 1 item, do it automatically
             ItemStorage_DoItemToss(taskId);
@@ -1372,7 +1372,7 @@ static void ItemStorage_DoItemAction(u8 taskId)
         }
 
         // Tossing multiple items, show "how many" message
-        CopyItemName(gSaveBlock1Ptr->pcItems[pos].itemId, gStringVar1);
+        CopyItemName(gSaveBlock1.pcItems[pos].itemId, gStringVar1);
         ItemStorage_PrintMessage(ItemStorage_GetMessage(MSG_HOW_MANY_TO_TOSS));
     }
 
@@ -1386,7 +1386,7 @@ static void ItemStorage_HandleQuantityRolling(u8 taskId)
     s16 *data = gTasks[taskId].data;
     u16 pos = gPlayerPCItemPageInfo.cursorPos + gPlayerPCItemPageInfo.itemsAbove;
 
-    if (AdjustQuantityAccordingToDPadInput(&tQuantity, gSaveBlock1Ptr->pcItems[pos].quantity) == TRUE)
+    if (AdjustQuantityAccordingToDPadInput(&tQuantity, gSaveBlock1.pcItems[pos].quantity) == TRUE)
     {
         ItemStorage_PrintItemQuantity(ItemStorage_AddWindow(ITEMPC_WIN_QUANTITY), tQuantity, STR_CONV_MODE_LEADING_ZEROS, 8, 1, 3);
     }
@@ -1407,7 +1407,7 @@ static void ItemStorage_HandleQuantityRolling(u8 taskId)
             // Canceled action
             PlaySE(SE_SELECT);
             ItemStorage_RemoveWindow(ITEMPC_WIN_QUANTITY);
-            ItemStorage_PrintMessage(ItemStorage_GetMessage(gSaveBlock1Ptr->pcItems[pos].itemId));
+            ItemStorage_PrintMessage(ItemStorage_GetMessage(gSaveBlock1.pcItems[pos].itemId));
             ItemStorage_ReturnToListInput(taskId);
         }
     }
@@ -1418,10 +1418,10 @@ static void ItemStorage_DoItemWithdraw(u8 taskId)
     s16 *data = gTasks[taskId].data;
     u16 pos = gPlayerPCItemPageInfo.cursorPos + gPlayerPCItemPageInfo.itemsAbove;
 
-    if (AddBagItem(gSaveBlock1Ptr->pcItems[pos].itemId, tQuantity) == TRUE)
+    if (AddBagItem(gSaveBlock1.pcItems[pos].itemId, tQuantity) == TRUE)
     {
         // Item withdrawn
-        CopyItemName(gSaveBlock1Ptr->pcItems[pos].itemId, gStringVar1);
+        CopyItemName(gSaveBlock1.pcItems[pos].itemId, gStringVar1);
         ConvertIntToDecimalStringN(gStringVar2, tQuantity, STR_CONV_MODE_LEFT_ALIGN, 3);
         ItemStorage_PrintMessage(ItemStorage_GetMessage(MSG_WITHDREW_ITEM));
         gTasks[taskId].func = ItemStorage_HandleRemoveItem;
@@ -1440,10 +1440,10 @@ static void ItemStorage_DoItemToss(u8 taskId)
     s16 *data = gTasks[taskId].data;
     u16 pos = gPlayerPCItemPageInfo.cursorPos + gPlayerPCItemPageInfo.itemsAbove;
 
-    if (!ItemId_GetImportance(gSaveBlock1Ptr->pcItems[pos].itemId))
+    if (!ItemId_GetImportance(gSaveBlock1.pcItems[pos].itemId))
     {
         // Show toss confirmation prompt
-        CopyItemName(gSaveBlock1Ptr->pcItems[pos].itemId, gStringVar1);
+        CopyItemName(gSaveBlock1.pcItems[pos].itemId, gStringVar1);
         ConvertIntToDecimalStringN(gStringVar2, tQuantity, STR_CONV_MODE_LEFT_ALIGN, 3);
         ItemStorage_PrintMessage(ItemStorage_GetMessage(MSG_OKAY_TO_THROW_AWAY));
         CreateYesNoMenuWithCallbacks(taskId, &sWindowTemplates_ItemStorage[ITEMPC_WIN_YESNO], 1, 0, 1, 0x214, 0xE, &ItemTossYesNoFuncs);
@@ -1465,7 +1465,7 @@ static void ItemStorage_TossItemYes(u8 taskId)
 
 static void ItemStorage_TossItemNo(u8 taskId)
 {
-    ItemStorage_PrintMessage(ItemStorage_GetMessage(gSaveBlock1Ptr->pcItems[gPlayerPCItemPageInfo.itemsAbove + gPlayerPCItemPageInfo.cursorPos].itemId));
+    ItemStorage_PrintMessage(ItemStorage_GetMessage(gSaveBlock1.pcItems[gPlayerPCItemPageInfo.itemsAbove + gPlayerPCItemPageInfo.cursorPos].itemId));
     ItemStorage_ReturnToListInput(taskId);
 }
 
@@ -1490,7 +1490,7 @@ static void ItemStorage_HandleErrorMessageInput(u8 taskId)
     s16 *data = gTasks[taskId].data;
     if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
-        ItemStorage_PrintMessage(ItemStorage_GetMessage(gSaveBlock1Ptr->pcItems[gPlayerPCItemPageInfo.itemsAbove + gPlayerPCItemPageInfo.cursorPos].itemId));
+        ItemStorage_PrintMessage(ItemStorage_GetMessage(gSaveBlock1.pcItems[gPlayerPCItemPageInfo.itemsAbove + gPlayerPCItemPageInfo.cursorPos].itemId));
         ItemStorage_ReturnToListInput(taskId);
     }
 }

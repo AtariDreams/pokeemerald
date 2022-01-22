@@ -326,7 +326,7 @@ bool32 ShouldDrawRematchPokeballIcon(int index)
     if (index == REMATCH_TABLE_ENTRIES)
         return FALSE;
 
-    return gSaveBlock1Ptr->trainerRematches[index] != 0;
+    return gSaveBlock1.trainerRematches[index] != 0;
 }
 
 int GetMatchCallTrainerPic(int index)
@@ -475,7 +475,7 @@ static bool32 HasRematchEntry(void)
 
     for (i = 0; i < REMATCH_TABLE_ENTRIES; i++)
     {
-        if (IsRematchEntryRegistered(i) && gSaveBlock1Ptr->trainerRematches[i])
+        if (IsRematchEntryRegistered(i) && gSaveBlock1.trainerRematches[i])
             return TRUE;
     }
 
@@ -484,7 +484,7 @@ static bool32 HasRematchEntry(void)
         if (MatchCall_GetEnabled(i))
         {
             int index = MatchCall_GetRematchTableIdx(i);
-            if (gSaveBlock1Ptr->trainerRematches[index])
+            if (gSaveBlock1.trainerRematches[index])
                 return TRUE;
         }
     }
@@ -500,7 +500,7 @@ static bool32 ShouldDoNearbyMessage(void)
     {
         if (GetMatchCallMapSec(selection) == gMapHeader.regionMapSectionId)
         {
-            if (!gSaveBlock1Ptr->trainerRematches[state->matchCallEntries[selection].headerId])
+            if (!gSaveBlock1.trainerRematches[state->matchCallEntries[selection].headerId])
                 return TRUE;
         }
     }

@@ -1068,16 +1068,12 @@ void HandleLowHpMusicChange(struct Pokemon *mon, u8 battlerId)
     else
     {
         gBattleSpritesDataPtr->battlerData[battlerId].lowHpSong = 0;
-        if (!IsDoubleBattle())
+
+        if (IsDoubleBattle() && gBattleSpritesDataPtr->battlerData[battlerId ^ BIT_FLANK].lowHpSong)
         {
-            m4aSongNumStop(SE_LOW_HEALTH);
             return;
         }
-        if (IsDoubleBattle() && !gBattleSpritesDataPtr->battlerData[battlerId ^ BIT_FLANK].lowHpSong)
-        {
-            m4aSongNumStop(SE_LOW_HEALTH);
-            return;
-        }
+        m4aSongNumStop(SE_LOW_HEALTH);
     }
 }
 
@@ -1250,7 +1246,7 @@ void ClearTemporarySpeciesSpriteData(u8 battlerId, bool8 dontClearSubstitute)
 
 void AllocateMonSpritesGfx(void)
 {
-    u8 i = 0, j;
+    u8 i, j;
 
     gMonSpritesGfxPtr = NULL;
     gMonSpritesGfxPtr = AllocZeroed(sizeof(*gMonSpritesGfxPtr));
@@ -1259,7 +1255,7 @@ void AllocateMonSpritesGfx(void)
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
     {
         gMonSpritesGfxPtr->sprites.ptr[i] = gMonSpritesGfxPtr->firstDecompressed + (i * MON_PIC_SIZE * 4);
-        *(gMonSpritesGfxPtr->templates + i) = gBattlerSpriteTemplates[i];
+        gMonSpritesGfxPtr->templates[i] = gBattlerSpriteTemplates[i];
 
         for (j = 0; j < 4; j++)
         {

@@ -152,7 +152,7 @@ static void GetMonSizeRecordInfo(u16 species, u16 *sizeRecord)
     if (*sizeRecord == DEFAULT_MAX_SIZE)
         StringCopy(gStringVar2, gText_Marco);
     else
-        StringCopy(gStringVar2, gSaveBlock2Ptr->playerName);
+        StringCopy(gStringVar2, gSaveBlock2.playerName);
 }
 
 void InitSeedotSizeRecord(void)
@@ -203,7 +203,7 @@ void GiveGiftRibbonToParty(u8 index, u8 ribbonId)
 
     if (index < GIFT_RIBBONS_COUNT && ribbonId <= MAX_GIFT_RIBBON)
     {
-        gSaveBlock1Ptr->giftRibbons[index] = ribbonId;
+        gSaveBlock1.giftRibbons[index] = ribbonId;
         for (i = 0; i < PARTY_SIZE; i++)
         {
             struct Pokemon *mon = &gPlayerParty[i];
