@@ -311,10 +311,10 @@ static const s8 sCenterToCornerVecXs[8] ={-32, -16, -16, -32, -32};
 
 // format: attacking type, defending type, damage multiplier
 // the multiplier is a (decimal) fixed-point number:
-// 20 is �?2.0 TYPE_MUL_SUPER_EFFECTIVE
-// 10 is �?1.0 TYPE_MUL_NORMAL
-// 05 is �?0.5 TYPE_MUL_NOT_EFFECTIVE
-// 00 is �?0.0 TYPE_MUL_NO_EFFECT
+// 20 is ×2.0 TYPE_MUL_SUPER_EFFECTIVE
+// 10 is ×1.0 TYPE_MUL_NORMAL
+// 05 is ×0.5 TYPE_MUL_NOT_EFFECTIVE
+// 00 is ×0.0 TYPE_MUL_NO_EFFECT
 const u8 gTypeEffectiveness[336] =
 {
     TYPE_NORMAL, TYPE_ROCK, TYPE_MUL_NOT_EFFECTIVE,
