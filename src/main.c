@@ -109,10 +109,6 @@ void AgbMain()
     InitHeap(gHeap, HEAP_SIZE);
 
     gSoftResetDisabled = FALSE;
-
-    // if (gFlashMemoryPresent != TRUE)
-    //     SetMainCallback2(NULL);
-
     gLinkTransferringData = FALSE;
 
     for (;;)
