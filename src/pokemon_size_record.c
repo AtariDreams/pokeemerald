@@ -51,13 +51,13 @@ extern const u8 gText_Marco[];
 
 static u32 GetMonSizeHash(struct Pokemon *pkmn)
 {
-    u16 personality = GetMonData(pkmn, MON_DATA_PERSONALITY);
-    u16 hpIV = GetMonData(pkmn, MON_DATA_HP_IV) & 0xF;
-    u16 attackIV = GetMonData(pkmn, MON_DATA_ATK_IV) & 0xF;
-    u16 defenseIV = GetMonData(pkmn, MON_DATA_DEF_IV) & 0xF;
-    u16 speedIV = GetMonData(pkmn, MON_DATA_SPEED_IV) & 0xF;
-    u16 spAtkIV = GetMonData(pkmn, MON_DATA_SPATK_IV) & 0xF;
-    u16 spDefIV = GetMonData(pkmn, MON_DATA_SPDEF_IV) & 0xF;
+    u16 personality = GetMonData(pkmn, MON_DATA_PERSONALITY, NULL);
+    u16 hpIV = GetMonData(pkmn, MON_DATA_HP_IV, NULL) & 0xF;
+    u16 attackIV = GetMonData(pkmn, MON_DATA_ATK_IV, NULL) & 0xF;
+    u16 defenseIV = GetMonData(pkmn, MON_DATA_DEF_IV, NULL) & 0xF;
+    u16 speedIV = GetMonData(pkmn, MON_DATA_SPEED_IV, NULL) & 0xF;
+    u16 spAtkIV = GetMonData(pkmn, MON_DATA_SPATK_IV, NULL) & 0xF;
+    u16 spDefIV = GetMonData(pkmn, MON_DATA_SPDEF_IV, NULL) & 0xF;
     u32 hibyte = ((attackIV ^ defenseIV) * hpIV) ^ (personality & 0xFF);
     u32 lobyte = ((spAtkIV ^ spDefIV) * speedIV) ^ (personality >> 8);
 
@@ -115,7 +115,7 @@ static u8 CompareMonSize(u16 species, u16 *sizeRecord)
     {
         struct Pokemon *pkmn = &gPlayerParty[gSpecialVar_Result];
 
-        if (GetMonData(pkmn, MON_DATA_IS_EGG) == TRUE || GetMonData(pkmn, MON_DATA_SPECIES) != species)
+        if (GetMonData(pkmn, MON_DATA_IS_EGG, NULL) == TRUE || GetMonData(pkmn, MON_DATA_SPECIES, NULL) != species)
         {
             return 1;
         }
@@ -208,7 +208,7 @@ void GiveGiftRibbonToParty(u8 index, u8 ribbonId)
         {
             struct Pokemon *mon = &gPlayerParty[i];
 
-            if (GetMonData(mon, MON_DATA_SPECIES) != 0 && GetMonData(mon, MON_DATA_SANITY_IS_EGG) == 0)
+            if (GetMonData(mon, MON_DATA_SPECIES, NULL) != 0 && GetMonData(mon, MON_DATA_SANITY_IS_EGG, NULL) == 0)
             {
                 SetMonData(mon, array[index], &data);
                 gotRibbon = TRUE;

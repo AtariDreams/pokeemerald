@@ -1144,16 +1144,16 @@ static u8 GetWaterSpoutPowerForAnim(void)
     {
         partyIndex = gBattlerPartyIndexes[gBattleAnimAttacker];
         slot =  &gPlayerParty[partyIndex];
-        maxhp = GetMonData(slot, MON_DATA_MAX_HP);
-        hp = GetMonData(slot, MON_DATA_HP);
+        maxhp = GetMonData(slot, MON_DATA_MAX_HP, NULL);
+        hp = GetMonData(slot, MON_DATA_HP, NULL);
         maxhp /= 4;
     }
     else
     {
         partyIndex = gBattlerPartyIndexes[gBattleAnimAttacker];
         slot =  &gEnemyParty[partyIndex];
-        maxhp = GetMonData(slot, MON_DATA_MAX_HP);
-        hp = GetMonData(slot, MON_DATA_HP);
+        maxhp = GetMonData(slot, MON_DATA_MAX_HP, NULL);
+        hp = GetMonData(slot, MON_DATA_HP, NULL);
         maxhp /= 4;
     }
     for (i = 0; i < 3; i++)

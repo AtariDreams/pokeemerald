@@ -1412,7 +1412,7 @@ void TryStoreHeldItemsInPyramidBag(void)
     memcpy(newQuantities, gSaveBlock2.frontier.pyramidBag.quantity[gSaveBlock2.frontier.lvlMode], PYRAMID_BAG_ITEMS_COUNT * sizeof(u8));
     for (i = 0; i < 3; i++)
     {
-        heldItem = GetMonData(&party[i], MON_DATA_HELD_ITEM);
+        heldItem = GetMonData(&party[i], MON_DATA_HELD_ITEM, NULL);
         if (heldItem != ITEM_NONE && !AddBagItem(heldItem, 1))
         {
             // Cant store party held items in pyramid bag because bag is full

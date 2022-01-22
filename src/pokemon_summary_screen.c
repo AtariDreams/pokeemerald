@@ -1382,66 +1382,66 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
     switch (sMonSummaryScreen->switchCounter)
     {
     case 0:
-        sum->species = GetMonData(mon, MON_DATA_SPECIES);
-        sum->species2 = GetMonData(mon, MON_DATA_SPECIES2);
-        sum->exp = GetMonData(mon, MON_DATA_EXP);
-        sum->level = GetMonData(mon, MON_DATA_LEVEL);
-        sum->abilityNum = GetMonData(mon, MON_DATA_ABILITY_NUM);
-        sum->item = GetMonData(mon, MON_DATA_HELD_ITEM);
-        sum->pid = GetMonData(mon, MON_DATA_PERSONALITY);
-        sum->sanity = GetMonData(mon, MON_DATA_SANITY_IS_BAD_EGG);
+        sum->species = GetMonData(mon, MON_DATA_SPECIES, NULL);
+        sum->species2 = GetMonData(mon, MON_DATA_SPECIES2, NULL);
+        sum->exp = GetMonData(mon, MON_DATA_EXP, NULL);
+        sum->level = GetMonData(mon, MON_DATA_LEVEL, NULL);
+        sum->abilityNum = GetMonData(mon, MON_DATA_ABILITY_NUM, NULL);
+        sum->item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL);
+        sum->pid = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
+        sum->sanity = GetMonData(mon, MON_DATA_SANITY_IS_BAD_EGG, NULL);
 
         if (sum->sanity)
             sum->isEgg = TRUE;
         else
-            sum->isEgg = GetMonData(mon, MON_DATA_IS_EGG);
+            sum->isEgg = GetMonData(mon, MON_DATA_IS_EGG, NULL);
 
         break;
     case 1:
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
-            sum->moves[i] = GetMonData(mon, MON_DATA_MOVE1+i);
-            sum->pp[i] = GetMonData(mon, MON_DATA_PP1+i);
+            sum->moves[i] = GetMonData(mon, MON_DATA_MOVE1+i, NULL);
+            sum->pp[i] = GetMonData(mon, MON_DATA_PP1+i, NULL);
         }
-        sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
+        sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES, NULL);
         break;
     case 2:
         if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->unk40EF == TRUE)
         {
             sum->nature = GetNature(mon);
-            sum->currentHP = GetMonData(mon, MON_DATA_HP);
-            sum->maxHP = GetMonData(mon, MON_DATA_MAX_HP);
-            sum->atk = GetMonData(mon, MON_DATA_ATK);
-            sum->def = GetMonData(mon, MON_DATA_DEF);
-            sum->spatk = GetMonData(mon, MON_DATA_SPATK);
-            sum->spdef = GetMonData(mon, MON_DATA_SPDEF);
-            sum->speed = GetMonData(mon, MON_DATA_SPEED);
+            sum->currentHP = GetMonData(mon, MON_DATA_HP, NULL);
+            sum->maxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
+            sum->atk = GetMonData(mon, MON_DATA_ATK, NULL);
+            sum->def = GetMonData(mon, MON_DATA_DEF, NULL);
+            sum->spatk = GetMonData(mon, MON_DATA_SPATK, NULL);
+            sum->spdef = GetMonData(mon, MON_DATA_SPDEF, NULL);
+            sum->speed = GetMonData(mon, MON_DATA_SPEED, NULL);
         }
         else
         {
             sum->nature = GetNature(mon);
-            sum->currentHP = GetMonData(mon, MON_DATA_HP);
-            sum->maxHP = GetMonData(mon, MON_DATA_MAX_HP);
-            sum->atk = GetMonData(mon, MON_DATA_ATK2);
-            sum->def = GetMonData(mon, MON_DATA_DEF2);
-            sum->spatk = GetMonData(mon, MON_DATA_SPATK2);
-            sum->spdef = GetMonData(mon, MON_DATA_SPDEF2);
-            sum->speed = GetMonData(mon, MON_DATA_SPEED2);
+            sum->currentHP = GetMonData(mon, MON_DATA_HP, NULL);
+            sum->maxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
+            sum->atk = GetMonData(mon, MON_DATA_ATK2, NULL);
+            sum->def = GetMonData(mon, MON_DATA_DEF2, NULL);
+            sum->spatk = GetMonData(mon, MON_DATA_SPATK2, NULL);
+            sum->spdef = GetMonData(mon, MON_DATA_SPDEF2, NULL);
+            sum->speed = GetMonData(mon, MON_DATA_SPEED2, NULL);
         }
         break;
     case 3:
         GetMonData(mon, MON_DATA_OT_NAME, sum->OTName);
-        ConvertInternationalString(sum->OTName, GetMonData(mon, MON_DATA_LANGUAGE));
+        ConvertInternationalString(sum->OTName, GetMonData(mon, MON_DATA_LANGUAGE, NULL));
         sum->ailment = GetMonAilment(mon);
-        sum->OTGender = GetMonData(mon, MON_DATA_OT_GENDER);
-        sum->OTID = GetMonData(mon, MON_DATA_OT_ID);
-        sum->metLocation = GetMonData(mon, MON_DATA_MET_LOCATION);
-        sum->metLevel = GetMonData(mon, MON_DATA_MET_LEVEL);
-        sum->metGame = GetMonData(mon, MON_DATA_MET_GAME);
-        sum->friendship = GetMonData(mon, MON_DATA_FRIENDSHIP);
+        sum->OTGender = GetMonData(mon, MON_DATA_OT_GENDER, NULL);
+        sum->OTID = GetMonData(mon, MON_DATA_OT_ID, NULL);
+        sum->metLocation = GetMonData(mon, MON_DATA_MET_LOCATION, NULL);
+        sum->metLevel = GetMonData(mon, MON_DATA_MET_LEVEL, NULL);
+        sum->metGame = GetMonData(mon, MON_DATA_MET_GAME, NULL);
+        sum->friendship = GetMonData(mon, MON_DATA_FRIENDSHIP, NULL);
         break;
     default:
-        sum->ribbonCount = GetMonData(mon, MON_DATA_RIBBON_COUNT);
+        sum->ribbonCount = GetMonData(mon, MON_DATA_RIBBON_COUNT, NULL);
         return TRUE;
     }
     sMonSummaryScreen->switchCounter++;
@@ -1692,7 +1692,7 @@ static s8 AdvanceMonIndex(s8 delta)
             index += delta;
             if (index < 0 || index > sMonSummaryScreen->maxMonIndex)
                 return -1;
-        } while (GetMonData(&mon[index], MON_DATA_IS_EGG));
+        } while (GetMonData(&mon[index], MON_DATA_IS_EGG, NULL));
         return index;
     }
 }
@@ -1727,9 +1727,9 @@ static s8 AdvanceMultiBattleMonIndex(s8 delta)
 
 static bool8 IsValidToViewInMulti(struct Pokemon* mon)
 {
-    if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE)
+    if (GetMonData(mon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
         return FALSE;
-    else if (sMonSummaryScreen->curMonIndex != 0 || !GetMonData(mon, MON_DATA_IS_EGG))
+    else if (sMonSummaryScreen->curMonIndex != 0 || !GetMonData(mon, MON_DATA_IS_EGG, NULL))
         return TRUE;
     else
         return FALSE;
@@ -3727,7 +3727,7 @@ static void SetSpriteInvisibility(u8 spriteArrayId, bool8 invisible)
 
 static void HidePageSpecificSprites(void)
 {
-    // Keeps Pok?¿½mon, caught ball and status sprites visible.
+    // Keeps Pok?ï¿½ï¿½mon, caught ball and status sprites visible.
     u8 i;
 
     for (i = SPRITE_ARR_ID_TYPE; i < ARRAY_COUNT(sMonSummaryScreen->spriteIds); i++)
@@ -4017,7 +4017,7 @@ static void CreateMonMarkingsSprite(struct Pokemon *mon)
     sMonSummaryScreen->markingsSprite = sprite;
     if (sprite != NULL)
     {
-        StartSpriteAnim(sprite, GetMonData(mon, MON_DATA_MARKINGS));
+        StartSpriteAnim(sprite, GetMonData(mon, MON_DATA_MARKINGS, NULL));
         sMonSummaryScreen->markingsSprite->x = 60;
         sMonSummaryScreen->markingsSprite->y = 26;
         sMonSummaryScreen->markingsSprite->oam.priority = 1;
@@ -4033,7 +4033,7 @@ static void RemoveAndCreateMonMarkingsSprite(struct Pokemon *mon)
 
 static void CreateCaughtBallSprite(struct Pokemon *mon)
 {
-    u8 ball = ItemIdToBallId(GetMonData(mon, MON_DATA_POKEBALL));
+    u8 ball = ItemIdToBallId(GetMonData(mon, MON_DATA_POKEBALL, NULL));
 
     LoadBallGfx(ball);
     sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_BALL] = CreateSprite(&gBallSpriteTemplates[ball], 16, 136, 0);

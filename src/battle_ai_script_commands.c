@@ -1327,9 +1327,9 @@ static void Cmd_count_usable_party_mons(void)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         if (i != battlerOnField1 && i != battlerOnField2
-         && GetMonData(&party[i], MON_DATA_HP) != 0
-         && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_NONE
-         && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_EGG)
+         && GetMonData(&party[i], MON_DATA_HP, NULL) != 0
+         && GetMonData(&party[i], MON_DATA_SPECIES2, NULL) != SPECIES_NONE
+         && GetMonData(&party[i], MON_DATA_SPECIES2, NULL) != SPECIES_EGG)
         {
             AI_THINKING_STRUCT->funcResult++;
         }
@@ -1575,9 +1575,9 @@ static void Cmd_if_status_in_party(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
-        u16 hp = GetMonData(&party[i], MON_DATA_HP);
-        u32 status = GetMonData(&party[i], MON_DATA_STATUS);
+        u16 species = GetMonData(&party[i], MON_DATA_SPECIES, NULL);
+        u16 hp = GetMonData(&party[i], MON_DATA_HP, NULL);
+        u32 status = GetMonData(&party[i], MON_DATA_STATUS, NULL);
 
         if (species != SPECIES_NONE && species != SPECIES_EGG && hp != 0 && status == statusToCompareTo)
         {
@@ -1612,9 +1612,9 @@ static void Cmd_if_status_not_in_party(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
-        u16 hp = GetMonData(&party[i], MON_DATA_HP);
-        u32 status = GetMonData(&party[i], MON_DATA_STATUS);
+        u16 species = GetMonData(&party[i], MON_DATA_SPECIES, NULL);
+        u16 hp = GetMonData(&party[i], MON_DATA_HP, NULL);
+        u32 status = GetMonData(&party[i], MON_DATA_STATUS, NULL);
 
         if (species != SPECIES_NONE && species != SPECIES_EGG && hp != 0 && status == statusToCompareTo)
         {

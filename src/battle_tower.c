@@ -1971,7 +1971,7 @@ static void HandleSpecialTrainerBattleEnd(void)
     case SPECIAL_BATTLE_SECRET_BASE:
         for (i = 0; i < PARTY_SIZE; i++)
         {
-            u16 itemBefore = GetMonData(&gSaveBlock1.playerParty[i], MON_DATA_HELD_ITEM);
+            u16 itemBefore = GetMonData(&gSaveBlock1.playerParty[i], MON_DATA_HELD_ITEM, NULL);
             SetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, &itemBefore);
         }
         break;
@@ -2029,7 +2029,7 @@ void DoSpecialTrainerBattle(void)
     case SPECIAL_BATTLE_SECRET_BASE:
         for (i = 0; i < PARTY_SIZE; i++)
         {
-            u16 itemBefore = GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM);
+            u16 itemBefore = GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, NULL);
             SetMonData(&gSaveBlock1.playerParty[i], MON_DATA_HELD_ITEM, &itemBefore);
         }
         CreateTask(Task_StartBattleAfterTransition, 1);
@@ -2782,7 +2782,7 @@ static void AwardBattleTowerRibbons(void)
             partyIndex = gSaveBlock2.frontier.selectedPartyMons[i] - 1;
             ribbons[i].partyIndex = partyIndex;
             ribbons[i].count = 0;
-            if (!GetMonData(&gSaveBlock1.playerParty[partyIndex], ribbonType))
+            if (!GetMonData(&gSaveBlock1.playerParty[partyIndex], ribbonType, NULL))
             {
                 gSpecialVar_Result = TRUE;
                 SetMonData(&gSaveBlock1.playerParty[partyIndex], ribbonType, &gSpecialVar_Result);

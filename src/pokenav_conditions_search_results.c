@@ -268,12 +268,12 @@ static u32 BuildPartyMonSearchResults(s32 state)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon * pokemon = &gPlayerParty[i];
-        if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES))
+        if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES, NULL))
             return LT_INC_AND_CONTINUE;
-        if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG))
+        if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG, NULL))
         {
             item.monId = i;
-            item.data = GetMonData(pokemon, menu->conditionDataId);
+            item.data = GetMonData(pokemon, menu->conditionDataId, NULL);
             InsertMonListItem(menu, &item);
         }
     }
