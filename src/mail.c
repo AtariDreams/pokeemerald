@@ -574,10 +574,10 @@ static bool8 MailReadBuildGraphics(void)
             gPlttBufferFaded[251] = sMailGraphics[sMailRead->mailType].textShadow;
             LoadPalette(sMailGraphics[sMailRead->mailType].palette, 0, 32);
 
-            gPlttBufferUnfaded[10] = sBgColors[gSaveBlock2Ptr->playerGender][0];
-            gPlttBufferFaded[10] = sBgColors[gSaveBlock2Ptr->playerGender][0];
-            gPlttBufferUnfaded[11] = sBgColors[gSaveBlock2Ptr->playerGender][1];
-            gPlttBufferFaded[11] = sBgColors[gSaveBlock2Ptr->playerGender][1];
+            gPlttBufferUnfaded[10] = sBgColors[gSaveBlock2.playerGender][0];
+            gPlttBufferFaded[10] = sBgColors[gSaveBlock2.playerGender][0];
+            gPlttBufferUnfaded[11] = sBgColors[gSaveBlock2.playerGender][1];
+            gPlttBufferFaded[11] = sBgColors[gSaveBlock2.playerGender][1];
             break;
         case 13:
             if (sMailRead->hasText)

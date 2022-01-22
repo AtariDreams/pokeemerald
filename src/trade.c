@@ -527,7 +527,7 @@ static void CB2_CreateTradeMenu(void)
         gMain.state++;
         break;
     case 10:
-        DrawTextWindowAndBufferTiles(gSaveBlock2Ptr->playerName, sMenuTextTileBuffers[GFXTAG_PLAYER_NAME_L], 0, 0, 3);
+        DrawTextWindowAndBufferTiles(gSaveBlock2.playerName, sMenuTextTileBuffers[GFXTAG_PLAYER_NAME_L], 0, 0, 3);
         id = GetMultiplayerId();
         DrawTextWindowAndBufferTiles(gLinkPlayers[id ^ 1].name, sMenuTextTileBuffers[GFXTAG_PARTNER_NAME_L], 0, 0, 3);
         DrawTextWindowAndBufferTiles(sTradeActionTexts[TRADE_TEXT_CANCEL], sMenuTextTileBuffers[GFXTAG_CANCEL_L], 0, 0, 2);
@@ -541,7 +541,7 @@ static void CB2_CreateTradeMenu(void)
         break;
     case 12:
         // Create player's name text sprites
-        xPos = GetStringCenterAlignXOffset(FONT_NORMAL, gSaveBlock2Ptr->playerName, 120);
+        xPos = GetStringCenterAlignXOffset(FONT_NORMAL, gSaveBlock2.playerName, 120);
         for (i = 0; i < GFXTAG_PLAYER_NAME; i++)
         {
             temp = sSpriteTemplate_MenuText;
@@ -718,7 +718,7 @@ static void CB2_ReturnToTradeMenu(void)
         gMain.state++;
         break;
     case 10:
-        DrawTextWindowAndBufferTiles(gSaveBlock2Ptr->playerName, sMenuTextTileBuffers[GFXTAG_PLAYER_NAME_L], 0, 0, 3);
+        DrawTextWindowAndBufferTiles(gSaveBlock2.playerName, sMenuTextTileBuffers[GFXTAG_PLAYER_NAME_L], 0, 0, 3);
         id = GetMultiplayerId();
         DrawTextWindowAndBufferTiles(gLinkPlayers[id ^ 1].name, sMenuTextTileBuffers[GFXTAG_PARTNER_NAME_L], 0, 0, 3);
         DrawTextWindowAndBufferTiles(sTradeActionTexts[TRADE_TEXT_CANCEL], sMenuTextTileBuffers[GFXTAG_CANCEL_L], 0, 0, 2);
@@ -732,7 +732,7 @@ static void CB2_ReturnToTradeMenu(void)
         break;
     case 12:
         // Create player's name text sprites
-        xPos = GetStringCenterAlignXOffset(FONT_NORMAL, gSaveBlock2Ptr->playerName, 120);
+        xPos = GetStringCenterAlignXOffset(FONT_NORMAL, gSaveBlock2.playerName, 120);
         for (i = 0; i < GFXTAG_PLAYER_NAME; i++)
         {
             temp = sSpriteTemplate_MenuText;
@@ -1051,7 +1051,7 @@ static bool8 BufferTradeParties(void)
         }
         break;
     case 13:
-        Trade_Memcpy(gBlockSendBuffer, gSaveBlock1Ptr->mail, PARTY_SIZE * sizeof(struct Mail) + 4);
+        Trade_Memcpy(gBlockSendBuffer, gSaveBlock1.mail, PARTY_SIZE * sizeof(struct Mail) + 4);
         sTradeMenuData->bufferPartyState++;
         break;
     case 15:
@@ -1068,7 +1068,7 @@ static bool8 BufferTradeParties(void)
         }
         break;
     case 17:
-        Trade_Memcpy(gBlockSendBuffer, gSaveBlock1Ptr->giftRibbons, sizeof(sTradeMenuData->giftRibbons));
+        Trade_Memcpy(gBlockSendBuffer, gSaveBlock1.giftRibbons, sizeof(sTradeMenuData->giftRibbons));
         sTradeMenuData->bufferPartyState++;
         break;
     case 19:
@@ -2312,10 +2312,10 @@ static void SaveTradeGiftRibbons(void)
 
     for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuData->giftRibbons); i++)
     {
-        if (gSaveBlock1Ptr->giftRibbons[i] == 0 && sTradeMenuData->giftRibbons[i] != 0)
+        if (gSaveBlock1.giftRibbons[i] == 0 && sTradeMenuData->giftRibbons[i] != 0)
         {
             if (sTradeMenuData->giftRibbons[i] < 64)
-                gSaveBlock1Ptr->giftRibbons[i] = sTradeMenuData->giftRibbons[i];
+                gSaveBlock1.giftRibbons[i] = sTradeMenuData->giftRibbons[i];
         }
     }
 }
@@ -2932,7 +2932,7 @@ static void CB2_InGameTrade(void)
     case 0:
         gSelectedTradeMonPositions[TRADE_PLAYER] = gSpecialVar_0x8005;
         gSelectedTradeMonPositions[TRADE_PARTNER] = PARTY_SIZE;
-        StringCopy(gLinkPlayers[0].name, gSaveBlock2Ptr->playerName);
+        StringCopy(gLinkPlayers[0].name, gSaveBlock2.playerName);
         GetMonData(&gEnemyParty[0], MON_DATA_OT_NAME, otName);
         StringCopy(gLinkPlayers[1].name, otName);
         gLinkPlayers[0].language = GAME_LANGUAGE;
@@ -3040,7 +3040,7 @@ static void TradeMons(u8 playerPartyIdx, u8 partnerPartyIdx)
     u16 partnerMail = GetMonData(partnerMon, MON_DATA_MAIL);
 
     if (playerMail != MAIL_NONE)
-        ClearMail(&gSaveBlock1Ptr->mail[playerMail]);
+        ClearMail(&gSaveBlock1.mail[playerMail]);
 
     SWAP(*playerMon, *partnerMon, sTradeData->tempMon);
 

@@ -2682,7 +2682,7 @@ u32 BattleStringExpandPlaceholders(const u8 *src, u8 *dst)
                 if (gBattleTypeFlags & BATTLE_TYPE_RECORDED)
                     toCpy = gLinkPlayers[0].name;
                 else
-                    toCpy = gSaveBlock2Ptr->playerName;
+                    toCpy = gSaveBlock2.playerName;
                 break;
             case B_TXT_TRAINER1_LOSE_TEXT: // trainerA lose text
                 if (gBattleTypeFlags & BATTLE_TYPE_FRONTIER)
@@ -2994,17 +2994,17 @@ static void ChooseMoveUsedParticle(u8* textBuff)
 // sText_ExclamationMark was a plain "!", used for any attack not on the list.
 // It resulted in the translation "<NAME>'s <ATTACK>!".
 //
-// sText_ExclamationMark2 was "を つかった！". This resulted in the translation
+// sText_ExclamationMark2 was "�? つかった�?". This resulted in the translation
 // "<NAME> used <ATTACK>!", which was used for all attacks in English.
 //
-// sText_ExclamationMark3 was "した！". This was used for those moves whose
+// sText_ExclamationMark3 was "した?�?". This was used for those moves whose
 // names were verbs, such as Recover, and resulted in translations like "<NAME>
 // recovered itself!".
 //
-// sText_ExclamationMark4 was "を した！" This resulted in a translation of
+// sText_ExclamationMark4 was "�? した?�?" This resulted in a translation of
 // "<NAME> did an <ATTACK>!".
 //
-// sText_ExclamationMark5 was " こうげき！" This resulted in a translation of
+// sText_ExclamationMark5 was " こうげき?�?" This resulted in a translation of
 // "<NAME>'s <ATTACK> attack!".
 static void ChooseTypeOfMoveUsedString(u8* dst)
 {

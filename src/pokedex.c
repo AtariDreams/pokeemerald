@@ -1504,20 +1504,20 @@ void ResetPokedex(void)
     sLastSelectedPokemon = 0;
     sPokeBallRotation = POKEBALL_ROTATION_TOP;
     gUnusedPokedexU8 = 0;
-    gSaveBlock2Ptr->pokedex.mode = DEX_MODE_HOENN;
-    gSaveBlock2Ptr->pokedex.order = 0;
-    gSaveBlock2Ptr->pokedex.nationalMagic = 0;
-    gSaveBlock2Ptr->pokedex.unknown2 = 0;
-    gSaveBlock2Ptr->pokedex.unownPersonality = 0;
-    gSaveBlock2Ptr->pokedex.spindaPersonality = 0;
-    gSaveBlock2Ptr->pokedex.unknown3 = 0;
+    gSaveBlock2.pokedex.mode = DEX_MODE_HOENN;
+    gSaveBlock2.pokedex.order = 0;
+    gSaveBlock2.pokedex.nationalMagic = 0;
+    gSaveBlock2.pokedex.unknown2 = 0;
+    gSaveBlock2.pokedex.unownPersonality = 0;
+    gSaveBlock2.pokedex.spindaPersonality = 0;
+    gSaveBlock2.pokedex.unknown3 = 0;
     DisableNationalPokedex();
     for (i = 0; i < NUM_DEX_FLAG_BYTES; i++)
     {
-        gSaveBlock2Ptr->pokedex.owned[i] = 0;
-        gSaveBlock2Ptr->pokedex.seen[i] = 0;
-        gSaveBlock1Ptr->seen1[i] = 0;
-        gSaveBlock1Ptr->seen2[i] = 0;
+        gSaveBlock2.pokedex.owned[i] = 0;
+        gSaveBlock2.pokedex.seen[i] = 0;
+        gSaveBlock1.seen1[i] = 0;
+        gSaveBlock1.seen2[i] = 0;
     }
 }
 
@@ -1612,10 +1612,10 @@ void CB2_OpenPokedex(void)
         sPokedexView = AllocZeroed(sizeof(struct PokedexView));
         ResetPokedexView(sPokedexView);
         CreateTask(Task_OpenPokedexMainPage, 0);
-        sPokedexView->dexMode = gSaveBlock2Ptr->pokedex.mode;
+        sPokedexView->dexMode = gSaveBlock2.pokedex.mode;
         if (!IsNationalPokedexEnabled())
             sPokedexView->dexMode = DEX_MODE_HOENN;
-        sPokedexView->dexOrder = gSaveBlock2Ptr->pokedex.order;
+        sPokedexView->dexOrder = gSaveBlock2.pokedex.order;
         sPokedexView->selectedPokemon = sLastSelectedPokemon;
         sPokedexView->pokeBallRotation = sPokeBallRotation;
         sPokedexView->selectedScreen = AREA_SCREEN;
@@ -1842,10 +1842,10 @@ static void Task_ClosePokedex(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
-        gSaveBlock2Ptr->pokedex.mode = sPokedexView->dexMode;
+        gSaveBlock2.pokedex.mode = sPokedexView->dexMode;
         if (!IsNationalPokedexEnabled())
-            gSaveBlock2Ptr->pokedex.mode = DEX_MODE_HOENN;
-        gSaveBlock2Ptr->pokedex.order = sPokedexView->dexOrder;
+            gSaveBlock2.pokedex.mode = DEX_MODE_HOENN;
+        gSaveBlock2.pokedex.order = sPokedexView->dexOrder;
         ClearMonSprites();
         FreeWindowAndBgBuffers();
         DestroyTask(taskId);
@@ -3406,7 +3406,7 @@ static void Task_HandleInfoScreenInput(u8 taskId)
         return;
     }
     if ((JOY_NEW(DPAD_LEFT)
-     || (JOY_NEW(L_BUTTON) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
+     || (JOY_NEW(L_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
      && sPokedexView->selectedScreen > 0)
     {
         sPokedexView->selectedScreen--;
@@ -3415,7 +3415,7 @@ static void Task_HandleInfoScreenInput(u8 taskId)
         return;
     }
     if ((JOY_NEW(DPAD_RIGHT)
-     || (JOY_NEW(R_BUTTON) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
+     || (JOY_NEW(R_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
      && sPokedexView->selectedScreen < CANCEL_SCREEN)
     {
         sPokedexView->selectedScreen++;
@@ -3653,7 +3653,7 @@ static void Task_HandleCryScreenInput(u8 taskId)
             return;
         }
         if (JOY_NEW(DPAD_LEFT)
-         || (JOY_NEW(L_BUTTON) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
+         || (JOY_NEW(L_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
         {
             BeginNormalPaletteFade(PALETTES_ALL & ~(0x14), 0, 0, 0x10, RGB_BLACK);
             m4aMPlayContinue(&gMPlayInfo_BGM);
@@ -3663,7 +3663,7 @@ static void Task_HandleCryScreenInput(u8 taskId)
             return;
         }
         if (JOY_NEW(DPAD_RIGHT)
-         || (JOY_NEW(R_BUTTON) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
+         || (JOY_NEW(R_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
         {
             if (!sPokedexListItem->owned)
             {
@@ -3751,7 +3751,7 @@ static void Task_LoadSizeScreen(u8 taskId)
             u8 string[64];
 
             StringCopy(string, gText_SizeComparedTo);
-            StringAppend(string, gSaveBlock2Ptr->playerName);
+            StringAppend(string, gSaveBlock2.playerName);
             PrintInfoScreenText(string, GetStringCenterAlignXOffset(FONT_NORMAL, string, 0xF0), 0x79);
             gMain.state++;
         }
@@ -3761,7 +3761,7 @@ static void Task_LoadSizeScreen(u8 taskId)
         gMain.state++;
         break;
     case 5:
-        spriteId = CreateSizeScreenTrainerPic(PlayerGenderToFrontTrainerPicId(gSaveBlock2Ptr->playerGender), 152, 56, 0);
+        spriteId = CreateSizeScreenTrainerPic(PlayerGenderToFrontTrainerPicId(gSaveBlock2.playerGender), 152, 56, 0);
         gSprites[spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
         gSprites[spriteId].oam.matrixNum = 1;
         gSprites[spriteId].oam.priority = 0;
@@ -3823,7 +3823,7 @@ static void Task_HandleSizeScreenInput(u8 taskId)
         PlaySE(SE_PC_OFF);
     }
     else if (JOY_NEW(DPAD_LEFT)
-     || (JOY_NEW(L_BUTTON) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
+     || (JOY_NEW(L_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
     {
         BeginNormalPaletteFade(PALETTES_ALL & ~(0x14), 0, 0, 0x10, RGB_BLACK);
         sPokedexView->screenSwitchState = 2;
@@ -4266,44 +4266,44 @@ s8 GetSetPokedexFlag(u16 nationalDexNo, u8 caseID)
     switch (caseID)
     {
     case FLAG_GET_SEEN:
-        if (gSaveBlock2Ptr->pokedex.seen[index] & mask)
+        if (gSaveBlock2.pokedex.seen[index] & mask)
         {
-            if ((gSaveBlock2Ptr->pokedex.seen[index] & mask) == (gSaveBlock1Ptr->seen1[index] & mask)
-             && (gSaveBlock2Ptr->pokedex.seen[index] & mask) == (gSaveBlock1Ptr->seen2[index] & mask))
+            if ((gSaveBlock2.pokedex.seen[index] & mask) == (gSaveBlock1.seen1[index] & mask)
+             && (gSaveBlock2.pokedex.seen[index] & mask) == (gSaveBlock1.seen2[index] & mask))
                 retVal = 1;
             else
             {
-                gSaveBlock2Ptr->pokedex.seen[index] &= ~mask;
-                gSaveBlock1Ptr->seen1[index] &= ~mask;
-                gSaveBlock1Ptr->seen2[index] &= ~mask;
+                gSaveBlock2.pokedex.seen[index] &= ~mask;
+                gSaveBlock1.seen1[index] &= ~mask;
+                gSaveBlock1.seen2[index] &= ~mask;
                 retVal = 0;
             }
         }
         break;
     case FLAG_GET_CAUGHT:
-        if (gSaveBlock2Ptr->pokedex.owned[index] & mask)
+        if (gSaveBlock2.pokedex.owned[index] & mask)
         {
-            if ((gSaveBlock2Ptr->pokedex.owned[index] & mask) == (gSaveBlock2Ptr->pokedex.seen[index] & mask)
-             && (gSaveBlock2Ptr->pokedex.owned[index] & mask) == (gSaveBlock1Ptr->seen1[index] & mask)
-             && (gSaveBlock2Ptr->pokedex.owned[index] & mask) == (gSaveBlock1Ptr->seen2[index] & mask))
+            if ((gSaveBlock2.pokedex.owned[index] & mask) == (gSaveBlock2.pokedex.seen[index] & mask)
+             && (gSaveBlock2.pokedex.owned[index] & mask) == (gSaveBlock1.seen1[index] & mask)
+             && (gSaveBlock2.pokedex.owned[index] & mask) == (gSaveBlock1.seen2[index] & mask))
                 retVal = 1;
             else
             {
-                gSaveBlock2Ptr->pokedex.owned[index] &= ~mask;
-                gSaveBlock2Ptr->pokedex.seen[index] &= ~mask;
-                gSaveBlock1Ptr->seen1[index] &= ~mask;
-                gSaveBlock1Ptr->seen2[index] &= ~mask;
+                gSaveBlock2.pokedex.owned[index] &= ~mask;
+                gSaveBlock2.pokedex.seen[index] &= ~mask;
+                gSaveBlock1.seen1[index] &= ~mask;
+                gSaveBlock1.seen2[index] &= ~mask;
                 retVal = 0;
             }
         }
         break;
     case FLAG_SET_SEEN:
-        gSaveBlock2Ptr->pokedex.seen[index] |= mask;
-        gSaveBlock1Ptr->seen1[index] |= mask;
-        gSaveBlock1Ptr->seen2[index] |= mask;
+        gSaveBlock2.pokedex.seen[index] |= mask;
+        gSaveBlock1.seen1[index] |= mask;
+        gSaveBlock1.seen2[index] |= mask;
         break;
     case FLAG_SET_CAUGHT:
-        gSaveBlock2Ptr->pokedex.owned[index] |= mask;
+        gSaveBlock2.pokedex.owned[index] |= mask;
         break;
     }
     return retVal;
@@ -4634,9 +4634,9 @@ static u32 GetPokedexMonPersonality(u16 species)
     if (species == SPECIES_UNOWN || species == SPECIES_SPINDA)
     {
         if (species == SPECIES_UNOWN)
-            return gSaveBlock2Ptr->pokedex.unownPersonality;
+            return gSaveBlock2.pokedex.unownPersonality;
         else
-            return gSaveBlock2Ptr->pokedex.spindaPersonality;
+            return gSaveBlock2.pokedex.spindaPersonality;
     }
     else
     {
@@ -4999,12 +4999,12 @@ static void Task_HandleSearchMenuInput(u8 taskId)
                 sPokedexView->pokeBallRotationBackup = POKEBALL_ROTATION_TOP;
                 sLastSelectedPokemon = 0;
                 sPokedexView->selectedPokemonBackup = 0;
-                gSaveBlock2Ptr->pokedex.mode = GetSearchModeSelection(taskId, SEARCH_MODE);
+                gSaveBlock2.pokedex.mode = GetSearchModeSelection(taskId, SEARCH_MODE);
                 if (!IsNationalPokedexEnabled())
-                    gSaveBlock2Ptr->pokedex.mode = DEX_MODE_HOENN;
-                sPokedexView->dexModeBackup = gSaveBlock2Ptr->pokedex.mode;
-                gSaveBlock2Ptr->pokedex.order = GetSearchModeSelection(taskId, SEARCH_ORDER);
-                sPokedexView->dexOrderBackup = gSaveBlock2Ptr->pokedex.order;
+                    gSaveBlock2.pokedex.mode = DEX_MODE_HOENN;
+                sPokedexView->dexModeBackup = gSaveBlock2.pokedex.mode;
+                gSaveBlock2.pokedex.order = GetSearchModeSelection(taskId, SEARCH_ORDER);
+                sPokedexView->dexOrderBackup = gSaveBlock2.pokedex.order;
                 PlaySE(SE_PC_OFF);
                 gTasks[taskId].func = Task_ExitSearch;
             }

@@ -177,10 +177,10 @@ static void InitMainCallbacks(void)
 
     // None of these assignments are actually needed it seems
     // #ifdef BUGFIX
-    // gSaveBlock1Ptr = &gSaveblock1.block;
+    // gSaveBlock1Ptr = &gSaveBlock1.block;
     // #endif
-    // gSaveBlock2Ptr = &gSaveblock2.block;
-    // gPokemonStoragePtr = &gPokemonStorage.block;
+    // gSaveBlock2Ptr = &gSaveBlock2.block;
+    // gPokemonStorage = &gPokemonStorage.block;
 }
 
 static void CallCallbacks(void)
@@ -274,7 +274,7 @@ static void ReadKeys(void)
     gMain.heldKeys = gMain.heldKeysRaw;
 
     // Remap L to A if the L=A option is enabled.
-    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+    if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
     {
         if (JOY_NEW(L_BUTTON))
             gMain.newKeys |= A_BUTTON;

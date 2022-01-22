@@ -889,8 +889,8 @@ bool8 ScrCmd_getplayerxy(struct ScriptContext *ctx)
     u16 *pX = GetVarPointer(ScriptReadHalfword(ctx));
     u16 *pY = GetVarPointer(ScriptReadHalfword(ctx));
 
-    *pX = gSaveBlock1Ptr->pos.x;
-    *pY = gSaveBlock1Ptr->pos.y;
+    *pX = gSaveBlock1.pos.x;
+    *pY = gSaveBlock1.pos.y;
     return FALSE;
 }
 
@@ -994,7 +994,7 @@ bool8 ScrCmd_applymovement(struct ScriptContext *ctx)
     u16 localId = VarGet(ScriptReadHalfword(ctx));
     const void *movementScript = (const void *)ScriptReadWord(ctx);
 
-    ScriptMovement_StartObjectMovementScript(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, movementScript);
+    ScriptMovement_StartObjectMovementScript(localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, movementScript);
     sMovingNpcId = localId;
     return FALSE;
 }
@@ -1022,8 +1022,8 @@ bool8 ScrCmd_waitmovement(struct ScriptContext *ctx)
 
     if (localId != 0)
         sMovingNpcId = localId;
-    sMovingNpcMapGroup = gSaveBlock1Ptr->location.mapGroup;
-    sMovingNpcMapNum = gSaveBlock1Ptr->location.mapNum;
+    sMovingNpcMapGroup = gSaveBlock1.location.mapGroup;
+    sMovingNpcMapNum = gSaveBlock1.location.mapNum;
     SetupNativeScript(ctx, WaitForMovementFinish);
     return TRUE;
 }
@@ -1048,7 +1048,7 @@ bool8 ScrCmd_removeobject(struct ScriptContext *ctx)
 {
     u16 localId = VarGet(ScriptReadHalfword(ctx));
 
-    RemoveObjectEventByLocalIdAndMap(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+    RemoveObjectEventByLocalIdAndMap(localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
     return FALSE;
 }
 
@@ -1066,7 +1066,7 @@ bool8 ScrCmd_addobject(struct ScriptContext *ctx)
 {
     u16 objectId = VarGet(ScriptReadHalfword(ctx));
 
-    TrySpawnObjectEvent(objectId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+    TrySpawnObjectEvent(objectId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
     return FALSE;
 }
 
@@ -1086,7 +1086,7 @@ bool8 ScrCmd_setobjectxy(struct ScriptContext *ctx)
     u16 x = VarGet(ScriptReadHalfword(ctx));
     u16 y = VarGet(ScriptReadHalfword(ctx));
 
-    TryMoveObjectEventToMapCoords(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, x, y);
+    TryMoveObjectEventToMapCoords(localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, x, y);
     return FALSE;
 }
 
@@ -1104,7 +1104,7 @@ bool8 ScrCmd_copyobjectxytoperm(struct ScriptContext *ctx)
 {
     u16 localId = VarGet(ScriptReadHalfword(ctx));
 
-    TryOverrideObjectEventTemplateCoords(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+    TryOverrideObjectEventTemplateCoords(localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
     return FALSE;
 }
 
@@ -1164,7 +1164,7 @@ bool8 ScrCmd_turnobject(struct ScriptContext *ctx)
     u16 localId = VarGet(ScriptReadHalfword(ctx));
     u8 direction = ScriptReadByte(ctx);
 
-    ObjectEventTurnByLocalIdAndMap(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, direction);
+    ObjectEventTurnByLocalIdAndMap(localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, direction);
     return FALSE;
 }
 
@@ -1739,7 +1739,7 @@ bool8 ScrCmd_addmoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        AddMoney(&gSaveBlock1Ptr->money, amount);
+        AddMoney(&gSaveBlock1.money, amount);
     return FALSE;
 }
 
@@ -1749,7 +1749,7 @@ bool8 ScrCmd_removemoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        RemoveMoney(&gSaveBlock1Ptr->money, amount);
+        RemoveMoney(&gSaveBlock1.money, amount);
     return FALSE;
 }
 
@@ -1759,7 +1759,7 @@ bool8 ScrCmd_checkmoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        gSpecialVar_Result = IsEnoughMoney(&gSaveBlock1Ptr->money, amount);
+        gSpecialVar_Result = IsEnoughMoney(&gSaveBlock1.money, amount);
     return FALSE;
 }
 
@@ -1770,7 +1770,7 @@ bool8 ScrCmd_showmoneybox(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        DrawMoneyBox(GetMoney(&gSaveBlock1Ptr->money), x, y);
+        DrawMoneyBox(GetMoney(&gSaveBlock1.money), x, y);
     return FALSE;
 }
 
@@ -1790,7 +1790,7 @@ bool8 ScrCmd_updatemoneybox(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        ChangeAmountInMoneyBox(GetMoney(&gSaveBlock1Ptr->money));
+        ChangeAmountInMoneyBox(GetMoney(&gSaveBlock1.money));
     return FALSE;
 }
 
@@ -2015,7 +2015,7 @@ bool8 ScrCmd_setrespawn(struct ScriptContext *ctx)
 
 bool8 ScrCmd_checkplayergender(struct ScriptContext *ctx)
 {
-    gSpecialVar_Result = gSaveBlock2Ptr->playerGender;
+    gSpecialVar_Result = gSaveBlock2.playerGender;
     return FALSE;
 }
 
