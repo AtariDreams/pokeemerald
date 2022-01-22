@@ -1805,7 +1805,7 @@ static bool32 LoadMapInStepsLink(u8 *state)
         ScriptContext1_Init();
         ScriptContext2_Disable();
         ClearMirageTowerPulseBlend();
-        InitHeap(gHeap, HEAP_SIZE);
+        InitHeap();
         ResetScreenForMapLoad();
         (*state)++;
         break;
@@ -1887,7 +1887,7 @@ static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
         break;
     case 1:
         ClearMirageTowerPulseBlend();
-        InitHeap(gHeap, HEAP_SIZE);
+        InitHeap();
         ResetScreenForMapLoad();
         (*state)++;
         break;
@@ -1955,7 +1955,7 @@ static bool32 ReturnToFieldLocal(u8 *state)
     {
     case 0:
         ClearMirageTowerPulseBlend();
-        InitHeap(gHeap, HEAP_SIZE);
+        InitHeap();
         ResetScreenForMapLoad();
         ResumeMap(FALSE);
         InitObjectEventsReturnToField();
@@ -1985,7 +1985,7 @@ static bool32 ReturnToFieldLink(u8 *state)
     case 0:
         FieldClearVBlankHBlankCallbacks();
         ClearMirageTowerPulseBlend();
-        InitHeap(gHeap, HEAP_SIZE);
+        InitHeap();
         ResetScreenForMapLoad();
         (*state)++;
         break;
