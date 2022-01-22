@@ -40,7 +40,7 @@ void PutMemBlockHeader(void *block, struct MemBlock *prev, struct MemBlock *next
 
 void PutFirstMemBlockHeader(void *block, u32 size)
 {
-    PutMemBlockHeader(block, (struct MemBlock *)block, (struct MemBlock *)block, size - sizeof(struct MemBlock));
+    PutMemBlockHeader(block, (struct MemBlock *)block, (struct MemBlock *)block, HEAP_SIZE - sizeof(struct MemBlock));
 }
 
 void *AllocInternal(void *heapStart, u32 size)
@@ -170,10 +170,10 @@ bool32 CheckMemBlockInternal(void *heapStart, void *pointer)
     return TRUE;
 }
 
-void InitHeap(void *heapStart, u32 heapSize)
+void InitHeap(void)
 {
-    sHeapStart = heapStart;
-    PutFirstMemBlockHeader(heapStart, heapSize);
+    sHeapStart = gHeap;
+    PutMemBlockHeader(sHeapStart, (struct MemBlock *)sHeapStart, (struct MemBlock *)sHeapStart, HEAP_SIZE - sizeof(struct MemBlock));
 }
 
 void *Alloc(u32 size)
