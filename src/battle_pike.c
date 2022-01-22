@@ -787,15 +787,15 @@ static void HealMon(struct Pokemon *mon)
     for (i = 0; i < 4; i++)
         data[i] = 0;
 
-    hp = GetMonData(mon, MON_DATA_MAX_HP);
+    hp = GetMonData(mon, MON_DATA_MAX_HP, NULL);
     data[0] = hp;
     data[1] = hp >> 8;
     SetMonData(mon, MON_DATA_HP, data);
 
-    ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
+    ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES, NULL);
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        u16 move = GetMonData(mon, MON_DATA_MOVE1 + i);
+        u16 move = GetMonData(mon, MON_DATA_MOVE1 + i, NULL);
         data[0] = CalculatePPWithBonus(move, ppBonuses, i);
         SetMonData(mon, MON_DATA_PP1 + i, data);
     }
@@ -922,11 +922,11 @@ static bool8 TryInflictRandomStatus(void)
             for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
             {
                 mon = &gPlayerParty[indices[i]];
-                if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS)) == AILMENT_NONE
-                    && GetMonData(mon, MON_DATA_HP) != 0)
+                if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS, NULL)) == AILMENT_NONE
+                    && GetMonData(mon, MON_DATA_HP, NULL) != 0)
                 {
                     j++;
-                    species = GetMonData(mon, MON_DATA_SPECIES);
+                    species = GetMonData(mon, MON_DATA_SPECIES, NULL);
                     if (!DoesTypePreventStatus(species, sStatusFlags))
                     {
                         statusChosen = TRUE;
@@ -964,11 +964,11 @@ static bool8 TryInflictRandomStatus(void)
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
     {
         mon = &gPlayerParty[indices[i]];
-        if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS)) == AILMENT_NONE
-            && GetMonData(mon, MON_DATA_HP) != 0)
+        if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS, NULL)) == AILMENT_NONE
+            && GetMonData(mon, MON_DATA_HP, NULL) != 0)
         {
             j++;
-            species = GetMonData(mon, MON_DATA_SPECIES);
+            species = GetMonData(mon, MON_DATA_SPECIES, NULL);
             if (!DoesAbilityPreventStatus(mon, sStatusFlags) && !DoesTypePreventStatus(species, sStatusFlags))
                 SetMonData(mon, MON_DATA_STATUS, &sStatusFlags);
         }
@@ -996,8 +996,8 @@ static bool8 AtLeastOneHealthyMon(void)
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gPlayerParty[i];
-        if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS)) == AILMENT_NONE
-            && GetMonData(mon, MON_DATA_HP) != 0)
+        if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS, NULL)) == AILMENT_NONE
+            && GetMonData(mon, MON_DATA_HP, NULL) != 0)
         {
             healthyMonsCount++;
         }
@@ -1280,24 +1280,24 @@ static void TryHealMons(u8 healCount)
     {
         bool32 canBeHealed = FALSE;
         struct Pokemon *mon = &gPlayerParty[indices[i]];
-        u16 curr = GetMonData(mon, MON_DATA_HP);
-        u16 max = GetMonData(mon, MON_DATA_MAX_HP);
+        u16 curr = GetMonData(mon, MON_DATA_HP, NULL);
+        u16 max = GetMonData(mon, MON_DATA_MAX_HP, NULL);
         if (curr < max)
         {
             canBeHealed = TRUE;
         }
-        else if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS)) != AILMENT_NONE)
+        else if (GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS, NULL)) != AILMENT_NONE)
         {
             canBeHealed = TRUE;
         }
         else
         {
-            u8 ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
+            u8 ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES, NULL);
             for (j = 0; j < MAX_MON_MOVES; j++)
             {
-                u16 move = GetMonData(mon, MON_DATA_MOVE1 + j);
+                u16 move = GetMonData(mon, MON_DATA_MOVE1 + j, NULL);
                 max = CalculatePPWithBonus(move, ppBonuses, j);
-                curr = GetMonData(mon, MON_DATA_PP1 + j);
+                curr = GetMonData(mon, MON_DATA_PP1 + j, NULL);
                 if (curr < max)
                 {
                     canBeHealed = TRUE;
@@ -1483,7 +1483,7 @@ static bool8 AtLeastTwoAliveMons(void)
     countDead = 0;
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++, mon++)
     {
-        if (GetMonData(mon, MON_DATA_HP) == 0)
+        if (GetMonData(mon, MON_DATA_HP, NULL) == 0)
             countDead++;
     }
 
@@ -1552,16 +1552,16 @@ static void IsPartyFullHealed(void)
     {
         bool32 canBeHealed = FALSE;
         struct Pokemon *mon = &gPlayerParty[i];
-        u16 curr = GetMonData(mon, MON_DATA_HP);
-        u16 max = GetMonData(mon, MON_DATA_MAX_HP);
-        if (curr >= max && GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS)) == AILMENT_NONE)
+        u16 curr = GetMonData(mon, MON_DATA_HP, NULL);
+        u16 max = GetMonData(mon, MON_DATA_MAX_HP, NULL);
+        if (curr >= max && GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS, NULL)) == AILMENT_NONE)
         {
-            u8 ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
+            u8 ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES, NULL);
             for (j = 0; j < MAX_MON_MOVES; j++)
             {
-                u16 move = GetMonData(mon, MON_DATA_MOVE1 + j);
+                u16 move = GetMonData(mon, MON_DATA_MOVE1 + j, NULL);
                 max = CalculatePPWithBonus(move, ppBonuses, j);
-                curr = GetMonData(mon, MON_DATA_PP1 + j);
+                curr = GetMonData(mon, MON_DATA_PP1 + j, NULL);
                 if (curr < max)
                 {
                     canBeHealed = TRUE;
@@ -1589,7 +1589,7 @@ static void SaveMonHeldItems(void)
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
     {
         int heldItem = GetMonData(&gSaveBlock1.playerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1],
-                                  MON_DATA_HELD_ITEM);
+                                  MON_DATA_HELD_ITEM, NULL);
         gSaveBlock2.frontier.pikeHeldItemsBackup[i] = heldItem;
     }
 }
@@ -1622,12 +1622,12 @@ static void InitPikeChallenge(void)
 
 static bool8 CanEncounterWildMon(u8 enemyMonLevel)
 {
-    if (!GetMonData(&gPlayerParty[0], MON_DATA_SANITY_IS_EGG))
+    if (!GetMonData(&gPlayerParty[0], MON_DATA_SANITY_IS_EGG, NULL))
     {
         u8 monAbility = GetMonAbility(&gPlayerParty[0]);
         if (monAbility == ABILITY_KEEN_EYE || monAbility == ABILITY_INTIMIDATE)
         {
-            u8 playerMonLevel = GetMonData(&gPlayerParty[0], MON_DATA_LEVEL);
+            u8 playerMonLevel = GetMonData(&gPlayerParty[0], MON_DATA_LEVEL, NULL);
             if (playerMonLevel > 5 && enemyMonLevel <= playerMonLevel - 5 && Random() % 2 == 0)
                 return FALSE;
         }

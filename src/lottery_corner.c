@@ -59,12 +59,12 @@ void PickLotteryCornerTicket(void)
     {
         struct Pokemon *mon = &gPlayerParty[i];
 
-        if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE)
+        if (GetMonData(mon, MON_DATA_SPECIES, NULL) != SPECIES_NONE)
         {
             // do not calculate ticket values for eggs.
-            if (!GetMonData(mon, MON_DATA_IS_EGG))
+            if (!GetMonData(mon, MON_DATA_IS_EGG, NULL))
             {
-                u32 otId = GetMonData(mon, MON_DATA_OT_ID);
+                u32 otId = GetMonData(mon, MON_DATA_OT_ID, NULL);
                 u8 numMatchingDigits = GetMatchingDigits(gSpecialVar_Result, otId);
 
                 if (numMatchingDigits > gSpecialVar_0x8004 && numMatchingDigits > 1)
@@ -83,10 +83,10 @@ void PickLotteryCornerTicket(void)
     {
         for (j = 0; j < IN_BOX_COUNT; j++)
         {
-            if (GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SPECIES) != SPECIES_NONE &&
-            !GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_IS_EGG))
+            if (GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SPECIES, NULL) != SPECIES_NONE &&
+            !GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_IS_EGG, NULL))
             {
-                u32 otId = GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_OT_ID);
+                u32 otId = GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_OT_ID, NULL);
                 u8 numMatchingDigits = GetMatchingDigits(gSpecialVar_Result, otId);
 
                 if (numMatchingDigits > gSpecialVar_0x8004 && numMatchingDigits > 1)

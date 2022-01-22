@@ -355,7 +355,7 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 arg3)
     species = GetBoxOrPartyMonData(boxId, monId, MON_DATA_SPECIES, NULL);
     if (boxId == TOTAL_BOXES_COUNT)
     {
-        level = GetMonData(&gPlayerParty[monId], MON_DATA_LEVEL);
+        level = GetMonData(&gPlayerParty[monId], MON_DATA_LEVEL, NULL);
         gender = GetMonGender(&gPlayerParty[monId]);
     }
     else
@@ -464,7 +464,7 @@ static void InitPartyConditionListParameters(void)
     menu->inSearchMode = FALSE;
     for (i = 0, count = 0; i < CalculatePlayerPartyCount(); i++)
     {
-        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG, NULL))
         {
             monListPtr->monData[count].boxId = TOTAL_BOXES_COUNT;
             monListPtr->monData[count].monId = i;

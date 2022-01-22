@@ -889,7 +889,7 @@ s32 GetBoxOrPartyMonData(u16 boxId, u16 monId, s32 request, u8 *dst)
         if (request == MON_DATA_NICKNAME || request == MON_DATA_OT_NAME)
             ret = GetMonData(&gPlayerParty[monId], request, dst);
         else
-            ret = GetMonData(&gPlayerParty[monId], request);
+            ret = GetMonData(&gPlayerParty[monId], request, NULL);
     }
     else
     {
@@ -923,7 +923,7 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
     species = GetBoxOrPartyMonData(box, mon, MON_DATA_SPECIES, NULL);
     if (box == TOTAL_BOXES_COUNT) // Party mon.
     {
-        level = GetMonData(&gPlayerParty[mon], MON_DATA_LEVEL);
+        level = GetMonData(&gPlayerParty[mon], MON_DATA_LEVEL, NULL);
         gender = GetMonGender(&gPlayerParty[mon]);
     }
     else
@@ -1617,10 +1617,10 @@ void DrawLevelUpWindowPg2(u16 windowId, u16 *currStats, u8 bgClr, u8 fgClr, u8 s
 
 void GetMonLevelUpWindowStats(struct Pokemon *mon, u16 *currStats)
 {
-    currStats[STAT_HP]    = GetMonData(mon, MON_DATA_MAX_HP);
-    currStats[STAT_ATK]   = GetMonData(mon, MON_DATA_ATK);
-    currStats[STAT_DEF]   = GetMonData(mon, MON_DATA_DEF);
-    currStats[STAT_SPEED] = GetMonData(mon, MON_DATA_SPEED);
-    currStats[STAT_SPATK] = GetMonData(mon, MON_DATA_SPATK);
-    currStats[STAT_SPDEF] = GetMonData(mon, MON_DATA_SPDEF);
+    currStats[STAT_HP]    = GetMonData(mon, MON_DATA_MAX_HP, NULL);
+    currStats[STAT_ATK]   = GetMonData(mon, MON_DATA_ATK, NULL);
+    currStats[STAT_DEF]   = GetMonData(mon, MON_DATA_DEF, NULL);
+    currStats[STAT_SPEED] = GetMonData(mon, MON_DATA_SPEED, NULL);
+    currStats[STAT_SPATK] = GetMonData(mon, MON_DATA_SPATK, NULL);
+    currStats[STAT_SPDEF] = GetMonData(mon, MON_DATA_SPDEF, NULL);
 }

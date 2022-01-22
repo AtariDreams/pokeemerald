@@ -36,16 +36,16 @@ void HealPlayerParty(void)
     // restore HP.
     for(i = 0; i < gPlayerPartyCount; i++)
     {
-        u16 maxHP = GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP);
+        u16 maxHP = GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP, NULL);
         arg[0] = maxHP;
         arg[1] = maxHP >> 8;
         SetMonData(&gPlayerParty[i], MON_DATA_HP, arg);
-        ppBonuses = GetMonData(&gPlayerParty[i], MON_DATA_PP_BONUSES);
+        ppBonuses = GetMonData(&gPlayerParty[i], MON_DATA_PP_BONUSES, NULL);
 
         // restore PP.
         for(j = 0; j < MAX_MON_MOVES; j++)
         {
-            arg[0] = CalculatePPWithBonus(GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + j), ppBonuses, j);
+            arg[0] = CalculatePPWithBonus(GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + j, NULL), ppBonuses, j);
             SetMonData(&gPlayerParty[i], MON_DATA_PP1 + j, arg);
         }
 
@@ -118,8 +118,8 @@ static bool8 CheckPartyMonHasHeldItem(u16 item)
 
     for(i = 0; i < PARTY_SIZE; i++)
     {
-        u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2);
-        if (species != SPECIES_NONE && species != SPECIES_EGG && GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == item)
+        u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2, NULL);
+        if (species != SPECIES_NONE && species != SPECIES_EGG && GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, NULL) == item)
             return TRUE;
     }
     return FALSE;

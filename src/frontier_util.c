@@ -2043,10 +2043,10 @@ static void CheckPartyIneligibility(void)
         numEligibleMons = 0;
         do
         {
-            u16 species = GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES2);
-            u16 heldItem = GetMonData(&gPlayerParty[monId], MON_DATA_HELD_ITEM);
-            u8 level = GetMonData(&gPlayerParty[monId], MON_DATA_LEVEL);
-            u16 hp = GetMonData(&gPlayerParty[monId], MON_DATA_HP);
+            u16 species = GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES2, NULL);
+            u16 heldItem = GetMonData(&gPlayerParty[monId], MON_DATA_HELD_ITEM, NULL);
+            u8 level = GetMonData(&gPlayerParty[monId], MON_DATA_LEVEL, NULL);
+            u16 hp = GetMonData(&gPlayerParty[monId], MON_DATA_HP, NULL);
             if (VarGet(VAR_FRONTIER_FACILITY) == FRONTIER_FACILITY_PYRAMID)
             {
                 if (heldItem == ITEM_NONE)

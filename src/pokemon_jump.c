@@ -655,9 +655,9 @@ static s16 GetPokemonJumpSpeciesIdx(u16 species)
 
 static void InitJumpMonInfo(struct PokemonJump_MonInfo *monInfo, struct Pokemon *mon)
 {
-    monInfo->species = GetMonData(mon, MON_DATA_SPECIES);
-    monInfo->otId = GetMonData(mon, MON_DATA_OT_ID);
-    monInfo->personality = GetMonData(mon, MON_DATA_PERSONALITY);
+    monInfo->species = GetMonData(mon, MON_DATA_SPECIES, NULL);
+    monInfo->otId = GetMonData(mon, MON_DATA_OT_ID, NULL);
+    monInfo->personality = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
 }
 
 static void VBlankCB_PokemonJump(void)
@@ -2352,9 +2352,9 @@ void IsPokemonJumpSpeciesInParty(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SANITY_HAS_SPECIES))
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SANITY_HAS_SPECIES, NULL))
         {
-            u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2);
+            u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2, NULL);
             if (IsSpeciesAllowedInPokemonJump(species))
             {
                 gSpecialVar_Result = TRUE;

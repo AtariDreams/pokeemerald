@@ -19,7 +19,7 @@
 
 static bool32 IsMonValidSpecies(struct Pokemon *pokemon)
 {
-    u16 species = GetMonData(pokemon, MON_DATA_SPECIES2);
+    u16 species = GetMonData(pokemon, MON_DATA_SPECIES2, NULL);
     if (species == SPECIES_NONE || species == SPECIES_EGG)
     {
         return FALSE;
@@ -34,7 +34,7 @@ static bool32 AllMonsFainted(void)
 
     for (i = 0; i < PARTY_SIZE; i++, pokemon++)
     {
-        if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP) != 0)
+        if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP, NULL) != 0)
         {
             return FALSE;
         }
@@ -56,7 +56,7 @@ static void FaintFromFieldPoison(u8 partyIdx)
 static bool32 MonFaintedFromPoison(u8 partyIdx)
 {
     struct Pokemon *pokemon = gPlayerParty + partyIdx;
-    if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP) == 0 && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS)) == AILMENT_PSN)
+    if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP, NULL) == 0 && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS, NULL)) == AILMENT_PSN)
     {
         return TRUE;
     }
@@ -124,9 +124,9 @@ s32 DoPoisonFieldEffect(void)
     u32 numFainted = 0;
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES) && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS)) == AILMENT_PSN)
+        if (GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES, NULL) && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS, NULL)) == AILMENT_PSN)
         {
-            hp = GetMonData(pokemon, MON_DATA_HP);
+            hp = GetMonData(pokemon, MON_DATA_HP, NULL);
             if (hp == 0 || --hp == 0)
             {
                 numFainted++;

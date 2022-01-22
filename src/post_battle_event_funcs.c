@@ -49,9 +49,9 @@ int GameClear(void)
         ribbonCounts[i].partyIndex = i;
         ribbonCounts[i].count = 0;
 
-        if (GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES)
-         && !GetMonData(mon, MON_DATA_SANITY_IS_EGG)
-         && !GetMonData(mon, MON_DATA_CHAMPION_RIBBON))
+        if (GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES, NULL)
+         && !GetMonData(mon, MON_DATA_SANITY_IS_EGG, NULL)
+         && !GetMonData(mon, MON_DATA_CHAMPION_RIBBON, NULL))
         {
             u8 val[1] = {TRUE};
             SetMonData(mon, MON_DATA_CHAMPION_RIBBON, val);

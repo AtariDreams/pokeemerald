@@ -257,11 +257,11 @@ static u32 BuildPartyMonRibbonList(s32 state)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon * pokemon = &gPlayerParty[i];
-        if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES))
+        if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES, NULL))
             return LT_INC_AND_CONTINUE;
-        if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG) && !GetMonData(pokemon, MON_DATA_SANITY_IS_BAD_EGG))
+        if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG, NULL) && !GetMonData(pokemon, MON_DATA_SANITY_IS_BAD_EGG, NULL))
         {
-            u32 ribbonCount = GetMonData(pokemon, MON_DATA_RIBBON_COUNT);
+            u32 ribbonCount = GetMonData(pokemon, MON_DATA_RIBBON_COUNT, NULL);
             if (ribbonCount != 0)
             {
                 item.monId = i;
@@ -350,11 +350,11 @@ static bool32 PlayerHasRibbonsMon(void)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gPlayerParty[i];
-        if (!GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES))
+        if (!GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES, NULL))
             continue;
-        if (GetMonData(mon, MON_DATA_SANITY_IS_EGG))
+        if (GetMonData(mon, MON_DATA_SANITY_IS_EGG, NULL))
             continue;
-        if (GetMonData(mon, MON_DATA_RIBBONS))
+        if (GetMonData(mon, MON_DATA_RIBBONS, NULL))
             return TRUE;
     }
 

@@ -757,12 +757,12 @@ static bool8 IsSecretBaseRegistered(u8 secretBaseIdx)
 static u8 GetAverageEVs(struct Pokemon *pokemon)
 {
     u16 evTotal;
-    evTotal  = GetMonData(pokemon, MON_DATA_HP_EV);
-    evTotal += GetMonData(pokemon, MON_DATA_ATK_EV);
-    evTotal += GetMonData(pokemon, MON_DATA_DEF_EV);
-    evTotal += GetMonData(pokemon, MON_DATA_SPEED_EV);
-    evTotal += GetMonData(pokemon, MON_DATA_SPATK_EV);
-    evTotal += GetMonData(pokemon, MON_DATA_SPDEF_EV);
+    evTotal  = GetMonData(pokemon, MON_DATA_HP_EV, NULL);
+    evTotal += GetMonData(pokemon, MON_DATA_ATK_EV, NULL);
+    evTotal += GetMonData(pokemon, MON_DATA_DEF_EV, NULL);
+    evTotal += GetMonData(pokemon, MON_DATA_SPEED_EV, NULL);
+    evTotal += GetMonData(pokemon, MON_DATA_SPATK_EV, NULL);
+    evTotal += GetMonData(pokemon, MON_DATA_SPDEF_EV, NULL);
     return evTotal / 6;
 }
 
@@ -788,16 +788,16 @@ void SetPlayerSecretBaseParty(void)
             party->personality[i] = 0;
             party->EVs[i] = 0;
 
-            if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE
-            && !GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+            if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE
+            && !GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG, NULL))
             {
                 for (moveIdx = 0; moveIdx < MAX_MON_MOVES; moveIdx++)
-                    party->moves[partyId * MAX_MON_MOVES + moveIdx] = GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + moveIdx);
+                    party->moves[partyId * MAX_MON_MOVES + moveIdx] = GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + moveIdx, NULL);
 
-                party->species[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES);
-                party->heldItems[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM);
-                party->levels[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_LEVEL);
-                party->personality[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY);
+                party->species[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL);
+                party->heldItems[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, NULL);
+                party->levels[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_LEVEL, NULL);
+                party->personality[partyId] = GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY, NULL);
                 party->EVs[partyId] = GetAverageEVs(&gPlayerParty[i]);
                 partyId++;
             }

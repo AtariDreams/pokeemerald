@@ -990,7 +990,7 @@ static void GetMonConditions(struct Pokemon *mon, u8 *data)
     u16 i;
 
     for (i = 0; i < CONDITION_COUNT; i++)
-        data[i] = GetMonData(mon, sConditionToMonData[i]);
+        data[i] = GetMonData(mon, sConditionToMonData[i], NULL);
 }
 
 static void AddPokeblockToConditions(struct Pokeblock *pokeblock, struct Pokemon *mon)
@@ -999,12 +999,12 @@ static void AddPokeblockToConditions(struct Pokeblock *pokeblock, struct Pokemon
     s16 stat;
     u8 data;
 
-    if (GetMonData(mon, MON_DATA_SHEEN) != MAX_SHEEN)
+    if (GetMonData(mon, MON_DATA_SHEEN, NULL) != MAX_SHEEN)
     {
         CalculatePokeblockEffectiveness(pokeblock, mon);
         for (i = 0; i < CONDITION_COUNT; i++)
         {
-            data = GetMonData(mon, sConditionToMonData[i]);
+            data = GetMonData(mon, sConditionToMonData[i], NULL);
             stat = data +  sInfo->pokeblockStatBoosts[i];
             if (stat < 0)
                 stat = 0;
@@ -1014,7 +1014,7 @@ static void AddPokeblockToConditions(struct Pokeblock *pokeblock, struct Pokemon
             SetMonData(mon, sConditionToMonData[i], &data);
         }
 
-        stat = (u8)(GetMonData(mon, MON_DATA_SHEEN)) + pokeblock->feel;
+        stat = (u8)(GetMonData(mon, MON_DATA_SHEEN, NULL)) + pokeblock->feel;
         if (stat > MAX_SHEEN)
             stat = MAX_SHEEN;
 
@@ -1084,7 +1084,7 @@ static u8 GetPartyIdFromSelectionId(u8 selectionId)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG, NULL))
         {
             if (selectionId == 0)
                 return i;
@@ -1101,7 +1101,7 @@ static u8 GetSelectionIdFromPartyId(u8 partyId)
     u8 i, numEggs;
     for (i = 0, numEggs = 0; i < partyId; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG, NULL))
             numEggs++;
     }
 
@@ -1158,7 +1158,7 @@ static void LoadPartyInfo(void)
 
     for (i = 0, numMons = 0; i < CalculatePlayerPartyCount(); i++)
     {
-        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG, NULL))
         {
             sMenu->party[numMons].boxId = TOTAL_BOXES_COUNT;
             sMenu->party[numMons].monId = i;
@@ -1595,7 +1595,7 @@ static void SpriteCB_SelectionIconCancel(struct Sprite *sprite)
 // is the total number of sparkles that appear
 static void CalculateNumAdditionalSparkles(u8 monIndex)
 {
-    u8 sheen = GetMonData(&gPlayerParty[monIndex], MON_DATA_SHEEN);
+    u8 sheen = GetMonData(&gPlayerParty[monIndex], MON_DATA_SHEEN, NULL);
     sMenu->numSparkles[sMenu->curLoadId] = GET_NUM_CONDITION_SPARKLES(sheen);
 }
 
