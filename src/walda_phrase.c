@@ -97,7 +97,7 @@ u16 TryGetWallpaperWithWaldaPhrase(void)
 {
     u16 backgroundClr, foregroundClr;
     u8 patternId, iconId;
-    u16 trainerId = GetTrainerId(gSaveBlock2Ptr->playerTrainerId);
+    u16 trainerId = GetTrainerId(gSaveBlock2.playerTrainerId);
     gSpecialVar_Result = TryCalculateWallpaper(&backgroundClr, &foregroundClr, &iconId, &patternId, trainerId, GetWaldaPhrasePtr());
 
     if (gSpecialVar_Result)

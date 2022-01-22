@@ -501,7 +501,7 @@ struct SaveBlock2
     /*0x64C*/ struct BattleFrontier frontier;
 }; // sizeof=0xF2C
 
-extern struct SaveBlock2 *gSaveBlock2Ptr;
+extern struct SaveBlock2 gSaveBlock2;
 
 struct SecretBaseParty
 {
@@ -1016,7 +1016,7 @@ struct SaveBlock1
     // sizeof: 0x3D88
 };
 
-extern struct SaveBlock1* gSaveBlock1Ptr;
+extern struct SaveBlock1 gSaveBlock1;
 
 struct MapPosition
 {

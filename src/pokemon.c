@@ -2224,10 +2224,10 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     }
     else // Player is the OT
     {
-        value = gSaveBlock2Ptr->playerTrainerId[0]
-              | (gSaveBlock2Ptr->playerTrainerId[1] << 8)
-              | (gSaveBlock2Ptr->playerTrainerId[2] << 16)
-              | (gSaveBlock2Ptr->playerTrainerId[3] << 24);
+        value = gSaveBlock2.playerTrainerId[0]
+              | (gSaveBlock2.playerTrainerId[1] << 8)
+              | (gSaveBlock2.playerTrainerId[2] << 16)
+              | (gSaveBlock2.playerTrainerId[3] << 24);
     }
 
     SetBoxMonData(boxMon, MON_DATA_OT_ID, &value);
@@ -2238,7 +2238,7 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     GetSpeciesName(speciesName, species);
     SetBoxMonData(boxMon, MON_DATA_NICKNAME, speciesName);
     SetBoxMonData(boxMon, MON_DATA_LANGUAGE, &gGameLanguage);
-    SetBoxMonData(boxMon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
+    SetBoxMonData(boxMon, MON_DATA_OT_NAME, gSaveBlock2.playerName);
     SetBoxMonData(boxMon, MON_DATA_SPECIES, &species);
     SetBoxMonData(boxMon, MON_DATA_EXP, &gExperienceTables[gBaseStats[species].growthRate][level]);
     SetBoxMonData(boxMon, MON_DATA_FRIENDSHIP, &gBaseStats[species].friendship);
@@ -2248,7 +2248,7 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     SetBoxMonData(boxMon, MON_DATA_MET_GAME, &gGameVersion);
     value = ITEM_POKE_BALL;
     SetBoxMonData(boxMon, MON_DATA_POKEBALL, &value);
-    SetBoxMonData(boxMon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);
+    SetBoxMonData(boxMon, MON_DATA_OT_GENDER, &gSaveBlock2.playerGender);
 
     if (fixedIV < USE_RANDOM_IVS)
     {
@@ -2461,8 +2461,8 @@ void CreateBattleTowerMon_HandleLevel(struct Pokemon *mon, struct BattleTowerPok
     u8 language;
     u8 value;
 
-    if (gSaveBlock2Ptr->frontier.lvlMode != FRONTIER_LVL_50)
-        level = GetFrontierEnemyMonLevel(gSaveBlock2Ptr->frontier.lvlMode);
+    if (gSaveBlock2.frontier.lvlMode != FRONTIER_LVL_50)
+        level = GetFrontierEnemyMonLevel(gSaveBlock2.frontier.lvlMode);
     else if (lvl50)
         level = 50;
     else
@@ -4370,9 +4370,9 @@ u8 GiveMonToPlayer(struct Pokemon *mon)
 {
     s32 i;
 
-    SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
-    SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);
-    SetMonData(mon, MON_DATA_OT_ID, gSaveBlock2Ptr->playerTrainerId);
+    SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2.playerName);
+    SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2.playerGender);
+    SetMonData(mon, MON_DATA_OT_ID, gSaveBlock2.playerTrainerId);
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -4722,7 +4722,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
         if (gMain.inBattle)
             holdEffect = gEnigmaBerries[gBattlerInMenuId].holdEffect;
         else
-            holdEffect = gSaveBlock1Ptr->enigmaBerry.holdEffect;
+            holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
     }
     else
     {
@@ -4763,7 +4763,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
         if (gMain.inBattle)
             itemEffect = gEnigmaBerries[gActiveBattler].itemEffect;
         else
-            itemEffect = gSaveBlock1Ptr->enigmaBerry.itemEffect;
+            itemEffect = gSaveBlock1.enigmaBerry.itemEffect;
     }
     else
     {
@@ -5397,7 +5397,7 @@ u8 *UseStatIncreaseItem(u16 itemId)
         if (gMain.inBattle)
             itemEffect = gEnigmaBerries[gBattlerInMenuId].itemEffect;
         else
-            itemEffect = gSaveBlock1Ptr->enigmaBerry.itemEffect;
+            itemEffect = gSaveBlock1.enigmaBerry.itemEffect;
     }
     else
     {
@@ -5458,7 +5458,7 @@ u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 mode, u16 evolutionItem)
     u8 holdEffect;
 
     if (heldItem == ITEM_ENIGMA_BERRY)
-        holdEffect = gSaveBlock1Ptr->enigmaBerry.holdEffect;
+        holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
     else
         holdEffect = ItemId_GetHoldEffect(heldItem);
 
@@ -5875,7 +5875,7 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
         if (gMain.inBattle)
             holdEffect = gEnigmaBerries[0].holdEffect;
         else
-            holdEffect = gSaveBlock1Ptr->enigmaBerry.holdEffect;
+            holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
     }
     else
     {
@@ -5968,7 +5968,7 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
             if (gMain.inBattle)
                 holdEffect = gEnigmaBerries[0].holdEffect;
             else
-                holdEffect = gSaveBlock1Ptr->enigmaBerry.holdEffect;
+                holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
         }
         else
         {
@@ -6516,14 +6516,14 @@ bool8 IsTradedMon(struct Pokemon *mon)
 bool8 IsOtherTrainer(u32 otId, u8 *otName)
 {
     if (otId ==
-        (gSaveBlock2Ptr->playerTrainerId[0]
-      | (gSaveBlock2Ptr->playerTrainerId[1] << 8)
-      | (gSaveBlock2Ptr->playerTrainerId[2] << 16)
-      | (gSaveBlock2Ptr->playerTrainerId[3] << 24)))
+        (gSaveBlock2.playerTrainerId[0]
+      | (gSaveBlock2.playerTrainerId[1] << 8)
+      | (gSaveBlock2.playerTrainerId[2] << 16)
+      | (gSaveBlock2.playerTrainerId[3] << 24)))
     {
         int i;
         for (i = 0; otName[i] != EOS; i++)
-            if (otName[i] != gSaveBlock2Ptr->playerName[i])
+            if (otName[i] != gSaveBlock2.playerName[i])
                 return TRUE;
         return FALSE;
     }
@@ -6870,9 +6870,9 @@ void HandleSetPokedexFlag(u16 nationalNum, u8 caseId, u32 personality)
     {
         GetSetPokedexFlag(nationalNum, caseId);
         if (NationalPokedexNumToSpecies(nationalNum) == SPECIES_UNOWN)
-            gSaveBlock2Ptr->pokedex.unownPersonality = personality;
+            gSaveBlock2.pokedex.unownPersonality = personality;
         if (NationalPokedexNumToSpecies(nationalNum) == SPECIES_SPINDA)
-            gSaveBlock2Ptr->pokedex.spindaPersonality = personality;
+            gSaveBlock2.pokedex.spindaPersonality = personality;
     }
 }
 
