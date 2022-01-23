@@ -448,24 +448,16 @@ void IncrementGameStat(u8 index)
 
 u32 GetGameStat(u8 index)
 {
-    if (index >= NUM_USED_GAME_STATS)
-        return 0;
+    if (index < NUM_USED_GAME_STATS)
+        gSaveBlock1.gameStats[index];
 
-    return gSaveBlock1.gameStats[index] ^ gSaveBlock2.encryptionKey;
+    return 0;
 }
 
 void SetGameStat(u8 index, u32 value)
 {
     if (index < NUM_USED_GAME_STATS)
-        gSaveBlock1.gameStats[index] = value ^ gSaveBlock2.encryptionKey;
-}
-
-void ApplyNewEncryptionKeyToGameStats(u32 newKey)
-{
-    u8 i;
-
-    for (i = 0; i < NUM_GAME_STATS; i++)
-        ApplyNewEncryptionKeyToWord(&gSaveBlock1.gameStats[i], newKey);
+        gSaveBlock1.gameStats[index] = value;
 }
 
 void LoadObjEventTemplatesFromHeader(void)
