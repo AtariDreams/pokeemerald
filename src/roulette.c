@@ -1968,7 +1968,7 @@ static void ExitRoulette(u8 taskId)
         gSpecialVar_0x8004 = TRUE;
     else
         gSpecialVar_0x8004 = FALSE;
-    TryPutFindThatGamerOnAir(gSaveBlock1.coins);
+    TryPutFindThatGamerOnAir();
     BeginHardwarePaletteFade(0xFF, 0, 0, 16, 0);
     gTasks[taskId].func = Task_ExitRoulette;
 }
