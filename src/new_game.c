@@ -208,7 +208,6 @@ void NewGameInitData(void)
 static void ResetMiniGamesRecords(void)
 {
     CpuFill16(0, &gSaveBlock2.berryCrush, sizeof(struct BerryCrush));
-    SetBerryPowder(&gSaveBlock2.berryCrush.berryPowderAmount, 0);
-    ResetPokemonJumpRecords();
+    CpuFill16(0, &gSaveBlock2.pokeJump, sizeof(struct PokemonJumpRecords));
     CpuFill16(0, &gSaveBlock2.berryPick, sizeof(struct BerryPickingResults));
 }

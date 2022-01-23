@@ -4092,42 +4092,24 @@ static bool32 RecvPacket_MemberStateToMember(struct PokemonJump_Player *player, 
     return TRUE;
 }
 
-static struct PokemonJumpRecords *GetPokeJumpRecords(void)
-{
-    return &gSaveBlock2.pokeJump;
-}
-
-void ResetPokemonJumpRecords(void)
-{
-    struct PokemonJumpRecords *records = GetPokeJumpRecords();
-    records->jumpsInRow = 0;
-    records->bestJumpScore = 0;
-    records->excellentsInRow = 0;
-    records->gamesWithMaxPlayers = 0;
-    records->unused2 = 0;
-    records->unused1 = 0;
-}
-
 static bool32 TryUpdateRecords(u32 jumpScore, u16 jumpsInRow, u16 excellentsInRow)
 {
-    struct PokemonJumpRecords *records = GetPokeJumpRecords();
     bool32 newRecord = FALSE;
 
-    if (records->bestJumpScore < jumpScore && jumpScore <= MAX_JUMP_SCORE)
-        records->bestJumpScore = jumpScore, newRecord = TRUE;
-    if (records->jumpsInRow < jumpsInRow && jumpsInRow <= MAX_JUMPS)
-        records->jumpsInRow = jumpsInRow, newRecord = TRUE;
-    if (records->excellentsInRow < excellentsInRow && excellentsInRow <= MAX_JUMPS)
-        records->excellentsInRow = excellentsInRow, newRecord = TRUE;
+    if (gSaveBlock2.pokeJump.bestJumpScore < jumpScore && jumpScore <= MAX_JUMP_SCORE)
+        gSaveBlock2.pokeJump.bestJumpScore = jumpScore, newRecord = TRUE;
+    if (gSaveBlock2.pokeJump.jumpsInRow < jumpsInRow && jumpsInRow <= MAX_JUMPS)
+        gSaveBlock2.pokeJump.jumpsInRow = jumpsInRow, newRecord = TRUE;
+    if (gSaveBlock2.pokeJump.excellentsInRow < excellentsInRow && excellentsInRow <= MAX_JUMPS)
+        gSaveBlock2.pokeJump.excellentsInRow = excellentsInRow, newRecord = TRUE;
 
     return newRecord;
 }
 
 static void IncrementGamesWithMaxPlayers(void)
 {
-    struct PokemonJumpRecords *records = GetPokeJumpRecords();
-    if (records->gamesWithMaxPlayers < 9999)
-        records->gamesWithMaxPlayers++;
+    if (gSaveBlock2.pokeJump.gamesWithMaxPlayers < 9999)
+        gSaveBlock2.pokeJump.gamesWithMaxPlayers++;
 }
 
 void ShowPokemonJumpRecords(void)
@@ -4209,10 +4191,9 @@ static void PrintRecordsText(u16 windowId, int width)
 {
     int i, x;
     int recordNums[3];
-    struct PokemonJumpRecords *records = GetPokeJumpRecords();
-    recordNums[0] = records->jumpsInRow;
-    recordNums[1] = records->bestJumpScore;
-    recordNums[2] = records->excellentsInRow;
+    recordNums[0] = gSaveBlock2.pokeJump.jumpsInRow;
+    recordNums[1] = gSaveBlock2.pokeJump.bestJumpScore;
+    recordNums[2] = gSaveBlock2.pokeJump.excellentsInRow;
 
     LoadUserWindowBorderGfx_(windowId, 0x21D, 0xD0);
     DrawTextBorderOuter(windowId, 0x21D, 0xD);
