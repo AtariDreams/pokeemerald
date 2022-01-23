@@ -168,7 +168,7 @@ void NewGameInitData(void)
     ClearSecretBases();
     ClearBerryTrees();
     gSaveBlock1.money = 3000;
-    SetCoins(0);
+    gSaveBlock1.coins = 0;
     ResetLinkContestBoolean();
     ResetGameStats();
     ClearAllContestWinnerPics();
