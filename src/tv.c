@@ -1915,7 +1915,7 @@ void TryPutTreasureInvestigatorsOnAir(void)
     }
 }
 
-void TryPutFindThatGamerOnAir(u16 nCoinsPaidOut)
+void TryPutFindThatGamerOnAir(void)
 {
     TVShow *show;
     bool8 flag;
@@ -1928,28 +1928,28 @@ void TryPutFindThatGamerOnAir(u16 nCoinsPaidOut)
         switch (sFindThatGamerWhichGame)
         {
         case SLOT_MACHINE:
-            if (nCoinsPaidOut >= sFindThatGamerCoinsSpent + 200)
+            if (gSaveBlock1.coins >= sFindThatGamerCoinsSpent + 200)
             {
                 flag = TRUE;
-                nCoinsWon = nCoinsPaidOut - sFindThatGamerCoinsSpent;
+                nCoinsWon = gSaveBlock1.coins - sFindThatGamerCoinsSpent;
                 break;
             }
-            if (sFindThatGamerCoinsSpent >= 100 && nCoinsPaidOut <= sFindThatGamerCoinsSpent - 100)
+            if (sFindThatGamerCoinsSpent >= 100 && gSaveBlock1.coins <= sFindThatGamerCoinsSpent - 100)
             {
-                nCoinsWon = sFindThatGamerCoinsSpent - nCoinsPaidOut;
+                nCoinsWon = sFindThatGamerCoinsSpent - gSaveBlock1.coins;
                 break;
             }
             return;
         case ROULETTE:
-            if (nCoinsPaidOut >= sFindThatGamerCoinsSpent + 50)
+            if (gSaveBlock1.coins >= sFindThatGamerCoinsSpent + 50)
             {
                 flag = TRUE;
-                nCoinsWon = nCoinsPaidOut - sFindThatGamerCoinsSpent;
+                nCoinsWon = gSaveBlock1.coins - sFindThatGamerCoinsSpent;
                 break;
             }
-            if (sFindThatGamerCoinsSpent >= 50 && nCoinsPaidOut <= sFindThatGamerCoinsSpent - 50)
+            if (sFindThatGamerCoinsSpent >= 50 && gSaveBlock1.coins <= sFindThatGamerCoinsSpent - 50)
             {
-                nCoinsWon = sFindThatGamerCoinsSpent - nCoinsPaidOut;
+                nCoinsWon = sFindThatGamerCoinsSpent - gSaveBlock1.coins;
                 break;
             }
             return;
