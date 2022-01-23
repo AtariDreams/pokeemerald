@@ -3212,7 +3212,7 @@ static u32 Cmd_ShowResults(struct BerryCrushGame *game, u8 *args)
     case 4:
         // Print message showing how much powder was created
         ConvertIntToDecimalStringN(gStringVar1, game->powder, STR_CONV_MODE_LEFT_ALIGN, 6);
-        ConvertIntToDecimalStringN(gStringVar2, GetBerryPowder(), STR_CONV_MODE_LEFT_ALIGN, 6);
+        ConvertIntToDecimalStringN(gStringVar2, gSaveBlock2.berryCrush.berryPowderAmount, STR_CONV_MODE_LEFT_ALIGN, 6);
         SetPrintMessageArgs(args, MSG_POWDER, F_MSG_CLEAR | F_MSG_EXPAND, 0, 0);
         game->nextCmd = CMD_SAVE;
         RunOrScheduleCommand(CMD_PRINT_MSG, SCHEDULE_CMD, NULL);
