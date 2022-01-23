@@ -144,7 +144,7 @@ bool8 GiveBerryPowder(u32 amountToAdd)
     }
     else
     {
-        gSaveBlock2.berryCrush.berryPowderAmount = amount;
+        gSaveBlock2.berryCrush.berryPowderAmount += amountToAdd;
         return TRUE;
     }
 }
