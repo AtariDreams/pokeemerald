@@ -1799,7 +1799,7 @@ bool8 ScrCmd_showcoinsbox(struct ScriptContext *ctx)
     u8 x = ScriptReadByte(ctx);
     u8 y = ScriptReadByte(ctx);
 
-    ShowCoinsWindow(GetCoins(), x, y);
+    ShowCoinsWindow(gSaveBlock1.coins, x, y);
     return FALSE;
 }
 
@@ -1817,7 +1817,7 @@ bool8 ScrCmd_updatecoinsbox(struct ScriptContext *ctx)
     u8 x = ScriptReadByte(ctx);
     u8 y = ScriptReadByte(ctx);
 
-    PrintCoinsString(GetCoins());
+    PrintCoinsString(gSaveBlock1.coins);
     return FALSE;
 }
 
@@ -2132,7 +2132,7 @@ bool8 ScrCmd_showelevmenu(struct ScriptContext *ctx)
 bool8 ScrCmd_checkcoins(struct ScriptContext *ctx)
 {
     u16 *ptr = GetVarPointer(ScriptReadHalfword(ctx));
-    *ptr = GetCoins();
+    *ptr = gSaveBlock1.coins;
     return FALSE;
 }
 
