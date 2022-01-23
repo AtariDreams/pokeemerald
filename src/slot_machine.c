@@ -1730,7 +1730,7 @@ static bool8 SlotTask_WaitMsg_NoMoreCoins(struct Task *task)
 static bool8 SlotTask_EndGame(struct Task *task)
 {
     gSaveBlock1.coins = sSlotMachine->coins;
-    TryPutFindThatGamerOnAir(gSaveBlock1.coins);
+    TryPutFindThatGamerOnAir();
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB(0, 0, 0));
     sSlotMachine->state++; // SLOTTASK_FREE
     return FALSE;
