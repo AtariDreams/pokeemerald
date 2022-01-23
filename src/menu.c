@@ -467,9 +467,9 @@ void DisplayYesNoMenuDefaultYes(void)
     CreateYesNoMenu(&sYesNo_WindowTemplates, STD_WINDOW_BASE_TILE_NUM, STD_WINDOW_PALETTE_NUM, 0);
 }
 
-void DisplayYesNoMenuWithDefault(u8 initialCursorPos)
+void DisplayYesNoMenuWithDefaultNo(void)
 {
-    CreateYesNoMenu(&sYesNo_WindowTemplates, STD_WINDOW_BASE_TILE_NUM, STD_WINDOW_PALETTE_NUM, initialCursorPos);
+    CreateYesNoMenu(&sYesNo_WindowTemplates, STD_WINDOW_BASE_TILE_NUM, STD_WINDOW_PALETTE_NUM, 1);
 }
 
 u32 GetPlayerTextSpeed(void)

@@ -1022,7 +1022,7 @@ static u8 SaveFileExistsCallback(void)
 
 static u8 SaveConfirmOverwriteDefaultNoCallback(void)
 {
-    DisplayYesNoMenuWithDefault(1); // Show Yes/No menu (No selected as default)
+    DisplayYesNoMenuWithDefaultNo(); // Show Yes/No menu (No selected as default)
     sSaveDialogCallback = SaveOverwriteInputCallback;
     return SAVE_IN_PROGRESS;
 }
@@ -1148,7 +1148,7 @@ static u8 BattlePyramidConfirmRetireCallback(void)
 
 static u8 BattlePyramidRetireYesNoCallback(void)
 {
-    DisplayYesNoMenuWithDefault(1); // Show Yes/No menu (No selected as default)
+    DisplayYesNoMenuWithDefaultNo(); // Show Yes/No menu (No selected as default)
     sSaveDialogCallback = BattlePyramidRetireInputCallback;
 
     return SAVE_IN_PROGRESS;
