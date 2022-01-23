@@ -151,7 +151,6 @@ void NewGameInitData(void)
         RtcReset();
 
     gDifferentSaveFile = TRUE;
-    gSaveBlock2.encryptionKey = 0;
     ZeroPlayerPartyMons();
     ZeroEnemyPartyMons();
     ResetPokedex();
@@ -168,7 +167,7 @@ void NewGameInitData(void)
     ResetGabbyAndTy();
     ClearSecretBases();
     ClearBerryTrees();
-    SetMoney(&gSaveBlock1.money, 3000);
+    gSaveBlock1.money = 3000;
     SetCoins(0);
     ResetLinkContestBoolean();
     ResetGameStats();

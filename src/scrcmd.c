@@ -1739,7 +1739,7 @@ bool8 ScrCmd_addmoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        AddMoney(&gSaveBlock1.money, amount);
+        AddMoney(amount);
     return FALSE;
 }
 
@@ -1749,7 +1749,7 @@ bool8 ScrCmd_removemoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        RemoveMoney(&gSaveBlock1.money, amount);
+        RemoveMoney(amount);
     return FALSE;
 }
 
@@ -1759,7 +1759,7 @@ bool8 ScrCmd_checkmoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        gSpecialVar_Result = IsEnoughMoney(&gSaveBlock1.money, amount);
+        gSpecialVar_Result = gSaveBlock1.money >= amount);
     return FALSE;
 }
 
