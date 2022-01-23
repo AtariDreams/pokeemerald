@@ -706,7 +706,7 @@ static void BuyMenuDrawGraphics(void)
     BuyMenuDrawMapGraphics();
     BuyMenuCopyMenuBgToBg1TilemapBuffer();
     AddMoneyLabelObject(19, 11);
-    PrintMoneyAmountInMoneyBoxWithBorder(0, 1, 13, GetMoney(&gSaveBlock1.money));
+    PrintMoneyAmountInMoneyBoxWithBorder(0, 1, 13, gSaveBlock1.money);
     ScheduleBgCopyTilemapToVram(0);
     ScheduleBgCopyTilemapToVram(1);
     ScheduleBgCopyTilemapToVram(2);
