@@ -38,11 +38,6 @@ void PutMemBlockHeader(void *block, struct MemBlock *prev, struct MemBlock *next
     header->next = next;
 }
 
-void PutFirstMemBlockHeader(void *block, u32 size)
-{
-    PutMemBlockHeader(block, (struct MemBlock *)block, (struct MemBlock *)block, HEAP_SIZE - sizeof(struct MemBlock));
-}
-
 void *AllocInternal(void *heapStart, u32 size)
 {
     struct MemBlock *pos = (struct MemBlock *)heapStart;
