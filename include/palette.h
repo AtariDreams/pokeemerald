@@ -18,6 +18,77 @@
 #define PALETTES_OBJECTS 0xFFFF0000
 #define PALETTES_ALL     (PALETTES_BG | PALETTES_OBJECTS)
 
+#define PAL0		0
+#define PAL1		(PAL0+16)
+#define PAL2		(PAL1+16)
+#define PAL3		(PAL2+16)
+#define PAL4		(PAL3+16)
+#define PAL5		(PAL4+16)
+#define PAL6		(PAL5+16)
+#define PAL7		(PAL6+16)
+#define PAL8		(PAL7+16)
+#define PAL9		(PAL8+16)
+#define PAL10		(PAL9+16)
+#define PAL11		(PAL10+16)
+#define PAL12		(PAL11+16)
+#define PAL13		(PAL12+16)
+#define PAL14		(PAL13+16)
+#define PAL15		(PAL14+16)
+
+#define PA_OBJ0		(PAL15+16)
+#define PA_OBJ1		(PA_OBJ0+16)
+#define PA_OBJ2		(PA_OBJ1+16)
+#define PA_OBJ3		(PA_OBJ2+16)
+#define PA_OBJ4		(PA_OBJ3+16)
+#define PA_OBJ5		(PA_OBJ4+16)
+#define PA_OBJ6		(PA_OBJ5+16)
+#define PA_OBJ7		(PA_OBJ6+16)
+#define PA_OBJ8		(PA_OBJ7+16)
+#define PA_OBJ9		(PA_OBJ8+16)
+#define PA_OBJ10	(PA_OBJ9+16)
+#define PA_OBJ11	(PA_OBJ10+16)
+#define PA_OBJ12	(PA_OBJ11+16)
+#define PA_OBJ13	(PA_OBJ12+16)
+#define PA_OBJ14	(PA_OBJ13+16)
+#define PA_OBJ15	(PA_OBJ14+16)
+
+#define PA_COL0			0
+#define PA_COL1			1
+#define PA_COL2			2
+#define PA_COL3			3
+#define PA_COL4			4
+#define PA_COL5			5
+#define PA_COL6			6
+#define PA_COL7			7
+#define PA_COL8			8
+#define PA_COL9			9
+#define PA_COL10		10
+#define PA_COL11		11
+#define PA_COL12		12
+#define PA_COL13		13
+#define PA_COL14		14
+#define PA_COL15		15
+
+#define PAL_BG0			(0)
+#define PAL_BG1			(1)
+#define PAL_BG2			(2)
+#define PAL_BG3			(3)
+#define PAL_BG4			(4)
+#define PAL_BG5			(5)
+#define PAL_BG6			(6)
+#define PAL_BG7			(7)
+#define PAL_BG8			(8)
+#define PAL_BG9			(9)
+#define PAL_BG10		(10)
+#define PAL_BG11		(11)
+#define PAL_BG12		(12)
+#define PAL_BG13		(13)
+#define PAL_BG14		(14)
+#define PAL_BG15		(15)
+
+#define BGPALNO_TO_PANO(palnum)	    ((palnum) << 4)
+#define OBJPALNO_TO_PANO(palnum)	(((palnum) << 4) + PA_OBJ0)
+
 enum
 {
     FAST_FADE_IN_FROM_WHITE,

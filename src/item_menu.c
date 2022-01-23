@@ -2448,10 +2448,10 @@ static void LoadBagMenuTextWindows(void)
 
     InitWindows(sDefaultBagWindows);
     DeactivateAllTextPrinters();
-    LoadUserWindowBorderGfx(0, 1, 0xE0);
-    LoadMessageBoxGfx(0, 10, 0xD0);
-    ListMenuLoadStdPalAt(0xC0, 1);
-    LoadPalette(&gStandardMenuPalette, 0xF0, 0x20);
+    LoadUserWindowBorderGfx(0, 1, PAL14);
+    LoadMessageBoxGfx(0, 10, PAL13);
+    ListMenuLoadStdPalAt(PAL12, 1);
+    LoadPalette(&gStandardMenuPalette, PAL15, 0x20);
     for (i = 0; i <= WIN_POCKET_NAME; i++)
     {
         FillWindowPixelBuffer(i, PIXEL_FILL(0));
