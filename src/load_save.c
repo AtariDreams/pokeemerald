@@ -199,7 +199,6 @@ static void ApplyNewEncryptionKeyToAllEncryptedData(u32 encryptionKey)
 {
     ApplyNewEncryptionKeyToGameStats(encryptionKey);
     ApplyNewEncryptionKeyToBagItems_(encryptionKey);
-    ApplyNewEncryptionKeyToBerryPowder(encryptionKey);
     ApplyNewEncryptionKeyToWord(&gSaveBlock1.money, encryptionKey);
     ApplyNewEncryptionKeyToHword(&gSaveBlock1.coins, encryptionKey);
 }
