@@ -6749,3 +6749,8 @@ static void TVShowDone(void)
     sTVShowState = 0;
     gSaveBlock1.tvShows[gSpecialVar_0x8004].common.active = FALSE;
 }
+
+void ResetTVShowState(void)
+{
+    sTVShowState = 0;
+}
