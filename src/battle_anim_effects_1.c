@@ -4346,7 +4346,7 @@ static void AnimLockOnTarget_Step4(struct Sprite* sprite)
     BlendPalettes(GetBattleBgPalettesMask(1, 1, 1, 1, 1, 0, 0), sprite->data[1], RGB(31, 31, 31));
     if (sprite->data[1] == 16)
     {
-        int pal;
+        u8 pal;
         sprite->data[2]++;
         pal = sprite->oam.paletteNum;
         LoadPalette(&gPlttBufferUnfaded[0x108 + pal * 16], pal * 16 | 0x101, 4);
