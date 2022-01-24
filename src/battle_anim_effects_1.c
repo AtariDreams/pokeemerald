@@ -4349,7 +4349,7 @@ static void AnimLockOnTarget_Step4(struct Sprite* sprite)
         u8 pal;
         sprite->data[2]++;
         pal = sprite->oam.paletteNum;
-        LoadPalette(&gPlttBufferUnfaded[0x108 + pal * 16], pal * 16 | 0x101, 4);
+        LoadPalette(&gPlttBufferUnfaded[0x100 + pal * 16 + 8], 0x100 + pal * 16 + 1, 4);
         PlaySE12WithPanning(SE_M_LEER, BattleAnimAdjustPanning(63));
     }
     else if (sprite->data[1] == 0)
