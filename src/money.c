@@ -86,7 +86,7 @@ void AddMoney(u32 toAdd)
 void RemoveMoney(u32 toSub)
 {
     // can't subtract more than you already have
-    if (gSaveBlock1.money < toSub)
+    if (gSaveBlock1.money <= toSub)
         gSaveBlock1.money = 0;
     else
         gSaveBlock1.money -= toSub;
