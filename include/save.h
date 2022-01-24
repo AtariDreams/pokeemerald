@@ -88,7 +88,6 @@ extern struct SaveSector *gFastSaveSector;
 extern u16 gIncrementalSectorId;
 extern u16 gSaveFileStatus;
 extern void (*gGameContinueCallback)(void);
-extern const struct SaveSectorLocation sSaveSlotLayout[];
 
 extern struct SaveSector gSaveDataBuffer;
 
