@@ -144,6 +144,9 @@ struct UnionRoomChat
     u8 filler4[5];
     u8 sendMessageBuffer[40];
     u16 tryQuitAgainTimer;
+#ifdef PM_DEBUG
+	u8		logcol_debug;
+#endif
 };
 
 struct UnionRoomChatDisplay_Subtask
@@ -1410,6 +1413,12 @@ static void Chat_SendMessage(void)
             sChat->funcState++;
         break;
     case 4:
+    	#ifdef PM_DEBUG
+		if(!gReceivedRemoteLinkPlayers){
+			SetChatFunction(CHAT_FUNC_HANDLE_INPUT);
+			break;
+		}
+	#endif
         if (IsLinkTaskFinished())
             SetChatFunction(CHAT_FUNC_HANDLE_INPUT);
         break;
@@ -2007,6 +2016,29 @@ void InitUnionRoomChatRegisteredTexts(void)
     StringCopy(gSaveBlock1Ptr->registeredTexts[8], gText_ThankYou);
     StringCopy(gSaveBlock1Ptr->registeredTexts[9], gText_ByeBye);
 }
+
+#ifdef PM_DEBUG
+static	void LogWriteTask(u8 taskId)
+{
+	s16 *data = gTasks[taskId].data;
+
+	switch(data[0]){
+	case 0:
+		StartDisplaySubtask(12, 2);
+		data[0]++;
+		break;
+	case 1:
+		if(IsDisplaySubtaskActive(2)==0){
+			if(++(sChat->logcol_debug) >= 5){
+				sChat->logcol_debug = 0;
+			}
+			sChat->receivedPlayerIndex = sChat->logcol_debug;
+			DestroyTask(taskId);
+		}
+		break;
+	}
+}
+#endif
 
 #define tState               data[0]
 #define tI                   data[1]
