@@ -90,7 +90,6 @@ enum {
     CHATDISPLAY_FUNC_SCROLL_CHAT,
     CHATDISPLAY_FUNC_PRINT_INPUT_TEXT,
     CHATDISPLAY_FUNC_ASK_SAVE,
-    CHATDISPLAY_FUNC_ASK_OVERWRITE_SAVE,
     CHATDISPLAY_FUNC_PRINT_SAVING,
     CHATDISPLAY_FUNC_PRINT_SAVED_GAME,
     CHATDISPLAY_FUNC_PRINT_EXITING_CHAT,
@@ -613,7 +612,6 @@ static const struct SubtaskInfo sDisplaySubtasks[] = {
     {CHATDISPLAY_FUNC_PRINT_EXITING_CHAT,       Display_PrintExitingChat},
     {CHATDISPLAY_FUNC_PRINT_LEADER_LEFT,        Display_PrintLeaderLeft},
     {CHATDISPLAY_FUNC_ASK_SAVE,                 Display_AskSave},
-    {CHATDISPLAY_FUNC_ASK_OVERWRITE_SAVE,       Display_AskOverwriteSave},
     {CHATDISPLAY_FUNC_PRINT_SAVING,             Display_PrintSavingDontTurnOff},
     {CHATDISPLAY_FUNC_PRINT_SAVED_GAME,         Display_PrintSavedTheGame},
     {CHATDISPLAY_FUNC_ASK_CONFIRM_LEADER_LEAVE, Display_AskConfirmLeaderLeave}
@@ -1520,70 +1518,65 @@ static void Chat_SaveAndExit(void)
     case 3:
         if (!IsDisplaySubtaskActive(0))
         {
-            StartDisplaySubtask(CHATDISPLAY_FUNC_ASK_OVERWRITE_SAVE, 0);
             sChat->funcState = 4;
         }
         break;
     case 4:
-        if (!IsDisplaySubtaskActive(0))
-            sChat->funcState = 5;
-        break;
-    case 5:
         input = ProcessMenuInput();
         switch (input)
         {
         case -1:
         case 1:
-            sChat->funcState = 12;
+            sChat->funcState = 11;
             break;
         case 0:
             StartDisplaySubtask(CHATDISPLAY_FUNC_DESTROY_YESNO, 0);
-            sChat->funcState = 6;
+            sChat->funcState = 5;
             break;
+        }
+        break;
+    case 5:
+        if (!IsDisplaySubtaskActive(0))
+        {
+            StartDisplaySubtask(CHATDISPLAY_FUNC_PRINT_SAVING, 0);
+            SaveRegisteredTexts();
+            sChat->funcState = 6;
         }
         break;
     case 6:
         if (!IsDisplaySubtaskActive(0))
         {
-            StartDisplaySubtask(CHATDISPLAY_FUNC_PRINT_SAVING, 0);
-            SaveRegisteredTexts();
+            SetContinueGameWarpStatusToDynamicWarp();
+            TrySavingData(SAVE_NORMAL);
             sChat->funcState = 7;
         }
         break;
     case 7:
-        if (!IsDisplaySubtaskActive(0))
-        {
-            SetContinueGameWarpStatusToDynamicWarp();
-            TrySavingData(SAVE_NORMAL);
-            sChat->funcState = 8;
-        }
+        StartDisplaySubtask(CHATDISPLAY_FUNC_PRINT_SAVED_GAME, 0);
+        sChat->funcState = 8;
         break;
     case 8:
-        StartDisplaySubtask(CHATDISPLAY_FUNC_PRINT_SAVED_GAME, 0);
-        sChat->funcState = 9;
-        break;
-    case 9:
         if (!IsDisplaySubtaskActive(0))
         {
             PlaySE(SE_SAVE);
             ClearContinueGameWarpStatus2();
-            sChat->funcState = 10;
+            sChat->funcState = 9;
         }
         break;
-    case 10:
+    case 9:
         sChat->afterSaveTimer = 0;
-        sChat->funcState = 11;
+        sChat->funcState = 10;
         break;
-    case 11:
+    case 10:
         sChat->afterSaveTimer++;
         if (sChat->afterSaveTimer > 120)
-            sChat->funcState = 12;
+            sChat->funcState = 11;
+        break;
+    case 11:
+        BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
+        sChat->funcState = 12;
         break;
     case 12:
-        BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
-        sChat->funcState = 13;
-        break;
-    case 13:
         if (!gPaletteFade.active)
         {
             FreeDisplay();
