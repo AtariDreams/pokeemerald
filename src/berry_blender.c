@@ -2245,16 +2245,13 @@ static void Blender_DummiedOutFunc(s16 a0, s16 a1)
 
 static bool8 AreBlenderBerriesSame(struct BlenderBerry* berries, u8 a, u8 b)
 {
-    // First check to itemId is pointless (and wrong anyway?), always false when this is called
-    // Only used to determine if two enigma berries are equivalent
-    if (berries[a].itemId != berries[b].itemId
-     || (StringCompare(berries[a].name, berries[b].name) == 0
+    if (StringCompare(berries[a].name, berries[b].name) == 0
       && (berries[a].flavors[FLAVOR_SPICY] == berries[b].flavors[FLAVOR_SPICY]
        && berries[a].flavors[FLAVOR_DRY] == berries[b].flavors[FLAVOR_DRY]
        && berries[a].flavors[FLAVOR_SWEET] == berries[b].flavors[FLAVOR_SWEET]
        && berries[a].flavors[FLAVOR_BITTER] == berries[b].flavors[FLAVOR_BITTER]
        && berries[a].flavors[FLAVOR_SOUR] == berries[b].flavors[FLAVOR_SOUR]
-       && berries[a].flavors[FLAVOR_COUNT] == berries[b].flavors[FLAVOR_COUNT])))
+       && berries[a].flavors[FLAVOR_COUNT] == berries[b].flavors[FLAVOR_COUNT]))
         return TRUE;
     else
         return FALSE;

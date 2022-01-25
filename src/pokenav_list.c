@@ -96,8 +96,6 @@ static u32 LoopedTask_PrintCheckPageInfo(s32);
 static const u16 sListArrow_Pal[] = INCBIN_U16("graphics/pokenav/list_arrows.gbapal");
 static const u32 sListArrow_Gfx[] = INCBIN_U32("graphics/pokenav/list_arrows.4bpp.lz");
 
-static EWRAM_DATA u32 sMoveWindowDownIndex = 0; // Read, but pointlessly
-
 bool32 CreatePokenavList(const struct BgTemplate *bgTemplate, struct PokenavListTemplate *listTemplate, s32 tileOffset)
 {
     struct PokenavList *structPtr = AllocSubstruct(POKENAV_SUBSTRUCT_LIST, sizeof(struct PokenavList));
@@ -278,7 +276,7 @@ static void MoveListWindow(s32 delta, bool32 printItems)
     }
     else if (printItems)
     {
-        s32 index = sMoveWindowDownIndex = subPtr->windowTopIndex + subPtr->entriesOnscreen;
+        s32 index = subPtr->windowTopIndex + subPtr->entriesOnscreen;
         if (index + delta >= subPtr->listLength)
             delta = subPtr->listLength - index;
 

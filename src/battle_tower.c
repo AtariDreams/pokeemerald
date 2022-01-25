@@ -2564,7 +2564,6 @@ static void LoadLinkMultiOpponentsData(void)
     u32 lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
     u32 battleMode = VarGet(VAR_FRONTIER_BATTLE_MODE);
     u32 battleNum = gSaveBlock2Ptr->frontier.curChallengeBattleNum;
-    GetMultiplayerId(); // Yet another pointless function call.
 
     switch (gSpecialVar_Result)
     {

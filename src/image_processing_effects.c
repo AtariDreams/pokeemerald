@@ -923,41 +923,24 @@ static void QuantizePalette_Standard(bool8 useLimitedPalette)
             else
             {
                 u16 quantizedColor = QuantizePixel_Standard(pixel);
-                u8 curIndex = 1;
-                if (curIndex < maxIndex)
+                u8 curIndex;
+                for (curIndex = 1; curIndex < maxIndex; curIndex++)
                 {
                     if (gCanvasPalette[curIndex] == RGB_BLACK)
                     {
                         // The quantized color does not match any existing color in the
                         // palette, so we add it to the palette.
-                        // This if block seems pointless because the below while loop handles
-                        // this same logic.
                         gCanvasPalette[curIndex] = quantizedColor;
                         *pixel = gCanvasPaletteStart + curIndex;
+                        break;
                     }
-                    else
+
+                    if (gCanvasPalette[curIndex] == quantizedColor)
                     {
-                        while (curIndex < maxIndex)
-                        {
-                            if (gCanvasPalette[curIndex] == RGB_BLACK)
-                            {
-                                // The quantized color does not match any existing color in the
-                                // palette, so we add it to the palette.
-                                gCanvasPalette[curIndex] = quantizedColor;
-                                *pixel = gCanvasPaletteStart + curIndex;
-                                break;
-                            }
-
-                            if (gCanvasPalette[curIndex] == quantizedColor)
-                            {
-                                // The quantized color matches this existing color in the
-                                // palette, so we use this existing color for the pixel.
-                                *pixel = gCanvasPaletteStart + curIndex;
-                                break;
-                            }
-
-                            curIndex++;
-                        }
+                        // The quantized color matches this existing color in the
+                        // palette, so we use this existing color for the pixel.
+                        *pixel = gCanvasPaletteStart + curIndex;
+                        break;
                     }
                 }
 
