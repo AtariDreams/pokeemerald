@@ -22,6 +22,8 @@
 #include "graphics.h"
 #include "sound.h"
 #include "util.h"
+#include "item.h"
+#include "decoration_inventory.h"
 #include "title_screen.h"
 #include "constants/rgb.h"
 #include "constants/battle_anim.h"
@@ -1144,10 +1146,13 @@ void CB2_InitCopyrightScreenAfterBootup(void)
     {
         ResetMenuAndMonGlobals();
         Save_ResetSaveCounters();
+        SetBagItemsPointers();
+        SetDecorationInventoriesPointers();
         LoadGameSave(SAVE_NORMAL);
         if (gSaveFileStatus == SAVE_STATUS_EMPTY || gSaveFileStatus == SAVE_STATUS_CORRUPT)
             Sav2_ClearSetDefault();
         SetPokemonCryStereo(gSaveBlock2.optionsSound);
+
         InitHeap();
     }
 }
