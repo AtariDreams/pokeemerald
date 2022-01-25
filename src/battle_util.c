@@ -82,7 +82,7 @@ void HandleAction_UseMove(void)
 
     gBattlerAttacker = gBattlerByTurnOrder[gCurrentTurnActionNumber];
 
-    if (*(&gBattleStruct->absentBattlerFlags) & gBitTable[gBattlerAttacker])
+    if (gBattleStruct->absentBattlerFlags & gBitTable[gBattlerAttacker])
     {
         gCurrentActionFuncId = B_ACTION_FINISHED;
         return;
@@ -1125,7 +1125,7 @@ bool8 AreAllMovesUnusable(void)
 
 u8 GetImprisonedMovesCount(u8 battlerId, u16 move)
 {
-    s32 i;
+    u8 i;
     u8 imprisonedMoves = 0;
     u8 battlerSide = GetBattlerSide(battlerId);
 
@@ -1133,14 +1133,15 @@ u8 GetImprisonedMovesCount(u8 battlerId, u16 move)
     {
         if (battlerSide != GetBattlerSide(i) && gStatuses3[i] & STATUS3_IMPRISONED_OTHERS)
         {
-            s32 j;
+            u32 j;
             for (j = 0; j < MAX_MON_MOVES; j++)
             {
                 if (move == gBattleMons[i].moves[j])
+                {
+                    imprisonedMoves++;
                     break;
+                }
             }
-            if (j < MAX_MON_MOVES)
-                imprisonedMoves++;
         }
     }
 
