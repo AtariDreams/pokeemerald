@@ -123,7 +123,7 @@ void DoSealedChamberShakingEffect_Long(void)
     gTasks[taskId].tVerticalPan = 2;
     gTasks[taskId].tDelay = 5;
     gTasks[taskId].tNumShakes = 50;
-    SetCameraPanningCallback(0);
+    SetCameraPanningCallback(NULL);
 }
 
 void DoSealedChamberShakingEffect_Short(void)
@@ -135,7 +135,7 @@ void DoSealedChamberShakingEffect_Short(void)
     gTasks[taskId].tVerticalPan = 3;
     gTasks[taskId].tDelay = 5;
     gTasks[taskId].tNumShakes = 2;
-    SetCameraPanningCallback(0);
+    SetCameraPanningCallback(NULL);
 }
 
 static void Task_SealedChamberShakingEffect(u8 taskId)
