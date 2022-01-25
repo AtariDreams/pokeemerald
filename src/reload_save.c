@@ -1,6 +1,8 @@
 #include "global.h"
 #include "main.h"
+#include "decoration_inventory.h"
 #include "gpu_regs.h"
+#include "item.h"
 #include "m4a.h"
 #include "load_save.h"
 #include "save.h"
@@ -20,6 +22,8 @@ void ReloadSave(void)
     gMain.inBattle = FALSE;
     ResetMenuAndMonGlobals();
     Save_ResetSaveCounters();
+    SetBagItemsPointers();
+    SetDecorationInventoriesPointers();
     LoadGameSave(SAVE_NORMAL);
     if (gSaveFileStatus == SAVE_STATUS_EMPTY || gSaveFileStatus == SAVE_STATUS_CORRUPT)
         Sav2_ClearSetDefault();
