@@ -60,33 +60,30 @@ AI_CBM_CheckIfNegatesType:
 	if_equal ABILITY_FLASH_FIRE, CheckIfFlashFireCancelsFire
 	if_equal ABILITY_WONDER_GUARD, CheckIfWonderGuardCancelsMove
 	if_equal ABILITY_LEVITATE, CheckIfLevitateCancelsGroundMove
-	goto AI_CheckBadMove_CheckSoundproof_
+	goto AI_CheckBadMove_CheckSoundproof
 
 CheckIfVoltAbsorbCancelsElectric:
 	get_curr_move_type
 	if_equal_ TYPE_ELECTRIC, Score_Minus12
-	goto AI_CheckBadMove_CheckSoundproof_
+	goto AI_CheckBadMove_CheckSoundproof
 
 CheckIfWaterAbsorbCancelsWater:
 	get_curr_move_type
 	if_equal_ TYPE_WATER, Score_Minus12
-	goto AI_CheckBadMove_CheckSoundproof_
+	goto AI_CheckBadMove_CheckSoundproof
 
 CheckIfFlashFireCancelsFire:
 	get_curr_move_type
 	if_equal_ TYPE_FIRE, Score_Minus12
-	goto AI_CheckBadMove_CheckSoundproof_
+	goto AI_CheckBadMove_CheckSoundproof
 
 CheckIfWonderGuardCancelsMove:
-	if_type_effectiveness AI_EFFECTIVENESS_x2, AI_CheckBadMove_CheckSoundproof_
+	if_type_effectiveness AI_EFFECTIVENESS_x2, AI_CheckBadMove_CheckSoundproof
 	goto Score_Minus10
 
 CheckIfLevitateCancelsGroundMove:
 	get_curr_move_type
 	if_equal_ TYPE_GROUND, Score_Minus10
-AI_CheckBadMove_CheckSoundproof_:
-	get_how_powerful_move_is
-	if_equal MOVE_POWER_OTHER, AI_CheckBadMove_CheckSoundproof  @ Pointless check
 AI_CheckBadMove_CheckSoundproof:
 	get_ability AI_TARGET
 	if_not_equal ABILITY_SOUNDPROOF, AI_CheckBadMove_CheckEffect

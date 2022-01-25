@@ -1368,7 +1368,6 @@ static void FreeFrontierMap(void)
 {
     ResetTasks();
     SetMainCallback2(sMapData->callback);
-    memset(sMapData, 0, sizeof(*sMapData)); // Pointless memory clear.
     FREE_AND_SET_NULL(sMapData);
 }
 
