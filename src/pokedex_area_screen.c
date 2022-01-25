@@ -448,27 +448,24 @@ static void BuildAreaGlowTilemap(void)
         {
             if (sPokedexAreaScreen->areaGlowTilemap[j] == GLOW_FULL)
             {
-                // The "tile != GLOW_FULL" check is pointless in all of these conditionals,
-                // since there's no harm in OR'ing 0xFFFF with anything else.
-
                 // Edges
-                if (x != 0 && sPokedexAreaScreen->areaGlowTilemap[j - 1] != GLOW_FULL)
+                if (x != 0)
                     sPokedexAreaScreen->areaGlowTilemap[j - 1] |= GLOW_EDGE_L;
-                if (x != AREA_SCREEN_WIDTH - 1 && sPokedexAreaScreen->areaGlowTilemap[j + 1] != GLOW_FULL)
+                if (x != AREA_SCREEN_WIDTH - 1)
                     sPokedexAreaScreen->areaGlowTilemap[j + 1] |= GLOW_EDGE_R;
-                if (y != 0 && sPokedexAreaScreen->areaGlowTilemap[j - AREA_SCREEN_WIDTH] != GLOW_FULL)
+                if (y != 0)
                     sPokedexAreaScreen->areaGlowTilemap[j - AREA_SCREEN_WIDTH] |= GLOW_EDGE_T;
-                if (y != AREA_SCREEN_HEIGHT - 1 && sPokedexAreaScreen->areaGlowTilemap[j + AREA_SCREEN_WIDTH] != GLOW_FULL)
+                if (y != AREA_SCREEN_HEIGHT - 1)
                     sPokedexAreaScreen->areaGlowTilemap[j + AREA_SCREEN_WIDTH] |= GLOW_EDGE_B;
 
                 // Corners
-                if (x != 0 && y != 0 && sPokedexAreaScreen->areaGlowTilemap[j - AREA_SCREEN_WIDTH - 1] != GLOW_FULL)
+                if (x != 0 && y != 0)
                     sPokedexAreaScreen->areaGlowTilemap[j - AREA_SCREEN_WIDTH - 1] |= GLOW_CORNER_TL;
-                if (x != AREA_SCREEN_WIDTH - 1 && y != 0 && sPokedexAreaScreen->areaGlowTilemap[j - AREA_SCREEN_WIDTH + 1] != GLOW_FULL)
+                if (x != AREA_SCREEN_WIDTH - 1 && y != 0)
                     sPokedexAreaScreen->areaGlowTilemap[j - AREA_SCREEN_WIDTH + 1] |= GLOW_CORNER_TR;
-                if (x != 0 && y != AREA_SCREEN_HEIGHT - 1 && sPokedexAreaScreen->areaGlowTilemap[j + AREA_SCREEN_WIDTH - 1] != GLOW_FULL)
+                if (x != 0 && y != AREA_SCREEN_HEIGHT - 1)
                     sPokedexAreaScreen->areaGlowTilemap[j + AREA_SCREEN_WIDTH - 1] |= GLOW_CORNER_BL;
-                if (x != AREA_SCREEN_WIDTH - 1 && y != AREA_SCREEN_HEIGHT - 1 && sPokedexAreaScreen->areaGlowTilemap[j + AREA_SCREEN_WIDTH + 1] != GLOW_FULL)
+                if (x != AREA_SCREEN_WIDTH - 1 && y != AREA_SCREEN_HEIGHT - 1)
                     sPokedexAreaScreen->areaGlowTilemap[j + AREA_SCREEN_WIDTH + 1] |= GLOW_CORNER_BR;
             }
 
@@ -487,17 +484,6 @@ static void BuildAreaGlowTilemap(void)
         }
         else if (sPokedexAreaScreen->areaGlowTilemap[i])
         {
-            // Get rid of overlapping flags.
-            // This is pointless, as sAreaGlowTilemapMapping can handle overlaps.
-            if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_L)
-                sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TL | GLOW_CORNER_BL);
-            if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_R)
-                sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TR | GLOW_CORNER_BR);
-            if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_T)
-                sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TR | GLOW_CORNER_TL);
-            if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_B)
-                sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_BR | GLOW_CORNER_BL);
-
             // Assign tile id
             sPokedexAreaScreen->areaGlowTilemap[i] = sAreaGlowTilemapMapping[sPokedexAreaScreen->areaGlowTilemap[i]];
             sPokedexAreaScreen->areaGlowTilemap[i] |= (GLOW_PALETTE << 12);
