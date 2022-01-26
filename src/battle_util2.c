@@ -105,17 +105,17 @@ void AdjustFriendshipOnBattleFaint(u8 battlerId)
 
 void SwitchPartyOrderInGameMulti(u8 battlerId, u8 arg1)
 {
-    if (GetBattlerSide(battlerId) != B_SIDE_OPPONENT)
-    {
-        s32 i;
-        for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
-            gBattlePartyCurrentOrder[i] = *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders));
+    u32 i;
+    if (GetBattlerSide(battlerId) == B_SIDE_OPPONENT)
+        return;
 
-        SwitchPartyMonSlots(GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[battlerId]), GetPartyIdFromBattlePartyId(arg1));
+    for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+        gBattlePartyCurrentOrder[i] = *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders));
 
-        for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
-            *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders)) = gBattlePartyCurrentOrder[i];
-    }
+    SwitchPartyMonSlots(GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[battlerId]), GetPartyIdFromBattlePartyId(arg1));
+
+    for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+        *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders)) = gBattlePartyCurrentOrder[i];
 }
 
 // Called when a Pokémon is unable to attack during a Battle Palace battle.
