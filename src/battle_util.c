@@ -125,12 +125,12 @@ void HandleAction_UseMove(void)
         gDisableStructs[gBattlerAttacker].encoredMove = MOVE_NONE;
         gDisableStructs[gBattlerAttacker].encoredMovePos = 0;
         gDisableStructs[gBattlerAttacker].encoreTimer = 0;
-        *(gBattleStruct->moveTarget + gBattlerAttacker) = GetMoveTarget(gCurrentMove, NO_TARGET_OVERRIDE);
+        gBattleStruct->moveTarget[gBattlerAttacker] = GetMoveTarget(gCurrentMove, NO_TARGET_OVERRIDE);
     }
     else if (gBattleMons[gBattlerAttacker].moves[gCurrMovePos] != gChosenMoveByBattler[gBattlerAttacker])
     {
         gCurrentMove = gChosenMove = gBattleMons[gBattlerAttacker].moves[gCurrMovePos];
-        *(gBattleStruct->moveTarget + gBattlerAttacker) = GetMoveTarget(gCurrentMove, NO_TARGET_OVERRIDE);
+        gBattleStruct->moveTarget[gBattlerAttacker] = GetMoveTarget(gCurrentMove, NO_TARGET_OVERRIDE);
     }
     else
     {
@@ -165,7 +165,7 @@ void HandleAction_UseMove(void)
         for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
         {
             if (side != GetBattlerSide(gActiveBattler)
-                && *(gBattleStruct->moveTarget + gBattlerAttacker) != gActiveBattler
+                && gBattleStruct->moveTarget[gBattlerAttacker] != gActiveBattler
                 && gBattleMons[gActiveBattler].ability == ABILITY_LIGHTNING_ROD
                 && GetBattlerTurnOrderNum(gActiveBattler) < var)
             {
@@ -340,15 +340,15 @@ void HandleAction_UseItem(void)
             break;
         case AI_ITEM_CURE_CONDITION:
             gBattleCommunication[MULTISTRING_CHOOSER] = AI_HEAL_CONFUSION;
-            if (*(gBattleStruct->AI_itemFlags + gBattlerAttacker / 2) & (1 << AI_HEAL_CONFUSION))
+            if (gBattleStruct->AI_itemFlags[gBattlerAttacker / 2] & (1 << AI_HEAL_CONFUSION))
             {
-                if (*(gBattleStruct->AI_itemFlags + gBattlerAttacker / 2) & 0x3E)
+                if (gBattleStruct->AI_itemFlags[gBattlerAttacker / 2] & 0x3E)
                     gBattleCommunication[MULTISTRING_CHOOSER] = AI_HEAL_SLEEP;
             }
             else
             {
                 // Check for other statuses, stopping at first (shouldn't be more than one)
-                while (!(*(gBattleStruct->AI_itemFlags + gBattlerAttacker / 2) & 1))
+                while (!(gBattleStruct->AI_itemFlags[gBattlerAttacker / 2] & 1))
                 {
                     *(gBattleStruct->AI_itemFlags + gBattlerAttacker / 2) >>= 1;
                     gBattleCommunication[MULTISTRING_CHOOSER]++;
@@ -359,7 +359,7 @@ void HandleAction_UseItem(void)
             break;
         case AI_ITEM_X_STAT:
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_STAT_ROSE_ITEM;
-            if (*(gBattleStruct->AI_itemFlags + (gBattlerAttacker >> 1)) & (1 << AI_DIRE_HIT))
+            if (gBattleStruct->AI_itemFlags[gBattlerAttacker >> 1] & (1 << AI_DIRE_HIT))
             {
                 gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_USED_DIRE_HIT;
             }
@@ -368,9 +368,9 @@ void HandleAction_UseItem(void)
                 PREPARE_STAT_BUFFER(gBattleTextBuff1, STAT_ATK)
                 PREPARE_STRING_BUFFER(gBattleTextBuff2, CHAR_X)
 
-                while (!((*(gBattleStruct->AI_itemFlags + (gBattlerAttacker >> 1))) & 1))
+                while (!(gBattleStruct->AI_itemFlags[gBattlerAttacker >> 1] & 1))
                 {
-                    *(gBattleStruct->AI_itemFlags + gBattlerAttacker / 2) >>= 1;
+                    gBattleStruct->AI_itemFlags[gBattlerAttacker / 2] >>= 1;
                     gBattleTextBuff1[2]++;
                 }
 
