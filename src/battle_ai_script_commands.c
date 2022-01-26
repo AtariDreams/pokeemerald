@@ -1294,46 +1294,46 @@ static void Cmd_nop_2B(void)
 static void Cmd_count_usable_party_mons(void)
 {
     u8 battlerId;
-    u8 battlerOnField1, battlerOnField2;
     struct Pokemon *party;
-    s32 i;
+    u32 i;
 
     AI_THINKING_STRUCT->funcResult = 0;
 
-    if (gAIScriptPtr[1] == AI_USER)
-        battlerId = sBattler_AI;
-    else
-        battlerId = gBattlerTarget;
+    battlerId = gAIScriptPtr[1] == AI_USER ? sBattler_AI : gBattlerTarget;
 
-    if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
-        party = gPlayerParty;
-    else
-        party = gEnemyParty;
+    party = GetBattlerSide(battlerId) == B_SIDE_PLAYER ? gPlayerParty : gEnemyParty;
 
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
-        u32 position;
-        battlerOnField1 = gBattlerPartyIndexes[battlerId];
-        position = GetBattlerPosition(battlerId) ^ BIT_FLANK;
-        battlerOnField2 = gBattlerPartyIndexes[GetBattlerAtPosition(position)];
+        u8 battlerOnField1 = gBattlerPartyIndexes[battlerId];
+        u8 battlerOnField2 = gBattlerPartyIndexes[GetBattlerAtPosition(GetBattlerPosition(battlerId) ^ BIT_FLANK)];
+
+        for (i = 0; i < PARTY_SIZE; i++)
+        {
+            if (i != battlerOnField1 && i != battlerOnField2
+                && GetMonData(&party[i], MON_DATA_HP) != 0
+                && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_NONE
+                && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_EGG)
+            {
+                AI_THINKING_STRUCT->funcResult++;
+            }
+        }
     }
     else // In singles there's only one battlerId by side.
     {
-        battlerOnField1 = gBattlerPartyIndexes[battlerId];
-        battlerOnField2 = gBattlerPartyIndexes[battlerId];
-    }
-
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        if (i != battlerOnField1 && i != battlerOnField2
-         && GetMonData(&party[i], MON_DATA_HP) != 0
-         && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_NONE
-         && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_EGG)
+        u8 battlerOnField = gBattlerPartyIndexes[battlerId];
+        for (i = 0; i < PARTY_SIZE; i++)
         {
-            AI_THINKING_STRUCT->funcResult++;
+            if (i != battlerOnField
+                && GetMonData(&party[i], MON_DATA_HP) != 0
+                && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_NONE
+                && GetMonData(&party[i], MON_DATA_SPECIES2) != SPECIES_EGG)
+            {
+                AI_THINKING_STRUCT->funcResult++;
+            }
         }
     }
-
+    
     gAIScriptPtr += 2;
 }
 
