@@ -5,7 +5,6 @@
 #include "battle_pyramid.h"
 #include "battle_util.h"
 #include "pokemon.h"
-#include "international_string_util.h"
 #include "item.h"
 #include "util.h"
 #include "battle_scripts.h"
@@ -706,8 +705,6 @@ u8 GetBattlerForBattleScript(u8 caseId)
         ret = gBattleScripting.battler;
         break;
     case BS_FAINTED:
-        ret = gBattlerFainted;
-        break;
     case BS_FAINTED_LINK_MULTIPLE_1:
         ret = gBattlerFainted;
         break;
