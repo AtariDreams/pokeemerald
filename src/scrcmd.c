@@ -1564,7 +1564,7 @@ bool8 ScrCmd_bufferleadmonspeciesname(struct ScriptContext *ctx)
 
     u8 *dest = sScriptStringVars[stringVarIndex];
     u8 partyIndex = GetLeadMonIndex();
-    u32 species = GetMonData(&gPlayerParty[partyIndex], MON_DATA_SPECIES, NULL);
+    u32 species = GetMonData(&gPlayerParty[partyIndex], MON_DATA_SPECIES);
     StringCopy(dest, gSpeciesNames[species]);
     return FALSE;
 }
@@ -1574,7 +1574,7 @@ bool8 ScrCmd_bufferpartymonnick(struct ScriptContext *ctx)
     u8 stringVarIndex = ScriptReadByte(ctx);
     u16 partyIndex = VarGet(ScriptReadHalfword(ctx));
 
-    GetMonData(&gPlayerParty[partyIndex], MON_DATA_NICKNAME, sScriptStringVars[stringVarIndex]);
+    GetMonData(&gPlayerParty[partyIndex], MON_DATA_NICKNAME);
     StringGet_Nickname(sScriptStringVars[stringVarIndex]);
     return FALSE;
 }
@@ -1720,7 +1720,7 @@ bool8 ScrCmd_checkpartymove(struct ScriptContext *ctx)
     gSpecialVar_Result = PARTY_SIZE;
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL);
+        u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES);
         if (!species)
             break;
         if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG) && MonKnowsMove(&gPlayerParty[i], moveId) == TRUE)
@@ -2223,7 +2223,7 @@ bool8 ScrCmd_checkmoneventlegal(struct ScriptContext *ctx)
 {
     u16 partyIndex = VarGet(ScriptReadHalfword(ctx));
 
-    gSpecialVar_Result = GetMonData(&gPlayerParty[partyIndex], MON_DATA_EVENT_LEGAL, NULL);
+    gSpecialVar_Result = GetMonData(&gPlayerParty[partyIndex], MON_DATA_EVENT_LEGAL);
     return FALSE;
 }
 

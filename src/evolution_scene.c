@@ -251,7 +251,7 @@ void EvolutionScene(struct Pokemon* mon, u16 postEvoSpecies, bool8 canStopEvo, u
     sEvoStructPtr = AllocZeroed(sizeof(struct EvoInfo));
     AllocateMonSpritesGfx();
 
-    GetMonData(mon, MON_DATA_NICKNAME, name);
+    GetMonData(mon, MON_DATA_NICKNAME);
     StringCopy_Nickname(gStringVar1, name);
     StringCopy(gStringVar2, gSpeciesNames[postEvoSpecies]);
 
@@ -473,7 +473,7 @@ void TradeEvolutionScene(struct Pokemon* mon, u16 postEvoSpecies, u8 preEvoSprit
     const struct CompressedSpritePalette* pokePal;
     u8 ID;
 
-    GetMonData(mon, MON_DATA_NICKNAME, name);
+    GetMonData(mon, MON_DATA_NICKNAME);
     StringCopy_Nickname(gStringVar1, name);
     StringCopy(gStringVar2, gSpeciesNames[postEvoSpecies]);
 
@@ -786,7 +786,7 @@ static void Task_EvolutionScene(u8 taskId)
                 gTasks[taskId].tBits |= TASK_BIT_LEARN_MOVE;
                 gTasks[taskId].tLearnsFirstMove = FALSE;
                 gTasks[taskId].tLearnMoveState = MVSTATE_INTRO_MSG_1;
-                GetMonData(mon, MON_DATA_NICKNAME, text);
+                GetMonData(mon, MON_DATA_NICKNAME);
                 StringCopy_Nickname(gBattleTextBuff1, text);
 
                 if (var == MON_HAS_MAX_MOVES)
@@ -1201,7 +1201,7 @@ static void Task_TradeEvolutionScene(u8 taskId)
                 gTasks[taskId].tBits |= TASK_BIT_LEARN_MOVE;
                 gTasks[taskId].tLearnsFirstMove = FALSE;
                 gTasks[taskId].tLearnMoveState = 0;
-                GetMonData(mon, MON_DATA_NICKNAME, text);
+                GetMonData(mon, MON_DATA_NICKNAME);
                 StringCopy_Nickname(gBattleTextBuff1, text);
 
                 if (var == MON_HAS_MAX_MOVES)

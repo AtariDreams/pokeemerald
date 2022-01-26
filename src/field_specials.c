@@ -1329,7 +1329,7 @@ bool8 FoundAbandonedShipRoom6Key(void)
 
 bool8 LeadMonHasEffortRibbon(void)
 {
-    return GetMonData(&gPlayerParty[GetLeadMonIndex()], MON_DATA_EFFORT_RIBBON, NULL);
+    return GetMonData(&gPlayerParty[GetLeadMonIndex()], MON_DATA_EFFORT_RIBBON);
 }
 
 void GiveLeadMonEffortRibbon(void)
@@ -1399,7 +1399,7 @@ bool8 IsStarterInParty(void)
     u8 partyCount = CalculatePlayerPartyCount();
     for (i = 0; i < partyCount; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2, NULL) == starter)
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2) == starter)
             return TRUE;
     }
     return FALSE;
@@ -1491,7 +1491,7 @@ u8 GetLeadMonIndex(void)
     u8 partyCount = CalculatePlayerPartyCount();
     for (i = 0; i < partyCount; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2, NULL) != SPECIES_EGG && GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2, NULL) != 0)
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2) != SPECIES_EGG && GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2) != 0)
             return i;
     }
     return 0;
@@ -1499,7 +1499,7 @@ u8 GetLeadMonIndex(void)
 
 u16 ScriptGetPartyMonSpecies(void)
 {
-    return GetMonData(&gPlayerParty[gSpecialVar_0x8004], MON_DATA_SPECIES2, NULL);
+    return GetMonData(&gPlayerParty[gSpecialVar_0x8004], MON_DATA_SPECIES2);
 }
 
 // Removed for Emerald
@@ -1530,7 +1530,7 @@ bool8 MonOTNameNotPlayer(void)
     if (GetMonData(&gPlayerParty[gSpecialVar_0x8004], MON_DATA_LANGUAGE) != GAME_LANGUAGE)
         return TRUE;
 
-    GetMonData(&gPlayerParty[gSpecialVar_0x8004], MON_DATA_OT_NAME, gStringVar1);
+    GetMonData(&gPlayerParty[gSpecialVar_0x8004], MON_DATA_OT_NAME);
 
     if (!StringCompare(gSaveBlock2.playerName, gStringVar1))
         return FALSE;
@@ -3351,7 +3351,7 @@ bool8 IsDestinationBoxFull(void)
     {
         for (i = 0; i < IN_BOX_COUNT; i++)
         {
-            if (GetBoxMonData(GetBoxedMonPtr(box, i), MON_DATA_SPECIES, 0) == SPECIES_NONE)
+            if (GetBoxMonData(GetBoxedMonPtr(box, i), MON_DATA_SPECIES) == SPECIES_NONE)
             {
                 if (GetPCBoxToSendMon() != box)
                     FlagClear(FLAG_SHOWN_BOX_WAS_FULL_MESSAGE);

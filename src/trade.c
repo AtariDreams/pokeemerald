@@ -507,7 +507,7 @@ static void CB2_CreateTradeMenu(void)
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PARTNER]; i++)
         {
             struct Pokemon *mon = &gEnemyParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2, NULL),
+            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][1] * 8) - 12,
@@ -686,7 +686,7 @@ static void CB2_ReturnToTradeMenu(void)
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PLAYER]; i++)
         {
             struct Pokemon *mon = &gPlayerParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PLAYER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2, NULL),
+            sTradeMenuData->partySpriteIds[TRADE_PLAYER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i][1] * 8) - 12,
@@ -698,7 +698,7 @@ static void CB2_ReturnToTradeMenu(void)
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PARTNER]; i++)
         {
             struct Pokemon *mon = &gEnemyParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2, NULL),
+            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][1] * 8) - 12,
@@ -1094,7 +1094,7 @@ static bool8 BufferTradeParties(void)
             {
                 if (species == SPECIES_SHEDINJA && GetMonData(mon, MON_DATA_LANGUAGE) != LANGUAGE_JAPANESE)
                 {
-                    GetMonData(mon, MON_DATA_NICKNAME, name);
+                    GetMonData(mon, MON_DATA_NICKNAME);
 
                     if (!StringCompareWithoutExtCtrlCodes(name, sJPText_Shedinja))
                     {
@@ -1875,9 +1875,9 @@ static u8 GetMonNicknameWidth(u8 *str, u8 whichParty, u8 monIdx)
     u8 nickname[12];
 
     if (whichParty == TRADE_PLAYER)
-        GetMonData(&gPlayerParty[monIdx], MON_DATA_NICKNAME, nickname);
+        GetMonData(&gPlayerParty[monIdx], MON_DATA_NICKNAME);
     else
-        GetMonData(&gEnemyParty[monIdx], MON_DATA_NICKNAME, nickname);
+        GetMonData(&gEnemyParty[monIdx], MON_DATA_NICKNAME);
 
     StringCopy_Nickname(str, nickname);
     return GetStringWidth(FONT_SMALL, str, GetFontAttribute(FONT_SMALL, FONTATTR_LETTER_SPACING));
@@ -1894,11 +1894,11 @@ static void BufferTradeMonMoves(u8 *str, u8 whichParty, u8 partyIdx)
         {
             if (whichParty == TRADE_PLAYER)
             {
-                moves[i] = GetMonData(&gPlayerParty[partyIdx], i + MON_DATA_MOVE1, NULL);
+                moves[i] = GetMonData(&gPlayerParty[partyIdx], i + MON_DATA_MOVE1);
             }
             else
             {
-                moves[i] = GetMonData(&gEnemyParty[partyIdx], i + MON_DATA_MOVE1, NULL);
+                moves[i] = GetMonData(&gEnemyParty[partyIdx], i + MON_DATA_MOVE1);
             }
         }
 
@@ -1940,7 +1940,7 @@ static void PrintPartyNicknamesForTradeMenu(u8 whichParty)
 
     for (i = 0; i < sTradeMenuData->partyCounts[whichParty]; i++)
     {
-        GetMonData(&party[i], MON_DATA_NICKNAME, nickname);
+        GetMonData(&party[i], MON_DATA_NICKNAME);
         StringCopy_Nickname(str, nickname);
         PrintMonNicknameForTradeMenu(whichParty, i, str);
     }
@@ -1957,9 +1957,9 @@ static void DrawTradeMenuPartyMonInfo(u8 whichParty, u8 monIdx, u8 x, u8 y, u8 w
     CopyBgTilemapBufferToVram(1);
 
     if (whichParty == TRADE_PLAYER)
-        level = GetMonData(&gPlayerParty[monIdx], MON_DATA_LEVEL, NULL);
+        level = GetMonData(&gPlayerParty[monIdx], MON_DATA_LEVEL);
     else
-        level = GetMonData(&gEnemyParty[monIdx], MON_DATA_LEVEL, NULL);
+        level = GetMonData(&gEnemyParty[monIdx], MON_DATA_LEVEL);
 
     if (!sTradeMenuData->isEgg[whichParty][monIdx])
     {
@@ -1983,12 +1983,12 @@ static void DrawTradeMenuPartyMonInfo(u8 whichParty, u8 monIdx, u8 x, u8 y, u8 w
         if (whichParty == TRADE_PLAYER)
         {
             gender = GetMonGender(&gPlayerParty[monIdx]);
-            GetMonData(&gPlayerParty[monIdx], MON_DATA_NICKNAME, nickname);
+            GetMonData(&gPlayerParty[monIdx], MON_DATA_NICKNAME);
         }
         else
         {
             gender = GetMonGender(&gEnemyParty[monIdx]);
-            GetMonData(&gEnemyParty[monIdx], MON_DATA_NICKNAME, nickname);
+            GetMonData(&gEnemyParty[monIdx], MON_DATA_NICKNAME);
         }
 
         switch (gender)
@@ -2933,7 +2933,7 @@ static void CB2_InGameTrade(void)
         gSelectedTradeMonPositions[TRADE_PLAYER] = gSpecialVar_0x8005;
         gSelectedTradeMonPositions[TRADE_PARTNER] = PARTY_SIZE;
         StringCopy(gLinkPlayers[0].name, gSaveBlock2.playerName);
-        GetMonData(&gEnemyParty[0], MON_DATA_OT_NAME, otName);
+        GetMonData(&gEnemyParty[0], MON_DATA_OT_NAME);
         StringCopy(gLinkPlayers[1].name, otName);
         gLinkPlayers[0].language = GAME_LANGUAGE;
         gLinkPlayers[1].language = GetMonData(&gEnemyParty[0], MON_DATA_LANGUAGE);
@@ -3012,8 +3012,8 @@ static void UpdatePokedexForReceivedMon(u8 partyIdx)
 
     if (!GetMonData(mon, MON_DATA_IS_EGG))
     {
-        u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
-        u32 personality = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
+        u16 species = GetMonData(mon, MON_DATA_SPECIES);
+        u32 personality = GetMonData(mon, MON_DATA_PERSONALITY);
         species = SpeciesToNationalPokedexNum(species);
         GetSetPokedexFlag(species, FLAG_SET_SEEN);
         HandleSetPokedexFlag(species, FLAG_SET_CAUGHT, personality);
@@ -3264,9 +3264,9 @@ static void BufferTradeSceneStrings(void)
     {
         mpId = GetMultiplayerId();
         StringCopy(gStringVar1, gLinkPlayers[mpId ^ 1].name);
-        GetMonData(&gEnemyParty[gSelectedTradeMonPositions[TRADE_PARTNER] % PARTY_SIZE], MON_DATA_NICKNAME, name);
+        GetMonData(&gEnemyParty[gSelectedTradeMonPositions[TRADE_PARTNER] % PARTY_SIZE], MON_DATA_NICKNAME);
         StringCopy_Nickname(gStringVar3, name);
-        GetMonData(&gPlayerParty[gSelectedTradeMonPositions[TRADE_PLAYER]], MON_DATA_NICKNAME, name);
+        GetMonData(&gPlayerParty[gSelectedTradeMonPositions[TRADE_PLAYER]], MON_DATA_NICKNAME);
         StringCopy_Nickname(gStringVar2, name);
     }
     else
@@ -3274,7 +3274,7 @@ static void BufferTradeSceneStrings(void)
         ingameTrade = &sIngameTrades[gSpecialVar_0x8004];
         StringCopy(gStringVar1, ingameTrade->otName);
         StringCopy_Nickname(gStringVar3, ingameTrade->nickname);
-        GetMonData(&gPlayerParty[gSpecialVar_0x8005], MON_DATA_NICKNAME, name);
+        GetMonData(&gPlayerParty[gSpecialVar_0x8005], MON_DATA_NICKNAME);
         StringCopy_Nickname(gStringVar2, name);
     }
 }
@@ -4477,7 +4477,7 @@ static void BufferInGameTradeMonName(void)
 {
     u8 nickname[32];
     const struct InGameTrade *inGameTrade = &sIngameTrades[gSpecialVar_0x8004];
-    GetMonData(&gPlayerParty[gSpecialVar_0x8005], MON_DATA_NICKNAME, nickname);
+    GetMonData(&gPlayerParty[gSpecialVar_0x8005], MON_DATA_NICKNAME);
     StringCopy_Nickname(gStringVar1, nickname);
     StringCopy(gStringVar2, gSpeciesNames[inGameTrade->species]);
 }

@@ -2793,7 +2793,7 @@ void CreateContestMonFromParty(u8 partyIndex)
     gContestMons[gContestPlayerMonIndex].aiFlags = 0;
     gContestMons[gContestPlayerMonIndex].highestRank = 0;
     gContestMons[gContestPlayerMonIndex].species = GetMonData(&gPlayerParty[partyIndex], MON_DATA_SPECIES);
-    GetMonData(&gPlayerParty[partyIndex], MON_DATA_NICKNAME, name);
+    GetMonData(&gPlayerParty[partyIndex], MON_DATA_NICKNAME);
     StringGet_Nickname(name);
     if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK)
     {

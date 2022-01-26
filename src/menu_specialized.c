@@ -883,11 +883,12 @@ void MoveRelearnerCreateYesNoMenu(void)
 s32 GetBoxOrPartyMonData(u16 boxId, u16 monId, s32 request, u8 *dst)
 {
     s32 ret;
+    dst = dst;
 
     if (boxId == TOTAL_BOXES_COUNT) // Party mon.
     {
         if (request == MON_DATA_NICKNAME || request == MON_DATA_OT_NAME)
-            ret = GetMonData(&gPlayerParty[monId], request, dst);
+            ret = GetMonData(&gPlayerParty[monId], request);
         else
             ret = GetMonData(&gPlayerParty[monId], request);
     }

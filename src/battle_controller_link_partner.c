@@ -488,9 +488,9 @@ static u32 CopyLinkPartnerMonData(u8 monId, u8 *dst)
         battleMon.isEgg = GetMonData(&gPlayerParty[monId], MON_DATA_IS_EGG);
         battleMon.abilityNum = GetMonData(&gPlayerParty[monId], MON_DATA_ABILITY_NUM);
         battleMon.otId = GetMonData(&gPlayerParty[monId], MON_DATA_OT_ID);
-        GetMonData(&gPlayerParty[monId], MON_DATA_NICKNAME, nickname);
+        GetMonData(&gPlayerParty[monId], MON_DATA_NICKNAME); //GetNickName
         StringCopy_Nickname(battleMon.nickname, nickname);
-        GetMonData(&gPlayerParty[monId], MON_DATA_OT_NAME, battleMon.otName);
+        GetMonData(&gPlayerParty[monId], MON_DATA_OT_NAME); //GetOTName battleMon.otName
         src = (u8 *)&battleMon;
         for (size = 0; size < sizeof(battleMon); size++)
             dst[size] = src[size];

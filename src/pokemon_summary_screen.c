@@ -1430,7 +1430,7 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         }
         break;
     case 3:
-        GetMonData(mon, MON_DATA_OT_NAME, sum->OTName);
+        GetMonData(mon, MON_DATA_OT_NAME);
         ConvertInternationalString(sum->OTName, GetMonData(mon, MON_DATA_LANGUAGE));
         sum->ailment = GetMonAilment(mon);
         sum->OTGender = GetMonData(mon, MON_DATA_OT_GENDER);
@@ -3727,7 +3727,7 @@ static void SetSpriteInvisibility(u8 spriteArrayId, bool8 invisible)
 
 static void HidePageSpecificSprites(void)
 {
-    // Keeps Pok?¿½mon, caught ball and status sprites visible.
+    // Keeps Pok?ï¿½ï¿½mon, caught ball and status sprites visible.
     u8 i;
 
     for (i = SPRITE_ARR_ID_TYPE; i < ARRAY_COUNT(sMonSummaryScreen->spriteIds); i++)

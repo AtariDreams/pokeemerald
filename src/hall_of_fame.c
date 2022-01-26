@@ -447,7 +447,7 @@ static void Task_Hof_InitMonData(u8 taskId)
             sHofMonPtr->mon[i].tid = GetMonData(&gPlayerParty[i], MON_DATA_OT_ID);
             sHofMonPtr->mon[i].personality = GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY);
             sHofMonPtr->mon[i].lvl = GetMonData(&gPlayerParty[i], MON_DATA_LEVEL);
-            GetMonData(&gPlayerParty[i], MON_DATA_NICKNAME, nick);
+            GetMonData(&gPlayerParty[i], MON_DATA_NICKNAME);
             for (j = 0; j < POKEMON_NAME_LENGTH; j++)
             {
                 sHofMonPtr->mon[i].nick[j] = nick[j];

@@ -6556,7 +6556,7 @@ static void InitCanReleaseMonVars(void)
     }
 
     GetRestrictedReleaseMoves(sStorage->restrictedMoveList);
-    sStorage->restrictedReleaseMonMoves = GetMonData(&sStorage->tempMon, MON_DATA_KNOWN_MOVES, (u8*)sStorage->restrictedMoveList);
+    sStorage->restrictedReleaseMonMoves = GetMonData(&sStorage->tempMon, MON_DATA_KNOWN_MOVES);
     if (sStorage->restrictedReleaseMonMoves != 0)
     {
         // Pokémon knows at least one restricted release move
@@ -6622,7 +6622,7 @@ static s8 RunCanReleaseMon(void)
             // Make sure party Pokémon isn't the one we're releasing first
             if (sStorage->releaseBoxId != TOTAL_BOXES_COUNT || sStorage->releaseBoxPos != i)
             {
-                knownMoves = GetMonData(&gPlayerParty[i], MON_DATA_KNOWN_MOVES, (u8*)sStorage->restrictedMoveList);
+                knownMoves = GetMonData(&gPlayerParty[i], MON_DATA_KNOWN_MOVES);
                 sStorage->restrictedReleaseMonMoves &= ~(knownMoves);
             }
         }
@@ -6876,7 +6876,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
             else
                 sStorage->displayMonIsEgg = GetMonData(mon, MON_DATA_IS_EGG);
 
-            GetMonData(mon, MON_DATA_NICKNAME, sStorage->displayMonName);
+            GetMonData(mon, MON_DATA_NICKNAME);
             StringGet_Nickname(sStorage->displayMonName);
             sStorage->displayMonLevel = GetMonData(mon, MON_DATA_LEVEL);
             sStorage->displayMonMarkings = GetMonData(mon, MON_DATA_MARKINGS);
@@ -6901,7 +6901,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
                 sStorage->displayMonIsEgg = GetBoxMonData(boxMon, MON_DATA_IS_EGG);
 
 
-            GetBoxMonData(boxMon, MON_DATA_NICKNAME, sStorage->displayMonName);
+            GetBoxMonData(boxMon, MON_DATA_NICKNAME);
             StringGet_Nickname(sStorage->displayMonName);
             sStorage->displayMonLevel = GetLevelFromBoxMonExp(boxMon);
             sStorage->displayMonMarkings = GetBoxMonData(boxMon, MON_DATA_MARKINGS);
@@ -9431,7 +9431,7 @@ void SetCurrentBoxMonData(u8 boxPosition, s32 request, const void *value)
 void GetBoxMonNickAt(u8 boxId, u8 boxPosition, u8 *dst)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_NICKNAME, dst);
+        GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_NICKNAME);
     else
         *dst = EOS;
 }
@@ -9459,7 +9459,7 @@ void SetBoxMonNickAt(u8 boxId, u8 boxPosition, const u8 *nick)
 u32 GetAndCopyBoxMonDataAt(u8 boxId, u8 boxPosition, s32 request, void *dst)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        return GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], request, dst);
+        return GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], request);
     else
         return 0;
 }
@@ -9636,7 +9636,7 @@ bool32 AnyStorageMonWithMove(u16 moveId)
         {
             if (GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
                 && !GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_IS_EGG)
-                && GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_KNOWN_MOVES, (u8*)moves))
+                && GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_KNOWN_MOVES))
                 return TRUE;
         }
     }

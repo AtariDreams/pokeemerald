@@ -1886,7 +1886,7 @@ static void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon)
     u8 gender;
 
     StringCopy(gDisplayedStringBattle, gText_HealthboxNickname);
-    GetMonData(mon, MON_DATA_NICKNAME, nickname);
+    GetMonData(mon, MON_DATA_NICKNAME);
     StringGet_Nickname(nickname);
     ptr = StringAppend(gDisplayedStringBattle, nickname);
 

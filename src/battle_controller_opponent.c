@@ -601,9 +601,9 @@ static u32 GetOpponentMonData(u8 monId, u8 *dst)
         battleMon.isEgg = GetMonData(&gEnemyParty[monId], MON_DATA_IS_EGG);
         battleMon.abilityNum = GetMonData(&gEnemyParty[monId], MON_DATA_ABILITY_NUM);
         battleMon.otId = GetMonData(&gEnemyParty[monId], MON_DATA_OT_ID);
-        GetMonData(&gEnemyParty[monId], MON_DATA_NICKNAME, nickname);
+        GetMonData(&gEnemyParty[monId], MON_DATA_NICKNAME); //GetNickname
         StringCopy_Nickname(battleMon.nickname, nickname);
-        GetMonData(&gEnemyParty[monId], MON_DATA_OT_NAME, battleMon.otName);
+        GetMonData(&gEnemyParty[monId], MON_DATA_OT_NAME); //GetOTName
         src = (u8 *)&battleMon;
         for (size = 0; size < sizeof(battleMon); size++)
             dst[size] = src[size];

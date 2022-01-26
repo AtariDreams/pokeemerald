@@ -2163,7 +2163,7 @@ static void RestoreHeldItems(void)
     {
         if (gSaveBlock2.frontier.selectedPartyMons[i] != 0)
         {
-            u16 item = GetMonData(&gSaveBlock1.playerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_HELD_ITEM, NULL);
+            u16 item = GetMonData(&gSaveBlock1.playerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_HELD_ITEM);
             SetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, &item);
         }
     }
@@ -2201,8 +2201,8 @@ static void ResetSketchedMoves(void)
             {
                 for (k = 0; k < MAX_MON_MOVES; k++)
                 {
-                    if (GetMonData(&gSaveBlock1.playerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_MOVE1 + k, NULL)
-                        == GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + j, NULL))
+                    if (GetMonData(&gSaveBlock1.playerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_MOVE1 + k)
+                        == GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + j))
                         break;
                 }
                 if (k == MAX_MON_MOVES)

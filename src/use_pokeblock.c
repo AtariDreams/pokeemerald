@@ -867,7 +867,7 @@ static void AskUsePokeblock(void)
 {
     u8 stringBuffer[0x40];
 
-    GetMonData(&gPlayerParty[GetPartyIdFromSelectionId(sMenu->info.curSelection)], MON_DATA_NICKNAME, stringBuffer);
+    GetMonData(&gPlayerParty[GetPartyIdFromSelectionId(sMenu->info.curSelection)], MON_DATA_NICKNAME);
     StringGet_Nickname(stringBuffer);
     StringAppend(stringBuffer, gText_GetsAPokeBlockQuestion);
     StringCopy(gStringVar4, stringBuffer);

@@ -710,7 +710,7 @@ static void BufferRibbonMonInfoText(struct PokenavListItem * listItem, u8 * dest
         struct Pokemon * mon = &gPlayerParty[item->monId];
         gender = GetMonGender(mon);
         level = GetLevelFromMonExp(mon);
-        GetMonData(mon, MON_DATA_NICKNAME, gStringVar3);
+        GetMonData(mon, MON_DATA_NICKNAME);
     }
     // Mon is in PC
     else
@@ -718,7 +718,7 @@ static void BufferRibbonMonInfoText(struct PokenavListItem * listItem, u8 * dest
         struct BoxPokemon * mon = GetBoxedMonPtr(item->boxId, item->monId);
         gender = GetBoxMonGender(mon);
         level = GetLevelFromBoxMonExp(mon);
-        GetBoxMonData(mon, MON_DATA_NICKNAME, gStringVar3);
+        GetBoxMonData(mon, MON_DATA_NICKNAME);
     }
 
     StringGet_Nickname(gStringVar3);

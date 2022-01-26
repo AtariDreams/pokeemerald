@@ -1619,7 +1619,7 @@ static s8 GetNewSlotDoubleLayout(s8 slotId, s8 movementDir)
 
 u8* GetMonNickname(struct Pokemon *mon, u8 *dest)
 {
-    GetMonData(mon, MON_DATA_NICKNAME, dest);
+    GetMonData(mon, MON_DATA_NICKNAME);
     return StringGet_Nickname(dest);
 }
 

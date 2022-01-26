@@ -95,7 +95,7 @@ u8 *GetMonNickname2(struct Pokemon *mon, u8 *dest)
 {
     u8 nickname[POKEMON_NAME_LENGTH * 2];
 
-    GetMonData(mon, MON_DATA_NICKNAME, nickname);
+    GetMonData(mon, MON_DATA_NICKNAME);
     return StringCopy_Nickname(dest, nickname);
 }
 
@@ -103,7 +103,7 @@ u8 *GetBoxMonNickname(struct BoxPokemon *mon, u8 *dest)
 {
     u8 nickname[POKEMON_NAME_LENGTH * 2];
 
-    GetBoxMonData(mon, MON_DATA_NICKNAME, nickname);
+    GetBoxMonData(mon, MON_DATA_NICKNAME);
     return StringCopy_Nickname(dest, nickname);
 }
 
@@ -341,7 +341,7 @@ static void Debug_AddDaycareSteps(u16 numSteps)
 
 u8 GetNumLevelsGainedFromDaycare(void)
 {
-    if (GetBoxMonData(&gSaveBlock1.daycare.mons[gSpecialVar_0x8004], MON_DATA_SPECIES) != 0)
+    if (GetBoxMonData((struct BoxPokemon *)&gSaveBlock1.daycare.mons[gSpecialVar_0x8004], MON_DATA_SPECIES) != 0)
         return GetNumLevelsGainedForDaycareMon(&gSaveBlock1.daycare.mons[gSpecialVar_0x8004]);
 
     return 0;
@@ -470,7 +470,7 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
     // inherit nature
     else
     {
-        u8 wantedNature = GetNatureFromPersonality(GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_PERSONALITY, NULL));
+        u8 wantedNature = GetNatureFromPersonality(GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_PERSONALITY));
         u32 personality;
 
         do
@@ -950,7 +950,7 @@ static void _GetDaycareMonNicknames(struct DayCare *daycare)
     if (GetBoxMonData(&daycare->mons[0].mon, MON_DATA_SPECIES) != 0)
     {
         GetBoxMonNickname(&daycare->mons[0].mon, gStringVar1);
-        GetBoxMonData(&daycare->mons[0].mon, MON_DATA_OT_NAME, text);
+        GetBoxMonData(&daycare->mons[0].mon, MON_DATA_OT_NAME);
         StringCopy(gStringVar3, text);
     }
 

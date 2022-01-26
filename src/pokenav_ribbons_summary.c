@@ -385,7 +385,7 @@ static void GetMonNicknameLevelGender(u8 *nick, u8 *level, u8 *gender)
     {
         // Get info for party mon
         struct Pokemon *mon = &gPlayerParty[monInfo->monId];
-        GetMonData(mon, MON_DATA_NICKNAME, nick);
+        GetMonData(mon, MON_DATA_NICKNAME);
         *level = GetLevelFromMonExp(mon);
         *gender = GetMonGender(mon);
     }
@@ -395,7 +395,7 @@ static void GetMonNicknameLevelGender(u8 *nick, u8 *level, u8 *gender)
         struct BoxPokemon *boxMon = GetBoxedMonPtr(monInfo->boxId, monInfo->monId);
         *gender = GetBoxMonGender(boxMon);
         *level = GetLevelFromBoxMonExp(boxMon);
-        GetBoxMonData(boxMon, MON_DATA_NICKNAME, nick);
+        GetBoxMonData(boxMon, MON_DATA_NICKNAME);
     }
     StringGet_Nickname(nick);
 }

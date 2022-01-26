@@ -2394,11 +2394,11 @@ static const u8* TryGetStatusString(u8 *src)
             dstID++;                                                    \
             toCpy++;                                                    \
         }                                                               \
-        GetMonData(&gEnemyParty[monIndex], MON_DATA_NICKNAME, text);    \
+        GetMonData(&gEnemyParty[monIndex], MON_DATA_NICKNAME);    \
     }                                                                   \
     else                                                                \
     {                                                                   \
-        GetMonData(&gPlayerParty[monIndex], MON_DATA_NICKNAME, text);   \
+        GetMonData(&gPlayerParty[monIndex], MON_DATA_NICKNAME);   \
     }                                                                   \
     StringGet_Nickname(text);                                           \
     toCpy = text;
@@ -2465,49 +2465,49 @@ u32 BattleStringExpandPlaceholders(const u8 *src, u8 *dst)
                 break;
             case B_TXT_PLAYER_MON1_NAME: // first player poke name
                 GetMonData(&gPlayerParty[gBattlerPartyIndexes[GetBattlerAtPosition(B_POSITION_PLAYER_LEFT)]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_OPPONENT_MON1_NAME: // first enemy poke name
                 GetMonData(&gEnemyParty[gBattlerPartyIndexes[GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT)]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_PLAYER_MON2_NAME: // second player poke name
                 GetMonData(&gPlayerParty[gBattlerPartyIndexes[GetBattlerAtPosition(B_POSITION_PLAYER_RIGHT)]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_OPPONENT_MON2_NAME: // second enemy poke name
                 GetMonData(&gEnemyParty[gBattlerPartyIndexes[GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT)]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_LINK_PLAYER_MON1_NAME: // link first player poke name
                 GetMonData(&gPlayerParty[gBattlerPartyIndexes[gLinkPlayers[multiplayerId].id]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_LINK_OPPONENT_MON1_NAME: // link first opponent poke name
                 GetMonData(&gEnemyParty[gBattlerPartyIndexes[gLinkPlayers[multiplayerId].id ^ 1]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_LINK_PLAYER_MON2_NAME: // link second player poke name
                 GetMonData(&gPlayerParty[gBattlerPartyIndexes[gLinkPlayers[multiplayerId].id ^ 2]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
             case B_TXT_LINK_OPPONENT_MON2_NAME: // link second opponent poke name
                 GetMonData(&gEnemyParty[gBattlerPartyIndexes[gLinkPlayers[multiplayerId].id ^ 3]],
-                           MON_DATA_NICKNAME, text);
+                           MON_DATA_NICKNAME);
                 StringGet_Nickname(text);
                 toCpy = text;
                 break;
@@ -2517,9 +2517,9 @@ u32 BattleStringExpandPlaceholders(const u8 *src, u8 *dst)
                 break;
             case B_TXT_ATK_PARTNER_NAME: // attacker partner name
                 if (GetBattlerSide(gBattlerAttacker) == B_SIDE_PLAYER)
-                    GetMonData(&gPlayerParty[gBattlerPartyIndexes[GetBattlerAtPosition(GET_BATTLER_SIDE(gBattlerAttacker)) + 2]], MON_DATA_NICKNAME, text);
+                    GetMonData(&gPlayerParty[gBattlerPartyIndexes[GetBattlerAtPosition(GET_BATTLER_SIDE(gBattlerAttacker)) + 2]], MON_DATA_NICKNAME);
                 else
-                    GetMonData(&gEnemyParty[gBattlerPartyIndexes[GetBattlerAtPosition(GET_BATTLER_SIDE(gBattlerAttacker)) + 2]], MON_DATA_NICKNAME, text);
+                    GetMonData(&gEnemyParty[gBattlerPartyIndexes[GetBattlerAtPosition(GET_BATTLER_SIDE(gBattlerAttacker)) + 2]], MON_DATA_NICKNAME);
 
                 StringGet_Nickname(text);
                 toCpy = text;
@@ -2892,7 +2892,7 @@ static void ExpandBattleTextBuffPlaceholders(const u8 *src, u8 *dst)
         case B_BUFF_MON_NICK_WITH_PREFIX: // poke nick with prefix
             if (GetBattlerSide(src[srcID + 1]) == B_SIDE_PLAYER)
             {
-                GetMonData(&gPlayerParty[src[srcID + 2]], MON_DATA_NICKNAME, text);
+                GetMonData(&gPlayerParty[src[srcID + 2]], MON_DATA_NICKNAME);
             }
             else
             {
@@ -2901,7 +2901,7 @@ static void ExpandBattleTextBuffPlaceholders(const u8 *src, u8 *dst)
                 else
                     StringAppend(dst, sText_WildPkmnPrefix);
 
-                GetMonData(&gEnemyParty[src[srcID + 2]], MON_DATA_NICKNAME, text);
+                GetMonData(&gEnemyParty[src[srcID + 2]], MON_DATA_NICKNAME);
             }
             StringGet_Nickname(text);
             StringAppend(dst, text);
@@ -2917,9 +2917,9 @@ static void ExpandBattleTextBuffPlaceholders(const u8 *src, u8 *dst)
             break;
         case B_BUFF_MON_NICK: // poke nick without prefix
             if (GetBattlerSide(src[srcID + 1]) == B_SIDE_PLAYER)
-                GetMonData(&gPlayerParty[src[srcID + 2]], MON_DATA_NICKNAME, dst);
+                GetMonData(&gPlayerParty[src[srcID + 2]], MON_DATA_NICKNAME);
             else
-                GetMonData(&gEnemyParty[src[srcID + 2]], MON_DATA_NICKNAME, dst);
+                GetMonData(&gEnemyParty[src[srcID + 2]], MON_DATA_NICKNAME);
             StringGet_Nickname(dst);
             srcID += 3;
             break;
@@ -2994,17 +2994,17 @@ static void ChooseMoveUsedParticle(u8* textBuff)
 // sText_ExclamationMark was a plain "!", used for any attack not on the list.
 // It resulted in the translation "<NAME>'s <ATTACK>!".
 //
-// sText_ExclamationMark2 was "�? つかった�?". This resulted in the translation
+// sText_ExclamationMark2 was "�? つかった�?". This resulted in the translation
 // "<NAME> used <ATTACK>!", which was used for all attacks in English.
 //
-// sText_ExclamationMark3 was "した?�?". This was used for those moves whose
+// sText_ExclamationMark3 was "した?�?". This was used for those moves whose
 // names were verbs, such as Recover, and resulted in translations like "<NAME>
 // recovered itself!".
 //
-// sText_ExclamationMark4 was "�? した?�?" This resulted in a translation of
+// sText_ExclamationMark4 was "�? した?�?" This resulted in a translation of
 // "<NAME> did an <ATTACK>!".
 //
-// sText_ExclamationMark5 was " こうげき?�?" This resulted in a translation of
+// sText_ExclamationMark5 was " こうげき?�?" This resulted in a translation of
 // "<NAME>'s <ATTACK> attack!".
 static void ChooseTypeOfMoveUsedString(u8* dst)
 {
