@@ -1040,7 +1040,7 @@ static void PCTurnOnEffect_1(s16 isPcTurnedOn, s8 dx, s8 dy)
         else if (gSpecialVar_0x8004 == PC_LOCATION_MAYS_HOUSE)
             tileId = METATILE_BrendansMaysHouse_MayPC_On;
     }
-    MapGridSetMetatileIdAt(gSaveBlock1.pos.x + dx + MAP_OFFSET, gSaveBlock1.pos.y + dy + MAP_OFFSET, tileId | METATILE_COLLISION_MASK);
+    MapGridSetMetatileIdAt(gSaveBlock1.pos.x + dx + MAP_OFFSET, gSaveBlock1.pos.y + dy + MAP_OFFSET, tileId | MAPGRID_COLLISION_MASK);
 }
 
 void DoPCTurnOffEffect(void)
@@ -1075,7 +1075,7 @@ static void PCTurnOffEffect(void)
         tileId = METATILE_BrendansMaysHouse_BrendanPC_Off;
     else if (gSpecialVar_0x8004 == 2)
         tileId = METATILE_BrendansMaysHouse_MayPC_Off;
-    MapGridSetMetatileIdAt(gSaveBlock1.pos.x + dx + MAP_OFFSET, gSaveBlock1.pos.y + dy + MAP_OFFSET, tileId | METATILE_COLLISION_MASK);
+    MapGridSetMetatileIdAt(gSaveBlock1.pos.x + dx + MAP_OFFSET, gSaveBlock1.pos.y + dy + MAP_OFFSET, tileId | MAPGRID_COLLISION_MASK);
     DrawWholeMapView();
 }
 
