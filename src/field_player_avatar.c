@@ -427,11 +427,11 @@ static u8 HeroDebugMove_R( u8 site )
 {
 	if( site == DIR_NORTH )
 	{
-		PlayerFreeze( EvObj[MyMoveState.evobjno].mv_site );
+		PlayerFreeze( gObjectEvents[gPlayerAvatar.objectEventId].mv_site );
 		return( 1 );
 	}
 
-	if( EvObj[MyMoveState.evobjno].scr_main_sw && CheckMapMove(site) == 0 )
+	if( gObjectEvents[gPlayerAvatar.objectEventId].scr_main_sw && CheckMapMove(site) == 0 )
 	{
 		PlayerOnBikeCollide( site );						// 足踏みｺﾏﾝﾄﾞ 
 		return( 1 );
