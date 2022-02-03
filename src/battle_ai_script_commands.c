@@ -473,9 +473,16 @@ static u8 ChooseMoveOrAction_Doubles(void)
     // only set when it's the first battle
     u32 scriptsToRun;
 #endif
+
+#ifdef PM_DEBUG
+    static s16 bestMovePointsForTarget[MAX_BATTLERS_COUNT] = {};
+    static u8 mostViableTargetsArray[MAX_BATTLERS_COUNT] = {};
+    static s8 actionOrMoveIndex[MAX_BATTLERS_COUNT] = {};
+#else
     s16 bestMovePointsForTarget[MAX_BATTLERS_COUNT];
     u8 mostViableTargetsArray[MAX_BATTLERS_COUNT];
     s8 actionOrMoveIndex[MAX_BATTLERS_COUNT];
+#endif
 
     s16 mostMovePoints;
 
