@@ -422,6 +422,24 @@ u8 HeroDebugMove( u8 direction )
 
 	return( 0 );
 }
+
+static u8 HeroDebugMove_R( u8 site )
+{
+	if( site == DIR_NORTH )
+	{
+		PlayerFreeze( EvObj[MyMoveState.evobjno].mv_site );
+		return( 1 );
+	}
+
+	if( EvObj[MyMoveState.evobjno].scr_main_sw && CheckMapMove(site) == 0 )
+	{
+		PlayerOnBikeCollide( site );						// 足踏みｺﾏﾝﾄﾞ 
+		return( 1 );
+	}
+
+	PlayerWalkFaster( site );								// 4ﾄﾞｯﾄ移動
+	return( 1 );
+}
 #endif
 
 static u8 GetForcedMovementByMetatileBehavior(void)
