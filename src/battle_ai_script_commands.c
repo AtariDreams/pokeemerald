@@ -157,6 +157,10 @@ static void Cmd_if_holds_item(void);
 EWRAM_DATA const u8 *gAIScriptPtr = NULL;
 EWRAM_DATA static u8 sBattler_AI = 0;
 
+#ifdef PM_DEBUG
+EWRAM_DATA static u32	AIBitWork;
+#endif
+
 // const rom data
 typedef void (*BattleAICmdFunc)(void);
 
@@ -381,11 +385,17 @@ void BattleAI_SetupAIData(u8 defaultScoreMoves)
 
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
         AI_THINKING_STRUCT->aiFlags |= AI_SCRIPT_DOUBLE_BATTLE; // act smart in doubles and don't attack your partner
+
+#ifdef PM_DEBUG
+	if(DebugFightFlag&DEBUG_FIGHT_AI_DEBUG)
+			AI_THINKING_STRUCT->aiFlags=AIBitWork;
+#endif
 }
 
 u8 BattleAI_ChooseMoveOrAction(void)
 {
-    u16 savedCurrentMove = gCurrentMove;
+    // Added after japanese emerald released, probably to fix a bug
+    u16 savedCurrentMove = gCurrentMove; 
     u8 ret;
 
     if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
