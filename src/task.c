@@ -6,6 +6,10 @@ struct Task gTasks[NUM_TASKS];
 static void InsertTask(u8 newTaskId);
 static u8 FindFirstActiveTask(void);
 
+#ifdef PM_DEBUG
+vu8	TaskCounter=0;
+#endif //PM_DEBUG
+
 void ResetTasks(void)
 {
     u8 i;
@@ -22,6 +26,10 @@ void ResetTasks(void)
 
     gTasks[0].prev = HEAD_SENTINEL;
     gTasks[NUM_TASKS - 1].next = TAIL_SENTINEL;
+
+#ifdef PM_DEBUG
+	TaskCounter=0;
+#endif //PM_DEBUG
 }
 
 u8 CreateTask(TaskFunc func, u8 priority)
@@ -37,10 +45,16 @@ u8 CreateTask(TaskFunc func, u8 priority)
             InsertTask(i);
             memset(gTasks[i].data, 0, sizeof(gTasks[i].data));
             gTasks[i].isActive = TRUE;
+#ifdef PM_DEBUG
+			TaskCounter++;
+#endif //PM_DEBUG
             return i;
         }
     }
-
+#ifdef PM_DEBUG
+	//exit();	//error
+	ErrorMsgPut(task_over_msg);	//error
+#endif
     return 0;
 }
 
@@ -85,6 +99,10 @@ void DestroyTask(u8 taskId)
 {
     if (gTasks[taskId].isActive)
     {
+#ifdef PM_DEBUG
+	TaskCounter--;
+#endif //PM_DEBUG
+
         gTasks[taskId].isActive = FALSE;
 
         if (gTasks[taskId].prev == HEAD_SENTINEL)

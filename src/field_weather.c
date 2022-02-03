@@ -1146,14 +1146,14 @@ static void DebugWeatherChangeTask(u8 id)
 		SetNextWeather(data[WK_STATE]);
 		RemoveWindow(data[WK_WIN_IDX]);
 		ScriptContext2_Disable();
-		DeleteTask(id);
+		DestroyTask(id);
 		return;
 	}
 
 	if(JOY_NEW(B_BUTTON)){
 		RemoveWindow(data[WK_WIN_IDX]);
 		ScriptContext2_Disable();
-		DeleteTask(id);
+		DestroyTask(id);
 		return;
 	}
 }
