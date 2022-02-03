@@ -304,6 +304,19 @@ static const struct Pokeblock sFavoritePokeblocksTable[FLAVOR_COUNT] =
     [FLAVOR_SWEET]  = { PBLOCK_CLR_PINK,    0,  0, 20,  0,  0, 20},
     [FLAVOR_BITTER] = { PBLOCK_CLR_GREEN,   0,  0,  0, 20,  0, 20},
     [FLAVOR_SOUR]   = { PBLOCK_CLR_YELLOW,  0,  0,  0,  0, 20, 20}
+#ifdef	PM_DEBUG
+	{  6,20, 0,20, 0, 0,20 },
+	{  7, 0,20, 0,20, 0,20 },
+	{  8, 0, 0,20, 0,20,20 },
+	{  9,20, 0, 0,20, 0,20 },
+	{ 10, 0,20, 0, 0,20,20 },
+	{ 11, 0, 2, 0, 2, 2, 0 },
+	{ 12, 3, 3, 3, 4, 3, 0 },
+	{ 13, 1, 1, 1, 1, 1, 1 },
+	{ 14,20, 0, 0, 0, 0,20 },
+
+	{  0, 0, 0, 0, 0, 0, 0 },
+#endif	PM_DEBUG
 };
 
 static const struct WindowTemplate sWindowTemplates[] =
@@ -1454,3 +1467,15 @@ u8 GetPokeblocksFlavor(const struct Pokeblock *pokeblock)
 
     return bestFlavor;
 }
+
+#ifdef	PM_DEBUG
+void SetDummyCube(void)
+{
+	u8	i;
+
+	for( i=0; i<POKEBLOCKS_COUNT; i++ ){
+		if( sFavoritePokeblocksTable[i].color == 0 )	break;
+		gSaveBlock1Ptr->pokeblocks[i] = sFavoritePokeblocksTable[i];
+	}
+}
+#endif
