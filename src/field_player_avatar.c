@@ -403,8 +403,26 @@ static void PlayerAllowForcedMovementIfMovingSameDirection(void)
 
 static bool8 TryDoMetatileBehaviorForcedMovement(void)
 {
+ #ifdef PM_DEBUG
+    if( DebugMainFlag && JOY_HELD(R_BUTTON) )
+	{
+		return( FALSE );
+	}
+#endif
     return sForcedMovementFuncs[GetForcedMovementByMetatileBehavior()]();
 }
+
+#ifdef PM_DEBUG
+u8 HeroDebugMove( u8 direction )
+{
+	if(JOY_HELD(R_BUTTON ))							// R ﾎﾞﾀﾝ
+	{	
+		return( HeroDebugMove_R(direction) );
+	}
+
+	return( 0 );
+}
+#endif
 
 static u8 GetForcedMovementByMetatileBehavior(void)
 {
