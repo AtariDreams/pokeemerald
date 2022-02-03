@@ -134,6 +134,13 @@ void MovePlayerOnBike(u8 direction, u16 newKeys, u16 heldKeys)
 
 static void MovePlayerOnMachBike(u8 direction, u16 newKeys, u16 heldKeys)
 {
+    #ifdef PM_DEBUG
+    if( DebugMainFlag && HeroDebugMove(direction) )
+	{
+		Bike_SetBikeStill();
+		return;
+	}
+    #endif
     sMachBikeTransitions[GetMachBikeTransition(&direction)](direction);
 }
 
