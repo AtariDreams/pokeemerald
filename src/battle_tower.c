@@ -3229,6 +3229,12 @@ u8 SetFacilityPtrsGetLevel(void)
     {
         gFacilityTrainers = gBattleFrontierTrainers;
         gFacilityTrainerMons = gBattleFrontierMons;
+#ifdef PM_DEBUG
+        if (DebugFightFlag & DEBUG_FIGHT_LV1)
+        {
+            return 1;
+        }
+#endif //PM_DEBUG
         return GetFrontierEnemyMonLevel(gSaveBlock2Ptr->frontier.lvlMode);
     }
 }
