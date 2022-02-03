@@ -1093,3 +1093,95 @@ void ResetPreservedPalettesInWeather(void)
 {
     sPaletteGammaTypes = sBasePaletteGammaTypes;
 }
+
+#ifdef PM_DEBUG
+
+#include "script.h"
+
+enum WORK {
+	WK_SEQ,
+	WK_STATE,
+	WK_WIN_IDX,
+};
+
+static const u8* const weather_msg_tbl[] = {
+	_("NO WEATHER"),
+	_("SUNNY"),
+	_("SUNNY2"),
+	_("RAIN"),
+	_("SNOW"),
+	_("LIGHTNING"),
+	_("FOG"),
+	_("VOLCANO ASH"),
+	_("SANDSTORM"),
+	_("FOG2"),
+	_("SEAFLOOR"),
+	_("CLOUDY"),
+	_("SUNNY3"),
+	_("HEAVY RAIN"),
+	_("SEAFLOOR2"),
+};
+
+static void DebugWeatherChangeTask(u8 id)
+{
+	s16 *data = gTasks[id].data;
+	bool32 change = 0;
+
+	if(JOY_NEW(R_BUTTON)){
+		if(++(data[WK_STATE]) == WEATHER_MAX){ (data[WK_STATE]) = WEATHER_PAL_STATE_IDLE; }
+		change = 1;
+	}
+	if(JOY_NEW(L_BUTTON)){
+		(data[WK_STATE]) = ((data[WK_STATE]) == WEATHER_PAL_STATE_IDLE)? (WEATHER_UNDERWATER_BUBBLES) : ((data[WK_STATE]) - 1);
+		change = 1;
+	}
+	if(change){
+		FillWindowPixelBuffer(data[WK_WIN_IDX], 0x11);
+		AddTextPrinterParameterized(data[WK_WIN_IDX], SPRITE_SIZE(8x16), weather_msg_tbl[ data[WK_STATE] ],
+			0, 2, 0, NULL);
+		return;
+	}
+
+	if(JOY_NEW(A_BUTTON)){
+		SetNextWeather(data[WK_STATE]);
+		RemoveWindow(data[WK_WIN_IDX]);
+		ScriptContext2_Disable();
+		DeleteTask(id);
+		return;
+	}
+
+	if(JOY_NEW(B_BUTTON)){
+		RemoveWindow(data[WK_WIN_IDX]);
+		ScriptContext2_Disable();
+		DeleteTask(id);
+		return;
+	}
+}
+// デバッグメニュー「てんこう」：初期化
+void DebugWeatherTestInit(void)
+{
+	static const struct WindowTemplate win_sys = {
+		0,
+		22,
+		1,
+		6,
+		2,
+		15,
+		512,
+	};
+
+	int id, winidx;
+
+	ScriptContext2_Enable();
+
+	id = CreateTask(DebugWeatherChangeTask, 0);
+
+	gTasks[id].data[WK_STATE] = gWeatherPtr->currWeather;
+	winidx = AddWindow(&win_sys);
+
+	FillWindowPixelBuffer(winidx, 0x11);
+	CopyWindowToVram(winidx, 3);
+
+	gTasks[id].data[WK_WIN_IDX] = winidx;
+}
+#endif
