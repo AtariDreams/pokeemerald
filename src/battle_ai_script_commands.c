@@ -309,13 +309,11 @@ void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves) {
 
 void BattleAI_SetupAIData(u8 defaultScoreMoves)
 {
-    s32 i;
-    u8 *data = (u8 *)AI_THINKING_STRUCT;
+    u32 i;
     u8 moveLimitations;
 
     // Clear AI data.
-    for (i = 0; i < sizeof(struct AI_ThinkingStruct); i++)
-        data[i] = 0;
+    memset(AI_THINKING_STRUCT, 0, sizeof(struct AI_ThinkingStruct));
 
     // Conditional score reset, unlike Ruby.
     for (i = 0; i < MAX_MON_MOVES; i++)
@@ -382,10 +380,10 @@ u8 BattleAI_ChooseMoveOrAction(void)
     u16 savedCurrentMove = gCurrentMove;
     u8 ret;
 
-    if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
-        ret = ChooseMoveOrAction_Singles();
-    else
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) != 0)
         ret = ChooseMoveOrAction_Doubles();
+    else
+        ret = ChooseMoveOrAction_Singles();
 
     gCurrentMove = savedCurrentMove;
     return ret;
@@ -396,7 +394,7 @@ static u8 ChooseMoveOrAction_Singles(void)
     u8 currentMoveArray[MAX_MON_MOVES];
     u8 consideredMoveArray[MAX_MON_MOVES];
     u8 numOfBestMoves;
-    s32 i;
+    u8 i;
 
     RecordLastUsedMoveByTarget();
 
@@ -2256,8 +2254,7 @@ static bool8 AIStackPop(void)
 {
     if (gBattleResources->AI_ScriptsStack->size != 0)
     {
-        --gBattleResources->AI_ScriptsStack->size;
-        gAIScriptPtr = gBattleResources->AI_ScriptsStack->ptr[gBattleResources->AI_ScriptsStack->size];
+        gAIScriptPtr = gBattleResources->AI_ScriptsStack->ptr[--gBattleResources->AI_ScriptsStack->size];
         return TRUE;
     }
     else
