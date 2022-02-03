@@ -284,26 +284,20 @@ static const u16 sIgnoredPowerfulMoveEffects[] =
 };
 
 // code
-void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves)
-{
-    s32 i;
-    u8 *data = (u8 *)BATTLE_HISTORY;
+void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves) {
+    u32 i;
 
-    for (i = 0; i < sizeof(struct BattleHistory); i++)
-        data[i] = 0;
+    memset(BATTLE_HISTORY, 0, sizeof(struct BattleHistory));
 
     // Items are allowed to use in ONLY trainer battles.
     if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER)
         && !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_SAFARI | BATTLE_TYPE_BATTLE_TOWER
-                               | BATTLE_TYPE_EREADER_TRAINER | BATTLE_TYPE_SECRET_BASE | BATTLE_TYPE_FRONTIER
-                               | BATTLE_TYPE_INGAME_PARTNER | BATTLE_TYPE_RECORDED_LINK)
-            )
-       )
-    {
-        for (i = 0; i < MAX_TRAINER_ITEMS; i++)
-        {
-            if (gTrainers[gTrainerBattleOpponent_A].items[i] != 0)
-            {
+                                 | BATTLE_TYPE_EREADER_TRAINER | BATTLE_TYPE_SECRET_BASE | BATTLE_TYPE_FRONTIER
+                                 | BATTLE_TYPE_INGAME_PARTNER | BATTLE_TYPE_RECORDED_LINK)
+    )
+            ) {
+        for (i = 0; i < MAX_TRAINER_ITEMS; i++) {
+            if (gTrainers[gTrainerBattleOpponent_A].items[i] != 0) {
                 BATTLE_HISTORY->trainerItems[BATTLE_HISTORY->itemsNo] = gTrainers[gTrainerBattleOpponent_A].items[i];
                 BATTLE_HISTORY->itemsNo++;
             }
@@ -466,7 +460,6 @@ static u8 ChooseMoveOrAction_Doubles(void)
     s16 bestMovePointsForTarget[MAX_BATTLERS_COUNT];
     u8 mostViableTargetsArray[MAX_BATTLERS_COUNT];
     s8 actionOrMoveIndex[MAX_BATTLERS_COUNT];
-
     s16 mostMovePoints;
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
@@ -479,7 +472,7 @@ static u8 ChooseMoveOrAction_Doubles(void)
         }
 
         if (gBattleTypeFlags & BATTLE_TYPE_PALACE)
-            BattleAI_SetupAIData((gBattleStruct->palaceFlags & 0xf0) >> 4); // & f0 is unneccesary, yet needed to match
+            BattleAI_SetupAIData((gBattleStruct->palaceFlags) >> 4); // & f0 is unneccesary, yet needed to match
         else
             BattleAI_SetupAIData((1 << MAX_MON_MOVES) - 1);
 
