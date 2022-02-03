@@ -23,6 +23,17 @@
 #include "constants/rgb.h"
 #include "constants/songs.h"
 
+
+#define	TIT_TIMER	(0)
+#define	TIT_SKIP_F	(1)
+#define	TIT_SCR2_X	(2)
+#define	TIT_SCR2_Y	(3)
+#define	TIT_SCR1_Y	(4)
+#define TIT_DEBUG_ALPHA_1	(5)
+#define TIT_DEBUG_ALPHA_2	(6)
+
+#define	TIT_OB_TIMER	(0)
+#define	TIT_OB_TASK		(1)
 #define VERSION_BANNER_RIGHT_TILEOFFSET 64
 #define VERSION_BANNER_LEFT_X 98
 #define VERSION_BANNER_RIGHT_X 162
@@ -726,6 +737,18 @@ static void Task_TitleScreenPhase2(u8 taskId)
 // Show Rayquaza silhouette and process main title screen input
 static void Task_TitleScreenPhase3(u8 taskId)
 {
+#ifdef CLOUD_ALPHA_TEST
+	SetGpuReg(REG_OFFSET_BLDCNT   , 0x2142);	//半透明設定
+//	SetGpuReg(REG_OFFSET_BLDALPHA , 0x1f0f);
+//	SetGpuReg(REG_OFFSET_BLDALPHA , 0x0e08);
+//	SetGpuReg(REG_OFFSET_BLDALPHA , 0x0b07);
+#ifdef PM_DEBUG
+	SetGpuReg(REG_OFFSET_BLDALPHA , ((gTasks[taskId].data[TIT_DEBUG_ALPHA_1]<<8) | gTasks[taskId].data[TIT_DEBUG_ALPHA_2]));
+#else
+	SetGpuReg(REG_OFFSET_BLDALPHA , 0x0f06);
+#endif
+	SetGpuReg(REG_OFFSET_BLDY	  , 0);
+#endif
     if ((JOY_NEW(A_BUTTON)) || (JOY_NEW(START_BUTTON)))
     {
         FadeOutBGM(4);
@@ -774,6 +797,15 @@ static void CB2_GoToMainMenu(void)
     if (!UpdatePaletteFade())
         SetMainCallback2(CB2_InitMainMenu);
 }
+
+#ifdef	PM_DEBUG
+void	GoDebugMenu(void)
+{
+	if(!(UpdatePaletteFade())){
+		SetMainCallback2(testMainInit);
+	}
+}
+#endif
 
 static void CB2_GoToCopyrightScreen(void)
 {
