@@ -69,6 +69,26 @@ static const u16 sCaveTransitionPalette_Exit[] = INCBIN_U16("graphics/cave_trans
 static const u32 sCaveTransitionTilemap[] = INCBIN_U32("graphics/cave_transition/tilemap.bin.lz");
 static const u32 sCaveTransitionTiles[] = INCBIN_U32("graphics/cave_transition/tiles.4bpp.lz");
 
+#ifdef	PM_DEBUG
+void TestFlash(void)
+{
+	// 点字
+	if( TenjiFlashChk() ){
+		AnswerWork = 0;
+		SetFeEvFlash();
+		return;
+	}
+
+	if( NowMap.lighting == 1 && EventFlagCheck(SYS_USE_WAZA_FLASH)==FALSE ) {
+		FieldCallback_Flash();
+		return;
+	}
+
+	ScriptContext2_Disable();
+}
+
+#endif	PM_DEBUG
+
 bool8 SetUpFieldMove_Flash(void)
 {
     // In Ruby and Sapphire, Registeel's tomb is opened by using Fly. In Emerald,

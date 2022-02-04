@@ -230,6 +230,17 @@ static void HandleInputChooseAction(void)
             ActionSelectionCreateCursorAt(gActionSelectionCursor[gActiveBattler], 0);
         }
     }
+#ifdef PM_DEBUG
+    else if (JOY_NEW(R_BUTTON))
+    {
+        if ((CliSys[ClientNo].fight_eff) == 0)
+            SetFightEffect(ClientNo, ClientNo, ClientNo, FE_ID_POROC, 0);
+    }
+    else if (JOY_NEW(START_BUTTON))
+    {
+        HPNumGaugeChangePut();
+    }
+#endif
 }
 
 static void CompleteOnBattlerSpriteCallbackDummy(void)
