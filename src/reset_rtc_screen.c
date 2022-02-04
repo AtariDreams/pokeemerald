@@ -733,3 +733,103 @@ static void Task_ResetRtcScreen(u8 taskId)
         }
     }
 }
+
+#ifdef PM_DEBUG
+void debug_sub_806F8F8(void)
+{
+    SetMainCallback2(CB2_InitResetRtcScreen);
+}
+
+void debug_sub_806F908(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+
+    switch (data[0])
+    {
+    case 0:
+        data[1] = CreateTask(Task_ResetRtc_0, 80);
+        data[0]++;
+        break;
+    case 1:
+        if (gTasks[data[1]].data[0] != 0)
+        {
+            if (gTasks[data[1]].data[1] == 1)
+                RtcCalcLocalTimeOffset(gLocalTime.days, gLocalTime.hours, gLocalTime.minutes, gLocalTime.seconds);
+            DestroyTask(data[1]);
+            Menu_EraseScreen();
+            ScriptContext2_Disable();
+            DestroyTask(taskId);
+        }
+        break;
+    }
+}
+
+void debug_sub_806F99C(void)
+{
+    RtcCalcLocalTime();
+    CreateTask(debug_sub_806F908, 80);
+    ScriptContext2_Enable();
+}
+
+void debug_sub_806F9B8(void)
+{
+    gLocalTime = gSaveBlock2.lastBerryTreeUpdate;
+    CreateTask(debug_sub_806F908, 80);
+    ScriptContext2_Enable();
+}
+
+static const u8 sDebugText_Days[] = DTR("にっすう", "days");
+static const u8 sDebugText_Time[] = DTR("じかん", "time");
+static const u8 sDebugText_GameTime[] = DTR("ゲームない　じかん", "game time");
+static const u8 sDebugText_RTCTime[] = DTR("RTC　じかん", "RTC time");
+
+void debug_sub_806F9E4(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+    u8 *str = gStringVar4;
+
+    switch (data[0])
+    {
+    case 0:
+        data[0]++;
+        break;
+    case 1:
+        Menu_DrawStdWindowFrame(0, 9, 29, 19);
+        ConvertIntToHexStringN(str + 80, RtcGetErrorStatus(), 2, 4);
+        Menu_PrintText(str + 80, 2, 10);
+        Menu_PrintText(sDebugText_Days, 12, 12);
+        Menu_PrintText(sDebugText_Time, 20, 12);
+        Menu_PrintText(sDebugText_RTCTime, 1, 14);
+        Menu_PrintText(sDebugText_GameTime, 1, 16);
+        data[0]++;
+        break;
+    case 2:
+        RtcCalcLocalTime();
+        FormatHexRtcTime(str);
+        debug_sub_8009894(str + 20);
+        FormatDecimalTime(str + 40, gLocalTime.hours, gLocalTime.minutes, gLocalTime.seconds);
+        ConvertIntToDecimalStringN(str + 60, gLocalTime.days, 1, 4);
+        if (gSaveBlock2.playTimeVBlanks == 0)
+        {
+            Menu_PrintText(str, 20, 14);
+            Menu_PrintText(str + 20, 12, 14);
+            Menu_PrintText(str + 40, 20, 16);
+            Menu_PrintText(str + 60, 12, 16);
+        }
+        if (data[1] > 19)  // Did you mean < 19?
+        {
+            data[1]++;
+        }
+        else
+        {
+            if (gMain.newKeys & A_BUTTON)
+            {
+                Menu_EraseScreen();
+                DestroyTask(taskId);
+                ScriptContext2_Disable();
+            }
+        }
+        break;
+    }
+}
+#endif
