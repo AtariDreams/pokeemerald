@@ -96,6 +96,11 @@ static bool8 SetPyramidObjectPositionsNearSquare(u8, u8);
 static bool8 TrySetPyramidObjectEventPositionInSquare(u8 arg0, u8 *floorLayoutOffsets, u8 squareId, u8 objectEventId);
 static bool8 TrySetPyramidObjectEventPositionAtCoords(bool8 objType, u8 x, u8 y, u8 *floorLayoutOffsets, u8 squareId, u8 objectEventId);
 
+#ifdef PM_DEBUG
+u8		MapDifficultGetAct(void);
+void	GetDifficultMapChipAct(u8 *map);
+#endif //PM_DEBUG
+
 // Const rom data.
 #define ABILITY_RANDOM 2 // For wild mons data.
 
@@ -1915,6 +1920,21 @@ static void GetPyramidFloorLayoutOffsets(u8 *layoutOffsets)
     }
 }
 
+#ifdef PM_DEBUG
+vu8	MapDiff=0;
+
+u8	MapDifficultGetAct(void)
+{
+	return	GetPyramidFloorTemplateId();
+}
+
+void	GetDifficultMapChipAct(u8 *map)
+{
+	GetPyramidFloorLayoutOffsets(map);
+}
+
+#endif //PM_DEBUG
+
 static u8 GetPyramidFloorTemplateId(void)
 {
     int i;
@@ -1924,7 +1944,12 @@ static u8 GetPyramidFloorTemplateId(void)
     for (i = sFloorTemplateOffsets[floor]; i < ARRAY_COUNT(sPyramidFloorTemplateOptions); i++)
     {
         if (rand < sPyramidFloorTemplateOptions[i][0])
+        {
+#ifdef PM_DEBUG
+			MapDiff=sPyramidFloorTemplateOptions[i][1];
+#endif //PM_DEBUG
             return sPyramidFloorTemplateOptions[i][1];
+        }
     }
     return 0;
 }
