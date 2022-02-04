@@ -747,6 +747,7 @@ void debug_sub_806F908(u8 taskId)
     switch (data[0])
     {
     case 0:
+        FieldBitMapWinCgxSet();
         data[1] = CreateTask(Task_ResetRtc_0, 80);
         data[0]++;
         break;
@@ -773,7 +774,7 @@ void debug_sub_806F99C(void)
 
 void debug_sub_806F9B8(void)
 {
-    gLocalTime = gSaveBlock2.lastBerryTreeUpdate;
+    gLocalTime = gSaveBlock2Ptr->lastBerryTreeUpdate;
     CreateTask(debug_sub_806F908, 80);
     ScriptContext2_Enable();
 }
@@ -816,13 +817,13 @@ void debug_sub_806F9E4(u8 taskId)
             Menu_PrintText(str + 40, 20, 16);
             Menu_PrintText(str + 60, 12, 16);
         }
-        if (data[1] > 19)  // Did you mean < 19?
+        if (data[1] >= 20)  // Did you mean < 19?
         {
             data[1]++;
         }
         else
         {
-            if (gMain.newKeys & A_BUTTON)
+            if (JOY_NEW(A_BUTTON|B_BUTTON))
             {
                 Menu_EraseScreen();
                 DestroyTask(taskId);
