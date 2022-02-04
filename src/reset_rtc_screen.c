@@ -784,6 +784,12 @@ static const u8 sDebugText_Time[] = DTR("じかん", "time");
 static const u8 sDebugText_GameTime[] = DTR("ゲームない　じかん", "game time");
 static const u8 sDebugText_RTCTime[] = DTR("RTC　じかん", "RTC time");
 
+static void put_msg(int index, int x, int y, const u8 *str)
+{
+    AddTextPrinterParameterized(
+        index, POKE_8x16, str, x * 8, PRINT_Y_OFS + y * 16, MSG_NO_PUT, NULL);
+}
+
 void debug_sub_806F9E4(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
@@ -795,13 +801,20 @@ void debug_sub_806F9E4(u8 taskId)
         data[0]++;
         break;
     case 1:
-        data[15] = MakeDebugWindow(0, 9, 28, 10);
-        ConvertIntToHexStringN(str, RtcGetErrorStatus(), 2, 4);
-        Menu_PrintText(str + 80, 2, 10);
-        Menu_PrintText(sDebugText_Days, 12, 12);
-        Menu_PrintText(sDebugText_Time, 20, 12);
-        Menu_PrintText(sDebugText_RTCTime, 1, 14);
-        Menu_PrintText(sDebugText_GameTime, 1, 16);
+		data[15] = MakeDebugWindow( 1, 9, 28, 10 );
+		FieldBitMapWinWrite( data[15], FBMP_TRANS_OFF );// ウインドウ描画
+		PM_HexNumMsgSet( str, RTC_GetStatus(), NUM_MODE_ZERO, 4 );
+		put_msg( data[15], 0, 0, str );
+		put_msg( data[15], 11, 1, ev_time_str_date );
+		put_msg( data[15], 19, 1, ev_time_str_time );
+		put_msg( data[15], 0, 2, ev_time_str_rtc_time );
+		put_msg( data[15], 0, 3, ev_time_str_game_time );
+		put_msg( data[15], 0, 4, ev_time_str_check_time );
+		PM_NumMsgSet( str, myd->save_time.day, NUM_MODE_SPACE, 4 );
+		put_msg( data[15], 11, 4, str );
+		MakeTimeString( str, myd->save_time.hour, myd->save_time.min, myd->save_time.sec );
+		put_msg( data[15], 19, 4, str );
+		CopyWindowToVram( data[15], BMPWIN_ALLTRANS );
         data[0]++;
         break;
     case 2:
@@ -810,12 +823,13 @@ void debug_sub_806F9E4(u8 taskId)
         debug_sub_8009894(str + 20);
         FormatDecimalTime(str + 40, gLocalTime.hours, gLocalTime.minutes, gLocalTime.seconds);
         ConvertIntToDecimalStringN(str + 60, gLocalTime.days, 1, 4);
-        if (gSaveBlock2.playTimeVBlanks == 0)
+        if (gSaveBlock2Ptr->playTimeVBlanks == 0)
         {
-            Menu_PrintText(str, 20, 14);
-            Menu_PrintText(str + 20, 12, 14);
-            Menu_PrintText(str + 40, 20, 16);
-            Menu_PrintText(str + 60, 12, 16);
+			put_msg( data[15], 19, 2, str );
+			put_msg( data[15], 11, 2, str+20 );
+			put_msg( data[15], 19, 3, str+40 );
+			put_msg( data[15], 11, 3, str+60 );
+			CopyWindowToVram( data[15], BMPWIN_CGXTRANS );
         }
         if (data[1] >= 20)  // Did you mean < 19?
         {
