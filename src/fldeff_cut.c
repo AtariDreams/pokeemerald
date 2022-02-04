@@ -134,6 +134,146 @@ static const struct SpriteTemplate sSpriteTemplate_CutGrass =
     .callback = CutGrassSpriteCallback1,
 };
 
+#ifdef	PM_DEBUG
+
+void TestIaigiri(void)
+{
+    s16 x, y;
+    u8 i, j;
+    u8 tileBehavior;
+    u8 userAbility;
+    u8 tile;
+    bool8 cutTiles[CUT_NORMAL_AREA];
+    bool8 ret;
+
+
+	if( CheckObjectGraphicsInFrontOfPlayer( OBJ_EVENT_GFX_CUTTABLE_TREE ) == TRUE ){
+		FieldCallback_CutTree();
+		return;
+	}
+
+    PlayerGetDestCoords(&gPlayerFacingPosition.x, &gPlayerFacingPosition.y);
+
+    userAbility = GetMonAbility(&gPlayerParty[GetCursorSelectionMonId()]);
+    if (userAbility == ABILITY_HYPER_CUTTER)
+    {
+        sCutSquareSide = CUT_HYPER_SIDE;
+        sTileCountFromPlayer_X = 2;
+        sTileCountFromPlayer_Y = 2;
+    }
+    else
+    {
+        sCutSquareSide = CUT_NORMAL_SIDE;
+        sTileCountFromPlayer_X = 1;
+        sTileCountFromPlayer_Y = 1;
+    }
+
+    for (i = 0; i < CUT_NORMAL_AREA; i++)
+        cutTiles[i] = FALSE;
+    for (i = 0; i < CUT_HYPER_AREA; i++)
+        sHyperCutTiles[i] = FALSE;
+    ret = FALSE;
+
+    for (i = 0; i < CUT_NORMAL_SIDE; i++)
+    {
+        y = i - 1 + gPlayerFacingPosition.y;
+        for (j = 0; j < CUT_NORMAL_SIDE; j++)
+        {
+            x = j - 1 + gPlayerFacingPosition.x;
+            if (MapGridGetElevationAt(x, y) == gPlayerFacingPosition.elevation)
+            {
+                tileBehavior = MapGridGetMetatileBehaviorAt(x, y);
+                if (MetatileBehavior_IsPokeGrass(tileBehavior) == TRUE || MetatileBehavior_IsAshGrass(tileBehavior) == TRUE)
+                {
+                    // Standing in front of grass.
+                    sHyperCutTiles[CUT_HYPER_SIDE + (i * CUT_HYPER_SIDE) + ((CUT_HYPER_SIDE - CUT_NORMAL_SIDE) / 2 + j)] = TRUE;
+                    ret = TRUE;
+                }
+                if (MapGridIsImpassableAt(x, y) == TRUE)
+                {
+                    cutTiles[i * CUT_NORMAL_SIDE + j] = FALSE;
+                }
+                else
+                {
+                    cutTiles[i * CUT_NORMAL_SIDE + j] = TRUE;
+                    if (MetatileBehavior_IsCuttableGrass(tileBehavior) == TRUE)
+                        sHyperCutTiles[CUT_HYPER_SIDE + (i * CUT_HYPER_SIDE) + ((CUT_HYPER_SIDE - CUT_NORMAL_SIDE) / 2 + j)] = TRUE;
+                }
+            }
+            else
+            {
+                cutTiles[i * CUT_NORMAL_SIDE + j] = FALSE;
+            }
+        }
+    }
+
+    if (userAbility != ABILITY_HYPER_CUTTER)
+    {
+        if (ret == TRUE)
+        {
+            FieldCallback_CutGrass();
+        }
+        else
+        {
+            ScriptContext2_Disable();
+        }
+        return;
+    }
+    else
+    {
+        bool8 tileCuttable;
+        for (i = 0; i < ARRAY_COUNT(sHyperCutStruct); i++)
+        {
+            x = gPlayerFacingPosition.x + sHyperCutStruct[i].x;
+            y = gPlayerFacingPosition.y + sHyperCutStruct[i].y;
+            tileCuttable = TRUE;
+
+            for (j = 0; j < 2; ++j)
+            {
+                if (sHyperCutStruct[i].unk2[j] == 0)
+                    break; // one line required to match -g
+                tile = sHyperCutStruct[i].unk2[j] - 1;
+                if (cutTiles[tile] == FALSE)
+                {
+                    tileCuttable = FALSE;
+                    break;
+                }
+            }
+
+            if (tileCuttable == TRUE)
+            {
+                if (MapGridGetElevationAt(x, y) == gPlayerFacingPosition.elevation)
+                {
+                    u8 tileArrayId = ((sHyperCutStruct[i].y * 5) + 12) + (sHyperCutStruct[i].x);
+                    tileBehavior = MapGridGetMetatileBehaviorAt(x, y);
+                    if (MetatileBehavior_IsPokeGrass(tileBehavior) == TRUE || MetatileBehavior_IsAshGrass(tileBehavior) == TRUE)
+                    {
+                        gFieldCallback2 = FieldCallback_PrepareFadeInFromMenu;
+                        gPostMenuFieldCallback = FieldCallback_CutGrass;
+                        sHyperCutTiles[tileArrayId] = TRUE;
+                        ret = TRUE;
+                    }
+                    else if (MetatileBehavior_IsCuttableGrass(tileBehavior) == TRUE)
+                    {
+                        sHyperCutTiles[tileArrayId] = TRUE;
+                    }
+                }
+            }
+        }
+    }
+
+    if (ret == TRUE)
+    {
+        FieldCallback_CutGrass();
+    }
+    else
+    {
+        ScriptContext2_Disable();
+    }
+}
+
+#endif
+
 // code
 bool8 SetUpFieldMove_Cut(void)
 {
