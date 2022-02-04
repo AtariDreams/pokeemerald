@@ -795,8 +795,8 @@ void debug_sub_806F9E4(u8 taskId)
         data[0]++;
         break;
     case 1:
-        Menu_DrawStdWindowFrame(0, 9, 29, 19);
-        ConvertIntToHexStringN(str + 80, RtcGetErrorStatus(), 2, 4);
+        data[15] = MakeDebugWindow(0, 9, 28, 10);
+        ConvertIntToHexStringN(str, RtcGetErrorStatus(), 2, 4);
         Menu_PrintText(str + 80, 2, 10);
         Menu_PrintText(sDebugText_Days, 12, 12);
         Menu_PrintText(sDebugText_Time, 20, 12);
