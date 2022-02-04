@@ -1104,6 +1104,9 @@ static u8 GetInWildMonRoom(void)
 
 bool32 TryGenerateBattlePikeWildMon(bool8 checkKeenEyeIntimidate)
 {
+#ifdef PM_DEBUG
+	static 	u16 d_skill;
+#endif
     s32 i;
     s32 monLevel;
     u8 headerId = GetBattlePikeWildMonHeaderId();
@@ -1144,8 +1147,12 @@ bool32 TryGenerateBattlePikeWildMon(bool8 checkKeenEyeIntimidate)
     else
         abilityNum = 0;
     SetMonData(&gEnemyParty[0], MON_DATA_ABILITY_NUM, &abilityNum);
-    for (i = 0; i < MAX_MON_MOVES; i++)
+    for (i = 0; i < MAX_MON_MOVES; i++) {
+#ifdef PM_DEBUG
+        d_skill = wildMons[headerId][pikeMonId].moves[i];
+#endif
         SetMonMoveSlot(&gEnemyParty[0], wildMons[headerId][pikeMonId].moves[i], i);
+    }
 
     CalculateMonStats(&gEnemyParty[0]);
     return TRUE;
@@ -1494,6 +1501,9 @@ static bool8 AtLeastTwoAliveMons(void)
 
 static u8 GetPikeQueenFightType(u8 nextRoom)
 {
+#ifdef PM_DEBUG
+	static u8 d_symbol;
+#endif
     u8 numPikeSymbols;
 
     u8 facility = FRONTIER_FACILITY_PIKE;
@@ -1502,6 +1512,10 @@ static u8 GetPikeQueenFightType(u8 nextRoom)
     u16 winStreak = gSaveBlock2Ptr->frontier.pikeWinStreaks[lvlMode];
     winStreak += nextRoom;
     numPikeSymbols = GetPlayerSymbolCountForFacility(FRONTIER_FACILITY_PIKE);
+
+#ifdef PM_DEBUG	
+    d_symbol = numPikeSymbols;
+#endif
 
     switch (numPikeSymbols)
     {
