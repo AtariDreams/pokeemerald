@@ -747,7 +747,7 @@ void debug_sub_806F908(u8 taskId)
     switch (data[0])
     {
     case 0:
-        FieldBitMapWinCgxSet();
+        LoadMessageBoxAndBorderGfx();
         data[1] = CreateTask(Task_ResetRtc_0, 80);
         data[0]++;
         break;
@@ -757,7 +757,7 @@ void debug_sub_806F908(u8 taskId)
             if (gTasks[data[1]].data[1] == 1)
                 RtcCalcLocalTimeOffset(gLocalTime.days, gLocalTime.hours, gLocalTime.minutes, gLocalTime.seconds);
             DestroyTask(data[1]);
-            Menu_EraseScreen();
+
             ScriptContext2_Disable();
             DestroyTask(taskId);
         }
