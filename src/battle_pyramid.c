@@ -1969,7 +1969,7 @@ u16 GetBattlePyramidPickupItemId(void)
 
     rand = Random() % 100;
 
-    for (i = 0; i < ARRAY_COUNT(sPickupPercentages); i++)
+    for (i = 0; i < PICKUP_ITEMS_PER_ROUND; i++)
     {
         if (sPickupPercentages[i] > rand)
             break;
