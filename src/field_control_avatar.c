@@ -129,6 +129,40 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
         input->dpadDirection = DIR_WEST;
     else if (heldKeys & DPAD_RIGHT)
         input->dpadDirection = DIR_EAST;
+
+#ifdef	PM_DEBUG
+
+
+	if (heldKeys & R_BUTTON ) { 
+		if (input->pressedStartButton == TRUE) {
+			input->input_field_1_2 = TRUE;
+			input->pressedStartButton = FALSE;
+		}
+	}
+
+	if ( DebugMainFlag == 0 ) return;
+
+	if (heldKeys & R_BUTTON )
+	{ 
+		input->input_field_1_1 = TRUE;
+
+		input->tookStep = FALSE;
+		input->checkStandardWildEncounter = FALSE;
+		input->heldDirection = FALSE;
+		input->heldDirection2 = FALSE;
+
+		if ( newKeys & SELECT_BUTTON )
+		{
+			input->input_field_1_0 = TRUE;
+			input->pressedSelectButton = FALSE;
+		}
+	}
+
+	if ( heldKeys & L_BUTTON )
+	{
+		input->input_field_1_3 = TRUE;
+	}
+#endif
 }
 
 int ProcessPlayerFieldInput(struct FieldInput *input)
@@ -144,11 +178,21 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     GetPlayerPosition(&position);
     metatileBehavior = MapGridGetMetatileBehaviorAt(position.x, position.y);
 
+#ifdef PM_DEBUG
+	if (input->input_field_1_3 && TryDoDiveWarp(&position, metatileBehavior) == TRUE) {
+		return TRUE;
+	}
+
+	if (input->input_field_1_1 == FALSE && CheckForTrainersWantingBattle() == TRUE) return TRUE;
+	if (input->input_field_1_1 == FALSE && TryRunOnFrameMapScript() == TRUE) return TRUE;
+#else
+
     if (CheckForTrainersWantingBattle() == TRUE)
         return TRUE;
 
     if (TryRunOnFrameMapScript() == TRUE)
         return TRUE;
+#endif
 
     if (input->pressedBButton && TrySetupDiveEmergeScript() == TRUE)
         return TRUE;
@@ -187,6 +231,21 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     }
     if (input->pressedSelectButton && UseRegisteredKeyItemOnField() == TRUE)
         return TRUE;
+
+#ifdef	PM_DEBUG
+	if ( input->input_field_1_0 )
+	{
+			AddDebugMapChangeTask();
+			return TRUE;	
+	}
+
+	if ( input->input_field_1_2 )
+	{
+		PlaySE(SE_WIN_OPEN);
+		AddDebugMenuTask();
+		return TRUE;
+	}
+#endif
 
     return FALSE;
 }
