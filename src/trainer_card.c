@@ -1905,3 +1905,151 @@ static void CreateTrainerCardTrainerPic(void)
                     2);
     }
 }
+
+#ifdef PM_DEBUG
+static const VIEW_TRCARD Test_EM_Card = {
+ {
+	0,4,1,1,1, 
+	999,59,59,
+	200,24690,999,59,
+	5535,5535,
+	0000,0000,
+	55555,44444,33333,
+	999999,
+	{0,1,2,3}, {e_,me_,ra_,ru_,do_,gyoe_,gyoe_,EOM_,},
+ },
+ VERSION_EMERALD, 5555, 8500, 5456, 6300,
+ 1,1,2,0, {1,2,3,}, {6,50,30,22,46,80,},1,65535
+};
+
+static void DebugCallTRCardReturn(void)
+{
+	ScriptContext2_Disable();
+	pFieldRecoverFunc = FieldFadeBlackInSet;
+	SetMainCallback2( FieldMainRecover );
+}
+
+
+static void DebugCallTRCardFade(u8 id)
+{
+	if(UpdatePaletteFade()){
+		return;
+	}
+	SetTrainerCardPlayer(DebugCallTRCardReturn);
+	sData->trainerCard = Test_EM_Card;
+	DeleteTask(id);
+}
+
+u8 DebugCallTRCard(void)
+{
+	ScriptContext2_Enable();
+	MenuEnd();
+	PaletteFadeReq(0xFFFFFFFF,0,0,16,0x0000);
+	AddTask(DebugCallTRCardFade,0);
+	return 1;
+}
+
+void SetTrainerCardPlayerDebug( void (*callback)(void)  )
+{
+	SetTrainerCardPlayer(callback);
+	SetMainCallback2( CB2_InitTrainerCard );
+}
+
+void SetTrainerCardEMFriendDebug( void (*callback)(void)  )
+{
+	gTrainerCards[0] = Test_EM_Card;
+	SetTrainerCardFriend(0, callback);
+	SetMainCallback2( CB2_InitTrainerCard );
+}
+
+void SetTrainerCardFriendDebug( void (*callback)(void) )
+{
+	gTrainerCards[0] = Test_EM_Card;
+	ShowTrainerCardInLink(0, callback);
+	SetMainCallback2( CB2_InitTrainerCard );
+}
+
+static void
+DebugCallTRCardFriendFade(u8 id)
+{
+	if(UpdatePaletteFade()){
+		return;
+	}
+	ShowTrainerCardInLink(0, DebugCallTRCardReturn);
+	DestroyTask(id);
+}
+
+static void
+DebugCallTrCardInit(const struct TrainerCard *card)
+{
+	ScriptContext2_Enable();
+	MenuEnd();
+	PaletteFadeReq(0xFFFFFFFF,0,0,16,0x0000);
+	AddTask(DebugCallTRCardFriendFade,0);
+	gTrainerCards[0] = *card;
+}
+
+u8
+DebugCallTrCardEMFriend(void)
+{
+    static const struct TrainerCard card = {
+        {
+            0,4,1,1,1, 
+            999,59,59,
+            200,24690,999,59,
+            5535,5535,
+            0000,0000,
+            55555,44444,33333,
+            999999,
+            {0,1,2,3}, _("Emerald!!"),
+        },
+        VERSION_EMERALD, 5555, 8500, 5456, 6300,
+        1,1,2,0, {1,2,3,}, {6,50,30,22,46,80,},1,65535
+    };
+    DebugCallTrCardInit(&card);
+	return 1;
+}
+
+u8
+DebugCallTrCardRSFriend(void)
+{
+    static const struct TrainerCard card = {
+        {
+            0,4,1,1,1, 
+            999,59,59,
+            200,24690,999,59,
+            5535,5535,
+            9999,9999,
+            55555,44444,33333,
+            999999,
+            {0,1,2,3}, _("Emerald!!"),
+        },
+        VERSION_RUBY, 5555, 8500, 5456, 6300,
+        1,1,2,0, {1,2,3,}, {6,50,30,22,46,80,},1,65535
+    };
+    DebugCallTrCardInit(&card);
+	return 1;
+}
+
+u8
+DebugCallTrCardRGFriend(void)
+{
+    static const struct TrainerCard card = {
+        {
+            0,4,1,1,1, 
+            999,59,59,
+            200,24690,999,59,
+            5535,5535,
+            0000,0000,
+            55555,44444,33333,
+            999999,
+            {0,1,2,3}, _("Emerald!!"),
+        },
+        VERSION_RED, 5555, 8500, 5456, 6300,
+        1,1,2,0, {1,2,3,}, {6,50,30,22,46,80,},1,65535
+    };
+    DebugCallTrCardInit(&card);
+	return 1;
+}
+
+#endif //PM_DEBUG
