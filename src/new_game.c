@@ -138,6 +138,11 @@ void Sav2_ClearSetDefault(void)
 void ResetMenuAndMonGlobals(void)
 {
     gDifferentSaveFile = FALSE;
+
+#ifdef PM_DEBUG
+    gEnableContestDebugging = FALSE;
+#endif
+
     ResetPokedexScrollPositions();
     ZeroPlayerPartyMons();
     ZeroEnemyPartyMons();

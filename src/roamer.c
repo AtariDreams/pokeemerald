@@ -238,3 +238,23 @@ void GetRoamerLocation(u8 *mapGroup, u8 *mapNum)
     *mapGroup = sRoamerLocation[MAP_GRP];
     *mapNum = sRoamerLocation[MAP_NUM];
 }
+
+#ifdef	PM_DEBUG
+void DebugAddMvPoke( u8 poke )
+{
+	if( gSaveBlock1Ptr->location.mapGroup != ROAMER_MAP_GROUP )	return;
+
+	CreateInitialRoamerMon( poke );
+
+	sRoamerLocation[MAP_GRP] = ROAMER_MAP_GROUP;
+	sRoamerLocation[MAP_NUM] =  gSaveBlock1Ptr->location.mapNum;
+}
+
+void DebugMvPokePos( u8 * str )
+{
+	GetMapName( str, (u16)sRoamerLocation[MAP_NUM], 0 );
+}
+
+
+#endif	PM_DEBUG
+
