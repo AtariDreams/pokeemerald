@@ -783,9 +783,9 @@ void TrainerCard_GenerateCardForLinkPlayer(struct TrainerCard *trainerCard)
     memset(trainerCard, 0, 0x60);
     trainerCard->version = GAME_VERSION;
     SetPlayerCardData(trainerCard, CARD_TYPE_EMERALD);
-    trainerCard->linkHasAllFrontierSymbols = HasAllFrontierSymbols();
-    trainerCard->linkPoints.frontierBP = gSaveBlock2.frontier.cardBattlePoints;
-    if (trainerCard->linkHasAllFrontierSymbols)
+    trainerCard->linkPoints.frontierData.linkHasAllFrontierSymbols = HasAllFrontierSymbols();
+    trainerCard->linkPoints.frontierData.frontierBP = gSaveBlock2.frontier.cardBattlePoints;
+    if (trainerCard->linkPoints.frontierData.linkHasAllFrontierSymbols)
         trainerCard->stars++;
 
     if (trainerCard->gender == FEMALE)
@@ -810,8 +810,8 @@ void CopyTrainerCardData(struct TrainerCard *dst, struct TrainerCard *src, u8 ga
     case CARD_TYPE_EMERALD:
         memcpy(dst, src, 0x60);
         dst->linkPoints.berryCrush = 0;
-        dst->hasAllFrontierSymbols = src->linkHasAllFrontierSymbols;
-        dst->frontierBP = src->linkPoints.frontierBP;
+        dst->hasAllFrontierSymbols = src->linkPoints.frontierData.linkHasAllFrontierSymbols;
+        dst->frontierBP = src->linkPoints.frontierData.frontierBP;
         break;
     }
 }

@@ -44,14 +44,16 @@ struct TrainerCard
     /*0x28*/ u16 easyChatProfile[TRAINER_CARD_PROFILE_LENGTH];
     /*0x30*/ u8 playerName[PLAYER_NAME_LENGTH + 1];
     /*0x38*/ u8 version;
-             // GF probably meant to put this in the same memory location as unionRoomNum, but the compiler put it two bytes away.
-             // It doesn't result in a bug though since these fields aren't affected by memcpy, unlike the fields before it
-    /*0x3A*/ bool16 linkHasAllFrontierSymbols;
-    /*0x3C*/ union {
-                u16 frontierBP;
+    /*0x3A*/ union {
+                struct 
+                {
+                    bool16 linkHasAllFrontierSymbols;
+                    u16 frontierBP;
+                } frontierData;
                 u32 berryCrush;
              } linkPoints; // This field is used differently by FRLG vs Emerald
-    /*0x3E*/ u32 unionRoomNum;
+
+    /*0x40*/ u32 unionRoomNum;
     /*0x44*/ u8 filler[8];
     /*0x4C*/ bool8 shouldDrawStickers; // FRLG only
     /*0x4D*/ u8 unused;
@@ -61,6 +63,7 @@ struct TrainerCard
     /*0x54*/ u16 monSpecies[PARTY_SIZE]; // FRLG only
              // Note: Link players use linkHasAllFrontierSymbols, not the field below,
              // which they use for a Wonder Card flag id instead (see CreateTrainerCardInBuffer)
+
     /*0x60*/ bool16 hasAllFrontierSymbols;
     /*0x62*/ u16 frontierBP;
 };
