@@ -2147,7 +2147,7 @@ static void sub_debug(void)
 			break;
 		}
 		if(sys.Trg & A_BUTTON){
-			TownMapDelCursor();
+			FreeRegionMapCursorSprite();
 			TownMapModeChangeInit();
 			Work->prog++;
 		}
@@ -2155,7 +2155,7 @@ static void sub_debug(void)
 
 	case 5:
 		if(!TownMapModeChange()){
-			TownMapAddCursor(0, 0);
+			CreateRegionMapCursor(0, 0);
 			Work->prog++;
 		}
 		break;
@@ -2166,7 +2166,7 @@ static void sub_debug(void)
 //			break;
 		}
 		if(sys.Trg & A_BUTTON){
-			TownMapDelCursor();
+			FreeRegionMapCursorSprite();
 			TownMapModeChangeInit();
 			Work->prog++;
 		}
@@ -2174,7 +2174,7 @@ static void sub_debug(void)
 
 	case 7:
 		if(!TownMapModeChange()){
-			TownMapAddCursor(0, 0);
+			CreateRegionMapCursor(0, 0);
 			Work->prog = 3;
 		}
 		break;
