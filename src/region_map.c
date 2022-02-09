@@ -2037,3 +2037,157 @@ static void CB_ExitFlyMap(void)
         break;
     }
 }
+
+#ifdef PM_DEBUG
+/***********************************************************************
+**	デバッグ用マップ表示
+***********************************************************************/
+static void debug_write_mapname(void)
+{
+    u16 i;
+    bool32 namePrinted;
+
+    namePrinted = FALSE;
+    for (i = 0; i < ARRAY_COUNT(sMultiNameFlyDestinations); i++)
+    {
+        if (sFlyMap->regionMap.mapSecId == sMultiNameFlyDestinations[i].mapSecId)
+        {
+            if (FlagGet(sMultiNameFlyDestinations[i].flag))
+            {
+                // This statement is pointless since its result isn't acutally used.
+                StringLength(sMultiNameFlyDestinations[i].name[sFlyMap->regionMap.posWithinMapSec]);
+
+                namePrinted = TRUE;
+                ClearStdWindowAndFrameToTransparent(0, FALSE);
+                DrawStdFrameWithCustomTileAndPalette(1, FALSE, 101, 13);
+                AddTextPrinterParameterized(1, FONT_NORMAL, sFlyMap->regionMap.mapSecName, 0, 1, 0, NULL);
+
+                AddTextPrinterParameterized(1, FONT_NORMAL, name, GetStringRightAlignXOffset(FONT_NORMAL, name, MAP_NAME_LENGTH_MAX * 8), 17, 0, NULL);
+                ScheduleBgCopyTilemapToVram(0);
+                sDrawFlyDestTextWindow = TRUE;
+            }
+            break;
+        }
+    }
+    if (!namePrinted)
+    {
+        if (sDrawFlyDestTextWindow == TRUE)
+        {
+            ClearStdWindowAndFrameToTransparent(1, FALSE);
+            DrawStdFrameWithCustomTileAndPalette(0, FALSE, 101, 13);
+        }
+        else
+        {
+            // Window is already drawn, just empty it
+            FillWindowPixelBuffer(0, PIXEL_FILL(1));
+        }
+        AddTextPrinterParameterized(0, FONT_NORMAL, sFlyMap->regionMap.mapSecName, 0, 1, 0, NULL);
+        ScheduleBgCopyTilemapToVram(0);
+        sDrawFlyDestTextWindow = FALSE;
+    }
+}
+static void sub_debug(void)
+{
+	switch(sFlyMap->state){
+	case 0:
+		PaletteFadeReq(0xffffffff,0,16,0,0x0000);
+		sFlyMap->state++;
+		break;
+
+	case 1:
+		if(!UpdatePaletteFade()){
+			sFlyMap->state++;
+		}
+		break;
+
+	case 2:
+		switch(DoRegionMapInputCallback()){
+		case MAP_INPUT_NONE:
+        case MAP_INPUT_MOVE_START:
+        case MAP_INPUT_MOVE_CONT:
+			break;
+
+		case MAP_INPUT_MOVE_END:
+			debug_write_mapname();
+			break;
+
+		case MAP_INPUT_A_BUTTON:
+            // Fly anywhere the map cursor is as long as it's valid, as opposed to just cities
+            // Be wary this functionality is broken and will take you to inaccessible places
+			if(sFlyMap->regionMap.mapSecType != MAPSECTYPE_NONE){
+				m4aSongNumStart(SE_SELECT);
+				sFlyMap->choseFlyLocation = TRUE;
+				SetFlyMapCallback(CB_ExitFlyMap);
+			}
+			break;
+
+		case MAP_INPUT_B_BUTTON:
+			m4aSongNumStart(SE_SELECT);
+			PaletteFadeReq(0xffffffff,0,0,16,0x0000);
+			sFlyMap->state++;
+			break;
+		}
+		break;
+
+	case 3:
+		if(!UpdatePaletteFade()){
+
+			if(sFlyMap != NULL){
+				FreeMemory(sFlyMap);
+				sFlyMap = NULL;
+			}
+			FreeAllWindowBuffers();
+			SetMainCallback2(FieldMenuRecover);
+		}
+		break;
+
+	case 4:
+		if(DoRegionMapInputCallback()){
+			debug_write_mapname();
+			break;
+		}
+		if(sys.Trg & A_BUTTON){
+			TownMapDelCursor();
+			TownMapModeChangeInit();
+			Work->prog++;
+		}
+		break;
+
+	case 5:
+		if(!TownMapModeChange()){
+			TownMapAddCursor(0, 0);
+			Work->prog++;
+		}
+		break;
+
+	case 6:
+		if(DoRegionMapInputCallback()){
+			debug_write_mapname();
+//			break;
+		}
+		if(sys.Trg & A_BUTTON){
+			TownMapDelCursor();
+			TownMapModeChangeInit();
+			Work->prog++;
+		}
+		break;
+
+	case 7:
+		if(!TownMapModeChange()){
+			TownMapAddCursor(0, 0);
+			Work->prog = 3;
+		}
+		break;
+	}
+}
+void FlyingInitDebug(void)
+{
+	CB2_OpenFlyMap();
+
+	if(sys.pMainProc == flying_main){
+		TownMap_JikiTenmetsu();
+		SetFlyMapCallback(sub_debug);
+		debug_write_mapname();
+	}
+}
+#endif
