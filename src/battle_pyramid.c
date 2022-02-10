@@ -1286,7 +1286,10 @@ static u8 GetPostBattleDirectionHintTextIndex(int *hintType, u8 minDistanceForEx
                     }
                     else
                     {
-                        textIndex = (~(x + y) >= 0) ? 0 : 2;
+                        if (x + y >= 0)
+                            textIndex = 2;
+                        else
+                            textIndex = 0;
                     }
                     *hintType = HINT_EXIT_DIRECTION;
                 }
@@ -1966,7 +1969,7 @@ u16 GetBattlePyramidPickupItemId(void)
 
     rand = Random() % 100;
 
-    for (i = 0; i < ARRAY_COUNT(sPickupPercentages); i++)
+    for (i = 0; i < PICKUP_ITEMS_PER_ROUND; i++)
     {
         if (sPickupPercentages[i] > rand)
             break;

@@ -352,12 +352,11 @@ bool16 IsTextPrinterActive(u8 id)
 static u32 RenderFont(struct TextPrinter *textPrinter)
 {
     u32 ret;
-    while (TRUE)
+    do
     {
         ret = gFonts[textPrinter->printerTemplate.fontId].fontFunction(textPrinter);
-        if (ret != RENDER_REPEAT)
-            return ret;
-    }
+    } while (ret == RENDER_REPEAT);
+    return ret;
 }
 
 void GenerateFontHalfRowLookupTable(u8 fgColor, u8 bgColor, u8 shadowColor)
@@ -658,8 +657,8 @@ void ClearTextSpan(struct TextPrinter *textPrinter, u32 width)
     {
         window = &gWindows[textPrinter->printerTemplate.windowId];
         pixels_data.pixels = window->tileData;
-        pixels_data.width = window->window.width << 3;
-        pixels_data.height = window->window.height << 3;
+        pixels_data.width = window->window.width * 8;
+        pixels_data.height = window->window.height * 8;
 
         glyph = &gCurGlyph;
         glyphHeight = &glyph->height;
@@ -1329,7 +1328,7 @@ static u32 (*GetFontWidthFunc(u8 fontId))(u16, bool32)
 
 s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
 {
-    bool8 isJapanese;
+    bool32 isJapanese;
     int minGlyphWidth;
     u32 (*func)(u16 fontId, bool32 isJapanese);
     int localLetterSpacing;

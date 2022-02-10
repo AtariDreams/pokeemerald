@@ -44,6 +44,7 @@
 #define MAPCURSOR_Y_MIN 2
 #define MAPCURSOR_X_MAX (MAPCURSOR_X_MIN + MAP_WIDTH - 1)
 #define MAPCURSOR_Y_MAX (MAPCURSOR_Y_MIN + MAP_HEIGHT - 1)
+#define MAP_NAME_LENGTH_MAX 12
 
 #define MAPBLOCK_TO_POS(block) (4 + (block)*8)
 
@@ -403,7 +404,7 @@ static const struct WindowTemplate sFlyMapWindowTemplates[] =
         .bg = 0,
         .tilemapLeft = 17,
         .tilemapTop = 17,
-        .width = 12,
+        .width = MAP_NAME_LENGTH_MAX,
         .height = 2,
         .paletteNum = 15,
         .baseBlock = 0x01
@@ -412,7 +413,7 @@ static const struct WindowTemplate sFlyMapWindowTemplates[] =
         .bg = 0,
         .tilemapLeft = 17,
         .tilemapTop = 15,
-        .width = 12,
+        .width = MAP_NAME_LENGTH_MAX,
         .height = 4,
         .paletteNum = 15,
         .baseBlock = 0x19
@@ -1780,7 +1781,7 @@ static void DrawFlyDestTextWindow(void)
                     DrawStdFrameWithCustomTileAndPalette(1, FALSE, 101, 13);
                     AddTextPrinterParameterized(1, FONT_NORMAL, sFlyMap->regionMap.mapSecName, 0, 1, 0, NULL);
                     name = sMultiNameFlyDestinations[i].name[sFlyMap->regionMap.posWithinMapSec];
-                    AddTextPrinterParameterized(1, FONT_NORMAL, name, GetStringRightAlignXOffset(FONT_NORMAL, name, 96), 17, 0, NULL);
+                    AddTextPrinterParameterized(1, FONT_NORMAL, name, GetStringRightAlignXOffset(FONT_NORMAL, name, MAP_NAME_LENGTH_MAX * 8), 17, 0, NULL);
                     ScheduleBgCopyTilemapToVram(0);
                     sDrawFlyDestTextWindow = TRUE;
                 }

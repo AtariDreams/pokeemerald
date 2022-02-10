@@ -141,6 +141,7 @@ bool8 SetUpFieldMove_Cut(void)
     u8 i, j;
     u8 tileBehavior;
     u8 userAbility;
+    u8 tile;
     bool8 cutTiles[CUT_NORMAL_AREA];
     bool8 ret;
 
@@ -188,23 +189,23 @@ bool8 SetUpFieldMove_Cut(void)
                     || MetatileBehavior_IsAshGrass(tileBehavior) == TRUE)
                     {
                         // Standing in front of grass.
-                        sHyperCutTiles[6 + (i * 5) + j] = TRUE;
+                        sHyperCutTiles[CUT_HYPER_SIDE + (i * CUT_HYPER_SIDE) + ((CUT_HYPER_SIDE - CUT_NORMAL_SIDE) / 2 + j)] = TRUE;
                         ret = TRUE;
                     }
                     if (MapGridIsImpassableAt(x, y) == TRUE)
                     {
-                        cutTiles[i * 3 + j] = FALSE;
+                        cutTiles[i * CUT_NORMAL_SIDE + j] = FALSE;
                     }
                     else
                     {
-                        cutTiles[i * 3 + j] = TRUE;
+                        cutTiles[i * CUT_NORMAL_SIDE + j] = TRUE;
                         if (MetatileBehavior_IsCuttableGrass(tileBehavior) == TRUE)
-                            sHyperCutTiles[6 + (i * 5) + j] = TRUE;
+                            sHyperCutTiles[CUT_HYPER_SIDE + (i * CUT_HYPER_SIDE) + ((CUT_HYPER_SIDE - CUT_NORMAL_SIDE) / 2 + j)] = TRUE;
                     }
                 }
                 else
                 {
-                    cutTiles[i * 3 + j] = FALSE;
+                    cutTiles[i * CUT_NORMAL_SIDE + j] = FALSE;
                 }
             }
         }
@@ -220,7 +221,7 @@ bool8 SetUpFieldMove_Cut(void)
         else
         {
             bool8 tileCuttable;
-            for (i = 0; i < 16; i++)
+            for (i = 0; i < ARRAY_COUNT(sHyperCutStruct); i++)
             {
                 x = gPlayerFacingPosition.x + sHyperCutStruct[i].x;
                 y = gPlayerFacingPosition.y + sHyperCutStruct[i].y;
@@ -229,7 +230,8 @@ bool8 SetUpFieldMove_Cut(void)
                 for (j = 0; j < 2; ++j)
                 {
                     if (sHyperCutStruct[i].unk2[j] == 0) break; // one line required to match -g
-                    if (cutTiles[(u8)(sHyperCutStruct[i].unk2[j] - 1)] == FALSE)
+                    tile = sHyperCutStruct[i].unk2[j] - 1;
+                    if (cutTiles[tile] == FALSE)
                     {
                         tileCuttable = FALSE;
                         break;
@@ -250,10 +252,9 @@ bool8 SetUpFieldMove_Cut(void)
                             sHyperCutTiles[tileArrayId] = TRUE;
                             ret = TRUE;
                         }
-                        else
+                        else if (MetatileBehavior_IsCuttableGrass(tileBehavior) == TRUE)
                         {
-                            if (MetatileBehavior_IsCuttableGrass(tileBehavior) == TRUE)
-                                sHyperCutTiles[tileArrayId] = TRUE;
+                            sHyperCutTiles[tileArrayId] = TRUE;
                         }
                     }
                 }
@@ -319,8 +320,8 @@ bool8 FldEff_CutGrass(void)
     {
         if (sHyperCutTiles[i] == TRUE)
         {
-            s8 xAdd = (i % 5) - 2;
-            s8 yAdd = (i / 5) - 2;
+            s8 xAdd = (s8)(i % CUT_HYPER_SIDE) - 2;
+            s8 yAdd = (s8)(i / CUT_HYPER_SIDE) - 2;
 
             x = xAdd + gPlayerFacingPosition.x;
             y = yAdd + gPlayerFacingPosition.y;
@@ -474,7 +475,7 @@ static void HandleLongGrassOnHyper(u8 caseId, s16 x, s16 y)
         arr[0] = sHyperCutTiles[9];
         arr[1] = sHyperCutTiles[14];
         arr[2] = sHyperCutTiles[19];
-        newX = x + 4;
+        newX = x + (CUT_HYPER_SIDE - 1);
     }
     else // invalid case
     {
