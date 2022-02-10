@@ -2283,21 +2283,20 @@ static void Task_ShinyStars(u8 taskId)
     x = GetBattlerSpriteCoord(battler, BATTLER_COORD_X);
     y = GetBattlerSpriteCoord(battler, BATTLER_COORD_Y);
 
-    switch (gTasks[taskId].tStarIdx) {
-    case 0: // Big star
+    starIdx = gTasks[taskId].tStarIdx;
+    if (starIdx == 0) // Small star
+    {
         spriteId = CreateSprite(&gWishStarSpriteTemplate, x, y, 5);
-        break;
-    case 1:
-    case 2:
-    case 3:
-        // Medium star
+    }
+    else if (starIdx < 4) // Medium star
+    {
         spriteId = CreateSprite(&gMiniTwinklingStarSpriteTemplate, x, y, 5);
         gSprites[spriteId].oam.tileNum += 4;
-        break;
-    default: // Small star
+    }
+    else // Big star
+    {
         spriteId = CreateSprite(&gMiniTwinklingStarSpriteTemplate, x, y, 5);
         gSprites[spriteId].oam.tileNum += 5;
-        break;
     }
 
     if (gTasks[taskId].tStarMove == SHINY_STAR_ENCIRCLE)
@@ -2310,7 +2309,7 @@ static void Task_ShinyStars(u8 taskId)
         gSprites[spriteId].x2 = -32;
         gSprites[spriteId].y2 = 32;
         gSprites[spriteId].invisible = TRUE;
-        if (gTasks[taskId].tStarIdx == 0)
+        if (starIdx == 0)
         {
             if (GetBattlerSide(battler) == B_SIDE_PLAYER)
                 pan = -64;
@@ -2323,11 +2322,12 @@ static void Task_ShinyStars(u8 taskId)
 
     gSprites[spriteId].sTaskId = taskId;
     gTasks[taskId].tStarIdx++;
-    if (spriteId != MAX_SPRITES)
-        gTasks[taskId].tNumStars++;
 
     if (gTasks[taskId].tStarIdx == 5)
         gTasks[taskId].func = Task_ShinyStars_Wait;
+    
+    if (spriteId != MAX_SPRITES)
+        gTasks[taskId].tNumStars++;
 }
 
 static void Task_ShinyStars_Wait(u8 taskId)
