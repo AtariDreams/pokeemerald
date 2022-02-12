@@ -1153,6 +1153,7 @@ static void CompleteOnInactiveTextPrinter(void)
 
 static void Task_GiveExpToMon(u8 taskId)
 {
+    //TODO: Investigate this
     u32 monId = (u8)(gTasks[taskId].tExpTask_monId);
     u8 battlerId = gTasks[taskId].tExpTask_battler;
     s16 gainedExp = gTasks[taskId].tExpTask_gainedExp;
