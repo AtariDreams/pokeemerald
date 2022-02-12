@@ -5168,7 +5168,7 @@ static void AnimUnusedItemBagSteal(struct Sprite *sprite)
         sprite->data[1] += 5;
         if (sprite->data[1] > 0x7F)
         {
-            sprite->data[0] = sprite->data[0] / 2;
+            sprite->data[0] /= 2;
             sprite->data[3]++;
             sprite->data[1] -= 0x7F;
         }
