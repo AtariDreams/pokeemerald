@@ -1714,8 +1714,7 @@ static void SpawnObjectEventOnReturnToField(u8 objectEventId, s16 x, s16 y)
     CopyObjectGraphicsInfoToSpriteTemplate_WithMovementType(objectEvent->graphicsId, objectEvent->movementType, &spriteTemplate, &subspriteTables);
     spriteTemplate.images = &spriteFrameImage;
 
-    //This cast isn't needed but it needs to be here to match, same as below
-    *(u16 *)&spriteTemplate.paletteTag = TAG_NONE;
+    spriteTemplate.paletteTag = TAG_NONE;
     paletteSlot = graphicsInfo->paletteSlot;
     if (paletteSlot == 0)
     {
@@ -1730,7 +1729,7 @@ static void SpawnObjectEventOnReturnToField(u8 objectEventId, s16 x, s16 y)
         paletteSlot -= 16;
         _PatchObjectPalette(graphicsInfo->paletteTag, paletteSlot);
     }
-    *(u16 *)&spriteTemplate.paletteTag = TAG_NONE;
+    spriteTemplate.paletteTag = TAG_NONE;
 
     i = CreateSprite(&spriteTemplate, 0, 0, 0);
     if (i != MAX_SPRITES)
