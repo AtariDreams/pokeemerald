@@ -634,6 +634,7 @@ static const struct WindowTemplate sTradeYesNoWindowTemplate =
 };
 
 static const u8 sJPText_Shedinja[] = _("ヌケニン");
+// Doesn't match if set to [2][2] for some reason
 static const u8 sTradeMenuPartyMonBoxDimensions[3][2] =
 {
     [TRADE_PLAYER]  = {4,  3},
