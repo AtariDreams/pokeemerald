@@ -826,29 +826,32 @@ u8 FindAnyTVShowOnTheAir(void)
 
 void UpdateTVScreensOnMap(int width, int height)
 {
+    u8 news;
     FlagSet(FLAG_SYS_TV_WATCH);
-    switch (CheckForPlayersHouseNews())
+
+    news = CheckForPlayersHouseNews();
+    if (news == PLAYERS_HOUSE_TV_LATI)
     {
-    case PLAYERS_HOUSE_TV_LATI:
         SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
-        break;
-    case PLAYERS_HOUSE_TV_MOVIE:
-        // Don't flash TV for movie text in player's house
-        break;
-//  case PLAYERS_HOUSE_TV_NONE:
-    default:
-        if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(LILYCOVE_CITY_COVE_LILY_MOTEL_1F)
-         && gSaveBlock1Ptr->location.mapNum == MAP_NUM(LILYCOVE_CITY_COVE_LILY_MOTEL_1F))
-        {
-            // NPC in Lilycove Hotel is always watching TV
-            SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
-        }
-        else if (FlagGet(FLAG_SYS_TV_START) && (FindAnyTVShowOnTheAir() != 0xFF || FindAnyPokeNewsOnTheAir() != 0xFF || IsGabbyAndTyShowOnTheAir()))
-        {
-            FlagClear(FLAG_SYS_TV_WATCH);
-            SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
-        }
-        break;
+        return;
+    }
+
+    if (news == PLAYERS_HOUSE_TV_MOVIE)
+    {
+        return;
+    }
+
+    if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(LILYCOVE_CITY_COVE_LILY_MOTEL_1F) && gSaveBlock1Ptr->location.mapNum == MAP_NUM(LILYCOVE_CITY_COVE_LILY_MOTEL_1F))
+    {
+        // NPC in Lilycove Hotel is always watching TV
+        SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
+        return;
+    }
+    
+    if (FlagGet(FLAG_SYS_TV_START) && (FindAnyTVShowOnTheAir() != 0xFF || FindAnyPokeNewsOnTheAir() != 0xFF || IsGabbyAndTyShowOnTheAir()))
+    {
+        FlagClear(FLAG_SYS_TV_WATCH);
+        SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
     }
 }
 
