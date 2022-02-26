@@ -398,14 +398,11 @@ const u8 *GetLandmarkName(u8 mapSection, u8 id, u8 count)
 
     while (1)
     {
-        const struct Landmark *landmark = *landmarks;
-
-        if (landmark->flag == 0xFFFF || FlagGet(landmark->flag) == TRUE)
+        if ((*landmarks)->flag == 0xFFFF || FlagGet((*landmarks)->flag) == TRUE)
         {
             if (count == 0)
                 break;
-            else
-                count--;
+            count--;
         }
 
         landmarks++;
@@ -418,9 +415,9 @@ const u8 *GetLandmarkName(u8 mapSection, u8 id, u8 count)
 
 static const struct Landmark *const *GetLandmarks(u8 mapSection, u8 id)
 {
-    u16 i = 0;
+    u16 i;
 
-    for (; gLandmarkLists[i].mapSection != MAPSEC_NONE; i++)
+    for (i = 0; gLandmarkLists[i].mapSection != MAPSEC_NONE; i++)
     {
         if (gLandmarkLists[i].mapSection > mapSection)
             return NULL;
