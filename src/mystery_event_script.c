@@ -385,7 +385,7 @@ bool8 MEScrCmd_checksum(struct ScriptContext *ctx)
 
 bool8 MEScrCmd_crc(struct ScriptContext *ctx)
 {
-    int crc = ScriptReadWord(ctx);
+    u32 crc = ScriptReadWord(ctx);
     u8 *data = (u8 *)(ScriptReadWord(ctx) - ctx->mOffset + ctx->mScriptBase);
     u8 *dataEnd = (u8 *)(ScriptReadWord(ctx) - ctx->mOffset + ctx->mScriptBase);
     if (crc != CalcCRC16(data, dataEnd - data))
