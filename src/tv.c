@@ -1781,8 +1781,8 @@ static void TryPutFishingAdviceOnAir(void)
         show = &gSaveBlock1Ptr->tvShows[sCurTVShowSlot];
         show->pokemonAngler.kind = TVSHOW_FISHING_ADVICE;
         show->pokemonAngler.active = FALSE; // NOTE: Show is not active until passed via Record Mix.
-        show->pokemonAngler.nBites = sPokemonAnglerAttemptCounters;
-        show->pokemonAngler.nFails = sPokemonAnglerAttemptCounters >> 8;
+        show->pokemonAngler.nBites = (u8)sPokemonAnglerAttemptCounters;
+        show->pokemonAngler.nFails = (u8)(sPokemonAnglerAttemptCounters >> 8);
         show->pokemonAngler.species = sPokemonAnglerSpecies;
         StringCopy(show->pokemonAngler.playerName, gSaveBlock2Ptr->playerName);
         StorePlayerIdInRecordMixShow(show);
@@ -2789,11 +2789,12 @@ void SetContestCategoryStringVarForInterview(void)
 
 void ConvertIntToDecimalString(u8 varIdx, int value)
 {
-    int nDigits = CountDigits(value);
-    ConvertIntToDecimalStringN(gTVStringVarPtrs[varIdx], value, STR_CONV_MODE_LEFT_ALIGN, nDigits);
+    //nDigits should be u8 but that doesn't match
+    u16 nDigits = CountDigits(value);
+    ConvertIntToDecimalStringN(gTVStringVarPtrs[varIdx], value, STR_CONV_MODE_LEFT_ALIGN, CountDigits(value));
 }
 
-size_t CountDigits(int value)
+u8 CountDigits(int value)
 {
     if (value / 10 == 0)        return 1;
     if (value / 100 == 0)       return 2;
