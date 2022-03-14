@@ -2791,7 +2791,7 @@ void ConvertIntToDecimalString(u8 varIdx, int value)
 {
     //nDigits should be u8 but that doesn't match
     u16 nDigits = CountDigits(value);
-    ConvertIntToDecimalStringN(gTVStringVarPtrs[varIdx], value, STR_CONV_MODE_LEFT_ALIGN, CountDigits(value));
+    ConvertIntToDecimalStringN(gTVStringVarPtrs[varIdx], value, STR_CONV_MODE_LEFT_ALIGN, nDigits);
 }
 
 u8 CountDigits(int value)
