@@ -542,7 +542,7 @@ static void BardSing(struct Task *task, struct BardSong *song)
             song->phonemeTimer--;
             if (song->phonemeTimer == 0)
             {
-                m4aMPlayStop(&gMPlayInfo_SE2);
+                MPlayStop(&gMPlayInfo_SE2);
                 song->state = 4;
             }
             break;
