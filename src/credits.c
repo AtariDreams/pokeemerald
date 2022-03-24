@@ -1484,12 +1484,9 @@ static void SpriteCB_CreditsMon(struct Sprite *sprite)
     case 3:
         if (sprite->data[3] != 0)
         {
-            int data3;
-
             sprite->data[3]--;
-
-            data3 = 16 - sprite->data[3];
-            SetGpuReg(REG_OFFSET_BLDALPHA, (data3 << 8) + sprite->data[3]);
+                                            // Should be << 8, not *256
+            SetGpuReg(REG_OFFSET_BLDALPHA, ((16 - sprite->data[3]) * 256) + sprite->data[3]);
         }
         else
         {
