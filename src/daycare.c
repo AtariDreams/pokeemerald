@@ -64,7 +64,7 @@ static const struct ListMenuTemplate sDaycareListMenuLevelTemplate =
     .items = sLevelMenuItems,
     .moveCursorFunc = ListMenuDefaultCursorMoveFunc,
     .itemPrintFunc = DaycarePrintMonInfo,
-    .totalItems = 3,
+    .totalItems = ARRAY_COUNT(sLevelMenuItems),
     .maxShowed = 3,
     .windowId = 0,
     .header_X = 0,
@@ -1203,7 +1203,7 @@ static void DaycareAddTextPrinter(u8 windowId, const u8 *text, u32 x, u32 y)
     AddTextPrinter(&printer, TEXT_SKIP_DRAW, NULL);
 }
 
-static void DaycarePrintMonNickname(struct DayCare *daycare, u8 windowId, u32 daycareSlotId, u32 y)
+static void DaycarePrintMonNickname(struct DayCare *daycare, u8 windowId, u32 daycareSlotId, int y)
 {
     u8 nickname[POKEMON_NAME_LENGTH * 2];
 
@@ -1212,12 +1212,12 @@ static void DaycarePrintMonNickname(struct DayCare *daycare, u8 windowId, u32 da
     DaycareAddTextPrinter(windowId, nickname, 8, y);
 }
 
-static void DaycarePrintMonLvl(struct DayCare *daycare, u8 windowId, u32 daycareSlotId, u32 y)
+static void DaycarePrintMonLvl(struct DayCare *daycare, u8 windowId, u32 daycareSlotId, int y)
 {
     u8 level;
-    u32 x;
-    u8 lvlText[12];
-    u8 intText[8];
+    int x;
+    u8 lvlText[10];
+    u8 intText[5];
 
     StringCopy(lvlText, gText_Lv);
     level = GetLevelAfterDaycareSteps(&daycare->mons[daycareSlotId].mon, daycare->mons[daycareSlotId].steps);
@@ -1229,7 +1229,7 @@ static void DaycarePrintMonLvl(struct DayCare *daycare, u8 windowId, u32 daycare
 
 static void DaycarePrintMonInfo(u8 windowId, u32 daycareSlotId, u8 y)
 {
-    if (daycareSlotId < (unsigned) DAYCARE_MON_COUNT)
+    if (daycareSlotId < DAYCARE_MON_COUNT)
     {
         DaycarePrintMonNickname(&gSaveBlock1Ptr->daycare, windowId, daycareSlotId, y);
         DaycarePrintMonLvl(&gSaveBlock1Ptr->daycare, windowId, daycareSlotId, y);

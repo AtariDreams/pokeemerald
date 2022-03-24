@@ -110,7 +110,7 @@ static void ShowBattleFrontierTutorWindow(u8 menu, u16 selection);
 static void InitScrollableMultichoice(void);
 static void ScrollableMultichoice_ProcessInput(u8 taskId);
 static void ScrollableMultichoice_UpdateScrollArrows(u8 taskId);
-static void ScrollableMultichoice_MoveCursor(s32 itemIndex, bool8 onInit, struct ListMenu *list);
+static void ScrollableMultichoice_MoveCursor(u32 itemIndex, bool8 onInit);
 static void HideFrontierExchangeCornerItemIcon(u16 menu, u16 unused);
 static void ShowBattleFrontierTutorMoveDescription(u8 menu, u16 selection);
 static void CloseScrollableMultichoice(u8 taskId);
@@ -2541,7 +2541,7 @@ static void InitScrollableMultichoice(void)
     gScrollableMultichoice_ListMenuTemplate.cursorKind = 0;
 }
 
-static void ScrollableMultichoice_MoveCursor(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void ScrollableMultichoice_MoveCursor(u32 itemIndex, bool8 onInit)
 {
     u8 taskId;
     PlaySE(SE_SELECT);
