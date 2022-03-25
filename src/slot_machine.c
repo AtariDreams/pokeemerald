@@ -1124,7 +1124,7 @@ static void SlotMachine_InitFromTask(void)
 {
     struct Task *task = &gTasks[FindTaskIdByFunc(SlotMachineDummyTask)];
     sSlotMachine->machineId = task->tMachineId;
-    LoadWordFromTwoHalfwords((u16 *)&task->tExitCallback, (u32 *)&sSlotMachine->prevMainCb);
+    LoadWordFromTwoHalfwords(&task->tExitCallback, (u32 *)&sSlotMachine->prevMainCb);
 }
 
 static void SlotMachineDummyTask(u8 taskId)
