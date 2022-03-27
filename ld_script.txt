@@ -15,9 +15,10 @@ SECTIONS {
     ewram (NOLOAD) :
     ALIGN(4)
     {
-        gflib/malloc.o(ewram_data)
-        src/decompress.o(ewram_data)
+        gHeap = .;
+        . = 0x1C000;
 
+        gDecompressionBuffer = .;
         . = 0x20000;
 
         INCLUDE "sym_ewram.ld"
