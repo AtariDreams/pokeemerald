@@ -1025,8 +1025,9 @@ void CreatePokeballSpriteToReleaseMon(u8 monSpriteId, u8 battlerId, u8 x, u8 y, 
 
     gSprites[spriteId].data[1] = g;
     gSprites[spriteId].data[2] = battlerId;
-    gSprites[spriteId].data[3] = h;
-    gSprites[spriteId].data[4] = h >> 0x10;
+    // TODO: is 0xFFFF needed?
+    gSprites[spriteId].data[3] = h & 0xFFFF;
+    gSprites[spriteId].data[4] = h >> 16;
     gSprites[spriteId].oam.priority = oamPriority;
     gSprites[spriteId].callback = SpriteCB_PokeballReleaseMon;
 
@@ -1042,10 +1043,7 @@ static void SpriteCB_PokeballReleaseMon(struct Sprite *sprite)
         u8 battlerId = sprite->data[2];
         u32 r4 = (u16)sprite->data[3] | ((u16)sprite->data[4] << 16);
 
-        if (sprite->subpriority != 0)
-            r5 = sprite->subpriority - 1;
-        else
-            r5 = 0;
+        r5 = sprite->subpriority == 0 ? 0 : sprite->subpriority - 1;
 
         StartSpriteAnim(sprite, 1);
         AnimateBallOpenParticlesForPokeball(sprite->x, sprite->y - 5, sprite->oam.priority, r5);
@@ -1068,8 +1066,8 @@ static void SpriteCB_ReleasedMonFlyOut(struct Sprite *sprite)
     bool8 r12 = FALSE;
     bool8 r6 = FALSE;
     u8 monSpriteId = sprite->data[0];
-    u16 var1;
-    u16 var2;
+    s16 var1;
+    s16 var2;
 
     if (sprite->animEnded)
         sprite->invisible = TRUE;
@@ -1078,6 +1076,8 @@ static void SpriteCB_ReleasedMonFlyOut(struct Sprite *sprite)
         StartSpriteAffineAnim(&gSprites[monSpriteId], BATTLER_AFFINE_NORMAL);
         r12 = TRUE;
     }
+    // var1 and var2 can be inlined you know...
+    // Though that doesn't match
     var1 = (sprite->data[5] - sprite->x) * sprite->data[7] / 128 + sprite->x;
     var2 = (sprite->data[6] - sprite->y) * sprite->data[7] / 128 + sprite->y;
     gSprites[monSpriteId].x = var1;
@@ -1135,10 +1135,7 @@ static void SpriteCB_TradePokeball(struct Sprite *sprite)
         u8 r8 = sprite->data[2];
         u32 r5 = (u16)sprite->data[3] | ((u16)sprite->data[4] << 16);
 
-        if (sprite->subpriority != 0)
-            r6 = sprite->subpriority - 1;
-        else
-            r6 = 0;
+        r6 = sprite->subpriority == 0 ? 0 : sprite->subpriority - 1;
 
         StartSpriteAnim(sprite, 1);
         AnimateBallOpenParticlesForPokeball(sprite->x, sprite->y - 5, sprite->oam.priority, r6);
