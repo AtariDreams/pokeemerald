@@ -155,8 +155,7 @@ const struct SpriteTemplate gSpriteTemplate_EnemyShadow =
 u8 SmokescreenImpact(s16 x, s16 y, u8 a3)
 {
     u8 mainSpriteId;
-    u8 spriteId1, spriteId2, spriteId3, spriteId4;
-    struct Sprite *mainSprite;
+    u8 spriteId1;
 
     if (GetSpriteTileStartByTag(sSmokescreenImpactSpriteSheet.tag) == 0xFFFF)
     {
@@ -165,31 +164,30 @@ u8 SmokescreenImpact(s16 x, s16 y, u8 a3)
     }
 
     mainSpriteId = CreateInvisibleSpriteWithCallback(SmokescreenImpact_Callback);
-    mainSprite = &gSprites[mainSpriteId];
-    mainSprite->data[1] = a3;
+    gSprites[mainSpriteId].data[1] = a3;
 
     spriteId1 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x - 16, y - 16, 2);
     gSprites[spriteId1].data[0] = mainSpriteId;
-    mainSprite->data[0]++;
+    gSprites[mainSpriteId].data[0]++;
     AnimateSprite(&gSprites[spriteId1]);
 
-    spriteId2 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x, y - 16, 2);
-    gSprites[spriteId2].data[0] = mainSpriteId;
-    mainSprite->data[0]++;
-    StartSpriteAnim(&gSprites[spriteId2], 1);
-    AnimateSprite(&gSprites[spriteId2]);
+    spriteId1 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x, y - 16, 2);
+    gSprites[spriteId1].data[0] = mainSpriteId;
+    gSprites[mainSpriteId].data[0]++;
+    StartSpriteAnim(&gSprites[spriteId1], 1);
+    AnimateSprite(&gSprites[spriteId1]);
 
-    spriteId3 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x - 16, y, 2);
-    gSprites[spriteId3].data[0] = mainSpriteId;
-    mainSprite->data[0]++;
-    StartSpriteAnim(&gSprites[spriteId3], 2);
-    AnimateSprite(&gSprites[spriteId3]);
+    spriteId1 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x - 16, y, 2);
+    gSprites[spriteId1].data[0] = mainSpriteId;
+    gSprites[mainSpriteId].data[0]++;
+    StartSpriteAnim(&gSprites[spriteId1], 2);
+    AnimateSprite(&gSprites[spriteId1]);
 
-    spriteId4 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x, y, 2);
-    gSprites[spriteId4].data[0] = mainSpriteId;
-    mainSprite->data[0]++;
-    StartSpriteAnim(&gSprites[spriteId4], 3);
-    AnimateSprite(&gSprites[spriteId4]);
+    spriteId1 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x, y, 2);
+    gSprites[spriteId1].data[0] = mainSpriteId;
+    gSprites[mainSpriteId].data[0]++;
+    StartSpriteAnim(&gSprites[spriteId1], 3);
+    AnimateSprite(&gSprites[spriteId1]);
 
     return mainSpriteId;
 }
