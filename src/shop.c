@@ -812,7 +812,7 @@ static void BuyMenuCollectObjectEventData(void)
                 sShopData->viewportObjects[r8][Y_COORD] = y;
                 sShopData->viewportObjects[r8][LAYER_TYPE] = MapGridGetMetatileLayerTypeAt(facingX - 4 + x, facingY - 2 + y);
 
-                switch (gObjectEvents[objEventId].facingDirection)
+                switch (gObjectEvents[objEventId].directions.regDir.facingDirection)
                 {
                     case DIR_SOUTH:
                         sShopData->viewportObjects[r8][ANIM_NUM] = 0;

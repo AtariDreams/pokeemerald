@@ -1222,7 +1222,7 @@ bool32 GetTrainerFlagFromScriptPointer(const u8 *data)
 void SetTrainerFacingDirection(void)
 {
     struct ObjectEvent *objectEvent = &gObjectEvents[gSelectedObjectEvent];
-    SetTrainerMovementType(objectEvent, GetTrainerFacingDirectionMovementType(objectEvent->facingDirection));
+    SetTrainerMovementType(objectEvent, GetTrainerFacingDirectionMovementType(objectEvent->directions.regDir.facingDirection));
 }
 
 u8 GetTrainerBattleMode(void)
