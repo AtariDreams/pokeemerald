@@ -766,8 +766,7 @@ static void FlipBattlerBgTiles(void)
             for (j = 0; j < 4; j++)
             {
                 u16 temp;
-                u32 ypos;
-                ypos = i * 32;
+                int ypos = i * 32;
                 SWAP(ptr[j + ypos], ptr[(7 - j) + ypos], temp);
             }
         }
