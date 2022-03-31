@@ -575,7 +575,7 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
 
 static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 blendColor)
 {
-    struct RGBColor color;
+    struct RGBColor *color;
     u8 rBlend;
     u8 gBlend;
     u8 bBlend;
@@ -584,10 +584,10 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
     u16 i;
 
     gammaIndex = -gammaIndex - 1;
-    color = *(struct RGBColor *)&blendColor;
-    rBlend = color.r;
-    gBlend = color.g;
-    bBlend = color.b;
+    color = (struct RGBColor *)&blendColor;
+    rBlend = color->r;
+    gBlend = color->g;
+    bBlend = color->b;
     palOffset = 0;
     for (curPalIndex = 0; curPalIndex < 32; curPalIndex++)
     {
