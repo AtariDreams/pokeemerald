@@ -89,8 +89,9 @@ IntrMain:
 	ands r0, r1, #INTR_FLAG_GAMEPAK
 	strbne r0, [r3, #REG_SOUNDCNT_X - REG_IE]
 	bne . @ spin
+
 IntrMain_FoundIntr:
-	strh r0, [r3, #OFFSET_REG_IF - OFFSET_REG_IE]
+	strh r0, [r3, #REG_IF - REG_IE]
 
 	bic r2, r2, r0
 	
@@ -98,18 +99,21 @@ IntrMain_FoundIntr:
 	ldr r0, [r0]
 	ldrb r0, [r0, 0xA]
 	mov r1, #INTR_FLAG_TIMER0
-	lsl r0, r1, r0
+	lsl r0, r1, r0 @TIMER0_INTR_FLAG << STWI_status->timer_number
 	orr r0, r0, #INTR_FLAG_GAMEPAK
 	orr r1, r0, #INTR_FLAG_SERIAL | INTR_FLAG_TIMER3 | INTR_FLAG_VCOUNT | INTR_FLAG_HBLANK
 	and r1, r1, r2
-	strh r1, [r3, #OFFSET_REG_IE - OFFSET_REG_IE]
+	strh r1, [r3, #REG_IE - REG_IE]
+
 	mrs r3, cpsr
 	bic r3, r3, #PSR_I_BIT | PSR_F_BIT | PSR_MODE_MASK
 	orr r3, r3, #PSR_SYS_MODE
 	msr cpsr_cf, r3
+
 	ldr r1, =gIntrTable
 	add r1, r1, r12
 	ldr r0, [r1]
+
 	stmfd sp!, {lr}
 	adr lr, IntrMain_RetAddr
 	bx r0
@@ -119,9 +123,10 @@ IntrMain_RetAddr:
 	bic r3, r3, #PSR_I_BIT | PSR_F_BIT | PSR_MODE_MASK
 	orr r3, r3, #PSR_I_BIT | PSR_IRQ_MODE
 	msr cpsr_cf, r3
+
 	ldmia sp!, {r0-r3,lr}
-	strh r2, [r3, #OFFSET_REG_IE - OFFSET_REG_IE]
-	strh r1, [r3, #OFFSET_REG_IME - OFFSET_REG_IE]
+	strh r2, [r3, #REG_IE - REG_IE]
+	strh r1, [r3, #REG_IME - REG_IE]
 	msr spsr_cf, r0
 	bx lr
 
