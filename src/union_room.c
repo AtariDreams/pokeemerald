@@ -3406,7 +3406,7 @@ static u8 HandlePlayerListUpdate(void)
     s32 i;
     u8 j;
     struct WirelessLink_URoom *data = sWirelessLinkMain.uRoom;
-    s32 retVal = PLIST_NONE;
+    u8 retVal = PLIST_NONE;
 
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
