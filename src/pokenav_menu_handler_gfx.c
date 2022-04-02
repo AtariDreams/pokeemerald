@@ -1350,8 +1350,8 @@ static void InitMenuOptionGlow(void)
 static void Task_CurrentMenuOptionGlow(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
-    data[0]++;
-    if (data[0] > 0)
+
+    if (++data[0] > 0)
     {
         data[0] = 0;
         data[1] += 3;
