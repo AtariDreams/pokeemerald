@@ -100,7 +100,7 @@ static bool32 GetCurrentLoopedTaskActive(void);
 static u32 GetRibbonsSummaryCurrentIndex(void);
 static u32 GetRibbonsSummaryMonListCount(void);
 static u16 DrawRibbonsMonFrontPic(s32, s32);
-static void StartMonSpriteSlide(struct Sprite *, s32, s32, s32);
+static void StartMonSpriteSlide(struct Sprite *, s32, s32, u32);
 static void SpriteCB_MonSpriteSlide(struct Sprite *);
 static void ClearRibbonsSummaryBg(void);
 static void BufferSmallRibbonGfxData(u16 *, u32);
@@ -289,7 +289,7 @@ static bool32 TrySelectRibbonUp(struct Pokenav_RibbonsSummaryList *list)
         // In gift ribbons, try to move up into normal ribbons
         // If there's > 1 row of gift ribbons (not normally possible)
         // it's impossible to move up between them
-        u32 ribbonPos = list->selectedPos - GIFT_RIBBON_START_POS;
+        int ribbonPos = list->selectedPos - GIFT_RIBBON_START_POS;
         list->selectedPos = ribbonPos + list->normalRibbonLastRowStart;
         if (list->selectedPos >= list->numNormalRibbons)
             list->selectedPos = list->numNormalRibbons - 1;
@@ -628,23 +628,24 @@ static u32 LoopedTask_OpenRibbonsSummaryMenu(s32 state)
         PrintHelpBarText(HELPBAR_RIBBONS_LIST);
         return LT_INC_AND_PAUSE;
     case 8:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        if (IsDma3ManagerBusyWithBgCopy())
         {
-            CreateBigRibbonSprite(menu);
-            ChangeBgX(1, 0, BG_COORD_SET);
-            ChangeBgY(1, 0, BG_COORD_SET);
-            ChangeBgX(2, 0, BG_COORD_SET);
-            ChangeBgY(2, 0, BG_COORD_SET);
-            ShowBg(1);
-            ShowBg(2);
-            HideBg(3);
-            PokenavFadeScreen(POKENAV_FADE_FROM_BLACK);
-            return LT_INC_AND_PAUSE;
+            return LT_PAUSE;
         }
-        return LT_PAUSE;
+        CreateBigRibbonSprite(menu);
+        ChangeBgX(1, 0, BG_COORD_SET);
+        ChangeBgY(1, 0, BG_COORD_SET);
+        ChangeBgX(2, 0, BG_COORD_SET);
+        ChangeBgY(2, 0, BG_COORD_SET);
+        ShowBg(1);
+        ShowBg(2);
+        HideBg(3);
+        PokenavFadeScreen(POKENAV_FADE_FROM_BLACK);
+        return LT_INC_AND_PAUSE;
     case 9:
         if (IsPaletteFadeActive())
             return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -660,7 +661,7 @@ static u32 LoopedTask_ExitRibbonsSummaryMenu(s32 state)
     case 1:
         if (IsPaletteFadeActive())
             return LT_PAUSE;
-        return LT_FINISH;
+        break;
     }
     return LT_FINISH;
 }
@@ -675,12 +676,12 @@ static u32 LoopedTask_SwitchRibbonsSummaryMon(s32 state)
         SlideMonSpriteOff(menu);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (!IsMonSpriteAnimating(menu))
+        if (IsMonSpriteAnimating(menu))
         {
-            PrintRibbbonsSummaryMonInfo(menu);
-            return LT_INC_AND_CONTINUE;
+            return LT_PAUSE;
         }
-        return LT_PAUSE;
+        PrintRibbbonsSummaryMonInfo(menu);
+        return LT_INC_AND_CONTINUE;
     case 2:
         DrawAllRibbonsSmall(menu);
         return LT_INC_AND_CONTINUE;
@@ -691,15 +692,17 @@ static u32 LoopedTask_SwitchRibbonsSummaryMon(s32 state)
         PrintCurrentMonRibbonCount(menu);
         return LT_INC_AND_CONTINUE;
     case 5:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        if (IsDma3ManagerBusyWithBgCopy())
         {
-            SlideMonSpriteOn(menu);
-            return LT_INC_AND_PAUSE;
+            return LT_PAUSE; 
         }
-        return LT_PAUSE;
+        
+        SlideMonSpriteOn(menu);
+        return LT_INC_AND_PAUSE;
     case 6:
         if (IsMonSpriteAnimating(menu))
             return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -714,16 +717,18 @@ static u32 LoopedTask_ExpandSelectedRibbon(s32 state)
         UpdateAndZoomInSelectedRibbon(menu);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (!IsRibbonAnimating(menu))
+        if (IsRibbonAnimating(menu))
         {
-            PrintRibbonNameAndDescription(menu);
-            PrintHelpBarText(HELPBAR_RIBBONS_CHECK);
-            return LT_INC_AND_PAUSE;
+            return LT_PAUSE;
         }
-        return LT_PAUSE;
+        PrintRibbonNameAndDescription(menu);
+        PrintHelpBarText(HELPBAR_RIBBONS_CHECK);
+        return LT_INC_AND_PAUSE;
+        
     case 2:
         if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -738,22 +743,23 @@ static u32 LoopedTask_MoveRibbonsCursorExpanded(s32 state)
         ZoomOutSelectedRibbon(menu);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (!IsRibbonAnimating(menu))
+        if (IsRibbonAnimating(menu))
         {
-            UpdateAndZoomInSelectedRibbon(menu);
-            return LT_INC_AND_PAUSE;
+            return LT_PAUSE;
         }
-        return LT_PAUSE;
+        UpdateAndZoomInSelectedRibbon(menu);
+        return LT_INC_AND_PAUSE;
     case 2:
-        if (!IsRibbonAnimating(menu))
+        if (IsRibbonAnimating(menu))
         {
-            PrintRibbonNameAndDescription(menu);
-            return LT_INC_AND_PAUSE;
+           return LT_PAUSE;
         }
-        return LT_PAUSE;
+        PrintRibbonNameAndDescription(menu);
+        return LT_INC_AND_PAUSE;   
     case 3:
         if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -768,16 +774,17 @@ static u32 LoopedTask_ShrinkExpandedRibbon(s32 state)
         ZoomOutSelectedRibbon(menu);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (!IsRibbonAnimating(menu))
+        if (IsRibbonAnimating(menu))
         {
-            PrintCurrentMonRibbonCount(menu);
-            PrintHelpBarText(HELPBAR_RIBBONS_LIST);
-            return LT_INC_AND_PAUSE;
+            return LT_PAUSE;
         }
-        return LT_PAUSE;
+        PrintCurrentMonRibbonCount(menu);
+        PrintHelpBarText(HELPBAR_RIBBONS_LIST);
+        return LT_INC_AND_PAUSE;
     case 2:
         if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -926,6 +933,8 @@ static void PrintRibbonsMonListIndex(struct Pokenav_RibbonsSummaryMenu *menu)
 {
     s32 x;
     u8 *txtPtr;
+    // Should these all be s32?
+    // TODO: type conflict
     u32 id = GetRibbonsSummaryCurrentIndex() + 1;
     u32 count = GetRibbonsSummaryMonListCount();
 
@@ -993,9 +1002,12 @@ static bool32 IsMonSpriteAnimating(struct Pokenav_RibbonsSummaryMenu *menu)
 #define sTime     data[2]
 #define sDestX    data[3]
 
-static void StartMonSpriteSlide(struct Sprite *sprite, s32 startX, s32 destX, s32 time)
+static void StartMonSpriteSlide(struct Sprite *sprite, s32 startX, s32 destX, u32 time)
 {
-    u32 delta = destX - startX;
+    // Time maybe should have signed?
+    // is delta always positive? then again, sprite is s16, ugh this is confusing
+    // TODO: look into this
+    s32 delta = destX - startX;
 
     sprite->x = startX;
     sprite->sCurrX = startX << 4;
