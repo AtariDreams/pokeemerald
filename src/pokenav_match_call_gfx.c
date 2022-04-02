@@ -417,8 +417,7 @@ static u32 MatchCallListCursorDown(s32 state)
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
