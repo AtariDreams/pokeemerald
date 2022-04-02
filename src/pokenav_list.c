@@ -55,11 +55,13 @@ struct PokenavListSub
     struct Sprite *upArrow;
     struct Sprite *downArrow;
     u8 itemTextBuffer[64];
+    // should be tileMap buffer be here or the list? GF says here
 };
 
 struct PokenavList
 {
     struct PokenavListSub list;
+    // PRET says here
     u8 tilemapBuffer[BG_SCREEN_SIZE];
     struct PokenavListWindowState windowState;
     s32 eraseIndex;
@@ -95,8 +97,6 @@ static u32 LoopedTask_PrintCheckPageInfo(s32);
 
 static const u16 sListArrow_Pal[] = INCBIN_U16("graphics/pokenav/list_arrows.gbapal");
 static const u32 sListArrow_Gfx[] = INCBIN_U32("graphics/pokenav/list_arrows.4bpp.lz");
-
-static EWRAM_DATA u32 sMoveWindowDownIndex = 0; // Read, but pointlessly
 
 bool32 CreatePokenavList(const struct BgTemplate *bgTemplate, struct PokenavListTemplate *listTemplate, s32 tileOffset)
 {
@@ -272,17 +272,19 @@ static void MoveListWindow(s32 delta, bool32 printItems)
     if (delta < 0)
     {
         if (subPtr->windowTopIndex + delta < 0)
-            delta = -1 * subPtr->windowTopIndex;
+            delta = -subPtr->windowTopIndex;
         if (printItems)
             PrintListItems(subPtr->listPtr, subPtr->windowTopIndex + delta, delta * -1, subPtr->listItemSize, delta, &structPtr->list);
     }
     else if (printItems)
     {
-        s32 index = sMoveWindowDownIndex = subPtr->windowTopIndex + subPtr->entriesOnscreen;
-        if (index + delta >= subPtr->listLength)
-            delta = subPtr->listLength - index;
+        // This is pointlessly static as it is reassigned every time, so why bother?
+        static EWRAM_DATA s32 sMoveWindowDownIndex = 0;
+        sMoveWindowDownIndex = subPtr->windowTopIndex + subPtr->entriesOnscreen;
+        if (sMoveWindowDownIndex + delta >= subPtr->listLength)
+            delta = subPtr->listLength - sMoveWindowDownIndex;
 
-        PrintListItems(subPtr->listPtr, index, delta, subPtr->listItemSize, subPtr->entriesOnscreen, &structPtr->list);
+        PrintListItems(subPtr->listPtr, sMoveWindowDownIndex, delta, subPtr->listItemSize, subPtr->entriesOnscreen, &structPtr->list);
     }
 
     CreateMoveListWindowTask(delta, &structPtr->list);
