@@ -295,10 +295,7 @@ static void CreateMoveListWindowTask(s32 delta, struct PokenavListSub *list)
 {
     list->startBgY = GetBgY(list->listWindow.bg);
     list->endBgY = list->startBgY + (delta << 12);
-    if (delta > 0)
-        list->bgMoveType = BG_COORD_ADD;
-    else
-        list->bgMoveType = BG_COORD_SUB;
+    list->bgMoveType = (delta > 0) ? BG_COORD_ADD : BG_COORD_SUB;
     list->moveDelta = delta;
     list->loopedTaskId = CreateLoopedTask(LoopedTask_MoveListWindow, 6);
 }
@@ -313,9 +310,9 @@ static u32 LoopedTask_MoveListWindow(s32 state)
     switch (state)
     {
     case 0:
-        if (!IsPrintListItemsTaskActive())
-            return LT_INC_AND_CONTINUE;
-        return LT_PAUSE;
+        if (IsPrintListItemsTaskActive())
+            return LT_PAUSE;
+        return LT_INC_AND_CONTINUE;
     case 1:
         finished = FALSE;
         oldY = GetBgY(subPtr->listWindow.bg);
@@ -418,11 +415,11 @@ int PokenavList_PageDown(void)
 
     if (ShouldShowDownArrow())
     {
-        s32 windowBottomIndex = structPtr->windowTopIndex + structPtr->entriesOnscreen;
-        s32 scroll = structPtr->entriesOffscreen - structPtr->windowTopIndex;
-
-        if (windowBottomIndex <= structPtr->entriesOffscreen)
+        s32 scroll;
+        if (structPtr->windowTopIndex + structPtr->entriesOnscreen <= structPtr->entriesOffscreen)
             scroll = structPtr->entriesOnscreen;
+        else
+            scroll = structPtr->entriesOffscreen - structPtr->windowTopIndex;
         MoveListWindow(scroll, TRUE);
         return 2;
     }
@@ -685,6 +682,11 @@ static void EraseListEntry(struct PokenavListMenuWindow *listWindow, s32 a1, s32
         CpuFastFill8(PIXEL_FILL(1), tileData, v4 * width);
         CopyWindowToVram(listWindow->windowId, COPYWIN_GFX);
     }
+
+    // while( a2--) {
+    //     ClearRematchPokeballIcon(listWindow->windowId, a1);
+    //     a1 = (a1 + 1) & 0xF;
+    // }
 
     for (a2--; a2 != -1; a1 = (a1 + 1) & 0xF, a2--)
         ClearRematchPokeballIcon(listWindow->windowId, a1);
