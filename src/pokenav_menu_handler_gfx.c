@@ -363,6 +363,7 @@ static const struct ScanlineEffectParams sPokenavMainMenuScanlineEffectParams =
     0
 };
 
+// GF says it should be in pokenav menu handler, but it is only called here and works here too, so...
 static bool32 AreAnyTrainerRematchesNearby(void)
 {
     s32 i;
