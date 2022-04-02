@@ -125,7 +125,7 @@ static u32 OpenMarkingsMenu(struct Pokenav_ConditionMenu *menu)
 {
     struct PokenavMonList *monListPtr;
     u8 markings;
-    u32 ret = CONDITION_FUNC_NONE, boxId, monId;
+    u8 ret = CONDITION_FUNC_NONE, boxId, monId;
 
     if (!HandleMonMarkingsMenuInput())
     {
