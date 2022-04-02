@@ -430,9 +430,7 @@ void BufferMatchCallNameAndDesc(struct PokenavMatchCallEntry *matchCallEntry, u8
 
 u8 GetMatchTableMapSectionId(int rematchIndex)
 {
-    int mapGroup = gRematchTable[rematchIndex].mapGroup;
-    int mapNum = gRematchTable[rematchIndex].mapNum;
-    return Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum)->regionMapSectionId;
+    return Overworld_GetMapHeaderByGroupAndId(gRematchTable[rematchIndex].mapGroup, gRematchTable[rematchIndex].mapNum)->regionMapSectionId;
 }
 
 int GetIndexDeltaOfNextCheckPageDown(int index)
