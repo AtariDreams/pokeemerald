@@ -139,7 +139,9 @@ u8 rfu_LMAN_establishConnection(u8 parent_child, u16 connect_period, u16 name_ac
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_AGB_CLK_SLAVE;
     }
-    for (i = 0, serial_list = acceptable_serialNo_list; i < 16; i++)
+
+    serial_list = acceptable_serialNo_list;
+    for (i = 0; i < 16; i++)
     {
         if (*serial_list++ == 0xFFFF)
         {
@@ -148,7 +150,7 @@ u8 rfu_LMAN_establishConnection(u8 parent_child, u16 connect_period, u16 name_ac
     }
     if (i == 16)
     {
-        lman.param[0] = 4;
+        lman.param[0] = LMAN_ERROR_ILLEGAL_PARAMETER;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_ILLEGAL_PARAMETER;
     }
@@ -185,15 +187,15 @@ u8 rfu_LMAN_CHILD_connectParent(u16 parentId, u16 connect_period)
 {
     u8 i;
 
-    if (lman.state != LMAN_STATE_READY && (lman.state < 9 || lman.state > 11))
+    if (lman.state != LMAN_STATE_READY && (lman.state < LMAN_STATE_START_SEARCH_PARENT || lman.state > LMAN_STATE_END_SEARCH_PARENT))
     {
-        lman.param[0] = 1;
+        lman.param[0] = LMAN_ERROR_MANAGER_BUSY;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_MANAGER_BUSY;
     }
     if (rfu_getMasterSlave() == AGB_CLK_SLAVE)
     {
-        lman.param[0] = 2;
+        lman.param[0] = LMAN_ERROR_AGB_CLK_SLAVE;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_AGB_CLK_SLAVE;
     }
@@ -206,7 +208,7 @@ u8 rfu_LMAN_CHILD_connectParent(u16 parentId, u16 connect_period)
     }
     if (gRfuLinkStatus->findParentCount == 0 || i == gRfuLinkStatus->findParentCount)
     {
-        lman.param[0] = 3;
+        lman.param[0] = LMAN_ERROR_PID_NOT_FOUND;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_PID_NOT_FOUND;
     }
@@ -238,7 +240,8 @@ static void rfu_LMAN_PARENT_stopWaitLinkRecoveryAndDisconnect(u8 bm_targetSlot)
     lman.linkRecoveryTimer.active &= ~bm_targetSlot;
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
-        if ((bm_targetSlot >> i) & 1)
+        //if ((bm_targetSlot >> i) & 1)
+        if (bm_targetSlot & (1 << i))
         {
             lman.linkRecoveryTimer.count[i] = 0;
         }
@@ -270,9 +273,6 @@ void rfu_LMAN_stopManager(u8 forced_stop_and_RFU_reset_flag)
         msg = LMAN_MSG_SEARCH_CHILD_PERIOD_EXPIRED;
         break;
     case LMAN_STATE_POLL_SEARCH_CHILD:
-        lman.state = LMAN_STATE_END_SEARCH_CHILD;
-        lman.next_state = LMAN_STATE_WAIT_RECV_CHILD_NAME;
-        break;
     case LMAN_STATE_END_SEARCH_CHILD:
         lman.state = LMAN_STATE_END_SEARCH_CHILD;
         lman.next_state = LMAN_STATE_WAIT_RECV_CHILD_NAME;
@@ -284,9 +284,6 @@ void rfu_LMAN_stopManager(u8 forced_stop_and_RFU_reset_flag)
         msg = LMAN_MSG_SEARCH_PARENT_PERIOD_EXPIRED;
         break;
     case LMAN_STATE_POLL_SEARCH_PARENT:
-        lman.state = LMAN_STATE_END_SEARCH_PARENT;
-        lman.next_state = LMAN_STATE_READY;
-        break;
     case LMAN_STATE_END_SEARCH_PARENT:
         lman.state = LMAN_STATE_END_SEARCH_PARENT;
         lman.next_state = LMAN_STATE_READY;
@@ -296,8 +293,6 @@ void rfu_LMAN_stopManager(u8 forced_stop_and_RFU_reset_flag)
         msg = LMAN_MSG_CONNECT_PARENT_FAILED;
         break;
     case LMAN_STATE_POLL_CONNECT_PARENT:
-        lman.state = LMAN_STATE_END_CONNECT_PARENT;
-        break;
     case LMAN_STATE_END_CONNECT_PARENT:
         lman.state = LMAN_STATE_END_CONNECT_PARENT;
         break;
@@ -311,8 +306,6 @@ void rfu_LMAN_stopManager(u8 forced_stop_and_RFU_reset_flag)
         rfu_LMAN_occureCallback(LMAN_MSG_LINK_RECOVERY_FAILED_AND_DISCONNECTED, 1);
         return;
     case LMAN_STATE_POLL_LINK_RECOVERY:
-        lman.state = LMAN_STATE_END_LINK_RECOVERY;
-        break;
     case LMAN_STATE_END_LINK_RECOVERY:
         lman.state = LMAN_STATE_END_LINK_RECOVERY;
         break;
@@ -382,7 +375,8 @@ static bool8 rfu_LMAN_linkWatcher(u16 REQ_commandID)
         {
             for (i = 0; i < RFU_CHILD_MAX; i++)
             {
-                if ((lman.linkRecoveryTimer.active >> i) & 1 && (bm_linkRecoverySlot >> i) & 1)
+                // if ((lman.linkRecoveryTimer.active >> i) & 1 && (bm_linkRecoverySlot >> i) & 1)
+                if ((lman.linkRecoveryTimer.active & (1 << i)) && (bm_linkRecoverySlot & (1 << i)))
                 {
                     lman.linkRecoveryTimer.count[i] = 0;
                 }
@@ -573,8 +567,8 @@ static void rfu_LMAN_settingPCSWITCH(u32 rand)
     {
         lman.parent_child = MODE_PARENT;
         lman.state = LMAN_STATE_START_SEARCH_CHILD;
-        lman.connect_period = rand % 140;
-        lman.pcswitch_period_bak = 140 - lman.connect_period;
+        lman.connect_period = rand % (PCSWITCH_ALL_PERIOD - PCSWITCH_SP_PERIOD);
+        lman.pcswitch_period_bak = (PCSWITCH_ALL_PERIOD - PCSWITCH_SP_PERIOD) - lman.connect_period;
         if (lman.connect_period)
         {
             lman.pcswitch_flag = PCSWITCH_1ST_SC;
@@ -726,13 +720,13 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                 {
                     lman.state = LMAN_STATE_MS_CHANGE;
                     lman.next_state = LMAN_STATE_SEND_CHILD_NAME;
-                    lman.work = 0x22;
+                    lman.work = LMAN_MSG_CONNECT_PARENT_SUCCESSED;
                     lman.param[0] = lman.child_slot;
                 }
                 else
                 {
                     lman.state = lman.next_state = LMAN_STATE_READY;
-                    lman.work = 0x23;
+                    lman.work = LMAN_MSG_CONNECT_PARENT_FAILED;
                     lman.param[0] = status;
                     if (lman.pcswitch_flag)
                     {
@@ -740,7 +734,7 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                         lman.state = LMAN_STATE_START_SEARCH_PARENT;
                     }
                 }
-                rfu_LMAN_occureCallback(lman.work, 0x01);
+                rfu_LMAN_occureCallback(lman.work, 1);
                 lman.work = 0;
             }
             break;
@@ -751,7 +745,8 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                 lman.state = lman.next_state = LMAN_STATE_POLL_LINK_RECOVERY;
                 for (lman.child_slot = 0; lman.child_slot < RFU_CHILD_MAX; lman.child_slot++)
                 {
-                    if ((gRfuLinkStatus->linkLossSlotFlag >> lman.child_slot) & 1)
+                    //if ((gRfuLinkStatus->linkLossSlotFlag >> lman.child_slot) & 1)
+                    if(gRfuLinkStatus->linkLossSlotFlag & (1 <<lman.child_slot))
                     {
                         break;
                     }
@@ -775,18 +770,18 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                 {
                     lman.state = LMAN_STATE_MS_CHANGE;
                     lman.next_state = LMAN_STATE_BACK_STATE;
-                    lman.work = 0x32;
+                    lman.work = LMAN_MSG_LINK_RECOVERY_SUCCESSED;
                 }
                 else
                 {
                     lman.state = lman.next_state = LMAN_STATE_READY;
                     rfu_LMAN_disconnect(gRfuLinkStatus->linkLossSlotFlag);
-                    lman.work = 0x33;
+                    lman.work = LMAN_MSG_LINK_RECOVERY_FAILED_AND_DISCONNECTED;
                 }
                 lman.linkRecoveryTimer.count[lman.child_slot] = 0;
                 lman.linkRecoveryTimer.active = 0;
                 lman.linkRecovery_start_flag = 0;
-                rfu_LMAN_occureCallback(lman.work, 0x01);
+                rfu_LMAN_occureCallback(lman.work, 1);
                 lman.work = 0;
             }
             break;
@@ -827,10 +822,12 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                 rfu_LMAN_occureCallback(LMAN_MSG_RFU_POWER_DOWN, 0);
             }
             break;
+        default:
+            break;
         }
         lman.active = 1;
     }
-    else if (reqResult == 3 && lman.msc_exe_flag && (reqCommandId == ID_DATA_TX_REQ || reqCommandId == ID_DATA_RX_REQ || reqCommandId == ID_MS_CHANGE_REQ))
+    else if (reqResult == ERR_REQ_CMD_ACK_REJECTION && lman.msc_exe_flag && (reqCommandId == ID_DATA_TX_REQ || reqCommandId == ID_DATA_RX_REQ || reqCommandId == ID_MS_CHANGE_REQ))
     {
         rfu_REQ_RFUStatus();
         rfu_waitREQComplete();
@@ -856,7 +853,8 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                 lman.linkRecoveryTimer.active &= ~lman.param[0];
                 for (i = 0; i < RFU_CHILD_MAX; i++)
                 {
-                    if ((lman.param[0] >> i) & 1)
+                    //if ((lman.param[0] >> i) & 1)
+                    if (lman.param[0] & (0x01 << i))
                     {
                         lman.linkRecoveryTimer.count[i] = 0;
                     }
@@ -869,7 +867,8 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
             status = lman.acceptSlot_flag & lman.param[0];
             for (i = 0; i < RFU_CHILD_MAX; i++)
             {
-                if ((status >> i) & 1 && lman.acceptCount)
+                //if ((status >> i) & 1 && lman.acceptCount)
+                if ((status & (1 << i)) && (lman.acceptCount > 0))
                 {
                     lman.acceptCount--;
                 }
@@ -892,12 +891,9 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
                     }
                 }
             }
-            if (gRfuLinkStatus->parentChild == MODE_NEUTRAL)
+            if (gRfuLinkStatus->parentChild == MODE_NEUTRAL && (lman.state == LMAN_STATE_READY))
             {
-                if (lman.state == LMAN_STATE_READY)
-                {
-                    lman.parent_child = MODE_NEUTRAL;
-                }
+                lman.parent_child = MODE_NEUTRAL;
             }
             if (lman.active == 0)
             {
@@ -927,6 +923,8 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
             }
         }
         break;
+    default:
+        break;
     }
     if (reqResult != 0)
     {
@@ -934,7 +932,7 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
         {
             gRfuLinkStatus->parentChild = MODE_PARENT;
             gRfuLinkStatus->connSlotFlag = 0xF;
-            rfu_LMAN_disconnect(15);
+            rfu_LMAN_disconnect(0xF);
             rfu_waitREQComplete();
             return;
         }
@@ -1030,6 +1028,7 @@ static void rfu_LMAN_PARENT_checkRecvChildName(void)
                 {
                     if (gRfuSlotStatusNI[i]->recv.dataType == 1)
                     {
+                        // was flags |= in the original code, but it was optimized out to =
                         flags = RN_NAME_TIMER_CLEAR;
                         for (ptr = lman.acceptable_serialNo_list; *ptr != 0xFFFF; ptr++)
                         {
@@ -1319,7 +1318,7 @@ static u8 rfu_LMAN_setNIFailCounterLimit(u16 NI_failCounter_limit)
 {
     if (gRfuLinkStatus->sendSlotNIFlag | gRfuLinkStatus->recvSlotNIFlag)
     {
-        lman.param[0] = 6;
+        lman.param[0] = LMAN_ERROR_NOW_COMMUNICATION;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_NOW_COMMUNICATION;
     }
@@ -1331,7 +1330,7 @@ static u8 rfu_LMAN_setFastSearchParent(u8 enable_flag)
 {
     if (lman.state == LMAN_STATE_START_SEARCH_PARENT || lman.state == LMAN_STATE_POLL_SEARCH_PARENT || lman.state == LMAN_STATE_END_SEARCH_PARENT)
     {
-        lman.param[0] = 7;
+        lman.param[0] = LMAN_ERROR_NOW_SEARCH_PARENT;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_NOW_SEARCH_PARENT;
     }
@@ -1392,6 +1391,8 @@ void rfu_LMAN_forceChangeSP(void)
         case LMAN_STATE_END_SEARCH_PARENT:
             lman.connect_period = PCSWITCH_SP_PERIOD;
             lman.state = LMAN_STATE_POLL_SEARCH_PARENT;
+            break;
+        default:
             break;
         }
     }
