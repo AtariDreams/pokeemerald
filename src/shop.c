@@ -896,13 +896,13 @@ static void BuyMenuCopyMenuBgToBg1TilemapBuffer(void)
 static bool8 BuyMenuCheckForOverlapWithMenuBg(int x, int y)
 {
     const u16 *metatile = sShopData->tilemapBuffers[0];
-    int offset1 = x * 2;
-    int offset2 = y * 64;
+    x *= 2;
+    y *= 64;
 
-    if (metatile[offset2 + offset1] == 0 &&
-        metatile[offset2 + offset1 + 32] == 0 &&
-        metatile[offset2 + offset1 + 1] == 0 &&
-        metatile[offset2 + offset1 + 33] == 0)
+    if (metatile[y + x] == 0 &&
+        metatile[y + x + 32] == 0 &&
+        metatile[y + x + 1] == 0 &&
+        metatile[y + x + 33] == 0)
     {
         return TRUE;
     }
@@ -946,34 +946,33 @@ static void Task_BuyMenu(u8 taskId)
             if (!IsEnoughMoney(&gSaveBlock1Ptr->money, sShopData->totalCost))
             {
                 BuyMenuDisplayMessage(taskId, gText_YouDontHaveMoney, BuyMenuReturnToItemList);
+                return;
             }
-            else
+
+            if (sMartInfo.martType == MART_TYPE_NORMAL)
             {
-                if (sMartInfo.martType == MART_TYPE_NORMAL)
+                CopyItemName(itemId, gStringVar1);
+                if (ItemId_GetPocket(itemId) == POCKET_TM_HM)
                 {
-                    CopyItemName(itemId, gStringVar1);
-                    if (ItemId_GetPocket(itemId) == POCKET_TM_HM)
-                    {
-                        StringCopy(gStringVar2, gMoveNames[ItemIdToBattleMoveId(itemId)]);
-                        BuyMenuDisplayMessage(taskId, gText_Var1CertainlyHowMany2, Task_BuyHowManyDialogueInit);
-                    }
-                    else
-                    {
-                        BuyMenuDisplayMessage(taskId, gText_Var1CertainlyHowMany, Task_BuyHowManyDialogueInit);
-                    }
+                    StringCopy(gStringVar2, gMoveNames[ItemIdToBattleMoveId(itemId)]);
+                    BuyMenuDisplayMessage(taskId, gText_Var1CertainlyHowMany2, Task_BuyHowManyDialogueInit);
                 }
                 else
                 {
-                    StringCopy(gStringVar1, gDecorations[itemId].name);
-                    ConvertIntToDecimalStringN(gStringVar2, sShopData->totalCost, STR_CONV_MODE_LEFT_ALIGN, 6);
-
-                    if (sMartInfo.martType == MART_TYPE_DECOR)
-                        StringExpandPlaceholders(gStringVar4, gText_Var1IsItThatllBeVar2);
-                    else // MART_TYPE_DECOR2
-                        StringExpandPlaceholders(gStringVar4, gText_YouWantedVar1ThatllBeVar2);
-
-                    BuyMenuDisplayMessage(taskId, gStringVar4, BuyMenuConfirmPurchase);
+                    BuyMenuDisplayMessage(taskId, gText_Var1CertainlyHowMany, Task_BuyHowManyDialogueInit);
                 }
+            }
+            else
+            {
+                StringCopy(gStringVar1, gDecorations[itemId].name);
+                ConvertIntToDecimalStringN(gStringVar2, sShopData->totalCost, STR_CONV_MODE_LEFT_ALIGN, 6);
+
+                if (sMartInfo.martType == MART_TYPE_DECOR)
+                    StringExpandPlaceholders(gStringVar4, gText_Var1IsItThatllBeVar2);
+                else // MART_TYPE_DECOR2
+                    StringExpandPlaceholders(gStringVar4, gText_YouWantedVar1ThatllBeVar2);
+
+                BuyMenuDisplayMessage(taskId, gStringVar4, BuyMenuConfirmPurchase);
             }
             break;
         }
