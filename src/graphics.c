@@ -1408,10 +1408,10 @@ const u8 gNamingScreenCursor_Gfx[] = INCBIN_U8("graphics/naming_screen/cursor.4b
 const u8 gNamingScreenPageButton_Gfx[] = INCBIN_U8("graphics/naming_screen/page_button.4bpp");
 const u8 gNamingScreenInputArrow_Gfx[] = INCBIN_U8("graphics/naming_screen/input_arrow.4bpp");
 const u8 gNamingScreenUnderscore_Gfx[] = INCBIN_U8("graphics/naming_screen/underscore.4bpp");
-const u32 gNamingScreenBackground_Tilemap[] = INCBIN_U32("graphics/naming_screen/background.bin.lz");
-const u32 gNamingScreenKeyboardUpper_Tilemap[] = INCBIN_U32("graphics/naming_screen/keyboard_upper.bin.lz");
-const u32 gNamingScreenKeyboardLower_Tilemap[] = INCBIN_U32("graphics/naming_screen/keyboard_lower.bin.lz");
-const u32 gNamingScreenKeyboardSymbols_Tilemap[] = INCBIN_U32("graphics/naming_screen/keyboard_symbols.bin.lz");
+const u8 gNamingScreenBackground_Tilemap[] = INCBIN_U8("graphics/naming_screen/background.bin.lz");
+const u8 gNamingScreenKeyboardUpper_Tilemap[] = INCBIN_U8("graphics/naming_screen/keyboard_upper.bin.lz");
+const u8 gNamingScreenKeyboardLower_Tilemap[] = INCBIN_U8("graphics/naming_screen/keyboard_lower.bin.lz");
+const u8 gNamingScreenKeyboardSymbols_Tilemap[] = INCBIN_U8("graphics/naming_screen/keyboard_symbols.bin.lz");
 
 // union room chat
 const u16 gUnionRoomChat_Background_Pal[] = INCBIN_U16("graphics/union_room_chat/background.gbapal");
