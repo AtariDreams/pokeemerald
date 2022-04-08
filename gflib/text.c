@@ -1519,7 +1519,7 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, const u8 *str)
 
     u8 fgColorBak;
     u8 bgColorBak;
-    u8 shadowColorBak.
+    u8 shadowColorBak;
 
     SaveTextColors(&fgColorBak, &bgColorBak, &shadowColorBak);
 
