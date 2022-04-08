@@ -147,7 +147,7 @@ void SaveTextColors(u8 *fgColor, u8 *bgColor, u8 *shadowColor);
 void RestoreTextColors(u8 *fgColor, u8 *bgColor, u8 *shadowColor);
 void DecompressGlyphTile(const void *src_, void *dest_);
 void CopyGlyphToWindow(struct TextPrinter *x);
-void ClearTextSpan(struct TextPrinter *textPrinter, u32 width);
+void ClearTextSpan(struct TextPrinter *textPrinter, s32 width);
 u8 GetMenuCursorDimensionByFont(u8, u8);
 
 void TextPrinterInitDownArrowCounters(struct TextPrinter *textPrinter);
