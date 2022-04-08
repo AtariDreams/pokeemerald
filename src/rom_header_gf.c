@@ -59,9 +59,10 @@ struct GFRomHeader
     u32 frontierStatusOffset2;
     u32 externalEventFlagsOffset;
     u32 externalEventDataOffset;
-    u32 unk18;
+    u32 unk18; // a struct for some test stuff not needed
+    // TODO: document this later
     const struct BaseStats * baseStats;
-    const u8 (* abilityNames)[];
+    const u8 (* abilityNames)[13];
     const u8 * const * abilityDescriptions;
     const struct Item * items;
     const struct BattleMove * moves;
@@ -159,6 +160,7 @@ static const struct GFRomHeader sGFRomHeader = {
     .pcItemsOffset = offsetof(struct SaveBlock1, pcItems),
     .giftRibbonsOffset = offsetof(struct SaveBlock1, giftRibbons),
     .enigmaBerryOffset = offsetof(struct SaveBlock1, enigmaBerry),
+    //TODO: Find out why GF has sizeof here insteam
     .mapViewOffset = offsetof(struct SaveBlock1, mapView),
     .unk19 = 0x00000000,
     .unk20 = 0x00000000, // 0xFFFFFFFF in FRLG
