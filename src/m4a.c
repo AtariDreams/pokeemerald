@@ -1652,11 +1652,12 @@ void SetPokemonCryPanpot(s8 val)
 
 void SetPokemonCryPitch(s16 val)
 {
-    s16 b = val + 0x80;
-    u8 a = gPokemonCrySong.tuneValue2 - gPokemonCrySong.tuneValue;
-    gPokemonCrySong.tieKeyValue = (b >> 8) & 0x7F;
-    gPokemonCrySong.tuneValue = (b >> 1) & 0x7F;
-    gPokemonCrySong.tuneValue2 = (a + ((b >> 1) & 0x7F)) & 0x7F;
+    u8 a;
+    val += 0x80;
+    a = gPokemonCrySong.tuneValue2 - gPokemonCrySong.tuneValue;
+    gPokemonCrySong.tieKeyValue = (val >> 8) & 0x7F;
+    gPokemonCrySong.tuneValue = (val >> 1) & 0x7F;
+    gPokemonCrySong.tuneValue2 = (a + ((val >> 1) & 0x7F)) & 0x7F;
 }
 
 void SetPokemonCryLength(u16 val)
