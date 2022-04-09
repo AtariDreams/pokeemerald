@@ -18,6 +18,7 @@ SECTIONS {
         src/mystery_event_script.o(COMMON)
         gflib/*.o(ewram_data);
         src/*.o(ewram_data);
+        *.o(ewram_data);
         . = 0x40000;
     }
 
@@ -54,6 +55,7 @@ SECTIONS {
         src/main.o(.text*);
         gflib/*.o(.text*);
         src/*.o(.text*);
+        *.o(.text*)
         *(.text)
 		*(.text.*)
     } =0
