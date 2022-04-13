@@ -141,10 +141,9 @@ static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 
             sGpuBgConfigs.configs[bg].wraparound = wraparound;
         }
         // these two assignments do nothing since the fields are unused
-        #if !MODERN
+
         sGpuBgConfigs.configs[bg].unknown_2 = 0;
         sGpuBgConfigs.configs[bg].unknown_3 = 0;
-        #endif
 
         sGpuBgConfigs.configs[bg].visible = TRUE;
     }

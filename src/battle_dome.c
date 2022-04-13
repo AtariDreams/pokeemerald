@@ -131,10 +131,10 @@ static void InitRandomTourneyTreeResults(void);
 static void InitDomeTrainers(void);
 
 // EWRAM variables.
-#if !MODERN
+
 EWRAM_DATA u32 gPlayerPartyLostHP = 0; // never read
 static EWRAM_DATA u32 sPlayerPartyMaxHP = 0; // never read
-#endif
+
 static EWRAM_DATA struct TourneyTreeInfoCard *sInfoCard = {0};
 static EWRAM_DATA u8 *sTilemapBuffer = NULL;
 
