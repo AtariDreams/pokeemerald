@@ -317,7 +317,7 @@ s32 DoMysteryGiftListMenu(const struct WindowTemplate *windowTemplate, const str
             sMysteryGiftLinkMenu.state = 2;
         }
         // no else if?
-        if (JOY_NEW(B_BUTTON))
+        M_IF (JOY_NEW(B_BUTTON))
         {
             sMysteryGiftLinkMenu.currItemId = LIST_CANCEL;
             sMysteryGiftLinkMenu.state = 2;
@@ -329,8 +329,8 @@ s32 DoMysteryGiftListMenu(const struct WindowTemplate *windowTemplate, const str
             case 0:
                 ClearWindowTilemap(sMysteryGiftLinkMenu.windowId);
                 break;
-            case 2:
             case 1:
+            case 2:
                 ClearStdWindowAndFrame(sMysteryGiftLinkMenu.windowId, FALSE);
                 break;
             }
@@ -360,7 +360,7 @@ u8 ListMenuInit(struct ListMenuTemplate *listMenuTemplate, u16 scrollOffset, u16
 // unused
 u8 ListMenuInitInRect(struct ListMenuTemplate *listMenuTemplate, struct ListMenuWindowRect *rect, u16 scrollOffset, u16 selectedRow)
 {
-    s32 i;
+    m32 i;
 
     u8 taskId = ListMenuInitInternal(listMenuTemplate, scrollOffset, selectedRow);
     for (i = 0; rect[i].palNum != 0xFF; i++)
