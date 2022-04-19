@@ -657,9 +657,16 @@ static void DoMirageTowerDisintegration(u8 taskId)
         ShowBg(0);
         break;
     case 8:
+#ifdef UBFIX
+        EnableBothScriptContexts();
+        DestroyTask(taskId);
+
+        return;
+#else
         DestroyTask(taskId);
         EnableBothScriptContexts();
         break;
+#endif
     }
     gTasks[taskId].tState++;
 }
