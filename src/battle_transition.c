@@ -2982,8 +2982,11 @@ static bool8 ShredSplit_Main(struct Task *task)
             for (k = 0; k < 2; k++)
             {
                 y = baseY[j] + (moveDirs[k] * -i * 2);
-                if (y >= 0 && (y != DISPLAY_HEIGHT / 2 - 1 || j != 1))
-                {
+                if (y < 0)
+                    continue;
+                if (y == DISPLAY_HEIGHT / 2 - 1 && j == 1)
+                    continue;
+
                     ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
                     ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
                     ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
@@ -2995,19 +2998,18 @@ static bool8 ShredSplit_Main(struct Task *task)
                     else
                     {
                         *ptr4 += (*ptr3 >> 8);
-                        if (*ptr1 <= 0x7F)
-                            *ptr1 *= 2;
-                        if (*ptr3 <= 0xFFF)
+                        if (*ptr1 < 0x80)
+                            *ptr1 <<= 1;
+                        if (*ptr3 < 0x1000)
                             *ptr3 += *ptr1;
                     }
                     ptr2 = &gScanlineEffectRegBuffers[0][y];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT];
+                    ptr3 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT + y];
                     *ptr2 = sTransitionData->cameraX + *ptr4;
                     *ptr3 = DISPLAY_WIDTH - *ptr4;
 
                     if (i == 0)
                         break;
-                }
             }
         }
 
