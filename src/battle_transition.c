@@ -46,11 +46,11 @@
 #define tWipeYDist  data[9]
 #define tWipeTemp   data[10]
 
-#define SET_TILE(ptr, posY, posX, tile) \
-{                                       \
-    u32 index = (posY) * 32 + posX;     \
-    ptr[index] = tile | (0xF0 << 8);    \
-}
+#define SET_TILE(ptr, posY, posX, tile) ptr[ ((posY) << 5) + posX] = tile | (0xF0 << 8);
+
+// TODO: migrate to this later
+#define	BG_SCRN_DATA(ch,h,v,pal) \
+		((ch)|((h)<<10)|((v)<<11)|((pal)<<12))
 
 struct TransitionData
 {
@@ -59,8 +59,8 @@ struct TransitionData
     u16 WINOUT;
     u16 WIN0H;
     u16 WIN0V;
-    u16 unused1;
-    u16 unused2;
+    u16 WIN1V; // unused
+    u16 WIN2V; // UNUSED
     u16 BLDCNT;
     u16 BLDALPHA;
     u16 BLDY;
@@ -68,6 +68,7 @@ struct TransitionData
     s16 cameraY;
     s16 BG0HOFS_Lower;
     s16 BG0HOFS_Upper;
+    // clearly extra padding here. TODO: deal with that
     s16 BG0VOFS; // used but not set
     s16 unused3;
     s16 counter;
@@ -1154,16 +1155,16 @@ static bool8 Blur_Main(struct Task *task)
     if (task->tDelay != 0)
     {
         task->tDelay--;
+        return FALSE;
     }
-    else
-    {
-        task->tDelay = 4;
-        if (++task->tCounter == 10)
-            BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
-        SetGpuReg(REG_OFFSET_MOSAIC, (task->tCounter & 15) * 17);
-        if (task->tCounter > 14)
-            task->tState++;
-    }
+
+    task->tDelay = 4;
+    if (++task->tCounter == 10)
+        BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
+    // set the high and low bits to the same bottom 8 bits
+    SetGpuReg(REG_OFFSET_MOSAIC, (task->tCounter & 15) * 17);
+    if (task->tCounter > 14)
+        task->tState++;
     return FALSE;
 }
 
@@ -1171,8 +1172,7 @@ static bool8 Blur_End(struct Task *task)
 {
     if (!gPaletteFade.active)
     {
-        u8 taskId = FindTaskIdByFunc(Task_Blur);
-        DestroyTask(taskId);
+        DestroyTask(FindTaskIdByFunc(Task_Blur));
     }
     return FALSE;
 }
