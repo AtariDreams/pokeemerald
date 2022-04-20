@@ -865,8 +865,7 @@ static void AnimSuperpowerRock_Step1(struct Sprite *sprite)
         var0 -= sprite->data[6];
         StorePointerInVars(&sprite->data[4], &sprite->data[5], var0);
 
-        var0 = (void *)(((intptr_t)var0) >> 8);
-        sprite->y = (intptr_t)var0;
+        sprite->y = (intptr_t)var0 >> 8;
         if (sprite->y < -8) {
             DestroyAnimSprite(sprite);
             return;

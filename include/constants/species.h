@@ -419,6 +419,7 @@
 
 #define NUM_SPECIES SPECIES_EGG
 
+// TODO: maybe we can shift these species numbers so we don't have to do annoying checks, but that seems to require a lot right now, so maybe not for now
 #define SPECIES_UNOWN_B (NUM_SPECIES + 1)
 #define SPECIES_UNOWN_C (SPECIES_UNOWN_B + 1)
 #define SPECIES_UNOWN_D (SPECIES_UNOWN_B + 2)
