@@ -448,19 +448,6 @@ const struct SpriteTemplate gWillOWispFireSpriteTemplate =
     .callback = AnimWillOWispFire,
 };
 
-// Directions for shaking up/down or left/right in AnimTask_ShakeTargetInPattern
-// Only first 10 values are ever accessed.
-// First pattern results in larger shakes, second results in faster oscillation
-static const s8 sShakeDirsPattern0[16] =
-{
-    -1, -1, 0, 1, 1, 0, 0, -1, -1, 1, 1, 0, 0, -1, 0, 1,
-};
-
-static const s8 sShakeDirsPattern1[16] =
-{
-    -1, 0, 1, 0, -1, 1, 0, -1, 0, 1, 0, -1, 0, 1, 0, 1,
-};
-
 // For the first stage of Fire Punch
 static void AnimFireSpiralInward(struct Sprite *sprite)
 {
@@ -766,7 +753,7 @@ static void AnimFireSpiralOutward_Step2(struct Sprite *sprite)
     sprite->data[1] = (sprite->data[1] + 10) & 0xFF;
     sprite->data[2] += 0xD0;
 
-    if (--sprite->data[0] == -1)
+    if (sprite->data[0]-- == 0)
         DestroyAnimSprite(sprite);
 }
 
@@ -920,7 +907,7 @@ static void CreateEruptionLaunchRocks(u8 spriteId, u8 taskId, u8 a3)
     {
         u8 spriteId = CreateSprite(&gEruptionLaunchRockSpriteTemplate, x, y, 2);
 
-        if (spriteId != 0x40)
+        if (spriteId != MAX_SPRITES)
         {
             gSprites[spriteId].oam.tileNum += j * 4 + 0x40;
 
@@ -963,21 +950,21 @@ static void InitEruptionLaunchRockCoordData(struct Sprite *sprite, s16 x, s16 y)
 {
     sprite->data[0] = 0;
     sprite->data[1] = 0;
-    sprite->data[2] = (u16)sprite->x * 8;
-    sprite->data[3] = (u16)sprite->y * 8;
-    sprite->data[4] = x * 8;
-    sprite->data[5] = y * 8;
+    sprite->data[2] = sprite->x << 3;
+    sprite->data[3] = sprite->y << 3;
+    sprite->data[4] = x << 3;
+    sprite->data[5] = y << 3;
 }
 
 static void UpdateEruptionLaunchRockPos(struct Sprite *sprite)
 {
-    int var1;
     if (++sprite->data[0] > 2)
     {
+        u16 g; // Should this be s16?
         sprite->data[0] = 0;
         ++sprite->data[1];
-        var1 = (u16)sprite->data[1] * (u16)sprite->data[1];
-        sprite->data[3] += var1;
+        g = sprite->data[1];
+        sprite->data[3] += g * g;
     }
 
     sprite->data[2] += sprite->data[4];
@@ -1092,7 +1079,7 @@ static void AnimWillOWispOrb(struct Sprite *sprite)
         sprite->x2 = Sin(sprite->data[2], sprite->data[4]);
         sprite->data[2] = (sprite->data[2] + 4) & 0xFF;
 
-        if (++sprite->data[3] == 31)
+        if (sprite->data[3]++ == 30)
         {
             sprite->x += sprite->x2;
             sprite->y += sprite->y2;
@@ -1283,43 +1270,3 @@ void AnimTask_BlendBackground(u8 taskId)
     DestroyAnimVisualTask(taskId);
 }
 
-#define tShakeNum    data[0]
-#define tMaxShakes   data[1]
-#define tShakeOffset data[2] // Never read, gBattleAnimArgs[1] is used directly instead
-#define tVertical    data[3]
-#define tPatternId   data[4]
-
-// Shakes target horizontally or vertically tMaxShakes times, following a set pattern of alternations
-void AnimTask_ShakeTargetInPattern(u8 taskId)
-{
-    s8 dir;
-    u8 spriteId;
-
-    if (gTasks[taskId].tShakeNum == 0)
-    {
-        gTasks[taskId].tMaxShakes = gBattleAnimArgs[0];
-        gTasks[taskId].tShakeOffset = gBattleAnimArgs[1];
-        gTasks[taskId].tVertical = gBattleAnimArgs[2];
-        gTasks[taskId].tPatternId = gBattleAnimArgs[3];
-    }
-    gTasks[taskId].tShakeNum++;
-
-    spriteId = gBattlerSpriteIds[gBattleAnimTarget];
-
-    if (gTasks[taskId].tPatternId == 0)
-        dir = sShakeDirsPattern0[gTasks[taskId].tShakeNum % 10];
-    else
-        dir = sShakeDirsPattern1[gTasks[taskId].tShakeNum % 10];
-
-    if (gTasks[taskId].tVertical == TRUE)
-        gSprites[spriteId].y2 = gBattleAnimArgs[1] * dir < 0 ? -(gBattleAnimArgs[1] * dir) : gBattleAnimArgs[1] * dir;
-    else
-        gSprites[spriteId].x2 = gBattleAnimArgs[1] * dir;
-
-    if (gTasks[taskId].tShakeNum == gTasks[taskId].tMaxShakes)
-    {
-        gSprites[spriteId].x2 = 0;
-        gSprites[spriteId].y2 = 0;
-        DestroyAnimVisualTask(taskId);
-    }
-}
