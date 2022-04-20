@@ -857,6 +857,7 @@ static void AnimSuperpowerRock(struct Sprite *sprite)
 
 static void AnimSuperpowerRock_Step1(struct Sprite *sprite)
 {
+    // TODO: do something about this super hacky thing with intrptr and intengers and whatnot
     void *var0;
 
     if (sprite->data[0] != 0)
@@ -891,15 +892,12 @@ static void AnimSuperpowerRock_Step1(struct Sprite *sprite)
 
 static void AnimSuperpowerRock_Step2(struct Sprite *sprite)
 {
-    u16 edgeX;
-
     sprite->data[2] += sprite->data[0];
     sprite->data[3] += sprite->data[1];
     sprite->x = sprite->data[2] >> 4;
     sprite->y = sprite->data[3] >> 4;
 
-    edgeX = sprite->x + 8;
-    if (edgeX > 256 || sprite->y < -8 || sprite->y > 120)
+    if (sprite->x < -8 || sprite->x > 248  || sprite->y < -8 || sprite->y > 120)
         DestroyAnimSprite(sprite);
 }
 
@@ -1015,7 +1013,7 @@ void AnimTask_MoveSkyUppercutBg(u8 taskId)
         task->data[0]++;
         break;
     case 1:
-        if (--task->data[8] == -1)
+        if (task->data[8]-- == 0)
             task->data[0]++;
         break;
     case 2:
