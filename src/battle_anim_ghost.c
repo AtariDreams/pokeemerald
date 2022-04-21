@@ -234,8 +234,7 @@ static void AnimConfuseRayBallBounce(struct Sprite *sprite)
 
 static void AnimConfuseRayBallBounce_Step1(struct Sprite *sprite)
 {
-    s16 r0;
-    s16 r2;
+    s16 before, after;
     UpdateConfuseRayBallBlend(sprite);
     if (AnimTranslateLinear(sprite))
     {
@@ -245,34 +244,27 @@ static void AnimConfuseRayBallBounce_Step1(struct Sprite *sprite)
 
     sprite->x2 += Sin(sprite->data[5], 10);
     sprite->y2 += Cos(sprite->data[5], 15);
-    r2 = sprite->data[5];
+    before = sprite->data[5];
     sprite->data[5] = (sprite->data[5] + 5) & 0xFF;
-    r0 = sprite->data[5];
-    if (r2 != 0 && r2 <= 196)
-        return;
-    if (r0 <= 0)
-        return;
-    PlaySE12WithPanning(SE_M_CONFUSE_RAY, gAnimCustomPanning);
+    after = sprite->data[5];
+    if((before == 0 || before > 196) && (after > 0))
+        PlaySE12WithPanning(SE_M_CONFUSE_RAY, gAnimCustomPanning);
 }
 
 static void AnimConfuseRayBallBounce_Step2(struct Sprite *sprite)
 {
-    s16 r2;
-    s16 r0;
+    s16 before, after;
     sprite->data[0] = 1;
     AnimTranslateLinear(sprite);
     sprite->x2 += Sin(sprite->data[5], 10);
     sprite->y2 += Cos(sprite->data[5], 15);
 
-    r2 = sprite->data[5];
+    before = sprite->data[5];
     sprite->data[5] = (sprite->data[5] + 5) & 0xFF;
-    r0 = sprite->data[5];
+    after = sprite->data[5];
 
-    if (r2 == 0 || r2 > 196)
-    {
-        if (r0 > 0)
-            PlaySE(SE_M_CONFUSE_RAY);
-    }
+    if ((before == 0 || before > 196) && (after > 0))
+        PlaySE(SE_M_CONFUSE_RAY);
 
     if (sprite->data[6] == 0)
     {
@@ -292,7 +284,12 @@ static void UpdateConfuseRayBallBlend(struct Sprite *sprite)
         return;
     }
 
+    #if !MODERN
+    // for this statement to be true, the bottom bits will be 00, which will mean ++ is cleared
     if ((sprite->data[7]++ & 0xFF) == 0)
+    #else
+    if ((sprite->data[7] & 0xFF) == 0)
+    #endif
     {
         sprite->data[7] &= 0xff00;
         if ((sprite->data[7] & 0x100) != 0)
@@ -301,35 +298,52 @@ static void UpdateConfuseRayBallBlend(struct Sprite *sprite)
             sprite->data[6]--;
 
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(sprite->data[6], 16 - sprite->data[6]));
+        #if !MODERN
         if (sprite->data[6] == 0 || sprite->data[6] == 16)
             sprite->data[7] ^= 0x100;
         if (sprite->data[6] == 0)
             sprite->data[6] = 0x100;
+        #else
+        if (sprite->data[6] == 0) {
+            sprite->data[7] ^= 0x100
+            sprite->data[6] = 0x100
+        }
+        else if (sprite->data[6] == 16)
+        {
+            sprite->data[6] = 0x100;
+        }
+        #endif
     }
+    #if MODERN
+    else sprite->data[7]++;
+    #endif
 }
 
 static void AnimConfuseRayBallSpiral(struct Sprite *sprite)
 {
     InitSpritePosToAnimTarget(sprite, TRUE);
+    // TODO: is this assignment even needed if it will run immediately?
     sprite->callback = AnimConfuseRayBallSpiral_Step;
+    #if !MODERN
     sprite->callback(sprite);
+    #else
+    AnimConfuseRayBallSpiral_Step(sprite);
+    #endif
 }
 
 static void AnimConfuseRayBallSpiral_Step(struct Sprite *sprite)
 {
-    u16 temp1;
     sprite->x2 = Sin(sprite->data[0], 32);
     sprite->y2 = Cos(sprite->data[0], 8);
-    temp1 = sprite->data[0] - 65;
-    if (temp1 <= 130)
+
+    if (sprite->data[0] > 64 && sprite->data[0] < 196)
         sprite->oam.priority = 2;
     else
         sprite->oam.priority = 1;
     sprite->data[0] = (sprite->data[0] + 19) & 0xFF;
     sprite->data[2] += 80;
     sprite->y2 += sprite->data[2] >> 8;
-    sprite->data[7] += 1;
-    if (sprite->data[7] == 61)
+    if (sprite->data[7]++ == 60)
         DestroyAnimSprite(sprite);
 }
 
@@ -344,7 +358,7 @@ void AnimTask_NightShadeClone(u8 taskId)
     SetSpriteRotScale(spriteId, 128, 128, 0);
     gSprites[spriteId].invisible = FALSE;
     gTasks[taskId].data[0] = 128;
-    gTasks[taskId].data[1] = *gBattleAnimArgs;
+    gTasks[taskId].data[1] = gBattleAnimArgs[0];
     gTasks[taskId].data[2] = 0;
     gTasks[taskId].data[3] = 16;
     gTasks[taskId].func = AnimTask_NightShadeClone_Step1;
@@ -352,17 +366,14 @@ void AnimTask_NightShadeClone(u8 taskId)
 
 static void AnimTask_NightShadeClone_Step1(u8 taskId)
 {
-    gTasks[taskId].data[10] += 1;
-    if (gTasks[taskId].data[10] == 3)
+    if (++gTasks[taskId].data[10] == 3)
     {
         gTasks[taskId].data[10] = 0;
-        gTasks[taskId].data[2] += 1;
-        gTasks[taskId].data[3] -= 1;
+        gTasks[taskId].data[2]++;
+        gTasks[taskId].data[3]--;
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(gTasks[taskId].data[2], gTasks[taskId].data[3]));
-        if (gTasks[taskId].data[2] != 9)
-            return;
-
-        gTasks[taskId].func = AnimTask_NightShadeClone_Step2;
+        if (gTasks[taskId].data[2] == 9)
+            gTasks[taskId].func = AnimTask_NightShadeClone_Step2;
     }
 }
 
@@ -371,13 +382,13 @@ static void AnimTask_NightShadeClone_Step2(u8 taskId)
     u8 spriteId;
     if (gTasks[taskId].data[1] > 0)
     {
-        gTasks[taskId].data[1] -= 1;
+        gTasks[taskId].data[1]--;
         return;
     }
 
     spriteId = GetAnimBattlerSpriteId(ANIM_ATTACKER);
     gTasks[taskId].data[0] += 8;
-    if (gTasks[taskId].data[0] <= 0xFF)
+    if (gTasks[taskId].data[0] < 0x100)
     {
         SetSpriteRotScale(spriteId, gTasks[taskId].data[0], gTasks[taskId].data[0], 0);
     }
@@ -408,8 +419,8 @@ static void AnimShadowBall(struct Sprite *sprite)
     sprite->data[3] = gBattleAnimArgs[2];
     sprite->data[4] = sprite->x << 4;
     sprite->data[5] = sprite->y << 4;
-    sprite->data[6] = ((oldPosX - sprite->x) << 4) / (gBattleAnimArgs[0] << 1);
-    sprite->data[7] = ((oldPosY - sprite->y) << 4) / (gBattleAnimArgs[0] << 1);
+    sprite->data[6] = ((oldPosX - sprite->x) << 4) / (gBattleAnimArgs[0] * 2);
+    sprite->data[7] = ((oldPosY - sprite->y) << 4) / (gBattleAnimArgs[0] * 2);
     sprite->callback = AnimShadowBall_Step;
 }
 
@@ -422,14 +433,12 @@ static void AnimShadowBall_Step(struct Sprite *sprite)
         sprite->data[5] += sprite->data[7];
         sprite->x = sprite->data[4] >> 4;
         sprite->y = sprite->data[5] >> 4;
-        sprite->data[1] -= 1;
-        if (sprite->data[1] > 0)
+        if (--sprite->data[1] > 0)
             break;
-        sprite->data[0] += 1;
+        sprite->data[0]++;
         break;
     case 1:
-        sprite->data[2] -= 1;
-        if (sprite->data[2] > 0)
+        if (--sprite->data[2] > 0)
             break;
         sprite->data[1] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2);
         sprite->data[2] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET);
@@ -437,19 +446,24 @@ static void AnimShadowBall_Step(struct Sprite *sprite)
         sprite->data[5] = sprite->y << 4;
         sprite->data[6] = ((sprite->data[1] - sprite->x) << 4) / sprite->data[3];
         sprite->data[7] = ((sprite->data[2] - sprite->y) << 4) / sprite->data[3];
-        sprite->data[0] += 1;
+        sprite->data[0]++;
         break;
     case 2:
         sprite->data[4] += sprite->data[6];
         sprite->data[5] += sprite->data[7];
         sprite->x = sprite->data[4] >> 4;
         sprite->y = sprite->data[5] >> 4;
-        sprite->data[3] -= 1;
+        #if !MODERN
+        sprite->data[3]--;
         if (sprite->data[3] > 0)
             break;
+        #else
+        if (--sprite->data[3] > 0)
+            break;
+        #endif
         sprite->x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2);
         sprite->y = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET);
-        sprite->data[0] += 1;
+        sprite->data[0]++;
         break;
     case 3:
         DestroySpriteAndMatrix(sprite);
@@ -470,14 +484,18 @@ static void AnimLick_Step(struct Sprite *sprite)
 
     if (sprite->animEnded)
     {
+        #if !MODERN
         if (!sprite->invisible)
             sprite->invisible = TRUE;
+        #endif
 
         switch (sprite->data[0])
         {
+        #if !MODERN
         default:
             r6 = TRUE;
             break;
+        #endif
         case 0:
             if (sprite->data[1] == 2)
                 r5 = TRUE;
@@ -486,11 +504,20 @@ static void AnimLick_Step(struct Sprite *sprite)
             if (sprite->data[1] == 4)
                 r5 = TRUE;
             break;
+        #if MODERN
+        default:
+            r6 = TRUE;
+            break;
+        #endif
         }
 
         if (r5)
         {
+            #if !MODERN
             sprite->invisible ^= 1;
+            #else
+            sprite->invisible = FALSE;
+            #endif
             sprite->data[2]++;
             sprite->data[1] = 0;
             if (sprite->data[2] == 5)
@@ -501,10 +528,14 @@ static void AnimLick_Step(struct Sprite *sprite)
         }
         else if (r6)
         {
+            // TODO: does it matter if a sprite is set to visible if deleted?
             DestroyAnimSprite(sprite);
         }
         else
         {
+            #if MODERN
+            sprite->invisible = TRUE;
+            #endif
             sprite->data[1]++;
         }
     }
@@ -554,16 +585,16 @@ static void AnimTask_NightmareClone_Step(u8 taskId)
     switch (task->data[4])
     {
     case 0:
-        task->data[1] += 1;
+        task->data[1]++;
         task->data[5] = task->data[1] & 3;
         if (task->data[5] == 1)
             if (task->data[2] > 0)
-                task->data[2] -= 1;
+                task->data[2]--;
         if (task->data[5] == 3)
             if (task->data[3] <= 15)
                 task->data[3] += 1;
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(task->data[2], task->data[3]));
-        if (task->data[3] != 16 || task->data[2] != 0)
+        if (task->data[2] != 0 || task->data[3] != 16)
             break;
         if (task->data[1] <= 80)
             break;
@@ -571,11 +602,12 @@ static void AnimTask_NightmareClone_Step(u8 taskId)
         task->data[4] = 1;
         break;
     case 1:
-        if (++task->data[6] <= 1)
-            break;
-        SetGpuReg(REG_OFFSET_BLDCNT, 0);
-        SetGpuReg(REG_OFFSET_BLDALPHA, 0);
-        task->data[4] += 1;
+        if (++task->data[6] > 1)
+        {
+            SetGpuReg(REG_OFFSET_BLDCNT, 0);
+            SetGpuReg(REG_OFFSET_BLDALPHA, 0);
+            task->data[4]++;
+        }
         break;
     case 2:
         DestroyAnimVisualTask(taskId);
