@@ -284,26 +284,26 @@ static u8 Task_FlashingCircleImpacts(u8 battlerId, bool8 red)
     if (red)
     {
         gTasks[taskId].data[1] = RGB_RED;
-        for (i = 0; i < 10; i++)
+        for (i = 0; i < 5 * 2; i++)
         {
             spriteId = CreateSprite(&sFlashingCircleImpactSpriteTemplate, gSprites[battlerSpriteId].x, gSprites[battlerSpriteId].y + 32, 0);
-            gSprites[spriteId].data[0] = i * 51;
+            gSprites[spriteId].data[0] = i * (255/5);
             gSprites[spriteId].data[1] = -256;
             gSprites[spriteId].invisible = TRUE;
-            if (i > 4)
+            if (i >= 5)
                 gSprites[spriteId].data[6] = 21;
         }
     }
     else
     {
         gTasks[taskId].data[1] = RGB_BLUE;
-        for (i = 0; i < 10; i++)
+        for (i = 0; i < 5 * 2; i++)
         {
             spriteId = CreateSprite(&sFlashingCircleImpactSpriteTemplate, gSprites[battlerSpriteId].x, gSprites[battlerSpriteId].y - 32, 0);
-            gSprites[spriteId].data[0] = i * 51;
+            gSprites[spriteId].data[0] = i * (255/5);
             gSprites[spriteId].data[1] = 256;
             gSprites[spriteId].invisible = TRUE;
-            if (i > 4)
+            if (i >= 5)
                 gSprites[spriteId].data[6] = 21;
         }
     }
@@ -325,17 +325,24 @@ static void Task_UpdateFlashingCircleImpacts(u8 taskId)
         }
         else
         {
-            u16 var = gTasks[taskId].data[4];
-
-            gTasks[taskId].data[4]--;
-            if (gTasks[taskId].data[4] < 0)
+            #if !MODERN
+            if (--gTasks[taskId].data[4] < 0)
             {
-                gTasks[taskId].data[4] = var;
+                gTasks[taskId].data[4]++;
                 gTasks[taskId].data[5] ^= 1;
-                gTasks[taskId].data[3]++;
-                if (gTasks[taskId].data[3] == 2)
+                if (++gTasks[taskId].data[3] == 2)
                     DestroyTask(taskId);
             }
+            #else
+            if (gTasks[taskId].data[4] < 1)
+            {
+                gTasks[taskId].data[5] ^= 1;
+                if (++gTasks[taskId].data[3] == 2)
+                    DestroyTask(taskId);
+            }
+            else
+                gTasks[taskId].data[4]--;
+#endif
         }
     }
     else
@@ -369,8 +376,7 @@ static void AnimFlashingCircleImpact_Step(struct Sprite *sprite)
     sprite->data[0] = (sprite->data[0] + 8) & 0xFF;
     sprite->data[5] += sprite->data[1];
     sprite->y2 += sprite->data[5] >> 8;
-    sprite->data[2]++;
-    if (sprite->data[2] == 52)
+    if (++sprite->data[2] == 52)
     {
         if (sprite->data[7])
             DestroySpriteAndFreeResources(sprite);
@@ -399,8 +405,8 @@ void AnimTask_FrozenIceCube(u8 taskId)
 
 static void AnimTask_FrozenIceCube_Step1(u8 taskId)
 {
-    gTasks[taskId].data[1]++;
-    if (gTasks[taskId].data[1] == 10)
+    #if !MODERN
+    if (gTasks[taskId].data[1]++ == 9)
     {
         gTasks[taskId].func = AnimTask_FrozenIceCube_Step2;
         gTasks[taskId].data[1] = 0;
@@ -411,6 +417,19 @@ static void AnimTask_FrozenIceCube_Step1(u8 taskId)
 
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(var, 16 - var));
     }
+    #else
+    if (gTasks[taskId].data[1] == 9)
+    {
+        gTasks[taskId].func = AnimTask_FrozenIceCube_Step2;
+        gTasks[taskId].data[1] = 0;
+    }
+    else
+    {
+        u8 var = ++gTasks[taskId].data[1];
+
+        SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(var, 16 - var));
+    }
+    #endif
 }
 
 static void AnimTask_FrozenIceCube_Step2(u8 taskId)
@@ -419,8 +438,7 @@ static void AnimTask_FrozenIceCube_Step2(u8 taskId)
 
     if (gTasks[taskId].data[1]++ > 13)
     {
-        gTasks[taskId].data[2]++;
-        if (gTasks[taskId].data[2] == 3)
+        if (++gTasks[taskId].data[2] == 3)
         {
             u16 temp;
 
@@ -430,13 +448,11 @@ static void AnimTask_FrozenIceCube_Step2(u8 taskId)
             gPlttBufferFaded[0x100 + palIndex * 16 + 15] = temp;
 
             gTasks[taskId].data[2] = 0;
-            gTasks[taskId].data[3]++;
-            if (gTasks[taskId].data[3] == 3)
+            if (++gTasks[taskId].data[3] == 3)
             {
                 gTasks[taskId].data[3] = 0;
                 gTasks[taskId].data[1] = 0;
-                gTasks[taskId].data[4]++;
-                if (gTasks[taskId].data[4] == 2)
+                if (++gTasks[taskId].data[4] == 2)
                 {
                     gTasks[taskId].data[1] = 9;
                     gTasks[taskId].func = AnimTask_FrozenIceCube_Step3;
@@ -448,8 +464,8 @@ static void AnimTask_FrozenIceCube_Step2(u8 taskId)
 
 static void AnimTask_FrozenIceCube_Step3(u8 taskId)
 {
-    gTasks[taskId].data[1]--;
-    if (gTasks[taskId].data[1] == -1)
+    #if !MODERN
+    if (gTasks[taskId].data[1]-- == 0)
     {
         gTasks[taskId].func = AnimTask_FrozenIceCube_Step4;
         gTasks[taskId].data[1] = 0;
@@ -460,6 +476,18 @@ static void AnimTask_FrozenIceCube_Step3(u8 taskId)
 
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(var, 16 - var));
     }
+    #else
+    if (gTasks[taskId].data[1] == 0)
+    {
+        gTasks[taskId].func = AnimTask_FrozenIceCube_Step4;
+    }
+    else
+    {
+        u8 var = --gTasks[taskId].data[1];
+
+        SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(var, 16 - var));
+    }
+    #endif
 }
 
 static void AnimTask_FrozenIceCube_Step4(u8 taskId)
@@ -484,9 +512,9 @@ static void AnimTask_FrozenIceCube_Step4(u8 taskId)
 
 void AnimTask_StatsChange(u8 taskId)
 {
-    bool16 goesDown = FALSE;
+    s16 goesDown = FALSE;
     s16 animStatId = 0;
-    bool16 sharply = FALSE;
+    s16 sharply = FALSE;
 
     switch (gBattleSpritesDataPtr->animationData->animArg)
     {
