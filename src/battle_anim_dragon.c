@@ -348,10 +348,17 @@ static void AnimDragonDanceOrb_Step(struct Sprite *sprite)
         if (++sprite->data[4] > 5)
         {
             sprite->data[4] = 0;
+            // TODO: did some weird typo bug happen here?!
+            #if !MODERN
             if (sprite->data[5] <= 15 && ++sprite->data[5] > 15)
                 sprite->data[5] = 16;
+            #else
+            // Yeah I don't get it either. This is just a simplification of above
+            if (sprite->data[5] == 15)
+                sprite->data[5] = 16;
+            #endif
         }
-        if (++sprite->data[3] > 0x3C)
+        if (++sprite->data[3] > 60)
         {
             sprite->data[3] = 0;
             sprite->data[0]++;
@@ -359,15 +366,27 @@ static void AnimDragonDanceOrb_Step(struct Sprite *sprite)
         break;
     case 1:
         sprite->data[6] = (sprite->data[6] - sprite->data[5]) & 0xFF;
-        if (sprite->data[7] <= 0x95 && (sprite->data[7] += 8) > 0x95)
+        #if !MODERN
+        if (sprite->data[7] < 0x96 && (sprite->data[7] += 8) >= 0x96)
+        #else 
+        if (sprite->data[7] < 0x96 && (sprite->data[7] += 8) > 0x96) 
+        #endif
             sprite->data[7] = 0x96;
+        
         sprite->x2 = Cos(sprite->data[6], sprite->data[7]);
         sprite->y2 = Sin(sprite->data[6], sprite->data[7]);
         if (++sprite->data[4] > 5)
         {
             sprite->data[4] = 0;
+            // TODO: did some weird typo bug happen here?!
+            #if !MODERN
             if (sprite->data[5] <= 15 && ++sprite->data[5] > 15)
                 sprite->data[5] = 16;
+            #else
+            // Yeah I don't get it either. This is just a simplification of above
+            if (sprite->data[5] == 15)
+                sprite->data[5] = 16;
+            #endif
         }
         if (++sprite->data[3] > 20)
             DestroyAnimSprite(sprite);
@@ -397,9 +416,15 @@ void AnimTask_DragonDanceWaver(u8 taskId)
     scanlineParams.dmaControl = SCANLINE_EFFECT_DMACNT_16BIT;
     scanlineParams.initState = 1;
     scanlineParams.unused9 = 0;
+
+    #if 1
     y = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
     task->data[3] = y - 32;
     task->data[4] = y + 32;
+    #else
+    task->data[3] = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
+    task->data[4] = task->data[3] + 64;
+    #endif
     if (task->data[3] < 0)
         task->data[3] = 0;
 
@@ -428,7 +453,7 @@ static void AnimTask_DragonDanceWaver_Step(u8 taskId)
         UpdateDragonDanceScanlineEffect(task);
         break;
     case 1:
-        if (++task->data[1] > 0x3C)
+        if (++task->data[1] > 60)
             task->data[0]++;
         UpdateDragonDanceScanlineEffect(task);
         break;
@@ -457,7 +482,7 @@ static void UpdateDragonDanceScanlineEffect(struct Task *task)
     u16 i;
     for (i = task->data[3]; i <= task->data[4]; i++)
     {
-        gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = ((gSineTable[sineIndex] * task->data[6]) >> 7) + task->data[2];
+        gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = task->data[2] + ((gSineTable[sineIndex] * task->data[6]) >> 7);
         sineIndex = (sineIndex + 8) & 0xFF;
     }
 
