@@ -1091,8 +1091,10 @@ static bool8 BufferTradeParties(void)
         {
             u16 species = GetMonData(mon, MON_DATA_SPECIES);
             // This check is so redundant. Just check for the shedninja!!!
+            #if !MODERN
             if (species != SPECIES_NONE)
             {
+            #endif
                 if (species == SPECIES_SHEDINJA && GetMonData(mon, MON_DATA_LANGUAGE) != LANGUAGE_JAPANESE)
                 {
                     GetMonData(mon, MON_DATA_NICKNAME, name);
@@ -1102,7 +1104,9 @@ static bool8 BufferTradeParties(void)
                         SetMonData(mon, MON_DATA_NICKNAME, gSpeciesNames[SPECIES_SHEDINJA]);
                     }
                 }
+                #if !MODERN
             }
+            #endif
         }
         return TRUE;
     }
