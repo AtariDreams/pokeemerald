@@ -349,7 +349,7 @@ static void AnimTask_DigBounceMovement(u8 taskId)
         else
             gBattle_BG2_Y = task->data[13] - task->data[5];
 
-        if (task->data[5] > 63)
+        if (task->data[5] >= 64)
         {
             task->data[5] = 120 - task->data[14];
             if (task->data[11] == 1)
@@ -389,6 +389,7 @@ static void AnimTask_DigEndBounceMovementSetInvisible(u8 taskId)
 
 void AnimTask_DigUpMovement(u8 taskId)
 {
+    // TODO: should I call directly?
     struct Task *task = &gTasks[taskId];
 
     if (gBattleAnimArgs[0] == FALSE)
@@ -414,12 +415,12 @@ static void AnimTask_DigSetVisibleUnderground(u8 taskId)
         break;
     case 1:
         DestroyAnimVisualTask(taskId);
+        break;
     }
 }
 
 static void AnimTask_DigRiseUpFromHole(u8 taskId)
 {
-    u8 var0;
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -432,9 +433,8 @@ static void AnimTask_DigRiseUpFromHole(u8 taskId)
         else
             task->data[12] = gBattle_BG2_X;
 
-        var0 =  GetBattlerYCoordWithElevation(gBattleAnimAttacker);
-        task->data[14] = var0 - 32;
-        task->data[15] = var0 + 32;
+        task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
+        task->data[15] = task->data[14] + 64;
         task->data[0]++;
         break;
     case 1:
@@ -507,13 +507,16 @@ static void SetDigScanlineEffect(u8 useBG1, s16 y, s16 endY)
 // arg 5: duration
 void AnimDirtPlumeParticle(struct Sprite *sprite)
 {
-    s8 battler;
     s16 xOffset;
+    #if MODERN
+    
+    u8 battler;
+    #else
+    u16 battler;
+    #endif
 
-    if (gBattleAnimArgs[0] == 0)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
+    battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
+    
 
     xOffset = 24;
     if (gBattleAnimArgs[1] == 1)
