@@ -517,13 +517,22 @@ void AnimDirtPlumeParticle(struct Sprite *sprite)
 
     battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
     
-
+    #if !MODERN
     xOffset = 24;
     if (gBattleAnimArgs[1] == 1)
     {
         xOffset *= -1;
         gBattleAnimArgs[2] *= -1;
     }
+    #else
+    if (gBattleAnimArgs[1] == 1)
+    {
+        xOffset = -24;
+        gBattleAnimArgs[2] *= -1;
+    }
+    else
+        xOffset = 24;
+    #endif
 
     sprite->x = GetBattlerSpriteCoord(battler, BATTLER_COORD_X_2) + xOffset;
     sprite->y = GetBattlerYCoordWithElevation(battler) + 30;
@@ -549,12 +558,7 @@ static void AnimDirtPlumeParticle_Step(struct Sprite *sprite)
 // arg 2: duration
 static void AnimDigDirtMound(struct Sprite *sprite)
 {
-    s8 battler;
-
-    if (gBattleAnimArgs[0] == 0)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
+    u8 battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
 
     sprite->x = GetBattlerSpriteCoord(battler, BATTLER_COORD_X) - 16 + (gBattleAnimArgs[1] * 32);
     sprite->y = GetBattlerYCoordWithElevation(battler) + 32;
@@ -584,10 +588,8 @@ void AnimTask_HorizontalShake(u8 taskId)
     u16 i;
     struct Task *task = &gTasks[taskId];
 
-    if (gBattleAnimArgs[1] != 0)
-        task->tHorizOffset = task->tInitHorizOffset = gBattleAnimArgs[1] + 3;
-    else
-        task->tHorizOffset = task->tInitHorizOffset = (gAnimMovePower / 10) + 3;
+    task->tInitHorizOffset = 3 + ((gBattleAnimArgs[1])? gBattleAnimArgs[1] : (gAnimMovePower / 10));
+	task->tHorizOffset = task->tInitHorizOffset;
 
     task->tMaxTime = gBattleAnimArgs[2];
     switch (gBattleAnimArgs[0])
