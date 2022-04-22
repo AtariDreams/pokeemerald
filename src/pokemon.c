@@ -2341,7 +2341,6 @@ void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
     {
         otId = Random32();
         personality = Random32();
-
     }
     #ifndef BUGFIX
     while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE);
