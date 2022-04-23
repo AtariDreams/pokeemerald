@@ -7006,8 +7006,9 @@ static bool8 ShouldSkipFriendshipChange(void)
 #define ALLOC_FAIL_BUFFER (1 << 0)
 #define ALLOC_FAIL_STRUCT (1 << 1)
 #define GFX_MANAGER_ACTIVE 0xA3 // Arbitrary value
-#define GFX_MANAGER_SPR_SIZE (MON_PIC_SIZE * 4) // Only Castform uses more than MON_PIC_SIZE, despite not displaying its forms.
 #define GFX_MANAGER_NUM_FRAMES 4  // Only 2 frames are needed
+#define GFX_MANAGER_SPR_SIZE (MON_PIC_SIZE * GFX_MANAGER_NUM_FRAMES) // Only Castform uses more than MON_PIC_SIZE, despite not displaying its forms.
+
 
 static void InitMonSpritesGfx_Battle(struct MonSpritesGfxManager* gfx)
 {
@@ -7045,6 +7046,19 @@ struct MonSpritesGfxManager *CreateMonSpritesGfxManager(u8 managerId, u8 mode)
 
     failureFlags = 0;
     managerId %= MON_SPR_GFX_MANAGERS_COUNT;
+
+    // TODO: some mistake or typo was probably done here
+
+/*     	if(gfx != NULL){	//Repel illegal values
+		if(gfx->flag == GFX_MANAGER_ACTIVE){
+			return NULL;	//Already secured
+		}else{
+			// Initialize before use
+			memset(gfx,0,sizeof(POKE_DECORD_DATA));
+			gfx = NULL;
+		}
+	} */
+
     gfx = AllocZeroed(sizeof(*gfx));
     if (gfx == NULL)
         return NULL;
@@ -7071,7 +7085,11 @@ struct MonSpritesGfxManager *CreateMonSpritesGfxManager(u8 managerId, u8 mode)
 
     // Set up sprite / sprite pointer buffers
     gfx->spriteBuffer = AllocZeroed(gfx->dataSize * GFX_MANAGER_SPR_SIZE * gfx->numSprites);
+    #if !MODERN
     gfx->spritePointers = AllocZeroed(gfx->numSprites * 32); // ? Only * 4 is necessary, perhaps they were thinking bits.
+    #else
+    gfx->spritePointers = AllocZeroed(gfx->numSprites * GFX_MANAGER_NUM_FRAMES);
+    #endif
     if (gfx->spriteBuffer == NULL || gfx->spritePointers == NULL)
     {
         failureFlags |= ALLOC_FAIL_BUFFER;
@@ -7146,16 +7164,15 @@ void DestroyMonSpritesGfxManager(u8 managerId)
     if (gfx->active != GFX_MANAGER_ACTIVE)
     {
         memset(gfx, 0, sizeof(*gfx));
+        return;
     }
-    else
-    {
-        TRY_FREE_AND_SET_NULL(gfx->frameImages);
-        TRY_FREE_AND_SET_NULL(gfx->templates);
-        TRY_FREE_AND_SET_NULL(gfx->spritePointers);
-        TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
-        memset(gfx, 0, sizeof(*gfx));
-        Free(gfx);
-    }
+
+    TRY_FREE_AND_SET_NULL(gfx->frameImages);
+    TRY_FREE_AND_SET_NULL(gfx->templates);
+    TRY_FREE_AND_SET_NULL(gfx->spritePointers);
+    TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
+    memset(gfx, 0, sizeof(*gfx));
+    Free(gfx);
 }
 
 u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
@@ -7165,11 +7182,9 @@ u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
     {
         return NULL;
     }
-    else
-    {
-        if (spriteNum >= gfx->numSprites)
-            spriteNum = 0;
 
-        return gfx->spritePointers[spriteNum];
-    }
+    if (spriteNum >= gfx->numSprites)
+        spriteNum = 0;
+
+    return gfx->spritePointers[spriteNum];
 }
