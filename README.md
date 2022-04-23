@@ -1,4 +1,4 @@
-# Pokémon Emerald
+# Pokémon Emerald Hypothetical
 
 This is a decompilation of Pokémon Emerald.
 
