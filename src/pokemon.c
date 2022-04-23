@@ -6567,10 +6567,8 @@ s8 GetFlavorRelationByPersonality(u32 personality, u8 flavor)
 bool8 IsTradedMon(struct Pokemon *mon)
 {
     u8 otName[PLAYER_NAME_LENGTH + 1];
-    u32 otId;
     GetMonData(mon, MON_DATA_OT_NAME, otName);
-    otId = GetMonData(mon, MON_DATA_OT_ID, 0);
-    return IsOtherTrainer(otId, otName);
+    return IsOtherTrainer(GetMonData(mon, MON_DATA_OT_ID, 0), otName);
 }
 
 bool8 IsOtherTrainer(u32 otId, u8 *otName)
@@ -6581,7 +6579,7 @@ bool8 IsOtherTrainer(u32 otId, u8 *otName)
       | (gSaveBlock2Ptr->playerTrainerId[2] << 16)
       | (gSaveBlock2Ptr->playerTrainerId[3] << 24)))
     {
-        int i;
+        m32 i;
         for (i = 0; otName[i] != EOS; i++)
             if (otName[i] != gSaveBlock2Ptr->playerName[i])
                 return TRUE;
@@ -6598,10 +6596,11 @@ void MonRestorePP(struct Pokemon *mon)
 
 void BoxMonRestorePP(struct BoxPokemon *boxMon)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
+        #if !MODERN
         if (GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0))
         {
             u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
@@ -6609,6 +6608,14 @@ void BoxMonRestorePP(struct BoxPokemon *boxMon)
             u8 pp = CalculatePPWithBonus(move, bonus, i);
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
+        #else
+        u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
+        if (move)
+        {
+            u8 pp = CalculatePPWithBonus(move, GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0), i)
+            SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
+        }
+        #endif
     }
 }
 
@@ -6631,10 +6638,10 @@ void SetMonPreventsSwitchingString(void)
     BattleStringExpandPlaceholders(gText_PkmnsXPreventsSwitching, gStringVar4);
 }
 
-static s32 GetWildMonTableIdInAlteringCave(u16 species)
+static m32 GetWildMonTableIdInAlteringCave(u16 species)
 {
-    s32 i;
-    for (i = 0; i < (s32) ARRAY_COUNT(sAlteringCaveWildMonHeldItems); i++)
+    m32 i;
+    for (i = 0; i < (m32) ARRAY_COUNT(sAlteringCaveWildMonHeldItems); i++)
         if (sAlteringCaveWildMonHeldItems[i].species == species)
             return i;
     return 0;
@@ -6656,7 +6663,7 @@ void SetWildMonHeldItem(void)
         }
         if (gMapHeader.mapLayoutId == LAYOUT_ALTERING_CAVE)
         {
-            s32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
+            m32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
             if (alteringCaveId != 0)
             {
                 // In active Altering Cave, use special item list
@@ -6681,6 +6688,7 @@ void SetWildMonHeldItem(void)
             {
                 // Both held items are the same, 100% chance to hold item
                 SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gBaseStats[species].item1);
+                return;
             }
             else
             {
@@ -6704,11 +6712,7 @@ bool8 IsMonShiny(struct Pokemon *mon)
 
 bool8 IsShinyOtIdPersonality(u32 otId, u32 personality)
 {
-    bool8 retVal = FALSE;
-    u32 shinyValue = GET_SHINY_VALUE(otId, personality);
-    if (shinyValue < SHINY_ODDS)
-        retVal = TRUE;
-    return retVal;
+    return ((GET_SHINY_VALUE(otId, personality)) < SHINY_ODDS);
 }
 
 const u8 *GetTrainerPartnerName(void)
