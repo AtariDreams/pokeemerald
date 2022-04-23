@@ -202,7 +202,7 @@ void RouletteFlash_Enable(struct RouletteFlashUtil *flash, u16 flags)
     flash->enabled++;
     #else
     u16 i;
-    flash->enabled = TRUE:
+    flash->enabled = TRUE;
     #endif
 
     for (i = 0; i < ARRAY_COUNT(flash->palettes); i++)
