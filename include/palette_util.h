@@ -65,7 +65,7 @@ struct RouletteFlashUtil
     struct RouletteFlashPalette palettes[16];
 };
 
-int InitPulseBlendPaletteSettings(struct PulseBlend *, const struct PulseBlendSettings *);
+u32 InitPulseBlendPaletteSettings(struct PulseBlend *, const struct PulseBlendSettings *);
 void InitPulseBlend(struct PulseBlend *);
 void MarkUsedPulseBlendPalettes(struct PulseBlend *, u16, u8);
 void UnloadUsedPulseBlendPalettes(struct PulseBlend *, u16, u8);
