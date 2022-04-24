@@ -235,7 +235,7 @@ bool8 SiiRtcSetStatus(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -266,7 +266,7 @@ bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -293,7 +293,7 @@ bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -324,7 +324,7 @@ bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -351,7 +351,7 @@ bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
     u8 alarmData[2];
 
     if (sLocked == TRUE)
@@ -395,7 +395,7 @@ static int WriteCommand(u8 value)
 static void WriteCommand(u8 value)
 #endif
 {
-    u8 i;
+    m8 i;
     u8 temp;
 
     for (i = 0; i < 8; i++)
@@ -417,7 +417,7 @@ static int WriteData(u8 value)
 static void WriteData(u8 value)
 #endif
 {
-    u8 i;
+    m8 i;
     u8 temp;
 
     for (i = 0; i < 8; i++)
@@ -435,7 +435,7 @@ static void WriteData(u8 value)
 
 static u8 ReadData()
 {
-    u8 i;
+    m8 i;
     u8 temp;
     u8 value;
 
