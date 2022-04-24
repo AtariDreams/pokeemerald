@@ -1290,17 +1290,20 @@ static void WallyHandleHealthBarUpdate(void)
 
     LoadBattleBarGfx(0);
     hpVal = gBattleBufferA[gActiveBattler][2] | (gBattleBufferA[gActiveBattler][3] << 8);
-    // TODO: maybe the way it was before is better
     if (hpVal != INSTANT_HP_BAR_DROP)
     {
-        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP), GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP), hpVal);
+        u32 maxHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP);
+        u32 curHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP);
+
+        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], maxHP, curHP, hpVal);
     }
     else
     {
-        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP), 0, hpVal);
+        u32 maxHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP);
+
+        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], maxHP, 0, hpVal);
         UpdateHpTextInHealthbox(gHealthboxSpriteIds[gActiveBattler], 0, HP_CURRENT);
     }
-
     gBattlerControllerFuncs[gActiveBattler] = CompleteOnHealthbarDone;
 }
 
