@@ -277,6 +277,7 @@ static u32 Client_RunMysteryEventScript(struct MysteryGiftClient * client)
 
 static u32 Client_RunBufferScript(struct MysteryGiftClient * client)
 {
+    #if !MODERN
     // exec arbitrary code
     u32 (*func)(u32 *, struct SaveBlock2 *, struct SaveBlock1 *) = (void *)gDecompressionBuffer;
     if (func(&client->param, gSaveBlock2Ptr, gSaveBlock1Ptr) == 1)
@@ -284,6 +285,7 @@ static u32 Client_RunBufferScript(struct MysteryGiftClient * client)
         client->funcId = FUNC_RUN;
         client->funcState = 0;
     }
+    #endif
     return CLI_RET_ACTIVE;
 }
 
