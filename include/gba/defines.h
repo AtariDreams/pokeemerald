@@ -7,7 +7,7 @@
 #define FALSE 0
 
 #define IWRAM_DATA __attribute__((section("iwram_data")))
-#if !MODERN
+#if 0
 #define EWRAM_DATA __attribute__((section("ewram_data")))
 #else
 #define EWRAM_DATA

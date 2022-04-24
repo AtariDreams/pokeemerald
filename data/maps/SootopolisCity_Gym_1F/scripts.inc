@@ -222,6 +222,7 @@ SootopolisCity_Gym_1F_Text_JuanDefeat:
 	.string "Very well, you are the winner.\p"
 	.string "From you, I sense the brilliant shine\n"
 	.string "of skill that will overcome all.\p"
+	.if !MODERN
 	.string "However, compared with me or even\n"
 	.string "WALLACE, you are lacking in elegance.\p"
 	.string "Perhaps I should make you a loan\n"
@@ -230,6 +231,9 @@ SootopolisCity_Gym_1F_Text_JuanDefeat:
 	.string "… … … … … …\p"
 	.string "Hahaha, I merely jest!\p"
 	.string "Rather than my clothes, I shall reward\n"
+	.else
+	.string "Because of your skill, I shall reward\n"
+	.endif
 	.string "you with this, the RAIN BADGE!$"
 
 SootopolisCity_Gym_1F_Text_ReceivedRainBadge:
