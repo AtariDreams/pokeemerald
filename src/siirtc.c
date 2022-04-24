@@ -360,7 +360,7 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     sLocked = TRUE;
 
     // Decode BCD.
-    alarmData[0] = (rtc->alarmHour & 0xF) + 10 * ((rtc->alarmHour >> 4) & 0xF);
+    alarmData[0] = (rtc->alarmHour & 0xF) + ((rtc->alarmHour >> 4) & 0xF) * 10;
 
     // The AM/PM flag must be set correctly even in 24-hour mode.
 
