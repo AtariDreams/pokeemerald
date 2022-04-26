@@ -334,7 +334,7 @@ void InitIntrHandlers(void)
 
     DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
 
-    INTR_VECTOR = (void *volatile)IntrMain_Buffer;
+    INTR_VECTOR = (vu32)IntrMain_Buffer;
 
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
