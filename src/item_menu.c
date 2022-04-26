@@ -619,26 +619,25 @@ void GoToBagMenu(u8 location, u8 pocket, void ( *exitCallback)())
     {
         // Alloc failed, exit
         SetMainCallback2(exitCallback);
+        return;
     }
-    else
-    {
-        if (location != ITEMMENULOCATION_LAST)
-            gBagPosition.location = location;
-        if (exitCallback)
-            gBagPosition.exitCallback = exitCallback;
-        if (pocket < POCKETS_COUNT)
-            gBagPosition.pocket = pocket;
-        if (gBagPosition.location == ITEMMENULOCATION_BERRY_TREE ||
-            gBagPosition.location == ITEMMENULOCATION_BERRY_BLENDER_CRUSH)
-            gBagMenu->pocketSwitchDisabled = TRUE;
-        gBagMenu->newScreenCallback = NULL;
-        gBagMenu->toSwapPos = NOT_SWAPPING;
-        gBagMenu->pocketScrollArrowsTask = TASK_NONE;
-        gBagMenu->pocketSwitchArrowsTask = TASK_NONE;
-        memset(gBagMenu->spriteIds, SPRITE_NONE, sizeof(gBagMenu->spriteIds));
-        memset(gBagMenu->windowIds, WINDOW_NONE, sizeof(gBagMenu->windowIds));
-        SetMainCallback2(CB2_Bag);
-    }
+
+    if (location != ITEMMENULOCATION_LAST)
+        gBagPosition.location = location;
+    if (exitCallback)
+        gBagPosition.exitCallback = exitCallback;
+    if (pocket < POCKETS_COUNT)
+        gBagPosition.pocket = pocket;
+    if (gBagPosition.location == ITEMMENULOCATION_BERRY_TREE ||
+        gBagPosition.location == ITEMMENULOCATION_BERRY_BLENDER_CRUSH)
+        gBagMenu->pocketSwitchDisabled = TRUE;
+    gBagMenu->newScreenCallback = NULL;
+    gBagMenu->toSwapPos = NOT_SWAPPING;
+    gBagMenu->pocketScrollArrowsTask = TASK_NONE;
+    gBagMenu->pocketSwitchArrowsTask = TASK_NONE;
+    memset(gBagMenu->spriteIds, SPRITE_NONE, sizeof(gBagMenu->spriteIds));
+    memset(gBagMenu->windowIds, WINDOW_NONE, sizeof(gBagMenu->windowIds));
+    SetMainCallback2(CB2_Bag);
 }
 
 void CB2_BagMenuRun(void)
@@ -810,24 +809,41 @@ static bool8 LoadBagMenu_Graphics(void)
         gBagMenu->graphicsLoadState++;
         break;
     case 1:
-        if (FreeTempTileDataBuffersIfPossible() != TRUE)
-        {
-            LZDecompressWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer);
-            gBagMenu->graphicsLoadState++;
-        }
+        if (FreeTempTileDataBuffersIfPossible() == TRUE)
+            break;
+
+        LZDecompressWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer);
+        gBagMenu->graphicsLoadState++;
+
         break;
     case 2:
+    #if !MODERN
         if (!IsWallysBag() && gSaveBlock2Ptr->playerGender != MALE)
             LoadCompressedPalette(gBagScreenFemale_Pal, 0, 0x40);
         else
             LoadCompressedPalette(gBagScreenMale_Pal, 0, 0x40);
+    #else
+        if (gSaveBlock2Ptr->playerGender == MALE || IsWallysBag())
+            LoadCompressedPalette(gBagScreenMale_Pal, 0, 0x40);
+            
+        else
+            LoadCompressedPalette(gBagScreenFemale_Pal, 0, 0x40);
+        #endif
         gBagMenu->graphicsLoadState++;
         break;
+    // TODO: can we like not break and this could optimize better? Can we get away with it?
     case 3:
+#if !MODERN
         if (IsWallysBag() == TRUE || gSaveBlock2Ptr->playerGender == MALE)
             LoadCompressedSpriteSheet(&gBagMaleSpriteSheet);
         else
             LoadCompressedSpriteSheet(&gBagFemaleSpriteSheet);
+#else
+        if (gSaveBlock2Ptr->playerGender == MALE || IsWallysBag())
+            LoadCompressedSpriteSheet(&gBagMaleSpriteSheet);
+        else
+            LoadCompressedSpriteSheet(&gBagFemaleSpriteSheet);
+#endif
         gBagMenu->graphicsLoadState++;
         break;
     case 4:
@@ -860,8 +876,8 @@ static void AllocateBagItemListBuffers(void)
 
 static void LoadBagItemListBuffers(u8 pocketId)
 {
-    u16 i;
-    struct BagPocket *pocket = &gBagPockets[pocketId];
+    m16 i;
+    const struct BagPocket *pocket = &gBagPockets[pocketId];
     struct ListMenuItem *subBuffer;
 
     if (!gBagMenu->hideCloseBagText)
