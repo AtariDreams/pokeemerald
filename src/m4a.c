@@ -971,7 +971,7 @@ void CgbSound(void)
                     break;
                 }
                 channels->envelopeCounter = channels->attack;
-                if ((s8)(channels->attack & mask))
+                if ((s8)(channels->envelopeCounter & mask))
                 {
                     channels->envelopeVolume = 0;
                     goto envelope_step_complete;
