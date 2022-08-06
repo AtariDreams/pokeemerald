@@ -167,7 +167,7 @@ bool32 OpenConditionGraphMenu(void)
     return TRUE;
 }
 
-void CreateConditionGraphMenuLoopedTask(s32 id)
+void CreateConditionGraphMenuLoopedTask(u32 id)
 {
     struct Pokenav_ConditionMenuGfx *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU_GFX);
     menu->loopedTaskId = CreateLoopedTask(sLoopedTaskFuncs[id], 1);
