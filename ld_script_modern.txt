@@ -16,8 +16,6 @@ SECTIONS {
         . = 0x20000;
 
         *(ewram_data);
-        *(.data)
-        *(.data.*)
         . = 0x40000;
     }
 
