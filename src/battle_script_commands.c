@@ -6659,8 +6659,8 @@ static void Cmd_tryhealhalfhealth(void)
 
 static void Cmd_trymirrormove(void)
 {
-    s32 validMovesCount;
-    s32 i;
+    m32 validMovesCount;
+    m32 i;
     u16 move;
     #if !MODERN
     u16 validMoves[MAX_BATTLERS_COUNT];
@@ -6676,7 +6676,11 @@ static void Cmd_trymirrormove(void)
     {
         if (i != gBattlerAttacker)
         {
+            #if !MODERN
             move = *((u8 *)(gBattleStruct->lastTakenMoveFrom) + i * 2 + 0 + gBattlerAttacker * 8)| (*((u8 *)(gBattleStruct->lastTakenMoveFrom) + i * 2 + 1 + gBattlerAttacker * 8) << 8);
+            #else
+            move = gBattleStruct->lastTakenMoveFrom[i * 2 + gBattlerAttacker * 8] | (gBattleStruct->lastTakenMoveFrom[i * 2 + gBattlerAttacker * 8 + 1] << 8);
+            #endif
 
             if (move != MOVE_NONE && move != MOVE_UNAVAILABLE)
             {
@@ -6686,7 +6690,11 @@ static void Cmd_trymirrormove(void)
         }
     }
 
+    #if !MODERN
     move = *(gBattleStruct->lastTakenMove + gBattlerAttacker * 2 + 0) | (*(gBattleStruct->lastTakenMove + gBattlerAttacker * 2 + 1) << 8);
+    #else
+    move = gBattleStruct->lastTakenMove[gBattlerAttacker * 2] | (gBattleStruct->lastTakenMove[gBattlerAttacker * 2 + 1] << 8);
+    #endif
 
     if (move != MOVE_NONE && move != MOVE_UNAVAILABLE)
     {
@@ -6832,7 +6840,11 @@ static void Cmd_nop(void)
 
 bool8 UproarWakeUpCheck(u8 battlerId)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     for (i = 0; i < gBattlersCount; i++)
     {
@@ -6988,7 +7000,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
 
     PREPARE_STAT_BUFFER(gBattleTextBuff1, statId)
 
-    if (statValue <= -1) // Stat decrease.
+    if (statValue < 0) // Stat decrease.
     {
         if (gSideTimers[GET_BATTLER_SIDE(gActiveBattler)].mistTimer && !certain && gCurrentMove != MOVE_CURSE)
         {
@@ -7008,12 +7020,12 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             }
             return STAT_CHANGE_DIDNT_WORK;
         }
-        else if (gCurrentMove != MOVE_CURSE && notProtectAffected != TRUE && JumpIfMoveAffectedByProtect(0))
+    if (gCurrentMove != MOVE_CURSE && notProtectAffected != TRUE && JumpIfMoveAffectedByProtect(0))
         {
             gBattlescriptCurrInstr = BattleScript_ButItFailed;
             return STAT_CHANGE_DIDNT_WORK;
         }
-        else if ((gBattleMons[gActiveBattler].ability == ABILITY_CLEAR_BODY || gBattleMons[gActiveBattler].ability == ABILITY_WHITE_SMOKE) && !certain && gCurrentMove != MOVE_CURSE)
+        if ((gBattleMons[gActiveBattler].ability == ABILITY_CLEAR_BODY || gBattleMons[gActiveBattler].ability == ABILITY_WHITE_SMOKE) && !certain && gCurrentMove != MOVE_CURSE)
         {
             if (flags == STAT_CHANGE_ALLOW_PTR)
             {
@@ -7033,7 +7045,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             }
             return STAT_CHANGE_DIDNT_WORK;
         }
-        else if (gBattleMons[gActiveBattler].ability == ABILITY_KEEN_EYE && !certain && statId == STAT_ACC)
+        if (gBattleMons[gActiveBattler].ability == ABILITY_KEEN_EYE && !certain && statId == STAT_ACC)
         {
             if (flags == STAT_CHANGE_ALLOW_PTR)
             {
@@ -7045,7 +7057,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             }
             return STAT_CHANGE_DIDNT_WORK;
         }
-        else if (gBattleMons[gActiveBattler].ability == ABILITY_HYPER_CUTTER && !certain && statId == STAT_ATK)
+        if (gBattleMons[gActiveBattler].ability == ABILITY_HYPER_CUTTER && !certain && statId == STAT_ATK)
         {
             if (flags == STAT_CHANGE_ALLOW_PTR)
             {
@@ -7057,7 +7069,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             }
             return STAT_CHANGE_DIDNT_WORK;
         }
-        else if (gBattleMons[gActiveBattler].ability == ABILITY_SHIELD_DUST && flags == 0)
+        if (gBattleMons[gActiveBattler].ability == ABILITY_SHIELD_DUST && flags == 0)
         {
             return STAT_CHANGE_DIDNT_WORK;
         }
@@ -7069,12 +7081,12 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             if (statValue == -2)
             {
                 gBattleTextBuff2[1] = B_BUFF_STRING;
-                gBattleTextBuff2[2] = STRINGID_STATHARSHLY;
+                gBattleTextBuff2[2] = STRINGID_STATHARSHLY & 0xFF;
                 gBattleTextBuff2[3] = STRINGID_STATHARSHLY >> 8;
                 index = 4;
             }
             gBattleTextBuff2[index++] = B_BUFF_STRING;
-            gBattleTextBuff2[index++] = STRINGID_STATFELL;
+            gBattleTextBuff2[index++] = STRINGID_STATFELL & 0xFF;
             gBattleTextBuff2[index++] = STRINGID_STATFELL >> 8;
             gBattleTextBuff2[index] = B_BUFF_EOS;
 
@@ -7097,7 +7109,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             index = 4;
         }
         gBattleTextBuff2[index++] = B_BUFF_STRING;
-        gBattleTextBuff2[index++] = STRINGID_STATROSE;
+        gBattleTextBuff2[index++] = STRINGID_STATROSE & 0xFF;
         gBattleTextBuff2[index++] = STRINGID_STATROSE >> 8;
         gBattleTextBuff2[index] = B_BUFF_EOS;
 
@@ -7110,14 +7122,24 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
     gBattleMons[gActiveBattler].statStages[statId] += statValue;
     if (gBattleMons[gActiveBattler].statStages[statId] < MIN_STAT_STAGE)
         gBattleMons[gActiveBattler].statStages[statId] = MIN_STAT_STAGE;
-    if (gBattleMons[gActiveBattler].statStages[statId] > MAX_STAT_STAGE)
+    M_IF (gBattleMons[gActiveBattler].statStages[statId] > MAX_STAT_STAGE)
         gBattleMons[gActiveBattler].statStages[statId] = MAX_STAT_STAGE;
 
-    if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && flags & STAT_CHANGE_ALLOW_PTR)
+    #if !MODERN
+    if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && flags & STAT_BUFF_ALLOW_PTR)
         gMoveResultFlags |= MOVE_RESULT_MISSED;
 
-    if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && !(flags & STAT_CHANGE_ALLOW_PTR))
-        return STAT_CHANGE_DIDNT_WORK;
+    if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && !(flags & STAT_BUFF_ALLOW_PTR))
+        return STAT_BUFF_DIDNT_WORK;
+    #else
+    if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE)
+    {
+        if (!(flags & STAT_BUFF_ALLOW_PTR))
+            return STAT_BUFF_DIDNT_WORK;
+
+        gMoveResultFlags |= MOVE_RESULT_MISSED;
+    }
+    #endif
 
     return STAT_CHANGE_WORKED;
 }
@@ -7132,7 +7154,7 @@ static void Cmd_statbuffchange(void)
 // Haze
 static void Cmd_normalisebuffs(void)
 {
-    s32 i, j;
+    m32 i, j;
 
     for (i = 0; i < gBattlersCount; i++)
     {
@@ -7170,10 +7192,10 @@ static void Cmd_setmultihitcounter(void)
     else
     {
         gMultiHitCounter = Random() & 3;
-        if (gMultiHitCounter > 1)
-            gMultiHitCounter = (Random() & 3) + 2;
-        else
+        if (gMultiHitCounter < 2)
             gMultiHitCounter += 2;
+        else
+            gMultiHitCounter = (Random() & 3) + 2;
     }
 
     gBattlescriptCurrInstr += 2;
