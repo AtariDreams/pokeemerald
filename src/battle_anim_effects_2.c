@@ -5454,10 +5454,10 @@ static void AnimTask_SlackOffSquish_Step(u8 taskId)
         {
             task->data[1] = 0;
             task->data[2]++;
-            if (!(task->data[2] & 1))
-                gSprites[task->data[15]].x2 = -1;
-            else
+            if (task->data[2] & 1)
                 gSprites[task->data[15]].x2 = 1;
+            else
+                gSprites[task->data[15]].x2 = -1;
         }
     }
     else
