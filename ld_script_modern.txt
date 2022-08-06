@@ -18,6 +18,12 @@ SECTIONS {
         *(ewram_data);
         . = 0x40000;
     }
+    .sdata		:
+	{
+		*(.sdata) 
+	}
+	_edata  =  .;
+	PROVIDE (edata = .);
 
     . = 0x3000000;
 
