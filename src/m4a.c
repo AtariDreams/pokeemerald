@@ -910,7 +910,8 @@ static inline bool32 CgbPan(struct CgbChannel *chan, u8 rightVolume, u8 leftVolu
 
 void CgbModVol(struct CgbChannel *chan)
 {
-    if (!CgbPan(chan, chan->rightVolume, chan->leftVolume))
+    struct SoundInfo *soundInfo = SOUND_INFO_PTR;
+    if ((soundInfo->mode & 1) || !CgbPan(chan, chan->rightVolume, chan->leftVolume))
     {
         chan->pan = 0xFF;
         chan->envelopeGoal = (u32)(chan->leftVolume + chan->rightVolume) / 16;
@@ -1343,7 +1344,7 @@ void CgbSound(void)
                     break;
                 }
                 channels->envelopeCounter = channels->attack;
-                if ((s8)(channels->envelopeCounter & mask))
+                if ((s8)(channels->envelopeCounter))
                 {
                     channels->envelopeVolume = 0;
                     goto envelope_step_complete;
@@ -1487,7 +1488,7 @@ void CgbSound(void)
         channels->envelopeCounter--;
         if (prevC15 == 0)
         {
-            prevC15 = -1
+            prevC15 = -1;
             goto envelope_step_repeat;
         }
 
