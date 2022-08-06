@@ -550,11 +550,6 @@ static void AnimTask_MoveAttackerMementoShadow_Step(u8 taskId)
 
 void AnimTask_MoveTargetMementoShadow(u8 taskId)
 {
-    
-    #if !MODERN
-    u8 x;
-    #endif
-
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -606,14 +601,10 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
         task->data[7] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y) + 31;
         task->data[6] = GetBattlerSpriteCoordAttr(gBattleAnimTarget, BATTLER_COORD_ATTR_TOP) - 7;
         task->data[13] = (task->data[7] - task->data[6]) << 8;
-        #if !MODERN
-        x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
-        task->data[14] = x - 4;
-        task->data[15] = x + 4;
-        #else
+
         task->data[14] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X) - 4;
         task->data[15] = task->data[14] + 8;
-        #endif
+
 
         if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_PLAYER)
             task->data[8] = -12;
