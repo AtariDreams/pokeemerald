@@ -113,7 +113,7 @@ NORETURN void AgbMain(void)
     ClearDma3Requests();
     ResetBgs();
     SetDefaultFontsPointer();
-    InitHeap(gHeap, HEAP_SIZE);
+    HeapInit();
 
     gSoftResetDisabled = FALSE;
 
