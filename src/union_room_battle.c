@@ -120,7 +120,7 @@ void CB2_UnionRoomBattle(void)
         ResetSpriteData();
         FreeAllSpritePalettes();
         ResetTasks();
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         ResetTempTileDataBuffers();
         if (!InitWindows(sWindowTemplates))

@@ -56,8 +56,17 @@ void ResetBgControlStructs(void);
 void Unused_ResetBgControlStruct(u8 bg);
 u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode);
 void SetTextModeAndHideBgs(void);
-int BgTileAllocOp(int bg, int offset, int count, int mode);
+#if !MODERN
+int CONST BgTileAllocOp(int bg, int offset, int count, int mode);
+#endif
+
+#if !MODERN
 void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable);
+#define MResetBgsAndClearDma3BusyFlags() ResetBgsAndClearDma3BusyFlags(0)
+#else
+void ResetBgsAndClearDma3BusyFlags(void);
+#define MResetBgsAndClearDma3BusyFlags() ResetBgsAndClearDma3BusyFlags()
+#endif
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numTemplates);
 void InitBgFromTemplate(const struct BgTemplate *template);
 void SetBgMode(u8 bgMode);

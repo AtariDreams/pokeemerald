@@ -1567,7 +1567,7 @@ static void VBlankCB_DuoFight(void)
 static void InitDuoFightSceneBgs(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates_DuoFight, ARRAY_COUNT(sBgTemplates_DuoFight));
     SetBgTilemapBuffer(0, sRayScene->tilemapBuffers[0]);
     SetBgTilemapBuffer(1, sRayScene->tilemapBuffers[1]);
@@ -2005,7 +2005,7 @@ static void DuoFight_SlideKyogreDown(struct Sprite *sprite)
 static void InitTakesFlightSceneBgs(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(1, sBgTemplates_TakesFlight, ARRAY_COUNT(sBgTemplates_TakesFlight));
     SetBgTilemapBuffer(0, sRayScene->tilemapBuffers[0]);
     SetBgTilemapBuffer(1, sRayScene->tilemapBuffers[1]);
@@ -2206,7 +2206,7 @@ static void SpriteCB_TakesFlight_Smoke(struct Sprite *sprite)
 static void InitDescendsSceneBgs(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates_Descends, ARRAY_COUNT(sBgTemplates_Descends));
     SetBgTilemapBuffer(0, sRayScene->tilemapBuffers[0]);
     SetBgTilemapBuffer(1, sRayScene->tilemapBuffers[1]);
@@ -2456,7 +2456,7 @@ static void SpriteCB_Descends_Rayquaza(struct Sprite *sprite)
 static void InitChargesSceneBgs(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates_Charges, ARRAY_COUNT(sBgTemplates_Charges));
     SetBgTilemapBuffer(0, sRayScene->tilemapBuffers[0]);
     SetBgTilemapBuffer(1, sRayScene->tilemapBuffers[1]);
@@ -2645,7 +2645,7 @@ static void Task_RayChargesEnd(u8 taskId)
 static void InitChasesAwaySceneBgs(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(1, sBgTemplates_ChasesAway, ARRAY_COUNT(sBgTemplates_ChasesAway));
     SetBgTilemapBuffer(0, sRayScene->tilemapBuffers[0]);
     SetBgTilemapBuffer(1, sRayScene->tilemapBuffers[1]);

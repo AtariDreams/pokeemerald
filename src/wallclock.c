@@ -650,7 +650,7 @@ static void LoadWallClockGraphics(void)
 
     LoadPalette(GetOverworldTextboxPalettePtr(), 0xe0, 32);
     LoadPalette(sTextPrompt_Pal, 0xc0, 8);
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     InitWindows(sWindowTemplates);
     DeactivateAllTextPrinters();
@@ -793,7 +793,6 @@ static void Task_SetClock_HandleInput(u8 taskId)
     {
         gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
         return;
-
     }
 
     gTasks[taskId].tMinuteHandAngle = gTasks[taskId].tMinutes * 6;
