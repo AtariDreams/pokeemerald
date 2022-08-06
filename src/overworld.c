@@ -3213,3 +3213,5 @@ static void SpriteCB_LinkPlayer(struct Sprite *sprite)
         sprite->data[7]++;
     }
 }
+
+// TODO: Check const of pointers in parameters
