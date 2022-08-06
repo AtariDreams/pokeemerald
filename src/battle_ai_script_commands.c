@@ -1419,8 +1419,8 @@ static void Cmd_get_ability(void)
 
 static void Cmd_check_ability(void)
 {
-    u32 battlerId = BattleAI_GetWantedBattler(gAIScriptPtr[1]);
-    u32 ability = gAIScriptPtr[2];
+    u8 battlerId = BattleAI_GetWantedBattler(gAIScriptPtr[1]);
+    u8 ability = gAIScriptPtr[2];
 
     if (gAIScriptPtr[1] == AI_TARGET || gAIScriptPtr[1] == AI_TARGET_PARTNER)
     {
@@ -1479,11 +1479,17 @@ static void Cmd_check_ability(void)
 static void Cmd_get_highest_type_effectiveness(void)
 {
     s32 i;
+
+    #if !MODERN
     u8 *dynamicMoveType;
 
     gDynamicBasePower = 0;
     dynamicMoveType = &gBattleStruct->dynamicMoveType;
     *dynamicMoveType = 0;
+    #else
+     gDynamicBasePower = 0;
+     gBattleStruct->dynamicMoveType = 0;
+    #endif 
     gBattleScripting.dmgMultiplier = 1;
     gMoveResultFlags = 0;
     gCritMultiplier = 1;
@@ -1569,15 +1575,10 @@ static void Cmd_if_status_in_party(void)
     u32 statusToCompareTo;
     u8 battlerId;
 
-    switch (gAIScriptPtr[1])
-    {
-    case AI_USER:
+    if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
-        break;
-    default:
+    else
         battlerId = gBattlerTarget;
-        break;
-    }
 
     party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty : gEnemyParty;
 
