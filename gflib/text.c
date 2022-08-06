@@ -1506,18 +1506,21 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
     return width;
 }
 
-u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
+u8 RenderTextHandleBold(u8 *pixels, u8 fontId, const u8 *str)
 {
-    u8 shadowColor;
-    u8 *strLocal;
+    const u8 *strLocal;
     int strPos;
-    int temp;
-    int temp2;
-    u8 colorBackup[3];
+    u16 temp;
+    u16 temp2;
     u8 fgColor;
     u8 bgColor;
+    u8 shadowColor;
 
-    SaveTextColors(&colorBackup[0], &colorBackup[1], &colorBackup[2]);
+    u8 fgColorBak;
+    u8 bgColorBak;
+    u8 shadowColorBak.
+
+    SaveTextColors(&fgColorBak, &bgColorBak, &shadowColorBak);
 
     fgColor = TEXT_COLOR_WHITE;
     bgColor = TEXT_COLOR_TRANSPARENT;
@@ -1532,6 +1535,9 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
         temp = strLocal[strPos++];
         switch (temp)
         {
+        case CHAR_NEWLINE:
+        case EOS:
+            break;
         case EXT_CTRL_CODE_BEGIN:
             temp2 = strLocal[strPos++];
             switch (temp2)
@@ -1586,11 +1592,8 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
         case CHAR_EXTRA_SYMBOL:
         case PLACEHOLDER_BEGIN:
             ++strPos;
-            break;
         case CHAR_PROMPT_SCROLL:
         case CHAR_PROMPT_CLEAR:
-        case CHAR_NEWLINE:
-        case EOS:
             break;
         default:
             switch (fontId)
@@ -1611,7 +1614,7 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
     }
     while (temp != EOS);
 
-    RestoreTextColors(&colorBackup[0], &colorBackup[1], &colorBackup[2]);
+    RestoreTextColors(&fgColorBak, &bgColorBak, &shadowColorBak);
     return 1;
 }
 
@@ -1653,7 +1656,7 @@ void SetDefaultFontsPointer(void)
 
 u8 GetFontAttribute(u8 fontId, u8 attributeId)
 {
-    int result = 0;
+    u8 result = 0;
     switch (attributeId)
     {
         case FONTATTR_MAX_LETTER_WIDTH:
