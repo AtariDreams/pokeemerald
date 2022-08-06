@@ -2699,9 +2699,10 @@ const u8 gMonIcon_DeoxysSpeed[] = INCBIN_U8("graphics/pokemon/deoxys/icon_speed.
 const u8 gMonIcon_DeoxysSpeedWide[] = INCBIN_U8("graphics/pokemon/deoxys/icon_speed_wide.4bpp"); // Unused
 
 // Probably the leftover space from the other Deoxys forms
+#if !MODERN
 static const u8 sEmpty[0x6800] = {0};
-
 const u16 gMonUnusedGarbage[] = INCBIN_U16("graphics/pokemon/unused_garbage.bin");
+#endif
 
 const u8 gMonFootprint_Deoxys[] = INCBIN_U8("graphics/pokemon/deoxys/footprint.1bpp");
 
