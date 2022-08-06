@@ -61,7 +61,7 @@ static void SetupWarp(struct MapHeader *, s8, struct MapPosition *);
 static bool8 TryDoorWarp(struct MapPosition *, u16, u8);
 static s8 GetWarpEventAtPosition(struct MapHeader *, u16, u16, u8);
 static u8 *GetCoordEventScriptAtPosition(struct MapHeader *, u16, u16, u8);
-static struct BgEvent *GetBackgroundEventAtPosition(struct MapHeader *, u16, u16, u8);
+static struct BgEvent *GetBackgroundEventAtPosition(const struct MapHeader *, u16, u16, u8);
 static bool8 TryStartCoordEventScript(struct MapPosition *);
 static bool8 TryStartWarpEventScript(struct MapPosition *, u16);
 static bool8 TryStartMiscWalkingScripts(u16);
@@ -267,7 +267,7 @@ static const u8 *GetInteractionScript(struct MapPosition *position, u8 metatileB
     return NULL;
 }
 
-const u8 *GetInteractedLinkPlayerScript(struct MapPosition *position, u8 metatileBehavior, u8 direction)
+const u8 *GetInteractedLinkPlayerScript(const struct MapPosition *position, u8 metatileBehavior, u8 direction)
 {
     u8 objectEventId;
     s32 i;
@@ -922,12 +922,12 @@ static u8 *GetCoordEventScriptAtPosition(struct MapHeader *mapHeader, u16 x, u16
     return NULL;
 }
 
-u8 *GetCoordEventScriptAtMapPosition(struct MapPosition *position)
+u8 *GetCoordEventScriptAtMapPosition(const struct MapPosition *position)
 {
     return GetCoordEventScriptAtPosition(&gMapHeader, position->x - MAP_OFFSET, position->y - MAP_OFFSET, position->elevation);
 }
 
-static struct BgEvent *GetBackgroundEventAtPosition(struct MapHeader *mapHeader, u16 x, u16 y, u8 elevation)
+static struct BgEvent *GetBackgroundEventAtPosition(const struct MapHeader *mapHeader, u16 x, u16 y, u8 elevation)
 {
     u8 i;
     struct BgEvent *bgEvents = mapHeader->events->bgEvents;
