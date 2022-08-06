@@ -626,7 +626,7 @@ static void Task_BardSong(u8 taskId)
         {
             // End song
             FadeInBGM(6);
-            m4aMPlayFadeOutTemporarily(&gMPlayInfo_SE2, 2);
+            m4aMPlayFadeOutPause(&gMPlayInfo_SE2, 2);
             ScriptContext_Enable();
             DestroyTask(taskId);
         }
