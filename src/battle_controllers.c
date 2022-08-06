@@ -1164,14 +1164,14 @@ void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpN
     sBattleBuffersTransferData[1] = isDoubleBattle;
     sBattleBuffersTransferData[2] = NoPpNumber;
     sBattleBuffersTransferData[3] = 0;
-    for (i = 0; i < sizeof(*movePpData); i++)
-        sBattleBuffersTransferData[4 + i] = *((u8*)(movePpData) + i);
-    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sizeof(*movePpData) + 4);
+    for (i = 0; i < sizeof(struct ChooseMoveStruct); i++)
+        sBattleBuffersTransferData[4 + i] = movePpData[i];
+    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sizeof(struct ChooseMoveStruct) + 4);
 }
 
 void BtlController_EmitChooseItem(u8 bufferId, u8 *battlePartyOrder)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_OPENBAG;
     for (i = 0; i < PARTY_SIZE / 2; i++)
