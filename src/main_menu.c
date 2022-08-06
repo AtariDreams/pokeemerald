@@ -215,7 +215,11 @@ static void Task_NewGameBirchSpeech_WaitToShowGenderMenu(u8);
 static void Task_NewGameBirchSpeech_ChooseGender(u8);
 static void NewGameBirchSpeech_ShowGenderMenu(void);
 static s8 NewGameBirchSpeech_ProcessGenderMenuInput(void);
-static void NewGameBirchSpeech_ClearGenderWindow(u8, u8);
+#if !MODERN
+static void NewGameBirchSpeech_ClearGenderWindow(u8, bool8);
+#else
+static void NewGameBirchSpeech_ClearGenderWindow(void);
+#endif
 static void Task_NewGameBirchSpeech_WhatsYourName(u8);
 static void Task_NewGameBirchSpeech_SlideOutOldGenderSprite(u8);
 static void Task_NewGameBirchSpeech_SlideInNewGenderSprite(u8);
@@ -1540,13 +1544,21 @@ static void Task_NewGameBirchSpeech_ChooseGender(u8 taskId)
         case MALE:
             PlaySE(SE_SELECT);
             gSaveBlock2Ptr->playerGender = MALE;
+            #if !MODERN
             NewGameBirchSpeech_ClearGenderWindow(1, 1);
+            #else
+            NewGameBirchSpeech_ClearGenderWindow();
+            #endif
             gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
             break;
         case FEMALE:
             PlaySE(SE_SELECT);
             gSaveBlock2Ptr->playerGender = FEMALE;
+            #if !MODERN
             NewGameBirchSpeech_ClearGenderWindow(1, 1);
+            #else
+            NewGameBirchSpeech_ClearGenderWindow();
+            #endif
             gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
             break;
     }
@@ -2264,11 +2276,19 @@ static void ClearMainMenuWindowTilemap(const struct WindowTemplate *template)
     CopyBgTilemapBufferToVram(template->bg);
 }
 
+#if !MODERN
 static void NewGameBirchSpeech_ClearGenderWindowTilemap(u8 bg, u8 x, u8 y, u8 width, u8 height, u8 unused)
 {
     FillBgTilemapBufferRect(bg, 0, x + 255, y + 255, width + 2, height + 2, 2);
 }
+#else
+static inline void NewGameBirchSpeech_ClearGenderWindowTilemap(u8 bg, u8 x, u8 y, u8 width, u8 height)
+{
+    FillBgTilemapBufferRect(bg, 0, x + 255, y + 255, width + 2, height + 2, 2);
+}
+#endif
 
+#if !MODERN
 static void NewGameBirchSpeech_ClearGenderWindow(u8 windowId, bool8 copyToVram)
 {
     CallWindowFunction(windowId, NewGameBirchSpeech_ClearGenderWindowTilemap);
@@ -2277,6 +2297,16 @@ static void NewGameBirchSpeech_ClearGenderWindow(u8 windowId, bool8 copyToVram)
     if (copyToVram == TRUE)
         CopyWindowToVram(windowId, COPYWIN_FULL);
 }
+#else
+static inline void NewGameBirchSpeech_ClearGenderWindow(void)
+{
+    struct WindowTemplate *window = &gWindows[1].window;
+    NewGameBirchSpeech_ClearGenderWindowTilemap(window->bg, window->tilemapLeft, window->tilemapTop, window->width, window->height);
+    FillWindowPixelBuffer(1, PIXEL_FILL(1));
+    ClearWindowTilemap(1);
+    CopyWindowToVram(1, COPYWIN_FULL);
+}
+#endif
 
 static void NewGameBirchSpeech_ClearWindow(u8 windowId)
 {
