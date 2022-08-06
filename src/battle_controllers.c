@@ -1444,7 +1444,7 @@ void BtlController_EmitDrawPartyStatusSummary(u8 bufferId, struct HpAndStatus* h
     sBattleBuffersTransferData[2] = (flags & PARTY_SUMM_SKIP_DRAW_DELAY) >> 7; // If true, skip delay after drawing. True during intro
     sBattleBuffersTransferData[3] = CONTROLLER_DRAWPARTYSTATUSSUMMARY;
     for (i = 0; i < (s32)(sizeof(struct HpAndStatus) * PARTY_SIZE); i++)
-        sBattleBuffersTransferData[4 + i] = *(i + (u8 *)(hpAndStatus));
+        sBattleBuffersTransferData[4 + i] = *(i + (u8*)(hpAndStatus));
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sizeof(struct HpAndStatus) * PARTY_SIZE + 4);
 }
 
@@ -1485,16 +1485,20 @@ void BtlController_EmitBattleAnimation(u8 bufferId, u8 animationId, u16 argument
 }
 
 // mode is a LINK_STANDBY_* constant
+// TODO: come back to this after battle merge
 void BtlController_EmitLinkStandbyMsg(u8 bufferId, u8 mode, bool32 record)
 {
     bool8 record_ = record;
     sBattleBuffersTransferData[0] = CONTROLLER_LINKSTANDBYMSG;
     sBattleBuffersTransferData[1] = mode;
 
-    if (record_)
+    if (record_) {
         sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = RecordedBattle_BufferNewBattlerData(&sBattleBuffersTransferData[4]);
-    else
-        sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = 0;
+    }
+    else {
+        sBattleBuffersTransferData[2] = 0;
+        sBattleBuffersTransferData[3] = 0;
+    }
 
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sBattleBuffersTransferData[2] + 4);
 }
