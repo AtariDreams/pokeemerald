@@ -365,10 +365,24 @@ s32 DoPoisonFieldEffect(void)
         }
         pokemon++;
     }
+
+    #if MODERN
+    if (numFainted != 0)
+    {
+        FldEffPoison_Start();
+        return FLDPSN_FNT;
+    }
+    if (numPoisoned != 0)
+    {
+        FldEffPoison_Start();
+        return FLDPSN_PSN;
+    }
+    #else
     if (numFainted != 0 || numPoisoned != 0)
     {
         FldEffPoison_Start();
     }
+    // TODO: maybe move the function call above to be in both if statements
     if (numFainted != 0)
     {
         return FLDPSN_FNT;
@@ -377,5 +391,6 @@ s32 DoPoisonFieldEffect(void)
     {
         return FLDPSN_PSN;
     }
+    #endif
     return FLDPSN_NONE;
 }
