@@ -422,7 +422,9 @@ const struct SpriteTemplate gPsychoBoostOrbSpriteTemplate =
 // For the rectangular wall sprite used by Reflect, Mirror Coat, etc
 static void AnimDefensiveWall(struct Sprite *sprite)
 {
-    u8 isContest = IsContest();
+    u8 battler;
+    bool8 toBG_2;
+    bool8 isContest = IsContest();
 
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER || isContest)
     {
@@ -432,18 +434,29 @@ static void AnimDefensiveWall(struct Sprite *sprite)
 
     if (!isContest)
     {
-        u8 battlerCopy;
-        u8 battler = battlerCopy = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
-        u8 rank = GetBattlerSpriteBGPriorityRank(battler);
-        int var0 = 1;
-        u8 toBG_2 = (rank ^ var0) != 0;
+        battler = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+
+        #if !MODERN
+        if (GetBattlerSpriteBGPriorityRank(battler) == 1)
+            toBG_2 = FALSE;
+        else
+            toBG_2 = TRUE;
+
 
         if (IsBattlerSpriteVisible(battler))
             MoveBattlerSpriteToBG(battler, toBG_2, FALSE);
-
-        battler = BATTLE_PARTNER(battlerCopy);
+        
+        if (IsBattlerSpriteVisible(BATTLE_PARTNER(battler)))
+            MoveBattlerSpriteToBG(BATTLE_PARTNER(battler), toBG_2 ^ 1, FALSE);
+        #else
+        toBG_2 = GetBattlerSpriteBGPriorityRank(battler) == 2;
         if (IsBattlerSpriteVisible(battler))
-            MoveBattlerSpriteToBG(battler, toBG_2 ^ var0, FALSE);
+            MoveBattlerSpriteToBG(battler, toBG_2, FALSE);
+
+        battler = BATTLE_PARTNER(battler)
+        if (IsBattlerSpriteVisible(battler))
+            MoveBattlerSpriteToBG(battler, toBG_2 ^ 1, FALSE);
+        #endif
     }
 
     if (!isContest && IsDoubleBattle())
@@ -516,8 +529,11 @@ static void AnimDefensiveWall_Step3(struct Sprite *sprite)
     u16 color;
     u16 startOffset;
     int i;
-
-    if (++sprite->data[1] == 2)
+    #if !MODERN
+    if (sprite->data[1]++ == 1)
+    #else
+    if (sprite->data[1] == 1)
+    #endif
     {
         sprite->data[1] = 0;
         startOffset = sprite->data[0];
@@ -531,25 +547,31 @@ static void AnimDefensiveWall_Step3(struct Sprite *sprite)
         if (++sprite->data[2] == 16)
             sprite->callback = AnimDefensiveWall_Step4;
     }
+    #if MODERN
+    else sprite->data[1]++;
+    #endif
 }
 
 static void AnimDefensiveWall_Step4(struct Sprite *sprite)
 {
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(sprite->data[3], 16 - sprite->data[3]));
 
-    if (--sprite->data[3] == -1)
+    if (sprite->data[3]-- == 0)
     {
         if (!IsContest())
         {
-            u8 battlerCopy;
-            u8 battler = battlerCopy = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+            u8 battler = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
 
             if (IsBattlerSpriteVisible(battler))
                 gSprites[gBattlerSpriteIds[battler]].invisible = FALSE;
-
-            battler = BATTLE_PARTNER(battlerCopy);
+            #if MODERN
+            battler = BATTLE_PARTNER(battler);
             if (IsBattlerSpriteVisible(battler))
                 gSprites[gBattlerSpriteIds[battler]].invisible = FALSE;
+            #else
+            if (IsBattlerSpriteVisible(battler ^ 2))
+                gSprites[gBattlerSpriteIds[battler ^ 2]].invisible = FALSE;
+            #endif
         }
 
         sprite->invisible = TRUE;
