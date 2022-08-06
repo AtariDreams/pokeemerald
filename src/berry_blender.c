@@ -3422,7 +3422,7 @@ static void RestoreBgCoords(void)
 
 static void BlenderLandShakeBgCoord(s16 *coord, u16 timer)
 {
-    s32 strength;
+    u8 strength;
 
     if (timer < 10)
         strength = 16;
