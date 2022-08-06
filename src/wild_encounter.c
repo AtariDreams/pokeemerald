@@ -518,12 +518,20 @@ static bool8 DoWildEncounterRateTest(u32 encounterRate, bool8 ignoreAbility)
     return DoWildEncounterRateDiceRoll(encounterRate);
 }
 
+#if !MODERN
 static bool8 DoGlobalWildEncounterDiceRoll(void)
+#else
+static bool32 DoGlobalWildEncounterDiceRoll(void)
+#endif
 {
+    #if !MODERN
     if (Random() % 100 >= 60)
         return FALSE;
     else
         return TRUE;
+    #else
+    return Mod(Random(), 5) >= 3;
+    #endif
 }
 
 static bool8 AreLegendariesInSootopolisPreventingEncounters(void)
@@ -542,8 +550,10 @@ bool8 StandardWildEncounter(u16 currMetaTileBehavior, u16 previousMetaTileBehavi
     u16 headerId;
     struct Roamer *roamer;
 
+#if !MODERN
     if (sWildEncountersDisabled == TRUE)
         return FALSE;
+#endif
 
     headerId = GetCurrentMapWildMonHeaderId();
     if (headerId == HEADER_NONE)
