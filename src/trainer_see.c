@@ -634,7 +634,7 @@ static void Task_SetBuriedTrainerMovement(u8 taskId)
         task->data[7]++;
     }
     sTrainerSeeFuncList2[task->tFuncId](taskId, task, objEvent);
-    if (task->tFuncId == ((int)ARRAY_COUNT(sTrainerSeeFuncList2) - 1) && !FieldEffectActiveListContains(FLDEFF_ASH_PUFF))
+    if (task->tFuncId == ((m32)ARRAY_COUNT(sTrainerSeeFuncList2) - 1) && !FieldEffectActiveListContains(FLDEFF_ASH_PUFF))
     {
         SetTrainerMovementType(objEvent, GetTrainerFacingDirectionMovementType(objEvent->directions.regDir.facingDirection));
         TryOverrideTemplateCoordsForObjectEvent(objEvent, GetTrainerFacingDirectionMovementType(objEvent->directions.regDir.facingDirection));

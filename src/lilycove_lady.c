@@ -366,7 +366,7 @@ u8 GetQuizAuthor(void)
         i = quiz->questionId;
         do
         {
-            if (++i >= (int)ARRAY_COUNT(sQuizLadyQuizQuestions))
+            if (++i >= (m32)ARRAY_COUNT(sQuizLadyQuizQuestions))
                 i = 0;
         } while (IsEasyChatAnswerUnlocked(sQuizLadyQuizAnswers[i]) == FALSE);
 
@@ -589,7 +589,7 @@ void QuizLadyClearQuestionForRecordMix(const LilycoveLady *lilycoveLady)
             sQuizLadyPtr->questionId = Random() % ARRAY_COUNT(sQuizLadyQuizQuestions);
         }
         if (lilycoveLady->quiz.prevQuestionId == sQuizLadyPtr->questionId)
-            sQuizLadyPtr->questionId = (sQuizLadyPtr->questionId + 1) % (int)ARRAY_COUNT(sQuizLadyQuizQuestions);
+            sQuizLadyPtr->questionId = (sQuizLadyPtr->questionId + 1) % (m32)ARRAY_COUNT(sQuizLadyQuizQuestions);
 
         sQuizLadyPtr->prevQuestionId = lilycoveLady->quiz.prevQuestionId;
     }
