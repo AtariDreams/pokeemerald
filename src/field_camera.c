@@ -12,7 +12,9 @@
 #include "sprite.h"
 #include "text.h"
 
+#if !MODERN
 EWRAM_DATA bool8 gUnusedBikeCameraAheadPanback = FALSE;
+#endif
 
 struct FieldCameraOffset
 {
@@ -496,8 +498,8 @@ void UpdateCameraPanning(void)
 
 static void CameraPanningCB_PanAhead(void)
 {
+    #if !MODERN
     u8 var;
-
     if (gUnusedBikeCameraAheadPanback == FALSE)
     {
         InstallCameraPanAheadCallback();
@@ -536,4 +538,7 @@ static void CameraPanningCB_PanAhead(void)
             sVerticalCameraPan -= 2;
         }
     }
+    #else
+    InstallCameraPanAheadCallback();
+    #endif
 }
