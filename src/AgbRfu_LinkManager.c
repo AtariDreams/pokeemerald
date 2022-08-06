@@ -101,9 +101,13 @@ void rfu_LMAN_initializeRFU(INIT_PARAM *init_parameters)
 
 static void rfu_LMAN_clearVariables(void)
 {
-    u8 i;
-
+    m8 i;
+    #if !MODERN
     lman.state = lman.next_state = LMAN_STATE_READY;
+    #else
+    lman.state = LMAN_STATE_READY;
+    lman.next_state = LMAN_STATE_READY;
+    #endif
     lman.parent_child = MODE_NEUTRAL;
     lman.pcswitch_flag = 0;
     lman.child_slot = 0;
@@ -129,13 +133,13 @@ u8 rfu_LMAN_establishConnection(u8 parent_child, u16 connect_period, u16 name_ac
 
     if (lman.state != LMAN_STATE_READY && (lman.state != LMAN_STATE_WAIT_RECV_CHILD_NAME || parent_child != MODE_PARENT))
     {
-        lman.param[0] = 1;
+        lman.param[0] = LMAN_ERROR_MANAGER_BUSY;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_MANAGER_BUSY;
     }
     if (rfu_getMasterSlave() == AGB_CLK_SLAVE)
     {
-        lman.param[0] = 2;
+        lman.param[0] = LMAN_ERROR_AGB_CLK_SLAVE;
         rfu_LMAN_occureCallback(LMAN_MSG_LMAN_API_ERROR_RETURN, 1);
         return LMAN_ERROR_AGB_CLK_SLAVE;
     }
@@ -185,7 +189,7 @@ u8 rfu_LMAN_establishConnection(u8 parent_child, u16 connect_period, u16 name_ac
 
 u8 rfu_LMAN_CHILD_connectParent(u16 parentId, u16 connect_period)
 {
-    u8 i;
+    m8 i;
 
     if (lman.state != LMAN_STATE_READY && (lman.state < LMAN_STATE_START_SEARCH_PARENT || lman.state > LMAN_STATE_END_SEARCH_PARENT))
     {
@@ -434,7 +438,7 @@ void rfu_LMAN_manager_entity(u32 rand)
     {
         rfu_LMAN_settingPCSWITCH(rand);
     }
-    while (1)
+    do
     {
         if (lman.state != LMAN_STATE_READY)
         {
@@ -531,11 +535,7 @@ void rfu_LMAN_manager_entity(u32 rand)
             rfu_waitREQComplete();
             lman.active = 0;
         }
-        if (lman.state == LMAN_STATE_END_LINK_RECOVERY || lman.state == LMAN_STATE_MS_CHANGE)
-            ;
-        else
-            break;
-    }
+    } while (lman.state == LMAN_STATE_END_LINK_RECOVERY || lman.state == LMAN_STATE_MS_CHANGE);
     if (gRfuLinkStatus->parentChild == MODE_PARENT)
     {
         if (rfu_LMAN_linkWatcher(0))
