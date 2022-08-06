@@ -60,8 +60,11 @@ static void DoBrailleRegisteelEffect(void);
 
 bool8 ShouldDoBrailleDigEffect(void)
 {
-    if (!FlagGet(FLAG_SYS_BRAILLE_DIG)
-     && (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SEALED_CHAMBER_OUTER_ROOM)
+    // TODO: Better
+    if (FlagGet(FLAG_SYS_BRAILLE_DIG))
+        return FALSE;
+    
+    if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SEALED_CHAMBER_OUTER_ROOM)
      && gSaveBlock1Ptr->location.mapNum == MAP_NUM(SEALED_CHAMBER_OUTER_ROOM)))
     {
         if (gSaveBlock1Ptr->pos.x == 10 && gSaveBlock1Ptr->pos.y == 3)
@@ -325,7 +328,7 @@ bool8 ShouldDoBrailleRegicePuzzle(void)
 
                 // This final check is redundant.
                 if (gSaveBlock1Ptr->pos.x == 8 && gSaveBlock1Ptr->pos.y == 21)
-                    return TRUE;
+                    return TRUE; // Event activation in front of the door
                 else
                     return FALSE;
             }
