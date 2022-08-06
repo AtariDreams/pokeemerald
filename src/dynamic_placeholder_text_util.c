@@ -7,21 +7,18 @@ static EWRAM_DATA const u8 *sStringPointers[8] = {};
 
 void DynamicPlaceholderTextUtil_Reset(void)
 {
-    const u8 **ptr;
-    u8 *fillval;
-    const u8 **ptr2;
-
-    ptr = sStringPointers;
-    fillval = NULL;
-    ptr2 = ptr + (ARRAY_COUNT(sStringPointers) - 1);
-    do
+    int i;
+    // why not just memset???
+    for (i = 0; i < (int)ARRAY_COUNT(sStringPointers); i++)
     {
-        *ptr2-- = fillval;
-    } while ((int)ptr2 >= (int)ptr);
+        sStringPointers[i] = NULL;
+    }
 }
 
 void DynamicPlaceholderTextUtil_SetPlaceholderPtr(u8 idx, const u8 *ptr)
 {
+    // ASSERT (idx < ARRAY_COUNT(sStringPointers))
+    // why even keep it then
     if (idx < ARRAY_COUNT(sStringPointers))
     {
         sStringPointers[idx] = ptr;
@@ -39,6 +36,7 @@ u8 *DynamicPlaceholderTextUtil_ExpandPlaceholders(u8 *dest, const u8 *src)
         else
         {
             src++;
+            // ASSERT (idx < ARRAY_COUNT(sStringPointers))
             if (sStringPointers[*src] != NULL)
             {
                 dest = StringCopy(dest, sStringPointers[*src]);
@@ -52,5 +50,6 @@ u8 *DynamicPlaceholderTextUtil_ExpandPlaceholders(u8 *dest, const u8 *src)
 
 const u8 *DynamicPlaceholderTextUtil_GetPlaceholderPtr(u8 idx)
 {
+    // ASSERT (idx < ARRAY_COUNT(sStringPointers))
     return sStringPointers[idx];
 }
