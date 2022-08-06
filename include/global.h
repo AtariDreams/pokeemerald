@@ -110,6 +110,12 @@
 #define T2_READ_16(ptr) ((ptr)[0] + ((ptr)[1] << 8))
 #define T2_READ_32(ptr) ((ptr)[0] + ((ptr)[1] << 8) + ((ptr)[2] << 16) + ((ptr)[3] << 24))
 #define T2_READ_PTR(ptr) (void*) T2_READ_32(ptr)
+#else
+#define T2_READ_8(ptr)  ((ptr)[0])
+#define T2_READ_16(ptr) ((ptr)[0] | ((ptr)[1] << 8))
+#define T2_READ_32(ptr) ((ptr)[0] | ((ptr)[1] << 8) | ((ptr)[2] << 16) | ((ptr)[3] << 24))
+#define T2_READ_PTR(ptr) (void*) T2_READ_32(ptr)
+#endif
 
 // Macros for checking the joypad
 #define TEST_BUTTON(field, button) (field & (button))

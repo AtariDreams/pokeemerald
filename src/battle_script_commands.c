@@ -67,7 +67,7 @@ static void TrySetDestinyBondToHappen(void);
 static u8 AttacksThisTurn(u8 battlerId, u16 move); // Note: returns 1 if it's a charging turn, otherwise 2.
 #define AttacksThisTurn1(a, b) AttacksThisTurn(a, b)
 #else
-static u8 AttacksThisTurn(u8 battlerId);
+static u8 AttacksThisTurn(u16 move);
 #define AttacksThisTurn1(a, b) AttacksThisTurn(b)
 #endif
 static void CheckWonderGuardAndLevitate(void);
