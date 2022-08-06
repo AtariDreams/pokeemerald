@@ -203,7 +203,7 @@ struct Pokeblock *SafariZoneGetActivePokeblock(void)
 void SafariZoneActivatePokeblockFeeder(u8 pkblId)
 {
     s16 x, y;
-    u8 i;
+    m8 i;
 
     for (i = 0; i < NUM_POKEBLOCK_FEEDERS; i++)
     {
@@ -226,7 +226,7 @@ void SafariZoneActivatePokeblockFeeder(u8 pkblId)
 
 static void DecrementFeederStepCounters(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < NUM_POKEBLOCK_FEEDERS; i++)
     {
@@ -239,7 +239,7 @@ static void DecrementFeederStepCounters(void)
     }
 }
 
-// unused
+// unused debug
 bool8 GetInFrontFeederPokeblockAndSteps(void)
 {
     GetPokeblockFeederInFront();
