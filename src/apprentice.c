@@ -122,8 +122,8 @@ void BufferApprenticeChallengeText(u8 saveApprenticeId)
     const u8 *challengeText;
 
     num = gSaveBlock2Ptr->apprentices[saveApprenticeId].number;
-    for (i = 0; num != 0 && i < APPRENTICE_COUNT; num /= 10, i++)
-        ;
+    for (i = 0; num != 0 && i < APPRENTICE_COUNT;i++)
+        num/=10;
 
     StringCopy_PlayerName(gStringVar1, gSaveBlock2Ptr->apprentices[saveApprenticeId].playerName);
     ConvertInternationalString(gStringVar1, gSaveBlock2Ptr->apprentices[saveApprenticeId].language);
@@ -139,7 +139,7 @@ void Apprentice_ScriptContext_Enable(void)
 
 void ResetApprenticeStruct(struct Apprentice *apprentice)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < ARRAY_COUNT(apprentice->speechWon); i++)
         apprentice->speechWon[i] = EC_EMPTY_WORD;
@@ -150,7 +150,7 @@ void ResetApprenticeStruct(struct Apprentice *apprentice)
 
 void ResetAllApprenticeData(void)
 {
-    u8 i, j;
+    m8 i, j;
 
     PLAYER_APPRENTICE.saveId = 0;
     for (i = 0; i < APPRENTICE_COUNT; i++)
@@ -224,7 +224,7 @@ static void ShuffleApprenticeSpecies(void)
 // Picking a move chooses a random mon, picking a held item is sequential (so that none are repeated)
 static u8 GetMonIdForQuestion(u8 questionId, u8 *party, u8 *partySlot)
 {
-    u8 i, count;
+    m8 i, count;
     u8 monId = 0;
 
     if (questionId == QUESTION_ID_WHICH_MOVE)
@@ -232,7 +232,8 @@ static u8 GetMonIdForQuestion(u8 questionId, u8 *party, u8 *partySlot)
         do
         {
             monId = Random() % (MULTI_PARTY_SIZE);
-            for (count = 0, i = 0; i < NUM_WHICH_MOVE_QUESTIONS; i++)
+            count = 0;
+            for (i = 0; i < NUM_WHICH_MOVE_QUESTIONS; i++)
             {
                 if (gApprenticePartyMovesData->moves[monId][i] != MOVE_NONE)
                     count++;
@@ -254,7 +255,8 @@ static void SetRandomQuestionData(void)
     u8 questionOrder[APPRENTICE_MAX_QUESTIONS + 1];
     u8 partyOrder[MULTI_PARTY_SIZE];
     u8 partySlot;
-    u8 i, j;
+    u8 i;
+    m8 j;
     u8 rand1, rand2;
     u8 id;
 
@@ -294,26 +296,27 @@ static void SetRandomQuestionData(void)
     for (i = 0; i < APPRENTICE_MAX_QUESTIONS; i++)
     {
         PLAYER_APPRENTICE.questions[i].questionId = questionOrder[i];
-        if (questionOrder[i] != QUESTION_ID_WHICH_FIRST)
+        if (questionOrder[i] == QUESTION_ID_WHICH_FIRST)
         {
-            PLAYER_APPRENTICE.questions[i].monId = GetMonIdForQuestion(questionOrder[i], partyOrder, &partySlot);
-            id = PLAYER_APPRENTICE.questions[i].monId;
-            if (questionOrder[i] == QUESTION_ID_WHICH_MOVE)
+            continue;
+        }
+        PLAYER_APPRENTICE.questions[i].monId = GetMonIdForQuestion(questionOrder[i], partyOrder, &partySlot);
+        id = PLAYER_APPRENTICE.questions[i].monId;
+        if (questionOrder[i] == QUESTION_ID_WHICH_MOVE)
+        {
+            do
             {
-                do
+                rand1 = Random() % MAX_MON_MOVES;
+                for (j = 0; j < gApprenticePartyMovesData->moveCounter + 1; j++)
                 {
-                    rand1 = Random() % MAX_MON_MOVES;
-                    for (j = 0; j < gApprenticePartyMovesData->moveCounter + 1; j++)
-                    {
-                        if (gApprenticePartyMovesData->moveSlots[id][j] == rand1)
-                            break;
-                    }
-                } while (j != gApprenticePartyMovesData->moveCounter + 1);
+                    if (gApprenticePartyMovesData->moveSlots[id][j] == rand1)
+                        break;
+                }
+            } while (j != gApprenticePartyMovesData->moveCounter + 1);
 
-                gApprenticePartyMovesData->moveSlots[id][gApprenticePartyMovesData->moveCounter] = rand1;
-                PLAYER_APPRENTICE.questions[i].moveSlot = rand1;
-                PLAYER_APPRENTICE.questions[i].data = GetRandomAlternateMove(PLAYER_APPRENTICE.questions[i].monId);
-            }
+            gApprenticePartyMovesData->moveSlots[id][gApprenticePartyMovesData->moveCounter] = rand1;
+            PLAYER_APPRENTICE.questions[i].moveSlot = rand1;
+            PLAYER_APPRENTICE.questions[i].data = GetRandomAlternateMove(PLAYER_APPRENTICE.questions[i].monId);
         }
     }
 
