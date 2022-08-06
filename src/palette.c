@@ -567,13 +567,14 @@ void BeginFastPaletteFade(u8 submode)
 static void BeginFastPaletteFadeInternal(u8 submode)
 {
     gPaletteFade.y = 31;
-    gPaletteFade_submode = submode & 0x3F;
+    gPaletteFade_submode = submode;
     gPaletteFade.active = TRUE;
     gPaletteFade.mode = FAST_FADE;
 
     if (submode == FAST_FADE_IN_FROM_BLACK)
         CpuFill16(RGB_BLACK, gPlttBufferFaded, PLTT_SIZE);
 
+    // no else ifs???
     if (submode == FAST_FADE_IN_FROM_WHITE)
         CpuFill16(RGB_WHITE, gPlttBufferFaded, PLTT_SIZE);
 
@@ -596,7 +597,7 @@ static u8 UpdateFastPaletteFade(void)
         return PALETTE_FADE_STATUS_DONE;
 
     if (IsSoftwarePaletteFadeFinishing())
-        return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
+        return gPaletteFade.active;
 
 
     if (gPaletteFade.objPaletteToggle)
@@ -706,7 +707,7 @@ static u8 UpdateFastPaletteFade(void)
     if (gPaletteFade.objPaletteToggle)
         // gPaletteFade.active cannot change since the last time it was checked. So this
         // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
-        return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
+        return gPaletteFade.active;
 
     if (gPaletteFade.y - gPaletteFade.deltaY < 0)
         gPaletteFade.y = 0;
@@ -735,7 +736,7 @@ static u8 UpdateFastPaletteFade(void)
 
     // gPaletteFade.active cannot change since the last time it was checked. So this
     // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
-    return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
+    return gPaletteFade.active;
 }
 
 void BeginHardwarePaletteFade(u8 blendCnt, u8 delay, u8 y, u8 targetY, u8 shouldResetBlendRegisters)
@@ -780,6 +781,10 @@ static u8 UpdateHardwarePaletteFade(void)
     }
     else
     {
+        // WHY NOT SUBTRACT AND THEN ASSIGN WTF
+        // Though i kind of give credit for the wacky way of doing <=
+
+        // Matches with s8, though that is techically more UB than this, so we are keeping this
         s32 y = gPaletteFade.y--;
         if (y - 1 < gPaletteFade.targetY)
         {
@@ -800,7 +805,7 @@ static u8 UpdateHardwarePaletteFade(void)
 
     // gPaletteFade.active cannot change since the last time it was checked. So this
     // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
-    return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
+    return gPaletteFade.active;
 }
 
 static void UpdateBlendRegisters(void)
@@ -854,16 +859,14 @@ void BlendPalettes(u32 selectedPalettes, u8 coeff, u16 color)
 
 void BlendPalettesUnfaded(u32 selectedPalettes, u8 coeff, u16 color)
 {
-    void *src = gPlttBufferUnfaded;
-    void *dest = gPlttBufferFaded;
-    DmaCopy32(3, src, dest, PLTT_SIZE);
+    DmaCopy32Defvars(3, gPlttBufferUnfaded, gPlttBufferFaded, PLTT_SIZE);
     BlendPalettes(selectedPalettes, coeff, color);
 }
 
 void TintPalette_GrayScale(u16 *palette, u16 count)
 {
     s32 r, g, b, i;
-    u32 gray;
+    s32 gray;
 
     for (i = 0; i < count; i++)
     {
@@ -880,6 +883,8 @@ void TintPalette_GrayScale(u16 *palette, u16 count)
 void TintPalette_GrayScale2(u16 *palette, u16 count)
 {
     s32 r, g, b, i;
+
+    // This one has to be u32 though to match, because of bls vs ble, even though in this case, it shouldn't do anything
     u32 gray;
 
     for (i = 0; i < count; i++)
@@ -902,7 +907,8 @@ void TintPalette_GrayScale2(u16 *palette, u16 count)
 void TintPalette_SepiaTone(u16 *palette, u16 count)
 {
     s32 r, g, b, i;
-    u32 gray;
+    // u32 or s32 matches, but I think they should all be ints since they work on each other, but also bitwise ops
+    s32 gray;
 
     for (i = 0; i < count; i++)
     {
@@ -926,7 +932,7 @@ void TintPalette_SepiaTone(u16 *palette, u16 count)
 void TintPalette_CustomTone(u16 *palette, u16 count, u16 rTone, u16 gTone, u16 bTone)
 {
     s32 r, g, b, i;
-    u32 gray;
+    s32 gray;
 
     for (i = 0; i < count; i++)
     {
@@ -986,7 +992,7 @@ void BlendPalettesGradually(u32 selectedPalettes, s8 delay, u8 coeff, u8 coeffTa
         gTasks[taskId].tCoeffDelta *= -1;
 
     SetWordTaskArg(taskId, tPalettes, selectedPalettes);
-    gTasks[taskId].tColor = color;
+    gTasks[taskId].tColor = (s16)color; // Why not pass color as an s16 in args? Maybe that isn't feasible? TODO: check
     gTasks[taskId].tId = id;
     gTasks[taskId].func(taskId);
 }
