@@ -2827,7 +2827,7 @@ static bool32 FooterHasFourOptions_(void)
 
 static bool8 IsPhraseDifferentThanPlayerInput(const u16 *phrase, u8 phraseLength)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < phraseLength; i++)
     {
@@ -3152,7 +3152,7 @@ static bool8 ReprintPhrase(void)
 
 static bool8 UpdateMainCursor(void)
 {
-    u8 i;
+    m8 i;
     const u16 *currentPhrase;
     u8 frameId;
     u8 cursorColumn, cursorRow;
