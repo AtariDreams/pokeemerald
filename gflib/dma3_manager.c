@@ -22,7 +22,7 @@ static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
-    int i;
+    m32 i;
 
     sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
@@ -39,7 +39,7 @@ void ClearDma3Requests(void)
 
 void ProcessDma3Requests(void)
 {
-    u16 bytesTransferred;
+    m16 bytesTransferred;
 
     if (sDma3ManagerLocked)
         return;
@@ -160,15 +160,18 @@ s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode)
 
 s16 CheckForSpaceForDma3Request(s16 index)
 {
+    #if !MODERN
     int i = 0;
+    #else
+    u32 i;
+    #endif
 
     if (index == -1)  // check if all requests are free
     {
-        while (i < MAX_DMA_REQUESTS)
+        for (i = 0; i < MAX_DMA_REQUESTS; i++)
         {
             if (sDma3Requests[i].size != 0)
                 return -1;
-            i++;
         }
         return 0;
     }
