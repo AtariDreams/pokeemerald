@@ -3050,6 +3050,7 @@ void ShowGlassWorkshopMenu(void)
 void SetBattleTowerLinkPlayerGfx(void)
 {
     u8 i;
+    // one can make 2 loops instead...
     for (i = 0; i < 2; i++)
     {
         if (gLinkPlayers[i].gender == MALE)
@@ -3186,7 +3187,7 @@ void FrontierGamblerSetWonOrLost(bool8 won)
 void UpdateBattlePointsWindow(void)
 {
     u8 string[32];
-    u32 x;
+    s32 x;
     StringCopy(ConvertIntToDecimalStringN(string, gSaveBlock2Ptr->frontier.battlePoints, STR_CONV_MODE_RIGHT_ALIGN, 4), gText_BP);
     x = GetStringRightAlignXOffset(FONT_NORMAL, string, 48);
     AddTextPrinterParameterized(sBattlePointsWindowId, FONT_NORMAL, string, x, 1, 0, NULL);
@@ -3325,6 +3326,7 @@ static void ShowFrontierExchangeCornerItemIcon(u16 item)
     }
 }
 
+// TODO: make checks in this function move to before caller of function?
 static void HideFrontierExchangeCornerItemIcon(u16 menu, u16 unused)
 {
     if (sScrollableMultichoice_ItemSpriteId != MAX_SPRITES)
@@ -3483,29 +3485,23 @@ void GetBattleFrontierTutorMoveIndex(void)
 
     if (moveTutor != 0)
     {
-        i = 0;
-        do
-        {
+        for (i = 0; i < TUTOR_MOVE_COUNT; i++) {
             if (gTutorMoves[i] == sBattleFrontier_TutorMoves2[moveIndex])
             {
                 gSpecialVar_0x8005 = i;
-                break;
+                return;
             }
-            i++;
-        } while (i < TUTOR_MOVE_COUNT);
+        }
     }
     else
     {
-        i = 0;
-        do
-        {
+        for (i = 0; i < TUTOR_MOVE_COUNT; i++) {
             if (gTutorMoves[i] == sBattleFrontier_TutorMoves1[moveIndex])
             {
                 gSpecialVar_0x8005 = i;
-                break;
+                return;
             }
-            i++;
-        } while (i < TUTOR_MOVE_COUNT);
+        }
     }
 }
 
@@ -3586,6 +3582,7 @@ static void Task_DeoxysRockInteraction(u8 taskId)
         gSpecialVar_Result = 3;
         ScriptContext_Enable();
         DestroyTask(taskId);
+        return;
     }
     else
     {
@@ -3600,13 +3597,15 @@ static void Task_DeoxysRockInteraction(u8 taskId)
             VarSet(VAR_DEOXYS_ROCK_LEVEL, 0);
             gSpecialVar_Result = 0;
             DestroyTask(taskId);
+            return;
         }
-        else if (rockLevel == 10)
+        if (rockLevel == 10)
         {
             FlagSet(FLAG_DEOXYS_ROCK_COMPLETE);
             gSpecialVar_Result = 2;
             ScriptContext_Enable();
             DestroyTask(taskId);
+            return;
         }
         else
         {
