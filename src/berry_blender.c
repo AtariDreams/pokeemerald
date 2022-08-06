@@ -3350,7 +3350,6 @@ static void TryUpdateProgressBar(u16 current, u16 limit)
 static void UpdateProgressBar(u16 value, u16 limit)
 {
     s32 amountFilled, maxFilledSegment, subSegmentsFilled, i;
-    #if !MODERN
     u16 *vram;
 
     vram = (u16*)(BG_SCREEN_ADDR(12));
