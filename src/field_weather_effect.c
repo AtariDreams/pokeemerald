@@ -2206,7 +2206,7 @@ static void UpdateSandstormSprite(struct Sprite *sprite)
 
 static void WaitSandSwirlSpriteEntrance(struct Sprite *sprite)
 {
-    if (--sprite->tEntranceDelay == -1)
+    if (sprite->tEntranceDelay-- == 0)
         sprite->callback = UpdateSandstormSwirlSprite;
 }
 
