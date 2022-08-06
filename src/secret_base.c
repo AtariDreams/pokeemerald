@@ -267,8 +267,8 @@ static u8 GetSecretBaseTypeInFrontOfPlayer_(void)
     s16 x, y;
     s16 behavior;
 
-    GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
-    behavior = MapGridGetMetatileBehaviorAt(x, y) & 0xFFF;
+    GetXYCoordsOneStepInFrontOfPlayer(&x, &y); // get position in front of you
+    behavior = MapGridGetMetatileBehaviorAt(x, y) & 0xFFF; // get attributes of metatile in front of you
     if (behavior == MB_SECRET_BASE_SPOT_RED_CAVE || behavior == MB_SECRET_BASE_SPOT_RED_CAVE_OPEN)
         return SECRET_BASE_RED_CAVE;
 
@@ -288,7 +288,7 @@ static u8 GetSecretBaseTypeInFrontOfPlayer_(void)
     if (behavior == MB_SECRET_BASE_SPOT_SHRUB || behavior == MB_SECRET_BASE_SPOT_SHRUB_OPEN)
         return SECRET_BASE_SHRUB;
 
-    return 0;
+    return 0; // error failsafe thing apparently
 }
 
 void GetSecretBaseTypeInFrontOfPlayer(void)
@@ -508,6 +508,7 @@ void EnterNewlyCreatedSecretBase(void)
 bool8 CurMapIsSecretBase(void)
 {
     if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SECRET_BASE_RED_CAVE1)
+        // Non-UB way would be to do huge comparison with ORs
      && (u8)gSaveBlock1Ptr->location.mapNum <= MAP_NUM(SECRET_BASE_SHRUB4))
         return TRUE;
     else
