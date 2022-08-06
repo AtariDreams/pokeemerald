@@ -111,7 +111,7 @@ EWRAM_DATA static u16 sAnimMoveIndex = 0; // Set but unused.
 EWRAM_DATA u8 gBattleAnimAttacker = 0;
 EWRAM_DATA u8 gBattleAnimTarget = 0;
 EWRAM_DATA u16 gAnimBattlerSpecies[MAX_BATTLERS_COUNT] = {0};
-EWRAM_DATA u8 gAnimCustomPanning = 0;
+EWRAM_DATA s8 gAnimCustomPanning = 0;
 
 #include "data/battle_anim.h"
 
