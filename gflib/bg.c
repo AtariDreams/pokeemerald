@@ -50,8 +50,8 @@ static const struct BgConfig sZeroedBgControlStruct = { 0 };
 static u32 GetBgType(u8 bg);
 
 // having two of these are unessecary, but needed to match because they were from 2 different files at the time
-static bool8 IsInvalidBg(u8 bg);
-static bool32 IsInvalidBg32(u8 bg);
+static PURE bool8 IsInvalidBg(u8 bg);
+static PURE bool32 IsInvalidBg32(u8 bg);
 
 void ResetBgs(void)
 {
@@ -291,7 +291,7 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
     SetGpuReg(REG_OFFSET_BG2Y_H, dest.dy >> 16);
 }
 
-static bool8 IsInvalidBg(u8 bg)
+static PURE bool8 IsInvalidBg(u8 bg)
 {
     if (bg >= NUM_BACKGROUNDS)
         return TRUE;
@@ -300,7 +300,7 @@ static bool8 IsInvalidBg(u8 bg)
 }
 
 // From FRLG. Dummied out.
-int BgTileAllocOp(int bg, int offset, int count, int mode)
+int PURE BgTileAllocOp(int bg, int offset, int count, int mode)
 {
     return 0;
 }
@@ -1249,7 +1249,7 @@ static u32 GetBgType(u8 bg)
     return BG_TYPE_NONE;
 }
 
-static bool32 IsInvalidBg32(u8 bg)
+static PURE bool32 IsInvalidBg32(u8 bg)
 {
     if (bg >= NUM_BACKGROUNDS)
         return TRUE;
