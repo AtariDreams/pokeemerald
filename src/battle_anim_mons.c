@@ -2614,7 +2614,6 @@ static void AnimWeatherBallUp_Step(struct Sprite *sprite)
         DestroyAnimSprite(sprite);
 }
 
-#if MODERN
 void AnimWeatherBallDown(struct Sprite *sprite)
 {
     sprite->data[0] = gBattleAnimArgs[2];
@@ -2622,37 +2621,22 @@ void AnimWeatherBallDown(struct Sprite *sprite)
     sprite->data[4] = sprite->y + gBattleAnimArgs[5];
     if (!GetBattlerSide(gBattleAnimTarget))
     {
+        #if !MODERN
+        sprite->x = sprite->x + 30 + gBattleAnimArgs[4];
+        #else
         sprite->x += gBattleAnimArgs[4] + 30;
+        #endif
         sprite->y = gBattleAnimArgs[5] - 20;
     }
     else
     {
+        #if !MODERN
+        sprite->x = sprite->x - 30 + gBattleAnimArgs[4];
+        #else
         sprite->x += gBattleAnimArgs[4] - 30;
+        #endif
         sprite->y = gBattleAnimArgs[5] - 80;
     }
     sprite->callback = StartAnimLinearTranslation;
     StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
 }
-#else
-void AnimWeatherBallDown(struct Sprite *sprite)
-{
-    int x;
-    sprite->data[0] = gBattleAnimArgs[2];
-    sprite->data[2] = sprite->x + gBattleAnimArgs[4];
-    sprite->data[4] = sprite->y + gBattleAnimArgs[5];
-    if (!GetBattlerSide(gBattleAnimTarget))
-    {
-        x = (u16)gBattleAnimArgs[4] + 30;
-        sprite->x += x;
-        sprite->y = gBattleAnimArgs[5] - 20;
-    }
-    else
-    {
-        x = (u16)gBattleAnimArgs[4] - 30;
-        sprite->x += x;
-        sprite->y = gBattleAnimArgs[5] - 80;
-    }
-    sprite->callback = StartAnimLinearTranslation;
-    StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
-}
-#endif
