@@ -455,18 +455,18 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
     if (gammaIndex > 0)
     {
         gammaIndex--;
-        palOffset = startPalIndex * 16;
+        palOffset = startPalIndex << 4;
         numPalettes += startPalIndex;
-        curPalIndex = startPalIndex;
-
+        
         // Loop through the speficied palette range and apply necessary gamma shifts to the colors.
-        while (curPalIndex < numPalettes)
+        for (curPalIndex = startPalIndex; curPalIndex < numPalettes; curPalIndex++)
         {
             if (sPaletteGammaTypes[curPalIndex] == GAMMA_NONE)
             {
                 // No palette change.
                 CpuFastCopy(gPlttBufferUnfaded + palOffset, gPlttBufferFaded + palOffset, 16 * sizeof(u16));
                 palOffset += 16;
+                continue;
             }
             else
             {
@@ -480,6 +480,7 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
                 for (i = 0; i < 16; i++)
                 {
                     // Apply gamma shift to the original color.
+                    // Should we copy data or do the casting
                     struct RGBColor baseColor = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
                     r = gammaTable[baseColor.r];
                     g = gammaTable[baseColor.g];
@@ -487,25 +488,23 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
                     gPlttBufferFaded[palOffset++] = RGB2(r, g, b);
                 }
             }
-
-            curPalIndex++;
         }
     }
     else if (gammaIndex < 0)
     {
         // A negative gammIndex value means that the blending will come from the special Drought weather's palette tables.
         gammaIndex = -gammaIndex - 1;
-        palOffset = startPalIndex * 16;
+        palOffset = startPalIndex << 4;
         numPalettes += startPalIndex;
-        curPalIndex = startPalIndex;
 
-        while (curPalIndex < numPalettes)
+        for (curPalIndex = startPalIndex; curPalIndex < numPalettes; curPalIndex++)
         {
             if (sPaletteGammaTypes[curPalIndex] == GAMMA_NONE)
             {
                 // No palette change.
                 CpuFastCopy(gPlttBufferUnfaded + palOffset, gPlttBufferFaded + palOffset, 16 * sizeof(u16));
                 palOffset += 16;
+                continue;
             }
             else
             {
@@ -515,14 +514,15 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
                     palOffset++;
                 }
             }
-
-            curPalIndex++;
         }
     }
     else
     {
         // No palette blending.
-        CpuFastCopy(gPlttBufferUnfaded + startPalIndex * 16, gPlttBufferFaded + startPalIndex * 16, numPalettes * 16 * sizeof(u16));
+        // Should I use a u32 for this insread of a u16?
+        // maybe I should just do this at the beginning of the function since all 3 branches do it?
+        palOffset =  startPalIndex << 4;
+        CpuFastCopy(gPlttBufferUnfaded + palOffset, gPlttBufferFaded + palOffset, numPalettes * 16 * sizeof(u16));
     }
 }
 
