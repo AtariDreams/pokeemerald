@@ -3012,12 +3012,12 @@ void SpriteCB_MoveMonForInfoScreen(struct Sprite *sprite)
     {
         if (sprite->x > MON_PAGE_X)
             sprite->x--;
-        if (sprite->x < MON_PAGE_X)
+        M_IF (sprite->x < MON_PAGE_X)
             sprite->x++;
 
         if (sprite->y > MON_PAGE_Y)
             sprite->y--;
-        if (sprite->y < MON_PAGE_Y)
+        M_IF (sprite->y < MON_PAGE_Y)
             sprite->y++;
     }
     else
@@ -5573,11 +5573,20 @@ static bool8 SearchParamCantScrollUp(u8 taskId)
 
 static bool8 SearchParamCantScrollDown(u8 taskId)
 {
+#if !MODERN
     u8 menuItem = gTasks[taskId].tMenuItem;
+
     const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
     u16 lastOption = sSearchOptions[menuItem].numOptions - 1;
 
     if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS && *scrollOffset < lastOption - MAX_SEARCH_PARAM_CURSOR_POS)
+#else
+    s16 menuItem = gTasks[taskId].tMenuItem;
+
+    gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+    u16 lastOption = sSearchOptions[menuItem].numOptions;
+    if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS + 1 && gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset] < lastOption - (MAX_SEARCH_PARAM_CURSOR_POS + 1))
+#endif
         return FALSE;
     else
         return TRUE;
