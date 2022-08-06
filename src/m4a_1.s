@@ -53,11 +53,11 @@ SoundMain_3:
 	beq SoundMain_4
 	ldr r0, [r0, o_SoundInfo_musicPlayerHead]
 	bl _081DD25E
-	ldr r0, [sp, 0x18]
+	ldr r0, [sp, o_SoundInfo_divFreq]
 SoundMain_4:
 	ldr r3, [r0, o_SoundInfo_CgbSound]
 	bl _081DD25E
-	ldr r0, [sp, 0x18]
+	ldr r0, [sp, o_SoundInfo_divFreq]
 	ldr r3, [r0, o_SoundInfo_pcmSamplesPerVBlank]
 	mov r8, r3
 	ldr r5, lt_o_SoundInfo_pcmBuffer
@@ -144,16 +144,16 @@ SoundMainRAM_NoReverb_Loop:
 	subs r1, 1
 	bgt SoundMainRAM_NoReverb_Loop
 _081DCF36:
-	ldr r4, [sp, 0x18]
+	ldr r4, [sp, o_SoundInfo_divFreq]
 	ldr r0, [r4, o_SoundInfo_divFreq]
 	mov r12, r0
 	ldrb r0, [r4, o_SoundInfo_maxChans]
 	adds r4, o_SoundInfo_chans
 
 SoundMainRAM_ChanLoop:
-	str r0, [sp, 0x4]
+	str r0, [sp, o_SoundInfo_pcmDmaCounter]
 	ldr r3, [r4, o_SoundChannel_wav]
-	ldr r0, [sp, 0x14]
+	ldr r0, [sp, o_SoundInfo_pcmFreq]
 	cmp r0, 0
 	beq _081DCF60
 	ldr r1, =REG_VCOUNT
@@ -262,7 +262,7 @@ _081DCFF8:
 	strb r6, [r4, o_SoundChannel_statusFlags]
 _081DD006:
 	strb r5, [r4, o_SoundChannel_envelopeVolume]
-	ldr r0, [sp, 0x18]
+	ldr r0, [sp, o_SoundInfo_divFreq]
 	ldrb r0, [r0, o_SoundChannel_release]
 	adds r0, 0x1
 	muls r0, r5
@@ -277,18 +277,18 @@ _081DD006:
 	strb r0, [r4, o_SoundChannel_envelopeVolumeLeft]
 	movs r0, SOUND_CHANNEL_SF_LOOP
 	ands r0, r6
-	str r0, [sp, 0x10]
+	str r0, [sp, o_SoundInfo_pcmSamplesPerVBlank]
 	beq _081DD03A
 	adds r0, r3, 0
 	adds r0, o_WaveData_data
 	ldr r1, [r3, o_WaveData_loopStart]
 	adds r0, r1
-	str r0, [sp, 0xC]
+	str r0, [sp, o_SoundInfo_maxLines]
 	ldr r0, [r3, o_WaveData_size]
 	subs r0, r1
-	str r0, [sp, 0x10]
+	str r0, [sp, o_SoundInfo_pcmSamplesPerVBlank]
 _081DD03A:
-	ldr r5, [sp, 0x8]
+	ldr r5, [sp, o_SoundInfo_freq]
 	ldr r2, [r4, o_SoundChannel_count]
 	ldr r3, [r4, o_SoundChannel_currentPointer]
 	adr r0, _081DD044
