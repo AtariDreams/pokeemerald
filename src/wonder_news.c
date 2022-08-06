@@ -20,7 +20,7 @@ enum {
     NEWS_VAL_GET_MAX,
 };
 
-static u32 GetNewsId(struct WonderNewsMetadata *);
+static u16 GetNewsId(struct WonderNewsMetadata *);
 static void IncrementGetNewsCounter(struct WonderNewsMetadata *);
 static u32 GetNewsValByNewsType(struct WonderNewsMetadata *);
 static void IncrementSentNewsCounter(struct WonderNewsMetadata *);
@@ -78,7 +78,7 @@ u16 RetrieveWonderNewsVal(void)
 
     // Checks if Mystery Event is enabled, not Mystery Gift?  
     if (!IsMysteryEventEnabled() || !ValidateSavedWonderNews())
-        return 0;
+        return NEWS_VAL_INVALID;
 
     newsVal = GetNewsValByNewsType(data);
 
@@ -107,9 +107,9 @@ u16 RetrieveWonderNewsVal(void)
     return newsVal;
 }
 
-static u32 GetNewsId(struct WonderNewsMetadata *data)
+static u16 GetNewsId(struct WonderNewsMetadata *data)
 {
-    u32 id;
+    u16 id;
     data->newsType = WONDER_NEWS_NONE;
     id = data->rand + 132;
     data->rand = 0;
