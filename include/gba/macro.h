@@ -6,7 +6,7 @@
     vu##bit tmp = (vu##bit)(value);                                               \
     CpuSet((void *)&tmp,                                                          \
            dest,                                                                  \
-           CPU_SET_##bit##BIT | CPU_SET_SRC_FIXED | ((size)/(bit/8) & 0x1FFFFF)); \
+           CPU_SET_SRC_FIXED | CPU_SET_##bit##BIT | ((size)/(bit/8) & 0x1FFFFF)); \
 }
 
 #define CpuFill16(value, dest, size) CPU_FILL(value, dest, size, 16)
