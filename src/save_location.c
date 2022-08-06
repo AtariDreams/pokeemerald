@@ -5,7 +5,7 @@
 
 static bool32 IsCurMapInLocationList(const u16 *list)
 {
-    s32 i;
+    u32 i;
     // Save the search key generated from the current map ID
     // TODO: * 0x100 or << 8?
     u16 map = (gSaveBlock1Ptr->location.mapGroup << 8) + gSaveBlock1Ptr->location.mapNum;
