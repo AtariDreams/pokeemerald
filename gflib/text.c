@@ -665,8 +665,13 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
 void ClearTextSpan(struct TextPrinter *textPrinter, s32 width)
 {
     struct Bitmap pixels_data;
-    struct TextGlyph *glyph;
-    u8* glyphHeight;
+    struct Window *window;
+    #if MODERN
+    // FillBitmapRect4Bit takes u16 
+    u16 x, y, w, h;
+    #else
+    s32 x, y, w, h;
+    #endif
 
     if (sLastTextBgColor == TEXT_COLOR_TRANSPARENT)
     {
