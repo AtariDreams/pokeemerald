@@ -585,11 +585,14 @@ static void AnimDigDirtMound(struct Sprite *sprite)
 // arg2: Length of time to shake for
 void AnimTask_HorizontalShake(u8 taskId)
 {
+    #if !MODERN
     u16 i;
+    #else
+    u8 i;
+    #endif
     struct Task *task = &gTasks[taskId];
 
-    task->tInitHorizOffset = 3 + ((gBattleAnimArgs[1])? gBattleAnimArgs[1] : (gAnimMovePower / 10));
-	task->tHorizOffset = task->tInitHorizOffset;
+    task->tHorizOffset = task->tInitHorizOffset = 3 + ((gBattleAnimArgs[1])? gBattleAnimArgs[1] : (gAnimMovePower / 10));
 
     task->tMaxTime = gBattleAnimArgs[2];
     switch (gBattleAnimArgs[0])
@@ -615,12 +618,11 @@ void AnimTask_HorizontalShake(u8 taskId)
         if (task->tbattlerSpriteIds(0) == SPRITE_NONE)
         {
             DestroyAnimVisualTask(taskId);
+            return;
         }
-        else
-        {
-            task->tNumBattlers = 1;
-            task->func = AnimTask_ShakeBattlers;
-        }
+
+        task->tNumBattlers = 1;
+        task->func = AnimTask_ShakeBattlers;
         break;
     }
 }
