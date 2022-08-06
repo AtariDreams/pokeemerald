@@ -4985,9 +4985,9 @@ void AnimTask_GetReturnPowerLevel(u8 taskId)
     gBattleAnimArgs[ARG_RET_ID] = 0;
     if (gAnimFriendship < 60)
         gBattleAnimArgs[ARG_RET_ID] = 0;
-    if (gAnimFriendship > 60 && gAnimFriendship < 92)
+    if (gAnimFriendship > 60 && gAnimFriendship <= 91)
         gBattleAnimArgs[ARG_RET_ID] = 1;
-    if (gAnimFriendship > 91 && gAnimFriendship < 201)
+    if (gAnimFriendship > 91 && gAnimFriendship <= 200)
         gBattleAnimArgs[ARG_RET_ID] = 2;
     if (gAnimFriendship > 200)
         gBattleAnimArgs[ARG_RET_ID] = 3;
