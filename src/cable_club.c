@@ -94,7 +94,7 @@ static void CreateLinkupTask(u8 minPlayers, u8 maxPlayers)
 
 static void PrintNumPlayersInLink(u16 windowId, u32 numPlayers)
 {
-    u8 xPos;
+    s32 xPos;
 
     ConvertIntToDecimalStringN(gStringVar1, numPlayers, STR_CONV_MODE_LEFT_ALIGN, 1);
     SetStandardWindowBorderStyle(windowId, FALSE);
@@ -266,7 +266,8 @@ static void Task_LinkupConfirmWhenReady(u8 taskId)
 static void Task_LinkupAwaitConfirmation(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    s32 linkPlayerCount = GetLinkPlayerCount_2();
+    // Should be u8
+    u16 linkPlayerCount = GetLinkPlayerCount_2();
 
     if (CheckLinkCanceledBeforeConnection(taskId) == TRUE
      || CheckSioErrored(taskId) == TRUE
