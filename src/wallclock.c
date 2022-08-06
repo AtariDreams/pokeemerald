@@ -68,7 +68,7 @@ enum
     MOVE_FORWARD,
 };
 
-static const u32 sHand_Gfx[] = INCBIN_U32("graphics/wallclock/hand.4bpp.lz");
+static const u8 sHand_Gfx[] = INCBIN_U8("graphics/wallclock/hand.4bpp.lz");
 static const u16 sTextPrompt_Pal[] = INCBIN_U16("graphics/wallclock/text_prompt.gbapal"); // for "Cancel" or "Confirm"
 
 static const struct WindowTemplate sWindowTemplates[] =

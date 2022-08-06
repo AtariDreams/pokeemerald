@@ -552,7 +552,7 @@ static const u8 sUnsharedColumns[MAX_RFU_PLAYERS][MAX_RFU_PLAYERS] =
 };
 
 // Duplicate and unused gfx. Feel free to remove.
-static const u32 sDuplicateGfx[] = INCBIN_U32("graphics/dodrio_berry_picking/bg.gbapal",
+static const u8 sDuplicateGfx[] = INCBIN_U8("graphics/dodrio_berry_picking/bg.gbapal",
                                      "graphics/dodrio_berry_picking/tree_border.gbapal",
                                      "graphics/dodrio_berry_picking/dodrio.gbapal",
                                      "graphics/dodrio_berry_picking/shiny.gbapal",
@@ -3592,13 +3592,13 @@ static const u16 sDodrioNormal_Pal[]        = INCBIN_U16("graphics/dodrio_berry_
 static const u16 sDodrioShiny_Pal[]         = INCBIN_U16("graphics/dodrio_berry_picking/shiny.gbapal");
 static const u16 sStatus_Pal[]              = INCBIN_U16("graphics/dodrio_berry_picking/status.gbapal");
 static const u16 sBerries_Pal[]             = INCBIN_U16("graphics/dodrio_berry_picking/berries.gbapal");
-static const u32 sBerries_Gfx[]             = INCBIN_U32("graphics/dodrio_berry_picking/berries.4bpp.lz");
+static const u8 sBerries_Gfx[]             = INCBIN_U8("graphics/dodrio_berry_picking/berries.4bpp.lz");
 static const u16 sCloud_Pal[]               = INCBIN_U16("graphics/dodrio_berry_picking/cloud.gbapal");
-static const u32 sBg_Gfx[]                  = INCBIN_U32("graphics/dodrio_berry_picking/bg.4bpp.lz");
-static const u32 sTreeBorder_Gfx[]          = INCBIN_U32("graphics/dodrio_berry_picking/tree_border.4bpp.lz");
-static const u32 sStatus_Gfx[]              = INCBIN_U32("graphics/dodrio_berry_picking/status.4bpp.lz");
-static const u32 sCloud_Gfx[]               = INCBIN_U32("graphics/dodrio_berry_picking/cloud.4bpp.lz");
-static const u32 sDodrio_Gfx[]              = INCBIN_U32("graphics/dodrio_berry_picking/dodrio.4bpp.lz");
+static const u8 sBg_Gfx[]                  = INCBIN_U8("graphics/dodrio_berry_picking/bg.4bpp.lz");
+static const u8 sTreeBorder_Gfx[]          = INCBIN_U8("graphics/dodrio_berry_picking/tree_border.4bpp.lz");
+static const u8 sStatus_Gfx[]              = INCBIN_U8("graphics/dodrio_berry_picking/status.4bpp.lz");
+static const u8 sCloud_Gfx[]               = INCBIN_U8("graphics/dodrio_berry_picking/cloud.4bpp.lz");
+static const u8 sDodrio_Gfx[]              = INCBIN_U8("graphics/dodrio_berry_picking/dodrio.4bpp.lz");
 static const u32 sBg_Tilemap[]              = INCBIN_U32("graphics/dodrio_berry_picking/bg.bin.lz");
 static const u32 sTreeBorderRight_Tilemap[] = INCBIN_U32("graphics/dodrio_berry_picking/tree_border_right.bin.lz");
 static const u32 sTreeBorderLeft_Tilemap[]  = INCBIN_U32("graphics/dodrio_berry_picking/tree_border_left.bin.lz");
