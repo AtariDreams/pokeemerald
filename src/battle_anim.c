@@ -1275,7 +1275,7 @@ s8 BattleAnimAdjustPanning(s8 pan)
     else if (IsContest())
     {
         if (gBattleAnimAttacker != gBattleAnimTarget || gBattleAnimAttacker != 2 || pan != SOUND_PAN_TARGET)
-            pan *= -1;
+            pan = -pan;
     }
     else if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
     {
@@ -1284,7 +1284,7 @@ s8 BattleAnimAdjustPanning(s8 pan)
             if (pan == SOUND_PAN_TARGET)
                 pan = SOUND_PAN_ATTACKER;
             else if (pan != SOUND_PAN_ATTACKER)
-                pan *= -1;
+                pan = -pan;
         }
     }
     else if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_OPPONENT)
@@ -1294,7 +1294,7 @@ s8 BattleAnimAdjustPanning(s8 pan)
     }
     else
     {
-        pan *= -1;
+        pan = -pan;
     }
 
     if (pan > SOUND_PAN_TARGET)
@@ -1317,7 +1317,7 @@ s8 BattleAnimAdjustPanning2(s8 pan)
     else
     {
         if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER || IsContest())
-            pan *= -1;
+            pan = -pan;
     }
     return pan;
 }
