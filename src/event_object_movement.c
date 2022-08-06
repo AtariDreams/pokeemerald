@@ -2405,22 +2405,16 @@ u8 GetObjectEventBerryTreeId(u8 objectEventId)
 
 static struct ObjectEventTemplate *GetObjectEventTemplateByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroup)
 {
-    struct ObjectEventTemplate *templates;
     const struct MapHeader *mapHeader;
-    u8 count;
 
     if (gSaveBlock1Ptr->location.mapNum == mapNum && gSaveBlock1Ptr->location.mapGroup == mapGroup)
     {
-        templates = gSaveBlock1Ptr->objectEventTemplates;
-        count = gMapHeader.events->objectEventCount;
+        return FindObjectEventTemplateByLocalId(localId, gSaveBlock1Ptr->objectEventTemplates, gMapHeader.events->objectEventCount);
     }
-    else
-    {
-        mapHeader = Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum);
-        templates = mapHeader->events->objectEvents;
-        count = mapHeader->events->objectEventCount;
-    }
-    return FindObjectEventTemplateByLocalId(localId, templates, count);
+
+    mapHeader = Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum);
+
+    return FindObjectEventTemplateByLocalId(localId, mapHeader->events->objectEvents, mapHeader->events->objectEventCount);
 }
 
 static struct ObjectEventTemplate *FindObjectEventTemplateByLocalId(u8 localId, struct ObjectEventTemplate *templates, u8 count)
