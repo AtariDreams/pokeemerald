@@ -637,17 +637,17 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
 
 static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
 {
-    struct RGBColor color;
+    struct RGBColor *color;
     u8 rBlend;
     u8 gBlend;
     u8 bBlend;
     u16 curPalIndex;
 
     BlendPalette(0, 256, blendCoeff, blendColor);
-    color = *(struct RGBColor *)&blendColor;
-    rBlend = color.r;
-    gBlend = color.g;
-    bBlend = color.b;
+    color = (struct RGBColor *)&blendColor;
+    rBlend = color->r;
+    gBlend = color->g;
+    bBlend = color->b;
 
     for (curPalIndex = 16; curPalIndex < 32; curPalIndex++)
     {
