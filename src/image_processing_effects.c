@@ -667,17 +667,17 @@ static u16 QuantizePixel_BlackAndWhite(u16 *color)
 
 static u16 QuantizePixel_BlackOutline(u16 *pixelA, u16 *pixelB)
 {
-    if (*pixelA != RGB_BLACK)
+    if (*pixelA == RGB_BLACK)
     {
-        if (IS_ALPHA(*pixelA))
-            return RGB_ALPHA;
-        if (IS_ALPHA(*pixelB))
-            return RGB_BLACK;
-
-        return *pixelA;
+        return RGB_BLACK;
     }
 
-    return RGB_BLACK;
+    if (IS_ALPHA(*pixelA))
+        return RGB_ALPHA;
+    if (IS_ALPHA(*pixelB))
+        return RGB_BLACK;
+
+    return *pixelA;
 }
 
 static u16 QuantizePixel_Invert(u16 *color)
@@ -756,7 +756,7 @@ static u16 QuantizePixel_Blur(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     u16 red, green, blue;
     u16 prevAvg, curAvg, nextAvg;
     u16 prevDiff, nextDiff;
-    u32 diff;
+    u16 diff;
     u16 factor;
 
     if (*prevPixel == *curPixel && *nextPixel == *curPixel)
@@ -767,7 +767,7 @@ static u16 QuantizePixel_Blur(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     blue  = GET_B(*curPixel);
 
     prevAvg = (GET_R(*prevPixel) + GET_G(*prevPixel) + GET_B(*prevPixel)) / 3;
-    curAvg  = (GET_R(*curPixel)  + GET_G(*curPixel)  + GET_B(*curPixel))  / 3;
+    curAvg  = (red  + green  + blue)  / 3;
     nextAvg = (GET_R(*nextPixel) + GET_G(*nextPixel) + GET_B(*nextPixel)) / 3;
 
     if (prevAvg == curAvg && nextAvg == curAvg)
@@ -788,7 +788,7 @@ static u16 QuantizePixel_Blur(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     else
         diff = nextDiff;
 
-    factor = 31 - diff / 2;
+    factor = 31 - (diff >> 1);
     red   = (red   * factor) / 31;
     green = (green * factor) / 31;
     blue  = (blue  * factor) / 31;
