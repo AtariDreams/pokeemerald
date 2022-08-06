@@ -289,14 +289,14 @@ static void Debug_PrintString(const void *str, u8 x, u8 y)
 
 }
 
-static void Debug_PrintNum(u16 num, u8 x, u8 y, u8 numDigits)
+static void Debug_PrintNum(u32 num, u8 x, u8 y, u8 numDigits)
 {
 
 }
 
 void ResetLinkRfuGFLayer(void)
 {
-    s32 i;
+    m32 i;
     u8 errorState = gRfu.errorState;
     CpuFill16(0, &gRfu, sizeof(gRfu));
     gRfu.errorState = errorState;
@@ -308,9 +308,9 @@ void ResetLinkRfuGFLayer(void)
     ResetSendDataManager(&gRfu.sendBlock);
     RfuRecvQueue_Reset(&gRfu.recvQueue);
     RfuSendQueue_Reset(&gRfu.sendQueue);
-    CpuFill16(0, gSendCmd, sizeof gSendCmd);
-    CpuFill16(0, gRecvCmds, sizeof gRecvCmds);
-    CpuFill16(0, gLinkPlayers, sizeof gLinkPlayers);
+    CpuFill16(0, gSendCmd, sizeof(gSendCmd));
+    CpuFill16(0, gRecvCmds, sizeof(gRecvCmds));
+    CpuFill16(0, gLinkPlayers, sizeof(gLinkPlayers));
 }
 
 void InitRFU(void)
@@ -328,14 +328,16 @@ void InitRFU(void)
 
 void InitRFUAPI(void)
 {
-    if (!rfu_initializeAPI((void *)gRfuAPIBuffer, sizeof(gRfuAPIBuffer), &gIntrTable[1], TRUE))
+    if (rfu_initializeAPI((void *)gRfuAPIBuffer, sizeof(gRfuAPIBuffer), &gIntrTable[1], TRUE))
     {
-        gLinkType = 0;
-        ClearSavedLinkPlayers();
-        RfuSetIgnoreError(FALSE);
-        ResetLinkRfuGFLayer();
-        rfu_setTimerInterrupt(3, &gIntrTable[2]);
+        return;
     }
+
+    gLinkType = 0;
+    ClearSavedLinkPlayers();
+    RfuSetIgnoreError(FALSE);
+    ResetLinkRfuGFLayer();
+    rfu_setTimerInterrupt(3, &gIntrTable[2]);
 }
 
 static void Task_ParentSearchForChildren(u8 taskId)
@@ -390,38 +392,44 @@ static void SetLinkPlayerIdsFromSlots(s32 baseSlots, s32 addSlots)
     if (addSlots == -1)
     {
         // Initialize
-        for (i = 0; i < RFU_CHILD_MAX; baseSlots >>= 1, i++)
+        for (i = 0; i < RFU_CHILD_MAX; i++)
         {
             if (baseSlots & 1)
             {
                 gRfu.linkPlayerIdx[i] = baseId;
                 baseId++;
             }
+            baseSlots >>= 1;
         }
     }
     else
     {
         // Clear id for any empty slot
-        for (i = 0; i < RFU_CHILD_MAX; baseSlotsCopy >>= 1, i++)
+        for (i = 0; i < RFU_CHILD_MAX; i++)
         {
             if (!(baseSlotsCopy & 1))
                 gRfu.linkPlayerIdx[i] = 0;
+            baseSlotsCopy >>= 1;
         }
 
         // Get starting id by checking existing slots
         for (baseId = RFU_CHILD_MAX; baseId != 0; baseId--)
         {
-            for (i = 0; i < RFU_CHILD_MAX && gRfu.linkPlayerIdx[i] != baseId; i++)
-                ;
+            for (i = 0; i < RFU_CHILD_MAX; i++)
+                if (gRfu.linkPlayerIdx[i] == baseId)
+                    break;
             if (i == RFU_CHILD_MAX)
                 newId = baseId;
         }
 
         // Set id for new slots
-        for (addSlots &= ~baseSlots, i = 0; i < RFU_CHILD_MAX; addSlots >>= 1, i++)
+        addSlots &= ~baseSlots;
+        for (i = 0; i < RFU_CHILD_MAX; i++)
         {
             if (addSlots & 1)
                 gRfu.linkPlayerIdx[i] = newId++;
+
+            addSlots >>= 1;
         }
     }
 }
@@ -577,7 +585,7 @@ void LinkRfu_StopManagerBeforeEnteringChat(void)
 // Argument is provided by the RFU and is unused.
 static void MSCCallback_Child(u16 REQ_commandID)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < COMM_SLOT_LENGTH; i++)
         gRfu.childSendBuffer[i] = 0;
@@ -604,7 +612,7 @@ static void MSCCallback_Parent(u16 REQ_commandID)
 
 void LinkRfu_Shutdown(void)
 {
-    u8 i;
+    m8 i;
 
     rfu_LMAN_powerDownRFU();
     if (gRfu.parentChild == MODE_PARENT)
