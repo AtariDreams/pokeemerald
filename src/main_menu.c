@@ -1642,7 +1642,11 @@ static void Task_NewGameBirchSpeech_StartNamingScreen(u8 taskId)
     {
         FreeAllWindowBuffers();
         FreeAndDestroyMonPicSprite(gTasks[taskId].tLotadSpriteId);
+        #if !MODERN
         NewGameBirchSpeech_SetDefaultPlayerName(Random() % 20);
+        #else
+         NewGameBirchSpeech_SetDefaultPlayerName(Mod(Random(), 20));
+        #endif
         DestroyTask(taskId);
         DoNamingScreen(NAMING_SCREEN_PLAYER, gSaveBlock2Ptr->playerName, gSaveBlock2Ptr->playerGender, 0, 0, CB2_NewGameBirchSpeech_ReturnFromNamingScreen);
     }
