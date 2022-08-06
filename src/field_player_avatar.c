@@ -788,7 +788,7 @@ bool8 IsPlayerCollidingWithFarawayIslandMew(u8 direction)
 
     if (object->previousCoords.x == playerX && object->previousCoords.y == playerY)
     {
-        if (object->previousCoords.y != playerY || object->currentCoords.x != mewPrevX || object->currentCoords.y != object->previousCoords.y)
+        if (object->previousCoords.y != playerY || object->currentCoords.x != object->previousCoords.x || object->currentCoords.y != object->previousCoords.y)
         {
             return TRUE;
         }
