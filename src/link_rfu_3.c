@@ -796,7 +796,7 @@ void LoadWirelessStatusIndicatorSpriteGfx(void)
 
 static u8 GetParentSignalStrength(void)
 {
-    u8 i;
+    m8 i;
     u8 flags = gRfuLinkStatus->connSlotFlag;
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
@@ -894,7 +894,7 @@ static void CopyTrainerRecord(struct TrainerNameRecord *dest, u32 trainerId, con
 
 static bool32 NameIsNotEmpty(const u8 *name)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < PLAYER_NAME_LENGTH + 1; i++)
     {
@@ -961,7 +961,7 @@ void SaveLinkTrainerNames(void)
 
 bool32 PlayerHasMetTrainerBefore(u16 id, u8 *name)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
     {
@@ -976,7 +976,7 @@ bool32 PlayerHasMetTrainerBefore(u16 id, u8 *name)
 
 void WipeTrainerNameRecords(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
     {
