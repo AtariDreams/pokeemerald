@@ -124,7 +124,7 @@ void rfu_LMAN_powerDownRFU(void)
 
 u8 rfu_LMAN_establishConnection(u8 parent_child, u16 connect_period, u16 name_accept_period, u16 *acceptable_serialNo_list)
 {
-    u8 i;
+    m8 i;
     u16 *serial_list;
 
     if (lman.state != LMAN_STATE_READY && (lman.state != LMAN_STATE_WAIT_RECV_CHILD_NAME || parent_child != MODE_PARENT))
@@ -322,7 +322,7 @@ void rfu_LMAN_stopManager(u8 forced_stop_and_RFU_reset_flag)
 
 static bool8 rfu_LMAN_linkWatcher(u16 REQ_commandID)
 {
-    u8 i;
+    m8 i;
     u8 bm_linkLossSlot;
     u8 reason;
     u8 bm_linkRecoverySlot;
