@@ -621,12 +621,26 @@ static u32 InitMainMenu(bool8 returningFromOptionsMenu)
 
 static void Task_MainMenuCheckSaveFile(u8 taskId)
 {
-    s16* data = gTasks[taskId].data;
+    // Should do assignment after check
+
+    s16 *data;
+
+    #if !MODERN
+    data = gTasks[taskId].data;
 
     if (gPaletteFade.active)
     {
         return;
     }
+    #else
+    if (gPaletteFade.active)
+    {
+        return;
+    }
+
+    data = gTasks[taskId].data;
+    #endif
+
     SetGpuReg(REG_OFFSET_WIN0H, 0);
     SetGpuReg(REG_OFFSET_WIN0V, 0);
     SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG0 | WININ_WIN0_OBJ);
