@@ -4065,7 +4065,7 @@ extern const u8 gHealthboxElementsGfxTable[][32];
 
 extern const u16 gNamingScreenMenu_Pal[6][16];
 extern const u32 gNamingScreenMenu_Gfx[];
-extern const u32 gNamingScreenBackground_Tilemap[];
+extern const u8 gNamingScreenBackground_Tilemap[];
 extern const u8 gNamingScreenKeyboardUpper_Tilemap[];
 extern const u8 gNamingScreenKeyboardLower_Tilemap[];
 extern const u8 gNamingScreenKeyboardSymbols_Tilemap[];

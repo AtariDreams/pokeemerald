@@ -1409,23 +1409,24 @@ const u16 gNamingScreenMenu_Pal[6][16] =
     INCBIN_U16("graphics/naming_screen/buttons.gbapal"),
     INCBIN_U16("graphics/naming_screen/cursor.gbapal"),
 };
+
 const u32 gNamingScreenMenu_Gfx[]                = INCBIN_U32("graphics/naming_screen/menu.4bpp.lz");
-const u32 gNamingScreenPageSwapFrame_Gfx[]       = INCBIN_U32("graphics/naming_screen/page_swap_frame.4bpp");
-const u32 gNamingScreenBackButton_Gfx[]          = INCBIN_U32("graphics/naming_screen/back_button.4bpp");
-const u32 gNamingScreenOKButton_Gfx[]            = INCBIN_U32("graphics/naming_screen/ok_button.4bpp");
-const u32 gNamingScreenPageSwapUpper_Gfx[]       = INCBIN_U32("graphics/naming_screen/page_swap_upper.4bpp");
-const u32 gNamingScreenPageSwapLower_Gfx[]       = INCBIN_U32("graphics/naming_screen/page_swap_lower.4bpp");
-const u32 gNamingScreenPageSwapOthers_Gfx[]      = INCBIN_U32("graphics/naming_screen/page_swap_others.4bpp");
-const u32 gNamingScreenCursor_Gfx[]              = INCBIN_U32("graphics/naming_screen/cursor.4bpp");
-const u32 gNamingScreenCursorSquished_Gfx[]      = INCBIN_U32("graphics/naming_screen/cursor_squished.4bpp");
-const u32 gNamingScreenCursorFilled_Gfx[]        = INCBIN_U32("graphics/naming_screen/cursor_filled.4bpp");
-const u32 gNamingScreenPageSwapButton_Gfx[]      = INCBIN_U32("graphics/naming_screen/page_swap_button.4bpp");
-const u32 gNamingScreenInputArrow_Gfx[]          = INCBIN_U32("graphics/naming_screen/input_arrow.4bpp");
-const u32 gNamingScreenUnderscore_Gfx[]          = INCBIN_U32("graphics/naming_screen/underscore.4bpp");
-const u32 gNamingScreenBackground_Tilemap[]      = INCBIN_U32("graphics/naming_screen/background.bin.lz");
-const u32 gNamingScreenKeyboardUpper_Tilemap[]   = INCBIN_U32("graphics/naming_screen/keyboard_upper.bin.lz");
-const u32 gNamingScreenKeyboardLower_Tilemap[]   = INCBIN_U32("graphics/naming_screen/keyboard_lower.bin.lz");
-const u32 gNamingScreenKeyboardSymbols_Tilemap[] = INCBIN_U32("graphics/naming_screen/keyboard_symbols.bin.lz");
+const u8 gNamingScreenPageSwapFrame_Gfx[]       = INCBIN_U8("graphics/naming_screen/page_swap_frame.4bpp");
+const u8 gNamingScreenBackButton_Gfx[]          = INCBIN_U8("graphics/naming_screen/back_button.4bpp");
+const u8 gNamingScreenOKButton_Gfx[]            = INCBIN_U8("graphics/naming_screen/ok_button.4bpp");
+const u8 gNamingScreenPageSwapUpper_Gfx[]       = INCBIN_U8("graphics/naming_screen/page_swap_upper.4bpp");
+const u8 gNamingScreenPageSwapLower_Gfx[]       = INCBIN_U8("graphics/naming_screen/page_swap_lower.4bpp");
+const u8 gNamingScreenPageSwapOthers_Gfx[]      = INCBIN_U8("graphics/naming_screen/page_swap_others.4bpp");
+const u8 gNamingScreenCursor_Gfx[]              = INCBIN_U8("graphics/naming_screen/cursor.4bpp");
+const u8 gNamingScreenCursorSquished_Gfx[]      = INCBIN_U8("graphics/naming_screen/cursor_squished.4bpp");
+const u8 gNamingScreenCursorFilled_Gfx[]        = INCBIN_U8("graphics/naming_screen/cursor_filled.4bpp");
+const u8 gNamingScreenPageSwapButton_Gfx[]      = INCBIN_U8("graphics/naming_screen/page_swap_button.4bpp");
+const u8 gNamingScreenInputArrow_Gfx[]          = INCBIN_U8("graphics/naming_screen/input_arrow.4bpp");
+const u8 gNamingScreenUnderscore_Gfx[]          = INCBIN_U8("graphics/naming_screen/underscore.4bpp");
+const u8 gNamingScreenBackground_Tilemap[]      = INCBIN_U8("graphics/naming_screen/background.bin.lz");
+const u8 gNamingScreenKeyboardUpper_Tilemap[]   = INCBIN_U8("graphics/naming_screen/keyboard_upper.bin.lz");
+const u8 gNamingScreenKeyboardLower_Tilemap[]   = INCBIN_U8("graphics/naming_screen/keyboard_lower.bin.lz");
+const u8 gNamingScreenKeyboardSymbols_Tilemap[] = INCBIN_U8("graphics/naming_screen/keyboard_symbols.bin.lz");
 
 // union room chat
 const u16 gUnionRoomChat_Background_Pal[] = INCBIN_U16("graphics/union_room_chat/background.gbapal");
