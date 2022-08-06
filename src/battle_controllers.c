@@ -779,6 +779,7 @@ static void Task_HandleSendLinkBuffersData(u8 taskId)
 
             if (GetLinkPlayerCount_2() >= numPlayers)
             {
+                #if !MODERN
                 if (IsLinkMaster())
                 {
                     CheckShouldAdvanceLinkState();
@@ -788,6 +789,13 @@ static void Task_HandleSendLinkBuffersData(u8 taskId)
                 {
                     gTasks[taskId].data[11]++;
                 }
+                #else
+                if (IsLinkMaster())
+                {
+                    CheckShouldAdvanceLinkState();
+                }
+                gTasks[taskId].data[11]++;
+                #endif
             }
         }
         break;
@@ -1145,7 +1153,7 @@ void BtlController_EmitPrintSelectionString(u8 bufferId, u16 stringID)
     sBattleBuffersTransferData[0] = CONTROLLER_PRINTSTRINGPLAYERONLY;
     sBattleBuffersTransferData[1] = CONTROLLER_PRINTSTRINGPLAYERONLY;
     #if !MODERN
-    sBattleBuffersTransferData[2] = stringID;
+    sBattleBuffersTransferData[2] = stringID & 0xFF;
     sBattleBuffersTransferData[3] = (stringID & 0xFF00) >> 8;
     #else
     sBattleBuffersTransferData[2] = stringID & 0xFF;
@@ -1176,8 +1184,12 @@ void BtlController_EmitChooseAction(u8 bufferId, u8 action, u16 itemId)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_CHOOSEACTION;
     sBattleBuffersTransferData[1] = action;
-    sBattleBuffersTransferData[2] = itemId;
+    sBattleBuffersTransferData[2] = itemId & 0xFF;
+    #if !MODERN
     sBattleBuffersTransferData[3] = (itemId & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[3] = (itemId) >> 8;
+    #endif
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
@@ -1238,34 +1250,53 @@ void BtlController_EmitCmd23(u8 bufferId)
 }
 
 // why is the argument u16 if it's being cast to s16 anyway?
+// gf code says it is an s16
+#if !MODERN
 void BtlController_EmitHealthBarUpdate(u8 bufferId, u16 hpValue)
+#else
+void BtlController_EmitHealthBarUpdate(u8 bufferId, s16 hpValue)
+#endif
 {
     sBattleBuffersTransferData[0] = CONTROLLER_HEALTHBARUPDATE;
     sBattleBuffersTransferData[1] = 0;
+    #if !MODERN
     sBattleBuffersTransferData[2] = (s16)hpValue;
     sBattleBuffersTransferData[3] = ((s16)hpValue & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[2] = (hpValue & 0xFF);
+    sBattleBuffersTransferData[3] = (hpValue & 0xFF00) >> 8;
+    #endif
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
 // why is the argument u16 if it's being cast to s16 anyway?
 // TODO: come back to this after merging. it's a file boundary issue
+#if !MODERN
 void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, u16 expPoints)
+#else
+void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, s16 expPoints)
+#endif
 {
     sBattleBuffersTransferData[0] = CONTROLLER_EXPUPDATE;
     sBattleBuffersTransferData[1] = partyId;
+    #if !MODERN
     sBattleBuffersTransferData[2] = (s16)expPoints;
     sBattleBuffersTransferData[3] = ((s16)expPoints & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[2] = (expPoints & 0xFF);
+    sBattleBuffersTransferData[3] = (expPoints & 0xFF00) >> 8;
+    #endif
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
 void BtlController_EmitStatusIconUpdate(u8 bufferId, u32 status1, u32 status2)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_STATUSICONUPDATE;
-    sBattleBuffersTransferData[1] = status1;
+    sBattleBuffersTransferData[1] = status1 & 0xFF;
     sBattleBuffersTransferData[2] = (status1 & 0x0000FF00) >> 8;
     sBattleBuffersTransferData[3] = (status1 & 0x00FF0000) >> 16;
     sBattleBuffersTransferData[4] = (status1 & 0xFF000000) >> 24;
-    sBattleBuffersTransferData[5] = status2;
+    sBattleBuffersTransferData[5] = status2 & 0xFF;
     sBattleBuffersTransferData[6] = (status2 & 0x0000FF00) >> 8;
     sBattleBuffersTransferData[7] = (status2 & 0x00FF0000) >> 16;
     sBattleBuffersTransferData[8] = (status2 & 0xFF000000) >> 24;
@@ -1276,7 +1307,7 @@ void BtlController_EmitStatusAnimation(u8 bufferId, bool8 status2, u32 status)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_STATUSANIMATION;
     sBattleBuffersTransferData[1] = status2;
-    sBattleBuffersTransferData[2] = status;
+    sBattleBuffersTransferData[2] = status & 0xFF;
     sBattleBuffersTransferData[3] = (status & 0x0000FF00) >> 8;
     sBattleBuffersTransferData[4] = (status & 0x00FF0000) >> 16;
     sBattleBuffersTransferData[5] = (status & 0xFF000000) >> 24;
@@ -1296,8 +1327,13 @@ void BtlController_EmitDataTransfer(u8 bufferId, u16 size, void *data)
 
     sBattleBuffersTransferData[0] = CONTROLLER_DATATRANSFER;
     sBattleBuffersTransferData[1] = CONTROLLER_DATATRANSFER;
-    sBattleBuffersTransferData[2] = size;
+    
+    sBattleBuffersTransferData[2] = size & 0xFF;
+    #if !MODERN
     sBattleBuffersTransferData[3] = (size & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[3] = (size) >> 8;
+    #endif
     for (i = 0; i < size; i++)
         sBattleBuffersTransferData[4 + i] = *(u8 *)(data++);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 4);
@@ -1312,8 +1348,12 @@ void BtlController_EmitDMA3Transfer(u8 bufferId, void *dst, u16 size, void *data
     sBattleBuffersTransferData[2] = ((u32)(dst) & 0x0000FF00) >> 8;
     sBattleBuffersTransferData[3] = ((u32)(dst) & 0x00FF0000) >> 16;
     sBattleBuffersTransferData[4] = ((u32)(dst) & 0xFF000000) >> 24;
-    sBattleBuffersTransferData[5] = size;
+    sBattleBuffersTransferData[5] = size & 0xFF;
+    #if !MODERN
     sBattleBuffersTransferData[6] = (size & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[6] = (size) >> 8;
+    #endif
     for (i = 0; i < size; i++)
         sBattleBuffersTransferData[7 + i] = *(u8 *)(data++);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 7);
@@ -1325,7 +1365,7 @@ void BtlController_EmitPlayBGM(u8 bufferId, u16 songId, void *data)
     m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_PLAYBGM;
-    sBattleBuffersTransferData[1] = songId;
+    sBattleBuffersTransferData[1] = songId & 0xFF;
     sBattleBuffersTransferData[2] = (songId & 0xFF00) >> 8;
 
     // Nonsense loop using songId as a size
@@ -1553,11 +1593,16 @@ void BtlController_EmitBattleAnimation(u8 bufferId, u8 animationId, u16 argument
 // TODO: come back to this after battle merge
 void BtlController_EmitLinkStandbyMsg(u8 bufferId, u8 mode, bool32 record)
 {
+    #if !MODERN
     bool8 record_ = record;
+    #endif
     sBattleBuffersTransferData[0] = CONTROLLER_LINKSTANDBYMSG;
     sBattleBuffersTransferData[1] = mode;
-
+    #if !MODERN
     if (record_) {
+    #else
+    if (record) {
+    #endif
         sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = RecordedBattle_BufferNewBattlerData(&sBattleBuffersTransferData[4]);
     }
     else {
