@@ -1239,7 +1239,7 @@ static void MovePoisonGasCloud(struct Sprite *sprite)
         value = gSineTable[sprite->data[5]];
         sprite->x2 += value >> 4;
         #else
-        sprite->x2 += gSineTable[sprite->data[5]] >> 4
+        sprite->x2 += gSineTable[sprite->data[5]] >> 4;
         #endif
         if (sprite->data[6])
             sprite->data[5] = (sprite->data[5] - 8) & 0xFF;
