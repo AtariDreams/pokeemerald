@@ -194,7 +194,7 @@ static void MachBikeTransition_TurnDirection(u8 direction)
     }
     else
     {
-        MachBikeTransition_FaceDirection(playerObjEvent->facingDirection);
+        MachBikeTransition_FaceDirection(playerObjEvent->directions.regDir.facingDirection);
     }
 }
 
@@ -207,9 +207,9 @@ static void MachBikeTransition_TrySpeedUp(u8 direction)
     {
         // we cannot go forward, so either slow down or, if we are stopped, idle face direction.
         if (gPlayerAvatar.bikeSpeed)
-            MachBikeTransition_TrySlowDown(playerObjEvent->movementDirection);
+            MachBikeTransition_TrySlowDown(playerObjEvent->directions.regDir.movementDirection);
         else
-            MachBikeTransition_FaceDirection(playerObjEvent->movementDirection);
+            MachBikeTransition_FaceDirection(playerObjEvent->directions.regDir.movementDirection);
     }
     else
     {
@@ -516,7 +516,7 @@ static u8 AcroBikeHandleInputSidewaysJump(u8 *ptr, u16 newKeys, u16 heldKeys)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     playerObjEvent->facingDirectionLocked = 0;
-    SetObjectEventDirection(playerObjEvent, playerObjEvent->facingDirection);
+    SetObjectEventDirection(playerObjEvent, playerObjEvent->directions.regDir.facingDirection);
     gPlayerAvatar.acroBikeState = ACRO_STATE_NORMAL;
     return CheckMovementInputAcroBike(ptr, newKeys, heldKeys);
 }
@@ -537,7 +537,7 @@ static void AcroBikeTransition_TurnDirection(u8 direction)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
-        direction = playerObjEvent->movementDirection;
+        direction = playerObjEvent->directions.regDir.movementDirection;
     PlayerFaceDirection(direction);
 }
 
@@ -548,7 +548,7 @@ static void AcroBikeTransition_Moving(u8 direction)
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
     {
-        AcroBikeTransition_FaceDirection(playerObjEvent->movementDirection);
+        AcroBikeTransition_FaceDirection(playerObjEvent->directions.regDir.movementDirection);
         return;
     }
     collision = GetBikeCollision(direction);
@@ -572,7 +572,7 @@ static void AcroBikeTransition_NormalToWheelie(u8 direction)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
-        direction = playerObjEvent->movementDirection;
+        direction = playerObjEvent->directions.regDir.movementDirection;
     PlayerStartWheelie(direction);
 }
 
@@ -581,7 +581,7 @@ static void AcroBikeTransition_WheelieToNormal(u8 direction)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
-        direction = playerObjEvent->movementDirection;
+        direction = playerObjEvent->directions.regDir.movementDirection;
     PlayerEndWheelie(direction);
 }
 
@@ -590,7 +590,7 @@ static void AcroBikeTransition_WheelieIdle(u8 direction)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
-        direction = playerObjEvent->movementDirection;
+        direction = playerObjEvent->directions.regDir.movementDirection;
     PlayerIdleWheelie(direction);
 }
 
@@ -599,7 +599,7 @@ static void AcroBikeTransition_WheelieHoppingStanding(u8 direction)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
-        direction = playerObjEvent->movementDirection;
+        direction = playerObjEvent->directions.regDir.movementDirection;
     PlayerStandingHoppingWheelie(direction);
 }
 
@@ -610,7 +610,7 @@ static void AcroBikeTransition_WheelieHoppingMoving(u8 direction)
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
     {
-        AcroBikeTransition_WheelieHoppingStanding(playerObjEvent->movementDirection);
+        AcroBikeTransition_WheelieHoppingStanding(playerObjEvent->directions.regDir.movementDirection);
         return;
     }
     collision = GetBikeCollision(direction);
@@ -673,7 +673,7 @@ static void AcroBikeTransition_WheelieMoving(u8 direction)
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
     {
-        PlayerIdleWheelie(playerObjEvent->movementDirection);
+        PlayerIdleWheelie(playerObjEvent->directions.regDir.movementDirection);
         return;
     }
     collision = GetBikeCollision(direction);
@@ -707,7 +707,7 @@ static void AcroBikeTransition_WheelieRisingMoving(u8 direction)
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
     {
-        PlayerStartWheelie(playerObjEvent->movementDirection);
+        PlayerStartWheelie(playerObjEvent->directions.regDir.movementDirection);
         return;
     }
     collision = GetBikeCollision(direction);
@@ -741,7 +741,7 @@ static void AcroBikeTransition_WheelieLoweringMoving(u8 direction)
 
     if (CanBikeFaceDirOnMetatile(direction, playerObjEvent->currentMetatileBehavior) == 0)
     {
-        PlayerEndWheelie(playerObjEvent->movementDirection);
+        PlayerEndWheelie(playerObjEvent->directions.regDir.movementDirection);
         return;
     }
     collision = GetBikeCollision(direction);
