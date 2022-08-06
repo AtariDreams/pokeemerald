@@ -975,77 +975,67 @@ static void SetPresetPalette_Grayscale(void)
 
 static void QuantizePalette_Standard(bool8 useLimitedPalette)
 {
-    u8 i, j;
-    u16 maxIndex;
+    u8 i, j, curIndex, maxIndex;
+    u16 *pixel;
+    u16 quantizedColor;
 
     if (!useLimitedPalette)
         maxIndex = 0xFF;
     else
         maxIndex = 0xDF;
 
+    #if !MODERN
     for (i = 0; i < maxIndex; i++)
         gCanvasPalette[i] = RGB_BLACK;
+    #else
+    for (curIndex = 0; curIndex < maxIndex; curIndex++)
+        gCanvasPalette[curIndex] = RGB_BLACK;
+    #endif
 
     gCanvasPalette[maxIndex] = RGB2(15, 15, 15);
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+#if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+#else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+#endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
             if (IS_ALPHA(*pixel))
             {
                 *pixel = gCanvasPaletteStart;
+                continue;
             }
-            else
+
+            quantizedColor = QuantizePixel_Standard(pixel);
+
+            for (curIndex = 1; curIndex < maxIndex; curIndex++)
             {
-                u16 quantizedColor = QuantizePixel_Standard(pixel);
-                u8 curIndex = 1;
-                if (curIndex < maxIndex)
+                if (gCanvasPalette[curIndex] == RGB_BLACK)
                 {
-                    if (gCanvasPalette[curIndex] == RGB_BLACK)
-                    {
-                        // The quantized color does not match any existing color in the
-                        // palette, so we add it to the palette.
-                        // This if block seems pointless because the below while loop handles
-                        // this same logic.
-                        gCanvasPalette[curIndex] = quantizedColor;
-                        *pixel = gCanvasPaletteStart + curIndex;
-                    }
-                    else
-                    {
-                        while (curIndex < maxIndex)
-                        {
-                            if (gCanvasPalette[curIndex] == RGB_BLACK)
-                            {
-                                // The quantized color does not match any existing color in the
-                                // palette, so we add it to the palette.
-                                gCanvasPalette[curIndex] = quantizedColor;
-                                *pixel = gCanvasPaletteStart + curIndex;
-                                break;
-                            }
-
-                            if (gCanvasPalette[curIndex] == quantizedColor)
-                            {
-                                // The quantized color matches this existing color in the
-                                // palette, so we use this existing color for the pixel.
-                                *pixel = gCanvasPaletteStart + curIndex;
-                                break;
-                            }
-
-                            curIndex++;
-                        }
-                    }
+                    // The quantized color does not match any existing color in the
+                    // palette, so we add it to the palette.
+                    gCanvasPalette[curIndex] = quantizedColor;
+                    *pixel = gCanvasPaletteStart + curIndex;
+                    break;
                 }
 
-                if (curIndex == maxIndex)
+                if (gCanvasPalette[curIndex] == quantizedColor)
                 {
-                    // The entire palette's colors are already in use, which means
-                    // the base image has too many colors to handle. This error is handled
-                    // by marking such pixels as gray color.
-                    curIndex = maxIndex;
-                    *pixel = curIndex;
+                    // The quantized color matches this existing color in the
+                    // palette, so we use this existing color for the pixel.
+                    *pixel = gCanvasPaletteStart + curIndex;
+                    break;
                 }
+            }
+
+            if (curIndex == maxIndex)
+            {
+                // The entire palette's colors are already in use, which means
+                // the base image has too many colors to handle. This error is handled
+                // by marking such pixels as gray color.
+                *pixel = maxIndex;
             }
         }
     }
