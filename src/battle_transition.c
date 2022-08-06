@@ -1286,7 +1286,11 @@ static bool8 Shuffle_End(struct Task *task)
 {
     u8 i;
     // TODO: should these be s16?
+    #if !MODERN
     u16 amplitude, sinVal;
+    #else
+    s16 amplitude, sinVal;
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -3620,9 +3624,13 @@ static bool8 Rayquaza_PaletteFlash(struct Task *task)
 {
     if ((task->tTimer % 4) == 0)
     {
-        //  must be u16 to match
+//  must be u16 to match
+#if !MODERN
         u16 value = task->tTimer / 4;
         LoadPalette(&sRayquaza_Palette[(5 + value) * 16], 0xF0, 0x20);
+#else
+        LoadPalette(&sRayquaza_Palette[(5 + task->tTimer / 4) * 16], 0xF0, 0x20);
+#endif
     }
     if (++task->tTimer > 40)
     {
@@ -3668,8 +3676,12 @@ static bool8 Rayquaza_TriRing(struct Task *task)
 {
     if ((task->tTimer % 3) == 0)
     {
+        #if !MODERN
         u16 value = task->tTimer / 3;
         LoadPalette(&sRayquaza_Palette[value * 16], 0xF0, 0x20);
+        #else
+        LoadPalette(&sRayquaza_Palette[task->tTimer / 3 * 16], 0xF0, 0x20);
+        #endif
     }
     if (++task->tTimer >= 40)
     {
@@ -3700,13 +3712,20 @@ static void VBlankCB_Rayquaza(void)
     DmaStop(0);
     VBlankCB_BattleTransition();
 
+    #if !MODERN
     if (sTransitionData->counter == 0)
         dmaSrc = gScanlineEffectRegBuffers[0];
     else if (sTransitionData->counter == 1)
         dmaSrc = gScanlineEffectRegBuffers[1];
     else
         dmaSrc = gScanlineEffectRegBuffers[0];
-
+    #else
+    if (sTransitionData->counter == 1)
+        dmaSrc = gScanlineEffectRegBuffers[1];
+    else
+        dmaSrc = gScanlineEffectRegBuffers[0];
+    #endif
+    
     DmaSet(0, dmaSrc, &REG_BG0VOFS, B_TRANS_DMA_FLAGS);
 }
 
@@ -3733,7 +3752,7 @@ static void Task_WhiteBarsFade(u8 taskId)
 
 static bool8 WhiteBarsFade_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -4480,7 +4499,7 @@ static bool8 FrontierLogoWave_SetGfx(struct Task *task)
 
 static bool8 FrontierLogoWave_InitScanline(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < DISPLAY_HEIGHT; i++)
         gScanlineEffectRegBuffers[1][i] = sTransitionData->cameraY;
