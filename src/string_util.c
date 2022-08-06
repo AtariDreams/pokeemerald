@@ -27,7 +27,7 @@ static const s32 sPowersOfTen[] =
 
 u8 *StringCopy_Nickname(u8 *dest, const u8 *src)
 {
-    u8 i;
+    m8 i;
     u32 limit = POKEMON_NAME_LENGTH;
 
     for (i = 0; i < limit; i++)
@@ -44,7 +44,7 @@ u8 *StringCopy_Nickname(u8 *dest, const u8 *src)
 
 u8 *StringGet_Nickname(u8 *str)
 {
-    u8 i;
+    m8 i;
     u32 limit = POKEMON_NAME_LENGTH;
 
     for (i = 0; i < limit; i++)
@@ -58,10 +58,14 @@ u8 *StringGet_Nickname(u8 *str)
 // It was nicer written in RS
 u8 *StringCopy_PlayerName(u8 *dest, const u8 *src)
 {
-    s32 i;
-    s32 limit = PLAYER_NAME_LENGTH;
+    m32 i;
+    #if !MODERN
+    m32 limit = PLAYER_NAME_LENGTH;
 
     for (i = 0; i < limit; i++)
+    #else
+    for (i = 0; i < PLAYER_NAME_LENGTH; i++)
+    #endif
     {
         dest[i] = src[i];
 
@@ -77,9 +81,13 @@ u8 *StringCopy(u8 *dest, const u8 *src)
 {
     while (*src != EOS)
     {
+        #if !MODERN
         *dest = *src;
         dest++;
         src++;
+        #else
+        *dest++ = *src++;
+        #endif
     }
 
     *dest = EOS;
@@ -96,7 +104,7 @@ u8 *StringAppend(u8 *dest, const u8 *src)
 
 u8 *StringCopyN(u8 *dest, const u8 *src, u8 n)
 {
-    u16 i;
+    m16 i;
 
     for (i = 0; i < n; i++)
         dest[i] = src[i];
@@ -149,10 +157,10 @@ s32 StringCompareN(const u8 *str1, const u8 *str2, u32 n)
 
     return *str1 - *str2;
 }
-
+#if !MODERN
 bool8 IsStringLengthAtLeast(const u8 *str, s32 n)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < n; i++)
         if (str[i] != CHAR_SPACE && str[i] != EOS)
@@ -160,6 +168,7 @@ bool8 IsStringLengthAtLeast(const u8 *str, s32 n)
 
     return FALSE;
 }
+#endif
 
 u8 *ConvertIntToDecimalStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 n)
 {
@@ -707,7 +716,11 @@ void ConvertInternationalString(u8 *s, u8 language)
 {
     if (language == LANGUAGE_JAPANESE)
     {
+        #if !MODERN
         u8 i;
+        #else
+        u16 i;
+        #endif
 
         StripExtCtrlCodes(s);
         i = StringLength(s);
@@ -715,7 +728,11 @@ void ConvertInternationalString(u8 *s, u8 language)
         s[i++] = EXT_CTRL_CODE_ENG;
         s[i++] = EOS;
 
+        #if !MODERN
         while (i--)
+        #else
+        for(; i; i--)
+        #endif
         {
             s[i + 2] = s[i];
         }
@@ -727,8 +744,8 @@ void ConvertInternationalString(u8 *s, u8 language)
 
 void StripExtCtrlCodes(u8 *str)
 {
-    u16 srcIndex = 0;
-    u16 destIndex = 0;
+    m16 srcIndex = 0;
+    m16 destIndex = 0;
     while (str[srcIndex] != EOS)
     {
         if (str[srcIndex] == EXT_CTRL_CODE_BEGIN)
