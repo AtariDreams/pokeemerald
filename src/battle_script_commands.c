@@ -3232,7 +3232,7 @@ static void Cmd_getexp(void)
 #if !MODERN
                 *(&gBattleStruct->sentInPokes) >>= 1;
 #else
-                gBattleStruct->sentInPokes) >>= 1;
+                gBattleStruct->sentInPokes >>= 1;
 #endif
 
                 gBattleScripting.getexpState = 5;
