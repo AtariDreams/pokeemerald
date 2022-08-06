@@ -576,7 +576,7 @@ static void rfu_CB_pollAndEndSearchChild(u8 reqCommand, u16 reqResult)
             STWI_set_Callback_M(rfu_CB_defaultCallback);
             STWI_send_SystemStatusREQ();
             if (STWI_poll_CommandEnd() == 0)
-                gRfuLinkStatus->my.id = *(u16 *)&gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0];
+                gRfuLinkStatus->my.id = *(u16 *)&gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1];
         }
     }
     else if (reqCommand == ID_SC_END_REQ)
@@ -602,7 +602,7 @@ static void rfu_STC_readChildList(void)
 #if LIBRFU_VERSION < 1026
     if (numSlots != 0)
     {
-        stwiParam = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0];
+        stwiParam = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1];
         STWI_set_Callback_M(rfu_CB_defaultCallback);
         STWI_send_LinkStatusREQ();
         if (STWI_poll_CommandEnd() == 0)
@@ -611,7 +611,7 @@ static void rfu_STC_readChildList(void)
             for (i = 0; i < RFU_CHILD_MAX; ++i)
                 true_slots[i] = *data_p++;
         }
-        gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0] = stwiParam;
+        gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1] = stwiParam;
     }
 #endif
     for (data_p = &gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket8.data[4];
@@ -768,7 +768,7 @@ static void rfu_CB_pollConnectParent(u8 reqCommand, u16 reqResult)
 
     if (reqResult == 0)
     {
-        id = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0];
+        id = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1];
         slot = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket8.data[6];
         if (gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket8.data[7] == 0)
         {
@@ -884,7 +884,7 @@ u16 rfu_REQBN_watchLink(u16 reqCommandId, u8 *bmLinkLossSlot, u8 *linkLossReason
     u8 i;
     s32 stwiCommand, stwiParam;
     u8 *packet_p;
-    u8 to_req_disconnect, newLinkLossFlag, num_packets, connSlotFlag, to_disconnect;
+    u8 to_req_disconnect, newLinkLossFlag, num_packets;
 
     *bmLinkLossSlot = 0;
     *linkLossReason = REASON_DISCONNECTED;
@@ -932,8 +932,8 @@ u16 rfu_REQBN_watchLink(u16 reqCommandId, u8 *bmLinkLossSlot, u8 *linkLossReason
         if (reasonMaybe == 0)
             return 0;
     }
-    stwiCommand = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.command;
-    stwiParam = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0];
+    stwiCommand = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0];
+    stwiParam = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1];
     STWI_set_Callback_M(rfu_CB_defaultCallback);
     STWI_send_LinkStatusREQ();
     reqResult = STWI_poll_CommandEnd();
@@ -1044,10 +1044,7 @@ u16 rfu_REQBN_watchLink(u16 reqCommandId, u8 *bmLinkLossSlot, u8 *linkLossReason
                 }
             }
         }
-        connSlotFlag = gRfuLinkStatus->connSlotFlag;
-        to_disconnect = *bmLinkLossSlot;
-        to_disconnect &= connSlotFlag;
-        if (newLinkLossFlag & to_disconnect)
+        if (gRfuLinkStatus->connSlotFlag & *bmLinkLossSlot & newLinkLossFlag)
             rfu_STC_removeLinkData(i, 0);
     }
     if (to_req_disconnect != 0)
@@ -1057,8 +1054,12 @@ u16 rfu_REQBN_watchLink(u16 reqCommandId, u8 *bmLinkLossSlot, u8 *linkLossReason
     }
     // equivalent to:
     // gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.command = stwiCommand;
+    #if !MODERN
     *(u32 *)gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket8.data = stwiCommand;
-    gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0] = stwiParam;
+    #else
+    gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0] = stwiCommand;
+    #endif
+    gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1] = stwiParam;
     return 0;
 }
 
@@ -1149,11 +1150,13 @@ static void rfu_CB_disconnect(u8 reqCommand, u16 reqResult)
 
 void rfu_REQ_CHILD_startConnectRecovery(u8 bmRecoverySlot)
 {
-    u8 i;
+    m8 i;
 
     gRfuStatic->recoveryBmSlot = bmRecoverySlot;
-    for (i = 0; i < RFU_CHILD_MAX && !((bmRecoverySlot >> i) & 1); ++i)
-        ;
+    for (i = 0; i < RFU_CHILD_MAX; ++i)
+        if ((bmRecoverySlot >> i) & 1)
+            break;
+
     STWI_set_Callback_M(rfu_STC_REQ_callback);
     // if i == 4, gRfuLinkStatus->partner[i].id becomes gRfuLinkStatus->my.id
     STWI_send_CPR_StartREQ(gRfuLinkStatus->partner[i].id, gRfuLinkStatus->my.id, bmRecoverySlot);
@@ -1913,7 +1916,7 @@ static void rfu_STC_PARENT_analyzeRecvPacket(void)
     u8 frame_counts[RFU_CHILD_MAX];
     u8 *packet_p;
 
-    frames32 = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[0] >> 8;
+    frames32 = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1] >> 8;
     for (bm_slot_id = 0; bm_slot_id < RFU_CHILD_MAX; ++bm_slot_id)
     {
         frame_counts[bm_slot_id] = frames32 & 0x1F;
