@@ -931,14 +931,11 @@ RustboroCity_EventScript_BrendanAskToBattle::
 
 RustboroCity_EventScript_BattleBrendan::
 	msgbox RustboroCity_Text_BrendanIWontGoEasy, MSGBOX_DEFAULT
-	.if MODERN
-	special StartWallyTutorialBattle
-	.else
+	StartWallyTutorialBattle
 	switch VAR_STARTER_MON
 	case 0, RustboroCity_EventScript_BattleBrendanTreecko
 	case 1, RustboroCity_EventScript_BattleBrendanTorchic
 	case 2, RustboroCity_EventScript_BattleBrendanMudkip
-	.endif
 	end
 
 RustboroCity_EventScript_BrendanBrineyHint::
