@@ -79,7 +79,7 @@ static EWRAM_DATA struct SecretBaseRegistryMenu *sRegistryMenu = NULL;
 
 static void Task_ShowSecretBaseRegistryMenu(u8);
 static void BuildRegistryMenuItems(u8);
-static void RegistryMenu_OnCursorMove(s32, bool8, struct ListMenu *);
+static void RegistryMenu_OnCursorMove(u32, bool8);
 static void FinalizeRegistryMenu(u8);
 static void AddRegistryMenuScrollArrows(u8);
 static void HandleRegistryMenuInput(u8);
@@ -967,7 +967,7 @@ static void BuildRegistryMenuItems(u8 taskId)
     gMultiuseListMenuTemplate.maxShowed = tMaxShownItems;
 }
 
-static void RegistryMenu_OnCursorMove(s32 unused, bool8 flag, struct ListMenu *menu)
+static void RegistryMenu_OnCursorMove(u32 unused, bool8 flag)
 {
     if (flag != TRUE)
         PlaySE(SE_SELECT);
