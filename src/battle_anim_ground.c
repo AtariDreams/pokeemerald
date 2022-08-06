@@ -304,9 +304,6 @@ void AnimTask_DigDownMovement(u8 taskId)
 
 static void AnimTask_DigBounceMovement(u8 taskId)
 {
-    #if !MODERN
-    u8 y;
-    #endif
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -324,14 +321,9 @@ static void AnimTask_DigBounceMovement(u8 taskId)
             task->data[12] = gBattle_BG2_X;
             task->data[13] = gBattle_BG2_Y;
         }
-        #if !MODERN
-        y = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
-        task->data[14] = y - 32;
-        task->data[15] = y + 32;
-        #else
+
         task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
         task->data[15] = task->data[14] + 64;
-        #endif
 
         if (task->data[14] < 0)
             task->data[14] = 0;
