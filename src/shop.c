@@ -275,7 +275,7 @@ static const u8 sShopBuyMenuTextColors[][3] =
 
 static u8 CreateShopMenu(u8 martType)
 {
-    int numMenuItems;
+    u8 numMenuItems;
 
     LockPlayerFieldControls();
     sMartInfo.martType = martType;

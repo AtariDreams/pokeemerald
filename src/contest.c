@@ -5919,7 +5919,7 @@ static void SetConestLiveUpdateTVData(void)
         loserFlag = gContestResources->tv[loser].loserFlags & flagId;
         if (loserFlag)
             break;
-        flagId >>= 1
+        flagId >>= 1;
     }
 
     ContestLiveUpdates_Init(round1Placing);
