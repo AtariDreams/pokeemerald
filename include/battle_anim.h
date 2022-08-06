@@ -69,7 +69,11 @@ void ResetBattleAnimBg(bool8);
 
 // battle_intro.c
 void SetAnimBgAttribute(u8 bgId, u8 attributeId, u8 value);
+#if MODERN
+void DrawBattlerOnBg(u8 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset);
+#else
 void DrawBattlerOnBg(u32 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset);
+#endif
 void HandleIntroSlide(u8 terrainId);
 u8 GetAnimBgAttribute(u8 bgId, u8 attributeId);
 
