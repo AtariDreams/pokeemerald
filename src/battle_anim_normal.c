@@ -286,7 +286,7 @@ static void AnimConfusionDuck_Step(struct Sprite *sprite)
     sprite->x2 = Cos(sprite->data[0], 30);
     sprite->y2 = Sin(sprite->data[0], 10);
 
-    if ((u16)sprite->data[0] < 128)
+    if (sprite->data[0] >= 0 && sprite->data[0] < 128)
         sprite->oam.priority = 1;
     else
         sprite->oam.priority = 3;
@@ -388,11 +388,9 @@ static void AnimComplexPaletteBlend_Step1(struct Sprite *sprite)
 
 static void AnimComplexPaletteBlend_Step2(struct Sprite *sprite)
 {
-    u32 selectedPalettes;
-
     if (!gPaletteFade.active)
     {
-        selectedPalettes = UnpackSelectedBattlePalettes(sprite->data[7]);
+        u32 selectedPalettes = UnpackSelectedBattlePalettes(sprite->data[7]);
         BlendPalettes(selectedPalettes, 0, 0);
         DestroyAnimSprite(sprite);
     }
@@ -410,7 +408,7 @@ static void AnimCirclingSparkle(struct Sprite *sprite)
     sprite->data[5] = 0;
     StoreSpriteCallbackInData6(sprite, DestroySpriteAndMatrix);
     sprite->callback = TranslateSpriteInGrowingCircle;
-    sprite->callback(sprite);
+    TranslateSpriteInGrowingCircle(sprite);
 }
 
 // Task data for AnimTask_BlendColorCycle, AnimTask_BlendColorCycleExclude, and AnimTask_BlendColorCycleByTag
@@ -489,7 +487,7 @@ static void AnimTask_BlendColorCycleLoop(u8 taskId)
 // See AnimTask_BlendColorCycle. Same, but excludes Attacker and Target
 void AnimTask_BlendColorCycleExclude(u8 taskId)
 {
-    int battler;
+    m32 battler;
     u32 selectedPalettes = 0;
 
     gTasks[taskId].data[0] = gBattleAnimArgs[0];
@@ -517,7 +515,7 @@ void AnimTask_BlendColorCycleExclude(u8 taskId)
 
 static void BlendColorCycleExclude(u8 taskId, u8 startBlendAmount, u8 targetBlendAmount)
 {
-    u32 selectedPalettes = ((u16)gTasks[taskId].tPalSelectorHi << 16) | (u16)gTasks[taskId].tPalSelectorLo;
+    u32 selectedPalettes = ((u16)gTasks[taskId].tPalSelectorHi << 16) | ((u16)gTasks[taskId].tPalSelectorLo & 0xFFFF);
     BeginNormalPaletteFade(
         selectedPalettes,
         gTasks[taskId].tDelay,
@@ -704,11 +702,9 @@ static void AnimTask_FlashAnimTagWithColor_Step1(u8 taskId)
 
 static void AnimTask_FlashAnimTagWithColor_Step2(u8 taskId)
 {
-    u32 selectedPalettes;
-
     if (!gPaletteFade.active)
     {
-        selectedPalettes = 1 << (IndexOfSpritePaletteTag(gTasks[taskId].data[7]) + 16);
+        u32 selectedPalettes = 1 << (IndexOfSpritePaletteTag(gTasks[taskId].data[7]) + 16);
         BeginNormalPaletteFade(selectedPalettes, 0, 0, 0, RGB(0, 0, 0));
         DestroyAnimVisualTask(taskId);
     }
@@ -816,15 +812,19 @@ static void AnimShakeMonOrBattleTerrain(struct Sprite *sprite)
     case 2:
         StoreSpriteCallbackInData6(sprite, (void *)&gSpriteCoordOffsetX);
         break;
+    case 3:
     default:
         StoreSpriteCallbackInData6(sprite, (void *)&gSpriteCoordOffsetY);
         break;
     }
-
-    sprite->data[4] = *(u16 *)(sprite->data[6] | (sprite->data[7] << 16));
+    #if !MODERN
+    sprite->data[4] = *(u16 *)((u32)sprite->data[6] | ((u32)sprite->data[7] << 16));
+    #else
+    sprite->data[4] = *(s16 *)((u32)sprite->data[6] | ((u32)sprite->data[7] << 16));
+    #endif
     sprite->data[5] = gBattleAnimArgs[3];
-    var0 = sprite->data[5] - 2;
-    if (var0 < 2)
+
+    if (gBattleAnimArgs[3] == 2 || gBattleAnimArgs[3] == 3)
         AnimShakeMonOrBattleTerrain_UpdateCoordOffsetEnabled();
 
     sprite->callback = AnimShakeMonOrBattleTerrain_Step;
@@ -832,8 +832,7 @@ static void AnimShakeMonOrBattleTerrain(struct Sprite *sprite)
 
 static void AnimShakeMonOrBattleTerrain_Step(struct Sprite *sprite)
 {
-    u8 i;
-    u16 var0;
+    m8 i;
 
     if (sprite->data[3] > 0)
     {
@@ -845,15 +844,17 @@ static void AnimShakeMonOrBattleTerrain_Step(struct Sprite *sprite)
         else
         {
             sprite->data[1] = sprite->data[2];
-            *(u16 *)(sprite->data[6] | (sprite->data[7] << 16)) += sprite->data[0];
+            // TODO: should this be an s16 or u16?
+            *(s16 *)((u32)sprite->data[6] | ((u32)sprite->data[7] << 16)) += sprite->data[0];
             sprite->data[0] = -sprite->data[0];
         }
     }
     else
     {
-        *(u16 *)(sprite->data[6] | (sprite->data[7] << 16)) = sprite->data[4];
-        var0 = sprite->data[5] - 2;
-        if (var0 < 2)
+        
+        *(s16 *)((u32)sprite->data[6] | ((u32)sprite->data[7] << 16)) = sprite->data[4];
+
+        if (sprite->data[5] == 2 || sprite->data[5] == 3)
         {
             for (i = 0; i < gBattlersCount; i++)
                 gSprites[gBattlerSpriteIds[i]].coordOffsetEnabled = FALSE;
@@ -872,14 +873,13 @@ static void AnimShakeMonOrBattleTerrain_UpdateCoordOffsetEnabled(void)
     {
         gSprites[gBattlerSpriteIds[gBattleAnimAttacker]].coordOffsetEnabled = TRUE;
         gSprites[gBattlerSpriteIds[gBattleAnimTarget]].coordOffsetEnabled = TRUE;
+        return;
     }
+
+    if (gBattleAnimArgs[4] == 0)
+        gSprites[gBattlerSpriteIds[gBattleAnimAttacker]].coordOffsetEnabled = TRUE;
     else
-    {
-        if (gBattleAnimArgs[4] == 0)
-            gSprites[gBattlerSpriteIds[gBattleAnimAttacker]].coordOffsetEnabled = TRUE;
-        else
-            gSprites[gBattlerSpriteIds[gBattleAnimTarget]].coordOffsetEnabled = TRUE;
-    }
+        gSprites[gBattlerSpriteIds[gBattleAnimTarget]].coordOffsetEnabled = TRUE;
 }
 
 // Task data for AnimTask_ShakeBattleTerrain
