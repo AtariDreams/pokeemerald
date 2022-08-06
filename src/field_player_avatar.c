@@ -334,7 +334,7 @@ void PlayerStep(u8 direction, u16 newKeys, u16 heldKeys)
 
     npc_clear_strange_bits(playerObjEvent);
     DoPlayerAvatarTransition();
-    if (!TryDoMetatileBehaviorForcedMovement())
+    if (TryDoMetatileBehaviorForcedMovement() == 0)
     {
         MovePlayerAvatarUsingKeypadInput(direction, newKeys, heldKeys);
         PlayerAllowForcedMovementIfMovingSameDirection();
