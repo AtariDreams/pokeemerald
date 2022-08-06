@@ -934,7 +934,7 @@ void MoveRelearnerShowHideHearts(u32 moveId)
     }
     else
     {
-        numHearts = (u8)(gContestEffects[gContestMoves[moveId].effect].appeal / 10);
+        numHearts = gContestEffects[gContestMoves[moveId].effect].appeal / 10;
 
         if (numHearts == 0xFF)
         {
@@ -954,7 +954,7 @@ void MoveRelearnerShowHideHearts(u32 moveId)
             gSprites[sMoveRelearnerStruct->heartSpriteIds[i]].invisible = FALSE;
         }
 
-        numHearts = (u8)(gContestEffects[gContestMoves[moveId].effect].jam / 10);
+        numHearts = gContestEffects[gContestMoves[moveId].effect].jam / 10;
 
         if (numHearts == 0xFF)
         {
