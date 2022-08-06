@@ -68,12 +68,16 @@ struct MailRead
     /*0x021b*/ u8 iconType;
     /*0x021c*/ u8 monIconSpriteId;
     /*0x021d*/ u8 language;
+    #if 1
+    // TODO: Optimize this out later when we know it won't break anything.
+    // Just because we can remove assignments to it doesn't mean it is safe
     /*0x021e*/ bool8 international;
+    #endif
     /*0x0220*/ u8 * (*parserSingle)(u8 *dest, u16 word);
     /*0x0224*/ u8 * (*parserMultiple)(u8 *dest, const u16 *src, u16 length1, u16 length2);
     /*0x0228*/ const struct MailLayout *layout;
-    /*0x022c*/ u8 bg1TilemapBuffer[0x1000];
-    /*0x122c*/ u8 bg2TilemapBuffer[0x1000];
+    /*0x022c*/ u16 bg1TilemapBuffer[0x800];
+    /*0x122c*/ u16 bg2TilemapBuffer[0x800];
 };
 
 static EWRAM_DATA struct MailRead *sMailRead = NULL;
@@ -450,7 +454,9 @@ void ReadMail(struct Mail *mail, void (*exitCallback)(void), bool8 hasText)
 
     sMailRead = calloc(1, sizeof(*sMailRead));
     sMailRead->language = GAME_LANGUAGE;
+    #if !MODERN
     sMailRead->international = TRUE;
+    #endif
     sMailRead->parserSingle = CopyEasyChatWord;
     sMailRead->parserMultiple = ConvertEasyChatWordsToString;
     if (IS_ITEM_MAIL(mail->itemId))
@@ -619,6 +625,8 @@ static bool8 MailReadBuildGraphics(void)
                 LoadMonIconPalette(icon);
                 sMailRead->monIconSpriteId = CreateMonIconNoPersonality(icon, SpriteCallbackDummy, 40, 128, 0, FALSE);
                 break;
+            default:
+                break;
             }
             break;
         case 18:
@@ -665,6 +673,9 @@ static void BufferMailText(void)
 
     // Buffer the signature
     ptr = StringCopy(sMailRead->playerName, sMailRead->mail->playerName);
+
+    // No need to read from something we all know what it is and cannot change even when trading when japanese
+    #if !MODERN
     if (!sMailRead->international)
     {
         // Never reached
@@ -676,6 +687,11 @@ static void BufferMailText(void)
         ConvertInternationalPlayerName(sMailRead->playerName);
         sMailRead->signatureWidth = sMailRead->layout->signatureWidth;
     }
+    #else
+    ConvertInternationalPlayerName(sMailRead->playerName);
+    sMailRead->signatureWidth = sMailRead->layout->signatureWidth;
+    #endif
+
 }
 
 static void PrintMailText(void)
