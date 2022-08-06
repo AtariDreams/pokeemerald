@@ -573,6 +573,8 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
     }
 }
 
+// Should we just pass pointers to colors instead of colors at this point?
+// Especially if we use unions? but then can they be in a register? Doesn't matter anyway since we are doing pointer stuff
 static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 blendColor)
 {
     struct RGBColor *color;
@@ -604,27 +606,30 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
                 // Should this be u16 or u32?
                 // both match, and the compiler seems to be able to optimize it out?
                 u16 offset;
-                struct RGBColor color1;
-                struct RGBColor color2;
-                u8 r1, g1, b1;
-                u8 r2, g2, b2;
 
-                color1 = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                r1 = color1.r;
-                g1 = color1.g;
-                b1 = color1.b;
+                u8 r1, g1, b1;
+
+                // Would love to reassign pointers to color but that doesn't match.
+
+                //Also these have to be struct assignments to match, rather than use pointers...
+                struct RGBColor color2, color3;
+
+                color2 = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+                r1 = color2.r;
+                g1 = color2.g;
+                b1 = color2.b;
 
                 offset = ((b1 & 0x1E) << 7) | ((g1 & 0x1E) << 3) | ((r1 & 0x1E) >> 1);
-                color2 = *(struct RGBColor *)&sDroughtWeatherColors[gammaIndex][offset];
-                r2 = color2.r;
-                g2 = color2.g;
-                b2 = color2.b;
+                color3 = *(struct RGBColor *)&sDroughtWeatherColors[gammaIndex][offset];
+                r1 = color3.r;
+                g1 = color3.g;
+                b1 = color3.b;
 
-                r2 += ((rBlend - r2) * blendCoeff) >> 4;
-                g2 += ((gBlend - g2) * blendCoeff) >> 4;
-                b2 += ((bBlend - b2) * blendCoeff) >> 4;
+                r1 += ((rBlend - r1) * blendCoeff) >> 4;
+                g1 += ((gBlend - g1) * blendCoeff) >> 4;
+                b1 += ((bBlend - b1) * blendCoeff) >> 4;
 
-                gPlttBufferFaded[palOffset++] = RGB2(r2, g2, b2);
+                gPlttBufferFaded[palOffset++] = RGB2(r1, g1, b1);
             }
         }
     }
