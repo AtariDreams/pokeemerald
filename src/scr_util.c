@@ -3669,6 +3669,8 @@ void IncrementBirthIslandRockStepCount(void)
 
 void SetDeoxysRockPalette(void)
 {
+    // GF code said LoadPalette( &triangle_Palette[pos*16], PA_OBJ10, 0x08 );
+    // Where did the * 16 go?!
     LoadPalette(&sDeoxysRockPalettes[(u8)VarGet(VAR_DEOXYS_ROCK_LEVEL)], 0x1A0, 8);
     BlendPalettes(0x04000000, 16, 0);
 }
@@ -3729,12 +3731,15 @@ void CreateAbnormalWeatherEvent(void)
     if (FlagGet(FLAG_DEFEATED_KYOGRE) == TRUE)
     {
         VarSet(VAR_ABNORMAL_WEATHER_LOCATION, (randomValue % TERRA_CAVE_LOCATIONS) + TERRA_CAVE_LOCATIONS_START);
+        return;
     }
-    else if (FlagGet(FLAG_DEFEATED_GROUDON) == TRUE)
+    if (FlagGet(FLAG_DEFEATED_GROUDON) == TRUE)
     {
         VarSet(VAR_ABNORMAL_WEATHER_LOCATION, (randomValue % MARINE_CAVE_LOCATIONS) + MARINE_CAVE_LOCATIONS_START);
+        return;
     }
-    else if ((randomValue & 1) == 0)
+    
+    if ((randomValue & 1) == 0)
     {
         randomValue = Random();
         VarSet(VAR_ABNORMAL_WEATHER_LOCATION, (randomValue % TERRA_CAVE_LOCATIONS) + TERRA_CAVE_LOCATIONS_START);
@@ -3866,7 +3871,7 @@ void Unused_SetWeatherSunny(void)
 }
 
 // All mart employees have a local id of 1, so function always returns 1
-u32 GetMartEmployeeObjectEventId(void)
+u16 GetMartEmployeeObjectEventId(void)
 {
     static const u8 sPokeMarts[][3] =
     {
@@ -3908,7 +3913,7 @@ bool32 IsTrainerRegistered(void)
 }
 
 // Always returns FALSE
-bool32 ShouldDistributeEonTicket(void)
+bool16 ShouldDistributeEonTicket(void)
 {
     if (!VarGet(VAR_DISTRIBUTE_EON_TICKET))
         return FALSE;
