@@ -800,7 +800,7 @@ static u16 QuantizePixel_BlurHard(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     u16 red, green, blue;
     u16 prevAvg, curAvg, nextAvg;
     u16 prevDiff, nextDiff;
-    u32 diff;
+    u16 diff;
     u16 factor;
 
     if (*prevPixel == *curPixel && *nextPixel == *curPixel)
@@ -811,7 +811,7 @@ static u16 QuantizePixel_BlurHard(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     blue  = GET_B(*curPixel);
 
     prevAvg = (GET_R(*prevPixel) + GET_G(*prevPixel) + GET_B(*prevPixel)) / 3;
-    curAvg  = (GET_R(*curPixel)  + GET_G(*curPixel)  + GET_B(*curPixel))  / 3;
+    curAvg  = (red  + green  + blue)  / 3;
     nextAvg = (GET_R(*nextPixel) + GET_G(*nextPixel) + GET_B(*nextPixel)) / 3;
 
     if (prevAvg == curAvg && nextAvg == curAvg)
@@ -845,8 +845,8 @@ void ConvertImageProcessingToGBA(struct ImageProcessingContext *context)
     u16 *src, *dest, *src_, *dest_;
     u16 width, height;
 
-    width = context->canvasWidth >> 3;
-    height = context->canvasHeight >> 3;
+    width = context->canvasWidth / 8;
+    height = context->canvasHeight /8;
     src_ = context->canvasPixels;
     dest_ = context->dest;
 
@@ -858,8 +858,8 @@ void ConvertImageProcessingToGBA(struct ImageProcessingContext *context)
             {
                 for (k = 0; k < 8; k++)
                 {
-                    dest = dest_ + ((i * width + j) << 5) + (k << 2);
-                    src = src_ + ((((i << 3) + k) << 3) * width) + (j << 3);
+                    dest = dest_ + (i * width + j) * 32 + (k * 4);
+                    src = src_ + (i * 8 + k) * (8 * width) + (j * 8);
 
                     dest[0] = src[0] | (src[1] << 8);
                     dest[1] = src[2] | (src[3] << 8);
@@ -877,8 +877,8 @@ void ConvertImageProcessingToGBA(struct ImageProcessingContext *context)
             {
                 for (k = 0; k < 8; k++)
                 {
-                    dest = dest_ + ((i * width + j) << 4) + (k << 1);
-                    src = src_ + ((((i << 3) + k) << 3) * width) + (j << 3);
+                    dest = dest_ + (i * width + j) * 16 + (k * 2);
+                    src = src_ + (i * 8 + k) * (8 * width) + (j * 8);
 
                     dest[0] = src[0] | (src[1] << 4) | (src[2] << 8) | (src[3] << 12);
                     dest[1] = src[4] | (src[5] << 4) | (src[6] << 8) | (src[7] << 12);
