@@ -657,7 +657,7 @@ static void Task_ShowPokedexAreaScreen(u8 taskId)
         // THIS CAN ONLY BE DONE as the bg =3 in the template
         // TODO: move that logic out and decouple it
 
-        // Since this will always be 3 anyway and TryShowPokedexAreaMap will always have the same result, we can topimize that out and more later
+        // Since this will always be 3 anyway and TryShowPokedexAreaMap will always have the same result, we can optimize that out and more later
         #if !MODERN
         ShowBg(3); // TryShowPokedexAreaMap will have done this already
         #endif
