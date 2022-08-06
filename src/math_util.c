@@ -67,10 +67,14 @@ s32 MathUtil_Div32(s32 x, s32 y)
 // answer: original code assigned x as 0x10000 and then divided against y, assigned that back to x, and then return
 s16 MathUtil_Inv16(s16 y)
 {
+    #if !MODERN
     s32 x;
 
     x = 0x10000;
     return x / y;
+    #else
+    return Div(0x10000, y);
+    #endif
 }
 
 s16 MathUtil_Inv16Shift(u8 s, s16 y)

@@ -6290,7 +6290,7 @@ static void AnimMoonlightSparkle_Step(struct Sprite *sprite)
 
 void AnimTask_MoonlightEndFade(u8 taskId)
 {
-    u32 a = GetBattleBgPalettesMask(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE) & 0xFFFF;
+    u32 a = GetBattlePalettesMask(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE) & 0xFFFF;
     u32 b;
 
     gTasks[taskId].data[0] = 0;
@@ -8855,7 +8855,7 @@ static void AnimTask_FakeOut_Step2(u8 taskId)
     {
         gTasks[taskId].data[11] = 0x88;
         SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG3 | BLDCNT_EFFECT_LIGHTEN);
-        BlendPalettes(GetBattleBgPalettesMask(1, 0, 0, 0, 0, 0, 0), 16, RGB(31, 31, 31));
+        BlendPalettes(GetBattlePalettesMask(1, 0, 0, 0, 0, 0, 0), 16, RGB(31, 31, 31));
     }
     else if (gTasks[taskId].data[10] > 4)
     {
