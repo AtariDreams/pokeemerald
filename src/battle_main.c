@@ -4884,8 +4884,10 @@ static void SetActionsAndBattlersTurnOrder(void)
 
 static void TurnValuesCleanUp(bool8 var0)
 {
+    #if !MODERN
     s32 i;
     u8 *dataPtr;
+    #endif
 
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
@@ -4896,9 +4898,13 @@ static void TurnValuesCleanUp(bool8 var0)
         }
         else
         {
-            dataPtr = (u8 *)(&gProtectStructs[gActiveBattler]);
+            #if !MODERN
+            dataPtr = (u8*)(&gProtectStructs[gActiveBattler]);
             for (i = 0; i < sizeof(struct ProtectStruct); i++)
                 dataPtr[i] = 0;
+            #else
+            memset(&gProtectStructs[gActiveBattler], 0, sizeof(struct ProtectStruct));
+            #endif
 
             if (gDisableStructs[gActiveBattler].isFirstTurn)
                 gDisableStructs[gActiveBattler].isFirstTurn--;
@@ -5244,14 +5250,21 @@ static void WaitForEvoSceneToFinish(void)
 
 static void ReturnFromBattleToOverworld(void)
 {
+    #if !MODERN
     if (!(gBattleTypeFlags & BATTLE_TYPE_LINK))
     {
         RandomlyGivePartyPokerus(gPlayerParty);
         PartySpreadPokerus(gPlayerParty);
     }
-
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK && gReceivedRemoteLinkPlayers != 0)
+    #else
+    if (!(gBattleTypeFlags & BATTLE_TYPE_LINK))
+    {
+        RandomlyGivePartyPokerus(gPlayerParty);
+        PartySpreadPokerus(gPlayerParty);
+    }
+    else if (gReceivedRemoteLinkPlayers != 0)
         return;
+    #endif
 
     gSpecialVar_Result = gBattleOutcome;
     gMain.inBattle = FALSE;
