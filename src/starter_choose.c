@@ -356,7 +356,7 @@ static const struct SpriteTemplate sSpriteTemplate_StarterCircle =
 u16 GetStarterPokemon(u16 chosenStarterId)
 {
     if (chosenStarterId > STARTER_MON_COUNT)
-        chosenStarterId = 0;
+        chosenStarterId = 0; // Error. TODO: needed still?
     return sStarterMon[chosenStarterId];
 }
 
@@ -414,12 +414,12 @@ void CB2_ChooseStarter(void)
     LoadUserWindowBorderGfx(0, 0x2A8, 0xD0);
     ClearScheduledBgCopiesToVram();
     ScanlineEffect_Stop();
+
     ResetTasks();
     ResetSpriteData();
     ResetPaletteFade();
     FreeAllSpritePalettes();
     ResetAllPicSprites();
-
     LoadPalette(GetOverworldTextboxPalettePtr(), 0xE0, 0x20);
     LoadPalette(gBirchBagGrassPal, 0, 0x40);
     LoadCompressedSpriteSheet(&sSpriteSheet_PokeballSelect[0]);
@@ -507,13 +507,18 @@ static void Task_HandleStarterChooseInput(u8 taskId)
 
         gTasks[taskId].tPkmnSpriteId = spriteId;
         gTasks[taskId].func = Task_WaitForStarterSprite;
+        return;
     }
-    else if (JOY_NEW(DPAD_LEFT) && selection > 0)
+    
+    //TODO: should this be done so that it only checks for dpad right if the first is false?
+    if (JOY_NEW(DPAD_LEFT) && selection > 0)
     {
         gTasks[taskId].tStarterSelection--;
         gTasks[taskId].func = Task_MoveStarterChooseCursor;
+        return;
     }
-    else if (JOY_NEW(DPAD_RIGHT) && selection < STARTER_MON_COUNT - 1)
+    
+    if (JOY_NEW(DPAD_RIGHT) && selection < STARTER_MON_COUNT - 1)
     {
         gTasks[taskId].tStarterSelection++;
         gTasks[taskId].func = Task_MoveStarterChooseCursor;
