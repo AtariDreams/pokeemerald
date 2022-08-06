@@ -14,7 +14,7 @@ void RouletteFlash_Reset(struct RouletteFlashUtil *flash)
     flash->flags = 0;
     memset(flash->palettes, 0, sizeof(flash->palettes));
     #else
-    memset(flash, 0, sizeof(flash))
+    memset(flash, 0, sizeof(*flash));
     #endif
 }
 
