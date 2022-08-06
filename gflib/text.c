@@ -292,8 +292,8 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     for (i = 0; i < (int)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
         sTempTextPrinter.subStructFields[i] = 0;
     #else
-    for (j = 0; j < ARRAY_COUNT(sTempTextPrinter.subStructFields); j++)
-        sTempTextPrinter.subStructFields[j] = 0;
+
+    memset(&sTempTextPrinter.subStructFields, 0, sizeof(sTempTextPrinter.subStructFields));
     #endif
 
     sTempTextPrinter.printerTemplate = *printerTemplate;
