@@ -42,7 +42,7 @@ void HandleLinkBattleSetup(void)
 
 void SetUpBattleVarsAndBirchZigzagoon(void)
 {
-    s32 i;
+    m32 i;
 
     gBattleMainFunc = BeginBattleIntroDummy;
 
@@ -69,13 +69,20 @@ void SetUpBattleVarsAndBirchZigzagoon(void)
     }
 
     // Below are never read
+    #if !MODERN
     gUnusedFirstBattleVar1 = 0;
     gUnusedFirstBattleVar2 = 0;
+    #endif
 }
 
 void InitBattleControllers(void)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
+
 
     if (!(gBattleTypeFlags & BATTLE_TYPE_RECORDED))
         RecordedBattle_Init(B_RECORD_MODE_RECORDING);
@@ -101,16 +108,20 @@ void InitBattleControllers(void)
     }
 
     //Todo: use memset
+    #if !MODERN
     for (i = 0; i < sizeof(gBattleStruct->tvMovePoints); i++)
         *((u8 *)(&gBattleStruct->tvMovePoints) + i) = 0;
 
     for (i = 0; i < sizeof(gBattleStruct->tv); i++)
-        *((u8 *)(&gBattleStruct->tv) + i) = 0;
+        *((u8*)(&gBattleStruct->tv) + i) = 0;
+    #else
+    memset(&gBattleStruct->tvMovePoints, 0, sizeof(gBattleStruct->tvMovePoints) + sizeof(gBattleStruct->tv));
+    #endif
 }
 
 static void InitSinglePlayerBtlControllers(void)
 {
-    s32 i;
+    m32 i;
 
     if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
     {
@@ -388,7 +399,7 @@ static void InitSinglePlayerBtlControllers(void)
 
 static void InitLinkBtlControllers(void)
 {
-    s32 i;
+    m32 i;
     u8 multiplayerId;
 
     if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
@@ -583,7 +594,7 @@ static void InitLinkBtlControllers(void)
 
 static void SetBattlePartyIds(void)
 {
-    s32 i, j;
+    m32 i, j;
 
     if ((gBattleTypeFlags & BATTLE_TYPE_MULTI))
         return;
@@ -640,7 +651,7 @@ static void SetBattlePartyIds(void)
 
 static void PrepareBufferDataTransfer(u8 bufferId, u8 *data, u16 size)
 {
-    s32 i;
+    m32 i;
 
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
     {
@@ -682,7 +693,9 @@ static void CreateTasksForSendRecvLinkBuffers(void)
     gTasks[sLinkReceiveTaskId].data[14] = 0;
     gTasks[sLinkReceiveTaskId].data[15] = 0;
 
+    #if !MODERN
     sUnused = 0;
+    #endif
 }
 
 enum
@@ -700,10 +713,10 @@ enum
 
 void PrepareBufferDataTransferLink(u8 bufferId, u16 size, u8 *data)
 {
-    s32 alignedSize;
-    s32 i;
+    m32 alignedSize;
+    m32 i;
 
-    alignedSize = size + (4 - (size % 4));
+    alignedSize = size + (4 - (size & 3));
     if (gTasks[sLinkSendTaskId].data[14] + alignedSize + LINK_BUFF_DATA + 1 > BATTLE_BUFFER_LINK_SIZE)
     {
         gTasks[sLinkSendTaskId].data[12] = gTasks[sLinkSendTaskId].data[14];
@@ -722,7 +735,11 @@ void PrepareBufferDataTransferLink(u8 bufferId, u16 size, u8 *data)
         gLinkBattleSendBuffer[gTasks[sLinkSendTaskId].data[14] + LINK_BUFF_DATA + i] = data[i];
 
     // Should be +=
+    #if !MODERN
     gTasks[sLinkSendTaskId].data[14] = gTasks[sLinkSendTaskId].data[14] + alignedSize + LINK_BUFF_DATA;
+    #else
+    gTasks[sLinkSendTaskId].data[14] += alignedSize + LINK_BUFF_DATA;
+    #endif
 }
 
 static void Task_HandleSendLinkBuffersData(u8 taskId)
@@ -810,8 +827,10 @@ static void Task_HandleSendLinkBuffersData(u8 taskId)
 void TryReceiveLinkBattleData(void)
 {
     u8 i;
-    s32 j;
+    m32 j;
+    #if !MODERN
     u8 *recvBuffer;
+    #endif
 
     if (gReceivedRemoteLinkPlayers != 0 && (gBattleTypeFlags & BATTLE_TYPE_LINK_IN_BATTLE))
     {
@@ -821,7 +840,9 @@ void TryReceiveLinkBattleData(void)
             if (GetBlockReceivedStatus() & gBitTable[i])
             {
                 ResetBlockReceivedFlag(i);
+                #if !MODERN
                 recvBuffer = (u8 *)gBlockRecvBuffer[i];
+                #endif
                 {
                     u8 *dest, *src;
                     u16 dataSize = gBlockRecvBuffer[i][2];
@@ -835,12 +856,20 @@ void TryReceiveLinkBattleData(void)
                     dest = &gLinkBattleRecvBuffer[gTasks[sLinkReceiveTaskId].data[14]];
                     // src = (u8 *)gBlockRecvBuffer[i];
                     // Doesn't match though because it needs more unused vars above to match, so I am going with this for now
+                    #if !MODERN
                     src = recvBuffer;
 
                     for (j = 0; j < dataSize + 8; j++)
                         dest[j] = src[j];
 
                     gTasks[sLinkReceiveTaskId].data[14] = gTasks[sLinkReceiveTaskId].data[14] + dataSize + 8;
+                    #else
+                    src = (u8 *)gBlockRecvBuffer[i];
+                    for (j = 0; j < dataSize + 8; j++)
+                        dest[j] = src[j];
+
+                    gTasks[sLinkReceiveTaskId].data[14] += dataSize + 8;
+                    #endif
                 }
             }
         }
