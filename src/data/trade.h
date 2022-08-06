@@ -295,50 +295,57 @@ static const u8 sTradeMonSpriteCoords[(PARTY_SIZE * 2) + 1][2] =
 
     {23, 18} // CANCEL
 };
+static const u8 sTradeMonLevelCoords[12][2] = {
+	{5,4},		{5+7,4},
+	{5,4+5},	{5+7,4+5},
+	{5,4+5*2},	{5+7,4+5*2},
 
-static const u8 sTradeMonLevelCoords[][2][2] =
+	{20,4},		{20+7,4},
+	{20,4+5},	{20+7,4+5},
+	{20,4+5*2},	{20+7,4+5*2},
+};
+
+static const u8 sTradeMonBoxCoords[12][2] = {
+    {1,3    },	{8,3    },
+	{1,3+5  },	{8,3+5  },
+	{1,3+10 },	{8,3+10 },
+
+	{16,3    },	{16+7, 3    },
+	{16,3+5  },	{16+7, 3+5  },
+	{16,3+10 },	{16+7, 3+10 },
+};
+
+// Should be 3D array [2][6][2]
+/* static const u8 sTradeMonLevelCoords[2][6][2] =
 {
     // Your party
     {
         {5, 4},
         {12, 4},
-    },
-    {
         {5, 9},
         {12, 9},
-    },
-    {
         {5, 14},
         {12, 14},
     },
     // Friend's party
     {
-
         {20, 4},
         {27, 4},
-    },
-    {
         {20, 9},
         {27, 9},
-    },
-    {
         {20, 14},
         {27, 14},
     },
 };
 
-static const u8 sTradeMonBoxCoords[][2][2] =
+static const u8 sTradeMonBoxCoords[2][6][2] =
 {
     // Your party
     {
         {1, 3},
         {8, 3},
-    },
-    {
         {1, 8},
         {8, 8},
-    },
-    {
         {1, 13},
         {8, 13},
     },
@@ -346,16 +353,12 @@ static const u8 sTradeMonBoxCoords[][2][2] =
     {
         {16, 3},
         {23, 3},
-    },
-    {
         {16, 8},
         {23, 8},
-    },
-    {
         {16, 13},
         {23, 13},
     },
-};
+}; */
 
 static const u8 sUnusedCoords[][2] =
 {
