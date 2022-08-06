@@ -9,9 +9,13 @@
 
 void RouletteFlash_Reset(struct RouletteFlashUtil *flash)
 {
+    #if !MODERN
     flash->enabled = 0;
     flash->flags = 0;
     memset(flash->palettes, 0, sizeof(flash->palettes));
+    #else
+    memset(flash, 0, sizeof(flash))
+    #endif
 }
 
 u8 RouletteFlash_Add(struct RouletteFlashUtil *flash, u8 id, const struct RouletteFlashSettings *settings)
@@ -29,8 +33,13 @@ u8 RouletteFlash_Add(struct RouletteFlashUtil *flash, u8 id, const struct Roulet
     flash->palettes[id].settings.colorDeltaDir = settings->colorDeltaDir;
     flash->palettes[id].state = 0;
     flash->palettes[id].available = TRUE;
+    #if !MODERN
     flash->palettes[id].fadeCycleCounter = 0;
     flash->palettes[id].delayCounter = 0;
+    #else
+    flash->palettes[id].delayCounter = 0;
+    flash->palettes[id].fadeCycleCounter = 0;
+    #endif
     if (flash->palettes[id].settings.colorDeltaDir < 0)
         flash->palettes[id].colorDelta = -1;
     else
@@ -65,11 +74,11 @@ static u8 RouletteFlash_FadePalette(struct RouletteFlashPalette *pal)
         {
         case 1:
             // Fade color
-            if (faded->r + pal->colorDelta >= 0 && faded->r + pal->colorDelta < 32)
+            if (faded->r + pal->colorDelta < 32 && faded->r + pal->colorDelta >= 0)
                 faded->r += pal->colorDelta;
-            if (faded->g + pal->colorDelta >= 0 && faded->g + pal->colorDelta < 32)
+            if (faded->g + pal->colorDelta < 32 && faded->g + pal->colorDelta >= 0)
                 faded->g += pal->colorDelta;
-            if (faded->b + pal->colorDelta >= 0 && faded->b + pal->colorDelta < 32)
+            if (faded->b + pal->colorDelta < 32 && faded->b + pal->colorDelta >= 0)
                 faded->b += pal->colorDelta;
             break;
         case 2:
@@ -101,34 +110,46 @@ static u8 RouletteFlash_FadePalette(struct RouletteFlashPalette *pal)
     {
         return 0;
     }
+
+    pal->fadeCycleCounter = 0;
+    pal->colorDelta *= -1;
+    if (pal->state == 1)
+        pal->state++;
     else
-    {
-        pal->fadeCycleCounter = 0;
-        pal->colorDelta *= -1;
-        if (pal->state == 1)
-            pal->state++;
-        else
-            pal->state--;
-        returnval = 1;
-    }
+        pal->state--;
+    returnval = 1;
     return 1;
 }
 
 static u8 RouletteFlash_FlashPalette(struct RouletteFlashPalette *pal)
 {
+    #if !MODERN
     u8 i = 0;
+    #else
+    u32 i;
+    #endif
     switch (pal->state)
     {
     case 1:
         // Flash to color
+        #if !MODERN
         for (; i < pal->settings.numColors; i++)
             gPlttBufferFaded[pal->settings.paletteOffset + i] = pal->settings.color;
+        #else
+        for (i = 0; i < pal->settings.numColors; i++)
+            gPlttBufferFaded[pal->settings.paletteOffset + i] = pal->settings.color;
+        #endif
         pal->state++;
         break;
     case 2:
         // Restore to original color
+        #if !MODERN
         for (; i < pal->settings.numColors; i++)
             gPlttBufferFaded[pal->settings.paletteOffset + i] = gPlttBufferUnfaded[pal->settings.paletteOffset + i];
+        #else
+        for (i = 0; i < pal->settings.numColors; i++)
+            gPlttBufferFaded[pal->settings.paletteOffset + i] = gPlttBufferUnfaded[pal->settings.paletteOffset + i];
+        #endif
         pal->state--;
         break;
     }
@@ -137,7 +158,7 @@ static u8 RouletteFlash_FlashPalette(struct RouletteFlashPalette *pal)
 
 void RouletteFlash_Run(struct RouletteFlashUtil *flash)
 {
-    u8 i = 0;
+    m8 i = 0;
 
     if (flash->enabled)
     {
@@ -146,6 +167,7 @@ void RouletteFlash_Run(struct RouletteFlashUtil *flash)
             if ((flash->flags >> i) & 1)
             {
                 // Why not have the delayCounter go down when this is FALSE
+                #if !MODERN
                 if (flash->palettes[i].delayCounter-- == 0)
                 {
                     if (flash->palettes[i].settings.color & FLASHUTIL_USE_EXISTING_COLOR)
@@ -155,6 +177,19 @@ void RouletteFlash_Run(struct RouletteFlashUtil *flash)
 
                     flash->palettes[i].delayCounter = flash->palettes[i].settings.delay;
                 }
+                #else
+                if (flash->palettes[i].delayCounter == 0)
+                {
+                    if (flash->palettes[i].settings.color & FLASHUTIL_USE_EXISTING_COLOR)
+                        RouletteFlash_FadePalette(&flash->palettes[i]);
+                    else
+                        RouletteFlash_FlashPalette(&flash->palettes[i]);
+
+                    flash->palettes[i].delayCounter = flash->palettes[i].settings.delay;
+                }
+                else
+                    flash->palettes[i].delayCounter--;
+                #endif
             }
         }
     }
@@ -162,9 +197,14 @@ void RouletteFlash_Run(struct RouletteFlashUtil *flash)
 
 void RouletteFlash_Enable(struct RouletteFlashUtil *flash, u16 flags)
 {
+    #if !MODERN
     u8 i = 0;
-
     flash->enabled++;
+    #else
+    u16 i;
+    flash->enabled = TRUE:
+    #endif
+
     for (i = 0; i < ARRAY_COUNT(flash->palettes); i++)
     {
         if ((flags >> i) & 1)
@@ -190,10 +230,15 @@ void RouletteFlash_Stop(struct RouletteFlashUtil *flash, u16 flags)
             {
                 if ((flags >> i) & 1)
                 {
+                    #if !MODERN
                     u32 offset = flash->palettes[i].settings.paletteOffset;
                     u16 *faded = &gPlttBufferFaded[offset];
                     u16 *unfaded = &gPlttBufferUnfaded[offset];
                     memcpy(faded, unfaded, flash->palettes[i].settings.numColors * 2);
+                    #else
+                    u16 offset = flash->palettes[i].settings.paletteOffset;
+                    memcpy(&gPlttBufferFaded[offset],  &gPlttBufferUnfaded[offset], flash->palettes[i].settings.numColors * 2);
+                    #endif
                     flash->palettes[i].state = 0;
                     flash->palettes[i].fadeCycleCounter = 0;
                     flash->palettes[i].delayCounter = 0;
