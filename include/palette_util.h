@@ -72,7 +72,7 @@ void UnloadUsedPulseBlendPalettes(struct PulseBlend *, u16, u8);
 void UnmarkUsedPulseBlendPalettes(struct PulseBlend *, u16, u8);
 void UpdatePulseBlend(struct PulseBlend *);
 void FillTilemapRect(u16 *dest, u16 src, u8 left, u8 top, u8 width, u8 height);
-void SetTilemapRect(u16 *dest, u16 *src, u8 left, u8 top, u8 width, u8 height);
+void SetTilemapRect(u16 *dest, const u16 *src, u8 left, u8 top, u8 width, u8 height);
 void RouletteFlash_Run(struct RouletteFlashUtil *r0);
 void RouletteFlash_Reset(struct RouletteFlashUtil *r0);
 u8 RouletteFlash_Add(struct RouletteFlashUtil *r0, u8 r1, const struct RouletteFlashSettings *r2);
