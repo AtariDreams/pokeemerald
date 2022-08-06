@@ -42,6 +42,11 @@ enum
     RAY_ANIM_END
 };
 
+#define	CNT_SCENE0_FADE_1	( 64 )
+#define	CNT_SCENE0_FADE_2	( 144 )
+#define	CNT_SCENE0_FADE_3	( CNT_SCENE0_FADE_2 + 4 )
+#define	CNT_SCENE0_END		( CNT_SCENE0_FADE_3 + 180 )
+
 #define TAG_DUOFIGHT_GROUDON             30505
 #define TAG_DUOFIGHT_GROUDON_SHOULDER    30506
 #define TAG_DUOFIGHT_GROUDON_CLAW        30507
@@ -1387,12 +1392,13 @@ static void Task_HandleDuoFightPre(u8 taskId)
     DuoFight_AnimateRain();
     if (!gPaletteFade.active)
     {
+        #if !MODERN
         s16 frame = tTimer;
-        if (frame == 64)
+        if (frame == CNT_SCENE0_FADE_1)
         {
             DuoFight_Lightning1();
         }
-        else if (frame == 144)
+        else if (frame == CNT_SCENE0_FADE_2)
         {
             DuoFight_Lightning2();
         }
@@ -1400,14 +1406,31 @@ static void Task_HandleDuoFightPre(u8 taskId)
         {
             switch (frame)
             {
-            case 328:
+            case CNT_SCENE0_END:
                 DuoFightEnd(taskId, 0);
                 return;
-            case 148:
+            case CNT_SCENE0_FADE_3:
                 DuoFight_LightningLong();
                 break;
             }
         }
+        #else
+            switch (tTimer)
+            {
+            case CNT_SCENE0_FADE_1:
+                DuoFight_Lightning1();
+                break;
+            case CNT_SCENE0_FADE_2:
+                DuoFight_Lightning2();
+                break;
+            case CNT_SCENE0_FADE_3:
+                DuoFight_LightningLong();
+                break;
+            case CNT_SCENE0_END:
+                DuoFightEnd(taskId, 0);     
+                return;
+            }
+        #endif
 
         tTimer++;
     }
@@ -1431,8 +1454,7 @@ static u8 DuoFightPre_CreateGroudonSprites(void)
 static void SpriteCB_DuoFightPre_Groudon(struct Sprite *sprite)
 {
     s16 *data = sprite->data;
-    data[5]++;
-    data[5] &= 0x1F;
+    data[5] = (data[5] + 1) & 0x1F;
     if (data[5] == 0 && sprite->x != 72)
     {
         sprite->x--;
@@ -1500,8 +1522,7 @@ static u8 DuoFightPre_CreateKyogreSprites(void)
 static void SpriteCB_DuoFightPre_Kyogre(struct Sprite *sprite)
 {
     s16 *data = sprite->data;
-    data[5]++;
-    data[5] &= 0x1F;
+    data[5] = (data[5] + 1) & 0x1F;
     if (data[5] == 0 && sprite->x != 152)
     {
         sprite->x++;
@@ -1635,9 +1656,10 @@ static void Task_DuoFightAnim(u8 taskId)
 
 static void Task_DuoFight_AnimateClouds(u8 taskId)
 {
-    s16 i;
-    u16 *data = gTasks[taskId].data;
+    ms16 i;
+    u16 *data = (u16 *)gTasks[taskId].data;
 
+    #if !MODERN
     for (i = 24; i < 92; i++)
     {
         if (i <= 47)
@@ -1671,6 +1693,39 @@ static void Task_DuoFight_AnimateClouds(u8 taskId)
             gScanlineEffectRegBuffers[1][i] = data[5] >> 8;
         }
     }
+#else
+    for (i = 24; i < 48; i++)
+    {
+        gScanlineEffectRegBuffers[0][i] = data[0] >> 8;
+        gScanlineEffectRegBuffers[1][i] = data[0] >> 8;
+    }
+    for (; i < 64; i++)
+    {
+        gScanlineEffectRegBuffers[0][i] = data[1] >> 8;
+        gScanlineEffectRegBuffers[1][i] = data[1] >> 8;
+    }
+    for (; i < 76; i++)
+    {
+        gScanlineEffectRegBuffers[0][i] = data[2] >> 8;
+        gScanlineEffectRegBuffers[1][i] = data[2] >> 8;
+    }
+    for (; i < 84; i++)
+    {
+        gScanlineEffectRegBuffers[0][i] = data[3] >> 8;
+        gScanlineEffectRegBuffers[1][i] = data[3] >> 8;
+    }
+    for (; i < 88; i++)
+    {
+        gScanlineEffectRegBuffers[0][i] = data[4] >> 8;
+        gScanlineEffectRegBuffers[1][i] = data[4] >> 8;
+    }
+    for (; i < 92; i++)
+    {
+        gScanlineEffectRegBuffers[0][i] = data[5] >> 8;
+        gScanlineEffectRegBuffers[1][i] = data[5] >> 8;
+    }
+
+#endif
 
     if (sRayScene->animId == RAY_ANIM_DUO_FIGHT_PRE)
     {
@@ -1698,6 +1753,7 @@ static void Task_HandleDuoFight(u8 taskId)
     DuoFight_AnimateRain();
     if (!gPaletteFade.active)
     {
+#if !MODERN
         s16 frame = tTimer;
         if (frame == 32 || frame == 112)
         {
@@ -1728,6 +1784,32 @@ static void Task_HandleDuoFight(u8 taskId)
                 break;
             }
         }
+#else
+        switch (tTimer)
+        {
+        case 32:
+        case 112:
+            DuoFight_Lightning1();
+            break;
+        case 216:
+            DuoFight_Lightning2();
+            break;
+        case 220:
+            DuoFight_LightningLong();
+            break;
+        case 380:
+            SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG2 | BLDCNT_TGT2_BG1 | BLDCNT_EFFECT_BLEND);
+            gTasks[tHelperTaskId].func = DuoFight_PanOffScene;
+            gTasks[tHelperTaskId].data[0] = 0;
+            gTasks[tHelperTaskId].data[2] = data[2];
+            gTasks[tHelperTaskId].data[3] = data[3];
+            ScanlineEffect_Stop();
+            break;
+        case 412:
+            DuoFightEnd(taskId, 2);
+            return;
+        }
+#endif
 
         tTimer++;
     }
@@ -1771,8 +1853,13 @@ static void DuoFight_PanOffScene(u8 taskId)
     DuoFight_SlideKyogreDown(&gSprites[tKyogreSpriteId]);
 
     bgY = GetBgY(1);
+    #if !MODERN
     if (GetBgY(1) == 0 || bgY > 0x8000)
         ChangeBgY(1, 0x400, BG_COORD_SUB);
+    #else
+    if (bgY == 0 || bgY > 0x8000)
+        ChangeBgY(1, 0x400, BG_COORD_SUB);
+    #endif
 
     if (tTimer != 16)
     {
@@ -1823,8 +1910,7 @@ static u8 DuoFight_CreateGroudonSprites(void)
 static void SpriteCB_DuoFight_Groudon(struct Sprite *sprite)
 {
     s16 *data = sprite->data;
-    data[5]++;
-    data[5] &= 0xF;
+    data[5] = (data[5] + 1) & 0xF;
     if (!(data[5] & 7) && sprite->x != 72)
     {
         sprite->x--;
@@ -1904,8 +1990,7 @@ static u8 DuoFight_CreateKyogreSprites(void)
 static void SpriteCB_DuoFight_Kyogre(struct Sprite *sprite)
 {
     s16 *data = sprite->data;
-    data[5]++;
-    data[5] &= 0xF;
+    data[5] = (data[5] + 1) & 0xF;
     if (!(data[5] & 7) && sprite->x != 152)
     {
         sprite->x++;
@@ -2088,7 +2173,7 @@ static void Task_HandleRayTakesFlight(u8 taskId)
         if (tYSpeed != 0)
             tYSpeed--;
 
-        if (tScale > 255)
+        if (tScale >= 256)
         {
             tScale = 256;
             tScaleSpeed = 0;
@@ -2107,7 +2192,7 @@ static void Task_HandleRayTakesFlight(u8 taskId)
         if (tYOffset == 12 || tYOffset == -12)
         {
             tYOffsetDir *= -1;
-            if (tTimer > 295)
+            if (tTimer >= 296)
             {
                 tState++;
                 BeginNormalPaletteFade(PALETTES_ALL, 6, 0, 0x10, RGB_BLACK);
@@ -2168,10 +2253,8 @@ static void Task_TakesFlight_CreateSmoke(u8 taskId)
             DestroyTask(taskId);
             return;
         }
-        else
-        {
-            tSmokeId++;
-        }
+
+        tSmokeId++;
     }
 
     tTimer++;
@@ -2193,8 +2276,7 @@ static void SpriteCB_TakesFlight_Smoke(struct Sprite *sprite)
         sprite->y2 += sTakesFlight_SmokeCoords[sprite->sSmokeId][1];
     }
 
-    sprite->sTimer++;
-    sprite->sTimer &= 0xF;
+    sprite->sTimer = (sprite->sTimer + 1) & 0xF;
 }
 
 #undef sSmokeId
@@ -2250,7 +2332,7 @@ static void LoadDescendsSceneGfx(void)
 static void HBlankCB_RayDescends(void)
 {
     u16 vcount = GetGpuReg(REG_OFFSET_VCOUNT);
-    if (vcount >= 24 && vcount <= 135 && vcount - 24 <= sRayScene->revealedLightLine)
+    if (vcount >= 24 && vcount < 136 && vcount - 24 <= sRayScene->revealedLightLine)
         REG_BLDALPHA = 0xD08; // This line is above where light has been revealed, draw it
     else
         REG_BLDALPHA = 0x1000; // Below where light has been revealed, hide it
@@ -2261,9 +2343,9 @@ static void HBlankCB_RayDescends(void)
         {
             // Increase the number of pixel rows of the light that have been revealed
             // Gradually slows as it reaches the bottom
-            if (sRayScene->revealedLightLine <= 39)
+            if (sRayScene->revealedLightLine < 40)
                 sRayScene->revealedLightLine += 4;
-            else if (sRayScene->revealedLightLine <= 79)
+            else if (sRayScene->revealedLightLine < 80)
                 sRayScene->revealedLightLine += 2;
             else
                 sRayScene->revealedLightLine += 1;
@@ -2513,7 +2595,7 @@ static void Task_HandleRayCharges(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
     RayCharges_AnimateBg();
-    if ((tSoundTimer & 7) == 0 && tState <= 1 && tTimer <= 89)
+    if ((tSoundTimer & 7) == 0 && tState <= 1 && tTimer < 90)
         PlaySE(SE_INTRO_BLAST);
 
     tSoundTimer++;
@@ -2579,8 +2661,8 @@ static void Task_RayCharges_ShakeRayquaza(u8 taskId)
     s16 *data = gTasks[taskId].data;
     if ((tTimer & 3) == 0)
     {
-        ChangeBgX(1, (Random() % 8 - 4) << 8, BG_COORD_SET);
-        ChangeBgY(1, (Random() % 8 - 4) << 8, BG_COORD_SET);
+        ChangeBgX(1, ((Random() & 7) - 4) << 8, BG_COORD_SET);
+        ChangeBgY(1, ((Random() & 7) - 4) << 8, BG_COORD_SET);
     }
 
     tTimer++;
@@ -3009,8 +3091,13 @@ static void SpriteCB_ChasesAway_KyogreLeave(struct Sprite *sprite)
         sprite->data[5]++;
     }
 
-    if (sprite->data[4] % 64 == 0)
+    #if MODERN
+    if ((sprite->data[4] & 63) == 0)
         PlaySE(SE_M_WHIRLPOOL);
+    #else
+    if ((sprite->data[4] % 64) == 0)
+        PlaySE(SE_M_WHIRLPOOL);
+    #endif
 
     sprite->data[4]++;
 }
@@ -3067,6 +3154,7 @@ static void SpriteCB_ChasesAway_Rayquaza(struct Sprite *sprite)
         PlayCry_Normal(SPECIES_RAYQUAZA, 0);
         CreateTask(Task_ChasesAway_AnimateRing, 0);
     }
+    #if !MODERN
     else
     {
         switch (frame)
@@ -3083,12 +3171,30 @@ static void SpriteCB_ChasesAway_Rayquaza(struct Sprite *sprite)
             break;
         }
     }
+    #else
+    
+    else if (frame == 352)
+    {
+        
+            ChasesAway_PushDuoBack(FindTaskIdByFunc(Task_HandleRayChasesAway));
+    }
+    else
+    {
+        sprite->x2 = 0;
+        gSprites[sprite->sTailSpriteId].x2 = 0;
+        SpriteCB_ChasesAway_RayquazaFloat(sprite);
+        ChasesAway_SetRayquazaAnim(sprite, 2, 48, 16);
+        sprite->callback = SpriteCB_ChasesAway_RayquazaFloat;
+        return;
+    }
+#endif
 
     if (sprite->sTimer > 328 && (sprite->sTimer & 1) == 0)
     {
         sprite->x2 *= -1;
         gSprites[sprite->sTailSpriteId].x2 = sprite->x2;
     }
+    
 
     sprite->sTimer++;
 }
