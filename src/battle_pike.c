@@ -1250,7 +1250,7 @@ static void Task_DoStatusInflictionScreenFlash(u8 taskId)
     {
         if (IsStatusInflictionScreenFlashTaskFinished())
         {
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
         }
     }

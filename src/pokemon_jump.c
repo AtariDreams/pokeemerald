@@ -4195,7 +4195,7 @@ static void Task_ShowPokemonJumpRecords(u8 taskId)
         {
             RemoveWindow(tWindowId);
             DestroyTask(taskId);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
         }
         break;
     }

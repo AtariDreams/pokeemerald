@@ -37,6 +37,14 @@
 #ifndef UBFIX
 #define UBFIX
 #endif
-#endif
 
+#ifndef M_IF
+#define M_IF else if
+#endif
+#else
+
+#ifndef M_IF
+#define M_IF if
+#endif
+#endif
 #endif // GUARD_CONFIG_H

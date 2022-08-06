@@ -162,5 +162,5 @@ static void FieldMove_RockSmash(void)
 {
     PlaySE(SE_M_ROCK_THROW);
     FieldEffectActiveListRemove(FLDEFF_USE_ROCK_SMASH);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }

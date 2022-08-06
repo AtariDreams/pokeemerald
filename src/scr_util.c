@@ -1125,7 +1125,7 @@ static void Task_PetalburgGymSlideOpenRoomDoors(u8 taskId)
         if ((++sSlidingDoorFrame) == ARRAY_COUNT(sPetalburgGymSlidingDoorMetatiles))
         {
             DestroyTask(taskId);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
         }
     }
     else
@@ -1823,7 +1823,7 @@ static void Task_ShakeCamera(u8 taskId)
 static void StopCameraShake(u8 taskId)
 {
     DestroyTask(taskId);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }
 
 #undef horizontalPan
@@ -2178,7 +2178,7 @@ static void Task_MoveElevator(u8 taskId)
         {
             PlaySE(SE_DING_DONG);
             DestroyTask(taskId);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             InstallCameraPanAheadCallback();
         }
     }
@@ -2954,7 +2954,7 @@ static void ScrollableMultichoice_ProcessInput(u8 taskId)
             // Handle selection while keeping the menu open
             ScrollableMultichoice_RemoveScrollArrows(taskId);
             task->func = Task_ScrollableMultichoice_WaitReturnToList;
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
         }
         break;
     }
@@ -2974,7 +2974,7 @@ static void CloseScrollableMultichoice(u8 taskId)
     CopyWindowToVram(task->tWindowId, COPYWIN_GFX);
     RemoveWindow(task->tWindowId);
     DestroyTask(taskId);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }
 
 // Never run, tKeepOpenAfterSelect is FALSE for all scrollable multichoices.
@@ -2996,7 +2996,7 @@ void ScrollableMultichoice_TryReturnToList(void)
 {
     u8 taskId = FindTaskIdByFunc(Task_ScrollableMultichoice_WaitReturnToList);
     if (taskId == TASK_NONE)
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     else
         gTasks[taskId].tKeepOpenAfterSelect++; // Return to list
 }
@@ -3586,7 +3586,7 @@ static void Task_DeoxysRockInteraction(u8 taskId)
     if (FlagGet(FLAG_DEOXYS_ROCK_COMPLETE) == TRUE)
     {
         gSpecialVar_Result = 3;
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         return;
     }
@@ -3609,7 +3609,7 @@ static void Task_DeoxysRockInteraction(u8 taskId)
         {
             FlagSet(FLAG_DEOXYS_ROCK_COMPLETE);
             gSpecialVar_Result = 2;
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
             return;
         }
@@ -3655,7 +3655,7 @@ static void WaitForDeoxysRockMovement(u8 taskId)
 {
     if (FieldEffectActiveListContains(FLDEFF_MOVE_DEOXYS_ROCK) == FALSE)
     {
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
     }
 }
@@ -4066,7 +4066,7 @@ static void Task_LinkRetireStatusWithBattleTowerPartner(u8 taskId)
             SetCloseLinkCallback();
 
         gBattleTypeFlags = sBattleTowerMultiBattleTypeFlags;
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         break;
     }
@@ -4152,7 +4152,7 @@ static void Task_CloseBattlePikeCurtain(u8 taskId)
         if (tCurrentFrame == 3)
         {
             DestroyTask(taskId);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
         }
     }
 }

@@ -461,7 +461,7 @@ static void EnterNewlyCreatedSecretBase_WaitFadeIn(u8 taskId)
     ObjectEventTurn(&gObjectEvents[gPlayerAvatar.objectEventId], DIR_NORTH);
     if (IsWeatherNotFadingIn() == TRUE)
     {
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
     }
 }

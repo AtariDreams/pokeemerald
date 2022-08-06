@@ -899,7 +899,7 @@ static void SaveGameTask(u8 taskId)
     }
 
     DestroyTask(taskId);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }
 
 static void HideSaveMessageWindow(void)
@@ -1375,7 +1375,7 @@ static void Task_WaitForBattleTowerLinkSave(u8 taskId)
     if (!FuncIsActiveTask(Task_LinkFullSave))
     {
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
 }
 

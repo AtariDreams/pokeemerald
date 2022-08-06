@@ -688,12 +688,12 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
         data->state++; // LL_STATE_RETRY or LL_STATE_FAILED
         break;
     case LL_STATE_FAILED:
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         gSpecialVar_Result = LINKUP_FAILED;
         break;
     case LL_STATE_RETRY:
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         gSpecialVar_Result = LINKUP_RETRY_ROLE_ASSIGN;
         break;
@@ -1773,7 +1773,7 @@ static void Task_RunScriptAndFadeToActivity(u8 taskId)
             SaveLinkTrainerNames();
             DestroyTask(taskId);
         default:
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             data[0] = 1;
             break;
         }
@@ -1827,7 +1827,7 @@ static void Task_RunScriptAndFadeToActivity(u8 taskId)
         }
         break;
     case 6:
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         break;
     case 7:
@@ -1838,7 +1838,7 @@ static void Task_RunScriptAndFadeToActivity(u8 taskId)
         if (gReceivedRemoteLinkPlayers == 0)
         {
             DestroyWirelessStatusIndicatorSprite();
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
         }
         break;
@@ -3790,7 +3790,7 @@ static void UR_ClearBg0(void)
 
 static void JoinGroup_EnableScriptContexts(void)
 {
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }
 
 static void PrintUnionRoomText(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 y, u8 colorIdx)

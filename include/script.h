@@ -39,7 +39,7 @@ bool8 ScriptContext_IsEnabled(void);
 bool8 ScriptContext_RunScript(void);
 void ScriptContext_SetupScript(const u8 *ptr);
 void ScriptContext_Stop(void);
-void ScriptContext_Enable(void);
+void EnableBothScriptContexts(void);
 void RunScriptImmediately(const u8 *ptr);
 void RunOnLoadMapScript(void);
 void RunOnTransitionMapScript(void);

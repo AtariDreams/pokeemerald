@@ -255,7 +255,7 @@ void ScriptContext_Stop(void)
 }
 
 // Puts the script into running mode.
-void ScriptContext_Enable(void)
+void EnableBothScriptContexts(void)
 {
     sGlobalScriptContextStatus = CONTEXT_RUNNING;
     LockPlayerFieldControls();

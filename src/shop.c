@@ -1211,19 +1211,19 @@ void CreatePokemartMenu(const u16 *itemsForSale)
     CreateShopMenu(MART_TYPE_NORMAL);
     SetShopItemsForSale(itemsForSale);
     ClearItemPurchases();
-    SetShopMenuCallback(ScriptContext_Enable);
+    SetShopMenuCallback(EnableBothScriptContexts);
 }
 
 void CreateDecorationShop1Menu(const u16 *itemsForSale)
 {
     CreateShopMenu(MART_TYPE_DECOR);
     SetShopItemsForSale(itemsForSale);
-    SetShopMenuCallback(ScriptContext_Enable);
+    SetShopMenuCallback(EnableBothScriptContexts);
 }
 
 void CreateDecorationShop2Menu(const u16 *itemsForSale)
 {
     CreateShopMenu(MART_TYPE_DECOR2);
     SetShopItemsForSale(itemsForSale);
-    SetShopMenuCallback(ScriptContext_Enable);
+    SetShopMenuCallback(EnableBothScriptContexts);
 }

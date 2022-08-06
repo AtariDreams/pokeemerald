@@ -487,7 +487,7 @@ static void FinishLinkup(u16 *linkupStatus, u32 taskId)
             {
                 // Successful battle tower linkup
                 ClearLinkPlayerCountWindow(gTasks[taskId].tWindowId);
-                ScriptContext_Enable();
+                EnableBothScriptContexts();
                 DestroyTask(taskId);
             }
         }
@@ -495,7 +495,7 @@ static void FinishLinkup(u16 *linkupStatus, u32 taskId)
         {
             // Successful linkup
             ClearLinkPlayerCountWindow(gTasks[taskId].tWindowId);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
         }
     }
@@ -532,7 +532,7 @@ static void Task_StopLinkup(u8 taskId)
     if (!gReceivedRemoteLinkPlayers)
     {
         ClearLinkPlayerCountWindow(gTasks[taskId].tWindowId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         RemoveWindow(gTasks[taskId].tWindowId);
         DestroyTask(taskId);
     }
@@ -544,7 +544,7 @@ static void Task_LinkupFailed(u8 taskId)
     ClearLinkPlayerCountWindow(gTasks[taskId].tWindowId);
     StopFieldMessage();
     RemoveWindow(gTasks[taskId].tWindowId);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
     DestroyTask(taskId);
 }
 
@@ -554,7 +554,7 @@ static void Task_LinkupConnectionError(u8 taskId)
     ClearLinkPlayerCountWindow(gTasks[taskId].tWindowId);
     RemoveWindow(gTasks[taskId].tWindowId);
     HideFieldMessageBox();
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
     DestroyTask(taskId);
 }
 
@@ -689,13 +689,13 @@ static void Task_ValidateMixingGameLanguage(u8 taskId)
                 return;
             }
         }
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         break;
     case 1:
         if (!gReceivedRemoteLinkPlayers)
         {
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
         }
         break;
@@ -1081,7 +1081,7 @@ static void Task_EnterCableClubSeat(u8 taskId)
         SetLinkWaitingForScript();
         EraseFieldMessageBox(TRUE);
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         break;
     }
 }
@@ -1258,7 +1258,7 @@ static void Task_WaitExitToScript(u8 taskId)
 {
     if (!gReceivedRemoteLinkPlayers)
     {
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
     }
 }

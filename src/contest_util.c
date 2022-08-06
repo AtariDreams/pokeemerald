@@ -2266,7 +2266,7 @@ void Task_LinkContest_FinalizeConnection(u8 taskId)
         DestroyTask(taskId);
         SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE);
         UnlockPlayerFieldControls();
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
 }
 
@@ -2282,7 +2282,7 @@ static void Task_LinkContest_WaitDisconnect(u8 taskId)
     {
         DestroyTask(taskId);
         UnlockPlayerFieldControls();
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
 }
 
@@ -2726,7 +2726,7 @@ static void Task_LinkContestWaitForConnection(u8 taskId)
     default:
         if (IsLinkTaskFinished() == 1)
         {
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
         }
         break;

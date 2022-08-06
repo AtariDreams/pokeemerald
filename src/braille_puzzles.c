@@ -155,7 +155,7 @@ static void Task_SealedChamberShakingEffect(u8 taskId)
         if (task->tShakeCounter == task->tNumShakes)
         {
             DestroyTask(taskId);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             InstallCameraPanAheadCallback();
         }
     }

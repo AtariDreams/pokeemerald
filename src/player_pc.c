@@ -495,7 +495,7 @@ static void PlayerPC_TurnOff(u8 taskId)
     }
     else
     {
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
     DestroyTask(taskId);
 }

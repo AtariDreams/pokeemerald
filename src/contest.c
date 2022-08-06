@@ -2761,7 +2761,7 @@ static void Task_ContestReturnToField(u8 taskId)
 static void FieldCB_ContestReturnToField(void)
 {
     UnlockPlayerFieldControls();
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }
 
 static void TryPutPlayerLast(void)

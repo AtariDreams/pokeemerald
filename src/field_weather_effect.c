@@ -338,7 +338,7 @@ static void UpdateDroughtBlend(u8 taskId)
         task->tState++;
         break;
     case 4:
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         break;
     }

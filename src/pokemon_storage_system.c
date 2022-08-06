@@ -1580,7 +1580,7 @@ static void Task_PCMainMenu(u8 taskId)
         case OPTION_EXIT:
             ClearStdWindowAndFrame(task->tWindowId, TRUE);
             UnlockPlayerFieldControls();
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             RemoveWindow(task->tWindowId);
             DestroyTask(taskId);
             break;

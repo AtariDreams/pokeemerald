@@ -364,7 +364,7 @@ static void PlayerDescendMirageTower(u8 taskId)
         (gSprites[player->spriteId].y + gSprites[player->spriteId].y2))
     {
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
 }
 
@@ -442,7 +442,7 @@ static void FinishCeilingCrumbleTask(u8 taskId)
 {
     FreeSpriteTilesByTag(TAG_CEILING_CRUMBLE);
     DestroyTask(taskId);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }
 
 static void CreateCeilingCrumbleSprites(void)
@@ -567,7 +567,7 @@ static void InitMirageTowerShake(u8 taskId)
         sBgShakeOffsets->bgVOFS = 0;
         CreateTask(UpdateBgShake, 10);
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         break;
     }
 }
@@ -658,7 +658,7 @@ static void DoMirageTowerDisintegration(u8 taskId)
         break;
     case 8:
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         break;
     }
     gTasks[taskId].tState++;
@@ -723,7 +723,7 @@ static void Task_FossilFallAndSink(u8 taskId)
         FREE_AND_SET_NULL(sFallingFossil);
         break;
     case 8:
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         break;
     }
     gTasks[taskId].tState++;

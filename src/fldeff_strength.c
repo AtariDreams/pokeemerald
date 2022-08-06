@@ -46,5 +46,5 @@ bool8 FldEff_UseStrength(void)
 static void StartStrengthFieldEffect(void)
 {
     FieldEffectActiveListRemove(FLDEFF_USE_STRENGTH);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }

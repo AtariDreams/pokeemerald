@@ -135,7 +135,7 @@ static void Task_WaitForFadeAndEnableScriptCtx(u8 taskID)
     if (WaitForWeatherFadeIn() == TRUE)
     {
         DestroyTask(taskID);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
 }
 
@@ -916,7 +916,7 @@ static void Task_WaitForFlashUpdate(u8 taskId)
 {
     if (!FuncIsActiveTask(UpdateFlashLevelEffect))
     {
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
     }
 }
@@ -1152,7 +1152,7 @@ static void Task_OrbEffect(u8 taskId)
     case 2:
         if (!FuncIsActiveTask(UpdateOrbFlashEffect))
         {
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             tState = 3;
         }
         break;
@@ -1200,7 +1200,7 @@ static void Task_OrbEffect(u8 taskId)
         SetGpuReg(REG_OFFSET_BLDALPHA, tBldAlpha);
         SetGpuReg(REG_OFFSET_WININ, tWinIn);
         SetGpuReg(REG_OFFSET_WINOUT, tWinOut);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         DestroyTask(taskId);
         break;
     }
@@ -1263,6 +1263,6 @@ static void Task_EnableScriptAfterMusicFade(u8 taskId)
     if (BGMusicStopped() == TRUE)
     {
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
     }
 }

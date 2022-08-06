@@ -810,7 +810,7 @@ static void Task_SetClock_HandleInput(u8 taskId)
             gTasks[taskId].tMoveDir = MOVE_BACKWARD;
         // no else if??
 
-        if (JOY_HELD(DPAD_RIGHT))
+        M_IF (JOY_HELD(DPAD_RIGHT))
             gTasks[taskId].tMoveDir = MOVE_FORWARD;
 
         if (gTasks[taskId].tMoveDir != MOVE_NONE)
@@ -1063,7 +1063,7 @@ static void SpriteCB_PMIndicator(struct Sprite *sprite)
         if (sprite->sAngle >= 60 && sprite->sAngle < 90)
             sprite->sAngle += 5;
         // no else if????????
-        if (sprite->sAngle < 60)
+        M_IF (sprite->sAngle < 60)
             sprite->sAngle++;
     }
     else
@@ -1071,7 +1071,7 @@ static void SpriteCB_PMIndicator(struct Sprite *sprite)
         if (sprite->sAngle <= 75 && sprite->sAngle > 45)
             sprite->sAngle -= 5;
         // no else if???
-        if (sprite->sAngle > 75)
+        M_IF (sprite->sAngle > 75)
             sprite->sAngle--;
     }
     sprite->x2 = Cos2(sprite->sAngle) * 30 / 0x1000;
@@ -1085,7 +1085,7 @@ static void SpriteCB_AMIndicator(struct Sprite *sprite)
         if (sprite->sAngle >= 105 && sprite->sAngle < 135)
             sprite->sAngle += 5;
         // no else if???
-        if (sprite->sAngle < 105)
+        M_IF (sprite->sAngle < 105)
             sprite->sAngle++;
     }
     else
@@ -1093,7 +1093,7 @@ static void SpriteCB_AMIndicator(struct Sprite *sprite)
         if (sprite->sAngle <= 120 && sprite->sAngle > 90)
             sprite->sAngle -= 5;
         // no else if???
-        if (sprite->sAngle > 120)
+        M_IF (sprite->sAngle > 120)
             sprite->sAngle--;
     }
     sprite->x2 = Cos2(sprite->sAngle) * 30 / 0x1000;

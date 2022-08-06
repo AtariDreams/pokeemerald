@@ -644,5 +644,5 @@ static void StartCutTreeFieldEffect(void)
 {
     PlaySE(SE_M_CUT);
     FieldEffectActiveListRemove(FLDEFF_USE_CUT_ON_TREE);
-    ScriptContext_Enable();
+    EnableBothScriptContexts();
 }

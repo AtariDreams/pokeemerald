@@ -627,7 +627,7 @@ static void Task_BardSong(u8 taskId)
             // End song
             FadeInBGM(6);
             m4aMPlayFadeOutPause(&gMPlayInfo_SE2, 2);
-            ScriptContext_Enable();
+            EnableBothScriptContexts();
             DestroyTask(taskId);
         }
         else if (gStringVar4[task->tCharIndex] == CHAR_SPACE)
@@ -1375,7 +1375,7 @@ static void Task_StoryListMenu(u8 taskId)
         }
         ClearToTransparentAndRemoveWindow(sStorytellerWindowId);
         DestroyTask(taskId);
-        ScriptContext_Enable();
+        EnableBothScriptContexts();
         break;
     }
 }
