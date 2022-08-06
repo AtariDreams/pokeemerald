@@ -2348,7 +2348,7 @@ void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
     while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE);
     #else
     // Prevents wally from getting a shiny pokemon
-    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE && (GET_SHINY_VALUE(value, personality)) >= SHINY_ODDS));
+    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE && (GET_SHINY_VALUE(species, personality) >= SHINY_ODDS));
     #endif
     CreateMon(mon, species, level, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
 }
