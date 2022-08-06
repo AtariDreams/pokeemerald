@@ -6186,15 +6186,15 @@ static bool8 SlideOutLevelUpBanner(void)
 
     return (gBattle_BG2_X != LEVEL_UP_BANNER_START);
 #else
-    if (gBattle_BG2_X <= LEVEL_UP_BANNER_START + 16)
+    if (gBattle_BG2_X < LEVEL_UP_BANNER_START + 16)
     {
         gBattle_BG2_X = LEVEL_UP_BANNER_START;
-        return TRUE;
+        return FALSE;
     }
 
     gBattle_BG2_X -= 16;
 
-    return FALSE;
+    return (gBattle_BG2_X != LEVEL_UP_BANNER_START);
 #endif
 }
 
