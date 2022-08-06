@@ -1054,8 +1054,7 @@ static void SetOptionInvisibility(struct Sprite ** sprites, bool32 invisible)
 
 static void SpriteCB_OptionSlide(struct Sprite * sprite)
 {
-    sprite->sSlideTime--;
-    if (sprite->sSlideTime != -1)
+    if (sprite->sSlideTime-- != 0)
     {
         sprite->sSlideSpeed += sprite->sSlideAccel;
         sprite->x = sprite->sSlideSpeed >> 4;
@@ -1090,6 +1089,9 @@ static void SpriteCB_OptionZoom(struct Sprite * sprite)
         {
             sprite->sZoomSpeed += 16;
             temp = sprite->sZoomSpeed;
+            // GF wrote (32 * temp) >> 8. check to see if set 0 bit is intended
+            // above compiler did (temp << 5) >> 8, or >> (8 - 5)
+            // x is needed to match, unless we do the 32 * temp thing
             x = temp >> 3;
             x = (x - 32) / 2;
 
@@ -1223,8 +1225,9 @@ static void AddOptionDescriptionWindow(void)
 static void PrintCurrentOptionDescription(void)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
-    int menuItem = GetCurrentMenuItemId();
+    u32 menuItem = GetCurrentMenuItemId();
     const u8 * desc = sPageDescriptions[menuItem];
+    // Should be s32?
     u32 width = GetStringWidth(FONT_NORMAL, desc, -1);
     FillWindowPixelBuffer(gfx->optionDescWindowId, PIXEL_FILL(6));
     AddTextPrinterParameterized3(gfx->optionDescWindowId, FONT_NORMAL, (192 - width) / 2, 1, sOptionDescTextColors, 0, desc);
@@ -1236,6 +1239,7 @@ static void PrintNoRibbonWinners(void)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
     const u8 * s = gText_NoRibbonWinners;
+    // Should be s32
     u32 width = GetStringWidth(FONT_NORMAL, s, -1);
     FillWindowPixelBuffer(gfx->optionDescWindowId, PIXEL_FILL(6));
     AddTextPrinterParameterized3(gfx->optionDescWindowId, FONT_NORMAL, (192 - width) / 2, 1, sOptionDescTextColors2, 0, s);
