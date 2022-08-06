@@ -3172,14 +3172,12 @@ static void Task_RunUnionRoom(u8 taskId)
                                       uroom->playerList);
         if (input != -1)
         {
-            switch (input)
+            if (input == -2 || input == 8) //EXIT
             {
-            case -2:
-            case 8: // EXIT
                 HandleCancelActivity(TRUE);
                 uroom->state = UR_STATE_MAIN;
-                break;
-            default:
+            }
+            else {
                 UR_ClearBg0();
                 switch (IsRequestedTypeOrEggInPlayerParty(uroom->playerList->players[input].rfu.data.tradeType, uroom->playerList->players[input].rfu.data.tradeSpecies))
                 {
@@ -3199,7 +3197,6 @@ static void Task_RunUnionRoom(u8 taskId)
                     ScheduleFieldMessageWithFollowupState(UR_STATE_TRADING_BOARD_LOAD, sText_DontHaveEggTrainerWants);
                     break;
                 }
-                break;
             }
         }
         break;
