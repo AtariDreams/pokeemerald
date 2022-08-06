@@ -2069,7 +2069,7 @@ bool8 ScrCmd_closedoor(struct ScriptContext *ctx)
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
-    FieldAnimateDoorClose(x, y);
+    FieldAnimateDoorClose((int)x, (int)y);
     return FALSE;
 }
 
@@ -2094,7 +2094,7 @@ bool8 ScrCmd_setdooropen(struct ScriptContext *ctx)
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
-    FieldSetDoorOpened(x, y);
+    FieldSetDoorOpened((int)x, (int)y);
     return FALSE;
 }
 
@@ -2105,7 +2105,7 @@ bool8 ScrCmd_setdoorclosed(struct ScriptContext *ctx)
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
-    FieldSetDoorClosed(x, y);
+    FieldSetDoorClosed((int)x, (int)y);
     return FALSE;
 }
 
