@@ -301,7 +301,6 @@ bool8 ShouldDoBrailleRegicePuzzle(void)
             u8 yPos = sRegicePathCoords[i][1];
             if (gSaveBlock1Ptr->pos.x == xPos && gSaveBlock1Ptr->pos.y == yPos)
             {
-                u16 varValue;
 
                 if (i < 16)
                 {
@@ -322,8 +321,7 @@ bool8 ShouldDoBrailleRegicePuzzle(void)
                     VarSet(VAR_REGICE_STEPS_3, val);
                 }
 
-                varValue = VarGet(VAR_REGICE_STEPS_1);
-                if (varValue != 0xFFFF || VarGet(VAR_REGICE_STEPS_2) != 0xFFFF || VarGet(VAR_REGICE_STEPS_3) != 0xF)
+                if (VarGet(VAR_REGICE_STEPS_1) != 0xFFFF || VarGet(VAR_REGICE_STEPS_2) != 0xFFFF || VarGet(VAR_REGICE_STEPS_3) != 0xF)
                     return FALSE;
 
                 // This final check is redundant.
