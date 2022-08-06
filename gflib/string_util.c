@@ -55,6 +55,7 @@ u8 *StringGet_Nickname(u8 *str)
     return &str[i];
 }
 
+// It was nicer written in RS
 u8 *StringCopy_PlayerName(u8 *dest, const u8 *src)
 {
     s32 i;
@@ -278,7 +279,6 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
 
     for (powerOfSixteen = largestPowerOfSixteen; powerOfSixteen > 0; powerOfSixteen /= 16)
     {
-        u8 c;
         u32 digit = value / powerOfSixteen;
         s32 temp = value % powerOfSixteen;
 
