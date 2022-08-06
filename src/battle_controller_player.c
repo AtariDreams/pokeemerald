@@ -345,6 +345,7 @@ static void HandleInputChooseTarget(void)
     DoBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX, 15, 1);
 
     // what a weird loop
+    // Change to for in refactors only until we can figure out what is going on
     i = 0;
     if (gBattlersCount != 0)
     {
