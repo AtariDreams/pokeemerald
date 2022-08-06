@@ -625,7 +625,7 @@ static void DoMoveRelearnerMain(void)
                     sMoveRelearnerStruct->state = MENU_STATE_SETUP_CONTEST_MODE;
                 }
                 #endif
-                // Below may be a typo, or above was kept when it was meant to be rmeoved
+                // Below may be a typo, or above was kept when it was meant to be removed
                 sMoveRelearnerStruct->state = MENU_STATE_PRINT_TRYING_TO_LEARN_PROMPT;
             }
         }
@@ -862,7 +862,7 @@ static void CreateUISprites(void)
     // The animation is used to toggle between full/empty heart sprites.
     for (i = 0; i < 8; i++)
     {
-        sMoveRelearnerStruct->heartSpriteIds[i + 8] = CreateSprite(&sConstestMoveHeartSprite, 104 + (i % 4) * 8, 52 + (i / 4) * 8, 0);
+        sMoveRelearnerStruct->heartSpriteIds[8 + i] = CreateSprite(&sConstestMoveHeartSprite, 104 + (i % 4) * 8, 52 + (i / 4) * 8, 0);
         StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[8 + i]], 2);
     }
 
