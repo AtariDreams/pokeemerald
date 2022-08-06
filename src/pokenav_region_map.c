@@ -24,7 +24,8 @@
 
 struct Pokenav_RegionMapMenu
 {
-    u8 unused[12];
+    // unused 10 but with 2 padding?
+    u8 unused[10];
     bool32 zoomDisabled;
     u32 (*callback)(struct Pokenav_RegionMapMenu *);
 };
