@@ -315,7 +315,7 @@ static void SetShopMenuCallback(void (* callback)(void))
 
 static void SetShopItemsForSale(const u16 *items)
 {
-    u16 i = 0;
+    m16 i = 0;
 
     sMartInfo.itemList = items;
     sMartInfo.itemCount = 0;
@@ -1180,7 +1180,7 @@ static void RecordItemPurchase(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
-    u16 i;
+    m16 i;
 
     for (i = 0; i < ARRAY_COUNT(gMartPurchaseHistory); i++)
     {
