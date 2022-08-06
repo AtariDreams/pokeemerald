@@ -7,9 +7,9 @@ static EWRAM_DATA const u8 *sStringPointers[8] = {};
 
 void DynamicPlaceholderTextUtil_Reset(void)
 {
-    int i;
+    m32 i;
     // why not just memset???
-    for (i = 0; i < (int)ARRAY_COUNT(sStringPointers); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sStringPointers); i++)
     {
         sStringPointers[i] = NULL;
     }
