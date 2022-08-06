@@ -237,8 +237,6 @@ static void PaletteStruct_Run(u8 a1, u32 *unkFlags)
 
 static void PaletteStruct_Copy(struct PaletteStruct *palStruct, u32 *unkFlags)
 {
-    s32 srcIndex;
-    s32 srcCount;
     u8 i = 0;
     u16 srcOffset = palStruct->srcIndex * palStruct->template->size;
 
@@ -268,10 +266,7 @@ static void PaletteStruct_Copy(struct PaletteStruct *palStruct, u32 *unkFlags)
     palStruct->countdown1 = palStruct->template->time1;
     palStruct->srcIndex++;
 
-    srcIndex = palStruct->srcIndex;
-    srcCount = palStruct->template->srcCount;
-
-    if (srcIndex >= srcCount)
+    if (palStruct->srcIndex >= palStruct->template->srcCount)
     {
         if (palStruct->countdown2)
             palStruct->countdown2--;
@@ -302,6 +297,7 @@ static void PaletteStruct_Blend(struct PaletteStruct *palStruct, u32 *unkFlags)
             {
                 if (palStruct->countdown1 != palStruct->template->time1)
                 {
+                    // matches as u16 too, could be int. Probably best if it is u32 though tbh for ARM
                     u32 srcOffset = palStruct->srcIndex * palStruct->template->size;
                     u8 i;
 
@@ -315,9 +311,10 @@ static void PaletteStruct_Blend(struct PaletteStruct *palStruct, u32 *unkFlags)
 
 static void PaletteStruct_TryEnd(struct PaletteStruct *pal)
 {
+    // Should have been this but with no state < 0
     if (pal->countdown2 == 0)
     {
-        s32 state = pal->template->state;
+       /*  s32 state = pal->template->state;
 
         if (state == 0)
         {
@@ -333,7 +330,21 @@ static void PaletteStruct_TryEnd(struct PaletteStruct *pal)
             if (state > 2)
                 return;
             PaletteStruct_ResetById(pal->template->id);
-        }
+        } */
+
+       switch (pal->template->state)
+       {
+       case 0:
+           pal->srcIndex = 0;
+           pal->countdown1 = pal->template->time1;
+           pal->countdown2 = pal->template->time2;
+           pal->destOffset = pal->baseDestOffset;
+           break;
+       case 1:
+       case 2:
+           PaletteStruct_ResetById(pal->template->id);
+           break;
+       }
     }
     else
     {
@@ -344,8 +355,9 @@ static void PaletteStruct_TryEnd(struct PaletteStruct *pal)
 void PaletteStruct_ResetById(u16 id)
 {
     u8 paletteNum = PaletteStruct_GetPalNum(id);
-    if (paletteNum != NUM_PALETTE_STRUCTS)
-        PaletteStruct_Reset(paletteNum);
+    if (paletteNum == NUM_PALETTE_STRUCTS)
+        return; // error TODO: look into this and see if needed conidering this is a failsafe
+    PaletteStruct_Reset(paletteNum);
 }
 
 static void PaletteStruct_Reset(u8 paletteNum)
@@ -369,7 +381,6 @@ void ResetPaletteFadeControl(void)
     gPaletteFade.targetY = 0;
     gPaletteFade.blendColor = 0;
     gPaletteFade.active = FALSE;
-    gPaletteFade.multipurpose2 = 0; // assign same value twice
     gPaletteFade.yDec = 0;
     gPaletteFade.bufferTransferDisabled = FALSE;
     gPaletteFade.shouldResetBlendRegisters = FALSE;
@@ -383,15 +394,17 @@ void ResetPaletteFadeControl(void)
 static void PaletteStruct_SetUnusedFlag(u16 id)
 {
     u8 paletteNum = PaletteStruct_GetPalNum(id);
-    if (paletteNum != NUM_PALETTE_STRUCTS)
-        sPaletteStructs[paletteNum].flag = TRUE;
+    if (paletteNum == NUM_PALETTE_STRUCTS)
+        return; // error
+    sPaletteStructs[paletteNum].flag = TRUE;
 }
 
 static void PaletteStruct_ClearUnusedFlag(u16 id)
 {
     u8 paletteNum = PaletteStruct_GetPalNum(id);
-    if (paletteNum != NUM_PALETTE_STRUCTS)
-        sPaletteStructs[paletteNum].flag = FALSE;
+    if (paletteNum == NUM_PALETTE_STRUCTS)
+        return; //error
+    sPaletteStructs[paletteNum].flag = FALSE;
 }
 
 static u8 PaletteStruct_GetPalNum(u16 id)
@@ -402,7 +415,7 @@ static u8 PaletteStruct_GetPalNum(u16 id)
         if (sPaletteStructs[i].template->id == id)
             return i;
 
-    return NUM_PALETTE_STRUCTS;
+    return NUM_PALETTE_STRUCTS; /// error
 }
 
 static u8 UpdateNormalPaletteFade(void)
@@ -415,80 +428,78 @@ static u8 UpdateNormalPaletteFade(void)
 
     if (IsSoftwarePaletteFadeFinishing())
     {
-        return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
+        return gPaletteFade.active;
+    }
+
+    if (!gPaletteFade.objPaletteToggle)
+    {
+        if (gPaletteFade.delayCounter < gPaletteFade_delay)
+        {
+            gPaletteFade.delayCounter++;
+            return 2;
+        }
+        gPaletteFade.delayCounter = 0;
+    }
+
+    paletteOffset = 0;
+
+    if (!gPaletteFade.objPaletteToggle)
+    {
+        selectedPalettes = gPaletteFade_selectedPalettes;
     }
     else
     {
-        if (!gPaletteFade.objPaletteToggle)
-        {
-            if (gPaletteFade.delayCounter < gPaletteFade_delay)
-            {
-                gPaletteFade.delayCounter++;
-                return 2;
-            }
-            gPaletteFade.delayCounter = 0;
-        }
+        selectedPalettes = gPaletteFade_selectedPalettes >> 16;
+        paletteOffset = 256;
+    }
 
-        paletteOffset = 0;
+    while (selectedPalettes)
+    {
+        if (selectedPalettes & 1)
+            BlendPalette(
+                paletteOffset,
+                16,
+                gPaletteFade.y,
+                gPaletteFade.blendColor);
+        selectedPalettes >>= 1;
+        paletteOffset += 16;
+    }
 
-        if (!gPaletteFade.objPaletteToggle)
+    gPaletteFade.objPaletteToggle ^= 1;
+
+    if (!gPaletteFade.objPaletteToggle)
+    {
+        if (gPaletteFade.y == gPaletteFade.targetY)
         {
-            selectedPalettes = gPaletteFade_selectedPalettes;
+            gPaletteFade_selectedPalettes = 0;
+            gPaletteFade.softwareFadeFinishing = TRUE;
         }
         else
         {
-            selectedPalettes = gPaletteFade_selectedPalettes >> 16;
-            paletteOffset = 256;
-        }
+            s8 val;
 
-        while (selectedPalettes)
-        {
-            if (selectedPalettes & 1)
-                BlendPalette(
-                    paletteOffset,
-                    16,
-                    gPaletteFade.y,
-                    gPaletteFade.blendColor);
-            selectedPalettes >>= 1;
-            paletteOffset += 16;
-        }
-
-        gPaletteFade.objPaletteToggle ^= 1;
-
-        if (!gPaletteFade.objPaletteToggle)
-        {
-            if (gPaletteFade.y == gPaletteFade.targetY)
+            if (!gPaletteFade.yDec)
             {
-                gPaletteFade_selectedPalettes = 0;
-                gPaletteFade.softwareFadeFinishing = TRUE;
+                val = gPaletteFade.y;
+                val += gPaletteFade.deltaY;
+                if (val > gPaletteFade.targetY)
+                    val = gPaletteFade.targetY;
+                gPaletteFade.y = val;
             }
             else
             {
-                s8 val;
-
-                if (!gPaletteFade.yDec)
-                {
-                    val = gPaletteFade.y;
-                    val += gPaletteFade.deltaY;
-                    if (val > gPaletteFade.targetY)
-                        val = gPaletteFade.targetY;
-                    gPaletteFade.y = val;
-                }
-                else
-                {
-                    val = gPaletteFade.y;
-                    val -= gPaletteFade.deltaY;
-                    if (val < gPaletteFade.targetY)
-                        val = gPaletteFade.targetY;
-                    gPaletteFade.y = val;
-                }
+                val = gPaletteFade.y;
+                val -= gPaletteFade.deltaY;
+                if (val < gPaletteFade.targetY)
+                    val = gPaletteFade.targetY;
+                gPaletteFade.y = val;
             }
         }
-
-        // gPaletteFade.active cannot change since the last time it was checked. So this
-        // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
-        return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
     }
+
+    // gPaletteFade.active cannot change since the last time it was checked. So this
+    // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
+    return gPaletteFade.active;
 }
 
 void InvertPlttBuffer(u32 selectedPalettes)
