@@ -300,8 +300,12 @@ static void SetRandomQuestionData(void)
         {
             continue;
         }
+        #if !MODERN
         PLAYER_APPRENTICE.questions[i].monId = GetMonIdForQuestion(questionOrder[i], partyOrder, &partySlot);
         id = PLAYER_APPRENTICE.questions[i].monId;
+        #else
+        id = PLAYER_APPRENTICE.questions[i].monId = GetMonIdForQuestion(questionOrder[i], partyOrder, &partySlot);
+        #endif
         if (questionOrder[i] == QUESTION_ID_WHICH_MOVE)
         {
             do
@@ -373,18 +377,21 @@ static u16 GetRandomAlternateMove(u8 monId)
             // Get TM move
             // NOTE: Below is an infinite loop if a species that only learns TMs for moves
             //       that are also in its level up learnset is assigned to an Apprentice
-            do
+            while (1)
             {
                 // NOTE: Below is an infinite loop if a species which cannot learn TMs is assigned to an Apprentice
-                do
+                id = Random() % (NUM_TECHNICAL_MACHINES + NUM_HIDDEN_MACHINES);
+                shouldUseMove = CanSpeciesLearnTMHM(species, id);
+                if (!shouldUseMove)
                 {
-                    id = Random() % (NUM_TECHNICAL_MACHINES + NUM_HIDDEN_MACHINES);
-                    shouldUseMove = CanSpeciesLearnTMHM(species, id);
+                    continue;
                 }
-                while (!shouldUseMove);
 
                 moveId = ItemIdToBattleMoveId(ITEM_TM01 + id);
+                // redundant
+                #if !MODERN
                 shouldUseMove = TRUE;
+                #endif
 
                 if (numLearnsetMoves <= MAX_MON_MOVES)
                     j = 0;
@@ -400,7 +407,14 @@ static u16 GetRandomAlternateMove(u8 monId)
                         break;
                     }
                 }
-            } while (shouldUseMove != TRUE);
+                #if !MODERN
+                if (shouldUseMove == TRUE)
+                #else
+                // so the bitwise return would work
+                if (shouldUseMove)
+                #endif
+                    break;
+            }
         }
         else
         {
@@ -409,29 +423,27 @@ static u16 GetRandomAlternateMove(u8 monId)
                 needTMs = TRUE;
                 continue;
             }
-            else
-            {
-                // Get level up move
-                // NOTE: Below is an infinite loop if a mon whose last 4 moves contain
-                //       all the moves in the rest of its learnset is assigned to an Apprentice
-                do
-                {
-                    // Get a random move excluding the 4 it would know at max level
-                    u8 learnsetId = Random() % (numLearnsetMoves - MAX_MON_MOVES);
-                    moveId = learnset[learnsetId] & LEVEL_UP_MOVE_ID;
-                    shouldUseMove = TRUE;
 
-                    for (j = numLearnsetMoves - MAX_MON_MOVES; j < numLearnsetMoves; j++)
+            // Get level up move
+            // NOTE: Below is an infinite loop if a mon whose last 4 moves contain
+            //       all the moves in the rest of its learnset is assigned to an Apprentice
+            do
+            {
+                // Get a random move excluding the 4 it would know at max level
+                u8 learnsetId = Random() % (numLearnsetMoves - MAX_MON_MOVES);
+                moveId = learnset[learnsetId] & LEVEL_UP_MOVE_ID;
+                shouldUseMove = TRUE;
+
+                for (j = numLearnsetMoves - MAX_MON_MOVES; j < numLearnsetMoves; j++)
+                {
+                    // Keep looking for moves until one not in the last 4 is found
+                    if ((learnset[j] & LEVEL_UP_MOVE_ID) == moveId)
                     {
-                        // Keep looking for moves until one not in the last 4 is found
-                        if ((learnset[j] & LEVEL_UP_MOVE_ID) == moveId)
-                        {
-                            shouldUseMove = FALSE;
-                            break;
-                        }
+                        shouldUseMove = FALSE;
+                        break;
                     }
-                } while (shouldUseMove != TRUE);
-            }
+                }
+            } while (shouldUseMove != TRUE);
         }
 
         if (TrySetMove(monId, moveId))
@@ -448,7 +460,7 @@ static u16 GetRandomAlternateMove(u8 monId)
 
 static bool8 TrySetMove(u8 monId, u16 moveId)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < NUM_WHICH_MOVE_QUESTIONS; i++)
     {
@@ -462,8 +474,8 @@ static bool8 TrySetMove(u8 monId, u16 moveId)
 
 static void GetLatestLearnedMoves(u16 species, u16 *moves)
 {
-    u8 i, j;
-    u8 level, numLearnsetMoves;
+    m8 i, j;
+    m8 level, numLearnsetMoves;
     const u16 *learnset;
 
     if (PLAYER_APPRENTICE.lvlMode == APPRENTICE_LVL_MODE_50)
@@ -497,8 +509,12 @@ static u16 GetDefaultMove(u8 monId, u8 speciesArrayId, u8 moveSlot)
         return MOVE_NONE;
 
     numQuestions = 0;
-    for (i = 0; i < APPRENTICE_MAX_QUESTIONS && PLAYER_APPRENTICE.questions[i].questionId != QUESTION_ID_WIN_SPEECH; i++)
+    for (i = 0; i < APPRENTICE_MAX_QUESTIONS; i++)
+    {
+        if (PLAYER_APPRENTICE.questions[i].questionId == QUESTION_ID_WIN_SPEECH)
+            break;
         numQuestions++;
+    }
 
     GetLatestLearnedMoves(gApprentices[PLAYER_APPRENTICE.id].species[speciesArrayId], moves);
     for (i = 0; i < numQuestions && i < CURRENT_QUESTION_NUM; i++)
