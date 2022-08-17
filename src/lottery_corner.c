@@ -24,8 +24,9 @@ static u8 GetMatchingDigits(u16, u16);
 void ResetLotteryCorner(void)
 {
     u16 rand = Random();
+    u16 rand2 = Random();
 
-    SetLotteryNumber((Random() << 16) | rand);
+    SetLotteryNumber((rand2 << 16) | rand);
     VarSet(VAR_POKELOT_PRIZE_ITEM, 0);
 }
 
@@ -33,7 +34,7 @@ void SetRandomLotteryNumber(u16 i)
 {
     u32 var = Random();
 
-    while (--i != 0xFFFF)
+    while (i--)
         var = ISO_RANDOMIZE2(var);
 
     SetLotteryNumber(var);
@@ -143,7 +144,7 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
 void SetLotteryNumber(u32 lotteryNum)
 {
     u16 lowNum = lotteryNum >> 16;
-    u16 highNum = lotteryNum;
+    u16 highNum = lotteryNum & 0xFFFF;
 
     VarSet(VAR_POKELOT_RND1, highNum);
     VarSet(VAR_POKELOT_RND2, lowNum);
