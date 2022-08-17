@@ -1088,10 +1088,11 @@ static void ResetSpriteAfterAnim(struct Sprite *sprite)
 
 static void Anim_CircularStretchTwice(struct Sprite *sprite)
 {
+    #if !MODERN
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
+    #endif
 
-    // no else if?
     if (sprite->data[2] > 40)
     {
         HandleSetAffineData(sprite, 256, 256, 0);
@@ -1100,7 +1101,12 @@ static void Anim_CircularStretchTwice(struct Sprite *sprite)
     }
     else
     {
-        s16 var = (sprite->data[2] * 512 / 40) % 256;
+        s16 var;
+#if MODERN
+        if (sprite->data[2] == 0)
+            HandleStartAffineAnim(sprite);
+#endif
+        var = (sprite->data[2] * 512 / 40) % 256;
 
         sprite->data[4] = Sin(var, 32) + 256;
         sprite->data[5] = Cos(var, 32) + 256;
