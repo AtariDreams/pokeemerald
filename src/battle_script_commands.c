@@ -4034,7 +4034,7 @@ static void Cmd_playstatchangeanimation(void)
 {
     u32 currStat = 0;
     u16 statAnimId = 0;
-    s32 changeableStatsCount = 0;
+    m32 changeableStatsCount = 0;
     u8 statsToCheck = 0;
 
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
@@ -4082,7 +4082,7 @@ static void Cmd_playstatchangeanimation(void)
     }
     else // goes up
     {
-        s16 startingStatAnimId;
+        u16 startingStatAnimId;
         if (gBattlescriptCurrInstr[3] & STAT_CHANGE_BY_TWO)
             startingStatAnimId = STAT_ANIM_PLUS2 - 1;
         else
