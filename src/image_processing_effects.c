@@ -961,7 +961,7 @@ static void SetPresetPalette_GrayscaleSmall(void)
     gCanvasPalette[0] = RGB_BLACK;
     gCanvasPalette[1] = RGB_BLACK;
     for (i = 0; i < 14; i++)
-        gCanvasPalette[i + 2] = RGB2(2 * (i + 2), 2 * (i + 2), 2 * (i + 2));
+        gCanvasPalette[i + 2] = RGB2((i + 2) * 2, (i + 2) * 2, (i + 2) * 2);
 }
 
 static void SetPresetPalette_Grayscale(void)
@@ -978,9 +978,10 @@ static void QuantizePalette_Standard(bool8 useLimitedPalette)
     u8 i, j;
     u16 maxIndex;
 
-    maxIndex = 0xDF;
     if (!useLimitedPalette)
         maxIndex = 0xFF;
+    else
+        maxIndex = 0xDF;
 
     for (i = 0; i < maxIndex; i++)
         gCanvasPalette[i] = RGB_BLACK;
