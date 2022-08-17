@@ -69,7 +69,7 @@ SECTIONS {
         gflib/window.o(.text);
         gflib/text.o(.text);
         src/sprite.o(.text);
-        string_util.o(.text);
+        src/string_util.o(.text);
         src/link.o(.text);
         src/AgbRfu_LinkManager.o(.text);
         src/link_rfu_3.o(.text);
@@ -334,7 +334,7 @@ SECTIONS {
         src/contest_link_util.o(.text);
         src/gym_leader_rematch.o(.text);
         src/battle_transition_frontier.o(.text);
-        src/international_string_util.o(.text);
+        src/international_src/string_util.o(.text);
     } =0
 
     script_data :
@@ -445,7 +445,7 @@ SECTIONS {
         gflib/text.o(.rodata);
         src/sprite.o(.rodata);
         gflib/io_reg.o(.rodata);
-        string_util.o(.rodata);
+        src/string_util.o(.rodata);
         src/link.o(.rodata);
         src/link.o(.rodata.str1.4);
         src/AgbRfu_LinkManager.o(.rodata);
