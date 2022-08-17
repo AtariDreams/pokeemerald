@@ -1068,7 +1068,6 @@ ply_port:
 	thumb_func_end ply_port
 
 	thumb_func_start m4aSoundVSync
-	
 m4aSoundVSync:
 	ldr r0, lt2_SOUND_INFO_PTR
 	ldr r0, [r0]
