@@ -1759,7 +1759,7 @@ void RecordFishingAttemptForTV(bool8 caughtFish)
     }
     else
     {
-        if ((u8)sPokemonAnglerAttemptCounters > 4)
+        if ((sPokemonAnglerAttemptCounters & 0xFF) > 4)
             TryPutFishingAdviceOnAir();
 
         sPokemonAnglerAttemptCounters &= 0xFF00;
