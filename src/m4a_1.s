@@ -8,6 +8,7 @@
 
 	thumb_func_start umul3232H32
 umul3232H32:
+.if !MODERN
 	adr r2, __umul3232H32
 	bx r2
 	.arm
@@ -15,7 +16,22 @@ __umul3232H32:
 	umull r2, r3, r0, r1
 	add r0, r3, 0
 	bx lr
-	thumb_func_end umul3232H32
+.else
+	push {r4, r5}
+	subs r1, r1, r0
+	adr r4, __umul3232H32
+	bx r4
+	.arm
+__umul3232H32:
+	@umull val2 - val1
+	umull r5, r4, r1, r3
+	@val1 + result
+	add r4, r0
+	umull r5, r0, r2, r4
+	pop {r4, r5}
+	bx lr
+.endif
+thumb_func_end umul3232H32
 
 	thumb_func_start SoundMain
 SoundMain:
@@ -279,7 +295,11 @@ _081DD006:
 	ands r0, r6
 	str r0, [sp, o_SoundInfo_pcmSamplesPerVBlank]
 	beq _081DD03A
+	.if !MODERN
 	adds r0, r3, 0
+	.else
+	movs r0, r3
+	.endif
 	adds r0, o_WaveData_data
 	ldr r1, [r3, o_WaveData_loopStart]
 	adds r0, r1
@@ -675,8 +695,12 @@ SoundMainRAM_Unk2:
 	cmp r0, r1
 	beq _081DD594
 	str r0, [r4, o_SoundChannel_xpi]
+	.if !MODERN
 	mov r1, 0x21
 	mul r2, r1, r0
+	.else
+	add r2, r0, r0, lsl 5
+	.endif
 	ldr r1, [r4, o_SoundChannel_wav]
 	add r2, r2, r1
 	add r2, r2, 0x10
@@ -1109,14 +1133,22 @@ m4aSoundVSync_SkipDMA1:
 m4aSoundVSync_SkipDMA2:
 
 	@ turn off DMA1/DMA2
+	.if 1
 	movs r1, DMA_32BIT >> 8
 	lsls r1, 8
+	.else
+	movs r1, DMA_32BIT
+	.endif
 	strh r1, [r2, 0xA]       @ DMA1CNT_H
 	strh r1, [r2, 0xC + 0xA] @ DMA2CNT_H
 
 	@ turn on DMA1/DMA2 direct-sound FIFO mode
+	.if 1
 	movs r1, (DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT) >> 8
 	lsls r1, 8 @ LSB is 0, so DMA_SRC_INC is used (destination is always fixed in FIFO mode)
+	.else
+	movs r1, (DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT)
+	.endif
 	strh r1, [r2, 0xA]       @ DMA1CNT_H
 	strh r1, [r2, 0xC + 0xA] @ DMA2CNT_H
 
@@ -1247,17 +1279,30 @@ _081DD8F6:
 	bcc _081DD90C
 	mov r0, r8
 	ldr r3, [r0, o_SoundInfo_plynote]
+	.if !MODERN
 	adds r0, r1, 0
+	.else
+	movs r0, r1
+	.endif
 	subs r0, 0xCF
+	.if !MODERN
 	adds r1, r7, 0
+	.else
+	movs r1, r7
+	.endif
 	adds r2, r5, 0
 	bl call_r3
 	b _081DD938
 _081DD90C:
 	cmp r1, 0xB0
 	bls _081DD92E
+	.if !MODERN
 	adds r0, r1, 0
 	subs r0, 0xB1
+	.else
+	movs r0, r1
+	subs r0, 0xB1
+	.endif
 	strb r0, [r7, o_MusicPlayerInfo_cmd]
 	mov r3, r8
 	ldr r3, [r3, o_SoundInfo_MPlayJumpTable]
@@ -1298,7 +1343,11 @@ _081DD95A:
 	ldrb r0, [r5, o_MusicPlayerTrack_lfoSpeedC]
 	adds r0, r1
 	strb r0, [r5, o_MusicPlayerTrack_lfoSpeedC]
+	.if !MODERN
 	adds r1, r0, 0
+	.else
+	movs r1, r0
+	.endif
 	subs r0, 0x40
 	lsls r0, 24
 	bpl _081DD96E
@@ -1316,9 +1365,15 @@ _081DD972:
 	eors r0, r2
 	lsls r0, 24
 	beq _081DD994
+	.if !MODERN
 	strb r2, [r5, o_MusicPlayerTrack_modM]
 	ldrb r0, [r5]
 	ldrb r1, [r5, o_MusicPlayerTrack_modT]
+	.else
+	ldrb r0, [r5]
+	ldrb r1, [r5, o_MusicPlayerTrack_modT]
+	strb r2, [r5, o_MusicPlayerTrack_modM]
+	.endif
 	cmp r1, 0
 	bne _081DD98E
 	movs r1, MPT_FLG_PITCHG
