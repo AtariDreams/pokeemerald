@@ -943,21 +943,15 @@ static void DrawLinkBattleVsScreenOutcomeText(void)
         {
             switch (gLinkPlayers[gBattleScripting.multiplayerId].id)
             {
-            case 0:
-                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_LEFT);
-                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_RIGHT);
-                break;
             case 1:
-                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_RIGHT);
-                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_LEFT);
-                break;
-            case 2:
-                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_LEFT);
-                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_RIGHT);
-                break;
             case 3:
                 BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_RIGHT);
                 BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_LEFT);
+                break;
+            case 0:
+            case 2:
+                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_LEFT);
+                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_RIGHT);
                 break;
             }
         }
@@ -965,21 +959,15 @@ static void DrawLinkBattleVsScreenOutcomeText(void)
         {
             switch (gLinkPlayers[gBattleScripting.multiplayerId].id)
             {
-            case 0:
-                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_RIGHT);
-                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_LEFT);
-                break;
             case 1:
-                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_LEFT);
-                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_RIGHT);
-                break;
-            case 2:
-                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_RIGHT);
-                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_LEFT);
-                break;
             case 3:
                 BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_LEFT);
                 BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_RIGHT);
+                break;
+            case 0:
+            case 2:
+                BattlePutTextOnWindow(gText_Win, B_WIN_VS_OUTCOME_RIGHT);
+                BattlePutTextOnWindow(gText_Loss, B_WIN_VS_OUTCOME_LEFT);
                 break;
             }
         }
@@ -1016,7 +1004,8 @@ void InitLinkBattleVsScreen(u8 taskId)
 {
     struct LinkPlayer *linkPlayer;
     u8 *name;
-    s32 i, palId;
+    s32 i;
+    u8 palId;
 
     switch (gTasks[taskId].data[0])
     {
@@ -1025,7 +1014,10 @@ void InitLinkBattleVsScreen(u8 taskId)
         {
             for (i = 0; i < MAX_BATTLERS_COUNT; i++)
             {
+                
                 name = gLinkPlayers[i].name;
+                // Why define it now instead of before?
+                // Answer: actually this doesn't have another pointer but writing that out manually is worse for now
                 linkPlayer = &gLinkPlayers[i];
 
                 switch (linkPlayer->id)
@@ -1053,6 +1045,8 @@ void InitLinkBattleVsScreen(u8 taskId)
         {
             u8 playerId = gBattleScripting.multiplayerId;
             u8 opponentId = playerId ^ BIT_SIDE;
+
+            // better a copy than to do an exclusive or again, which is what GF did
             u8 opponentId_copy = opponentId;
 
             if (gLinkPlayers[playerId].id != 0)
@@ -1135,8 +1129,8 @@ void DrawBattleEntryBackground(void)
         CopyBgTilemapBufferToVram(2);
         SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG1 | WININ_WIN0_BG2 | WININ_WIN0_OBJ | WININ_WIN0_CLR);
         SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG1 | WINOUT_WIN01_BG2 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
-        gBattle_BG1_Y = 0xFF5C;
-        gBattle_BG2_Y = 0xFF5C;
+        gBattle_BG1_Y = -164;
+        gBattle_BG2_Y = -164;
         LoadCompressedSpriteSheetUsingHeap(&sVsLettersSpriteSheet);
     }
     else if (gBattleTypeFlags & (BATTLE_TYPE_FRONTIER | BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK | BATTLE_TYPE_EREADER_TRAINER))
