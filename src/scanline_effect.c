@@ -188,7 +188,7 @@ static void TaskFunc_UpdateWavePerFrame(u8 taskId)
 
 static void GenerateWave(u16 *buffer, u8 frequency, u8 amplitude, u8 unused)
 {
-    u16 i;
+    m16 i;
     u8 theta;
 
     for(i=0,theta=0;i<256;i++)
