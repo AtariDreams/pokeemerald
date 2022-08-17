@@ -742,9 +742,15 @@ static void AnimHydroCannonBeam(struct Sprite *sprite)
     u8 coordType;
     if (GetBattlerSide(gBattleAnimAttacker) == GetBattlerSide(gBattleAnimTarget))
     {
+        #if !MODERN
         gBattleAnimArgs[0] *= -1;
         if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_LEFT)
             gBattleAnimArgs[0] *= -1;
+        #else
+        if (GetBattlerPosition(gBattleAnimAttacker) != B_POSITION_PLAYER_LEFT && GetBattlerPosition(gBattleAnimAttacker) != B_POSITION_OPPONENT_LEFT)
+            gBattleAnimArgs[0] *= -1;
+        #endif
+
     }
     if ((gBattleAnimArgs[5] & 0xFF00) == 0)
         animType = TRUE;
@@ -978,7 +984,7 @@ static void AnimTask_SurfWaveScanlineEffect(u8 taskId)
                 task->data[0]++;
             }
         }
-        else if (++task->data[5] > 111)
+        else if (++task->data[5] >= 112)
         {
             task->data[0]++;
         }
@@ -1014,9 +1020,9 @@ static void AnimSmallDriftingBubbles(struct Sprite *sprite)
 
     sprite->oam.tileNum += 8;
     InitSpritePosToAnimTarget(sprite, TRUE);
-    randData = (Random2() & 0xFF) | 256;
+    randData = (Random2() & 0xFF) + 256;
     randData2 = (Random2() & 0x1FF);
-    if (randData2 > 255)
+    if (randData2 >= 256)
         randData2 = 256 - randData2;
     sprite->data[1] = randData;
     sprite->data[2] = randData2;
@@ -1032,7 +1038,7 @@ static void AnimSmallDriftingBubbles_Step(struct Sprite *sprite)
     else
         sprite->x2 = sprite->data[3] >> 8;
     sprite->y2 = sprite->data[4] >> 8;
-    if (++sprite->data[0] == 21)
+    if (sprite->data[0]++ == 20)
         DestroyAnimSprite(sprite);
 }
 
@@ -1139,25 +1145,21 @@ static u8 GetWaterSpoutPowerForAnim(void)
     u8 i;
     u16 hp;
     u16 maxhp;
-    u16 partyIndex;
+
     struct Pokemon *slot;
 
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
     {
-        partyIndex = gBattlerPartyIndexes[gBattleAnimAttacker];
-        slot =  &gPlayerParty[partyIndex];
-        maxhp = GetMonData(slot, MON_DATA_MAX_HP);
-        hp = GetMonData(slot, MON_DATA_HP);
-        maxhp /= 4;
+        slot = gPlayerParty + gBattlerPartyIndexes[gBattleAnimAttacker];
     }
     else
     {
-        partyIndex = gBattlerPartyIndexes[gBattleAnimAttacker];
-        slot =  &gEnemyParty[partyIndex];
-        maxhp = GetMonData(slot, MON_DATA_MAX_HP);
-        hp = GetMonData(slot, MON_DATA_HP);
-        maxhp /= 4;
+        slot = gEnemyParty + gBattlerPartyIndexes[gBattleAnimAttacker];
     }
+
+    maxhp = GetMonData(slot, MON_DATA_MAX_HP);
+    hp = GetMonData(slot, MON_DATA_HP);
+    maxhp /= 4;
     for (i = 0; i < 3; i++)
     {
         if (hp < maxhp * (i + 1))
@@ -1184,8 +1186,8 @@ static void CreateWaterSpoutLaunchDroplets(struct Task *task, u8 taskId)
         if (spriteId != MAX_SPRITES)
         {
             gSprites[spriteId].data[1] = i;
-            gSprites[spriteId].data[2] = attackerCoordX * 16;
-            gSprites[spriteId].data[3] = attackerCoordY * 16;
+            gSprites[spriteId].data[2] = attackerCoordX << 4;
+            gSprites[spriteId].data[3] = attackerCoordY << 4;
             gSprites[spriteId].data[4] = Cos(trigIndex, 64);
             gSprites[spriteId].data[5] = Sin(trigIndex, 64);
             gSprites[spriteId].data[6] = taskId;
@@ -1194,7 +1196,7 @@ static void CreateWaterSpoutLaunchDroplets(struct Task *task, u8 taskId)
                 AnimSmallWaterOrb(&gSprites[spriteId]);
             task->data[2]++;
         }
-        trigIndex = (trigIndex + increment * 2);
+        trigIndex += increment * 2;
         trigIndex &= 0xFF;
     }
 }
@@ -1287,7 +1289,7 @@ static void AnimTask_WaterSpoutRain_Step(u8 taskId)
 
 static void CreateWaterSpoutRainDroplet(struct Task *task, u8 taskId)
 {
-    u16 yPosArg = ((gSineTable[task->data[8]] + 3) >> 4) + task->data[6];
+    s16 yPosArg = ((gSineTable[task->data[8]] + 3) >> 4) + task->data[6];
     u8 spriteId = CreateSprite(&gSmallWaterOrbSpriteTemplate, task->data[7], 0, 0);
 
     if (spriteId != MAX_SPRITES)
@@ -1378,19 +1380,18 @@ static void AnimTask_WaterSport_Step(u8 taskId)
     case 2:
         CreateWaterSportDroplet(task);
         task->data[5] += task->data[7] * 6;
-        if (!(task->data[5] >= -16 && task->data[5] <= 256))
+        if (task->data[5] > 256 || task->data[5] < -16)
         {
             if (++task->data[12] > 2)
             {
                 task->data[13] = 1;
                 task->data[0] = 6;
                 task->data[1] = 0;
+                break;
             }
-            else
-            {
-                task->data[1] = 0;
-                task->data[0]++;
-            }
+
+            task->data[1] = 0;
+            task->data[0]++;
         }
         break;
     case 3:
@@ -1402,7 +1403,7 @@ static void AnimTask_WaterSport_Step(u8 taskId)
     case 4:
         CreateWaterSportDroplet(task);
         task->data[5] -= task->data[7] * 6;
-        if (!(task->data[5] >= -16 && task->data[5] <= 256))
+        if (task->data[5] > 256 || task->data[5] < -16)
         {
             task->data[12]++;
             task->data[1] = 0;
@@ -1463,7 +1464,7 @@ static void AnimWaterSportDroplet(struct Sprite *sprite)
 
 static void AnimWaterSportDroplet_Step(struct Sprite *sprite)
 {
-    u16 i;
+    m16 i;
 
     if (TranslateAnimHorizontalArc(sprite))
     {
@@ -1546,7 +1547,9 @@ static void CreateWaterPulseRingBubbles(struct Sprite *sprite, int xDiff, int yD
     s16 combinedY;
     s16 i;
     s16 something;
+    #if !MODERN
     s16 unusedVar = 1; //unusedVar is needed to match
+    #endif
     s16 randomSomethingY;
     s16 randomSomethingX;
     u8 spriteId;
@@ -1554,13 +1557,16 @@ static void CreateWaterPulseRingBubbles(struct Sprite *sprite, int xDiff, int yD
     something = sprite->data[0] / 2;
     combinedX = sprite->x + sprite->x2;
     combinedY = sprite->y + sprite->y2;
+    #if !MODERN
     if (yDiff < 0)
         unusedVar *= -1; //Needed to match
+    #endif
     randomSomethingY = yDiff + (Random2() % 10) - 5;
     randomSomethingX = -xDiff + (Random2() % 10) - 5;
-
-    for (i = 0; i <= 0; i++)
+    #if !MODERN
+    for (i = 0; i < 1; i++)
     {
+    #endif
         spriteId = CreateSprite(&gWaterPulseRingBubbleSpriteTemplate, combinedX, combinedY + something, 130);
         gSprites[spriteId].data[0] = 20;
         gSprites[spriteId].data[1] = randomSomethingY;
@@ -1569,9 +1575,12 @@ static void CreateWaterPulseRingBubbles(struct Sprite *sprite, int xDiff, int yD
             gSprites[spriteId].data[2] = -randomSomethingX;
         else
             gSprites[spriteId].data[2] = randomSomethingX;
+    
+    #if !MODERN
     }
-    for (i = 0; i <= 0; i++)
+    for (i = 0; i < 1; i++)
     {
+    #endif
         spriteId = CreateSprite(&gWaterPulseRingBubbleSpriteTemplate, combinedX, combinedY - something, 130);
         gSprites[spriteId].data[0] = 20;
         gSprites[spriteId].data[1] = randomSomethingY;
@@ -1580,5 +1589,7 @@ static void CreateWaterPulseRingBubbles(struct Sprite *sprite, int xDiff, int yD
             gSprites[spriteId].data[2] = -randomSomethingX;
         else
             gSprites[spriteId].data[2] = randomSomethingX;
+    #if !MODERN
     }
+    #endif
 }
