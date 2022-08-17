@@ -81,7 +81,7 @@
 // Used in cases where division by 0 can occur in the retail version.
 // Avoids invalid opcodes on some emulators, and the otherwise UB.
 #ifdef UBFIX
-#define SAFE_DIV(a, b) Div(a, b)
+#define SAFE_DIV(a, b) ((b) ? Div(a, b) : 0)
 #else
 #define SAFE_DIV(a, b) ((a) / (b))
 #endif
