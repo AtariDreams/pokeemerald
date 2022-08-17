@@ -310,7 +310,8 @@ static void PrintNumPlayersWaitingForMsg(u8 windowId, u8 capacityCode, u8 string
 
 static void PrintPlayerNameAndIdOnWindow(u8 windowId)
 {
-    u8 text[30];
+    //TODO: 30 or 32?
+    u8 text[32];
     u8 *txtPtr;
 
     PrintUnionRoomText(windowId, FONT_NORMAL, gSaveBlock2Ptr->playerName, 0, 1, UR_COLOR_DEFAULT);
