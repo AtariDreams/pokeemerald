@@ -379,7 +379,7 @@ static void SaveInputText(void);
 static void LoadGfx(void);
 static void CreateHelperTasks(void);
 static void LoadPalettes(void);
-static void DrawBgTilemap(u8, const void *);
+static void DrawBgTilemap(u8, const u8 *);
 static void NamingScreen_Dummy(u8, u8);
 static void DrawTextEntry(void);
 static void PrintKeyboardKeys(u8, u8);
@@ -1890,7 +1890,7 @@ static void LoadPalettes(void)
     LoadPalette(GetTextWindowPalette(2), 0xB0, 0x20);
 }
 
-static void DrawBgTilemap(u8 bg, const void *src)
+static void DrawBgTilemap(u8 bg, const u8 *src)
 {
     CopyToBgTilemapBuffer(bg, src, 0, 0);
 }
