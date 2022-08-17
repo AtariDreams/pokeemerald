@@ -576,35 +576,34 @@ void m4aSoundVSyncOn(void)
     REG_TM0CNT_H = TIMER_ENABLE | TIMER_1CLK;
 }
 
-void m4aSoundVSync(void) {
+void m4aSoundVSync(void)
+{
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
 
-    if (soundInfo->ident >= ID_NUMBER && soundInfo->ident <= ID_NUMBER + 1)
+    if (soundInfo->ident != ID_NUMBER && soundInfo->ident != ID_NUMBER + 1)
     {
-        #if !MODERN
-        if (--(s8)soundInfo->pcmDmaCounter <= 0) {
-        #else
-        if (soundInfo->pcmDmaCounter <= 1) {
-        #endif
-            soundInfo->pcmDmaCounter = soundInfo->pcmDmaPeriod;
-
-            if (REG_DMA1CNT & (DMA_REPEAT << 16))
-                REG_DMA1CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
-
-            if (REG_DMA2CNT & (DMA_REPEAT << 16))
-                REG_DMA2CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
-
-            REG_DMA1CNT_H = DMA_32BIT;
-            REG_DMA2CNT_H = DMA_32BIT;
-            REG_DMA1CNT_H = DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT;
-            REG_DMA2CNT_H = DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT;
-        }
-        #if MODERN
-        else
-            soundInfo->pcmDmaCounter--;
-        #endif
+        return;
     }
-}
+
+    // For now, let's keep it this way
+    if ((s8)(--soundInfo->pcmDmaCounter) <= 0)
+    {
+
+        // if (soundInfo->pcmDmaCounter <= 1) {
+
+        soundInfo->pcmDmaCounter = soundInfo->pcmDmaPeriod;
+
+        if (REG_DMA1CNT & (DMA_REPEAT << 16))
+            REG_DMA1CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
+
+        if (REG_DMA2CNT & (DMA_REPEAT << 16))
+            REG_DMA2CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
+
+        REG_DMA1CNT_H = DMA_32BIT;
+        REG_DMA2CNT_H = DMA_32BIT;
+        REG_DMA1CNT_H = DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT;
+        REG_DMA2CNT_H = DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT;
+    }
 #endif
 }
 
@@ -1432,8 +1431,7 @@ void CgbSound(void)
         }
         else if (channels->statusFlags & SOUND_CHANNEL_SF_IEC || !((REG_NR52 >> *sp1C) & 1))
         {
-            channels->pseudoEchoLength--;
-            if ((s8)(channels->pseudoEchoLength) <= 0)
+            if ((s8)(--channels->pseudoEchoLength) <= 0)
             {
             oscillator_off:
                 CgbOscOff(ch);
@@ -1469,8 +1467,7 @@ void CgbSound(void)
                 CgbModVol(channels);
                 if ((channels->statusFlags & SOUND_CHANNEL_SF_ENV) == SOUND_CHANNEL_SF_ENV_RELEASE)
                 {
-                    channels->envelopeVolume--;
-                    if ((s8)(channels->envelopeVolume & mask) <= 0)
+                    if ((s8)(--channels->envelopeVolume) <= 0)
                     {
                     envelope_pseudoecho_start:
                         channels->envelopeVolume = ((channels->envelopeGoal * channels->pseudoEchoVolume) + 0xFF) >> 8;
@@ -1502,8 +1499,7 @@ void CgbSound(void)
                 {
                     s8 envelopeVolume, sustainGoal;
 
-                    channels->envelopeVolume--;
-                    envelopeVolume = (s8)(channels->envelopeVolume & mask);
+                    envelopeVolume = (s8)(--channels->envelopeVolume);
                     sustainGoal = (s8)(channels->sustainGoal);
                     if (envelopeVolume <= sustainGoal)
                     {
@@ -1529,13 +1525,12 @@ void CgbSound(void)
                 }
                 else
                 {
-                    channels->envelopeVolume++;
-                    if ((u8)(channels->envelopeVolume & mask) >= channels->envelopeGoal)
+                    if ((++channels->envelopeVolume) >= channels->envelopeGoal)
                     {
                     envelope_decay_start:
                         channels->statusFlags--;
                         channels->envelopeCounter = channels->decay;
-                        if ((u8)(channels->envelopeCounter & mask))
+                        if (channels->envelopeCounter)
                         {
                             channels->modify |= CGB_CHANNEL_MO_VOL;
                             channels->envelopeVolume = channels->envelopeGoal;
@@ -1585,7 +1580,7 @@ void CgbSound(void)
                 *nrx3ptr = (*nrx3ptr & 0x08) | channels->frequency;
 
             channels->n4 = (channels->n4 & 0xC0) + ((channels->frequency & 0x3F00) >> 8);
-            *nrx4ptr = (s8)(channels->n4 & mask);
+            *nrx4ptr = channels->n4;
         }
 
         /* 4. apply envelope & volume to HW registers */
