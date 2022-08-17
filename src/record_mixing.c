@@ -108,8 +108,8 @@ static void Task_MixingRecordsRecv(u8);
 static void Task_SendPacket(u8);
 static void Task_CopyReceiveBuffer(u8);
 static void Task_SendPacket_SwitchToReceive(u8);
-static void *LoadPtrFromTaskData(const u16 *);
-static void StorePtrInTaskData(void *, u16 *);
+static void *LoadPtrFromTaskData(const s16 *);
+static void StorePtrInTaskData(void *, s16 *);
 static u8 GetMultiplayerId_(void);
 static void *GetPlayerRecvBuffer(u8);
 static void ReceiveOldManData(OldMan *, size_t, u8);
@@ -580,15 +580,15 @@ static void Task_SendPacket_SwitchToReceive(u8 taskId)
     sReadyToReceive = TRUE;
 }
 
-static void *LoadPtrFromTaskData(const u16 *asShort)
+static void *LoadPtrFromTaskData(const s16 *asShort)
 {
-    return (void *)(asShort[0] | (asShort[1] << 16));
+    return (void *)((u16)asShort[0] | ((u16)asShort[1] << 16));
 }
 
-static void StorePtrInTaskData(void *records, u16 *asShort)
+static void StorePtrInTaskData(void *records, s16 *asShort)
 {
-    asShort[0] = (u32)records;
-    asShort[1] = ((u32)records >> 16);
+    asShort[0] = (s16)(u32)records;
+    asShort[1] = (s16)((u32)records >> 16);
 }
 
 static u8 GetMultiplayerId_(void)
@@ -635,7 +635,7 @@ static void ReceiveOldManData(OldMan *records, size_t recordSize, u8 multiplayer
 
     ShufflePlayerIndices(mixIndices);
     oldMan = (void *)records + recordSize * mixIndices[multiplayerId];
-    version = gLinkPlayers[mixIndices[multiplayerId]].version;
+    version = gLinkPlayers[mixIndices[multiplayerId]].version & 0xFF;
     language = gLinkPlayers[mixIndices[multiplayerId]].language;
 
     if (Link_AnyPartnersPlayingRubyOrSapphire())
