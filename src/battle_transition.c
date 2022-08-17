@@ -499,10 +499,12 @@ static const TransitionStateFunc sPokeballsTrail_Funcs[] =
     PokeballsTrail_End
 };
 
+#if !MODERN
 #define NUM_POKEBALL_TRAILS 5
 static const s16 sPokeballsTrail_StartXCoords[2] = { -16, DISPLAY_WIDTH + 16 };
 static const s16 sPokeballsTrail_Delays[NUM_POKEBALL_TRAILS] = {0, 32, 64, 18, 48};
 static const s16 sPokeballsTrail_Speeds[2] = {8, -8};
+#endif
 
 static const TransitionStateFunc sClockwiseWipe_Funcs[] =
 {
@@ -1218,8 +1220,7 @@ static bool8 Swirl_End(struct Task *task)
 
     if (!gPaletteFade.active)
     {
-        u8 taskId = FindTaskIdByFunc(Task_Swirl);
-        DestroyTask(taskId);
+        DestroyTask(FindTaskIdByFunc(Task_Swirl));
     }
 
     sTransitionData->VBlank_DMA++;
@@ -1276,19 +1277,29 @@ static bool8 Shuffle_Init(struct Task *task)
 static bool8 Shuffle_End(struct Task *task)
 {
     u8 i;
+    // TODO: should these be s16?
     u16 amplitude, sinVal;
 
     sTransitionData->VBlank_DMA = FALSE;
+
     sinVal = task->tSinVal;
+
     amplitude = task->tAmplitude >> 8;
     task->tSinVal += 4224;
     task->tAmplitude += 384;
 
+    #if !MODERN
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += 4224)
     {
-        u16 sinIndex = sinVal / 256;
+        s16 sinIndex = sinVal >> 8;
         gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex, amplitude);
     }
+    #else
+    for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += 4224)
+    {
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinVal >> 8, amplitude);
+    }
+    #endif
 
     if (!gPaletteFade.active)
         DestroyTask(FindTaskIdByFunc(Task_Shuffle));
@@ -1375,7 +1386,7 @@ static void Task_Kyogre(u8 taskId)
 
 static void InitPatternWeaveTransition(struct Task *task)
 {
-    s32 i;
+    m32 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -1557,9 +1568,10 @@ static bool8 Kyogre_PaletteFlash(struct Task *task)
 {
     if (task->tTimer % 3 == 0)
     {
+        // has to be u16 to match
+        // TODO: is this better as an s16? the code in the function below this doesn't seem to care
         u16 offset = task->tTimer % 30;
-        offset /= 3;
-        LoadPalette(&sKyogre1_Palette[offset * 16], 0xF0, 0x20);
+        LoadPalette(&sKyogre1_Palette[offset/3 * 16], 0xF0, 0x20);
     }
     if (++task->tTimer > 58)
     {
@@ -1574,8 +1586,7 @@ static bool8 Kyogre_PaletteBrighten(struct Task *task)
 {
     if (task->tTimer % 5 == 0)
     {
-        s16 offset = task->tTimer / 5;
-        LoadPalette(&sKyogre2_Palette[offset * 16], 0xF0, 0x20);
+        LoadPalette(&sKyogre2_Palette[task->tTimer / 5 * 16], 0xF0, 0x20);
     }
     if (++task->tTimer > 68)
     {
@@ -1710,16 +1721,14 @@ static bool8 PatternWeave_CircularMask(struct Task *task)
         DmaStop(0);
         FadeScreenBlack();
         DestroyTask(FindTaskIdByFunc(task->func));
+        return FALSE;
     }
-    else
+    if (!task->tVBlankSet)
     {
-        if (!task->tVBlankSet)
-        {
-            task->tVBlankSet++;
-            SetVBlankCallback(VBlankCB_CircularMask);
-        }
-        sTransitionData->VBlank_DMA++;
+        task->tVBlankSet++;
+        SetVBlankCallback(VBlankCB_CircularMask);
     }
+    sTransitionData->VBlank_DMA++;
     return FALSE;
 }
 
@@ -1785,23 +1794,50 @@ static bool8 PokeballsTrail_Init(struct Task *task)
 static bool8 PokeballsTrail_Main(struct Task *task)
 {
     s16 i;
+    #if !MODERN
     s16 side;
     s16 startX[ARRAY_COUNT(sPokeballsTrail_StartXCoords)];
     s16 delays[ARRAY_COUNT(sPokeballsTrail_Delays)];
     memcpy(startX, sPokeballsTrail_StartXCoords, sizeof(sPokeballsTrail_StartXCoords));
     memcpy(delays, sPokeballsTrail_Delays, sizeof(sPokeballsTrail_Delays));
-
+    
     // Randomly pick which side the first ball should start on.
     // The side is then flipped for each subsequent ball.
     side = Random() & 1;
     for (i = 0; i < NUM_POKEBALL_TRAILS; i++, side ^= 1)
     {
         gFieldEffectArguments[0] = startX[side];   // x
-        gFieldEffectArguments[1] = (i * 32) + 16;  // y
+        gFieldEffectArguments[1] = (i << 5) + 16;  // y
         gFieldEffectArguments[2] = side;
         gFieldEffectArguments[3] = delays[i];
         FieldEffectStart(FLDEFF_POKEBALL_TRAIL);
     }
+    #else
+
+    s16 delays[] = { 0, 32, 64, 18, 48 };
+    bool32 side = Random() & 1;
+    for (i = 0; i < ARRAY_COUNT(delays); i++)
+    {
+        if (side)
+        {
+            gFieldEffectArguments[0] = -16; // x
+            gFieldEffectArguments[1] = (i << 5) + 16; //y
+            gFieldEffectArguments[2] = TRUE;
+            side = FALSE;
+            gFieldEffectArguments[3] = delays[i];
+            FieldEffectStart(FLDEFF_POKEBALL_TRAIL);
+        }
+        else
+        {
+            gFieldEffectArguments[0] = DISPLAY_WIDTH + 16; // x
+            gFieldEffectArguments[1] = (i << 5) + 16; // y
+            gFieldEffectArguments[2] = FALSE;
+            side = TRUE;
+            gFieldEffectArguments[3] = delays[i];
+            FieldEffectStart(FLDEFF_POKEBALL_TRAIL);
+        }
+    }
+    #endif
 
     task->tState++;
     return FALSE;
@@ -1817,7 +1853,7 @@ static bool8 PokeballsTrail_End(struct Task *task)
     return FALSE;
 }
 
-bool8 FldEff_PokeballTrail(void)
+bool32 FldEff_PokeballTrail(void)
 {
     u8 spriteId = CreateSpriteAtEnd(&sSpriteTemplate_Pokeball, gFieldEffectArguments[0], gFieldEffectArguments[1], 0);
     gSprites[spriteId].oam.priority = 0;
@@ -1832,41 +1868,49 @@ bool8 FldEff_PokeballTrail(void)
 
 static void SpriteCB_FldEffPokeballTrail(struct Sprite *sprite)
 {
+#if !MODERN
     s16 speeds[ARRAY_COUNT(sPokeballsTrail_Speeds)];
     memcpy(speeds, sPokeballsTrail_Speeds, sizeof(sPokeballsTrail_Speeds));
+#endif
 
     if (sprite->sDelay != 0)
     {
         sprite->sDelay--;
+        return;
     }
-    else
+
+    if (sprite->x >= 0 && sprite->x <= DISPLAY_WIDTH)
     {
-        if (sprite->x >= 0 && sprite->x <= DISPLAY_WIDTH)
+        // Set Pokéball position
+        s16 posX = sprite->x >> 3;
+        s16 posY = sprite->y >> 3;
+
+        // If Pokéball moved forward clear trail behind it
+        if (posX != sprite->sPrevX)
         {
-            // Set Pokéball position
-            s16 posX = sprite->x >> 3;
-            s16 posY = sprite->y >> 3;
+            u32 var;
+            u16 *ptr;
 
-            // If Pokéball moved forward clear trail behind it
-            if (posX != sprite->sPrevX)
-            {
-                u32 var;
-                u16 *ptr;
+            sprite->sPrevX = posX;
+            var = ((REG_BG0CNT >> 8) & 0x1F) << 11;
+            ptr = (u16 *)(BG_VRAM + var);
 
-                sprite->sPrevX = posX;
-                var = ((REG_BG0CNT >> 8) & 0x1F) << 11;
-                ptr = (u16 *)(BG_VRAM + var);
-
-                SET_TILE(ptr, posY - 2, posX, 1);
-                SET_TILE(ptr, posY - 1, posX, 1);
-                SET_TILE(ptr, posY - 0, posX, 1);
-                SET_TILE(ptr, posY + 1, posX, 1);
-            }
+            SET_TILE(ptr, posY - 2, posX, 1);
+            SET_TILE(ptr, posY - 1, posX, 1);
+            SET_TILE(ptr, posY - 0, posX, 1);
+            SET_TILE(ptr, posY + 1, posX, 1);
         }
-        sprite->x += speeds[sprite->sSide];
-        if (sprite->x < -15 || sprite->x > DISPLAY_WIDTH + 15)
-            FieldEffectStop(sprite, FLDEFF_POKEBALL_TRAIL);
     }
+#if !MODERN
+    sprite->x += speeds[sprite->sSide];
+#else
+    if (sprite->sSide)
+        sprite->x -= 8;
+    else
+        sprite->x += 8;
+#endif
+    if (sprite->x <= -16 || sprite->x >= DISPLAY_WIDTH + 16)
+        FieldEffectStop(sprite, FLDEFF_POKEBALL_TRAIL);
 }
 
 #undef sSide
@@ -1884,7 +1928,7 @@ static void Task_ClockwiseWipe(u8 taskId)
 
 static bool8 ClockwiseWipe_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -1939,7 +1983,7 @@ static bool8 ClockwiseWipe_Right(struct Task *task)
         start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX + 1;
         if (sTransitionData->tWipeEndY >= DISPLAY_HEIGHT / 2)
             start = sTransitionData->tWipeCurrX, end = DISPLAY_WIDTH;
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = end | (start << 8);
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
         if (finished)
             break;
         finished = UpdateBlackWipe(sTransitionData->data, TRUE, TRUE);
@@ -1954,7 +1998,7 @@ static bool8 ClockwiseWipe_Right(struct Task *task)
     else
     {
         while (sTransitionData->tWipeCurrY < sTransitionData->tWipeEndY)
-            gScanlineEffectRegBuffers[0][++sTransitionData->tWipeCurrY] = end | (start << 8);
+            gScanlineEffectRegBuffers[0][++sTransitionData->tWipeCurrY] = (start << 8) | end;
     }
 
     sTransitionData->VBlank_DMA++;
@@ -1984,7 +2028,7 @@ static bool8 ClockwiseWipe_Bottom(struct Task *task)
 
 static bool8 ClockwiseWipe_Left(struct Task *task)
 {
-    s16 end, start, temp;
+    s16 end, start;
     vu8 finished = FALSE;
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -1993,12 +2037,18 @@ static bool8 ClockwiseWipe_Left(struct Task *task)
 
     while (1)
     {
+        #if MODERN
         end = (gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY]) & 0xFF;
         start = sTransitionData->tWipeCurrX;
+        #else
+        start = gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY];
+        end = start & 0xFF;
+        start = sTransitionData->tWipeCurrX;
+        #endif 
         if (sTransitionData->tWipeEndY <= DISPLAY_HEIGHT / 2)
             start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX;
-        temp = end | (start << 8);
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = temp;
+
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
         if (finished)
             break;
         finished = UpdateBlackWipe(sTransitionData->data, TRUE, TRUE);
