@@ -35,7 +35,7 @@ SoundMain_1:
 	mov r3, r10
 	mov r4, r11
 	push {r0-r4}
-	sub sp, 0x18
+	sub sp, o_SoundInfo_divFreq
 	ldrb r1, [r0, o_SoundInfo_maxLines]
 	cmp r1, 0 @ if maxLines is 0, there is no maximum
 	beq SoundMain_3
@@ -71,7 +71,7 @@ SoundMain_4:
 	muls r2, r1
 	adds r5, r2
 SoundMain_5:
-	str r5, [sp, 0x8]
+	str r5, [sp, o_SoundInfo_freq]
 	ldr r6, lt_PCM_DMA_BUF_SIZE
 	ldr r3, lt_SoundMainRAM_Buffer
 	bx r3
