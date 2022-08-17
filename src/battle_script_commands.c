@@ -4042,7 +4042,7 @@ static void Cmd_playstatchangeanimation(void)
 
     if (gBattlescriptCurrInstr[3] & STAT_CHANGE_NEGATIVE) // goes down
     {
-        s16 startingStatAnimId;
+        u16 startingStatAnimId;
         if (gBattlescriptCurrInstr[3] & STAT_CHANGE_BY_TWO)
             startingStatAnimId = STAT_ANIM_MINUS2 - 1;
         else
