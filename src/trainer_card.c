@@ -161,7 +161,7 @@ static bool8 Task_EndCardFlip(struct Task *task);
 static void UpdateCardFlipRegs(u16);
 static void LoadMonIconGfx(void);
 
-static const u32 sTrainerCardStickers_Gfx[]      = INCBIN_U32("graphics/trainer_card/stickers_fr.4bpp.lz");
+static const u8 sTrainerCardStickers_Gfx[]      = INCBIN_U8("graphics/trainer_card/stickers_fr.4bpp.lz");
 static const u16 sUnused_Pal[]                   = INCBIN_U16("graphics/trainer_card/unused.gbapal");
 static const u16 sHoennTrainerCard1Star_Pal[]    = INCBIN_U16("graphics/trainer_card/one_star.gbapal");
 static const u16 sKantoTrainerCard1Star_Pal[]    = INCBIN_U16("graphics/trainer_card/one_star_fr.gbapal");
@@ -180,8 +180,8 @@ static const u16 sTrainerCardSticker1_Pal[]      = INCBIN_U16("graphics/trainer_
 static const u16 sTrainerCardSticker2_Pal[]      = INCBIN_U16("graphics/trainer_card/stickers_fr2.gbapal");
 static const u16 sTrainerCardSticker3_Pal[]      = INCBIN_U16("graphics/trainer_card/stickers_fr3.gbapal");
 static const u16 sTrainerCardSticker4_Pal[]      = INCBIN_U16("graphics/trainer_card/stickers_fr4.gbapal");
-static const u32 sHoennTrainerCardBadges_Gfx[]   = INCBIN_U32("graphics/trainer_card/badges.4bpp.lz");
-static const u32 sKantoTrainerCardBadges_Gfx[]   = INCBIN_U32("graphics/trainer_card/badges_fr.4bpp.lz");
+static const u8 sHoennTrainerCardBadges_Gfx[]   = INCBIN_U8("graphics/trainer_card/badges.4bpp.lz");
+static const u8 sKantoTrainerCardBadges_Gfx[]   = INCBIN_U8("graphics/trainer_card/badges_fr.4bpp.lz");
 
 static const struct BgTemplate sTrainerCardBgTemplates[4] =
 {

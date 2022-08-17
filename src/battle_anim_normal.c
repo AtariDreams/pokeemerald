@@ -1817,9 +1817,9 @@ void AnimTask_SetAllNonAttackersInvisiblity(u8 taskId)
 
 //TODO: can we inline this?
 #if !MODERN
-void StartMonScrollingBgMask(u8 taskId, s16 unused, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u32 *gfx, const u32 *tilemap, const u32 *palette)
+void StartMonScrollingBgMask(u8 taskId, s16 unused, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u8 *gfx, const u32 *tilemap, const u32 *palette)
 #else
-void StartMonScrollingBgMask(u8 taskId, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u32 *gfx, const u32 *tilemap, const u32 *palette)
+void StartMonScrollingBgMask(u8 taskId, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u8 *gfx, const u32 *tilemap, const u32 *palette)
 #endif
 {
     u16 species;

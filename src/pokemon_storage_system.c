@@ -557,7 +557,7 @@ struct PokemonStorageSystemData
     u8 displayMenuTilemapBuffer[0x800];
 };
 
-static u32 sItemIconGfxBuffer[98];
+static u8 sItemIconGfxBuffer[0x184];
 
 EWRAM_DATA static u8 sPreviousBoxOption = 0;
 EWRAM_DATA static struct ChooseBoxMenu *sChooseBoxMenu = NULL;
@@ -714,11 +714,11 @@ static void MultiMove_DeselectColumn(u8, u8, u8);
 
 // Move Items mode
 static bool32 IsItemIconAtPosition(u8, u8);
-static const u32 *GetItemIconPic(u16);
-static const u32 *GetItemIconPalette(u16);
+static const u8 *GetItemIconPic(u16);
+static const u8 *GetItemIconPalette(u16);
 static u8 GetNewItemIconIdx(void);
 static void SetItemIconPosition(u8, u8, u8);
-static void LoadItemIconGfx(u8, const u32 *, const u32 *);
+static void LoadItemIconGfx(u8, const u8 *, const u8 *);
 static void SetItemIconAffineAnim(u8, u8);
 static void SetItemIconActive(u8, bool8);
 static u8 GetItemIconIdxByPosition(u8, u8);
@@ -949,7 +949,7 @@ static const u8 sText_OutOf30[] = _("/30");
 static const u16 sChooseBoxMenu_Pal[]       = INCBIN_U16("graphics/pokemon_storage/box_selection_popup.gbapal");
 static const u8 sChooseBoxMenuCenter_Gfx[]  = INCBIN_U8("graphics/pokemon_storage/box_selection_popup_center.4bpp");
 static const u8 sChooseBoxMenuSides_Gfx[]   = INCBIN_U8("graphics/pokemon_storage/box_selection_popup_sides.4bpp");
-static const u32 sScrollingBg_Gfx[]         = INCBIN_U32("graphics/pokemon_storage/scrolling_bg.4bpp.lz");
+static const u8 sScrollingBg_Gfx[]         = INCBIN_U8("graphics/pokemon_storage/scrolling_bg.4bpp.lz");
 static const u32 sScrollingBg_Tilemap[]     = INCBIN_U32("graphics/pokemon_storage/scrolling_bg.bin.lz");
 static const u16 sDisplayMenu_Pal[]         = INCBIN_U16("graphics/pokemon_storage/display_menu.gbapal"); // Unused
 static const u32 sDisplayMenu_Tilemap[]     = INCBIN_U32("graphics/pokemon_storage/display_menu.bin.lz");
@@ -963,7 +963,7 @@ static const u16 sCloseBoxButton_Tilemap[]  = INCBIN_U16("graphics/pokemon_stora
 static const u16 sPartySlotFilled_Tilemap[] = INCBIN_U16("graphics/pokemon_storage/party_slot_filled.bin");
 static const u16 sPartySlotEmpty_Tilemap[]  = INCBIN_U16("graphics/pokemon_storage/party_slot_empty.bin");
 static const u16 sWaveform_Pal[]            = INCBIN_U16("graphics/pokemon_storage/waveform.gbapal");
-static const u32 sWaveform_Gfx[]            = INCBIN_U32("graphics/pokemon_storage/waveform.4bpp");
+static const u8 sWaveform_Gfx[]            = INCBIN_U8("graphics/pokemon_storage/waveform.4bpp");
 static const u16 sUnused_Pal[]              = INCBIN_U16("graphics/pokemon_storage/unused.gbapal");
 static const u16 sTextWindows_Pal[]         = INCBIN_U16("graphics/pokemon_storage/text_windows.gbapal");
 
@@ -8636,7 +8636,7 @@ static bool8 MultiMove_CanPlaceSelection(void)
 //------------------------------------------------------------------------------
 
 
-static const u32 sItemInfoFrame_Gfx[] = INCBIN_U32("graphics/pokemon_storage/item_info_frame.4bpp");
+static const u8 sItemInfoFrame_Gfx[] = INCBIN_U8("graphics/pokemon_storage/item_info_frame.4bpp");
 
 static const struct OamData sOamData_ItemIcon =
 {
@@ -8728,7 +8728,7 @@ static const struct SpriteTemplate sSpriteTemplate_ItemIcon =
 
 static void CreateItemIconSprites(void)
 {
-    s32 i;
+    m32 i;
     u8 spriteId;
     struct CompressedSpriteSheet spriteSheet;
     struct SpriteTemplate spriteTemplate;
@@ -8743,8 +8743,9 @@ static void CreateItemIconSprites(void)
         {
             spriteSheet.tag = GFXTAG_ITEM_ICON_0 + i;
             LoadCompressedSpriteSheet(&spriteSheet);
-            sStorage->itemIcons[i].tiles = GetSpriteTileStartByTag(spriteSheet.tag) * TILE_SIZE_4BPP + (void *)(OBJ_VRAM0);
+            sStorage->itemIcons[i].tiles = (void*)(OBJ_VRAM0) + GetSpriteTileStartByTag(spriteSheet.tag) * TILE_SIZE_4BPP;
             sStorage->itemIcons[i].palIndex = AllocSpritePalette(PALTAG_ITEM_ICON_0 + i);
+            // ASSERT(sStorage->itemIcons[i].palIndex != 255);
             sStorage->itemIcons[i].palIndex *= 16;
             sStorage->itemIcons[i].palIndex += 0x100;
             spriteTemplate.tileTag = GFXTAG_ITEM_ICON_0 + i;
@@ -8787,8 +8788,8 @@ static void TryLoadItemIconAtPos(u8 cursorArea, u8 cursorPos)
 
     if (heldItem != ITEM_NONE)
     {
-        const u32 *tiles = GetItemIconPic(heldItem);
-        const u32 *pal = GetItemIconPalette(heldItem);
+        const u8 *tiles = GetItemIconPic(heldItem);
+        const u8 *pal = GetItemIconPalette(heldItem);
         u8 id = GetNewItemIconIdx();
 
         SetItemIconPosition(id, cursorArea, cursorPos);
@@ -8839,8 +8840,8 @@ static void TakeItemFromMon(u8 cursorArea, u8 cursorPos)
 
 static void InitItemIconInCursor(u16 itemId)
 {
-    const u32 *tiles = GetItemIconPic(itemId);
-    const u32 *pal = GetItemIconPalette(itemId);
+    const u8 *tiles = GetItemIconPic(itemId);
+    const u8 *pal = GetItemIconPalette(itemId);
     u8 id = GetNewItemIconIdx();
     LoadItemIconGfx(id, tiles, pal);
     SetItemIconAffineAnim(id, ITEM_ANIM_LARGE);
@@ -8940,7 +8941,7 @@ static void MoveItemFromCursorToBag(void)
 // up along with the closing menu.
 static void MoveHeldItemWithPartyMenu(void)
 {
-    s32 i;
+    m32 i;
 
     if (sStorage->boxOption != OPTION_MOVE_ITEMS)
         return;
@@ -8955,7 +8956,7 @@ static void MoveHeldItemWithPartyMenu(void)
 
 static bool8 IsItemIconAnimActive(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_ITEM_ICONS; i++)
     {
@@ -8974,7 +8975,7 @@ static bool8 IsItemIconAnimActive(void)
 
 static bool8 IsMovingItem(void)
 {
-    s32 i;
+    m32 i;
 
     if (sStorage->boxOption == OPTION_MOVE_ITEMS)
     {
@@ -9015,7 +9016,7 @@ static u8 GetNewItemIconIdx(void)
 
 static bool32 IsItemIconAtPosition(u8 cursorArea, u8 cursorPos)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_ITEM_ICONS; i++)
     {
@@ -9089,9 +9090,9 @@ static void SetItemIconPosition(u8 id, u8 cursorArea, u8 cursorPos)
     sStorage->itemIcons[id].pos = cursorPos;
 }
 
-static void LoadItemIconGfx(u8 id, const u32 *itemTiles, const u32 *itemPal)
+static void LoadItemIconGfx(u8 id, const u8 *itemTiles, const u8 *itemPal)
 {
-    s32 i;
+    m32 i;
 
     if (id >= MAX_ITEM_ICONS)
         return;
@@ -9108,10 +9109,10 @@ static void LoadItemIconGfx(u8 id, const u32 *itemTiles, const u32 *itemPal)
 
 static void SetItemIconAffineAnim(u8 id, u8 animNum)
 {
-    if (id >= MAX_ITEM_ICONS)
-        return;
-
-    StartSpriteAffineAnim(sStorage->itemIcons[id].sprite, animNum);
+    if (id < MAX_ITEM_ICONS)
+    {
+        StartSpriteAffineAnim(sStorage->itemIcons[id].sprite, animNum);
+    }
 }
 
 #define sItemIconId data[0]
@@ -9163,19 +9164,19 @@ static void SetItemIconCallback(u8 id, u8 callbackId, u8 cursorArea, u8 cursorPo
 
 static void SetItemIconActive(u8 id, bool8 active)
 {
-    if (id >= MAX_ITEM_ICONS)
-        return;
-
-    sStorage->itemIcons[id].active = active;
-    sStorage->itemIcons[id].sprite->invisible = (active == FALSE);
+    if (id < MAX_ITEM_ICONS)
+    {
+        sStorage->itemIcons[id].active = active;
+        sStorage->itemIcons[id].sprite->invisible = !active;
+    }
 }
 
-static const u32 *GetItemIconPic(u16 itemId)
+static const u8 *GetItemIconPic(u16 itemId)
 {
     return GetItemIconPicOrPalette(itemId, 0);
 }
 
-static const u32 *GetItemIconPalette(u16 itemId)
+static const u8 *GetItemIconPalette(u16 itemId)
 {
     return GetItemIconPicOrPalette(itemId, 1);
 }
