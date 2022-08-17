@@ -916,7 +916,7 @@ static const u8 sBattlePalaceNatureToFlavorTextId[NUM_NATURES] =
 
 static void Cmd_attackcanceler(void)
 {
-    s32 i;
+    m32 i;
 
     if (gBattleOutcome != 0)
     {
@@ -945,15 +945,16 @@ static void Cmd_attackcanceler(void)
     if (!(gHitMarker & HITMARKER_OBEYS) && !(gBattleMons[gBattlerAttacker].status2 & STATUS2_MULTIPLETURNS))
     {
         i = IsMonDisobedient(); // why use the 'i' variable...?
-        switch (i)
+        if (i != 0)
         {
-        case 0:
-            break;
-        case 2:
-            gHitMarker |= HITMARKER_OBEYS;
-            return;
-        default:
-            gMoveResultFlags |= MOVE_RESULT_MISSED;
+            if (i == 2)
+            {
+                gHitMarker |= HITMARKER_OBEYS;
+            }
+            else
+            {
+                gMoveResultFlags |= MOVE_RESULT_MISSED;
+            }
             return;
         }
     }
@@ -1106,6 +1107,7 @@ static void Cmd_accuracycheck(void)
             gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
         else if (!JumpIfMoveAffectedByProtect(0))
             gBattlescriptCurrInstr += 7;
+        return;
     }
     else
     {
@@ -1125,18 +1127,27 @@ static void Cmd_accuracycheck(void)
 
         if (gBattleMons[gBattlerTarget].status2 & STATUS2_FORESIGHT)
         {
+            #if !MODERN
             u8 acc = gBattleMons[gBattlerAttacker].statStages[STAT_ACC];
             buff = acc;
+            #else
+            // This is what GF did, minus an unneeded + 6 - 6
+            buff = gBattleMons[gBattlerAttacker].statStages[STAT_ACC];
+            #endif
         }
         else
         {
+            #if !MODERN
             u8 acc = gBattleMons[gBattlerAttacker].statStages[STAT_ACC];
             buff = acc + DEFAULT_STAT_STAGE - gBattleMons[gBattlerTarget].statStages[STAT_EVASION];
+            #else
+            buff = gBattleMons[gBattlerAttacker].statStages[STAT_ACC] + DEFAULT_STAT_STAGE - gBattleMons[gBattlerTarget].statStages[STAT_EVASION];
+            #endif
         }
 
         if (buff < MIN_STAT_STAGE)
             buff = MIN_STAT_STAGE;
-        if (buff > MAX_STAT_STAGE)
+        M_IF (buff > MAX_STAT_STAGE)
             buff = MAX_STAT_STAGE;
 
         moveAcc = gBattleMoves[move].accuracy;
@@ -1201,7 +1212,7 @@ static void Cmd_attackstring(void)
 
 static void Cmd_ppreduce(void)
 {
-    s32 ppToDeduct = 1;
+    m32 ppToDeduct = 1;
 
     if (gBattleControllerExecFlags)
         return;
@@ -1411,7 +1422,7 @@ static void Cmd_typecalc(void)
 static void CheckWonderGuardAndLevitate(void)
 {
     u8 flags = 0;
-    s32 i = 0;
+    m32 i = 0;
     u8 moveType;
 
     if (gCurrentMove == MOVE_STRUGGLE || !gBattleMoves[gCurrentMove].power)
@@ -1514,7 +1525,7 @@ static void ModulateDmgByType2(u8 multiplier, u16 move, u8 *flags) // same as Mo
 
 u8 TypeCalc(u16 move, u8 attacker, u8 defender)
 {
-    s32 i = 0;
+    m32 i = 0;
     u8 flags = 0;
     u8 moveType;
 
@@ -1569,7 +1580,7 @@ u8 TypeCalc(u16 move, u8 attacker, u8 defender)
 
 u8 AI_TypeCalc(u16 move, u16 targetSpecies, u8 targetAbility)
 {
-    s32 i = 0;
+    m32 i = 0;
     u8 flags = 0;
     u8 type1 = gBaseStats[targetSpecies].type1, type2 = gBaseStats[targetSpecies].type2;
     u8 moveType;
