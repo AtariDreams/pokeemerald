@@ -2956,13 +2956,13 @@ bool8 IsRfuRecoveringFromLinkLoss(void)
 
 bool32 IsRfuCommunicatingWithAllChildren(void)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
         // RFU_STATUS_OK is the default status.
         // If any connected child is receiving a status other
         // than OK, then the parent is communicating with them
-        if ((lman.acceptSlot_flag >> i) & 1 && gRfu.partnerSendStatuses[i] == RFU_STATUS_OK)
+        if ((lman.acceptSlot_flag & (1 << i)) && gRfu.partnerSendStatuses[i] == RFU_STATUS_OK)
             return FALSE;
     }
 
