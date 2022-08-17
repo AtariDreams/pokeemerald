@@ -914,7 +914,7 @@ void BtlController_EmitGetRawMonData(u8 bufferId, u8 monId, u8 bytes)
 
 void BtlController_EmitSetMonData(u8 bufferId, u8 requestId, u8 monToCheck, u8 bytes, void *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_SETMONDATA;
     sBattleBuffersTransferData[1] = requestId;
@@ -926,7 +926,7 @@ void BtlController_EmitSetMonData(u8 bufferId, u8 requestId, u8 monToCheck, u8 b
 
 void BtlController_EmitSetRawMonData(u8 bufferId, u8 monId, u8 bytes, void *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_SETRAWMONDATA;
     sBattleBuffersTransferData[1] = monId;
@@ -1036,9 +1036,13 @@ void BtlController_EmitPause(u8 bufferId, u8 toWait, void *data)
 void BtlController_EmitMoveAnimation(u8 bufferId, u16 move, u8 turnOfMove, u16 movePower, s32 dmg, u8 friendship, struct DisableStruct *disableStructPtr, u8 multihit)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_MOVEANIMATION;
-    sBattleBuffersTransferData[1] = move;
+    sBattleBuffersTransferData[1] = move & 0xFF;
     // &0xFF00 is not neded for u16 if you shift by 8
+    #if !MODERN
     sBattleBuffersTransferData[2] = (move & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[2] = move >> 8;
+    #endif
     sBattleBuffersTransferData[3] = turnOfMove;
     sBattleBuffersTransferData[4] = movePower;
     // &0xFF00 is not neded for u16 if you shift by 8
@@ -1067,8 +1071,8 @@ void BtlController_EmitMoveAnimation(u8 bufferId, u16 move, u8 turnOfMove, u16 m
 
 void BtlController_EmitPrintString(u8 bufferId, u16 stringID)
 {
-    s32 i;
-    struct BattleMsgData *stringInfo;
+    m32 i;
+    struct BattleMsgData* stringInfo;
 
     sBattleBuffersTransferData[0] = CONTROLLER_PRINTSTRING;
     sBattleBuffersTransferData[1] = gBattleOutcome;
@@ -1099,13 +1103,18 @@ void BtlController_EmitPrintString(u8 bufferId, u16 stringID)
 
 void BtlController_EmitPrintSelectionString(u8 bufferId, u16 stringID)
 {
-    s32 i;
+    m32 i;
     struct BattleMsgData *stringInfo;
 
     sBattleBuffersTransferData[0] = CONTROLLER_PRINTSTRINGPLAYERONLY;
     sBattleBuffersTransferData[1] = CONTROLLER_PRINTSTRINGPLAYERONLY;
+    #if !MODERN
     sBattleBuffersTransferData[2] = stringID;
     sBattleBuffersTransferData[3] = (stringID & 0xFF00) >> 8;
+    #else
+        sBattleBuffersTransferData[2] = stringID & 0xFF;
+    sBattleBuffersTransferData[3] = stringID >> 8;
+    #endif
 
     stringInfo = (struct BattleMsgData *)(&sBattleBuffersTransferData[4]);
     stringInfo->currentMove = gCurrentMove;
@@ -1147,16 +1156,16 @@ void BtlController_EmitYesNoBox(u8 bufferId)
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
-void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpNumber, struct ChooseMoveStruct *movePpData)
+void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpNumber, u8 *movePpData)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_CHOOSEMOVE;
     sBattleBuffersTransferData[1] = isDoubleBattle;
     sBattleBuffersTransferData[2] = NoPpNumber;
     sBattleBuffersTransferData[3] = 0;
-    for (i = 0; i < sizeof(*movePpData); i++)
-        sBattleBuffersTransferData[4 + i] = *((u8 *)(movePpData) + i);
+    for (i = 0; i < sizeof(struct ChooseMoveStruct); i++)
+        sBattleBuffersTransferData[4 + i] = movePpData[i];
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sizeof(*movePpData) + 4);
 }
 
@@ -1172,7 +1181,7 @@ void BtlController_EmitChooseItem(u8 bufferId, u8 *battlePartyOrder)
 
 void BtlController_EmitChoosePokemon(u8 bufferId, u8 caseId, u8 slotId, u8 abilityId, u8 *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_CHOOSEPOKEMON;
     sBattleBuffersTransferData[1] = caseId;
