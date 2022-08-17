@@ -1408,9 +1408,15 @@ void SetBerryTreesSeen(void)
     s16 top;
     s16 right;
     s16 bottom;
-    int i;
+    m32 i;
 
+    #if MODERN
+    cam_left = gSaveBlock1Ptr->pos.x;
+    cam_top = gSaveBlock1Ptr->pos.y;
+    #else
     GetCameraCoords(&cam_left, &cam_top);
+    #endif
+
     left = cam_left;
     top = cam_top + 3;
     right = cam_left + 14;

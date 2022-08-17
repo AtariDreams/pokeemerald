@@ -854,8 +854,9 @@ static const struct WindowTemplate sEasyChatYesNoWindowTemplate = {
     .baseBlock = 0x6A,
 };
 
+#if !MODERN
 static const u8 sText_Clear17[] = _("{CLEAR 17}");
-
+#endif
 static const u8 *const sEasyChatKeyboardAlphabet[NUM_ALPHABET_ROWS] =
 {
     gText_EasyChatKeyboard_ABCDEFothers,
@@ -4035,13 +4036,20 @@ static void AddPhraseWindow(void)
 
 static void PrintCurrentPhrase(void)
 {
+    #if !MODERN
     u8 strClear[4];
+    #endif
     const u16 *currentPhrase;
     u8 numColumns, numRows;
     u8 *str;
     int frameId;
     bool32 isQuizQuestion;
     int i, j, k;
+
+    #if MODERN
+    // TODO: what is 17 here?
+    u8 strClear[4] = {CHAR_NEWLINE, CHAR_U_GRAVE, 17, EOS};
+    #endif
 
     currentPhrase = GetCurrentPhrase();
     numColumns = GetNumColumns();
@@ -4053,9 +4061,18 @@ static void PrintCurrentPhrase(void)
     FillWindowPixelBuffer(sScreenControl->windowId, PIXEL_FILL(1));
     for (i = 0; i < numRows; i++)
     {
+        #if MODERN
+        // Size is 4.
+
+        strClear[2] = isQuizQuestion ? 6 : CHAR_U_GRAVE;
+        #else
+        
         memcpy(strClear, sText_Clear17, sizeof(sText_Clear17));
+
+
         if (isQuizQuestion)
             strClear[2] = 6;
+        #endif
 
         str = sScreenControl->phrasePrintBuffer;
         *str = EOS;
