@@ -53,7 +53,7 @@ struct RouletteFlashPalette
     u8 state:7;
     bool8 available:1;
     u8 delayCounter;
-    s8 fadeCycleCounter;
+    u8 fadeCycleCounter;
     s8 colorDelta;
     struct RouletteFlashSettings settings;
 };
