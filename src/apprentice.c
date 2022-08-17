@@ -1225,7 +1225,7 @@ static void TrySetApprenticeHeldItem(void)
         return;
 
     #if MODERN
-    count -= NUM_WHICH_MON_QUESTIONS
+    count -= NUM_WHICH_MON_QUESTIONS;
     if (count > APPRENTICE_MAX_QUESTIONS)
         count = APPRENTICE_MAX_QUESTIONS;
     #endif
@@ -1371,7 +1371,7 @@ static void SetSavedApprenticeTrainerGfxId(void)
             #if !MODERN
             break;
             #else
-            VarSet(VAR_OBJ_GFX_ID_0, gTowerFemaleTrainerGfxIds[i])
+            VarSet(VAR_OBJ_GFX_ID_0, gTowerFemaleTrainerGfxIds[i]);
             #endif
         }
     }
@@ -1420,7 +1420,7 @@ static void SetPlayerApprenticeTrainerGfxId(void)
             #if !MODERN
             break;
             #else
-            VarSet(VAR_OBJ_GFX_ID_0, gTowerFemaleTrainerGfxIds[i])
+            VarSet(VAR_OBJ_GFX_ID_0, gTowerFemaleTrainerGfxIds[i]);
             #endif
         }
     }
