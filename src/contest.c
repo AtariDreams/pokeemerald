@@ -1499,7 +1499,8 @@ static void Task_DisplayAppealNumberText(u8 taskId)
 static void Task_TryShowMoveSelectScreen(u8 taskId)
 {
     // Wait for button press to show move select screen
-    if ((JOY_NEW(A_BUTTON)) || (gMain.newKeys == B_BUTTON))
+    // JOY_NEW(B_BUTTON) does not work for some reason
+    if (JOY_NEW(A_BUTTON) || (gMain.newKeys == B_BUTTON))
     {
         PlaySE(SE_SELECT);
         if (!Contest_IsMonsTurnDisabled(gContestPlayerMonIndex))
@@ -1518,7 +1519,9 @@ static void Task_TryShowMoveSelectScreen(u8 taskId)
 static void Task_ShowMoveSelectScreen(u8 taskId)
 {
     u8 i;
-    u8 moveName[32];
+    // Should this be 30 or 32?
+    // GF says 30 but that may have been a mistake?
+    u8 moveName[30];
 
     gBattle_BG0_Y = DISPLAY_HEIGHT;
     gBattle_BG2_Y = DISPLAY_HEIGHT;
@@ -1634,10 +1637,9 @@ static void Task_SelectedMove(u8 taskId)
 {
     if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK)
     {
-        u16 move = GetChosenMove(gContestPlayerMonIndex);
         u8 taskId2;
 
-        eContestantStatus[gContestPlayerMonIndex].currMove = move;
+        eContestantStatus[gContestPlayerMonIndex].currMove = GetChosenMove(gContestPlayerMonIndex);
         taskId2 = CreateTask(Task_LinkContest_CommunicateMoveSelections, 0);
         SetTaskFuncWithFollowupFunc(taskId2, Task_LinkContest_CommunicateMoveSelections, Task_EndCommunicateMoveSelections);
         gTasks[taskId].func = TaskDummy1;
@@ -1688,15 +1690,15 @@ static void Task_HideMoveSelectScreen(u8 taskId)
 
 static void Task_HideApplauseMeterForAppealStart(u8 taskId)
 {
-    if (++gTasks[taskId].data[0] > 2)
+    if (++gTasks[taskId].data[0] < 3)
+        return;
+
+    gTasks[taskId].data[0] = 0;
+    if (++gTasks[taskId].data[1] == 2)
     {
-        gTasks[taskId].data[0] = 0;
-        if (++gTasks[taskId].data[1] == 2)
-        {
-            SlideApplauseMeterOut();
-            AnimateSliderHearts(SLIDER_HEART_ANIM_DISAPPEAR);
-            gTasks[taskId].func = Task_WaitHideApplauseMeterForAppealStart;
-        }
+        SlideApplauseMeterOut();
+        AnimateSliderHearts(SLIDER_HEART_ANIM_DISAPPEAR);
+        gTasks[taskId].func = Task_WaitHideApplauseMeterForAppealStart;
     }
 }
 
@@ -1712,22 +1714,22 @@ static void Task_WaitHideApplauseMeterForAppealStart(u8 taskId)
 
 static void Task_AppealSetup(u8 taskId)
 {
-    if (++gTasks[taskId].data[0] > 19)
-    {
-        eContest.turnNumber = 0;
-        eContest.unusedRng = gRngValue;
-        if ((gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK) && IsPlayerLinkLeader())
-        {
-            s32 i;
+    if (++gTasks[taskId].data[0] < 20)
+        return;
 
-            for (i = 0; i + gNumLinkContestPlayers < CONTESTANT_COUNT; i++)
-            {
-                eContestantStatus[gNumLinkContestPlayers + i].currMove = GetChosenMove(gNumLinkContestPlayers + i);
-            }
+    eContest.turnNumber = 0;
+    eContest.unusedRng = gRngValue;
+    if ((gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK) && IsPlayerLinkLeader())
+    {
+        s32 i;
+
+        for (i = 0; i + gNumLinkContestPlayers < CONTESTANT_COUNT; i++)
+        {
+            eContestantStatus[gNumLinkContestPlayers + i].currMove = GetChosenMove(gNumLinkContestPlayers + i);
         }
-        gTasks[taskId].tState = APPEALSTATE_START_TURN;
-        gTasks[taskId].func = Task_DoAppeals;
     }
+    gTasks[taskId].tState = APPEALSTATE_START_TURN;
+    gTasks[taskId].func = Task_DoAppeals;
 }
 
 static void Task_DoAppeals(u8 taskId)
@@ -1877,30 +1879,28 @@ static void Task_DoAppeals(u8 taskId)
             eContestantStatus[contestant].effectStringId = CONTEST_STRING_NONE;
             gTasks[taskId].tState = APPEALSTATE_WAIT_MOVE_RESULT_MSG;
         }
-        else
+        else if (eContestantStatus[contestant].effectStringId2 != CONTEST_STRING_NONE)
         {
-            if (eContestantStatus[contestant].effectStringId2 != CONTEST_STRING_NONE)
+            for (i = 0; i < CONTESTANT_COUNT; i++)
             {
-                for (i = 0; i < CONTESTANT_COUNT; i++)
-                {
-                    if (i != contestant && eContestantStatus[i].effectStringId != CONTEST_STRING_NONE)
-                        break;
-                }
-                if (i == CONTESTANT_COUNT)
-                {
-                    PrintAppealMoveResultText(contestant, eContestantStatus[contestant].effectStringId2);
-                    eContestantStatus[contestant].effectStringId2 = CONTEST_STRING_NONE;
-                    gTasks[taskId].tState = APPEALSTATE_WAIT_MOVE_RESULT_MSG;
-                }
-                else
-                {
-                    gTasks[taskId].tState = APPEALSTATE_CHECK_TURN_ORDER_MOD;
-                }
+                if (i != contestant && eContestantStatus[i].effectStringId != CONTEST_STRING_NONE)
+                    break;
+                    // could have done whatever is in the else clause below outside of the loop here too but whatever
+            }
+            if (i == CONTESTANT_COUNT)
+            {
+                PrintAppealMoveResultText(contestant, eContestantStatus[contestant].effectStringId2);
+                eContestantStatus[contestant].effectStringId2 = CONTEST_STRING_NONE;
+                gTasks[taskId].tState = APPEALSTATE_WAIT_MOVE_RESULT_MSG;
             }
             else
             {
                 gTasks[taskId].tState = APPEALSTATE_CHECK_TURN_ORDER_MOD;
             }
+        }
+        else
+        {
+            gTasks[taskId].tState = APPEALSTATE_CHECK_TURN_ORDER_MOD;
         }
         return;
     case APPEALSTATE_WAIT_MOVE_RESULT_MSG:
@@ -1985,6 +1985,7 @@ static void Task_DoAppeals(u8 taskId)
             s32 j = 0;
 
             r3 = FALSE; // Can't get this to use local variable. Should be "needsUpdate"
+            // What did revo mean by this?!!!
             for (i = gTasks[taskId].data[1]; i < CONTESTANT_COUNT; i++)
             {
                 r3 = FALSE;
@@ -2141,20 +2142,17 @@ static void Task_DoAppeals(u8 taskId)
         }
         return;
     case APPEALSTATE_TRY_UPDATE_HEARTS_FROM_COMBO:
-        if (!Contest_RunTextPrinters())
+        if (!Contest_RunTextPrinters() && ++gTasks[taskId].tCounter > 50)
         {
-            if (++gTasks[taskId].tCounter > 50)
+            if (!eContestantStatus[contestant].hasJudgesAttention)
             {
-                if (!eContestantStatus[contestant].hasJudgesAttention)
-                {
-                    UpdateAppealHearts(
-                        eContestantStatus[contestant].appeal,
-                        eContestantStatus[contestant].comboAppealBonus,
-                        contestant);
-                    eContestantStatus[contestant].appeal += eContestantStatus[contestant].comboAppealBonus;
-                }
-                gTasks[taskId].tState = APPEALSTATE_WAIT_HEARTS_FROM_COMBO;
+                UpdateAppealHearts(
+                    eContestantStatus[contestant].appeal,
+                    eContestantStatus[contestant].comboAppealBonus,
+                    contestant);
+                eContestantStatus[contestant].appeal += eContestantStatus[contestant].comboAppealBonus;
             }
+            gTasks[taskId].tState = APPEALSTATE_WAIT_HEARTS_FROM_COMBO;
         }
         return;
     case APPEALSTATE_WAIT_HEARTS_FROM_COMBO:
@@ -2193,6 +2191,7 @@ static void Task_DoAppeals(u8 taskId)
         }
         return;
     case APPEALSTATE_WAIT_HEARTS_FROM_REPEAT:
+        // TODO: is this needed?
         ContestDebugDoPrint();
         if (!eContestGfxState[contestant].updatingAppealHearts)
         {
@@ -2427,7 +2426,7 @@ static void Task_DoAppeals(u8 taskId)
             gTasks[taskId].tState = APPEALSTATE_TURN_END_DELAY;
         return;
     case APPEALSTATE_TURN_END_DELAY:
-        if (++gTasks[taskId].tCounter > 29)
+        if (++gTasks[taskId].tCounter >= 30)
         {
             gTasks[taskId].tCounter = 0;
             gTasks[taskId].tState = APPEALSTATE_START_NEXT_TURN;
@@ -2463,7 +2462,7 @@ static void SpriteCB_MonSlideIn(struct Sprite *sprite)
     }
     else
     {
-        if (++sprite->data[0] == 31)
+        if (sprite->data[0]++ == 30)
         {
             sprite->data[0] = 0;
             sprite->callback = SpriteCallbackDummy;
