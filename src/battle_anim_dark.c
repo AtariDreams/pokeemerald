@@ -425,16 +425,9 @@ void AnimTask_MoveAttackerMementoShadow(u8 taskId)
     task->data[4] = task->data[6];
     task->data[13] = (task->data[7] - task->data[6]) << 8;
 
-    // TODO: see which is better
-    #if !MODERN
-    pos = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
-    task->data[14] = pos - 32;
-    task->data[15] = pos + 32;
-    #else
-    // done by GF
     task->data[14] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X) - 32;
     task->data[15] = task->data[14] + 64;
-    #endif
+
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
         task->data[8] = -12;
     else
