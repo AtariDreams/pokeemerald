@@ -639,45 +639,39 @@ static void AnimTask_SpiteTargetShadow_Step1(u8 taskId)
         if (task->data[14] == 0xFF || task->data[14] == 0xF)
         {
             DestroyAnimVisualTask(taskId);
+            return;
         }
-        else
-        {
+
             task->data[0] = CloneBattlerSpriteWithBlend(ANIM_TARGET);
             if (task->data[0] < 0)
             {
                 FreeSpritePaletteByTag(ANIM_TAG_BENT_SPOON);
                 DestroyAnimVisualTask(taskId);
+                return;
+            }
+
+            gSprites[task->data[0]].oam.paletteNum = task->data[14];
+            gSprites[task->data[0]].oam.objMode = ST_OAM_OBJ_NORMAL;
+            gSprites[task->data[0]].oam.priority = 3;
+            gSprites[task->data[0]].invisible = (gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].invisible);
+            task->data[1] = 0;
+            task->data[2] = 0;
+            task->data[3] = 16;
+            task->data[13] = GetAnimBattlerSpriteId(ANIM_TARGET);
+            task->data[4] = (gSprites[task->data[13]].oam.paletteNum + 16) * 16;
+            if (position == 1)
+            {
+                ClearGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_BG1_ON);
             }
             else
             {
-                s16 mask2;
-                gSprites[task->data[0]].oam.paletteNum = task->data[14];
-                gSprites[task->data[0]].oam.objMode = ST_OAM_OBJ_NORMAL;
-                gSprites[task->data[0]].oam.priority = 3;
-                gSprites[task->data[0]].invisible = (gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].invisible);
-                task->data[1] = 0;
-                task->data[2] = 0;
-                task->data[3] = 16;
-                task->data[13] = GetAnimBattlerSpriteId(ANIM_TARGET);
-                task->data[4] = (gSprites[task->data[13]].oam.paletteNum + 16) * 16;
-                if (position == 1) {
-                    u16 mask = DISPCNT_BG1_ON;
-                    mask2 = mask;
-                }
-                else {
-                    u16 mask = DISPCNT_BG2_ON;
-                    mask2 = mask;
-                }
-                ClearGpuRegBits(REG_OFFSET_DISPCNT, mask2);
-                task->data[15]++;
+                ClearGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_BG2_ON);
             }
-        }
         break;
     case 1:
         task->data[14] = (task->data[14] + 16) * 16;
         CpuCopy32(&gPlttBufferUnfaded[task->data[4]], &gPlttBufferFaded[task->data[14]], 32);
         BlendPalette(task->data[4], 16, 10, RGB(13, 0, 15));
-        task->data[15]++;
         break;
     case 2:
         startLine = gSprites[task->data[13]].y + gSprites[task->data[13]].y2 - 32;
@@ -689,7 +683,6 @@ static void AnimTask_SpiteTargetShadow_Step1(u8 taskId)
         else
             task->data[10] = ScanlineEffect_InitWave(startLine, startLine + 64, 2, 6, 0, SCANLINE_EFFECT_REG_BG2HOFS, TRUE);
 
-        task->data[15]++;
         break;
     case 3:
         if (position == 1)
@@ -698,7 +691,6 @@ static void AnimTask_SpiteTargetShadow_Step1(u8 taskId)
             SetGpuReg(REG_OFFSET_BLDCNT, (BLDCNT_EFFECT_BLEND | BLDCNT_TGT2_ALL | BLDCNT_TGT1_BG2));
 
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(0, 0x10));
-        task->data[15]++;
         break;
     case 4:
         if (position == 1)
@@ -707,12 +699,11 @@ static void AnimTask_SpiteTargetShadow_Step1(u8 taskId)
             SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_BG2_ON);
 
         task->func = AnimTask_SpiteTargetShadow_Step2;
-        task->data[15]++;
         break;
     default:
-        task->data[15]++;
         break;
     }
+    task->data[15]++;
 }
 
 static void AnimTask_SpiteTargetShadow_Step2(u8 taskId)
