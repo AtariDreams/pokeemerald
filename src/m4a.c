@@ -577,7 +577,9 @@ void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
         mplayInfo->MPlayMainNext = soundInfo->MPlayMainHead;
         mplayInfo->musicPlayerNext = soundInfo->musicPlayerHead;
         // NULL assignment semantically useless, but required for match
+        #if !MODERN
         soundInfo->MPlayMainHead = NULL;
+        #endif
     }
 
     soundInfo->musicPlayerHead = mplayInfo;
