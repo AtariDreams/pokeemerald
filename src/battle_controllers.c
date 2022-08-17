@@ -307,8 +307,12 @@ static void InitSinglePlayerBtlControllers(void)
                             break;
                         }
                     }
+                    #if !MODERN
                     else if ((!(gLinkPlayers[i].id & 1) && !(gLinkPlayers[multiplayerId].id & 1))
                             || ((gLinkPlayers[i].id & 1) && (gLinkPlayers[multiplayerId].id & 1)))
+                    #else
+                    else if ((gLinkPlayers[i].id & 1) == (gLinkPlayers[multiplayerId].id & 1))
+                    #endif
                     {
                         gBattlerControllerFuncs[gLinkPlayers[i].id] = SetControllerToRecordedPlayer;
                         switch (gLinkPlayers[i].id)
