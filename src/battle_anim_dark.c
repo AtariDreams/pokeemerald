@@ -432,7 +432,7 @@ void AnimTask_MoveAttackerMementoShadow(u8 taskId)
     task->data[15] = pos + 32;
     #else
     // done by GF
-    task->data[14] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
+    task->data[14] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X) - 32;
     task->data[15] = task->data[14] + 64;
     #endif
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
@@ -611,7 +611,7 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
         task->data[14] = x - 4;
         task->data[15] = x + 4;
         #else
-        task->data[14] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
+        task->data[14] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X) - 4;
         task->data[15] = task->data[14] + 8;
         #endif
 

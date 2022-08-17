@@ -157,8 +157,12 @@ static void AnimBonemerangProjectile_Step(struct Sprite *sprite)
     {
         sprite->x += sprite->x2;
         sprite->y += sprite->y2;
-        sprite->y2 = 0;
+        #if !MODERN
+        sprite->x2 = sprite->y2 = 0;
+        #else
         sprite->x2 = 0;
+        sprite->y2 = 0;
+        #endif
         sprite->data[0] = 20;
         sprite->data[2] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2);
         sprite->data[4] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET);
@@ -288,6 +292,7 @@ static void AnimMudSportDirtFalling(struct Sprite *sprite)
 void AnimTask_DigDownMovement(u8 taskId)
 {
     struct Task *task = &gTasks[taskId];
+    //TODO: Should I call directly?
 
     if (gBattleAnimArgs[0] == FALSE)
         task->func = AnimTask_DigBounceMovement;
@@ -299,7 +304,9 @@ void AnimTask_DigDownMovement(u8 taskId)
 
 static void AnimTask_DigBounceMovement(u8 taskId)
 {
+    #if !MODERN
     u8 y;
+    #endif
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -317,10 +324,15 @@ static void AnimTask_DigBounceMovement(u8 taskId)
             task->data[12] = gBattle_BG2_X;
             task->data[13] = gBattle_BG2_Y;
         }
-
+        #if !MODERN
         y = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
         task->data[14] = y - 32;
         task->data[15] = y + 32;
+        #else
+        task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
+        task->data[15] = task->data[14] + 64;
+        #endif
+
         if (task->data[14] < 0)
             task->data[14] = 0;
 

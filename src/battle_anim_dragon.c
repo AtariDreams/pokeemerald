@@ -425,7 +425,7 @@ void AnimTask_DragonDanceWaver(u8 taskId)
     task->data[3] = y - 32;
     task->data[4] = y + 32;
     #else
-    task->data[3] = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
+    task->data[3] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
     task->data[4] = task->data[3] + 64;
     #endif
     if (task->data[3] < 0)
