@@ -1471,9 +1471,9 @@ static const u16 sGrammarMoveUsedTable[] =
     MOVE_FLATTER, MOVE_ROLE_PLAY, MOVE_ENDEAVOR, MOVE_TICKLE,
     MOVE_COVET, 0
 };
-
+#if !MODERN
 static const u8 sDummyWeirdStatusString[] = {EOS, EOS, EOS, EOS, EOS, EOS, EOS, EOS, 0, 0};
-
+#endif
 static const struct BattleWindowText sTextOnWindowsInfo_Normal[] =
 {
     [B_WIN_MSG] = {
@@ -2056,17 +2056,25 @@ static const u8 sRecordedBattleTextSpeeds[] = {8, 4, 1, 0};
 
 void BufferStringBattle(u16 stringID)
 {
-    s32 i;
+    m32 i;
     const u8 *stringPtr = NULL;
 
     gBattleMsgDataPtr = (struct BattleMsgData *)(&gBattleBufferA[gActiveBattler][4]);
     gLastUsedItem = gBattleMsgDataPtr->lastItem;
     gLastUsedAbility = gBattleMsgDataPtr->lastAbility;
+
     gBattleScripting.battler = gBattleMsgDataPtr->scrActive;
+    #if !MODERN
     *(&gBattleStruct->field_52) = gBattleMsgDataPtr->unk1605E;
     *(&gBattleStruct->hpScale) = gBattleMsgDataPtr->hpScale;
     gPotentialItemEffectBattler = gBattleMsgDataPtr->itemEffectBattler;
     *(&gBattleStruct->stringMoveType) = gBattleMsgDataPtr->moveType;
+    #else
+    gBattleStruct->field_52 = gBattleMsgDataPtr->unk1605E;
+    gBattleStruct->hpScale = gBattleMsgDataPtr->hpScale;
+    gPotentialItemEffectBattler = gBattleMsgDataPtr->itemEffectBattler;
+    gBattleStruct->stringMoveType = gBattleMsgDataPtr->moveType;
+    #endif
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
     {
@@ -2121,8 +2129,10 @@ void BufferStringBattle(u16 stringID)
         {
             if (gBattleTypeFlags & BATTLE_TYPE_LEGENDARY)
                 stringPtr = sText_LegendaryPkmnAppeared;
+            #if !MODERN
             else if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE) // interesting, looks like they had something planned for wild double battles
                 stringPtr = sText_TwoWildPkmnAppeared;
+            #endif
             else if (gBattleTypeFlags & BATTLE_TYPE_WALLY_TUTORIAL)
                 stringPtr = sText_WildPkmnAppearedPause;
             else
@@ -2177,11 +2187,19 @@ void BufferStringBattle(u16 stringID)
     case STRINGID_RETURNMON: // sending poke to ball msg
         if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
         {
+            #if !MODERN
             if (*(&gBattleStruct->hpScale) == 0)
                 stringPtr = sText_PkmnThatsEnough;
             else if (*(&gBattleStruct->hpScale) == 1 || gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
                 stringPtr = sText_PkmnComeBack;
             else if (*(&gBattleStruct->hpScale) == 2)
+            #else
+            if (gBattleStruct->hpScale == 0)
+                stringPtr = sText_PkmnThatsEnough;
+            else if (gBattleStruct->hpScale == 1 || gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
+                stringPtr = sText_PkmnComeBack;
+            else if (gBattleStruct->hpScale == 2)
+            #endif
                 stringPtr = sText_PkmnOkComeBack;
             else
                 stringPtr = sText_PkmnGoodComeBack;
@@ -2204,12 +2222,21 @@ void BufferStringBattle(u16 stringID)
     case STRINGID_SWITCHINMON: // switch-in msg
         if (GetBattlerSide(gBattleScripting.battler) == B_SIDE_PLAYER)
         {
+            #if !MODERN
             if (*(&gBattleStruct->hpScale) == 0 || gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
                 stringPtr = sText_GoPkmn2;
             else if (*(&gBattleStruct->hpScale) == 1)
                 stringPtr = sText_DoItPkmn;
             else if (*(&gBattleStruct->hpScale) == 2)
                 stringPtr = sText_GoForItPkmn;
+            #else
+            if (gBattleStruct->hpScale == 0 || gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
+                stringPtr = sText_GoPkmn2;
+            else if (gBattleStruct->hpScale == 1)
+                stringPtr = sText_DoItPkmn;
+            else if (gBattleStruct->hpScale == 2)
+                stringPtr = sText_GoForItPkmn;
+            #endif
             else
                 stringPtr = sText_YourFoesWeakGetEmPkmn;
         }
@@ -2252,9 +2279,14 @@ void BufferStringBattle(u16 stringID)
         break;
     case STRINGID_USEDMOVE: // pokemon used a move msg
         ChooseMoveUsedParticle(gBattleTextBuff1); // buff1 doesn't appear in the string, leftover from japanese move names
-
+        
+        #if !MODERN
         if (gBattleMsgDataPtr->currentMove >= MOVES_COUNT)
             StringCopy(gBattleTextBuff2, sATypeMove_Table[*(&gBattleStruct->stringMoveType)]);
+        #else
+        if (gBattleMsgDataPtr->currentMove >= MOVES_COUNT)
+            StringCopy(gBattleTextBuff2, sATypeMove_Table[gBattleStruct->stringMoveType]);
+        #endif
         else
             StringCopy(gBattleTextBuff2, gMoveNames[gBattleMsgDataPtr->currentMove]);
 
@@ -2348,34 +2380,50 @@ void BufferStringBattle(u16 stringID)
 
 u32 BattleStringExpandPlaceholdersToDisplayedString(const u8 *src)
 {
-    BattleStringExpandPlaceholders(src, gDisplayedStringBattle);
+    return BattleStringExpandPlaceholders(src, gDisplayedStringBattle);
 }
 
 static const u8 *TryGetStatusString(u8 *src)
 {
     u32 i;
+    #if !MODERN
     u8 status[8];
+    #else
+    u8 status[8] = {EOS, EOS, EOS, EOS, EOS, EOS, EOS, EOS};
+    #endif
     u32 chars1, chars2;
+    u32* statusCondPtr;
     u8 *statusPtr;
 
+    #if !MODERN
     memcpy(status, sDummyWeirdStatusString, 8);
+    #endif
 
     statusPtr = status;
-    for (i = 0; i < 8; i++)
+    #if MODERN
+    for (i = 0; i < ARRAY_COUNT(status); i++)
+    {
+        if (*src == EOS)
+            break; // one line required to match -g
+        *statusPtr++ = *src++;
+    }
+    #else
+    for (i = 0; i < ARRAY_COUNT(status); i++)
     {
         if (*src == EOS) break; // one line required to match -g
         *statusPtr = *src;
         src++;
         statusPtr++;
     }
+    #endif
 
-    chars1 = *(u32 *)(&status[0]);
-    chars2 = *(u32 *)(&status[4]);
+    chars1 = *(u32 *)(status);
+    chars2 = *((u32 *)status + 1);
 
     for (i = 0; i < ARRAY_COUNT(gStatusConditionStringsTable); i++)
     {
-        if (chars1 == *(u32 *)(&gStatusConditionStringsTable[i][0][0])
-            && chars2 == *(u32 *)(&gStatusConditionStringsTable[i][0][4]))
+        statusCondPtr = (u32*)gStatusConditionStringsTable[i][0];
+        if (chars1 == statusCondPtr[0] && chars2 == statusCondPtr[1])
             return gStatusConditionStringsTable[i][1];
     }
     return NULL;
@@ -2390,8 +2438,7 @@ static const u8 *TryGetStatusString(u8 *src)
             toCpy = sText_WildPkmnPrefix;                               \
         while (*toCpy != EOS)                                           \
         {                                                               \
-            dst[dstID] = *toCpy;                                        \
-            dstID++;                                                    \
+            dst[dstID++] = *toCpy;                                      \
             toCpy++;                                                    \
         }                                                               \
         GetMonData(&gEnemyParty[monIndex], MON_DATA_NICKNAME, text);    \
@@ -2407,9 +2454,9 @@ u32 BattleStringExpandPlaceholders(const u8 *src, u8 *dst)
 {
     u32 dstID = 0; // if they used dstID, why not use srcID as well?
     const u8 *toCpy = NULL;
-    u8 text[30];
+    u8 text[32];
     u8 multiplayerId;
-    s32 i;
+    m32 i;
 
     if (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK)
         multiplayerId = gRecordedBattleMultiplayerId;
@@ -2628,7 +2675,7 @@ u32 BattleStringExpandPlaceholders(const u8 *src, u8 *dst)
             case B_TXT_TRAINER1_NAME: // trainer1 name
                 if (gBattleTypeFlags & BATTLE_TYPE_SECRET_BASE)
                 {
-                    for (i = 0; i < (s32) ARRAY_COUNT(gBattleResources->secretBase->trainerName); i++)
+                    for (i = 0; i < (m32) ARRAY_COUNT(gBattleResources->secretBase->trainerName); i++)
                         text[i] = gBattleResources->secretBase->trainerName[i];
                     text[i] = EOS;
                     ConvertInternationalString(text, gBattleResources->secretBase->language);
@@ -2852,7 +2899,7 @@ static void ExpandBattleTextBuffPlaceholders(const u8 *src, u8 *dst)
 {
     u32 srcID = 1;
     u32 value = 0;
-    u8 text[12];
+    u8 text[POKEMON_NAME_LENGTH + 1];
     u16 hword;
 
     *dst = EOS;
@@ -2968,7 +3015,7 @@ static void ExpandBattleTextBuffPlaceholders(const u8 *src, u8 *dst)
 // below to effect changes in the meaning of the line.
 static void ChooseMoveUsedParticle(u8 *textBuff)
 {
-    s32 counter = 0;
+    m32 counter = 0;
     u32 i = 0;
 
     while (counter != MAX_MON_MOVES)
@@ -2979,6 +3026,7 @@ static void ChooseMoveUsedParticle(u8 *textBuff)
             break;
     }
 
+    #if !MODERN
     if (counter >= 0)
     {
         if (counter <= 2)
@@ -2986,6 +3034,9 @@ static void ChooseMoveUsedParticle(u8 *textBuff)
         else if (counter <= MAX_MON_MOVES)
             StringCopy(textBuff, sText_ApostropheS); // 's
     }
+    #else
+    StringCopy(textBuff, (counter < 3) ? sText_SpaceIs: sText_ApostropheS);
+    #endif
 }
 
 // Appends "!" to the text buffer `dst`. In the original Japanese this looked
@@ -3008,8 +3059,8 @@ static void ChooseMoveUsedParticle(u8 *textBuff)
 // "<NAME>'s <ATTACK> attack!".
 static void ChooseTypeOfMoveUsedString(u8 *dst)
 {
-    s32 counter = 0;
-    s32 i = 0;
+    u32 counter = 0;
+    u32 i = 0;
 
     while (*dst != EOS)
         dst++;
@@ -3076,7 +3127,7 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
 
     if (printerTemplate.x == 0xFF)
     {
-        u32 width = GetBattleWindowTemplatePixelWidth(gBattleScripting.windowsType, windowId);
+        s32 width = GetBattleWindowTemplatePixelWidth(gBattleScripting.windowsType, windowId);
         s32 alignX = GetStringCenterAlignXOffsetWithLetterSpacing(printerTemplate.fontId, printerTemplate.currentChar, width, printerTemplate.letterSpacing);
         printerTemplate.x = printerTemplate.currentX = alignX;
     }
@@ -3139,16 +3190,12 @@ u8 GetCurrentPpToMaxPpState(u8 currentPp, u8 maxPp)
     }
     else if (maxPp <= 2)
     {
-        if (currentPp > 1)
-            return 3;
-        else
+        if (currentPp < 2)
             return 2 - currentPp;
     }
     else if (maxPp <= 7)
     {
-        if (currentPp > 2)
-            return 3;
-        else
+        if (currentPp < 3)
             return 2 - currentPp;
     }
     else
@@ -3157,9 +3204,9 @@ u8 GetCurrentPpToMaxPpState(u8 currentPp, u8 maxPp)
             return 2;
         if (currentPp <= maxPp / 4)
             return 1;
-        if (currentPp > maxPp / 2)
-            return 3;
+        if (currentPp <= maxPp / 2)
+            return 0;
     }
 
-    return 0;
+    return 3;
 }

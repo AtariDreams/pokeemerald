@@ -167,6 +167,8 @@ const struct PulseBlendSettings gMirageTowerPulseBlendSettings = {
     .numColors = 15,
     .delay = 5,
     .numFadeCycles = -1,
+    // GF wrote 11, but this is -5
+    //TODO: bug?
     .maxBlendCoeff = 11,
     .fadeType = 1,
     .restorePaletteOnUnload = FALSE,

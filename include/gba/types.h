@@ -3,14 +3,34 @@
 
 #include <stdint.h>
 
-typedef uint8_t   u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t    s8;
-typedef int16_t  s16;
-typedef int32_t  s32;
-typedef int64_t  s64;
+typedef     unsigned char           u8;
+typedef     unsigned short int      u16;
+typedef     unsigned int            u32;
+typedef     unsigned long long int  u64;
+
+typedef     signed char             s8;
+typedef     signed short int        s16;
+typedef     signed int              s32;
+typedef     signed long long int    s64;
+
+typedef     float                   f32;
+typedef     double                  f64;
+
+
+#define     vl                      volatile
+
+typedef     vl u8                   vu8;
+typedef     vl u16                  vu16;
+typedef     vl u32                  vu32;
+typedef     vl u64                  vu64;
+
+typedef     vl s8                   vs8;
+typedef     vl s16                  vs16;
+typedef     vl s32                  vs32;
+typedef     vl s64                  vs64;
+
+typedef     vl f32                  vf32;
+typedef     vl f64                  vf64;
 
 #if !MODERN
 typedef u8 m8;
@@ -23,18 +43,6 @@ typedef u32 m16;
 typedef u32 m32;
 typedef u32 ms16;
 #endif
-
-typedef volatile u8   vu8;
-typedef volatile u16 vu16;
-typedef volatile u32 vu32;
-typedef volatile u64 vu64;
-typedef volatile s8   vs8;
-typedef volatile s16 vs16;
-typedef volatile s32 vs32;
-typedef volatile s64 vs64;
-
-typedef float  f32;
-typedef double f64;
 
 typedef u8  bool8;
 typedef u16 bool16;

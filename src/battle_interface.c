@@ -187,10 +187,12 @@ static s32 CalcNewBarValue(s32, s32, s32, s32 *, u8, u16);
 static u8 GetScaledExpFraction(s32, s32, s32, u8);
 static void MoveBattleBarGraphically(u8, u8);
 static u8 CalcBarFilledPixels(s32, s32, s32, s32 *, u8 *, u8);
+#if !MODERN
 static void Debug_TestHealthBar_Helper(struct TestingBar *, s32 *, u16 *);
 
+
 // const rom data
-#if !MODERN // needed to match
+// needed to match
 const struct CompressedSpriteSheet sSpriteSheet_SinglesPlayerHealthbox =
 {
     gHealthboxSinglesPlayerGfx, 0x1000, TAG_HEALTHBOX_PLAYER1_TILE
@@ -2483,6 +2485,7 @@ static u8 CalcBarFilledPixels(s32 maxValue, s32 oldValue, s32 receivedValue, s32
 
 // Unused
 // These two functions seem as if they were made for testing the health bar.
+#if !MODERN
 static s16 Debug_TestHealthBar(struct TestingBar *barInfo, s32 *currValue, u16 *dest, s32 unused)
 {
     s16 ret, var;
@@ -2517,6 +2520,7 @@ static void Debug_TestHealthBar_Helper(struct TestingBar *barInfo, s32 *currValu
 
     CpuCopy16(src, dest, sizeof(src));
 }
+#endif
 
 static u8 GetScaledExpFraction(s32 oldValue, s32 receivedValue, s32 maxValue, u8 scale)
 {

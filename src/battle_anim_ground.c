@@ -752,11 +752,19 @@ static void SetBattlersXOffsetForShake(struct Task *task)
 #undef tHorizOffset
 #undef tInitHorizOffset
 
+#if !MODERN
 void AnimTask_IsPowerOver99(u8 taskId)
 {
+    //UB: writing out of bounds
     gBattleAnimArgs[15] = gAnimMovePower >= 100;
     DestroyAnimVisualTask(taskId);
 }
+#else
+void AnimTask_IsPowerOver99(u8 taskId)
+{
+    DestroyAnimVisualTask(taskId);
+}
+#endif
 
 void AnimTask_PositionFissureBgOnBattler(u8 taskId)
 {

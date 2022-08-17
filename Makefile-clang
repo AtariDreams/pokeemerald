@@ -7,13 +7,14 @@ endif
 PREFIX := arm-none-eabi-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := $(PREFIX)as
+AS := arm-none-eabi-as
 
-LD := $(PREFIX)ld
+LD := arm-none-eabi-ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := $(PREFIX)gcc
+MODERNCC := clang -mllvm -compute-dead=false --rtlib=libgcc --gcc-toolchain=/Users/Main/devkitPro/devkitARM -no-integrated-as -fno-addrsig -specs=nosys.specs
+CC := clang -mllvm -compute-dead=false --rtlib=libgcc --gcc-toolchain=/Users/Main/devkitPro/devkitARM -no-integrated-as -fno-addrsig -specs=nosys.specs
 
 ifeq ($(OS),Windows_NT)
 EXE := .exe
@@ -45,7 +46,7 @@ ifneq ($(MODERN),1)
     CPP := $(CC) -E
   endif
 else
-  CPP := $(PREFIX)cpp
+  CPP := $(CC) -E
 endif
 
 ROM_NAME := pokeemerald.gba
@@ -91,20 +92,48 @@ OBJ_DIR := $(OBJ_DIR_NAME)
 LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
-CC1              = $(shell $(MODERNCC) --print-prog-name=cc1) -quiet
-override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition #-flto -ffat-lto-objects -fuse-linker-plugin
+CC1              = $(CC) -Xclang -quiet
+override CFLAGS += -no-pthread -mthumb -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fomit-frame-pointer -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -msoft-float -mfpu=none  -m32  #-flto -ffat-lto-objects -fuse-linker-plugin
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
-LIBPATH := -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libc.a))"
-LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libagbsyscall -lagbsyscall
+ARCH_CFLAGS += \
+  -mthumb -mcpu=arm7tdmi \
+  -mfloat-abi=soft \
+
+# [ ... ]
+
+# Default assumes a GNU Arm toolchain is on your path
+# but an explicit path can also be provided by doing
+# ARM_GNU_CC=<PATH_TO_GCC> make
+ARM_CORTEXM_SYSROOT = /usr/local/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/arm-none-eabi
+
+# The directory where Newlib's libc.a & libm.a reside
+# for the specific target architecture
+ARM_CORTEXM_MULTI_DIR = /usr/local/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/arm-none-eabi/lib/thumb/nofp
+
+# Pick up builtins needed for compilation
+ARM_CORTEXM_BUILTINS = "$(dir $(shell arm-none-eabi-gcc -mthumb -print-file-name=libgcc.a))"
+
+COMPILER_SPECIFIC_CFLAGS = \
+  --target=arm-none-eabi \
+  --sysroot=$(ARM_CORTEXM_SYSROOT)
+
+COMPILER_SPECIFIC_LDFLAGS += \
+  -L$(ARM_CORTEXM_MULTI_DIR) \
+  -L$(ARM_CORTEXM_BUILTINS)
+
+CC += --target=arm-none-eabi --sysroot=$(ARM_CORTEXM_SYSROOT)
+
+LIBPATH := $(COMPILER_SPECIFIC_LDFLAGS)
+LIB := $(LIBPATH) -lc -lgcc -lnosys -L../../libagbsyscall -lagbsyscall
 endif
 
-CPPFLAGS := -iquote include -iquote $(GFLIB_SUBDIR) -Wno-trigraphs -DMODERN=$(MODERN)
+CPPFLAGS := -iquote include -iquote $(GFLIB_SUBDIR) -Wno-trigraphs -D MODERN=1
 ifneq ($(MODERN),1)
 CPPFLAGS += -I tools/agbcc/include -I tools/agbcc -nostdinc -undef
 endif
 
-LDFLAGS = -Map ../../$(MAP) -no-pie #-flto --relax --plugin=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/liblto_plugin.so -plugin-opt=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/lto-wrapper -plugin-opt=-fresolution=%u.res
+LDFLAGS = -Map ../../$(MAP) -no-pie $(LIBPATH) --start-group -lc -lgcc -lnosys --end-group #-flto --relax --plugin=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/liblto_plugin.so -plugin-opt=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/lto-wrapper -plugin-opt=-fresolution=%u.res
 
 SHA1 := $(shell { command -v sha1sum || command -v shasum; } 2>/dev/null) -c
 GFX := tools/gbagfx/gbagfx$(EXE)
@@ -278,11 +307,11 @@ $(C_BUILDDIR)/agb_flash_mx.o: CFLAGS := -O -mthumb-interwork
 
 $(C_BUILDDIR)/m4a.o: CC1 := tools/agbcc/bin/old_agbcc$(EXE)
 
-$(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
+$(C_BUILDDIR)/record_mixing.o: CFLAGS += 
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition #-flto -ffat-lto-objects -fuse-linker-plugin
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -fomit-frame-pointer -no-pthread -marm -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -msoft-float -mfpu=none  -m32 #-flto -ffat-lto-objects -fuse-linker-plugin
 endif
 
 ifeq ($(DINFO),1)
@@ -298,22 +327,23 @@ ifeq ($(NODEP),1)
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.c
 ifeq (,$(KEEP_TEMPS))
 	@echo "$(CC1) <flags> -o $@ $<"
-	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) $< charmap.txt -i | $(CC1) $(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $(AS) $(ASFLAGS) -o $@ -
+	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) $< charmap.txt -i | $(CC) -c $(CFLAGS) -o $@ -
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(C_BUILDDIR)/$*.i
-	@$(PREPROC) $(C_BUILDDIR)/$*.i charmap.txt | $(CC1) $(CFLAGS) -o $(C_BUILDDIR)/$*.s
-	@echo -e ".text\n\t.align\t2, 0\n" >> $(C_BUILDDIR)/$*.s
-	$(AS) $(ASFLAGS) -o $@ $(C_BUILDDIR)/$*.s
+	@$(PREPROC) $(C_BUILDDIR)/$*.i charmap.txt -o $(C_BUILDDIR)/$*.c
+	@$(CC) -c $(C_BUILDDIR)/$*.c $(CFLAGS) -o
 endif
 else
 define C_DEP
-$1: $2 $$(shell $(SCANINC) -I include -I tools/agbcc/include -I gflib $2)
+$1: $2 $$(shell $(SCANINC) -I include -I /Users/Main/devkitPro/devkitARM/arm-none-eabi/include -I gflib $2)
 ifeq (,$$(KEEP_TEMPS))
 	@echo "$$(CC1) <flags> -o $$@ $$<"
-	@$$(CPP) $$(CPPFLAGS) $$< | $$(PREPROC) $$< charmap.txt -i | $$(CC1) $$(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $$(AS) $$(ASFLAGS) -o $$@ -
+	@$$(CPP) $$(CPPFLAGS) $$< | $$(PREPROC) $$< charmap.txt -i | $$(CC) -xc -c $$(CFLAGS) -o $$@ -
 else
+	@rm -rf $$(C_BUILDDIR)/$3.c
 	@$$(CPP) $$(CPPFLAGS) $$< -o $$(C_BUILDDIR)/$3.i
-	@$$(PREPROC) $$(C_BUILDDIR)/$3.i charmap.txt | $$(CC1) $$(CFLAGS) -o $$(C_BUILDDIR)/$3.s
+	@$$(PREPROC) $$(C_BUILDDIR)/$3.i charmap.txt >> $$(C_BUILDDIR)/$3.c
+	@$$(CC) -no-integrated-as -S $$(C_BUILDDIR)/$3.c $$(CFLAGS) -o $$(C_BUILDDIR)/$3.s
 	@echo -e ".text\n\t.align\t2, 0\n" >> $$(C_BUILDDIR)/$3.s
 	$$(AS) $$(ASFLAGS) -o $$@ $$(C_BUILDDIR)/$3.s
 endif
@@ -325,7 +355,7 @@ ifeq ($(NODEP),1)
 $(GFLIB_BUILDDIR)/%.o: $(GFLIB_SUBDIR)/%.c $$(c_dep)
 ifeq (,$(KEEP_TEMPS))
 	@echo "$(CC1) <flags> -o $@ $<"
-	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) $< charmap.txt -i | $(CC1) $(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $(AS) $(ASFLAGS) -o $@ -
+	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) $< charmap.txt -i | $(CC) -xc -c - $(CFLAGS) -o $@
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(GFLIB_BUILDDIR)/$*.i
 	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt | $(CC1) $(CFLAGS) -o $(GFLIB_BUILDDIR)/$*.s
@@ -337,10 +367,12 @@ define GFLIB_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I tools/agbcc/include -I gflib $2)
 ifeq (,$$(KEEP_TEMPS))
 	@echo "$$(CC1) <flags> -o $$@ $$<"
-	@$$(CPP) $$(CPPFLAGS) $$< | $$(PREPROC) $$< charmap.txt -i | $$(CC1) $$(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $$(AS) $$(ASFLAGS) -o $$@ -
+	@$$(CPP) $$(CPPFLAGS) $$< | $$(PREPROC) $$< charmap.txt -i | $$(CC) -xc -c $$(CFLAGS) -o $$@ -
 else
+	@rm -rf $$(GFLIB_BUILDDIR)/$3.c
 	@$$(CPP) $$(CPPFLAGS) $$< -o $$(GFLIB_BUILDDIR)/$3.i
-	@$$(PREPROC) $$(GFLIB_BUILDDIR)/$3.i charmap.txt | $$(CC1) $$(CFLAGS) -o $$(GFLIB_BUILDDIR)/$3.s
+	@$$(PREPROC) $$(GFLIB_BUILDDIR)/$3.i charmap.txt >> $$(GFLIB_BUILDDIR)/$3.c
+	@$$(CC) -S $$(GFLIB_BUILDDIR)/$3.c $$(CFLAGS) -o $$(GFLIB_BUILDDIR)/$3.s
 	@echo -e ".text\n\t.align\t2, 0\n" >> $$(GFLIB_BUILDDIR)/$3.s
 	$$(AS) $$(ASFLAGS) -o $$@ $$(GFLIB_BUILDDIR)/$3.s
 endif
@@ -348,9 +380,11 @@ endef
 $(foreach src, $(GFLIB_SRCS), $(eval $(call GFLIB_DEP,$(patsubst $(GFLIB_SUBDIR)/%.c,$(GFLIB_BUILDDIR)/%.o, $(src)),$(src),$(patsubst $(GFLIB_SUBDIR)/%.c,%, $(src)))))
 endif
 
+AS2 = arm-none-eabi-as
+ASFLAGS2 = -march=armv4t --defsym MODERN=$(MODERN)
 ifeq ($(NODEP),1)
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.s
-	$(PREPROC) $< charmap.txt | $(CPP) -I include - | $(AS) $(ASFLAGS) -o $@
+	$(PREPROC) $< charmap.txt | $(CPP) -I include - | $(AS) $(ASFLAGS) -o $@ -
 else
 define SRC_ASM_DATA_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
