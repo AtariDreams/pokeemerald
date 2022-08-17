@@ -1044,29 +1044,32 @@ static void QuantizePalette_Standard(bool8 useLimitedPalette)
 static void QuantizePalette_BlackAndWhite(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
             if (IS_ALPHA(*pixel))
             {
                 *pixel = gCanvasPaletteStart;
+                continue;
+            }
+
+            if (QuantizePixel_BlackAndWhite(pixel) == RGB_BLACK)
+            {
+                // Black is the first color in the quantized palette.
+                *pixel = gCanvasPaletteStart + 1;
             }
             else
             {
-                if (QuantizePixel_BlackAndWhite(pixel) == RGB_BLACK)
-                {
-                    // Black is the first color in the quantized palette.
-                    *pixel = gCanvasPaletteStart + 1;
-                }
-                else
-                {
-                    // White is the second color in the quantized palette.
-                    *pixel = gCanvasPaletteStart + 2;
-                }
+                // White is the second color in the quantized palette.
+                *pixel = gCanvasPaletteStart + 2;
             }
         }
     }
@@ -1075,17 +1078,23 @@ static void QuantizePalette_BlackAndWhite(void)
 static void QuantizePalette_GrayscaleSmall(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+#if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+#else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+#endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
             if (IS_ALPHA(*pixel))
+            {
                 *pixel = gCanvasPaletteStart;
-            else
-                *pixel = QuantizePixel_GrayscaleSmall(pixel) + gCanvasPaletteStart;
+                continue;
+            }
+            *pixel = QuantizePixel_GrayscaleSmall(pixel) + gCanvasPaletteStart;
         }
     }
 }
@@ -1093,17 +1102,23 @@ static void QuantizePalette_GrayscaleSmall(void)
 static void QuantizePalette_Grayscale(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+#if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+#else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+#endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
             if (IS_ALPHA(*pixel))
+            {
                 *pixel = gCanvasPaletteStart;
-            else
-                *pixel = QuantizePixel_Grayscale(pixel) + gCanvasPaletteStart;
+                continue;
+            }
+            *pixel = QuantizePixel_Grayscale(pixel) + gCanvasPaletteStart;
         }
     }
 }
@@ -1111,17 +1126,23 @@ static void QuantizePalette_Grayscale(void)
 static void QuantizePalette_PrimaryColors(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+#if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+#else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+#endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
             if (IS_ALPHA(*pixel))
+            {
                 *pixel = gCanvasPaletteStart;
-            else
-                *pixel = QuantizePixel_PrimaryColors(pixel) + gCanvasPaletteStart;
+                continue;
+            }
+            *pixel = QuantizePixel_PrimaryColors(pixel) + gCanvasPaletteStart;
         }
     }
 }
