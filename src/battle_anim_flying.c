@@ -363,9 +363,8 @@ static void AnimEllipticalGust_Step(struct Sprite *sprite)
 {
     sprite->x2 = Sin(sprite->data[1], 32);
     sprite->y2 = Cos(sprite->data[1], 8);
-    sprite->data[1] += 5;
-    sprite->data[1] &= 0xFF;
-    if (++sprite->data[0] == 71)
+    sprite->data[1] = (sprite->data[1] + 5) & 0xFF;
+    if (sprite->data[0]++ == 70)
         DestroyAnimSprite(sprite);
 }
 
@@ -392,11 +391,10 @@ static void AnimTask_AnimateGustTornadoPalette_Step(u8 taskId)
         i = 7;
         base = data2 * 16;
 
-        do
+        for(i = 7; i > 0; i--)
         {
             gPlttBufferFaded[base + 0x101 + i] = gPlttBufferFaded[base + 0x100 + i];
-            i--;
-        } while (i > 0);
+        }
 
         gPlttBufferFaded[base + 0x101] = temp;
     }
