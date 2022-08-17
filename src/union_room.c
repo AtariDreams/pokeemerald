@@ -230,7 +230,8 @@ static bool8 PrintOnTextbox(u8 *, const u8 *);
 static bool8 Leader_SetStateIfMemberListChanged(struct WirelessLink_Leader *, u32, u32);
 static u8 LeaderPrunePlayerList(struct RfuPlayerList *);
 static s8 UnionRoomHandleYesNo(u8 *, bool32);
-static void CopyAndTranslatePlayerName(u8 *, struct RfuPlayer *);
+// TODO: make it const
+static void CopyAndTranslatePlayerName(u8 *, struct RfuPlayerData *);
 static void Leader_DestroyResources(struct WirelessLink_Leader *);
 static void CreateTask_RunScriptAndFadeToActivity(void);
 static u8 LeaderUpdateGroupMembership(struct RfuPlayerList *);
@@ -268,7 +269,7 @@ static bool32 HasAtLeastTwoMonsOfLevel30OrLower(void);
 static u32 GetResponseIdx_InviteToURoomActivity(s32);
 static void ViewURoomPartnerTrainerCard(u8 *, struct WirelessLink_URoom *, bool8);
 static void GetURoomActivityRejectMsg(u8 *, s32, u32);
-static u32 ConvPartnerUnameAndGetWhetherMetAlready(struct RfuPlayer *);
+static u32 ConvPartnerUnameAndGetWhetherMetAlready(struct RfuPlayerData *);
 static void GetURoomActivityStartMsg(u8 *, u8);
 static void UR_ClearBg0(void);
 static s32 IsRequestedTypeOrEggInPlayerParty(u32, u32);
@@ -572,7 +573,7 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
                     }
                     else
                     {
-                        CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->playerCount - 1]);
+                        CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->playerCount - 1].rfu);
                         StringExpandPlaceholders(gStringVar4, sText_AnOKWasSentToPlayer);
                         data->state = LL_STATE_ACCEPTED_FINAL_MEMBER;
                     }
@@ -844,7 +845,7 @@ static bool8 Leader_SetStateIfMemberListChanged(struct WirelessLink_Leader *data
     case UNION_ROOM_SPAWN_IN:
         PlaySE(SE_PC_LOGIN);
         RedrawListMenu(data->listTaskId);
-        CopyAndTranslatePlayerName(gStringVar2, &data->playerList->players[data->playerCount]);
+        CopyAndTranslatePlayerName(gStringVar2, &data->playerList->players[data->playerCount].rfu);
         Leader_GetAcceptNewMemberPrompt(gStringVar4, gPlayerCurrActivity);
         data->state = joinedState;
         break;
@@ -1076,7 +1077,7 @@ static void Task_TryJoinLinkGroup(u8 taskId)
         GetYouAskedToJoinGroupPleaseWaitMessage(gStringVar4, gPlayerCurrActivity);
         if (PrintOnTextbox(&data->textState, gStringVar4))
         {
-            CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
+            CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId].rfu);
             data->state = LG_STATE_MAIN;
         }
         break;
@@ -1282,7 +1283,7 @@ static void AskToJoinRfuGroup(struct WirelessLink_Group *data, u32 id)
     LoadWirelessStatusIndicatorSpriteGfx();
     CreateWirelessStatusIndicatorSprite(0, 0);
     RedrawListMenu(data->listTaskId);
-    CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
+    CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId].rfu);
     UpdateGameData_SetActivity(sLinkGroupToURoomActivity[gSpecialVar_0x8004], 0, TRUE);
     CreateTask_RfuReconnectWithParent(data->playerList->players[data->leaderId].rfu.name, ReadAsU16(data->playerList->players[data->leaderId].rfu.data.compatibility.playerTrainerId));
 }
@@ -1972,7 +1973,7 @@ static void Task_SendMysteryGift(u8 taskId)
                 data->playerList->players[data->playerCount].newPlayerCountdown = 0;
                 RedrawListMenu(data->listTaskId);
                 data->playerCount++;
-                CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->playerCount - 1]);
+                CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->playerCount - 1].rfu);
                 StringExpandPlaceholders(gStringVar4, sText_AnOKWasSentToPlayer);
                 data->state = 9;
                 LinkRfu_StopManagerAndFinalizeSlots();
@@ -2154,7 +2155,7 @@ static void Task_CardOrNewsWithFriend(u8 taskId)
                 LoadWirelessStatusIndicatorSpriteGfx();
                 CreateWirelessStatusIndicatorSprite(0, 0);
                 RedrawListMenu(data->listTaskId);
-                CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
+                CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId].rfu);
                 CreateTask_RfuReconnectWithParent(data->playerList->players[data->leaderId].rfu.name, ReadAsU16(data->playerList->players[data->leaderId].rfu.data.compatibility.playerTrainerId));
                 PlaySE(SE_POKENAV_ON);
                 data->state = 4;
@@ -2171,7 +2172,7 @@ static void Task_CardOrNewsWithFriend(u8 taskId)
         break;
     case 4:
         AddTextPrinterToWindow1(sText_AwaitingPlayersResponse);
-        CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
+        CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId].rfu);
         data->state = 5;
         break;
     case 5:
@@ -2340,7 +2341,7 @@ static void Task_CardOrNewsOverWireless(u8 taskId)
 
     case 4:
         AddTextPrinterToWindow1(sText_AwaitingResponseFromWirelessSystem);
-        CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
+        CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId].rfu);
         data->state = 5;
         break;
     case 5:
@@ -2707,7 +2708,7 @@ static void Task_RunUnionRoom(u8 taskId)
         }
         break;
     case UR_STATE_DO_SOMETHING_PROMPT:
-        id = ConvPartnerUnameAndGetWhetherMetAlready(&uroom->playerList->players[taskData[1]]);
+        id = ConvPartnerUnameAndGetWhetherMetAlready(&uroom->playerList->players[taskData[1]].rfu);
         playerGender = GetUnionRoomPlayerGender(taskData[1], uroom->playerList);
         ScheduleFieldMessageWithFollowupState(UR_STATE_HANDLE_DO_SOMETHING_PROMPT_INPUT, sHiDoSomethingTexts[id][playerGender]);
         break;
@@ -2783,32 +2784,30 @@ static void Task_RunUnionRoom(u8 taskId)
             uroom->state = UR_STATE_TRAINER_APPEARS_BUSY;
             return;
         }
-        else
+
+        PollPartnerYesNoResponse(uroom);
+        if (uroom->partnerYesNoResponse == (ACTIVITY_ACCEPT | IN_UNION_ROOM))
         {
-            PollPartnerYesNoResponse(uroom);
-            if (uroom->partnerYesNoResponse == (ACTIVITY_ACCEPT | IN_UNION_ROOM))
+            if (gPlayerCurrActivity == ACTIVITY_CARD)
             {
-                if (gPlayerCurrActivity == ACTIVITY_CARD)
-                {
-                    ViewURoomPartnerTrainerCard(gStringVar4, uroom, FALSE);
-                    uroom->state = UR_STATE_PRINT_CARD_INFO;
-                }
-                else
-                {
-                    uroom->state = UR_STATE_PRINT_START_ACTIVITY_MSG;
-                }
+                ViewURoomPartnerTrainerCard(gStringVar4, uroom, FALSE);
+                uroom->state = UR_STATE_PRINT_CARD_INFO;
             }
-            else if (uroom->partnerYesNoResponse == (ACTIVITY_DECLINE | IN_UNION_ROOM))
+            else
             {
-                uroom->state = UR_STATE_REQUEST_DECLINED;
-                GetURoomActivityRejectMsg(gStringVar4, gPlayerCurrActivity | IN_UNION_ROOM, gLinkPlayers[0].gender);
-                gPlayerCurrActivity = ACTIVITY_NONE;
+                uroom->state = UR_STATE_PRINT_START_ACTIVITY_MSG;
             }
+        }
+        else if (uroom->partnerYesNoResponse == (ACTIVITY_DECLINE | IN_UNION_ROOM))
+        {
+            uroom->state = UR_STATE_REQUEST_DECLINED;
+            GetURoomActivityRejectMsg(gStringVar4, gPlayerCurrActivity | IN_UNION_ROOM, gLinkPlayers[0].gender);
+            gPlayerCurrActivity = ACTIVITY_NONE;
         }
         break;
 
     case UR_STATE_DO_SOMETHING_PROMPT_2: // Identical to UR_STATE_DO_SOMETHING_PROMPT
-        id = ConvPartnerUnameAndGetWhetherMetAlready(&uroom->playerList->players[taskData[1]]);
+        id = ConvPartnerUnameAndGetWhetherMetAlready(&uroom->playerList->players[taskData[1]].rfu);
         playerGender = GetUnionRoomPlayerGender(taskData[1], uroom->playerList);
         ScheduleFieldMessageWithFollowupState(UR_STATE_HANDLE_DO_SOMETHING_PROMPT_INPUT, sHiDoSomethingTexts[id][playerGender]);
         break;
@@ -3186,17 +3185,17 @@ static void Task_RunUnionRoom(u8 taskId)
                 switch (IsRequestedTypeOrEggInPlayerParty(uroom->playerList->players[input].rfu.data.tradeType, uroom->playerList->players[input].rfu.data.tradeSpecies))
                 {
                 case UR_TRADE_MATCH:
-                    CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[input]);
+                    CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[input].rfu);
                     ScheduleFieldMessageWithFollowupState(UR_STATE_TRADE_PROMPT, sText_AskTrainerToMakeTrade);
                     taskData[1] = input;
                     break;
                 case UR_TRADE_NOTYPE:
-                    CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[input]);
+                    CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[input].rfu);
                     StringCopy(gStringVar2, gTypeNames[uroom->playerList->players[input].rfu.data.tradeType]);
                     ScheduleFieldMessageWithFollowupState(UR_STATE_TRADING_BOARD_LOAD, sText_DontHaveTypeTrainerWants);
                     break;
                 case UR_TRADE_NOEGG:
-                    CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[input]);
+                    CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[input].rfu);
                     StringCopy(gStringVar2, gTypeNames[uroom->playerList->players[input].rfu.data.tradeType]);
                     ScheduleFieldMessageWithFollowupState(UR_STATE_TRADING_BOARD_LOAD, sText_DontHaveEggTrainerWants);
                     break;
@@ -3234,7 +3233,7 @@ static void Task_RunUnionRoom(u8 taskId)
     case UR_STATE_TRADE_OFFER_MON:
         gPlayerCurrActivity = ACTIVITY_TRADE | IN_UNION_ROOM;
         TryConnectToUnionRoomParent(uroom->playerList->players[taskData[1]].rfu.name, &uroom->playerList->players[taskData[1]].rfu.data, gPlayerCurrActivity);
-        CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[taskData[1]]);
+        CopyAndTranslatePlayerName(gStringVar1, &uroom->playerList->players[taskData[1]].rfu);
         UR_PrintFieldMessage(sCommunicatingWaitTexts[2]);
         uroom->state = UR_STATE_TRY_COMMUNICATING;
         break;
@@ -3356,7 +3355,7 @@ static void Task_InitUnionRoom(u8 taskId)
                 {
                     if (data->playerList->players[i].groupScheduledAnim == UNION_ROOM_SPAWN_IN)
                     {
-                        CopyAndTranslatePlayerName(text, &data->playerList->players[i]);
+                        CopyAndTranslatePlayerName(text, &data->playerList->players[i].rfu);
                         if (PlayerHasMetTrainerBefore(ReadAsU16(data->playerList->players[i].rfu.data.compatibility.playerTrainerId), text))
                         {
                             StringCopy(sUnionRoomPlayerName, text);
@@ -3982,7 +3981,7 @@ static void PrintGroupMemberOnWindow(u8 windowId, u8 x, u8 y, struct RfuPlayer *
     activity = player->rfu.data.activity;
     if (player->groupScheduledAnim == UNION_ROOM_SPAWN_IN && !(activity & IN_UNION_ROOM))
     {
-        CopyAndTranslatePlayerName(gStringVar4, player);
+        CopyAndTranslatePlayerName(gStringVar4, &player->rfu);
         PrintUnionRoomText(windowId, FONT_NORMAL, gStringVar4, x, y, colorIdx);
         ConvertIntToDecimalStringN(trainerId, player->rfu.data.compatibility.playerTrainerId[0] | (player->rfu.data.compatibility.playerTrainerId[1] << 8), STR_CONV_MODE_LEADING_ZEROS, 5);
         StringCopy(gStringVar4, sText_ID);
@@ -3997,7 +3996,7 @@ static void PrintGroupCandidateOnWindow(u8 windowId, u8 x, u8 y, struct RfuPlaye
 
     if (player->groupScheduledAnim == UNION_ROOM_SPAWN_IN)
     {
-        CopyAndTranslatePlayerName(gStringVar4, player);
+        CopyAndTranslatePlayerName(gStringVar4, &player->rfu);
         PrintUnionRoomText(windowId, FONT_NORMAL, gStringVar4, x, y, colorIdx);
         ConvertIntToDecimalStringN(trainerId, player->rfu.data.compatibility.playerTrainerId[0] | (player->rfu.data.compatibility.playerTrainerId[1] << 8), STR_CONV_MODE_LEADING_ZEROS, 5);
         StringCopy(gStringVar4, sText_ID);
@@ -4039,11 +4038,11 @@ static u32 GetResponseIdx_InviteToURoomActivity(s32 activity)
     }
 }
 
-static u32 ConvPartnerUnameAndGetWhetherMetAlready(struct RfuPlayer *player)
+static u32 ConvPartnerUnameAndGetWhetherMetAlready(struct RfuPlayerData *player)
 {
     u8 name[30];
     CopyAndTranslatePlayerName(name, player);
-    return PlayerHasMetTrainerBefore(ReadAsU16(player->rfu.data.compatibility.playerTrainerId), name);
+    return PlayerHasMetTrainerBefore(ReadAsU16(player->data.compatibility.playerTrainerId), name);
 }
 
 static s32 UnionRoomGetPlayerInteractionResponse(struct RfuPlayerList *list, bool8 overrideGender, u8 playerIdx, u32 playerGender)
@@ -4054,7 +4053,7 @@ static s32 UnionRoomGetPlayerInteractionResponse(struct RfuPlayerList *list, boo
 
     if (!player->rfu.data.startedActivity && !overrideGender)
     {
-        CopyAndTranslatePlayerName(gStringVar1, player);
+        CopyAndTranslatePlayerName(gStringVar1, &player->rfu);
         metBefore = PlayerHasMetTrainerBefore(ReadAsU16(player->rfu.data.compatibility.playerTrainerId), gStringVar1);
         if (player->rfu.data.activity == (ACTIVITY_CHAT | IN_UNION_ROOM))
         {
@@ -4069,7 +4068,7 @@ static s32 UnionRoomGetPlayerInteractionResponse(struct RfuPlayerList *list, boo
     }
     else
     {
-        CopyAndTranslatePlayerName(gStringVar1, player);
+        CopyAndTranslatePlayerName(gStringVar1, &player->rfu);
         if (overrideGender)
         {
             playerGender = (player->rfu.data.compatibility.playerTrainerId[overrideGender + 1] >> 3) & 1;
@@ -4144,7 +4143,7 @@ static void TradeBoardListMenuItemPrintFunc(u8 windowId, u32 itemId, u8 y)
 
             if (j == itemId + 1)
             {
-                CopyAndTranslatePlayerName(playerName, &leader->playerList->players[i]);
+                CopyAndTranslatePlayerName(playerName, &leader->playerList->players[i].rfu);
                 TradeBoardPrintItemInfo(windowId, y, &leader->playerList->players[i].rfu.data, playerName, UR_COLOR_TRADE_BOARD_OTHER);
                 break;
             }
@@ -4506,8 +4505,8 @@ static void ViewURoomPartnerTrainerCard(u8 *unused, struct WirelessLink_URoom *d
     }
 }
 
-static void CopyAndTranslatePlayerName(u8 *dest, struct RfuPlayer *player)
+static void CopyAndTranslatePlayerName(u8 *dest, struct RfuPlayerData *player)
 {
-    StringCopy_PlayerName(dest, player->rfu.name);
-    ConvertInternationalString(dest, player->rfu.data.compatibility.language);
+    StringCopy_PlayerName(dest, player->name);
+    ConvertInternationalString(dest, player->data.compatibility.language);
 }
