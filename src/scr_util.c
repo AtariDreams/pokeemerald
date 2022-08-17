@@ -4298,7 +4298,7 @@ u8 TryGainNewFanFromCounter(u8 incrementId)
 
     if (VarGet(VAR_LILYCOVE_FAN_CLUB_STATE) == 2)
     {
-        if (GET_TRAINER_FAN_CLUB_COUNTER + sCounterIncrements[incrementId] > 19)
+        if (GET_TRAINER_FAN_CLUB_COUNTER + sCounterIncrements[incrementId] >= 20)
         {
             if (GetNumFansOfPlayerInTrainerFanClub() < 3)
             {
@@ -4432,7 +4432,7 @@ void TryLoseFansFromPlayTime(void)
             }
             else if (gSaveBlock2Ptr->playTimeHours - gSaveBlock1Ptr->vars[VAR_FANCLUB_LOSE_FAN_TIMER - VARS_START] < 12)
             {
-                return;
+                break;
             }
             PlayerLoseRandomTrainerFan();
             gSaveBlock1Ptr->vars[VAR_FANCLUB_LOSE_FAN_TIMER - VARS_START] += 12;
@@ -4552,5 +4552,5 @@ void SetPlayerGotFirstFans(void)
 // return value is always ignored
 u8 Script_TryGainNewFanFromCounter(void)
 {
-    return TryGainNewFanFromCounter(gSpecialVar_0x8004);
+    return TryGainNewFanFromCounter((u8)gSpecialVar_0x8004);
 }
