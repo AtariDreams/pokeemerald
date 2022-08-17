@@ -462,7 +462,7 @@ void m4aSoundMode(u32 mode)
 void SoundClear(void)
 {
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
-    s32 i;
+    m32 i;
     struct SoundChannel *chan;
     //struct CgbChannel *chan2;
 
@@ -590,7 +590,7 @@ void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
 
 void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader)
 {
-    s32 i;
+    m32 i;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->ident != ID_NUMBER)
@@ -608,8 +608,14 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
         mplayInfo->tone = songHeader->tone;
         mplayInfo->priority = songHeader->priority;
         mplayInfo->clock = 0;
+        #if !MODERN
         mplayInfo->tempoD = 150;
         mplayInfo->tempoI = 150;
+        #else
+        mplayInfo->tempoI = 150;
+        mplayInfo->tempoD = 150;
+        #endif
+
         mplayInfo->tempoU = 0x100;
         mplayInfo->tempoC = 0;
         mplayInfo->fadeOI = 0;
@@ -637,7 +643,7 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
 
 void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
 {
-    s32 i;
+    m32 i;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->ident != ID_NUMBER)
@@ -656,7 +662,7 @@ void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
 
 void FadeOutBody(struct MusicPlayerInfo *mplayInfo)
 {
-    s32 i;
+    m32 i;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->fadeOI == 0)
@@ -878,7 +884,7 @@ void CgbSound(void)
     s32 envelopeStepTimeAndDir;
 
     // Most comparision operations that cast to s8 perform 'and' by 0xFF.
-    int mask = 0xff;
+    u8 mask = 0xff;
 
     if (soundInfo->c15)
         soundInfo->c15--;
@@ -1057,7 +1063,7 @@ void CgbSound(void)
                 }
                 else if ((channels->statusFlags & SOUND_CHANNEL_SF_ENV) == SOUND_CHANNEL_SF_ENV_DECAY)
                 {
-                    int envelopeVolume, sustainGoal;
+                    s8 envelopeVolume, sustainGoal;
 
                     channels->envelopeVolume--;
                     envelopeVolume = (s8)(channels->envelopeVolume & mask);
@@ -1487,11 +1493,12 @@ void ply_xwave(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
 {
     u32 wav;
 
-#ifdef UBFIX
-    wav = 0;
-#endif
+#ifndef UBFIX
 
     READ_XCMD_BYTE(wav, 0) // UB: uninitialized variable
+#else
+    wav = track->cmdPtr[0];
+#endif
     READ_XCMD_BYTE(wav, 1)
     READ_XCMD_BYTE(wav, 2)
     READ_XCMD_BYTE(wav, 3)
