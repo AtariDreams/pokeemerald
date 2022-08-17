@@ -1561,7 +1561,11 @@ static void SpriteCB_PlayerIcon(struct Sprite *sprite)
         if (++sprite->sTimer > 16)
         {
             sprite->sTimer = 0;
+            #if MODERN
+            sprite->invisible ^= 1;
+            #else
             sprite->invisible = !sprite->invisible;
+            #endif
         }
     }
     else
@@ -1936,7 +1940,11 @@ static void SpriteCB_FlyDestIcon(struct Sprite *sprite)
         if (++sprite->sFlickerTimer > 16)
         {
             sprite->sFlickerTimer = 0;
+#if MODERN
+            sprite->invisible ^= 1;
+#else
             sprite->invisible = !sprite->invisible;
+#endif
         }
     }
     else

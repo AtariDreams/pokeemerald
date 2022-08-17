@@ -6011,7 +6011,11 @@ static void AnimFalseSwipeSlice_Step3(struct Sprite *sprite)
     if (++sprite->data[0] > 1)
     {
         sprite->data[0] = 0;
+        # if !MODERN
         sprite->invisible = !sprite->invisible;
+        #else
+        sprite->invisible ^=1;
+        #endif
         if (++sprite->data[1] > 8)
             DestroyAnimSprite(sprite);
     }
@@ -6065,13 +6069,25 @@ static void AnimSharpenSphere_Step(struct Sprite *sprite)
 {
     if (++sprite->data[0] >= sprite->data[1])
     {
+        #if !MODERN
         sprite->invisible = !sprite->invisible;
         if (!sprite->invisible)
         {
+        #else
+        if (sprite->invisible)
+        {
+            sprite->invisible = FALSE;
+        #endif
             sprite->data[4]++;
             if (!(sprite->data[4] & 1))
                 PlaySE12WithPanning(SE_M_SWAGGER2, sprite->data[5]);
         }
+        #if MODERN
+        else
+        {
+            sprite->invisible = TRUE;
+        }
+        #endif
 
         sprite->data[0] = 0;
         if (++sprite->data[2] > 1)
@@ -8103,7 +8119,11 @@ static void AnimPencil_Step(struct Sprite *sprite)
         if (++sprite->data[2] > 1)
         {
             sprite->data[2] = 0;
+            #if !MODERN
             sprite->invisible = !sprite->invisible;
+            #else
+            sprite->invisible ^= 1;
+            #endif
         }
         if (++sprite->data[1] > 16)
         {
@@ -8143,7 +8163,11 @@ static void AnimPencil_Step(struct Sprite *sprite)
         if (++sprite->data[2] > 1)
         {
             sprite->data[2] = 0;
+            #if MODERN
+            sprite->invisible ^= 1;
+            #else
             sprite->invisible = !sprite->invisible;
+            #endif
         }
         if (++sprite->data[1] > 16)
         {
