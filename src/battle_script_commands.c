@@ -3293,13 +3293,13 @@ static void Cmd_getexp(void)
 #if !MODERN
                     gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
 #else
-                    gBattleMoveDamage = (gBattleMoveDamage * 3) / 2;
+                    gBattleMoveDamage += gBattleMoveDamage/2;
 #endif
                 if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
 #if !MODERN
                     gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
 #else
-                    gBattleMoveDamage = (gBattleMoveDamage * 3) / 2;
+                    gBattleMoveDamage += gBattleMoveDamage/2;
 #endif
 
                 if (IsTradedMon(&gPlayerParty[gBattleStruct->expGetterMonId]))
@@ -3314,7 +3314,7 @@ static void Cmd_getexp(void)
 #if !MODERN
                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
 #else
-                        gBattleMoveDamage = (gBattleMoveDamage * 3) / 2;
+                        gBattleMoveDamage += gBattleMoveDamage/2;
 #endif
                         i = STRINGID_ABOOSTED;
                     }
@@ -9919,10 +9919,10 @@ static void Cmd_handleballthrow(void)
     if (gBattleControllerExecFlags)
         return;
 
-#if !MODERN
     gActiveBattler = gBattlerAttacker;
     gBattlerTarget = gBattlerAttacker ^ BIT_SIDE;
 
+#if !MODERN
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
         BtlController_EmitBallThrowAnim(BUFFER_A, BALL_TRAINER_BLOCK);
@@ -9939,14 +9939,14 @@ static void Cmd_handleballthrow(void)
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
         BtlController_EmitBallThrowAnim(BUFFER_A, BALL_TRAINER_BLOCK);
-        MarkBattlerForControllerExec(gBattlerAttacker);
+        MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr = BattleScript_TrainerBallBlock;
         return;
     }
     if (UNLIKELY(gBattleTypeFlags & BATTLE_TYPE_WALLY_TUTORIAL))
     {
         BtlController_EmitBallThrowAnim(BUFFER_A, BALL_3_SHAKES_SUCCESS);
-        MarkBattlerForControllerExec(gBattlerAttacker);
+        MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr = BattleScript_WallyBallThrow;
         return;
     }
@@ -10090,8 +10090,6 @@ static void Cmd_handleballthrow(void)
             }
         }
 #else
-        gActiveBattler = gBattlerAttacker;
-        gBattlerTarget = gBattlerAttacker ^ BIT_SIDE;
         // TODO: REMOVE THIS CHEAT
         // if (gLastUsedItem == ITEM_POKE_BALL)
         //   goto catch;
@@ -10167,7 +10165,7 @@ static void Cmd_handleballthrow(void)
         if (gBattleMons[gBattlerTarget].status1 & (STATUS1_SLEEP | STATUS1_FREEZE))
             odds *= 2;
         else if (gBattleMons[gBattlerTarget].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
-            odds = (odds * 3) / 2;
+            odds += odds / 2;
 
         if (gLastUsedItem != ITEM_SAFARI_BALL)
         {
