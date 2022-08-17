@@ -4461,9 +4461,6 @@ static void AnimItemSteal_Step3(struct Sprite *sprite)
 // arg 1: initial wave offset
 static void AnimTrickBag(struct Sprite *sprite)
 {
-    int a;
-    int b;
-
     if (!sprite->data[0])
     {
         if (!IsContest())
@@ -4473,13 +4470,7 @@ static void AnimTrickBag(struct Sprite *sprite)
         }
         else
         {
-            a = gBattleAnimArgs[1] - 32;
-            if (a < 0)
-                b = gBattleAnimArgs[1] + 0xDF;
-            else
-                b = a;
-
-            sprite->data[1] = a - ((b >> 8) << 8);
+            sprite->data[1] = (gBattleAnimArgs[1] - 32) % 256;
             sprite->x = 70;
         }
 
