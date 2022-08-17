@@ -1480,7 +1480,9 @@ static void CB2_StartBlenderLink(void)
         break;
     }
 
+        #if !MODERN
     Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    #endif
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -1790,7 +1792,9 @@ static void CB2_StartBlenderLocal(void)
         break;
     }
 
+        #if !MODERN
     Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    #endif
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2233,8 +2237,9 @@ static void CB2_PlayBlender(void)
         sBerryBlender->gameEndState = 1;
         SetMainCallback2(CB2_EndBlenderGame);
     }
-
+    #if !MODERN
     Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    #endif
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2242,10 +2247,11 @@ static void CB2_PlayBlender(void)
     UpdatePaletteFade();
 }
 
-static void Blender_DummiedOutFunc(s16 bgX, s16 bgY)
+#if !MODERN
+static PURE void Blender_DummiedOutFunc(s16 bgX, s16 bgY)
 {
-
 }
+#endif
 
 static bool8 AreBlenderBerriesSame(struct BlenderBerry* berries, u8 a, u8 b)
 {
@@ -2782,7 +2788,9 @@ static void CB2_EndBlenderGame(void)
     RestoreBgCoords();
     UpdateRPM(sBerryBlender->speed);
     ProcessLinkPlayerCmds();
+        #if !MODERN
     Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    #endif
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2956,7 +2964,9 @@ static void CB2_CheckPlayAgainLink(void)
     }
 
     ProcessLinkPlayerCmds();
+        #if !MODERN
     Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    #endif
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -3011,7 +3021,9 @@ static void CB2_CheckPlayAgainLocal(void)
     }
 
     ProcessLinkPlayerCmds();
+        #if !MODERN
     Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    #endif
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
