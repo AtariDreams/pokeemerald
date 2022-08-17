@@ -1186,6 +1186,7 @@ static void MainCB(void)
 
 static void MainTask(u8 taskId)
 {
+    // unused return value. Why even have it point to a function with one?
     if (sGame->cmdCallback)
         sGame->cmdCallback(sGame, sGame->commandArgs);
 
@@ -1433,7 +1434,7 @@ static void CreateBerrySprites(struct BerryCrushGame *game, struct BerryCrushGam
         gfx->berrySprites[i] = &gSprites[spriteId];
         gfx->berrySprites[i]->oam.priority = 3;
         gfx->berrySprites[i]->affineAnimPaused = TRUE;
-        gfx->berrySprites[i]->x = gfx->playerCoords[i]->berryXOffset + 120;
+        gfx->berrySprites[i]->x = 120 + gfx->playerCoords[i]->berryXOffset;
         gfx->berrySprites[i]->y = -16;
         data = gfx->berrySprites[i]->data;
         speed = 512;
