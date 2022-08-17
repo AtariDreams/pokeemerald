@@ -1778,6 +1778,7 @@ void LocalLinkPlayerToBlock(void)
     memcpy(gBlockSendBuffer, &gLocalLinkPlayerBlock, sizeof(gLocalLinkPlayerBlock));
 }
 
+// Has to be this way to match
 void LinkPlayerFromBlock(u32 who_)
 {
     u8 who = who_;
