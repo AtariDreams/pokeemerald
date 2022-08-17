@@ -2390,6 +2390,7 @@ void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedI
         evsBits >>= 1;
     }
 
+    //TODO: what if statCount == 0?
     evAmount = MAX_TOTAL_EVS / statCount;
 
     evsBits = 1;
@@ -2406,8 +2407,12 @@ void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedI
 
 void CreateBattleTowerMon(struct Pokemon *mon, struct BattleTowerPokemon *src)
 {
+    #if !MODERN
     s32 i;
-    u8 nickname[30];
+    #else
+    u8 i;
+    #endif
+    u8 nickname[32];
     u8 language;
     u8 value;
 
@@ -2460,8 +2465,12 @@ void CreateBattleTowerMon(struct Pokemon *mon, struct BattleTowerPokemon *src)
 
 void CreateBattleTowerMon_HandleLevel(struct Pokemon *mon, struct BattleTowerPokemon *src, bool8 lvl50)
 {
+    #if !MODERN
     s32 i;
-    u8 nickname[30];
+    #else
+    u8 i;
+    #endif
+    u8 nickname[32];
     u8 level;
     u8 language;
     u8 value;
@@ -2555,7 +2564,7 @@ void CreateApprenticeMon(struct Pokemon *mon, const struct Apprentice *src, u8 m
 void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level, u8 nature, u8 fixedIV, u8 evSpread, u32 otId)
 {
     s32 i;
-    s32 statCount = 0;
+    m32 statCount = 0;
     u8 evsBits;
     u16 evAmount;
 
@@ -2625,7 +2634,11 @@ void ConvertPokemonToBattleTowerPokemon(struct Pokemon *mon, struct BattleTowerP
 
 void CreateEventLegalMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
 {
+    #if !MODERN
     bool32 isEventLegal = TRUE;
+    #else
+    bool8 isEventLegal = TRUE;
+    #endif
 
     CreateMon(mon, species, level, fixedIV, hasFixedPersonality, fixedPersonality, otIdType, fixedOtId);
     SetMonData(mon, MON_DATA_EVENT_LEGAL, &isEventLegal);
@@ -2636,8 +2649,8 @@ bool8 ShouldIgnoreDeoxysForm(u8 caseId, u8 battlerId)
 {
     switch (caseId)
     {
-    case 0:
     default:
+    case 0:
         return FALSE;
     case 1: // Player's side in battle
         if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
@@ -2687,12 +2700,14 @@ bool8 ShouldIgnoreDeoxysForm(u8 caseId, u8 battlerId)
 
     return TRUE;
 }
-
+#if !MODERN
 static u16 GetDeoxysStat(struct Pokemon *mon, s32 statId)
+#else
+static u16 GetDeoxysStat(struct Pokemon *mon, u8 statId)
+#endif
 {
     s32 ivVal, evVal;
     u16 statValue = 0;
-    u8 nature;
 
     if (gBattleTypeFlags & BATTLE_TYPE_LINK_IN_BATTLE || GetMonData(mon, MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS)
         return 0;
@@ -2700,8 +2715,7 @@ static u16 GetDeoxysStat(struct Pokemon *mon, s32 statId)
     ivVal = GetMonData(mon, MON_DATA_HP_IV + statId, NULL);
     evVal = GetMonData(mon, MON_DATA_HP_EV + statId, NULL);
     statValue = ((sDeoxysBaseStats[statId] * 2 + ivVal + evVal / 4) * mon->level) / 100 + 5;
-    nature = GetNature(mon);
-    statValue = ModifyStatByNature(nature, statValue, (u8)statId);
+    statValue = ModifyStatByNature(GetNature(mon), statValue, (u8)statId);
     return statValue;
 }
 
@@ -2774,7 +2788,7 @@ void CreateEventLegalEnemyMon(void)
     if (itemId)
     {
         u8 heldItem[2];
-        heldItem[0] = itemId;
+        heldItem[0] = itemId & 0xFF;
         heldItem[1] = itemId >> 8;
         SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, heldItem);
     }
@@ -2787,6 +2801,7 @@ static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon)
     union PokemonSubstruct *substruct1 = GetSubstruct(boxMon, boxMon->personality, 1);
     union PokemonSubstruct *substruct2 = GetSubstruct(boxMon, boxMon->personality, 2);
     union PokemonSubstruct *substruct3 = GetSubstruct(boxMon, boxMon->personality, 3);
+    #if !MODERN
     s32 i;
 
     for (i = 0; i < (s32)ARRAY_COUNT(substruct0->raw); i++)
@@ -2800,6 +2815,21 @@ static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon)
 
     for (i = 0; i < (s32)ARRAY_COUNT(substruct3->raw); i++)
         checksum += substruct3->raw[i];
+    #else
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(substruct0->raw); i++)
+        checksum += substruct0->raw[i];
+
+    for (i = 0; i < ARRAY_COUNT(substruct1->raw); i++)
+        checksum += substruct1->raw[i];
+
+    for (i = 0; i < ARRAY_COUNT(substruct2->raw); i++)
+        checksum += substruct2->raw[i];
+
+    for (i = 0; i < ARRAY_COUNT(substruct3->raw); i++)
+        checksum += substruct3->raw[i];
+    #endif
 
     return checksum;
 }
@@ -2841,8 +2871,7 @@ void CalculateMonStats(struct Pokemon *mon)
     }
     else
     {
-        s32 n = 2 * gBaseStats[species].baseHP + hpIV;
-        newMaxHP = (((n + hpEV / 4) * level) / 100) + level + 10;
+        newMaxHP = (((2 * gBaseStats[species].baseHP + hpIV + hpEV / 4) * level) / 100) + level + 10;
     }
 
     gBattleScripting.levelUpHP = newMaxHP - oldMaxHP;
