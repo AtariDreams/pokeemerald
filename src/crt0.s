@@ -38,18 +38,18 @@ IntrMain:
 	mov r3, #REG_BASE
 	add r3, r3, #OFFSET_REG_IE
 	ldr r2, [r3]
-	ldrh r1, [r3, #REG_IME - #REG_IE]
+	ldrh r1, [r3, #REG_IME - REG_IE]
 	mrs r0, spsr
 	stmfd sp!, {r0-r3,lr}
 	mov r0, #0
-	strh r0, [r3, #REG_IME - #REG_IE]
+	strh r0, [r3, #REG_IME - REG_IE]
 	and r1, r2, r2, lsr #16
 	mov r12, #0
 	ands r0, r1, #INTR_FLAG_VCOUNT
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
 	mov r0, 0x1
-	strh r0, [r3, #REG_IME - #REG_IE]
+	strh r0, [r3, #REG_IME - REG_IE]
 	ands r0, r1, #INTR_FLAG_SERIAL
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
@@ -120,8 +120,8 @@ IntrMain_RetAddr:
 	orr r3, r3, #PSR_I_BIT | PSR_IRQ_MODE
 	msr cpsr_cf, r3
 	ldmia sp!, {r0-r3,lr}
-	strh r2, [r3, #OFFSET_REG_IE - 0x200]
-	strh r1, [r3, #OFFSET_REG_IME - 0x200]
+	strh r2, [r3, #OFFSET_REG_IE - OFFSET_REG_IE]
+	strh r1, [r3, #OFFSET_REG_IME - OFFSET_REG_IE]
 	msr spsr_cf, r0
 	bx lr
 
