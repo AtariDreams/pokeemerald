@@ -2449,7 +2449,7 @@ static u16 ReadAsU16(const u8 *ptr)
     return (ptr[1] << 8) | (ptr[0]);
 }
 
-static void ScheduleFieldMessageWithFollowupState(u32 nextState, const u8 *src)
+static void ScheduleFieldMessageWithFollowupState(u8 nextState, const u8 *src)
 {
     struct WirelessLink_URoom *uroom = sWirelessLinkMain.uRoom;
 
