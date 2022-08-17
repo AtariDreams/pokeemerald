@@ -1108,36 +1108,34 @@ static void Chat_Switch(void)
         input = Menu_ProcessInput();
         switch (input)
         {
-        default:
-            StartDisplaySubtask(CHATDISPLAY_FUNC_HIDE_KB_SWAP_MENU, 0);
-            shouldSwitchPages = TRUE;
-            if (sChat->currentPage == input || input > UNION_ROOM_KB_PAGE_REGISTER)
-                shouldSwitchPages = FALSE;
-            break;
+
         case MENU_NOTHING_CHOSEN:
             if (JOY_NEW(SELECT_BUTTON))
             {
                 PlaySE(SE_SELECT);
                 Menu_MoveCursor(1);
             }
-            return;
+            break;
         case MENU_B_PRESSED:
             StartDisplaySubtask(CHATDISPLAY_FUNC_HIDE_KB_SWAP_MENU, 0);
             sChat->funcState = 3;
-            return;
-        }
+            break;
+        default:
+            StartDisplaySubtask(CHATDISPLAY_FUNC_HIDE_KB_SWAP_MENU, 0);
 
-        if (!shouldSwitchPages)
-        {
-            sChat->funcState = 3;
-            return;
+            if (sChat->currentPage == input || input > UNION_ROOM_KB_PAGE_REGISTER)
+                sChat->funcState = 3;
+            else
+            {
+                sChat->currentCol = 0;
+                sChat->currentRow = 0;
+                StartDisplaySubtask(CHATDISPLAY_FUNC_SWITCH_PAGES, 1);
+                sChat->currentPage = input;
+                sChat->funcState = 4;
+            }
+            break;
         }
-
-        sChat->currentCol = 0;
-        sChat->currentRow = 0;
-        StartDisplaySubtask(CHATDISPLAY_FUNC_SWITCH_PAGES, 1);
-        sChat->currentPage = input;
-        sChat->funcState = 4;
+        
         break;
     case 3:
         if (!IsDisplaySubtaskActive(0))
@@ -1152,8 +1150,6 @@ static void Chat_Switch(void)
 
 static void Chat_AskQuitChatting(void)
 {
-    s8 input;
-
     switch (sChat->funcState)
     {
     case 0:
@@ -1165,8 +1161,7 @@ static void Chat_AskQuitChatting(void)
             sChat->funcState = 2;
         break;
     case 2:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1204,8 +1199,7 @@ static void Chat_AskQuitChatting(void)
             sChat->funcState = 8;
         break;
     case 8:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1483,8 +1477,6 @@ static void Chat_Register(void)
 
 static void Chat_SaveAndExit(void)
 {
-    s8 input;
-
     switch (sChat->funcState)
     {
     case 0:
@@ -1506,8 +1498,7 @@ static void Chat_SaveAndExit(void)
         }
         break;
     case 2:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1531,8 +1522,7 @@ static void Chat_SaveAndExit(void)
             sChat->funcState = 5;
         break;
     case 5:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
