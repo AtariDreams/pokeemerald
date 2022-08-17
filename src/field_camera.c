@@ -391,7 +391,11 @@ void CameraUpdate(void)
     if (curMovementOffsetY != 0 && curMovementOffsetY == -movementSpeedY) // sum of both is 0
     {
         // Shouldn't this be delta Y?
+        #ifndef BUGFIX
         deltaX = (movementSpeedY > 0) ? 1 : -1;
+        #else
+        deltaY = (movementSpeedY > 0) ? 1 : -1;
+        #endif
     }
 
     gFieldCamera.x += movementSpeedX;
