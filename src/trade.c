@@ -1797,15 +1797,17 @@ static void DrawTradeMenuParty(u8 whichParty)
 {
     s8 nameStringWidth;
     u8 nickname[20];
-    u8 movesString[56];
+    u8 movesString[53];
     u8 i;
     u8 partyIdx;
     u8 selectedMonParty;
     u8 selectedMonIdx = sTradeMenuData->selectedMonIdx[whichParty];
 
-    selectedMonParty = TRADE_PARTNER;
-    if (sTradeMenuData->selectedMonIdx[whichParty] < PARTY_SIZE)
+    if (selectedMonIdx < PARTY_SIZE)
         selectedMonParty = TRADE_PLAYER;
+    else
+        selectedMonParty = TRADE_PARTNER;
+
     partyIdx = selectedMonIdx % PARTY_SIZE;
     nameStringWidth = 0;
 
@@ -1814,22 +1816,22 @@ static void DrawTradeMenuParty(u8 whichParty)
     case 1:
         for (i = 0; i < sTradeMenuData->partyCounts[whichParty]; i++)
         {
-            gSprites[sTradeMenuData->partySpriteIds[0][i + (selectedMonParty * PARTY_SIZE)]].invisible = TRUE;
+            gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][i]].invisible = TRUE;
         }
 
         for (i = 0; i < 6; i++)
         {
-            ClearWindowTilemap(i + (whichParty * PARTY_SIZE + 2));
+            ClearWindowTilemap(2 + whichParty * PARTY_SIZE + i);
         }
 
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].invisible = FALSE;
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].data[0] = 20;
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].data[2] = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][0]
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].invisible = FALSE;
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].data[0] = 20;
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].data[2] = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][0]
                                                                                                          + sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE + 1][0]) / 2 * 8 + 14;
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].data[4] = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][1] * 8) - 12;
-        StoreSpriteCallbackInData6(&gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]], SpriteCB_MonIcon);
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].data[4] = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][1] * 8) - 12;
+        StoreSpriteCallbackInData6(&gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]], SpriteCB_MonIcon);
         sTradeMenuData->drawPartyState[whichParty]++;
-        TradeMenuBouncePartySprites(&gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]]);
+        TradeMenuBouncePartySprites(&gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]]);
         CopyToBgTilemapBufferRect_ChangePalette(1, sTradePartyBoxTilemap, whichParty * 15, 0, 15, 17, 0);
         CopyBgTilemapBufferToVram(1);
         CopyBgTilemapBufferToVram(0);
@@ -1838,17 +1840,17 @@ static void DrawTradeMenuParty(u8 whichParty)
             PrintNicknamesForTradeMenu();
         break;
     case 2:
-        if (gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].callback == SpriteCB_MonIcon)
-            sTradeMenuData->drawPartyState[whichParty] = 3;
+        if (gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].callback == SpriteCB_MonIcon)
+            sTradeMenuData->drawPartyState[whichParty]++;
         break;
     case 3:
         CopyToBgTilemapBufferRect_ChangePalette(1, sTradeMovesBoxTilemap, selectedMonParty * 15, 0, 15, 17, 0);
         CopyBgTilemapBufferToVram(1);
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].x = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][0]
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].x = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][0]
                                                                                                         + sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE + 1][0]) / 2 * 8 + 14;
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].y = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][1] * 8) - 12;
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].x2 = 0;
-        gSprites[sTradeMenuData->partySpriteIds[0][partyIdx + (selectedMonParty * PARTY_SIZE)]].y2 = 0;
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].y = (sTradeMonSpriteCoords[selectedMonParty * PARTY_SIZE][1] * 8) - 12;
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].x2 = 0;
+        gSprites[sTradeMenuData->partySpriteIds[selectedMonParty][partyIdx]].y2 = 0;
         nameStringWidth = GetMonNicknameWidth(nickname, selectedMonParty, partyIdx);
         AddTextPrinterParameterized3((whichParty * 2) + 14, FONT_SMALL, (80 - nameStringWidth) / 2, 4, sTradeTextColors, 0, nickname);
         BufferTradeMonMoves(movesString, selectedMonParty, partyIdx);
