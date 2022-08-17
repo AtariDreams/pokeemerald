@@ -578,8 +578,6 @@ static void BattleAI_DoAIProcessing(void)
     {
         switch (AI_THINKING_STRUCT->aiState)
         {
-            case AIState_DoNotProcess: // Needed to match.
-                break;
             case AIState_SettingUp:
                 gAIScriptPtr = gBattleAI_ScriptsTable[AI_THINKING_STRUCT->aiLogicId]; // set AI ptr to logic ID.
                 if (gBattleMons[sBattler_AI].pp[AI_THINKING_STRUCT->movesetIndex] == 0)
@@ -613,6 +611,8 @@ static void BattleAI_DoAIProcessing(void)
 
                     AI_THINKING_STRUCT->aiAction &= ~(AI_ACTION_DONE);
                 }
+                break;
+            case AIState_DoNotProcess: // Needed to match.
                 break;
         }
     }
@@ -665,9 +665,7 @@ void ClearBattlerItemEffectHistory(u8 battlerId)
 
 static void Cmd_if_random_less_than(void)
 {
-    u16 random = Random();
-
-    if (random % 256 < gAIScriptPtr[1])
+    if (Random() % 256 < gAIScriptPtr[1])
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 2);
     else
         gAIScriptPtr += 6;
@@ -675,9 +673,7 @@ static void Cmd_if_random_less_than(void)
 
 static void Cmd_if_random_greater_than(void)
 {
-    u16 random = Random();
-
-    if (random % 256 > gAIScriptPtr[1])
+    if (Random() % 256 > gAIScriptPtr[1])
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 2);
     else
         gAIScriptPtr += 6;
@@ -685,9 +681,7 @@ static void Cmd_if_random_greater_than(void)
 
 static void Cmd_if_random_equal(void)
 {
-    u16 random = Random();
-
-    if (random % 256 == gAIScriptPtr[1])
+    if (Random() % 256 == gAIScriptPtr[1])
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 2);
     else
         gAIScriptPtr += 6;
@@ -695,9 +689,7 @@ static void Cmd_if_random_equal(void)
 
 static void Cmd_if_random_not_equal(void)
 {
-    u16 random = Random();
-
-    if (random % 256 != gAIScriptPtr[1])
+    if (Random() % 256 != gAIScriptPtr[1])
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 2);
     else
         gAIScriptPtr += 6;
@@ -715,14 +707,19 @@ static void Cmd_score(void)
 
 static void Cmd_if_hp_less_than(void)
 {
-    u16 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
     else
         battlerId = gBattlerTarget;
 
+    #if !MODERN
+    // Result has to be cast to u32 to match because it was originally assigned to one. We can just do the calculation in the if statement and let the compiler decide
     if ((u32)(100 * gBattleMons[battlerId].hp / gBattleMons[battlerId].maxHP) < gAIScriptPtr[2])
+    #else
+    if(gBattleMons[battlerId].hp * 100/gBattleMons[battlerId].maxHP < gAIScriptPtr[2])
+    #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
     else
         gAIScriptPtr += 7;
@@ -730,14 +727,19 @@ static void Cmd_if_hp_less_than(void)
 
 static void Cmd_if_hp_more_than(void)
 {
-    u16 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
     else
         battlerId = gBattlerTarget;
 
+    #if !MODERN
+    // Result has to be cast to u32 to match because it was originally assigned to one. We can just do the calculation in the if statement and let the compiler decide
     if ((u32)(100 * gBattleMons[battlerId].hp / gBattleMons[battlerId].maxHP) > gAIScriptPtr[2])
+    #else
+    if(gBattleMons[battlerId].hp * 100/gBattleMons[battlerId].maxHP > gAIScriptPtr[2])
+    #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
     else
         gAIScriptPtr += 7;
@@ -745,14 +747,19 @@ static void Cmd_if_hp_more_than(void)
 
 static void Cmd_if_hp_equal(void)
 {
-    u16 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
     else
         battlerId = gBattlerTarget;
 
+    #if !MODERN
+    // Result has to be cast to u32 to match because it was originally assigned to one. We can just do the calculation in the if statement and let the compiler decide
     if ((u32)(100 * gBattleMons[battlerId].hp / gBattleMons[battlerId].maxHP) == gAIScriptPtr[2])
+    #else
+    if(gBattleMons[battlerId].hp * 100/gBattleMons[battlerId].maxHP == gAIScriptPtr[2])
+    #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
     else
         gAIScriptPtr += 7;
@@ -760,14 +767,19 @@ static void Cmd_if_hp_equal(void)
 
 static void Cmd_if_hp_not_equal(void)
 {
-    u16 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
     else
         battlerId = gBattlerTarget;
 
+    #if !MODERN
+    // Result has to be cast to u32 to match because it was originally assigned to one. We can just do the calculation in the if statement and let the compiler decide
     if ((u32)(100 * gBattleMons[battlerId].hp / gBattleMons[battlerId].maxHP) != gAIScriptPtr[2])
+    #else
+    if(gBattleMons[battlerId].hp * 100/gBattleMons[battlerId].maxHP != gAIScriptPtr[2])
+    #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
     else
         gAIScriptPtr += 7;
@@ -775,7 +787,7 @@ static void Cmd_if_hp_not_equal(void)
 
 static void Cmd_if_status(void)
 {
-    u16 battlerId;
+    u8 battlerId;
     u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
@@ -793,7 +805,7 @@ static void Cmd_if_status(void)
 
 static void Cmd_if_not_status(void)
 {
-    u16 battlerId;
+    u8 battlerId;
     u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
@@ -811,7 +823,7 @@ static void Cmd_if_not_status(void)
 
 static void Cmd_if_status2(void)
 {
-    u16 battlerId;
+    u8 battlerId;
     u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
@@ -829,7 +841,7 @@ static void Cmd_if_status2(void)
 
 static void Cmd_if_not_status2(void)
 {
-    u16 battlerId;
+    u8 battlerId;
     u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
@@ -847,7 +859,7 @@ static void Cmd_if_not_status2(void)
 
 static void Cmd_if_status3(void)
 {
-    u16 battlerId;
+    u8 battlerId;
     u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
@@ -865,7 +877,7 @@ static void Cmd_if_status3(void)
 
 static void Cmd_if_not_status3(void)
 {
-    u16 battlerId;
+    u8 battlerId;
     u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
@@ -883,8 +895,9 @@ static void Cmd_if_not_status3(void)
 
 static void Cmd_if_side_affecting(void)
 {
-    u16 battlerId;
-    u32 side, status;
+    u8 battlerId;
+    u8 side;
+    u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
@@ -902,8 +915,9 @@ static void Cmd_if_side_affecting(void)
 
 static void Cmd_if_not_side_affecting(void)
 {
-    u16 battlerId;
-    u32 side, status;
+    u8 battlerId;
+    u8 side;
+    u32 status;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
@@ -1117,9 +1131,7 @@ static void Cmd_get_turn_count(void)
 
 static void Cmd_get_type(void)
 {
-    u8 typeVar = gAIScriptPtr[1];
-
-    switch (typeVar)
+    switch (gAIScriptPtr[1])
     {
     case AI_TYPE1_USER: // AI user primary type
         AI_THINKING_STRUCT->funcResult = gBattleMons[sBattler_AI].type1;
@@ -1189,7 +1201,7 @@ static void Cmd_get_how_powerful_move_is(void)
         && sIgnoredPowerfulMoveEffects[i] == IGNORED_MOVES_END)
     {
         gDynamicBasePower = 0;
-        *(&gBattleStruct->dynamicMoveType) = 0;
+        gBattleStruct->dynamicMoveType = 0;
         gBattleScripting.dmgMultiplier = 1;
         gMoveResultFlags = 0;
         gCritMultiplier = 1;

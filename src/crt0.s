@@ -20,7 +20,7 @@ Init:
 	mov r0, #255 @ RESET_ALL
 	svc #1 << 16
 	.endif @ MODERN
-	ldr r1, =AgbMain
+	ldr r1, =AgbMain + 1
 	mov lr, pc
 	bx r1
 	b Init
