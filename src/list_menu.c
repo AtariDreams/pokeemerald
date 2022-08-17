@@ -986,8 +986,6 @@ void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, u32 value)
 
 static void SpriteCallback_ScrollIndicatorArrow(struct Sprite *sprite)
 {
-    s32 multiplier;
-
     switch (sprite->tState)
     {
     case 0:
@@ -998,12 +996,10 @@ static void SpriteCallback_ScrollIndicatorArrow(struct Sprite *sprite)
         switch (sprite->tBounceDir)
         {
         case 0:
-            multiplier = sprite->tMultiplier;
-            sprite->x2 = (gSineTable[(u8)(sprite->tSinePos)] * multiplier) / 256;
+            sprite->x2 = sprite->tMultiplier * (gSineTable[(u8)(sprite->tSinePos)]) / 256;
             break;
         case 1:
-            multiplier = sprite->tMultiplier;
-            sprite->y2 = (gSineTable[(u8)(sprite->tSinePos)] * multiplier) / 256;
+            sprite->y2 = sprite->tMultiplier * (gSineTable[(u8)(sprite->tSinePos)]) / 256;
             break;
         }
         sprite->tSinePos += sprite->tFrequency;
