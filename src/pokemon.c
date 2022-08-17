@@ -6317,7 +6317,7 @@ u8 GetMoveRelearnerMoves(struct Pokemon *mon, u16 *moves)
 u8 GetLevelUpMovesBySpecies(u16 species, u16 *moves)
 {
     u8 numMoves = 0;
-    int i;
+    m32 i;
 
     for (i = 0; i < MAX_LEVEL_UP_MOVES && gLevelUpLearnsets[species][i] != LEVEL_UP_END; i++)
          moves[numMoves++] = gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_ID;
