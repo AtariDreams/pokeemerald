@@ -1836,36 +1836,29 @@ bool8 RunAffineAnimFromTaskData(struct Task *task)
     case AFFINEANIMCMDTYPE_LOOP:
         if (sAnimTaskAffineAnim->loop.count)
         {
-            if (task->data[9])
-            {
-                if (!--task->data[9])
-                {
-                    task->data[7]++;
-                    break;
-                }
-            }
-            else
+            if (!task->data[9])
             {
                 task->data[9] = sAnimTaskAffineAnim->loop.count;
             }
-            if (!task->data[7])
+            else if (!--task->data[9])
             {
+                task->data[7]++;
                 break;
             }
-            for (;;)
+
+            while (task->data[7])
             {
                 task->data[7]--;
                 sAnimTaskAffineAnim--;
                 if (sAnimTaskAffineAnim->type == AFFINEANIMCMDTYPE_LOOP)
                 {
                     task->data[7]++;
-                    return TRUE;
+                    break;
                 }
-                if (!task->data[7])
-                    return TRUE;
             }
         }
-        task->data[7]++;
+        else
+            task->data[7]++;
         break;
     case AFFINEANIMCMDTYPE_END:
         gSprites[task->data[15]].y2 = 0;
