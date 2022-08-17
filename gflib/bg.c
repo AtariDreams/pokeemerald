@@ -44,15 +44,17 @@ static struct BgControl sGpuBgConfigs;
 static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
 static u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
 
+#if !MODERN
 u32 gWindowTileAutoAllocEnabled;
+#endif
 
 static const struct BgConfig sZeroedBgControlStruct = { 0 };
 
 static u32 GetBgType(u8 bg);
 
 // having two of these are unessecary, but needed to match because they were from 2 different files at the time
-static PURE bool8 IsInvalidBg(u8 bg);
-static PURE bool32 IsInvalidBg32(u8 bg);
+static CONST bool8 IsInvalidBg(u8 bg);
+static CONST bool32 IsInvalidBg32(u8 bg);
 
 void ResetBgs(void)
 {
@@ -290,7 +292,7 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
     SetGpuReg(REG_OFFSET_BG2Y_H, dest.dy >> 16);
 }
 
-static PURE bool8 IsInvalidBg(u8 bg)
+static CONST bool8 IsInvalidBg(u8 bg)
 {
     if (bg >= NUM_BACKGROUNDS)
         return TRUE;
@@ -299,14 +301,20 @@ static PURE bool8 IsInvalidBg(u8 bg)
 }
 
 // From FRLG. Dummied out.
-int PURE BgTileAllocOp(int bg, int offset, int count, int mode)
+#if !MODERN
+int CONST BgTileAllocOp(int bg, int offset, int count, int mode)
 {
     return 0;
 }
+#endif
 
+#if !MODERN
 void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable)
+#else
+void ResetBgsAndClearDma3BusyFlags(void)
+#endif
 {
-    int i;
+    m32 i;
     ResetBgs();
 
     for (i = 0; i < NUM_BACKGROUNDS; i++)
@@ -315,9 +323,12 @@ void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable)
     }
 
     // not needed at all, except for matching
+    #if !MODERN
     gWindowTileAutoAllocEnabled = leftoverFireRedLeafGreenVariable;
+    #endif
 }
 
+#if !MODERN
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numTemplates)
 {
     int i;
@@ -353,6 +364,44 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numT
         }
     }
 }
+#else
+void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numTemplates)
+{
+    u8 bg;
+    const struct BgTemplate *templateEnd;
+
+    SetBgModeInternal(bgMode);
+    ResetBgControlStructs();
+
+    for (templateEnd = templates + numTemplates; templates != templateEnd; templates++)
+    {
+        bg = templates->bg;
+        if (bg < NUM_BACKGROUNDS)
+        {
+            SetBgControlAttributes(bg,
+                                   templates->charBaseIndex,
+                                   templates->mapBaseIndex,
+                                   templates->screenSize,
+                                   templates->paletteMode,
+                                   templates->priority,
+                                   0,
+                                   0);
+
+            sGpuBgConfigs2[bg].baseTile = templates->baseTile;
+            sGpuBgConfigs2[bg].basePalette = 0;
+
+            // apparently unk3 is a dummy?
+            // TODO: look into that
+            sGpuBgConfigs2[bg].unk_3 = 0;
+
+            sGpuBgConfigs2[bg].tilemap = NULL;
+            sGpuBgConfigs2[bg].bg_x = 0;
+            sGpuBgConfigs2[bg].bg_y = 0;
+        }
+    }
+}
+#endif
+
 
 void InitBgFromTemplate(const struct BgTemplate *template)
 {
@@ -409,8 +458,10 @@ u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
 
     // Uneeded check since always false
     // TODO: check this
+    #if !MODERN
     if (gWindowTileAutoAllocEnabled == TRUE)
         BgTileAllocOp(bg, tileOffset / 0x20, size / 0x20, 1);
+    #endif
 
     return cursor;
 }

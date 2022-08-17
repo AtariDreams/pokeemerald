@@ -711,7 +711,7 @@ static void CB2_UnusedBattleInit(void)
 
 void BattleInitBgsAndWindows(void)
 {
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, gBattleBgTemplates, ARRAY_COUNT(gBattleBgTemplates));
 
     if (gBattleTypeFlags & BATTLE_TYPE_ARENA)

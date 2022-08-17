@@ -1617,7 +1617,7 @@ void CB2_LinkError(void)
         ResetLinkRfuGFLayer();
     }
     SetVBlankCallback(VBlankCB_LinkError);
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sLinkErrorBgTemplates, ARRAY_COUNT(sLinkErrorBgTemplates));
     sLinkErrorBgTilemapBuffer = tilemapBuffer = malloc(BG_SCREEN_SIZE);
     SetBgTilemapBuffer(1, tilemapBuffer);

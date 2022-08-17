@@ -581,7 +581,7 @@ static u32 InitMainMenu(bool8 returningFromOptionsMenu)
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0x10, 0, RGB_BLACK); // fade to black
     else
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0x10, 0, RGB_WHITEALPHA); // fade to white
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sMainMenuBgTemplates, ARRAY_COUNT(sMainMenuBgTemplates));
     ChangeBgX(0, 0, BG_COORD_SET);
     ChangeBgY(0, 0, BG_COORD_SET);
@@ -1821,7 +1821,7 @@ static void CB2_NewGameBirchSpeech_ReturnFromNamingScreen(void)
     u8 spriteId;
     u16 savedIme;
 
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
     InitBgsFromTemplates(0, sMainMenuBgTemplates, ARRAY_COUNT(sMainMenuBgTemplates));

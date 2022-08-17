@@ -270,8 +270,9 @@ u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 
 
 bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
-    int i;
+
 #if !MODERN
+    int i;
     u16 j;
 #else
     // j is only used for a loop counter that doesn't even involve it
@@ -287,8 +288,13 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     sTempTextPrinter.delayCounter = 0;
     sTempTextPrinter.scrollDistance = 0;
 
+    #if !MODERN
     for (i = 0; i < (int)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
         sTempTextPrinter.subStructFields[i] = 0;
+    #else
+    for (j = 0; j < ARRAY_COUNT(sTempTextPrinter.subStructFields); j++)
+        sTempTextPrinter.subStructFields[j] = 0;
+    #endif
 
     sTempTextPrinter.printerTemplate = *printerTemplate;
     sTempTextPrinter.callback = callback;

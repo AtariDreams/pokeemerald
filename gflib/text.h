@@ -86,7 +86,12 @@ struct TextPrinter
 
     void (*callback)(struct TextPrinterTemplate *, u16); // 0x10
 
+    #if 1
     u8 subStructFields[7]; // always cast to struct TextPrinterSubStruct... so why bother
+    #else
+    struct TextPrinterSubStruct subStructFields;
+    #endif
+
     u8 active;
     u8 state;       // 0x1C
     u8 textSpeed;
