@@ -60,9 +60,9 @@ static void Task_Truck3(u8);
 
 static s16 GetTruckCameraBobbingY(int time)
 {
-    if (!(time % 120))
+    if ((time % 120) == 0)
         return -1;
-    else if ((time % 10) <= 4)
+    else if ((time % 10) < 5)
         return 1;
 
     return 0;
@@ -78,7 +78,7 @@ static s16 GetTruckCameraBobbingY(int time)
 // jump as high.
 static s16 GetTruckBoxYMovement(int time)
 {
-    if (!((time + 120) % 180))
+    if (((time + 120) % 180) == 0)
         return -1;
 
     return 0;
@@ -127,7 +127,7 @@ static void Task_Truck2(u8 taskId)
         tTimerHorizontal = 0;
         tMoveStep++;
     }
-    if ((u16)tMoveStep == ARRAY_COUNT(sTruckCamera_HorizontalTable))
+    if (tMoveStep == ARRAY_COUNT(sTruckCamera_HorizontalTable))
     {
         // Never reached, the task function is changed below before finishing the table
         DestroyTask(taskId);
@@ -162,7 +162,7 @@ static void Task_Truck3(u8 taskId)
        tMoveStep++;
    }
 
-   if ((u16)tMoveStep == ARRAY_COUNT(sTruckCamera_HorizontalTable))
+   if (tMoveStep == ARRAY_COUNT(sTruckCamera_HorizontalTable))
    {
        DestroyTask(taskId);
    }
@@ -272,7 +272,7 @@ void ExecuteTruckSequence(void)
     MapGridSetMetatileIdAt(4 + MAP_OFFSET, 3 + MAP_OFFSET, METATILE_InsideOfTruck_DoorClosedFloor_Bottom);
     DrawWholeMapView();
     ScriptContext2_Enable();
-    CpuFastFill(0, gPlttBufferFaded, 0x400);
+    CpuFastFill(0, gPlttBufferFaded, PLTT_SIZE);
     CreateTask(Task_HandleTruckSequence, 0xA);
 }
 
