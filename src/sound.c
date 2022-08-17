@@ -563,9 +563,9 @@ static void RestoreBGMVolumeAfterPokemonCry(void)
 void PlayBGM(u16 songNum)
 {
     if (gDisableMusic)
-        songNum = 0;
+        songNum = MUS_DUMMY;
     if (songNum == MUS_NONE)
-        songNum = 0;
+        songNum = MUS_DUMMY;
     m4aSongNumStart(songNum);
 }
 
