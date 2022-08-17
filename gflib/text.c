@@ -579,7 +579,7 @@ static u8 GetLastTextColor(u8 colorType)
     }
 }
 
-#if 1
+#if !MODERN
 inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u32 *glyphPixels, s32 width, s32 height)
 {
     u32 xAdd, yAdd, pixelData, bits, toOrr, dummyX;
@@ -693,25 +693,39 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
 void CopyGlyphToWindow(struct TextPrinter *textPrinter)
 {
     struct Window *window;
-    struct WindowTemplate *template;
+    //struct WindowTemplate *template;
    // u32 *glyphPixels;
     u32 currX, currY, widthOffset;
     u32 glyphWidth, glyphHeight;
 
     window = &gWindows[textPrinter->printerTemplate.windowId];
-    template = &window->window;
-
-    if ((glyphWidth = (template->width * 8) - textPrinter->printerTemplate.currentX) > gCurGlyph.width)
-        glyphWidth = gCurGlyph.width;
-
-    if ((glyphHeight = (template->height * 8) - textPrinter->printerTemplate.currentY) > gCurGlyph.height)
-        glyphHeight = gCurGlyph.height;
 
     currX = textPrinter->printerTemplate.currentX;
     currY = textPrinter->printerTemplate.currentY;
+    //template = &window->window;
+    glyphWidth = (window->window.width * 8);
+    if (glyphWidth > currX + gCurGlyph.width) // Cannot do subtraction due to underflow comparison
+        glyphWidth = gCurGlyph.width;
+    else
+        glyphWidth -= currX;
+
+    glyphHeight = (window->window.height * 8);
+    if (glyphHeight > currY + gCurGlyph.height) // Cannot do subtraction due to underflow comparison
+        glyphHeight = gCurGlyph.height;
+    else
+        glphWidth -= currY;
+
+    // if ((glyphWidth = (window->window.width * 8) - textPrinter->printerTemplate.currentX) > gCurGlyph.width)
+    //     glyphWidth = gCurGlyph.width;
+
+    // if ((glyphHeight = (window->window.height * 8) - textPrinter->printerTemplate.currentY) > gCurGlyph.height)
+    //     glyphHeight = gCurGlyph.height;
+
+    // currX = textPrinter->printerTemplate.currentX;
+    // currY = textPrinter->printerTemplate.currentY;
     //glyphPixels = gCurGlyph.gfxBufferTop;
     // windowTiles = window->tileData;
-    widthOffset = template->width * 32;
+    widthOffset = window->window.width * 32;
 
     if (glyphWidth <= 8)
     {
