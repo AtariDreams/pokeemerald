@@ -225,8 +225,13 @@ void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpN
 void BtlController_EmitChooseItem(u8 bufferId, u8* battlePartyOrder);
 void BtlController_EmitChoosePokemon(u8 bufferId, u8 caseId, u8 slotId, u8 abilityId, u8* data);
 void BtlController_EmitCmd23(u8 bufferId); // unused
+#if !MODERN
 void BtlController_EmitHealthBarUpdate(u8 bufferId, u16 hpValue);
 void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, u16 expPoints);
+#else
+void BtlController_EmitHealthBarUpdate(u8 bufferId, s16 hpValue);
+void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, s16 expPoints);
+#endif
 void BtlController_EmitStatusIconUpdate(u8 bufferId, u32 status1, u32 status2);
 void BtlController_EmitStatusAnimation(u8 bufferId, bool8 status2, u32 status);
 void BtlController_EmitStatusXor(u8 bufferId, u8 b); // unused
