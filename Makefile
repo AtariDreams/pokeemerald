@@ -282,7 +282,6 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/libc.o: CFLAGS := -mthumb-interwork -O2 -mabi=aapcs -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float #-flto -fuse-linker-plugin
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=aapcs -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float #-flto -fuse-linker-plugin
 endif
 
