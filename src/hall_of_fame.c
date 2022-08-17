@@ -859,7 +859,8 @@ void CB2_DoHallOfFamePC(void)
         break;
     case 5:
         {
-            u8 taskId, i;
+            u8 taskId;
+            m8 i;
 
             SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG1 | BLDCNT_EFFECT_BLEND | BLDCNT_TGT2_ALL);
             SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(16, 7));
@@ -884,6 +885,7 @@ static void Task_HofPC_CopySaveData(u8 taskId)
     if (LoadGameSave(SAVE_HALL_OF_FAME) != SAVE_STATUS_OK)
     {
         gTasks[taskId].func = Task_HofPC_PrintDataIsCorrupted;
+        return;
     }
     else
     {
@@ -913,7 +915,7 @@ static void Task_HofPC_DrawSpritesPrintText(u8 taskId)
 {
     struct HallofFameTeam *savedTeams = sHofMonPtr;
     struct HallofFameMon* currMon;
-    u16 i;
+    u16 i; //TODO: can this be u32 or is int better?
 
     for (i = 0; i < gTasks[taskId].tCurrTeamNo; i++)
         savedTeams++;
@@ -1063,7 +1065,9 @@ static void Task_HofPC_HandleInput(u8 taskId)
 
 static void Task_HofPC_HandlePaletteOnExit(u8 taskId)
 {
-    struct HallofFameTeam *fameTeam;
+    #if 0
+    struct HallofFameTeam* fameTeam;
+    #endif
 
     CpuCopy16(gPlttBufferFaded, gPlttBufferUnfaded, 0x400);
     #if 0
@@ -1140,7 +1144,7 @@ static void HallOfFame_PrintWelcomeText(u8 unusedPossiblyWindowId, u8 unused2)
 
 static void HallOfFame_PrintMonInfo(struct HallofFameMon* currMon, u8 unused1, u8 unused2)
 {
-    u8 text[30];
+    u8 text[32];
     u8 *stringPtr;
     s32 dexNumber;
     s32 width;
@@ -1155,21 +1159,22 @@ static void HallOfFame_PrintMonInfo(struct HallofFameMon* currMon, u8 unused1, u
         dexNumber = SpeciesToPokedexNum(currMon->species);
         if (dexNumber != 0xFFFF)
         {
-            stringPtr[0] = (dexNumber / 100) + CHAR_0;
-            stringPtr++;
-            dexNumber %= 100;
-            stringPtr[0] = (dexNumber / 10) + CHAR_0;
-            stringPtr++;
-            stringPtr[0] = (dexNumber % 10) + CHAR_0;
-            stringPtr++;
+            *stringPtr++ = CHAR_0 + (dexNumber / 100);
+            *stringPtr++ = CHAR_0 + (dexNumber % 100 / 10);
+            #if !MODERN
+            *stringPtr++ = CHAR_0 + (dexNumber % 100 % 10);
+            #else
+            *stringPtr++ = CHAR_0 +  (dexNumber % 10);
+            #endif
+
         }
         else
         {
-            *(stringPtr)++ = CHAR_QUESTION_MARK;
-            *(stringPtr)++ = CHAR_QUESTION_MARK;
-            *(stringPtr)++ = CHAR_QUESTION_MARK;
+            *stringPtr++ = CHAR_QUESTION_MARK;
+            *stringPtr++ = CHAR_QUESTION_MARK;
+            *stringPtr++ = CHAR_QUESTION_MARK;
         }
-        stringPtr[0] = EOS;
+        *stringPtr = EOS;
         AddTextPrinterParameterized3(0, FONT_NORMAL, 0x10, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
     }
 
@@ -1181,49 +1186,46 @@ static void HallOfFame_PrintMonInfo(struct HallofFameMon* currMon, u8 unused1, u
         width = GetStringCenterAlignXOffset(FONT_NORMAL, text, 0xD0);
         AddTextPrinterParameterized3(0, FONT_NORMAL, width, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
         CopyWindowToVram(0, COPYWIN_FULL);
+        return;
     }
-    else
+
+    width = GetStringRightAlignXOffset(FONT_NORMAL, text, 0x80);
+    AddTextPrinterParameterized3(0, FONT_NORMAL, width, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
+
+    text[0] = CHAR_SLASH;
+    stringPtr = StringCopy(text + 1, gSpeciesNames[currMon->species]);
+
+    if (currMon->species != SPECIES_NIDORAN_M && currMon->species != SPECIES_NIDORAN_F)
     {
-        width = GetStringRightAlignXOffset(FONT_NORMAL, text, 0x80);
-        AddTextPrinterParameterized3(0, FONT_NORMAL, width, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
-
-        text[0] = CHAR_SLASH;
-        stringPtr = StringCopy(text + 1, gSpeciesNames[currMon->species]);
-
-        if (currMon->species != SPECIES_NIDORAN_M && currMon->species != SPECIES_NIDORAN_F)
+        switch (GetGenderFromSpeciesAndPersonality(currMon->species, currMon->personality))
         {
-            switch (GetGenderFromSpeciesAndPersonality(currMon->species, currMon->personality))
-            {
-            case MON_MALE:
-                stringPtr[0] = CHAR_MALE;
-                stringPtr++;
-                break;
-            case MON_FEMALE:
-                stringPtr[0] = CHAR_FEMALE;
-                stringPtr++;
-                break;
-            }
+        case MON_MALE:
+            *stringPtr++ = CHAR_MALE;
+            break;
+        case MON_FEMALE:
+            *stringPtr++ = CHAR_FEMALE;
+            break;
         }
-
-        stringPtr[0] = EOS;
-        AddTextPrinterParameterized3(0, FONT_NORMAL, 0x80, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
-
-        stringPtr = StringCopy(text, gText_Level);
-        ConvertIntToDecimalStringN(stringPtr, currMon->lvl, STR_CONV_MODE_LEFT_ALIGN, 3);
-        AddTextPrinterParameterized3(0, FONT_NORMAL, 0x24, 0x11, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
-
-        stringPtr = StringCopy(text, gText_IDNumber);
-        ConvertIntToDecimalStringN(stringPtr, (u16)(currMon->tid), STR_CONV_MODE_LEADING_ZEROS, 5);
-        AddTextPrinterParameterized3(0, FONT_NORMAL, 0x68, 0x11, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
-
-        CopyWindowToVram(0, COPYWIN_FULL);
     }
+
+    *stringPtr = EOS;
+    AddTextPrinterParameterized3(0, FONT_NORMAL, 0x80, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
+
+    stringPtr = StringCopy(text, gText_Level);
+    ConvertIntToDecimalStringN(stringPtr, currMon->lvl, STR_CONV_MODE_LEFT_ALIGN, 3);
+    AddTextPrinterParameterized3(0, FONT_NORMAL, 0x24, 0x11, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
+
+    stringPtr = StringCopy(text, gText_IDNumber);
+    ConvertIntToDecimalStringN(stringPtr, currMon->tid & 0xFFFF, STR_CONV_MODE_LEADING_ZEROS, 5);
+    AddTextPrinterParameterized3(0, FONT_NORMAL, 0x68, 0x11, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
+
+    CopyWindowToVram(0, COPYWIN_FULL);
 }
 
 static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
 {
     u8 text[20];
-    u32 width;
+    s32 width;
     u16 trainerId;
 
     FillWindowPixelBuffer(1, PIXEL_FILL(1));
@@ -1236,11 +1238,11 @@ static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
 
     trainerId = (gSaveBlock2Ptr->playerTrainerId[0]) | (gSaveBlock2Ptr->playerTrainerId[1] << 8);
     AddTextPrinterParameterized3(1, FONT_NORMAL, 0, 0x11, sPlayerInfoTextColors, 0, gText_IDNumber);
-    text[0] = (trainerId % 100000) / 10000 + CHAR_0;
-    text[1] = (trainerId % 10000) / 1000 + CHAR_0;
-    text[2] = (trainerId % 1000) / 100 + CHAR_0;
-    text[3] = (trainerId % 100) / 10 + CHAR_0;
-    text[4] = (trainerId % 10) / 1 + CHAR_0;
+    text[0] = CHAR_0 + (trainerId % 100000) / 10000;
+    text[1] = CHAR_0 + (trainerId % 10000) / 1000;
+    text[2] = CHAR_0 +(trainerId % 1000) / 100;
+    text[3] = CHAR_0 +(trainerId % 100) / 10;
+    text[4] = CHAR_0 +(trainerId % 10);
     text[5] = EOS;
     width = GetStringRightAlignXOffset(FONT_NORMAL, text, 0x70);
     AddTextPrinterParameterized3(1, FONT_NORMAL, width, 0x11, sPlayerInfoTextColors, TEXT_SKIP_DRAW, text);
@@ -1256,8 +1258,8 @@ static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
         text[8] = CHAR_SPACE;
 
     text[3] = CHAR_COLON;
-    text[4] = (gSaveBlock2Ptr->playTimeMinutes % 100) / 10 + CHAR_0;
-    text[5] = (gSaveBlock2Ptr->playTimeMinutes % 10) + CHAR_0;
+    text[4] = CHAR_0 + (gSaveBlock2Ptr->playTimeMinutes % 100) / 10;
+    text[5] = CHAR_0 + (gSaveBlock2Ptr->playTimeMinutes % 10);
     text[6] = EOS;
 
     width = GetStringRightAlignXOffset(FONT_NORMAL, text, 0x70);
@@ -1268,9 +1270,8 @@ static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
 
 static void ClearVramOamPltt_LoadHofPal(void)
 {
-    u32 vramOffset, oamOffset, plttOffset;
-    u32 vramSize, oamSize, plttSize;
-
+    u32 vramOffset;
+    u32 vramSize;
     vramOffset = (VRAM);
     vramSize = VRAM_SIZE;
     while (TRUE)
@@ -1285,13 +1286,9 @@ static void ClearVramOamPltt_LoadHofPal(void)
         }
     }
 
-    oamOffset = OAM;
-    oamSize = OAM_SIZE;
-    DmaFill32(3, 0, oamOffset, oamSize);
-
-    plttOffset = PLTT;
-    plttSize = PLTT_SIZE;
-    DmaFill16(3, 0, plttOffset, plttSize);
+    //DmaClearLarge16(3, (void *)VRAM, VRAM_SIZE, 0x1000);
+    DmaFill32Defvars(3, 0, (void *)OAM, OAM_SIZE);
+    DmaFill16Defvars(3, 0, (void *)PLTT, PLTT_SIZE);
 
     ResetPaletteFade();
     LoadPalette(sHallOfFame_Pal, 0, 0x20);
