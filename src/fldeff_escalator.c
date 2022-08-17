@@ -68,7 +68,11 @@ static const u16 sEscalatorMetatiles_2F_2[ESCALATOR_STAGES] = {
 #define tPlayerX          data[4]
 #define tPlayerY          data[5]
 
+#if !MODERN
 static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatileMasks)
+#else
+static void SetEscalatorMetatile(u8 taskId, const u16 *metatileIds, u16 metatileMasks)
+#endif
 {
     s16 x = gTasks[taskId].tPlayerX - 1;
     s16 y = gTasks[taskId].tPlayerY - 1;
