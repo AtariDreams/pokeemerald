@@ -117,8 +117,6 @@ static void SoundTask_LoopSEAdjustPanning_Step(u8 taskId)
 	now_pan = gTasks[taskId].data[11];
 	end_pan = gTasks[taskId].data[2];
 	add_pan = gTasks[taskId].data[3];
-#endif
-
     if (gTasks[taskId].data[12]++ == gTasks[taskId].data[6])
     {
         gTasks[taskId].data[12] = 0;
@@ -136,6 +134,29 @@ static void SoundTask_LoopSEAdjustPanning_Step(u8 taskId)
         gTasks[taskId].data[11] += gTasks[taskId].data[3];
         gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11]);
     }
+    #else
+    if (gTasks[taskId].data[12] == gTasks[taskId].data[6])
+    {
+        gTasks[taskId].data[12] = 0;
+        PlaySE12WithPanning(gTasks[taskId].data[0], gTasks[taskId].data[11]);
+        if (--gTasks[taskId].data[4] == 0)
+        {
+            DestroyAnimSoundTask(taskId);
+            return;
+        }
+    }
+    else
+        gTasks[taskId].data[12]++;
+
+    if (gTasks[taskId].data[10] == gTasks[taskId].data[5])
+    {
+        gTasks[taskId].data[10] = 0;
+        gTasks[taskId].data[11] += gTasks[taskId].data[3];
+        gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11]);
+    }
+    else
+        gTasks[taskId].data[10]++;
+        #endif
 }
 
 void SoundTask_PlayCryHighPitch(u8 taskId)
@@ -403,7 +424,6 @@ static void SoundTask_AdjustPanningVar_Step(u8 taskId)
 	now_pan = gTasks[taskId].data[11];
 	end_pan = gTasks[taskId].data[2];
 	add_pan = gTasks[taskId].data[3];
-#endif
 
     if (gTasks[taskId].data[10]++ == gTasks[taskId].data[5])
     {
@@ -411,6 +431,16 @@ static void SoundTask_AdjustPanningVar_Step(u8 taskId)
         gTasks[taskId].data[11] += gTasks[taskId].data[3];
         gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11]);
     }
+    #else
+    if (gTasks[taskId].data[10] == gTasks[taskId].data[5])
+    {
+        gTasks[taskId].data[10] = 0;
+        gTasks[taskId].data[11] += gTasks[taskId].data[3];
+        gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11]);
+    }
+    else
+        gTasks[taskId].data[10]++;
+    #endif
 
     gAnimCustomPanning = gTasks[taskId].data[11];
     if (gTasks[taskId].data[11] == gTasks[taskId].data[2])
