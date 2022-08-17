@@ -792,39 +792,38 @@ static void Task_SetClock_HandleInput(u8 taskId)
     if (gTasks[taskId].tMinuteHandAngle % 6)
     {
         gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
+        return;
+
     }
-    else
+
+    gTasks[taskId].tMinuteHandAngle = gTasks[taskId].tMinutes * 6;
+    gTasks[taskId].tHourHandAngle = (gTasks[taskId].tHours % 12) * 30 + (gTasks[taskId].tMinutes / 10) * 5;
+    if (JOY_NEW(A_BUTTON))
     {
-        gTasks[taskId].tMinuteHandAngle = gTasks[taskId].tMinutes * 6;
-        gTasks[taskId].tHourHandAngle = (gTasks[taskId].tHours % 12) * 30 + (gTasks[taskId].tMinutes / 10) * 5;
-        if (JOY_NEW(A_BUTTON))
-        {
-            gTasks[taskId].func = Task_SetClock_AskConfirm;
-        }
-        else
-        {
-            gTasks[taskId].tMoveDir = MOVE_NONE;
-
-            if (JOY_HELD(DPAD_LEFT))
-                gTasks[taskId].tMoveDir = MOVE_BACKWARD;
-
-            if (JOY_HELD(DPAD_RIGHT))
-                gTasks[taskId].tMoveDir = MOVE_FORWARD;
-
-            if (gTasks[taskId].tMoveDir != MOVE_NONE)
-            {
-                if (gTasks[taskId].tMoveSpeed < 0xFF)
-                    gTasks[taskId].tMoveSpeed++;
-
-                gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
-                AdvanceClock(taskId, gTasks[taskId].tMoveDir);
-            }
-            else
-            {
-                gTasks[taskId].tMoveSpeed = 0;
-            }
-        }
+        gTasks[taskId].func = Task_SetClock_AskConfirm;
+        return;
     }
+
+        gTasks[taskId].tMoveDir = MOVE_NONE;
+
+        if (JOY_HELD(DPAD_LEFT))
+            gTasks[taskId].tMoveDir = MOVE_BACKWARD;
+        // no else if??
+
+        if (JOY_HELD(DPAD_RIGHT))
+            gTasks[taskId].tMoveDir = MOVE_FORWARD;
+
+        if (gTasks[taskId].tMoveDir != MOVE_NONE)
+        {
+            if (gTasks[taskId].tMoveSpeed < 0xFF)
+                gTasks[taskId].tMoveSpeed++;
+
+            gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
+            AdvanceClock(taskId, gTasks[taskId].tMoveDir);
+            return;
+        }
+        
+        gTasks[taskId].tMoveSpeed = 0; //Needle speed management timer
 }
 
 static void Task_SetClock_AskConfirm(u8 taskId)
@@ -914,7 +913,7 @@ static u16 CalcNewMinHandAngle(u16 angle, u8 direction, u8 speed)
     switch (direction)
     {
     case MOVE_BACKWARD:
-        if (angle)
+        if (angle > 0)
             angle -= delta;
         else
             angle = 360 - delta;
@@ -1063,13 +1062,15 @@ static void SpriteCB_PMIndicator(struct Sprite *sprite)
     {
         if (sprite->sAngle >= 60 && sprite->sAngle < 90)
             sprite->sAngle += 5;
+        // no else if????????
         if (sprite->sAngle < 60)
             sprite->sAngle++;
     }
     else
     {
-        if (sprite->sAngle >= 46 && sprite->sAngle < 76)
+        if (sprite->sAngle <= 75 && sprite->sAngle > 45)
             sprite->sAngle -= 5;
+        // no else if???
         if (sprite->sAngle > 75)
             sprite->sAngle--;
     }
@@ -1083,13 +1084,15 @@ static void SpriteCB_AMIndicator(struct Sprite *sprite)
     {
         if (sprite->sAngle >= 105 && sprite->sAngle < 135)
             sprite->sAngle += 5;
+        // no else if???
         if (sprite->sAngle < 105)
             sprite->sAngle++;
     }
     else
     {
-        if (sprite->sAngle >= 91 && sprite->sAngle < 121)
+        if (sprite->sAngle <= 120 && sprite->sAngle > 90)
             sprite->sAngle -= 5;
+        // no else if???
         if (sprite->sAngle > 120)
             sprite->sAngle--;
     }
