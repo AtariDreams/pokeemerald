@@ -9,7 +9,7 @@
 #include "tv.h"
 #include "constants/heal_locations.h"
 
-int GameClear(void)
+u8 GameClear(void)
 {
     int i;
     bool32 ribbonGet;
