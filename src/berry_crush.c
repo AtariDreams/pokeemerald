@@ -2425,15 +2425,15 @@ static u32 Cmd_PrintMessage(struct BerryCrushGame *game, u8 *args)
         CopyWindowToVram(0, COPYWIN_FULL);
         break;
     case 1:
-        if (!IsTextPrinterActive(0))
+        if (IsTextPrinterActive(0))
         {
-            // If no wait keys are given, skip
-            // waiting state below
-            if (keys == 0)
-                game->cmdState++;
-            break;
+            return 0;
         }
-        return 0;
+        // If no wait keys are given, skip
+        // waiting state below
+        if (keys == 0)
+            game->cmdState++;
+        break;
     case 2:
         if (!JOY_NEW(keys))
             return 0;
@@ -2488,21 +2488,20 @@ static u32 Cmd_AskPickBerry(struct BerryCrushGame *game, u8 *args)
 {
     switch (game->cmdState)
     {
-    default:
-        game->cmdState++;
-        break;
     case 0:
         ResetGame(game);
         SetPrintMessageArgs(args, MSG_PICK_BERRY, F_MSG_CLEAR, 0, 1);
         game->nextCmd = CMD_ASK_PICK_BERRY;
         RunOrScheduleCommand(CMD_PRINT_MSG, SCHEDULE_CMD, NULL);
-        break;
+        return 0;
     case 1:
         game->nextCmd = CMD_PICK_BERRY;
         RunOrScheduleCommand(CMD_HIDE_GAME, SCHEDULE_CMD, NULL);
         game->cmdState = 2;
-        break;
+        return 0;
     }
+
+    game->cmdState++;
     return 0;
 }
 
