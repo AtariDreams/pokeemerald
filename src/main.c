@@ -92,8 +92,10 @@ void AgbMain()
     // so RegisterRamReset may crash if it resets IWRAM.
 #if !MODERN
     RegisterRamReset(RESET_ALL);
-#endif //MODERN
-    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
+#endif
+
+    *(u16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
+
     InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
     InitKeys();
@@ -172,10 +174,17 @@ static void UpdateLinkAndCallCallbacks(void)
 
 static void InitMainCallbacks(void)
 {
+    #if !MODERN
     gMain.vblankCounter1 = 0;
     gTrainerHillVBlankCounter = NULL;
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
+    #else
+    gMain.vblankCounter1 = 0;
+    gMain.vblankCounter2 = 0;
+    gMain.callback1 = NULL;
+    gTrainerHillVBlankCounter = NULL;
+    #endif
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
 
     // None of these assignments are actually needed it seems
@@ -318,7 +327,7 @@ static void ReadKeys(void)
 
 void InitIntrHandlers(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < INTR_COUNT; i++)
         gIntrTable[i] = gIntrTableTemplate[i];
