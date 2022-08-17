@@ -1,8 +1,6 @@
 #include "global.h"
 #include "dma3.h"
 
-#define MAX_DMA_REQUESTS 128
-
 #define DMA_REQUEST_COPY32 1
 #define DMA_REQUEST_FILL32 2
 #define DMA_REQUEST_COPY16 3
