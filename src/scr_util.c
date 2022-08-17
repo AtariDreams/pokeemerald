@@ -1205,8 +1205,8 @@ void ShowFieldMessageStringVar4(void)
 
 void StorePlayerCoordsInVars(void)
 {
-    gSpecialVar_0x8004 = gSaveBlock1Ptr->pos.x;
-    gSpecialVar_0x8005 = gSaveBlock1Ptr->pos.y;
+    gSpecialVar_0x8004 = (u16)gSaveBlock1Ptr->pos.x;
+    gSpecialVar_0x8005 = (u16)gSaveBlock1Ptr->pos.y;
 }
 
 u8 GetPlayerTrainerIdOnesDigit(void)
@@ -1259,6 +1259,7 @@ u16 GetWeekCount(void)
 
 u8 GetLeadMonFriendshipScore(void)
 {
+    // TODO: should I do this or do the array of whatever value this function is?
     struct Pokemon *pokemon = &gPlayerParty[GetLeadMonIndex()];
     if (GetMonData(pokemon, MON_DATA_FRIENDSHIP) == MAX_FRIENDSHIP)
         return FRIENDSHIP_MAX;
@@ -1451,18 +1452,29 @@ void EndLotteryCornerComputerEffect(void)
 
 void SetTrickHouseNuggetFlag(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
-    *specVar = flag;
-    FlagSet(flag);
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
+    // *specVar = flag;
+    // FlagSet(flag);
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET - 500;
+    gSpecialVar_0x8004 += 500;
+
+    FlagSet(gSpecialVar_0x8004);
 }
 
 void ResetTrickHouseNuggetFlag(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
-    *specVar = flag;
-    FlagClear(flag);
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
+    // *specVar = flag;
+    // FlagClear(flag);
+
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET - 500;
+    gSpecialVar_0x8004 += 500;
+
+    FlagClear(gSpecialVar_0x8004);
 }
 
 bool8 CheckLeadMonCool(void)
