@@ -1979,23 +1979,23 @@ static void Cmd_if_any_move_disabled_or_encored(void)
     else
         battlerId = gBattlerTarget;
 
-    if (gAIScriptPtr[2] == 0)
+    switch (gAIScriptPtr[2])
     {
-        if (gDisableStructs[battlerId].disabledMove == MOVE_NONE)
-            gAIScriptPtr += 7;
-        else
+    case 0:
+        if (gDisableStructs[battlerId].disabledMove != MOVE_NONE)
             gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
-    }
-    else if (gAIScriptPtr[2] != 1)
-    {
-        gAIScriptPtr += 7;
-    }
-    else
-    {
+        else
+            gAIScriptPtr += 7;
+        break;
+    case 1:
         if (gDisableStructs[battlerId].encoredMove != MOVE_NONE)
             gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
         else
             gAIScriptPtr += 7;
+        break;
+    default:
+        gAIScriptPtr += 7;
+        break;
     }
 }
 
@@ -2028,9 +2028,13 @@ static void Cmd_flee(void)
 
 static void Cmd_if_random_safari_flee(void)
 {
+    
+    #if !MODERN
     u8 safariFleeRate = gBattleStruct->safariEscapeFactor * 5; // Safari flee rate, from 0-20.
-
     if ((u8)(Random() % 100) < safariFleeRate)
+    #else
+    if ((Random() % 20) < gBattleStruct->safariEscapeFactor)
+    #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 1);
     else
         gAIScriptPtr += 5;
@@ -2062,23 +2066,24 @@ static void Cmd_if_holds_item(void)
 {
     u8 battlerId = BattleAI_GetWantedBattler(gAIScriptPtr[1]);
     u16 item;
-    u8 itemLo, itemHi;
+
+    #ifndef BUGFIX
+    u16 itemNo;
+    #endif
 
     if ((battlerId & BIT_SIDE) == (sBattler_AI & BIT_SIDE))
         item = gBattleMons[battlerId].item;
     else
         item = BATTLE_HISTORY->itemEffects[battlerId];
 
-    itemHi = gAIScriptPtr[2];
-    itemLo = gAIScriptPtr[3];
-
 #ifdef BUGFIX
     // This bug doesn't affect the vanilla game because this script command
     // is only used to check ITEM_PERSIM_BERRY, whose high byte happens to
     // be 0.
-    if (((itemHi << 8) | itemLo) == item)
+    if (((gAIScriptPtr[2] << 8) | gAIScriptPtr[3]) == item)
 #else
-    if ((itemLo | itemHi) == item)
+    itemNo = gAIScriptPtr[2] | gAIScriptPtr[3];
+    if (itemNo == item)
 #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 4);
     else
