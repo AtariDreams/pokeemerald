@@ -432,7 +432,7 @@ const struct SpriteTemplate gRapidSpinSpriteTemplate =
     .callback = AnimRapidSpin,
 };
 
-static const union AffineAnimCmd sAffineAnims_Torment[] =
+const union AffineAnimCmd sAffineAnims_Torment[] =
 {
     AFFINEANIMCMD_FRAME(-12, 8, 0, 4),
     AFFINEANIMCMD_FRAME(20, -20, 0, 4),
@@ -718,7 +718,7 @@ const struct SpriteTemplate gSweetScentPetalSpriteTemplate =
     .callback = AnimSweetScentPetal,
 };
 
-static const u16 sUnusedPalette[] = INCBIN_U16("graphics/battle_anims/unused/unknown.gbapal");
+const u16 sUnusedPalette[] = INCBIN_U16("graphics/battle_anims/unused/unknown.gbapal");
 
 const union AnimCmd gPainSplitAnimCmds[] =
 {
@@ -1071,7 +1071,7 @@ const struct SpriteTemplate gMeteorMashStarSpriteTemplate =
     .callback = AnimMeteorMashStar,
 };
 
-static const struct SpriteTemplate sUnusedStarBurstSpriteTemplate =
+const struct SpriteTemplate sUnusedStarBurstSpriteTemplate =
 {
     .tileTag = ANIM_TAG_GOLD_STARS,
     .paletteTag = ANIM_TAG_GOLD_STARS,
@@ -1093,7 +1093,7 @@ const struct SpriteTemplate gBlockXSpriteTemplate =
     .callback = AnimBlockX,
 };
 
-static const struct SpriteTemplate sUnusedItemBagStealSpriteTemplate =
+const struct SpriteTemplate sUnusedItemBagStealSpriteTemplate =
 {
     .tileTag = ANIM_TAG_ITEM_BAG,
     .paletteTag = ANIM_TAG_ITEM_BAG,
