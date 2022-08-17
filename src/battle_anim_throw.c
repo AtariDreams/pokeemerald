@@ -1058,7 +1058,7 @@ static void SpriteCB_Ball_Bounce(struct Sprite *sprite)
 #define DIRECTION(state)   (state & 0xFF)
 #define PHASE_DELTA(state) (state >> 8)
 #define BOUNCES(state)     (state >> 8)
-#define FALL(state)        (state &= -0x100)
+#define FALL(state)        (state &= ~0xFF)
 #define RISE_FASTER(state) (state += 257)
 
 #define BALL_FALLING 0
@@ -1157,7 +1157,7 @@ static void SpriteCB_Ball_Bounce_Step(struct Sprite *sprite)
 
 static void SpriteCB_Ball_Wobble(struct Sprite *sprite)
 {
-    if (++sprite->sTimer == 31)
+    if (sprite->sTimer++ == 30)
     {
         sprite->sState = 0;
         sprite->affineAnimPaused = TRUE;
@@ -1183,7 +1183,6 @@ static void SpriteCB_Ball_Wobble(struct Sprite *sprite)
 static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
 {
     s8 shakes;
-    u16 frame;
 
     switch (STATE(sprite->sState))
     {
@@ -1199,8 +1198,8 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
 
         sprite->sTimer++;
         sprite->affineAnimPaused = FALSE;
-        frame = sprite->sTimer + 7;
-        if (frame > 14)
+
+        if (sprite->sTimer >= 8 || sprite->sTimer <= -8)
         {
             gBattleSpritesDataPtr->animationData->ballSubpx = 0;
             sprite->sState++; // BALL_PIVOT_1
@@ -1208,7 +1207,8 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
         }
         break;
     case BALL_PIVOT_1:
-        if (++sprite->sTimer == 1)
+    #if !MODERN
+        if (sprite->sTimer++ == 0)
         {
             sprite->sTimer = 0;
             sprite->sDirection = -sprite->sDirection;
@@ -1221,6 +1221,23 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
         }
         else
             sprite->affineAnimPaused = TRUE;
+    #else
+        if (sprite->sTimer == 0)
+        {
+            sprite->sDirection = -sprite->sDirection;
+            sprite->sState++; // BALL_ROLL_2
+            sprite->affineAnimPaused = FALSE;
+            if (sprite->sDirection < 0)
+                ChangeSpriteAffineAnim(sprite, BALL_ROTATE_LEFT);
+            else
+                ChangeSpriteAffineAnim(sprite, BALL_ROTATE_RIGHT);
+        }
+        else
+        {
+            sprite->sTimer++;
+            sprite->affineAnimPaused = TRUE;
+        }
+        #endif
         break;
     case BALL_ROLL_2:
         if (gBattleSpritesDataPtr->animationData->ballSubpx > 255)
@@ -1233,8 +1250,8 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
 
         sprite->sTimer++;
         sprite->affineAnimPaused = FALSE;
-        frame = sprite->sTimer + 12;
-        if (frame > 24)
+
+        if (sprite->sTimer >= 13 || sprite->sTimer <= -13)
         {
             gBattleSpritesDataPtr->animationData->ballSubpx = 0;
             sprite->sState++; // BALL_PIVOT_2
@@ -1242,11 +1259,20 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
         }
         break;
     case BALL_PIVOT_2:
+#if !MODERN
         if (sprite->sTimer++ < 0)
         {
             sprite->affineAnimPaused = TRUE;
             break;
         }
+#else
+        if (sprite->sTimer < 0)
+        {
+            sprite->sTimer++;
+            sprite->affineAnimPaused = TRUE;
+            break;
+        }
+#endif
 
         sprite->sTimer = 0;
         sprite->sDirection = -sprite->sDirection;
@@ -1268,8 +1294,8 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
 
         sprite->sTimer++;
         sprite->affineAnimPaused = FALSE;
-        frame = sprite->sTimer + 4;
-        if (frame > 8)
+
+        if (sprite->sTimer >= 5 || sprite->sTimer <= -5)
         {
             gBattleSpritesDataPtr->animationData->ballSubpx = 0;
             sprite->sState++; // BALL_NEXT_MOVE
@@ -1287,7 +1313,7 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
         }
         else
         {
-            if (gBattleSpritesDataPtr->animationData->ballThrowCaseId == BALL_3_SHAKES_SUCCESS && shakes == 3)
+            if (gBattleSpritesDataPtr->animationData->ballThrowCaseId == BALL_3_SHAKES_SUCCESS && shakes == BALL_3_SHAKES_SUCCESS - 1)
             {
                 sprite->callback = SpriteCB_Ball_Capture;
                 sprite->affineAnimPaused = TRUE;
@@ -1301,7 +1327,8 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
         break;
     case BALL_WAIT_NEXT_SHAKE:
     default:
-        if (++sprite->sTimer == 31)
+    #if !MODERN
+        if (sprite->sTimer++ == 30)
         {
             sprite->sTimer = 0;
             RESET_STATE(sprite->sState);
@@ -1313,6 +1340,24 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
 
             PlaySE(SE_BALL);
         }
+        #else
+        if (sprite->sTimer == 30)
+        {
+            sprite->sTimer = 0;
+            RESET_STATE(sprite->sState);
+            StartSpriteAffineAnim(sprite, 3);
+            if (sprite->sDirection < 0)
+                StartSpriteAffineAnim(sprite, BALL_ROTATE_LEFT);
+            else
+                StartSpriteAffineAnim(sprite, BALL_ROTATE_RIGHT);
+
+            PlaySE(SE_BALL);
+        }
+        else
+        {
+            sprite->sTimer++;
+        }
+        #endif
         break;
     }
 }
@@ -1328,11 +1373,21 @@ static void SpriteCB_Ball_Wobble_Step(struct Sprite *sprite)
 
 static void SpriteCB_Ball_Release(struct Sprite *sprite)
 {
-    if (++sprite->sTimer == 31)
+    #if !MODERN
+    if (sprite->sTimer++ == 30)
     {
-        sprite->data[5] = 0;
+        sprite->sTimer = 0;
         sprite->callback = SpriteCB_Ball_Release_Step;
     }
+    #else
+    if (sprite->sTimer == 30)
+    {
+        sprite->sTimer = 0;
+        sprite->callback = SpriteCB_Ball_Release_Step;
+    }
+    else
+        sprite->sTimer++;
+    #endif
 }
 #undef sTimer
 
@@ -1351,7 +1406,9 @@ static void SpriteCB_Ball_Capture(struct Sprite *sprite)
 // Fade and unfade ball, create star animations, play sound effects
 static void SpriteCB_Ball_Capture_Step(struct Sprite *sprite)
 {
-    u8 *battler = &gBattleAnimTarget;
+    #if !MODERN
+    u8 battler = gBattleAnimTarget;
+    #endif
 
     sprite->sTimer++;
     if (sprite->sTimer == 40)
@@ -1373,8 +1430,8 @@ static void SpriteCB_Ball_Capture_Step(struct Sprite *sprite)
     }
     else if (sprite->sTimer == 315)
     {
-        FreeOamMatrix(gSprites[gBattlerSpriteIds[*battler]].oam.matrixNum);
-        DestroySprite(&gSprites[gBattlerSpriteIds[*battler]]);
+        FreeOamMatrix(gSprites[gBattlerSpriteIds[gBattleAnimTarget]].oam.matrixNum);
+        DestroySprite(&gSprites[gBattlerSpriteIds[gBattleAnimTarget]]);
 
         sprite->sState = 0;
         sprite->callback = SpriteCB_Ball_FadeOut;
