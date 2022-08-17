@@ -202,7 +202,7 @@ u32 GetBerryPowder(void)
     return DecryptBerryPowder(powder);
 }
 
-static void PrintBerryPowderAmount(u8 windowId, int amount, u8 x, u8 y, u8 speed)
+static void PrintBerryPowderAmount(u8 windowId, u32 amount, u8 x, u8 y, u8 speed)
 {
     ConvertIntToDecimalStringN(gStringVar1, amount, STR_CONV_MODE_RIGHT_ALIGN, 5);
     AddTextPrinterParameterized(windowId, FONT_NORMAL, gStringVar1, x, y, speed, NULL);
