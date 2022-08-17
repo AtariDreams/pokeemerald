@@ -614,8 +614,8 @@ static u16 GetColorFromPersonality(u8 personality)
     {
     case 0:
         // Teal color
-        green = 21 - strength;
-        blue = green;
+        blue = 21 - strength;
+        green = blue;
         red = 0;
         break;
     case 1:
