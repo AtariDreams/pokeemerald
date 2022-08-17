@@ -115,7 +115,7 @@ void ListMenuDefaultCursorMoveFunc(s32 itemIndex, u8 onInit, struct ListMenu *li
 s32 ListMenuGetUnkIndicatorsStructFields(u8 taskId, u8 field);
 void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, s32 value);
 u8 AddScrollIndicatorArrowPair(const struct ScrollArrowsTemplate *arrowInfo, u16 *scrollOffset);
-u8 AddScrollIndicatorArrowPairParameterized(u32 arrowType, s32 commonPos, s32 firstPos, s32 secondPos, s32 fullyDownThreshold, s32 tileTag, s32 palTag, u16 *currItemPtr);
+u8 AddScrollIndicatorArrowPairParameterized(u32 arrowType, u32 commonPos, u32 firstPos, u32 secondPos, u32 fullyDownThreshold, u32 tileTag, u32 palTag, u16 *currItemPtr);
 void RemoveScrollIndicatorArrowPair(u8 taskId);
 void Task_ScrollIndicatorArrowPairOnMainMenu(u8 taskId);
 
