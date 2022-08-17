@@ -579,6 +579,7 @@ static u8 GetLastTextColor(u8 colorType)
     }
 }
 
+#if !MODERN
 inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u32 *glyphPixels, s32 width, s32 height)
 {
     u32 xAdd, yAdd, pixelData, bits, toOrr, dummyX;
@@ -661,7 +662,103 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
         }
     }
 }
+#else
+// Copied from older matching except with the asm thing removed)
+#define GLYPH_COPY(fromY_, toY_, fromX_, toX_, unk)                                                               \
+    {                                                                                                             \
+        u32 i, j, r5, bits;                                                                                       \
+        const u32 *ptr;                                                                                           \
+        u8 *dst;                                                                                                  \
+        ptr = (const u32 *)unk;                                                                                   \
+                                                                                                                  \
+        for (i = fromY_; i < toY_; i++)                                                                           \
+        {                                                                                                         \
+            r5 = *(ptr++);                                                                                        \
+            for (j = fromX_; j < toX_; j++)                                                                       \
+            {                                                                                                     \
+                const u32 toOrr = r5 & 0xF;                                                                       \
+                if (toOrr)                                                                                        \
+                {                                                                                                 \
+                    dst = window->tileData + ((j / 8) * 32) + ((j % 8) / 2) + ((i / 8) * widthOffset) + ((i % 8) * 4); \
+                    bits = ((j & 1) << 2);                                                                        \
+                    *dst = (toOrr << bits) | ((0xF0 >> bits) & *dst);                                             \
+                }                                                                                                 \
+                r5 >>= 4;                                                                                         \
+            }                                                                                                     \
+        }                                                                                                         \
+    }
 
+void CopyGlyphToWindow(struct TextPrinter *textPrinter)
+{
+    struct Window *window;
+    struct WindowTemplate *template;
+   // u32 *glyphPixels;
+    u32 currX, currY, widthOffset;
+    u32 glyphWidth, glyphHeight;
+
+    window = &gWindows[textPrinter->printerTemplate.windowId];
+    template = &window->window;
+
+    if ((glyphWidth = (template->width * 8) - textPrinter->printerTemplate.currentX) > gCurGlyph.width)
+        glyphWidth = gCurGlyph.width;
+
+    if ((glyphHeight = (template->height * 8) - textPrinter->printerTemplate.currentY) > gCurGlyph.height)
+        glyphHeight = gCurGlyph.height;
+
+    currX = textPrinter->printerTemplate.currentX;
+    currY = textPrinter->printerTemplate.currentY;
+    //glyphPixels = gCurGlyph.gfxBufferTop;
+    // windowTiles = window->tileData;
+    widthOffset = template->width * 32;
+
+    if (glyphWidth <= 8)
+    {
+        if (glyphHeight <= 8)
+        {
+            const u32 tempX = currX + glyphWidth;
+            const u32 tempY = currY + glyphHeight;
+
+            GLYPH_COPY(currY, tempY, currX, tempX, gCurGlyph.gfxBufferTop);
+        }
+        else
+        {
+            const u32 temp = currY + 8;
+            const u32 tempX = currX + glyphWidth;
+            u32 tempY;
+            GLYPH_COPY(currY, temp, currX, tempX, gCurGlyph.gfxBufferTop);
+            tempY = currY + glyphHeight;
+            GLYPH_COPY(temp, tempY, currX, tempX, gCurGlyph.gfxBufferBottom);
+        }
+    }
+    else
+    {
+        if (glyphHeight <= 8)
+        {
+            const u32 temp = currX + 8;
+            const u32 tempY = currY + glyphHeight;
+            u32 tempX;
+            GLYPH_COPY(currY, tempY, currX, temp, gCurGlyph.gfxBufferTop);
+            tempX = currX + glyphWidth;
+            GLYPH_COPY(currY, tempY, temp, tempX, gCurGlyph.gfxBufferTop + 8);
+        }
+        else
+        { 
+            const u32 temp = currX + 8;
+            const u32 temp2 = currY + 8;
+            u32 tempX, tempY;
+            GLYPH_COPY(currY, temp2, currX, temp, gCurGlyph.gfxBufferTop);
+            tempX = currX + glyphWidth;
+            
+            
+            GLYPH_COPY(currY, temp2, temp, tempX, gCurGlyph.gfxBufferTop + 8);
+
+            tempY = currY + glyphHeight;
+            GLYPH_COPY(temp2, tempY, currX, temp, gCurGlyph.gfxBufferBottom);
+            GLYPH_COPY(temp2, tempY, temp, tempX, gCurGlyph.gfxBufferBottom + 8);
+        }
+    }
+}
+#endif 
 void ClearTextSpan(struct TextPrinter *textPrinter, s32 width)
 {
     struct Bitmap pixels_data;
