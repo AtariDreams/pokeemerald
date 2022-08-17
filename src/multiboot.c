@@ -439,6 +439,22 @@ static int MultiBootHandShake(struct MultiBootParam *mp)
 NAKED
 static void MultiBootWaitCycles(u32 cycles)
 {
+    #if MODERN
+    asm("\
+    mov  r2, pc\n\
+    lsrs r2, 24\n\
+    movs r1, 12\n\
+    cmp  r2, 2\n\
+    beq  MultiBootWaitCyclesLoop\n\
+    movs r1, 13\n\
+    cmp  r2, 8\n\
+    beq  MultiBootWaitCyclesLoop\n\
+    movs r1, 4\n\
+    MultiBootWaitCyclesLoop:\n\
+    subs r0, r1\n\
+    bgt  MultiBootWaitCyclesLoop\n\
+    bx   lr\n");
+    #else
     asm_unified("\
     mov  r2, pc\n\
     lsrs r2, 24\n\
@@ -453,6 +469,7 @@ static void MultiBootWaitCycles(u32 cycles)
     subs r0, r1\n\
     bgt  MultiBootWaitCyclesLoop\n\
     bx   lr\n");
+    #endif
 }
 
 static void MultiBootWaitSendDone(void)

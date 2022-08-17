@@ -1,3 +1,4 @@
+#if !MODERN
 #include <stdarg.h>
 #include <stdio.h>
 #include "gba/gba.h"
@@ -174,4 +175,5 @@ void NoCashGBAPrintf(const char *pBuf, ...)
 }
 */
 
+#endif
 #endif

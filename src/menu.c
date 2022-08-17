@@ -1768,15 +1768,15 @@ void DoScheduledBgTilemapCopiesToVram(void)
 
 void ResetTempTileDataBuffers(void)
 {
-    int i;
-    for (i = 0; i < (int)ARRAY_COUNT(sTempTileDataBuffer); i++)
+    m32 i;
+    for (i = 0; i < (m32)ARRAY_COUNT(sTempTileDataBuffer); i++)
         sTempTileDataBuffer[i] = NULL;
     sTempTileDataBufferIdx = 0;
 }
 
 bool8 FreeTempTileDataBuffersIfPossible(void)
 {
-    int i;
+    m32 i;
 
     if (!IsDma3ManagerBusyWithBgCopy())
     {
@@ -1926,6 +1926,7 @@ void ResetBgPositions(void)
 
 void BgDmaFill(u32 bg, u8 value, int offset, int size)
 {
+    // TODO: find out the best type for this sometime
     int temp = (!GetBgAttribute(bg, BG_ATTR_PALETTEMODE)) ? 32 : 64;
     void *addr = (void *)((GetBgAttribute(bg, BG_ATTR_CHARBASEINDEX) * 0x4000) + (GetBgAttribute(bg, BG_ATTR_BASETILE) + offset) * temp);
     RequestDma3Fill(value << 24 | value << 16 | value << 8 | value, VRAM + addr, size * temp, 1);
@@ -2099,8 +2100,8 @@ void ListMenuLoadStdPalAt(u8 palOffset, u8 palId)
 
     switch (palId)
     {
-        case 0:
         default:
+        case 0:
             palette = gMenuInfoElements1_Pal;
             break;
         case 1:

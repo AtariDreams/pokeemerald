@@ -1297,7 +1297,7 @@ static u32 GetBgType(u8 bg)
     return BG_TYPE_NONE;
 }
 
-static PURE bool32 IsInvalidBg32(u8 bg)
+static CONST bool32 IsInvalidBg32(u8 bg)
 {
     if (bg >= NUM_BACKGROUNDS)
         return TRUE;
