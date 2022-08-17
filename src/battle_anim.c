@@ -327,7 +327,7 @@ static void RunAnimScriptCommand(void)
 {
     do
     {
-        sScriptCmdTable[sBattleAnimScriptPtr[0]]();
+        sScriptCmdTable[*sBattleAnimScriptPtr]();
     } while (sAnimFramesToWait == 0 && gAnimScriptActive);
 }
 
@@ -362,6 +362,7 @@ static void Cmd_createsprite(void)
     s32 i;
     const struct SpriteTemplate *template;
     u8 argVar;
+    s8 argVar2;
     u8 argsCount;
     s16 subpriority;
 
@@ -369,10 +370,10 @@ static void Cmd_createsprite(void)
     template = (const struct SpriteTemplate *)(T2_READ_32(sBattleAnimScriptPtr));
     sBattleAnimScriptPtr += 4;
 
-    argVar = sBattleAnimScriptPtr[0];
+    argVar = *sBattleAnimScriptPtr;
     sBattleAnimScriptPtr++;
 
-    argsCount = sBattleAnimScriptPtr[0];
+    argsCount = *sBattleAnimScriptPtr;
     sBattleAnimScriptPtr++;
     for (i = 0; i < argsCount; i++)
     {
@@ -380,15 +381,16 @@ static void Cmd_createsprite(void)
         sBattleAnimScriptPtr += 2;
     }
 
+    //TODO: Fix signed and unsigned shenanigans
     if (argVar & ANIMSPRITE_IS_TARGET)
     {
         argVar ^= ANIMSPRITE_IS_TARGET;
         if (argVar >= 64)
-            argVar -= 64;
+            argVar2 = argVar - 64;
         else
-            argVar *= -1;
+            argVar2 = -argVar;
 
-        subpriority = GetBattlerSpriteSubpriority(gBattleAnimTarget) + (s8)(argVar);
+        subpriority = GetBattlerSpriteSubpriority(gBattleAnimTarget) + argVar2;
     }
     else
     {
