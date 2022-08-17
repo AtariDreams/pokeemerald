@@ -1601,7 +1601,11 @@ static bool32 UpdateRandomTrainerRematches(const struct RematchTrainer *table, u
             }
             else if (FlagGet(FLAG_MATCH_CALL_REGISTERED + i)
             // Should be < 30, since it is 0 based. Documentation says 30%. Error makes it 31%
+            #if !MODERN
              && (Random() % 100) <= 30)  // 31% chance of getting a rematch.
+            #else
+            && Mod(Random(), 10) < 3)
+            #endif
             {
                 SetRematchIdForTrainer(table, i);
                 ret = TRUE;

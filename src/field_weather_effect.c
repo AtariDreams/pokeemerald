@@ -562,6 +562,7 @@ static void StartRainSpriteFall(struct Sprite *sprite)
 
     numFallingFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][0];
 
+    #if !MODERN
     // all the tileX stuff here is useless can be removed, but needed to match
     tileX = sprite->tRandom % 30;
     sprite->tPosX = tileX * 8; // Useless assignment, leftover from before fixed-point values were used
@@ -574,10 +575,18 @@ static void StartRainSpriteFall(struct Sprite *sprite)
 
     sprite->tPosY = tileY;
     sprite->tPosY <<= 7; // This is tileX * 8, using a fixed-point value with 4 decimal places
+    #else
+    sprite->tPosX = (Div(sprite->tRandom, 30) << 7) - sRainSpriteMovement[gWeatherPtr->isDownpour][0] * numFallingFrames;
+    sprite->tPosY = (Mod(sprite->tRandom, 30) << 7) - sRainSpriteMovement[gWeatherPtr->isDownpour][1] * numFallingFrames;
+    #endif
+
+
 
     // "Rewind" the rain sprites, from their ending position.
+    #if !MODERN
     sprite->tPosX -= sRainSpriteMovement[gWeatherPtr->isDownpour][0] * numFallingFrames;
     sprite->tPosY -= sRainSpriteMovement[gWeatherPtr->isDownpour][1] * numFallingFrames;
+    #endif
 
     StartSpriteAnim(sprite, 0);
     sprite->tState = 0;
