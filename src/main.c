@@ -254,6 +254,26 @@ static void ReadKeys(void)
     // BUG: Key repeat won't work when pressing L using L=A button mode
     // because it compares the raw key input with the remapped held keys.
     // Note that newAndRepeatedKeys is never remapped either.
+    #ifdef BUGFIX
+    gMain.heldKeysRaw = keyInput;
+    gMain.heldKeys = gMain.heldKeysRaw;
+
+    // Remap L to A if the L=A option is enabled.
+    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+    {
+        if (JOY_NEW(L_BUTTON))
+        {
+            gMain.newKeys |= A_BUTTON;
+            keyInput |= L_BUTTON;
+        }
+
+        if (JOY_HELD(L_BUTTON))
+        {
+            gMain.heldKeys |= A_BUTTON;
+            keyInput |= L_BUTTON;
+        }
+    }
+    #endif
 
     if (keyInput != 0 && gMain.heldKeys == keyInput)
     {
@@ -271,6 +291,7 @@ static void ReadKeys(void)
         gMain.keyRepeatCounter = gKeyRepeatStartDelay;
     }
 
+    #ifndef BUGFIX
     gMain.heldKeysRaw = keyInput;
     gMain.heldKeys = gMain.heldKeysRaw;
 
@@ -283,6 +304,7 @@ static void ReadKeys(void)
         if (JOY_HELD(L_BUTTON))
             gMain.heldKeys |= A_BUTTON;
     }
+    #endif
 
     if (gMain.newKeys & gMain.watchedKeysMask)
         gMain.watchedKeysPressed = TRUE;
