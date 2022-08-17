@@ -315,13 +315,17 @@ void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves)
 
 void BattleAI_SetupAIData(u8 defaultScoreMoves)
 {
-    s32 i;
+    m32 i;
     u8 *data = (u8 *)AI_THINKING_STRUCT;
     u8 moveLimitations;
 
     // Clear AI data.
+    #if !MODERN
     for (i = 0; i < sizeof(struct AI_ThinkingStruct); i++)
         data[i] = 0;
+    #else
+    memset(gBattleResources->ai, 0, sizeof(struct AI_ThinkingStruct));
+    #endif
 
     // Conditional score reset, unlike Ruby.
     for (i = 0; i < MAX_MON_MOVES; i++)
@@ -402,7 +406,7 @@ static u8 ChooseMoveOrAction_Singles(void)
     u8 currentMoveArray[MAX_MON_MOVES];
     u8 consideredMoveArray[MAX_MON_MOVES];
     u8 numOfBestMoves;
-    s32 i;
+    m32 i;
 
     RecordLastUsedMoveByTarget();
 
@@ -758,7 +762,7 @@ static void Cmd_if_hp_equal(void)
     // Result has to be cast to u32 to match because it was originally assigned to one. We can just do the calculation in the if statement and let the compiler decide
     if ((u32)(100 * gBattleMons[battlerId].hp / gBattleMons[battlerId].maxHP) == gAIScriptPtr[2])
     #else
-    if(gBattleMons[battlerId].hp * 100/gBattleMons[battlerId].maxHP == gAIScriptPtr[2])
+    if(Div(gBattleMons[battlerId].hp * 100, gBattleMons[battlerId].maxHP) == gAIScriptPtr[2])
     #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
     else
@@ -778,7 +782,7 @@ static void Cmd_if_hp_not_equal(void)
     // Result has to be cast to u32 to match because it was originally assigned to one. We can just do the calculation in the if statement and let the compiler decide
     if ((u32)(100 * gBattleMons[battlerId].hp / gBattleMons[battlerId].maxHP) != gAIScriptPtr[2])
     #else
-    if(gBattleMons[battlerId].hp * 100/gBattleMons[battlerId].maxHP != gAIScriptPtr[2])
+    if(Div(gBattleMons[battlerId].hp * 100, gBattleMons[battlerId].maxHP) != gAIScriptPtr[2])
     #endif
         gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 3);
     else
@@ -1108,7 +1112,7 @@ static void Cmd_if_user_has_attacking_move(void)
 
 static void Cmd_if_user_has_no_attacking_moves(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
@@ -1188,7 +1192,7 @@ static void Cmd_get_considered_move_power(void)
 
 static void Cmd_get_how_powerful_move_is(void)
 {
-    s32 i, checkedMove;
+    m32 i, checkedMove;
     s32 moveDmgs[MAX_MON_MOVES];
 
     for (i = 0; sIgnoredPowerfulMoveEffects[i] != IGNORED_MOVES_END; i++)
@@ -1223,7 +1227,11 @@ static void Cmd_get_how_powerful_move_is(void)
                 gCurrentMove = gBattleMons[sBattler_AI].moves[checkedMove];
                 AI_CalcDmg(sBattler_AI, gBattlerTarget);
                 TypeCalc(gCurrentMove, sBattler_AI, gBattlerTarget);
+                #if !MODERN
                 moveDmgs[checkedMove] = gBattleMoveDamage * AI_THINKING_STRUCT->simulatedRNG[checkedMove] / 100;
+                #else
+                moveDmgs[checkedMove] = Div(gBattleMoveDamage * AI_THINKING_STRUCT->simulatedRNG[checkedMove], 100);
+                #endif
                 if (moveDmgs[checkedMove] == 0)
                     moveDmgs[checkedMove] = 1;
             }
@@ -1309,7 +1317,7 @@ static void Cmd_count_usable_party_mons(void)
     u8 battlerId;
     u8 battlerOnField1, battlerOnField2;
     struct Pokemon *party;
-    s32 i;
+    m32 i;
 
     AI_THINKING_STRUCT->funcResult = 0;
 
