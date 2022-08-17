@@ -31,10 +31,10 @@ extern const struct CompressedSpriteSheet gMonFrontPicTable[];
 EWRAM_DATA static u8 sMailboxWindowIds[MAILBOXWIN_COUNT] = {0};
 EWRAM_DATA static struct ListMenuItem *sMailboxList = NULL;
 
-static void MailboxMenu_MoveCursorFunc(s32, bool8, struct ListMenu *);
+static void MailboxMenu_MoveCursorFunc(u32, u8);
 static void ConditionGraph_CalcRightHalf(struct ConditionGraph *);
 static void ConditionGraph_CalcLeftHalf(struct ConditionGraph *);
-static void MoveRelearnerCursorCallback(s32, bool8, struct ListMenu *);
+static void MoveRelearnerCursorCallback(u32, u8);
 static void MoveRelearnerDummy(void);
 static void SetNextConditionSparkle(struct Sprite *);
 static void SpriteCB_ConditionSparkle(struct Sprite *);
@@ -291,7 +291,7 @@ u8 MailboxMenu_CreateList(struct PlayerPCItemPageStruct *page)
     return ListMenuInit(&gMultiuseListMenuTemplate, page->itemsAbove, page->cursorPos);
 }
 
-static void MailboxMenu_MoveCursorFunc(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void MailboxMenu_MoveCursorFunc(u32 itemIndex, bool8 onInit)
 {
     if (onInit != TRUE)
         PlaySE(SE_SELECT);
@@ -847,7 +847,7 @@ static void MoveRelearnerMenuLoadContestMoveDescription(u32 chosenMove)
     CopyWindowToVram(1, COPYWIN_GFX);
 }
 
-static void MoveRelearnerCursorCallback(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void MoveRelearnerCursorCallback(u32 itemIndex, bool8 onInit)
 {
     if (onInit != TRUE)
         PlaySE(SE_SELECT);

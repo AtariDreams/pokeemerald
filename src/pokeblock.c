@@ -105,7 +105,7 @@ static void LimitMenuScrollAndRow(void);
 static void SetInitialScroll(void);
 static void UpdatePokeblockList(void);
 static void CreateScrollArrows(void);
-static void MovePokeblockMenuCursor(s32, bool8, struct ListMenu *);
+static void MovePokeblockMenuCursor(u32, u8);
 static void DrawPokeblockMenuTitleText(void);
 static void DrawPokeblockMenuHighlight(u16, u16);
 static void PutPokeblockListMenuString(u8 *, u16);
@@ -747,7 +747,7 @@ static void PutPokeblockListMenuString(u8 *dst, u16 pkblId)
     StringExpandPlaceholders(txtPtr, gText_LvVar1);
 }
 
-static void MovePokeblockMenuCursor(s32 pkblId, bool8 onInit, struct ListMenu *list)
+static void MovePokeblockMenuCursor(u32 pkblId, bool8 onInit)
 {
     if (onInit != TRUE)
     {

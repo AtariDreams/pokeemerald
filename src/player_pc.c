@@ -171,9 +171,9 @@ static void ItemStorage_UpdateSwapLinePos(u8);
 static void ItemStorage_ProcessItemSwapInput(u8);
 static void ItemStorage_EraseItemIcon(void);
 static void ItemStorage_DrawItemIcon(u16);
-static void ItemStorage_PrintDescription(s32);
+static void ItemStorage_PrintDescription(u32);
 static void ItemStorage_EraseMainMenu(u8);
-static void ItemStorage_MoveCursor(s32, bool8, struct ListMenu *);
+static void ItemStorage_MoveCursor(u32, bool8);
 static void ItemStorage_PrintMenuItem(u8, u32, u8);
 
 static EWRAM_DATA const u8 *sTopMenuOptionOrder = NULL;
@@ -1005,7 +1005,7 @@ void CopyItemName_PlayerPC(u8 *string, u16 itemId)
     CopyItemName(itemId, string);
 }
 
-static void ItemStorage_MoveCursor(s32 id, bool8 onInit, struct ListMenu *list)
+static void ItemStorage_MoveCursor(u32 id, bool8 onInit)
 {
     if (onInit != TRUE)
         PlaySE(SE_SELECT);
@@ -1037,7 +1037,7 @@ static void ItemStorage_PrintMenuItem(u8 windowId, u32 id, u8 yOffset)
     }
 }
 
-static void ItemStorage_PrintDescription(s32 id)
+static void ItemStorage_PrintDescription(u32 id)
 {
     const u8 *description;
     u8 windowId = sItemStorageMenu->windowIds[ITEMPC_WIN_MESSAGE];

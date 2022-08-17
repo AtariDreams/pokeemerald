@@ -30,7 +30,7 @@ struct ListMenuItem
 struct ListMenuTemplate
 {
     const struct ListMenuItem *items;
-    void (* moveCursorFunc)(s32 itemIndex, bool8 onInit, struct ListMenu *list);
+    void (* moveCursorFunc)(u32 itemIndex, bool8 onInit);
     void (* itemPrintFunc)(u8 windowId, u32 itemId, u8 y);
     u16 totalItems;
     u16 maxShowed;
@@ -111,7 +111,7 @@ void ListMenuGetCurrentItemArrayId(u8 listTaskId, u16 *arrayId);
 void ListMenuGetScrollAndRow(u8 listTaskId, u16 *scrollOffset, u16 *selectedRow);
 u16 ListMenuGetYCoordForPrintingArrowCursor(u8 listTaskId);
 void ListMenuOverrideSetColors(u8 cursorPal, u8 fillValue, u8 cursorShadowPal);
-void ListMenuDefaultCursorMoveFunc(s32 itemIndex, u8 onInit, struct ListMenu *list);
+void ListMenuDefaultCursorMoveFunc(u32 itemIndex, u8 onInit);
 s32 ListMenuGetUnkIndicatorsStructFields(u8 taskId, u8 field);
 void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, s32 value);
 u8 AddScrollIndicatorArrowPair(const struct ScrollArrowsTemplate *arrowInfo, u16 *scrollOffset);

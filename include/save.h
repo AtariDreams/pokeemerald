@@ -62,7 +62,7 @@ enum
 // and the size of that data. Size cannot be greater than SECTOR_DATA_SIZE.
 struct SaveSectorLocation
 {
-    void *data;
+    u8 *data;
     u16 size;
 };
 
