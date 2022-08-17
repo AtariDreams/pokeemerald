@@ -9,7 +9,6 @@ static u8 FindFirstActiveTask(void);
 void ResetTasks(void)
 {
     u8 i;
-
     for (i = 0; i < NUM_TASKS; i++)
     {
         gTasks[i].isActive = FALSE;
@@ -165,7 +164,11 @@ bool8 FuncIsActiveTask(TaskFunc func)
 
 u8 FindTaskIdByFunc(TaskFunc func)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     for (i = 0; i < NUM_TASKS; i++)
         if (gTasks[i].isActive == TRUE && gTasks[i].func == func)
