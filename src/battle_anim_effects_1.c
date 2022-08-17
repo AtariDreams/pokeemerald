@@ -7233,17 +7233,17 @@ static void AnimAirWaveProjectile(struct Sprite *sprite)
     s16 c;
 
     struct Task* task = &gTasks[sprite->data[7]];
-    sprite->data[1] += (-2 & task->data[7]);
-    sprite->data[2] += (-2 & task->data[8]);
+    sprite->data[1] += (task->data[7] & ~1);
+    sprite->data[2] += (task->data[8] & ~1);
     if (1 & task->data[7])
-        sprite->x2 = ((u16)sprite->data[1] >> 8) * -1;
+        sprite->x2 = -((u16)sprite->data[1] >> 8);
     else
         sprite->x2 = (u16)sprite->data[1] >> 8;
 
-    if (1 & task->data[8])
-        sprite->y2 = ((u16)sprite->data[2] / 256u) * -1;
+    if (task->data[8] & 1)
+        sprite->y2 = -((u16)sprite->data[2] >> 8);
     else
-        sprite->y2 = (u16)sprite->data[2] / 256u;
+        sprite->y2 = (u16)sprite->data[2] >> 8;
 
     if (sprite->data[0]-- <= 0)
     {
