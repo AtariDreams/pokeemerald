@@ -19,9 +19,9 @@ struct PulseBlendPalette
     u8 paletteSelector;
     u8 blendCoeff:4;
     u8 fadeDirection:1;
-    s8 unk1_5:1;
-    s8 available:1;
-    u32 inUse:1;
+    u8 unk1_5:1;
+    u8 available:1;
+    u8 inUse:1;
     u8 delayCounter;
     u8 fadeCycleCounter;
     struct PulseBlendSettings pulseBlendSettings;
@@ -61,7 +61,6 @@ struct RouletteFlashPalette
 struct RouletteFlashUtil
 {
     u8 enabled;
-    u8 unused;
     u16 flags;
     struct RouletteFlashPalette palettes[16];
 };

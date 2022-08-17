@@ -232,19 +232,12 @@ int InitPulseBlendPaletteSettings(struct PulseBlend *pulseBlend, const struct Pu
     u8 i = 0;
     struct PulseBlendPalette *pulseBlendPalette = NULL;
 
-    if (!pulseBlend->pulseBlendPalettes[0].inUse)
+    for (; i < 16; i++)
     {
-        pulseBlendPalette = &pulseBlend->pulseBlendPalettes[0];
-    }
-    else
-    {
-        while (++i < 16)
+        if (!pulseBlend->pulseBlendPalettes[i].inUse)
         {
-            if (!pulseBlend->pulseBlendPalettes[i].inUse)
-            {
-                pulseBlendPalette = &pulseBlend->pulseBlendPalettes[i];
-                break;
-            }
+            pulseBlendPalette = &pulseBlend->pulseBlendPalettes[i];
+            break;
         }
     }
 
@@ -288,6 +281,7 @@ void UnloadUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendP
     if (!multiSelection)
     {
         ClearPulseBlendPalettesSettings(&pulseBlend->pulseBlendPalettes[pulseBlendPaletteSelector & 0xF]);
+        return;
     }
     else
     {
@@ -310,21 +304,19 @@ void MarkUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendPal
         i = pulseBlendPaletteSelector & 0xF;
         pulseBlend->pulseBlendPalettes[i].available = 0;
         pulseBlend->usedPulseBlendPalettes |= 1 << i;
+        return;
     }
-    else
+
+    for (i = 0; i < 16; i++)
     {
-        for (i = 0; i < 16; i++)
+        if (!(pulseBlendPaletteSelector & 1) || !pulseBlend->pulseBlendPalettes[i].inUse || !pulseBlend->pulseBlendPalettes[i].available)
         {
-            if (!(pulseBlendPaletteSelector & 1) || !pulseBlend->pulseBlendPalettes[i].inUse || !pulseBlend->pulseBlendPalettes[i].available)
-            {
-                pulseBlendPaletteSelector <<= 1;
-            }
-            else
-            {
-                pulseBlend->pulseBlendPalettes[i].available = 0;
-                pulseBlend->usedPulseBlendPalettes |= 1 << i;
-            }
+            pulseBlendPaletteSelector <<= 1;
+            continue;
         }
+
+        pulseBlend->pulseBlendPalettes[i].available = 0;
+        pulseBlend->usedPulseBlendPalettes |= 1 << i;
     }
 }
 
@@ -348,28 +340,26 @@ void UnmarkUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendP
             pulseBlendPalette->available = 1;
             pulseBlend->usedPulseBlendPalettes &= ~(1 << j);
         }
+        return;
     }
-    else
-    {
-        for (j = 0; j < 16; j++)
-        {
-            pulseBlendPalette = &pulseBlend->pulseBlendPalettes[j];
-            if (!(pulseBlendPaletteSelector & 1) || pulseBlendPalette->available || !pulseBlendPalette->inUse)
-            {
-                pulseBlendPaletteSelector <<= 1;
-            }
-            else
-            {
-                if (pulseBlendPalette->pulseBlendSettings.restorePaletteOnUnload)
-                {
-                    for (i = pulseBlendPalette->pulseBlendSettings.paletteOffset; i < pulseBlendPalette->pulseBlendSettings.paletteOffset + pulseBlendPalette->pulseBlendSettings.numColors; i++)
-                        gPlttBufferFaded[i] = gPlttBufferUnfaded[i];
-                }
 
-                pulseBlendPalette->available = 1;
-                pulseBlend->usedPulseBlendPalettes &= ~(1 << j);
-            }
+    for (j = 0; j < 16; j++)
+    {
+        pulseBlendPalette = &pulseBlend->pulseBlendPalettes[j];
+        if (!(pulseBlendPaletteSelector & 1) || pulseBlendPalette->available || !pulseBlendPalette->inUse)
+        {
+            pulseBlendPaletteSelector <<= 1;
+            continue;
         }
+
+        if (pulseBlendPalette->pulseBlendSettings.restorePaletteOnUnload)
+        {
+            for (i = pulseBlendPalette->pulseBlendSettings.paletteOffset; i < pulseBlendPalette->pulseBlendSettings.paletteOffset + pulseBlendPalette->pulseBlendSettings.numColors; i++)
+                gPlttBufferFaded[i] = gPlttBufferUnfaded[i];
+        }
+
+        pulseBlendPalette->available = 1;
+        pulseBlend->usedPulseBlendPalettes &= ~(1 << j);
     }
 }
 
@@ -385,7 +375,7 @@ void UpdatePulseBlend(struct PulseBlend *pulseBlend)
             pulseBlendPalette = &pulseBlend->pulseBlendPalettes[i];
             if ((!pulseBlendPalette->available && pulseBlendPalette->inUse) && (!gPaletteFade.active || !pulseBlendPalette->pulseBlendSettings.unk7_7))
             {
-                if (--pulseBlendPalette->delayCounter == 0xFF)
+                if (pulseBlendPalette->delayCounter-- == 0)
                 {
                     pulseBlendPalette->delayCounter = pulseBlendPalette->pulseBlendSettings.delay;
                     BlendPalette(pulseBlendPalette->pulseBlendSettings.paletteOffset, pulseBlendPalette->pulseBlendSettings.numColors, pulseBlendPalette->blendCoeff, pulseBlendPalette->pulseBlendSettings.blendColor);
