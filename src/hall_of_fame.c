@@ -534,6 +534,7 @@ static void Task_Hof_TrySaveData(u8 taskId)
         TRY_FREE_AND_SET_NULL(sHofMonPtr);
 
         DestroyTask(taskId);
+        return;
     }
     else
     {
@@ -614,15 +615,21 @@ static void Task_Hof_PrintMonInfoAfterAnimating(u8 taskId)
 
 static void Task_Hof_TryDisplayAnotherMon(u8 taskId)
 {
+    #if !MODERN
     u16 currPokeID = gTasks[taskId].tDisplayedMonId;
     struct HallofFameMon* currMon = &sHofMonPtr->mon[currPokeID];
-
+#endif
     if (gTasks[taskId].tFrameCount != 0)
     {
         gTasks[taskId].tFrameCount--;
+        return;
     }
     else
     {
+        #if MODERN
+            u16 currPokeID = gTasks[taskId].tDisplayedMonId;
+            struct HallofFameMon* currMon = &sHofMonPtr->mon[currPokeID];
+        #endif
         sHofFadePalettes |= (0x10000 << gSprites[gTasks[taskId].tMonSpriteId(currPokeID)].oam.paletteNum);
         if (gTasks[taskId].tDisplayedMonId < PARTY_SIZE - 1 && currMon[1].species != SPECIES_NONE) // there is another pokemon to display
         {
@@ -630,11 +637,9 @@ static void Task_Hof_TryDisplayAnotherMon(u8 taskId)
             BeginNormalPaletteFade(sHofFadePalettes, 0, 12, 12, RGB(16, 29, 24));
             gSprites[gTasks[taskId].tMonSpriteId(currPokeID)].oam.priority = 1;
             gTasks[taskId].func = Task_Hof_DisplayMon;
+            return;
         }
-        else
-        {
-            gTasks[taskId].func = Task_Hof_PaletteFadeAndPrintWelcomeText;
-        }
+        gTasks[taskId].func = Task_Hof_PaletteFadeAndPrintWelcomeText;
     }
 }
 
@@ -657,6 +662,7 @@ static void Task_Hof_PaletteFadeAndPrintWelcomeText(u8 taskId)
 
 static void Task_Hof_DoConfetti(u8 taskId)
 {
+    u16 i;
     if (gTasks[taskId].tFrameCount != 0)
     {
         gTasks[taskId].tFrameCount--;
@@ -665,21 +671,19 @@ static void Task_Hof_DoConfetti(u8 taskId)
         // For the last 110 frames wait for the existing confetti to fall offscreen
         if ((gTasks[taskId].tFrameCount & 3) == 0 && gTasks[taskId].tFrameCount > 110)
             CreateHofConfettiSprite();
+        return;
     }
-    else
+
+    for (i = 0; i < PARTY_SIZE; i++)
     {
-        u16 i;
-        for (i = 0; i < PARTY_SIZE; i++)
-        {
-            if (gTasks[taskId].tMonSpriteId(i) != SPRITE_NONE)
-                gSprites[gTasks[taskId].tMonSpriteId(i)].oam.priority = 1;
-        }
-        BeginNormalPaletteFade(sHofFadePalettes, 0, 12, 12, RGB(16, 29, 24));
-        FillWindowPixelBuffer(0, PIXEL_FILL(0));
-        CopyWindowToVram(0, COPYWIN_FULL);
-        gTasks[taskId].tFrameCount = 7;
-        gTasks[taskId].func = Task_Hof_WaitToDisplayPlayer;
+        if (gTasks[taskId].tMonSpriteId(i) != SPRITE_NONE)
+            gSprites[gTasks[taskId].tMonSpriteId(i)].oam.priority = 1;
     }
+    BeginNormalPaletteFade(sHofFadePalettes, 0, 12, 12, RGB(16, 29, 24));
+    FillWindowPixelBuffer(0, PIXEL_FILL(0));
+    CopyWindowToVram(0, COPYWIN_FULL);
+    gTasks[taskId].tFrameCount = 7;
+    gTasks[taskId].func = Task_Hof_WaitToDisplayPlayer;
 }
 
 static void Task_Hof_WaitToDisplayPlayer(u8 taskId)
@@ -687,12 +691,11 @@ static void Task_Hof_WaitToDisplayPlayer(u8 taskId)
     if (gTasks[taskId].tFrameCount >= 16)
     {
         gTasks[taskId].func = Task_Hof_DisplayPlayer;
+        return;
     }
-    else
-    {
-        gTasks[taskId].tFrameCount++;
-        SetGpuReg(REG_OFFSET_BLDALPHA, gTasks[taskId].tFrameCount * 256);
-    }
+
+    gTasks[taskId].tFrameCount++;
+    SetGpuReg(REG_OFFSET_BLDALPHA, gTasks[taskId].tFrameCount * 256);
 }
 
 static void Task_Hof_DisplayPlayer(u8 taskId)
@@ -714,20 +717,20 @@ static void Task_Hof_WaitAndPrintPlayerInfo(u8 taskId)
     if (gTasks[taskId].tFrameCount != 0)
     {
         gTasks[taskId].tFrameCount--;
+        return;
     }
-    else if (gSprites[gTasks[taskId].tPlayerSpriteID].x != 192)
+    if (gSprites[gTasks[taskId].tPlayerSpriteID].x != 192)
     {
         gSprites[gTasks[taskId].tPlayerSpriteID].x++;
+        return;
     }
-    else
-    {
-        FillBgTilemapBufferRect_Palette0(0, 0, 0, 0, 0x20, 0x20);
-        HallOfFame_PrintPlayerInfo(1, 2);
-        DrawDialogueFrame(0, FALSE);
-        AddTextPrinterParameterized2(0, FONT_NORMAL, gText_LeagueChamp, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
-        CopyWindowToVram(0, COPYWIN_FULL);
-        gTasks[taskId].func = Task_Hof_ExitOnKeyPressed;
-    }
+
+    FillBgTilemapBufferRect_Palette0(0, 0, 0, 0, 0x20, 0x20);
+    HallOfFame_PrintPlayerInfo(1, 2);
+    DrawDialogueFrame(0, FALSE);
+    AddTextPrinterParameterized2(0, FONT_NORMAL, gText_LeagueChamp, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
+    CopyWindowToVram(0, COPYWIN_FULL);
+    gTasks[taskId].func = Task_Hof_ExitOnKeyPressed;
 }
 
 static void Task_Hof_ExitOnKeyPressed(u8 taskId)
@@ -750,7 +753,7 @@ static void Task_Hof_HandleExit(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
-        s32 i;
+        m32 i;
 
         for (i = 0; i < PARTY_SIZE; i++)
         {
@@ -801,8 +804,8 @@ void CB2_DoHallOfFamePC(void)
 {
     switch (gMain.state)
     {
-    case 0:
     default:
+    case 0: 
         SetVBlankCallback(NULL);
         ClearVramOamPltt_LoadHofPal();
         sHofGfxPtr = AllocZeroed(sizeof(*sHofGfxPtr));
