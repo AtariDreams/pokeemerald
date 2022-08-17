@@ -418,7 +418,11 @@ static void DoHitAnimBlinkSpriteEffect(void)
     }
     else
     {
+        #if !MODERN
         if ((gSprites[spriteId].data[1] % 4) == 0)
+        #else
+        if ((gSprites[spriteId].data[1] & 3) == 0)
+        #endif
             gSprites[spriteId].invisible ^= 1;
         gSprites[spriteId].data[1]++;
     }
