@@ -118,8 +118,8 @@ s8 DecorationRemove(u8 decor)
 
 void CondenseDecorationsInCategory(u8 category)
 {
-    m32 i;
-    m32 j;
+    m8 i;
+    m8 j;
     u8 tmp;
 
     for (i = 0; i < gDecorationInventories[category].size; i ++)
@@ -138,7 +138,7 @@ void CondenseDecorationsInCategory(u8 category)
 
 u8 GetNumOwnedDecorationsInCategory(u8 category)
 {
-    m32 i;
+    m8 i;
     u8 ct;
 
     ct = 0;
