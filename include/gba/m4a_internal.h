@@ -353,6 +353,9 @@ struct MusicPlayer
 {
     struct MusicPlayerInfo *info;
     struct MusicPlayerTrack *track;
+    // GF Library said u16, but we don't have full code for that.
+    // we have a u8 for the older lib though
+    // TODO: investigate
     u8 numTracks;
     u16 unk_A;
 };
