@@ -399,6 +399,47 @@ u8 GetBattlerYCoordWithElevation(u8 battlerId)
     return y;
 }
 
+#if MODERN
+u8 GetAnimBattlerSpriteId(u8 animBattler)
+{
+    if (animBattler == ANIM_ATTACKER)
+    {
+        if (IsBattlerSpritePresent(gBattleAnimAttacker))
+        {
+            return gBattlerSpriteIds[gBattleAnimAttacker];
+        }
+        else
+        {
+            return SPRITE_NONE;
+        }
+    }
+    else if (animBattler == ANIM_TARGET)
+    {
+        if (IsBattlerSpritePresent(gBattleAnimTarget))
+        {
+            return gBattlerSpriteIds[gBattleAnimTarget];
+        }
+        else
+        {
+            return SPRITE_NONE;
+        }
+    }
+    else if (animBattler == ANIM_ATK_PARTNER)
+    {
+        if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)))
+            return gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimAttacker)];
+        else
+            return SPRITE_NONE;
+    }
+    else
+    {
+        if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimTarget)))
+            return gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimTarget)];
+        else
+            return SPRITE_NONE;
+    }
+}
+#else
 u8 GetAnimBattlerSpriteId(u8 animBattler)
 {
     u8 *sprites;
@@ -442,17 +483,16 @@ u8 GetAnimBattlerSpriteId(u8 animBattler)
             return SPRITE_NONE;
     }
 }
-
-void StoreSpriteCallbackInData6(struct Sprite *sprite, void (*callback)(struct Sprite *))
+#endif
+void StoreSpriteCallbackInData6(struct Sprite *sprite, void (*callback)(struct Sprite*))
 {
-    sprite->data[6] = (u32)(callback) & 0xffff;
-    sprite->data[7] = (u32)(callback) >> 16;
+    sprite->data[6] = (s16)((u32)(callback) & 0xffff);
+    sprite->data[7] = (s16)((u32)(callback) >> 16);
 }
 
 void SetCallbackToStoredInData6(struct Sprite *sprite)
 {
-    u32 callback = (u16)sprite->data[6] | (sprite->data[7] << 16);
-    sprite->callback = (void (*)(struct Sprite *))callback;
+    sprite->callback = (void (*)(struct Sprite *))((u16)sprite->data[6] | (sprite->data[7] << 16));
 }
 
 // Sprite data for TranslateSpriteInCircle/Ellipse and related
