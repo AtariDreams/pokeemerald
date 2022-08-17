@@ -114,6 +114,7 @@ static void ClearSavedWonderNewsMetadata(void)
 
 bool32 IsWonderNewsSameAsSaved(const u8 *news)
 {
+    #if !MODERN
     const u8 *savedNews = (const u8 *)&gSaveBlock1Ptr->mysteryGift.news;
     u32 i;
     if (!ValidateSavedWonderNews())
@@ -124,8 +125,12 @@ bool32 IsWonderNewsSameAsSaved(const u8 *news)
         if (savedNews[i] != news[i])
             return FALSE;
     }
-
-    return TRUE;
+    #else
+    if (!ValidateSavedWonderNews())
+        return FALSE;
+    
+    return !(memcmp(&gSaveBlock1Ptr->mysteryGift.news, news, sizeof(gSaveBlock1Ptr->mysteryGift.news)));
+    #endif
 }
 
 void ClearSavedWonderCardAndRelated(void)

@@ -3,7 +3,7 @@
 #include "main.h"
 #include "palette.h"
 
-#define MAX_SPRITE_COPY_REQUESTS 64
+#define MAX_SPRITE_COPY_REQUESTS MAX_SPRITES
 
 #define OAM_MATRIX_COUNT 32
 
@@ -505,7 +505,7 @@ void AddSpritesToOamBuffer(void)
 
 u8 CreateSprite(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < MAX_SPRITES; i++)
         if (!gSprites[i].inUse)
@@ -517,8 +517,11 @@ u8 CreateSprite(const struct SpriteTemplate *template, s16 x, s16 y, u8 subprior
 u8 CreateSpriteAtEnd(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority)
 {
     s16 i;
-
+    #if !MODERN
     for (i = MAX_SPRITES - 1; i > -1; i--)
+    #else
+    for (i = MAX_SPRITES - 1; i >= 0; i--)
+    #endif
         if (!gSprites[i].inUse)
             return CreateSpriteAt(i, template, x, y, subpriority);
 
@@ -625,8 +628,8 @@ void DestroySprite(struct Sprite *sprite)
     {
         if (!sprite->usingSheet)
         {
-            u16 i;
-            u16 tileEnd = (sprite->images->size / TILE_SIZE_4BPP) + sprite->oam.tileNum;
+            m16 i;
+            m16 tileEnd = (sprite->images->size / TILE_SIZE_4BPP) + sprite->oam.tileNum;
             for (i = sprite->oam.tileNum; i < tileEnd; i++)
                 FREE_SPRITE_TILE(i);
         }
@@ -636,7 +639,7 @@ void DestroySprite(struct Sprite *sprite)
 
 void ResetOamRange(u8 start, u8 end)
 {
-    u8 i;
+    m8 i;
     for (i = start; i < end; i++)
         gMain.oamBuffer[i] = *(struct OamData *)&gDummyOamData;
 }
@@ -649,22 +652,28 @@ void LoadOam(void)
 
 void ClearSpriteCopyRequests(void)
 {
-    u8 i;
+    #if !MODERN
+    m8 i;
+    #endif
 
     sShouldProcessSpriteCopyRequests = FALSE;
     sSpriteCopyRequestCount = 0;
 
-    for (i = 0; i < MAX_SPRITE_COPY_REQUESTS; i++)
+    #if !MODERN
+    for (i = 0; i < MAX_SPRITES; i++)
     {
         sSpriteCopyRequests[i].src = 0;
         sSpriteCopyRequests[i].dest = 0;
         sSpriteCopyRequests[i].size = 0;
     }
+    #else
+    memset(sSpriteCopyRequests, 0, sizeof(sSpriteCopyRequests));
+    #endif
 }
 
 void ResetOamMatrices(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < OAM_MATRIX_COUNT; i++)
     {
         // set to identity matrix
@@ -1601,7 +1610,7 @@ u8 LoadSpritePalette(const struct SpritePalette *palette)
 
 void LoadSpritePalettes(const struct SpritePalette *palettes)
 {
-    u8 i;
+    m8 i;
     for (i = 0; palettes[i].data != NULL; i++)
         if (LoadSpritePalette(&palettes[i]) == 0xFF)
             break;
@@ -1720,13 +1729,21 @@ bool8 AddSubspritesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u
             if (hFlip)
             {
                 x += sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].width;
+                #if !MODERN
                 x = ~x + 1;
+                #else
+                x = -x;
+                #endif
             }
 
             if (vFlip)
             {
                 y += sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].height;
+                #if !MODERN
                 y = ~y + 1;
+                #else
+                y = -y;
+                #endif
             }
 
             destOam[i] = *oam;
