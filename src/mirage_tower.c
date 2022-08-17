@@ -783,6 +783,6 @@ static void UpdateDisintegrationEffect(u8 *tiles, u16 randId, u8 c, u8 size, u8 
     sDebug_DisintegrationData[7] = var + ((row * 8) + col);
 
     flag = ((randId % 2) ^ 1);
-    tileMask = (c << (flag << 2)) | 15 << (((flag ^ 1) << 2));
+    tileMask = (c << (flag << 2)) | (15 << (((flag ^ 1) << 2)));
     tiles[baseOffset + (offset * 32)] &= tileMask;
 }
