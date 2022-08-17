@@ -162,6 +162,7 @@ static u16 CreatePicSprite(u16 species, u32 otId, u32 personality, bool8 isFront
     if (DecompressPic(species, personality, isFrontPic, framePics, isTrainer, ignoreDeoxys))
     {
         // debug trap?
+        // Deployment failure error
         return 0xFFFF;
     }
     for (j = 0; j < 4; j ++)
