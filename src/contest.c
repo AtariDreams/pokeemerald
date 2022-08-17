@@ -1036,7 +1036,8 @@ void LoadContestBgAfterMoveAnim(void)
     LoadContestPalettes();
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        u32 contestantWindowId = 5 + i;
+        // has to be here for some reason. agbcc makes better code without it
+        s32 contestantWindowId = 5 + i;
 
         LoadPalette(eContestTempSave.cachedWindowPalettes[contestantWindowId], 16 * (5 + gContestantTurnOrder[i]), sizeof((eContestTempSave.cachedWindowPalettes[contestantWindowId])));
     }
@@ -1084,14 +1085,14 @@ static void InitContestResources(void)
 {
     s32 i;
 
-    eContest = (struct Contest){};
+    eContest = (struct Contest){0};
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
         eContest.unk[i] = 0xFF;
     }
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        eContestantStatus[i] = (struct ContestantStatus){};
+        eContestantStatus[i] = (struct ContestantStatus){0};
     }
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
@@ -1099,9 +1100,9 @@ static void InitContestResources(void)
         eContestantStatus[i].effectStringId = CONTEST_STRING_NONE;
         eContestantStatus[i].effectStringId2 = CONTEST_STRING_NONE;
     }
-    eContestAppealResults = (struct ContestAppealMoveResults){};
-    eContestAI = (struct ContestAIInfo){};
-    *gContestResources->excitement = (struct ContestExcitement){};
+    eContestAppealResults = (struct ContestAppealMoveResults){0};
+    eContestAI = (struct ContestAIInfo){0};
+    *gContestResources->excitement = (struct ContestExcitement){0};
     memset(eContestGfxState, 0, CONTESTANT_COUNT * sizeof(struct ContestGraphicsState));
 
     if (!(gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK))
@@ -1307,7 +1308,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         gPaletteFade.bufferTransferDisabled = TRUE;
         RequestDma3Fill(0, (void *)VRAM, 0x8000, 1);
         RequestDma3Fill(0, (void *)VRAM + 0x8000, 0x8000, 1);
-        RequestDma3Fill(0, (void *)VRAM + 0x10000, 0x8000, 1);
+        RequestDma3Fill(0, (void *)OBJ_VRAM0, 0x8000, 1);
         break;
     case 1:
         LZDecompressVram(gContestInterfaceGfx, (void *)VRAM);
@@ -1324,6 +1325,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         CopyToBgTilemapBuffer(2, gContestInterfaceTilemap, 0, 0);
         CopyBgTilemapBufferToVram(2);
         // This is a bug, and copies random junk. savedJunk is never read.
+        // It probably meant to read something else? TODO: figure this out
         DmaCopy32Defvars(3, gContestResources->contestBgTilemaps[2], eContestTempSave.savedJunk, sizeof(eContestTempSave.savedJunk));
         break;
     case 5:
@@ -1355,6 +1357,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         // Unclear why judge sprite is assigned here
         // Overwritten in APPEALSTATE_SLIDE_MON_IN with the attacking contest mon
         gBattlerSpriteIds[gBattlerAttacker] = CreateJudgeSprite();
+        // Register a transparent actor instead of an enemy Pokemon
         CreateInvisibleBattleTargetSprite();
         CopyBgTilemapBufferToVram(3);
         CopyBgTilemapBufferToVram(2);
@@ -1396,7 +1399,7 @@ static void Task_RaiseCurtainAtStart(u8 taskId)
         gTasks[taskId].data[0]++;
         break;
     case 1:
-        *(s16 *)&gBattle_BG1_Y += 7;
+        gBattle_BG1_Y += 7;
         if ((s16)gBattle_BG1_Y <= DISPLAY_HEIGHT)
             break;
         gTasks[taskId].data[0]++;
@@ -1671,8 +1674,13 @@ static void Task_HideMoveSelectScreen(u8 taskId)
     }
     Contest_SetBgCopyFlags(0);
     // This seems to be a bug; it should have just copied PLTT_BUFFER_SIZE.
+    #ifdef UBFIX
+    DmaCopy32(3, gPlttBufferFaded, eContestTempSave.cachedPlttBufferFaded, PLTT_BUFFER_SIZE);
+    LoadPalette(eContestTempSave.cachedPlttBufferUnfaded, 0, PLTT_BUFFER_SIZE);
+    #else
     DmaCopy32Defvars(3, gPlttBufferFaded, eContestTempSave.cachedPlttBufferFaded, PLTT_BUFFER_SIZE * 2);
     LoadPalette(eContestTempSave.cachedPlttBufferUnfaded, 0, PLTT_BUFFER_SIZE * 2);
+    #endif 
     gTasks[taskId].data[0] = 0;
     gTasks[taskId].data[1] = 0;
     gTasks[taskId].func = Task_HideApplauseMeterForAppealStart;
