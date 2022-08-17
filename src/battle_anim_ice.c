@@ -1022,14 +1022,28 @@ static void AnimTask_HazeScrollingFog_Step(u8 taskId)
         }
         break;
     case 1:
+        #if !MODERN
         if (gTasks[taskId].data[11]++ == 0x50)
+
+        #else
+        if (gTasks[taskId].data[11] == 0x50)
+        #endif
         {
+
             gTasks[taskId].data[11] = 9;
             gTasks[taskId].data[12]++;
+            break;
         }
+        #if MODERN
+        gTasks[taskId].data[11]++;
+        #endif
         break;
     case 2:
+        #if !MODERN
         if (gTasks[taskId].data[10]++ == 3)
+        #else
+        if (gTasks[taskId].data[10] == 3)
+        #endif
         {
             gTasks[taskId].data[10] = 0;
             gTasks[taskId].data[11]--;
@@ -1040,7 +1054,11 @@ static void AnimTask_HazeScrollingFog_Step(u8 taskId)
                 gTasks[taskId].data[12]++;
                 gTasks[taskId].data[11] = 0;
             }
+            break;
         }
+        #if MODERN
+        gTasks[taskId].data[10]++;
+        #endif
         break;
     case 3:
         GetBattleAnimBg1Data(&animBg);
