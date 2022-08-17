@@ -576,7 +576,7 @@ static void rfu_CB_pollAndEndSearchChild(u8 reqCommand, u16 reqResult)
             STWI_set_Callback_M(rfu_CB_defaultCallback);
             STWI_send_SystemStatusREQ();
             if (STWI_poll_CommandEnd() == 0)
-                gRfuLinkStatus->my.id = *(u16 *)&gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket32.data[1];
+                gRfuLinkStatus->my.id = gRfuFixed->STWIBuffer->rxPacketAlloc.rfuPacket16.data[2];
         }
     }
     else if (reqCommand == ID_SC_END_REQ)

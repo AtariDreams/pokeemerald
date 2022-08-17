@@ -294,8 +294,10 @@ struct RfuPacket32
 union RfuPacket
 {
     struct RfuPacket32 rfuPacket32;
+    struct RfuPacket16 rfuPacket16;
     struct RfuPacket8 rfuPacket8;
 };
+    
 
 struct STWIStatus
 {
