@@ -527,19 +527,31 @@ static void AddPointillismPoints(u16 point)
                 switch (GET_POINT_DELTA(sPointillismPoints[point][2]) % 3)
                 {
                 case 0:
+                    #if !MODERN
                     if (red >= points[i].delta)
+                    #else
+                    if (red > points[i].delta)
+                    #endif
                         red -= points[i].delta;
                     else
                         red = 0;
                     break;
                 case 1:
+                    #if !MODERN
                     if (green >= points[i].delta)
+                    #else
+                    if (green > points[i].delta)
+                    #endif
                         green -= points[i].delta;
                     else
                         green = 0;
                     break;
                 case 2:
+                    #if !MODERN
                     if (blue >= points[i].delta)
+                    #else
+                    if (blue > points[i].delta)
+                    #endif
                         blue -= points[i].delta;
                     else
                         blue = 0;
