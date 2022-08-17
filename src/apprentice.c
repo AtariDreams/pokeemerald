@@ -1059,23 +1059,17 @@ static void SetApprenticeMonMove(void)
 
 static void InitQuestionData(void)
 {
-    u8 i;
-    u8 count;
+    m8 count;
     u8 id1, id2;
 
     #if !MODERN
+    u8 i;
     count = 0;
     for (i = 0; i < APPRENTICE_MAX_QUESTIONS; i++)
     {
         if (PLAYER_APPRENTICE.questions[i].questionId == QUESTION_ID_WIN_SPEECH)
             break;
         count++;
-    }
-    #else
-    for (count = 0; count < APPRENTICE_MAX_QUESTIONS; count++)
-    {
-        if (PLAYER_APPRENTICE.questions[count].questionId == QUESTION_ID_WIN_SPEECH)
-            break;
     }
     #endif
 
@@ -1088,34 +1082,54 @@ static void InitQuestionData(void)
             id1 = PLAYER_APPRENTICE.speciesIds[PLAYER_APPRENTICE.questionsAnswered] >> 4;
             gApprenticeQuestionData->altSpeciesId = gApprentices[PLAYER_APPRENTICE.id].species[id1];
 
-            id2 = PLAYER_APPRENTICE.speciesIds[PLAYER_APPRENTICE.questionsAnswered] & 0xF;
-            gApprenticeQuestionData->speciesId = gApprentices[PLAYER_APPRENTICE.id].species[id2];
-        }
-    }
-    else if (gSpecialVar_0x8005 == APPRENTICE_QUESTION_WHICH_MOVE)
-    {
-        if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS
-            && PLAYER_APPRENTICE.questionsAnswered < count + NUM_WHICH_MON_QUESTIONS
-            && PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].questionId == QUESTION_ID_WHICH_MOVE)
-        {
-            // count re-used as monId
-            count = PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].monId;
-            APPRENTICE_SPECIES_ID_NO_COND(id1, count);
+            id1 = PLAYER_APPRENTICE.speciesIds[PLAYER_APPRENTICE.questionsAnswered] & 0xF;
             gApprenticeQuestionData->speciesId = gApprentices[PLAYER_APPRENTICE.id].species[id1];
-            gApprenticeQuestionData->moveId1 = GetDefaultMove(count, id1, PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].moveSlot);
-            gApprenticeQuestionData->moveId2 = PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].data;
+        }
+        return;
+    }
+
+    if (gSpecialVar_0x8005 == APPRENTICE_QUESTION_WHICH_MOVE)
+    {
+        if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS)
+        {
+#if MODERN
+
+            for (count = 0; count < APPRENTICE_MAX_QUESTIONS; count++)
+            {
+                if (PLAYER_APPRENTICE.questions[count].questionId == QUESTION_ID_WIN_SPEECH)
+                    break;
+            }
+#endif
+            if (PLAYER_APPRENTICE.questionsAnswered < count + NUM_WHICH_MON_QUESTIONS && PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].questionId == QUESTION_ID_WHICH_MOVE)
+            {
+                // count re-used as monId
+                id2 = PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].monId;
+                APPRENTICE_SPECIES_ID_NO_COND(id1, id2);
+                gApprenticeQuestionData->speciesId = gApprentices[PLAYER_APPRENTICE.id].species[id1];
+                gApprenticeQuestionData->moveId1 = GetDefaultMove(id2, id1, PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].moveSlot);
+                gApprenticeQuestionData->moveId2 = PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].data;
+            }
         }
     }
     else if (gSpecialVar_0x8005 == APPRENTICE_QUESTION_WHAT_ITEM)
     {
-        if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS
-            && PLAYER_APPRENTICE.questionsAnswered < count + NUM_WHICH_MON_QUESTIONS
-            && PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].questionId == QUESTION_ID_WHAT_ITEM)
+        if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS)
         {
-            // count re-used as monId
-            count = PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].monId;
-            APPRENTICE_SPECIES_ID_NO_COND(id2, count);
-            gApprenticeQuestionData->speciesId = gApprentices[PLAYER_APPRENTICE.id].species[id2];
+#if MODERN
+
+            for (count = 0; count < APPRENTICE_MAX_QUESTIONS; count++)
+            {
+                if (PLAYER_APPRENTICE.questions[count].questionId == QUESTION_ID_WIN_SPEECH)
+                    break;
+            }
+#endif
+            if (PLAYER_APPRENTICE.questionsAnswered < count + NUM_WHICH_MON_QUESTIONS && PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].questionId == QUESTION_ID_WHAT_ITEM)
+            {
+                // count re-used as monId
+                id2 = PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].monId;
+                APPRENTICE_SPECIES_ID_NO_COND(id1, id2);
+                gApprenticeQuestionData->speciesId = gApprentices[PLAYER_APPRENTICE.id].species[id1];
+            }
         }
     }
 }
