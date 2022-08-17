@@ -202,7 +202,6 @@ SECTIONS {
         src/battle_anim_dark.o(.text);
         src/battle_anim_ground.o(.text);
         src/battle_anim_normal.o(.text);
-        src/battle_anim_utility_funcs.o(.text);
         src/battle_intro.o(.text);
         src/bike.o(.text);
         src/easy_chat.o(.text);
@@ -569,7 +568,6 @@ SECTIONS {
         src/battle_anim_dark.o(.rodata);
         src/battle_anim_ground.o(.rodata);
         src/battle_anim_normal.o(.rodata);
-        src/battle_anim_utility_funcs.o(.rodata);
         src/battle_intro.o(.rodata);
         src/bike.o(.rodata);
         src/easy_chat.o(.rodata);
