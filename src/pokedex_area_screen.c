@@ -654,7 +654,13 @@ static void Task_ShowPokedexAreaScreen(u8 taskId)
         StartAreaGlow();
         ShowBg(2);
         // TODO: check this
+        // THIS CAN ONLY BE DONE as the bg =3 in the template
+        // TODO: move that logic out and decouple it
+
+        // Since this will always be 3 anyway and TryShowPokedexAreaMap will always have the same result, we can topimize that out and more later
+        #if !MODERN
         ShowBg(3); // TryShowPokedexAreaMap will have done this already
+        #endif
         SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON);
         break;
     case 11:
