@@ -502,7 +502,7 @@ static void NamingScreen_Init(void)
 
 static void SetSpritesVisible(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < MAX_SPRITES; i++)
     {
         if (gSprites[i].inUse)
