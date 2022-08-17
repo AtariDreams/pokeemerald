@@ -17,10 +17,6 @@ struct Dma3Request
 
 static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
-// Apparently a bug happens if this is not bool, but it may be a compiler bug?
-
-// Let's find out
-// TODO: Solve the compiler bug
 static vbool8 sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
 
