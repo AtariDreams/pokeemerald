@@ -9325,10 +9325,10 @@ static void Cmd_tryimprison(void)
         {
             if (sideAttacker != GetBattlerSide(battlerId))
             {
-                s32 attackerMoveId;
+                m32 attackerMoveId;
                 for (attackerMoveId = 0; attackerMoveId < MAX_MON_MOVES; attackerMoveId++)
                 {
-                    s32 i;
+                    m32 i;
                     for (i = 0; i < MAX_MON_MOVES; i++)
                     {
                         if (gBattleMons[gBattlerAttacker].moves[attackerMoveId] == gBattleMons[battlerId].moves[i]
