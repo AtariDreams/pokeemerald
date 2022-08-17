@@ -166,7 +166,7 @@ static EWRAM_DATA struct
     u8 moveListScrollArrowTask;                          /*0x113*/
     u8 moveDisplayArrowTask;                             /*0x114*/
     u16 scrollOffset;                                    /*0x116*/
-} *sMoveRelearnerStruct = {};
+} *sMoveRelearnerStruct = NULL;
 
 static EWRAM_DATA struct {
     u16 listOffset;
