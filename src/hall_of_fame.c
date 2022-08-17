@@ -1270,23 +1270,7 @@ static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
 
 static void ClearVramOamPltt_LoadHofPal(void)
 {
-    u32 vramOffset;
-    u32 vramSize;
-    vramOffset = (VRAM);
-    vramSize = VRAM_SIZE;
-    while (TRUE)
-    {
-        DmaFill16(3, 0, vramOffset, 0x1000);
-        vramOffset += 0x1000;
-        vramSize -= 0x1000;
-        if (vramSize <= 0x1000)
-        {
-            DmaFill16(3, 0, vramOffset, vramSize);
-            break;
-        }
-    }
-
-    //DmaClearLarge16(3, (void *)VRAM, VRAM_SIZE, 0x1000);
+    DmaClearLarge16(3, (void *)VRAM, VRAM_SIZE, 0x1000);
     DmaFill32Defvars(3, 0, (void *)OAM, OAM_SIZE);
     DmaFill16Defvars(3, 0, (void *)PLTT, PLTT_SIZE);
 
@@ -1396,10 +1380,11 @@ static void SpriteCB_HofConfetti(struct Sprite *sprite)
     if (sprite->y2 > 120)
     {
         DestroySprite(sprite);
+        return;
     }
     else
     {
-        u16 rand;
+        u8 rand;
         u8 sineIdx;
 
         sprite->y2++;
@@ -1479,20 +1464,23 @@ static void UpdateDomeConfetti(struct ConfettiUtil *util)
         // Destroy confetti after it falls far enough
         gTasks[util->data[CONFETTI_TASK_ID]].tConfettiCount--;
         ConfettiUtil_Remove(util->id);
+        return;
     }
     else
     {
         // Move confetti down
         u8 sineIdx;
-        s32 rand;
+        u8 rand;
 
-        util->yDelta++;
-        util->yDelta += util->data[CONFETTI_EXTRA_Y];
+        util->yDelta += util->data[CONFETTI_EXTRA_Y] + 1;
 
         sineIdx = util->data[CONFETTI_SINE_IDX];
-        rand = Random();
-        rand &= 3;
-        rand += 8;
+        #if !MODERN
+        rand = 8 + (Random() % 4);
+        #else
+        rand = 8 + (Random() & 3);
+        #endif
+
         util->xDelta = (rand) * ((gSineTable[sineIdx])) / 256;
 
         util->data[CONFETTI_SINE_IDX] += 4;
@@ -1501,7 +1489,9 @@ static void UpdateDomeConfetti(struct ConfettiUtil *util)
 
 static void Task_DoDomeConfetti(u8 taskId)
 {
+    #if !MODERN
     u32 id = 0;
+    #endif
     u16 *data = gTasks[taskId].data;
 
     switch (tState)
@@ -1521,6 +1511,9 @@ static void Task_DoDomeConfetti(u8 taskId)
     case 1:
         if (tTimer != 0 && tTimer % 3 == 0)
         {
+            #if MODERN
+            u8 id;
+            #endif
             // Create new confetti every 3 frames
             id = ConfettiUtil_AddNew(&sOamData_Confetti,
                               TAG_CONFETTI,
@@ -1528,13 +1521,13 @@ static void Task_DoDomeConfetti(u8 taskId)
                               Random() % DISPLAY_WIDTH,
                               -(Random() % 8),
                               Random() % ARRAY_COUNT(sAnims_Confetti),
-                              id);
+                              0);
             if (id != 0xFF)
             {
                 ConfettiUtil_SetCallback(id, UpdateDomeConfetti);
 
                 // 1/4 of the confetti move an extra y coord every frame
-                if ((Random() % 4) == 0)
+                if ((Random() & 3) == 0)
                     ConfettiUtil_SetData(id, CONFETTI_EXTRA_Y, 1);
 
                 ConfettiUtil_SetData(id, CONFETTI_TASK_ID, taskId);
