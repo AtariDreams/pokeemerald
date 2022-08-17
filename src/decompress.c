@@ -218,8 +218,7 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
             if (object_size == 6)
             {
                 for (k = 0; k < 256; k++) {
-                    *dest = 0;
-                    dest++;
+                    *dest++ = 0;
                 }
             }
 
@@ -228,8 +227,7 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
                 if (object_size == 6)
                 {
                     for (k = 0; k < 32; k++) {
-                        *dest = 0;
-                        dest++;
+                        *dest++ = 0;
                     }
                 }
 
@@ -243,8 +241,7 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
                 if (object_size == 6)
                 {
                     for (k = 0; k < 32; k++) {
-                        *dest = 0;
-                        dest++;
+                        *dest++ = 0;
                     }
                 }
             }
@@ -252,8 +249,7 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
             if (object_size == 6)
             {
                 for (k = 0; k < 256; k++) {
-                    *dest = 0;
-                    dest++;
+                    *dest++ = 0;
                 }
             }
         }
