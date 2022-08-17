@@ -221,7 +221,7 @@ void BtlController_EmitPrintString(u8 bufferId, u16 stringId);
 void BtlController_EmitPrintSelectionString(u8 bufferId, u16 stringId);
 void BtlController_EmitChooseAction(u8 bufferId, u8 action, u16 itemId);
 void BtlController_EmitYesNoBox(u8 bufferId);
-void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpNumber, struct ChooseMoveStruct *movePpData);
+void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpNumber, u8 *movePpData);
 void BtlController_EmitChooseItem(u8 bufferId, u8* battlePartyOrder);
 void BtlController_EmitChoosePokemon(u8 bufferId, u8 caseId, u8 slotId, u8 abilityId, u8* data);
 void BtlController_EmitCmd23(u8 bufferId); // unused
