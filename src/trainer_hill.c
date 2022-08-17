@@ -694,6 +694,7 @@ bool32 LoadTrainerHillFloorObjectEventScripts(void)
 }
 #endif
 
+#if !MODERN
 static u16 GetMetatileForFloor(u8 floorId, u32 x, u32 y, u32 floorWidth) // floorWidth is always 16
 {
     bool8 impassable;
@@ -706,10 +707,24 @@ static u16 GetMetatileForFloor(u8 floorId, u32 x, u32 y, u32 floorWidth) // floo
 
     return (elevation | ((impassable << MAPGRID_COLLISION_SHIFT) & MAPGRID_COLLISION_MASK)) | (metatile & MAPGRID_METATILE_ID_MASK);
 }
+#else
+static u16 GetMetatileForFloor(u8 floorId, u32 x, u32 y)
+{
+    bool8 impassable;
+    u16 metatile;
+    u16 elevation;
+
+    impassable = (sHillData->floors[floorId].map.collisionData[y] >> (15 - x) & 1);
+    metatile = sHillData->floors[floorId].map.metatileData[HILL_FLOOR_WIDTH * y + x] + NUM_METATILES_IN_PRIMARY;
+    elevation = 3 << MAPGRID_ELEVATION_SHIFT;
+
+    return (elevation | ((impassable << MAPGRID_COLLISION_SHIFT) & MAPGRID_COLLISION_MASK)) | (metatile & MAPGRID_METATILE_ID_MASK);
+}
+#endif
 
 void GenerateTrainerHillFloorLayout(u16 *mapArg)
 {
-    s32 y, x;
+    m32 y, x;
     u16 *src, *dst;
     u8 mapId = GetCurrentTrainerHillMapId();
 
@@ -748,7 +763,11 @@ void GenerateTrainerHillFloorLayout(u16 *mapArg)
     for (y = 0; y < HILL_FLOOR_HEIGHT_MAIN; y++)
     {
         for (x = 0; x < HILL_FLOOR_WIDTH; x++)
+            #if !MODERN
             dst[x] = GetMetatileForFloor(mapId, x, y, HILL_FLOOR_WIDTH);
+            #else
+            dst[x] = GetMetatileForFloor(mapId, x, y);
+            #endif
         dst += 31;
     }
 
@@ -806,16 +825,16 @@ static bool32 OnTrainerHillRoof(void)
     return onRoof;
 }
 
-const struct WarpEvent* SetWarpDestinationTrainerHill4F(void)
+const struct WarpEvent* const SetWarpDestinationTrainerHill4F(void)
 {
     const struct MapHeader *header = Overworld_GetMapHeaderByGroupAndId(MAP_GROUP(TRAINER_HILL_4F), MAP_NUM(TRAINER_HILL_4F));
 
-    return &header->events->warps[1];
+    return &header->events->warps[1]; //Returns a link to the upper floor (rooftop)
 }
 
 // For warping from the roof in challenges where the 4F is not the final challenge floor
 // This would only occur in the JP-exclusive Default and E-Reader challenges
-const struct WarpEvent* SetWarpDestinationTrainerHillFinalFloor(u8 warpEventId)
+const struct WarpEvent* const SetWarpDestinationTrainerHillFinalFloor(u8 warpEventId)
 {
     u8 numFloors;
     const struct MapHeader *header;
