@@ -92,7 +92,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(shell $(MODERNCC) --print-prog-name=cc1) -quiet
-override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
+override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fipa-pta -fipa-cp-clone -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -283,13 +283,8 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/libc.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/siirtc.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
-
-$(C_BUILDDIR)/agb_flash.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/agb_flash_1m.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/agb_flash_mx.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/libc.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast -fipa-cp-clone
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast -fipa-cp-clone
 endif
 
 ifeq ($(DINFO),1)
