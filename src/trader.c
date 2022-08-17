@@ -33,7 +33,7 @@ static const u8 sDefaultTraderDecorations[NUM_TRADER_ITEMS] =
 
 void TraderSetup(void)
 {
-    u8 i;
+    m8 i;
     struct MauvilleOldManTrader *trader = &gSaveBlock1Ptr->oldMan.trader;
 
     trader->id = MAUVILLE_MAN_TRADER;
@@ -49,8 +49,12 @@ void TraderSetup(void)
 
 void Trader_ResetFlag(void)
 {
+    #if !MODERN
     struct MauvilleOldManTrader *trader = &gSaveBlock1Ptr->oldMan.trader;
     trader->alreadyTraded = FALSE;
+    #else
+    gSaveBlock1Ptr->oldMan.trader.alreadyTraded = FALSE;
+    #endif
 }
 
 #define tWindowId data[3]
