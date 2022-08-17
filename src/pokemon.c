@@ -2375,7 +2375,7 @@ void CreateMonWithIVsOTID(struct Pokemon *mon, u16 species, u8 level, u8 *ivs, u
 void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 evSpread)
 {
     s32 i;
-    s32 statCount = 0;
+    m32 statCount = 0;
     u16 evAmount;
     u8 evsBits;
 
