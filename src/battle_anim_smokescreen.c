@@ -178,6 +178,7 @@ u8 SmokescreenImpact(s16 x, s16 y, bool8 persist)
 
     // Top left sprite
     spriteId1 = CreateSprite(&sSmokescreenImpactSpriteTemplate, x - 16, y - 16, 2);
+    gSprites[spriteId1].sMainSpriteId = mainSpriteId;
     gSprites[mainSpriteId].sActiveSprites++;
     AnimateSprite(&gSprites[spriteId1]);
 
@@ -201,6 +202,8 @@ u8 SmokescreenImpact(s16 x, s16 y, bool8 persist)
     gSprites[mainSpriteId].sActiveSprites++;
     StartSpriteAnim(&gSprites[spriteId1], 3);
     AnimateSprite(&gSprites[spriteId1]);
+
+    return mainSpriteId;
 }
 
 static void SpriteCB_SmokescreenImpactMain(struct Sprite *sprite)

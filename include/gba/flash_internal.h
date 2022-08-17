@@ -5,7 +5,7 @@
 
 #define FLASH_WRITE(addr, data) ((*(vu8 *)(FLASH_BASE + (addr))) = (data))
 
-#define FLASH_ROM_SIZE_1M 131072 // 1 megabit ROM
+#define FLASH_ROM_SIZE_1M 0x20000 // 1 megabit ROM
 
 #define SECTORS_PER_BANK 16
 
