@@ -200,7 +200,7 @@ void m4aMPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed)
     MPlayFadeOut(mplayInfo, speed);
 }
 
-void m4aMPlayFadeOutTemporarily(struct MusicPlayerInfo *mplayInfo, u16 speed)
+void m4aMPlayFadeOutPause(struct MusicPlayerInfo *mplayInfo, u16 speed)
 {
     if (mplayInfo->ident == ID_NUMBER)
     {

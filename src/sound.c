@@ -212,8 +212,8 @@ void StopFanfareByFanfareNum(u8 fanfareNum)
 
 void PlayFanfare(u16 songNum)
 {
-    s32 i;
-    for (i = 0; (u32)i < ARRAY_COUNT(sFanfares); i++)
+    u32 i;
+    for (i = 0; i < ARRAY_COUNT(sFanfares); i++)
     {
         if (sFanfares[i].songNum == songNum)
         {
@@ -258,9 +258,9 @@ static void CreateFanfareTask(void)
 void FadeInNewBGM(u16 songNum, u8 speed)
 {
     if (gDisableMusic)
-        songNum = 0;
+        songNum = MUS_DUMMY;
     if (songNum == MUS_NONE)
-        songNum = 0;
+        songNum = MUS_DUMMY;
     m4aSongNumStart(songNum);
     m4aMPlayImmInit(&gMPlayInfo_BGM);
     m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0);
@@ -270,7 +270,7 @@ void FadeInNewBGM(u16 songNum, u8 speed)
 
 void FadeOutBGMTemporarily(u8 speed)
 {
-    m4aMPlayFadeOutTemporarily(&gMPlayInfo_BGM, speed);
+    m4aMPlayFadeOutPause(&gMPlayInfo_BGM, speed);
 }
 
 bool8 IsBGMPausedOrStopped(void)
@@ -303,7 +303,7 @@ void PlayCry_Normal(u16 species, s8 pan)
 {
     m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 85);
     PlayCryInternal(species, pan, CRY_VOLUME, CRY_PRIORITY_NORMAL, CRY_MODE_NORMAL);
-    gPokemonCryBGMDuckingCounter = 2;
+    gPokemonCryBGMDuckingCounter = 2; //To prevent omission of waveform playback end judgment
     RestoreBGMVolumeAfterPokemonCry();
 }
 
@@ -323,7 +323,7 @@ void PlayCry_ByMode(u16 species, s8 pan, u8 mode)
     {
         m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 85);
         PlayCryInternal(species, pan, CRY_VOLUME, CRY_PRIORITY_NORMAL, mode);
-        gPokemonCryBGMDuckingCounter = 2;
+        gPokemonCryBGMDuckingCounter = 2; // To prevent omission of waveform playback end judgment
         RestoreBGMVolumeAfterPokemonCry();
     }
 }
@@ -372,7 +372,7 @@ void PlayCryInternal(u16 species, s8 pan, s8 volume, u8 priority, u8 mode)
     u32 release;
     u32 length;
     u32 pitch;
-    u32 chorus;
+    s8 chorus;
     u32 index;
     u8 table;
 
@@ -412,7 +412,7 @@ void PlayCryInternal(u16 species, s8 pan, s8 volume, u8 priority, u8 mode)
         reverse = TRUE;
         release = 100;
         pitch = 15600;
-        chorus = 192;
+        chorus = -64;
         volume = 90;
         break;
     case CRY_MODE_FAINT:
@@ -422,7 +422,7 @@ void PlayCryInternal(u16 species, s8 pan, s8 volume, u8 priority, u8 mode)
     case CRY_MODE_ECHO_END:
         release = 220;
         pitch = 15555;
-        chorus = 192;
+        chorus = -64;
         volume = 70;
         break;
     case CRY_MODE_ROAR_1:
