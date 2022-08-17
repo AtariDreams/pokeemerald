@@ -1217,7 +1217,11 @@ static void HandleChooseActionAfterDma3(void)
 
 static void WallyHandleChooseAction(void)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     gBattlerControllerFuncs[gActiveBattler] = HandleChooseActionAfterDma3;
     BattlePutTextOnWindow(gText_BattleMenu, B_WIN_ACTION_MENU);
@@ -1289,16 +1293,11 @@ static void WallyHandleHealthBarUpdate(void)
 
     if (hpVal != INSTANT_HP_BAR_DROP)
     {
-        u32 maxHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP);
-        u32 curHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP);
-
-        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], maxHP, curHP, hpVal);
+        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP), GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP), hpVal);
     }
     else
     {
-        u32 maxHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP);
-
-        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], maxHP, 0, hpVal);
+        SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP), 0, hpVal);
         UpdateHpTextInHealthbox(gHealthboxSpriteIds[gActiveBattler], 0, HP_CURRENT);
     }
 
@@ -1390,14 +1389,13 @@ static void WallyHandleHitAnimation(void)
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         WallyBufferExecCompleted();
+        return;
     }
-    else
-    {
-        gDoingBattleAnim = TRUE;
-        gSprites[gBattlerSpriteIds[gActiveBattler]].data[1] = 0;
-        DoHitAnimHealthboxEffect(gActiveBattler);
-        gBattlerControllerFuncs[gActiveBattler] = DoHitAnimBlinkSpriteEffect;
-    }
+
+    gDoingBattleAnim = TRUE;
+    gSprites[gBattlerSpriteIds[gActiveBattler]].data[1] = 0;
+    DoHitAnimHealthboxEffect(gActiveBattler);
+    gBattlerControllerFuncs[gActiveBattler] = DoHitAnimBlinkSpriteEffect;
 }
 
 static void WallyHandleCantSwitch(void)
@@ -1428,11 +1426,7 @@ static void WallyHandlePlayFanfareOrBGM(void)
 
 static void WallyHandleFaintingCry(void)
 {
-    u16 species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
-
-    // Seems that it doesn't bother using CRY_MODE_FAINT because
-    // Wally's Pokémon during the tutorial is never intended to faint.
-    PlayCry_Normal(species, 25);
+    PlayCry_Normal(GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES), 25);
     WallyBufferExecCompleted();
 }
 
@@ -1502,21 +1496,21 @@ static void StartSendOutAnim(u8 battlerId)
 
 static void Task_StartSendOutAnim(u8 taskId)
 {
+    u8 savedActiveBank;
     if (gTasks[taskId].data[1] < 31)
     {
         gTasks[taskId].data[1]++;
+        return;
     }
-    else
-    {
-        u8 savedActiveBank = gActiveBattler;
 
-        gActiveBattler = gTasks[taskId].data[0];
-        gBattleBufferA[gActiveBattler][1] = gBattlerPartyIndexes[gActiveBattler];
-        StartSendOutAnim(gActiveBattler);
-        gBattlerControllerFuncs[gActiveBattler] = Intro_TryShinyAnimShowHealthbox;
-        gActiveBattler = savedActiveBank;
-        DestroyTask(taskId);
-    }
+    savedActiveBank = gActiveBattler;
+
+    gActiveBattler = gTasks[taskId].data[0];
+    gBattleBufferA[gActiveBattler][1] = gBattlerPartyIndexes[gActiveBattler];
+    StartSendOutAnim(gActiveBattler);
+    gBattlerControllerFuncs[gActiveBattler] = Intro_TryShinyAnimShowHealthbox;
+    gActiveBattler = savedActiveBank;
+    DestroyTask(taskId);
 }
 
 static void WallyHandleDrawPartyStatusSummary(void)
@@ -1524,13 +1518,12 @@ static void WallyHandleDrawPartyStatusSummary(void)
     if (gBattleBufferA[gActiveBattler][1] != 0 && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
     {
         WallyBufferExecCompleted();
+        return;
     }
-    else
-    {
-        gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].partyStatusSummaryShown = 1;
-        gBattlerStatusSummaryTaskId[gActiveBattler] = CreatePartyStatusSummarySprites(gActiveBattler, (struct HpAndStatus *)&gBattleBufferA[gActiveBattler][4], gBattleBufferA[gActiveBattler][1], gBattleBufferA[gActiveBattler][2]);
-        WallyBufferExecCompleted();
-    }
+
+    gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].partyStatusSummaryShown = 1;
+    gBattlerStatusSummaryTaskId[gActiveBattler] = CreatePartyStatusSummarySprites(gActiveBattler, (struct HpAndStatus *)&gBattleBufferA[gActiveBattler][4], gBattleBufferA[gActiveBattler][1], gBattleBufferA[gActiveBattler][2]);
+    WallyBufferExecCompleted();
 }
 
 static void WallyHandleHidePartyStatusSummary(void)
