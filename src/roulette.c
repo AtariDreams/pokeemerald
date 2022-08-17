@@ -336,8 +336,8 @@ static EWRAM_DATA struct Roulette
     u8 ballState;
     u8 hitSlot;
     u8 stuckHitSlot;
-    s16 ballTravelDist; // Never read
-    s16 ballTravelDistFast;
+    u16 ballTravelDist; // Never read
+    u16 ballTravelDistFast;
     u16 ballTravelDistMed;
     u16 ballTravelDistSlow;
     f32 ballAngle;
@@ -1639,8 +1639,9 @@ static void Task_InitBallRoll(u8 taskId)
 
     rand = Random();
     randmod = rand % 100;
-    sRoulette->curBallSpriteId = gTasks[taskId].tBallNum;
+
     // BALL_STATE_ROLLING set below
+    sRoulette->curBallSpriteId = gTasks[taskId].tBallNum;
     sRoulette->ballState = sRoulette->hitSlot = sRoulette->stuckHitSlot = 0;
     randTravelMod = GetRandomForBallTravelDistance(gTasks[taskId].tTotalBallNum, rand);
     randTravelDist = (rand % randTravelMod) - (randTravelMod / 2);
@@ -1655,18 +1656,19 @@ static void Task_InitBallRoll(u8 taskId)
     else
         startAngleId = (1 - startAngleId) * 2;
 
-    sRoulette->ballTravelDist = travelDist = sRouletteTables[sRoulette->tableId].baseTravelDist + randTravelDist;
+    sRoulette->ballTravelDist = sRouletteTables[sRoulette->tableId].baseTravelDist + randTravelDist;
 
-    travelDist = S16TOPOSFLOAT(travelDist) / 5.0f;
+    travelDist = (u16)((float)(sRoulette->ballTravelDist) / 5);
     sRoulette->ballTravelDistFast = travelDist * 3;
-    sRoulette->ballTravelDistSlow = sRoulette->ballTravelDistMed = travelDist;
+    sRoulette->ballTravelDistMed = travelDist;
+    sRoulette->ballTravelDistSlow = travelDist;
 
-    sRoulette->ballAngle = S16TOPOSFLOAT(startAngles[(rand & 1) + startAngleId]);
-    sRoulette->ballAngleSpeed = S16TOPOSFLOAT(sRouletteTables[sRoulette->tableId].ballSpeed);
-    sRoulette->ballAngleAccel = ((sRoulette->ballAngleSpeed * 0.5f) - sRoulette->ballAngleSpeed) / S16TOPOSFLOAT(sRoulette->ballTravelDistFast);
+    sRoulette->ballAngle = (float)(startAngles[(rand & 1) + startAngleId]);
+    sRoulette->ballAngleSpeed = (float)(sRouletteTables[sRoulette->tableId].ballSpeed);
+    sRoulette->ballAngleAccel = ((sRoulette->ballAngleSpeed * 0.5f) - sRoulette->ballAngleSpeed) / (float)sRoulette->ballTravelDistFast;
     sRoulette->ballDistToCenter = 68.0f;
     sRoulette->ballFallAccel = 0.0f;
-    sRoulette->ballFallSpeed = -(8.0f / S16TOPOSFLOAT(sRoulette->ballTravelDistFast));
+    sRoulette->ballFallSpeed = -(8.0f / (float)sRoulette->ballTravelDistFast);
     sRoulette->varA0 = 36.0f;
     gTasks[taskId].func = Task_RollBall;
 }
@@ -1686,42 +1688,38 @@ static void Task_RollBall(u8 taskId)
 static void Task_RecordBallHit(u8 taskId)
 {
     // Wait for ball to finish rolling
-    if (sRoulette->ballState != BALL_STATE_ROLLING)
+    if (sRoulette->ballState == BALL_STATE_ROLLING)
+        return;
+    // If the ball got stuck, wait for it to be unstuck
+    if (sRoulette->ballStuck)
     {
-        // If the ball got stuck, wait for it to be unstuck
-        if (sRoulette->ballStuck)
+        if (sRoulette->ballUnstuck)
         {
-            if (sRoulette->ballUnstuck)
-            {
-                sRoulette->ballUnstuck = FALSE;
-                sRoulette->ballStuck = FALSE;
-            }
+            sRoulette->ballUnstuck = FALSE;
+            sRoulette->ballStuck = FALSE;
         }
-        else
-        {
-            if (gTasks[taskId].data[1] == 0)
-            {
-                bool8 won = IsHitInBetSelection(RecordHit(taskId, sRoulette->hitSlot), sRoulette->betSelection[sRoulette->curBallNum]);
-                gTasks[taskId].tWonBet = won;
-                if (won == TRUE)
-                    RouletteFlash_Enable(&sRoulette->flashUtil, F_FLASH_OUTER_EDGES);
-            }
-            if (gTasks[taskId].data[1] <= 60)
-            {
-                if (JOY_NEW(A_BUTTON))
-                    gTasks[taskId].data[1] = 60;
-                gTasks[taskId].data[1]++;
-            }
-            else
-            {
-                DrawGridBackground(sRoulette->betSelection[sRoulette->curBallNum]);
-                ShowHideGridIcons(FALSE, gTasks[taskId].tWinningSquare);
-                ShowHideGridBalls(FALSE, gTasks[taskId].tBallNum - 1);
-                gTasks[taskId].data[1] = 32;
-                gTasks[taskId].func = Task_SlideGridOnscreen;
-            }
-        }
+        return;
     }
+
+    if (gTasks[taskId].data[1] == 0)
+    {
+        gTasks[taskId].tWonBet = IsHitInBetSelection(RecordHit(taskId, sRoulette->hitSlot), sRoulette->betSelection[sRoulette->curBallNum]);
+        if (gTasks[taskId].tWonBet == TRUE)
+            RouletteFlash_Enable(&sRoulette->flashUtil, F_FLASH_OUTER_EDGES);
+    }
+    if (gTasks[taskId].data[1] <= 60)
+    {
+        if (JOY_NEW(A_BUTTON))
+            gTasks[taskId].data[1] = 60;
+        gTasks[taskId].data[1]++;
+        return;
+    }
+
+    DrawGridBackground(sRoulette->betSelection[sRoulette->curBallNum]);
+    ShowHideGridIcons(FALSE, gTasks[taskId].tWinningSquare);
+    ShowHideGridBalls(FALSE, gTasks[taskId].tBallNum - 1);
+    gTasks[taskId].data[1] = 32;
+    gTasks[taskId].func = Task_SlideGridOnscreen;
 }
 
 static void Task_SlideGridOnscreen(u8 taskId)
@@ -1735,16 +1733,16 @@ static void Task_SlideGridOnscreen(u8 taskId)
         // Slide grid over
         if ((sRoulette->gridX -= 4) == 104)
             gSprites[sRoulette->spriteIds[SPR_MULTIPLIER]].callback = SpriteCB_GridSquare;
+        
+        return;
     }
+
+    ShowHideWinSlotCursor(gTasks[taskId].tWinningSquare);
+    if (gTasks[taskId].tWonBet == TRUE)
+        gTasks[taskId].data[1] = 121;
     else
-    {
-        ShowHideWinSlotCursor(gTasks[taskId].tWinningSquare);
-        if (gTasks[taskId].tWonBet == TRUE)
-            gTasks[taskId].data[1] = 121;
-        else
-            gTasks[taskId].data[1] = 61;
-        gTasks[taskId].func = Task_FlashBallOnWinningSquare;
-    }
+        gTasks[taskId].data[1] = 61;
+    gTasks[taskId].func = Task_FlashBallOnWinningSquare;
 }
 
 static void Task_FlashBallOnWinningSquare(u8 taskId)
@@ -1764,11 +1762,10 @@ static void Task_FlashBallOnWinningSquare(u8 taskId)
             ShowHideGridBalls(FALSE, gTasks[taskId].tBallNum - 1);
             break;
         }
+        return;
     }
-    else
-    {
-        StartTaskAfterDelayOrInput(taskId, Task_PrintSpinResult, 30, 0);
-    }
+
+    StartTaskAfterDelayOrInput(taskId, Task_PrintSpinResult, 30, 0);
 }
 
 static void Task_TryIncrementWins(u8 taskId)
@@ -1777,21 +1774,20 @@ static void Task_TryIncrementWins(u8 taskId)
     {
     case TRUE:
     case 2: // never happens
-        if (IsFanfareTaskInactive())
-        {
-            u32 wins = GetGameStat(GAME_STAT_CONSECUTIVE_ROULETTE_WINS);
-            if (wins < ++gTasks[taskId].tConsecutiveWins)
-                SetGameStat(GAME_STAT_CONSECUTIVE_ROULETTE_WINS, gTasks[taskId].tConsecutiveWins);
-            StartTaskAfterDelayOrInput(taskId, Task_PrintPayout, NO_DELAY, A_BUTTON | B_BUTTON);
-        }
+        if (!IsFanfareTaskInactive())
+            return;
+        if (GetGameStat(GAME_STAT_CONSECUTIVE_ROULETTE_WINS) < ++gTasks[taskId].tConsecutiveWins)
+            SetGameStat(GAME_STAT_CONSECUTIVE_ROULETTE_WINS, gTasks[taskId].tConsecutiveWins);
+        StartTaskAfterDelayOrInput(taskId, Task_PrintPayout, NO_DELAY, A_BUTTON | B_BUTTON);
         break;
     case FALSE:
     default:
-        if (!IsSEPlaying())
-        {
-            gTasks[taskId].tConsecutiveWins = 0;
-            StartTaskAfterDelayOrInput(taskId, Task_EndTurn, NO_DELAY, A_BUTTON | B_BUTTON);
-        }
+        if (IsSEPlaying())
+            return;
+
+        gTasks[taskId].tConsecutiveWins = 0;
+        StartTaskAfterDelayOrInput(taskId, Task_EndTurn, NO_DELAY, A_BUTTON | B_BUTTON);
+
         break;
     }
 }
@@ -1839,8 +1835,10 @@ static void Task_GivePayout(u8 taskId)
         gTasks[taskId].tCoins++;
         m4aSongNumStart(SE_PIN);
         SetCreditDigits(gTasks[taskId].tCoins);
+        // Can we assert tCoins is less?
         if (gTasks[taskId].tCoins >= MAX_COINS)
         {
+            // BUG: was it meant to set tcoins to max?
             gTasks[taskId].tPayout = 0;
         }
         else
@@ -1886,7 +1884,7 @@ static void Task_EndTurn(u8 taskId)
 static void Task_TryPrintEndTurnMsg(u8 taskId)
 {
     u8 i = 0;
-    gTasks[taskId].tSelectionId = i;
+    gTasks[taskId].tSelectionId = 0;
     sRoulette->betSelection[sRoulette->curBallNum] = SELECTION_NONE;
     DrawGridBackground(SELECTION_NONE);
     gSprites[sRoulette->spriteIds[SPR_WIN_SLOT_CURSOR]].invisible = TRUE;
@@ -1905,8 +1903,10 @@ static void Task_TryPrintEndTurnMsg(u8 taskId)
             AddTextPrinterParameterized(sTextWindowId, FONT_NORMAL, Roulette_Text_BoardWillBeCleared, 0, 1, TEXT_SKIP_DRAW, NULL);
             CopyWindowToVram(sTextWindowId, COPYWIN_FULL);
             StartTaskAfterDelayOrInput(taskId, Task_ClearBoard, NO_DELAY, A_BUTTON | B_BUTTON);
+            return;
         }
-        else if (gTasks[taskId].tCoins == MAX_COINS)
+        
+        if (gTasks[taskId].tCoins == MAX_COINS)
         {
             // Player maxed out coins
             DrawStdWindowFrame(sTextWindowId, FALSE);
@@ -1999,11 +1999,10 @@ static void Task_WaitForNextTask(u8 taskId)
     if (sRoulette->taskWaitDelay == 0 || JOY_NEW(sRoulette->taskWaitKey))
     {
         gTasks[taskId].func = sRoulette->nextTask;
-        if (sRoulette->taskWaitKey > 0)
+        if (sRoulette->taskWaitKey != 0)
             PlaySE(SE_SELECT);
         sRoulette->nextTask = NULL;
-        sRoulette->taskWaitKey = 0;
-        sRoulette->taskWaitDelay = 0;
+        sRoulette->taskWaitDelay = sRoulette->taskWaitKey = 0;
     }
     if (sRoulette->taskWaitDelay != NO_DELAY)
         sRoulette->taskWaitDelay--;
@@ -2098,8 +2097,7 @@ static u8 RecordHit(u8 taskId, u8 slotId)
 
 static bool8 IsHitInBetSelection(u8 gridSquare, u8 betSelection)
 {
-    u8 hit = gridSquare;
-    if (--gridSquare < NUM_GRID_SELECTIONS)
+    if (gridSquare != 0 && gridSquare <= 19)
     {
         switch (betSelection)
         {
@@ -2109,21 +2107,21 @@ static bool8 IsHitInBetSelection(u8 gridSquare, u8 betSelection)
         case COL_AZURILL:
         case COL_SKITTY:
         case COL_MAKUHITA:
-            if (hit == betSelection + ROW_ORANGE
-             || hit == betSelection + ROW_GREEN
-             || hit == betSelection + ROW_PURPLE)
+            if (gridSquare == betSelection + ROW_ORANGE
+             || gridSquare == betSelection + ROW_GREEN
+             || gridSquare == betSelection + ROW_PURPLE)
                 return TRUE;
             break;
         case ROW_ORANGE:
         case ROW_GREEN:
         case ROW_PURPLE:
-            if (hit >= (betSelection + COL_WYNAUT)
-             && hit <= (betSelection + COL_MAKUHITA))
+            if (gridSquare >= (betSelection + COL_WYNAUT)
+             && gridSquare <= (betSelection + COL_MAKUHITA))
                 return TRUE;
             break;
         // Individual square
         default:
-            if (hit == betSelection)
+            if (gridSquare == betSelection)
                 return TRUE;
         }
     }
@@ -2136,6 +2134,8 @@ static void FlashSelectionOnWheel(u8 selectionId)
     u8 numSelected;
     u16 palOffset;
     u8 i;
+    // Selection is either a column or individual square
+    struct RouletteFlashSettings iconFlash[NUM_BOARD_COLORS];
 
     switch (selectionId)
     {
@@ -2149,75 +2149,68 @@ static void FlashSelectionOnWheel(u8 selectionId)
                 flashFlags |= sGridSelections[i].flashFlags;
         }
         RouletteFlash_Enable(&sRoulette->flashUtil, flashFlags &= ~(F_FLASH_ICON));
-        break;
+        return;
     default:
     {
-        // Selection is either a column or individual square
-        struct RouletteFlashSettings iconFlash[NUM_BOARD_COLORS];
-        memcpy(iconFlash, sFlashData_PokeIcons, sizeof(iconFlash));
-
-        if (selectionId >= COL_WYNAUT && selectionId <= COL_MAKUHITA)
-            numSelected = NUM_BOARD_COLORS; // Selection is full column
-        else
-            numSelected = 1;
-
-        palOffset = GET_ROW_IDX(selectionId);
-        switch (GET_COL(selectionId))
-        {
-        // The specific color of the poke it references doesn't matter, because the icons of a poke share a palette
-        // So it just uses the first sprite ID of each
-        case COL_WYNAUT:
-            palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_ORANGE_WYNAUT]].oam.paletteNum * 16;
-            break;
-        case COL_AZURILL:
-            palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_GREEN_AZURILL]].oam.paletteNum * 16;
-            break;
-        case COL_SKITTY:
-            palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_PURPLE_SKITTY]].oam.paletteNum * 16;
-            break;
-        case COL_MAKUHITA:
-            palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_ORANGE_MAKUHITA]].oam.paletteNum * 16;
-            break;
-        }
-        if (numSelected == 1)
-        {
-            // Selection is individual square, add entry in flash util for its icon
-            if (!(sRoulette->hitFlags & sGridSelections[selectionId].flag))
-            {
-                iconFlash[GET_ROW_IDX(selectionId)].paletteOffset += palOffset;
-                RouletteFlash_Add(&sRoulette->flashUtil, NUM_ROULETTE_SLOTS + 1, &iconFlash[GET_ROW_IDX(selectionId)]);
-            }
-            else
-            {
-                // Square was already hit, don't flash it
-                break;
-            }
-        }
-        else
-        {
-            // Selection is full column, add entry in flash util for each unhit space's icon
-            // If there is only 1 unhit space, also add its flags so its color will flash as well
-            for (i = 0; i < NUM_BOARD_COLORS; i++)
-            {
-                u8 columnSlotId = i * 5 + selectionId + 5;
-                if (!(sRoulette->hitFlags & sGridSelections[columnSlotId].flag))
-                {
-                    iconFlash[GET_ROW_IDX(columnSlotId)].paletteOffset += palOffset;
-                    RouletteFlash_Add(&sRoulette->flashUtil, i + NUM_ROULETTE_SLOTS + 1, &iconFlash[GET_ROW_IDX(columnSlotId)]);
-                    if (numSelected == 3)
-                        flashFlags = sGridSelections[columnSlotId].flashFlags;
-                    numSelected--;
-                }
-            }
-            // If there was more than 1 space in the column, reset flags; only icons will flash
-            if (numSelected != 2)
-                flashFlags = 0;
-        }
-        // Do flash
-        RouletteFlash_Enable(&sRoulette->flashUtil, flashFlags |= sGridSelections[selectionId].flashFlags);
         break;
     }
     }
+    // Selection is either a column or individual square
+    memcpy(iconFlash, sFlashData_PokeIcons, sizeof(iconFlash));
+
+    if (selectionId >= COL_WYNAUT && selectionId <= COL_MAKUHITA)
+        numSelected = NUM_BOARD_COLORS; // Selection is full column
+    else
+        numSelected = 1;
+
+    palOffset = GET_ROW_IDX(selectionId);
+    switch (GET_COL(selectionId))
+    {
+    // The specific color of the poke it references doesn't matter, because the icons of a poke share a palette
+    // So it just uses the first sprite ID of each
+    case COL_WYNAUT:
+        palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_ORANGE_WYNAUT]].oam.paletteNum * 16;
+        break;
+    case COL_AZURILL:
+        palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_GREEN_AZURILL]].oam.paletteNum * 16;
+        break;
+    case COL_SKITTY:
+        palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_PURPLE_SKITTY]].oam.paletteNum * 16;
+        break;
+    case COL_MAKUHITA:
+        palOffset = gSprites[sRoulette->spriteIds[SPR_WHEEL_ICON_ORANGE_MAKUHITA]].oam.paletteNum * 16;
+        break;
+    }
+    if (numSelected == 1)
+    {
+        // Selection is individual square, add entry in flash util for its icon
+        if (sRoulette->hitFlags & sGridSelections[selectionId].flag)
+            // Square was already hit, don't flash it
+            return;
+        iconFlash[GET_ROW_IDX(selectionId)].paletteOffset += palOffset;
+        RouletteFlash_Add(&sRoulette->flashUtil, NUM_ROULETTE_SLOTS + 1, &iconFlash[GET_ROW_IDX(selectionId)]);
+    }
+    else
+    {
+        // Selection is full column, add entry in flash util for each unhit space's icon
+        // If there is only 1 unhit space, also add its flags so its color will flash as well
+        for (i = 0; i < NUM_BOARD_COLORS; i++)
+        {
+            u8 columnSlotId = i * 5 + selectionId + 5;
+            if (sRoulette->hitFlags & sGridSelections[columnSlotId].flag)
+                continue;
+            iconFlash[GET_ROW_IDX(columnSlotId)].paletteOffset += palOffset;
+            RouletteFlash_Add(&sRoulette->flashUtil, i + NUM_ROULETTE_SLOTS + 1, &iconFlash[GET_ROW_IDX(columnSlotId)]);
+            if (numSelected == 3)
+                flashFlags = sGridSelections[columnSlotId].flashFlags;
+            numSelected--;
+        }
+        // If there was more than 1 space in the column, reset flags; only icons will flash
+        if (numSelected != 2)
+            flashFlags = 0;
+    }
+    // Do flash
+    RouletteFlash_Enable(&sRoulette->flashUtil, flashFlags |= sGridSelections[selectionId].flashFlags);
 }
 
 static void DrawGridBackground(u8 selectionId)
@@ -2225,7 +2218,7 @@ static void DrawGridBackground(u8 selectionId)
     vu8 i, j;
     vu16 x, y;
     vu8 tilemapOffset;
-    u8 selectionIds[NUM_BOARD_POKES >= NUM_BOARD_COLORS ? NUM_BOARD_POKES + 1 : NUM_BOARD_COLORS + 1];
+    u8 selectionIds[NUM_BOARD_POKES + 1];
     u8 numSquares;
     sRoulette->updateGridHighlight = TRUE;
     ShowHideGridIcons(FALSE, 0);
