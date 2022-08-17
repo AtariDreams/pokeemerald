@@ -2108,7 +2108,7 @@ static void Task_DoPlayerSpinExit(u8 taskId)
             sprite->y = tCurY >> 4;
 
             // Check if offscreen
-            if (sprite->y + (s16)gTotalCameraPixelOffsetY < -32)
+            if (sprite->y + gTotalCameraPixelOffsetY < -32)
                 tState++;
             break;
         case 2:
