@@ -344,7 +344,7 @@ static void VBlankCB_LinkError(void)
 
 static void InitLink(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < CMD_LENGTH; i++)
         gSendCmd[i] = LINKCMD_NONE;
@@ -364,7 +364,7 @@ static void Task_TriggerHandshake(u8 taskId)
 
 void OpenLink(void)
 {
-    int i;
+    m32 i;
 
     if (!gWirelessCommType)
     {
