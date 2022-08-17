@@ -255,7 +255,7 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
 }
 #endif
 
-#if !MODERN
+#if 1
 // TODO: this should probably be inlined
 u32 GetDecompressedDataSize(const u8 *ptr8)
 {
