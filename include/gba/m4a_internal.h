@@ -331,6 +331,7 @@ struct MusicPlayerInfo
     u16 fadeOI;
     u16 fadeOC;
     u16 fadeOV;
+    u16 dummy; // Needed because of type punning BS
     struct MusicPlayerTrack *tracks;
     struct ToneData *tone;
     u32 ident;
