@@ -431,7 +431,8 @@ struct PokemonStorageSystemData
     s16 scrollUnused5; // Never read
     s16 scrollUnused6; // Never read
     u8 filler1[22]; // unused probably for HOF
-    u8 boxTitleTiles[1024];
+    u8 boxTitleTiles[0x200];
+    u8 boxTitleData[0x200]; //Unused
     u8 boxTitleCycleId;
     u8 wallpaperLoadState; // Written to, but never read.
     u8 wallpaperLoadBoxId;
@@ -483,15 +484,15 @@ struct PokemonStorageSystemData
     struct Sprite *cursorShadowSprite;
     s32 cursorNewX;
     s32 cursorNewY;
-    u32 cursorSpeedX;
-    u32 cursorSpeedY;
+    s32 cursorSpeedX;
+    s32 cursorSpeedY;
     s16 cursorTargetX;
     s16 cursorTargetY;
     u16 cursorMoveSteps;
     s8 cursorVerticalWrap;
     s8 cursorHorizontalWrap;
-    u8 newCursorArea;
-    u8 newCursorPosition;
+    s8 newCursorArea;
+    s8 newCursorPosition;
     u8 cursorPrevHorizPos;
     u8 cursorFlipTimer;
     u8 cursorPalNums[2];
@@ -514,12 +515,12 @@ struct PokemonStorageSystemData
     u8 shiftBoxId;
     struct Sprite *markingComboSprite;
     struct Sprite *waveformSprites[2];
-    u16 *markingComboTilesPtr;
+    u8 *markingComboTilesPtr;
     struct MonMarkingsMenu markMenu;
     struct ChooseBoxMenu chooseBoxMenu;
     struct Pokemon movingMon;
     struct Pokemon tempMon;
-    s8 canReleaseMon;
+    bool8 canReleaseMon;
     bool8 releaseStatusResolved;
     s8 releaseCheckBoxId;
     s8 releaseCheckBoxPos;
@@ -545,13 +546,12 @@ struct PokemonStorageSystemData
     struct ItemIcon itemIcons[MAX_ITEM_ICONS];
     u16 movingItemId;
     u16 itemInfoWindowOffset;
-    u8 unkUnused2; // Unused
+    u8 unkUnused2; // Debug Unused
     u16 displayMonPalOffset;
     u16 *displayMonTilePtr;
     struct Sprite *displayMonSprite;
     u16 displayMonPalBuffer[0x40];
-    u8 tileBuffer[0x800];
-    u8 unusedBuffer[0x1800]; // Unused
+    u8 tileBuffer[0x2000]; // only 0x800 is actually used
     u8 itemIconBuffer[0x800];
     u8 wallpaperBgTilemapBuffer[0x1000];
     u8 displayMenuTilemapBuffer[0x800];
@@ -5544,7 +5544,7 @@ static void CreateIncomingBoxTitle(u8 boxId, s8 direction)
         template.paletteTag = PALTAG_BOX_TITLE;
     }
 
-    StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), 0, BOX_NAME_LENGTH);
+    StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), CHAR_SPACE, BOX_NAME_LENGTH);
     DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 0, 0, 2);
     LoadSpriteSheet(&spriteSheet);
     LoadPalette(sBoxTitleColors[GetBoxWallpaper(boxId)], palOffset, sizeof(sBoxTitleColors[0]));
