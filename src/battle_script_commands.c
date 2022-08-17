@@ -7698,7 +7698,7 @@ static void Cmd_transformdataexecution(void)
     }
     else
     {
-        s32 i;
+        m32 i;
         u8 *battleMonAttacker, *battleMonTarget;
 
         gBattleMons[gBattlerAttacker].status2 |= STATUS2_TRANSFORMED;
@@ -7732,7 +7732,7 @@ static void Cmd_transformdataexecution(void)
 
 static void Cmd_setsubstitute(void)
 {
-    u32 hp = gBattleMons[gBattlerAttacker].maxHP / 4;
+    u16 hp = gBattleMons[gBattlerAttacker].maxHP / 4;
     if (gBattleMons[gBattlerAttacker].maxHP / 4 == 0)
         hp = 1;
 
@@ -7757,6 +7757,7 @@ static void Cmd_setsubstitute(void)
     gBattlescriptCurrInstr++;
 }
 
+#if !MODERN
 static bool8 IsMoveUncopyableByMimic(u16 move)
 {
     s32 i;
@@ -7765,7 +7766,19 @@ static bool8 IsMoveUncopyableByMimic(u16 move)
 
     return (sMovesForbiddenToCopy[i] != MIMIC_FORBIDDEN_END);
 }
+#else
+static bool8 IsMoveUncopyableByMimic(u16 move)
+{
+    u32 i;
+    for (i = 0; sMovesForbiddenToCopy[i] != MIMIC_FORBIDDEN_END; i++)
+    {
+        if (sMovesForbiddenToCopy[i] == move)
+            return TRUE;
+    }
 
+    return FALSE;
+}
+#endif
 static void Cmd_mimicattackcopy(void)
 {
     gChosenMove = MOVE_UNAVAILABLE;
@@ -7779,8 +7792,9 @@ static void Cmd_mimicattackcopy(void)
     }
     else
     {
-        int i;
+        m32 i;
 
+        #if !MODERN
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
             if (gBattleMons[gBattlerAttacker].moves[i] == gLastMoves[gBattlerTarget])
@@ -7804,12 +7818,34 @@ static void Cmd_mimicattackcopy(void)
         {
             gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
         }
+        #else
+        for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            if (gBattleMons[gBattlerAttacker].moves[i] == gLastMoves[gBattlerTarget])
+            {
+                gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+                return;
+            }
+        }
+
+        gBattleMons[gBattlerAttacker].moves[gCurrMovePos] = gLastMoves[gBattlerTarget];
+        if (gBattleMoves[gLastMoves[gBattlerTarget]].pp < 5)
+            gBattleMons[gBattlerAttacker].pp[gCurrMovePos] = gBattleMoves[gLastMoves[gBattlerTarget]].pp;
+        else
+            gBattleMons[gBattlerAttacker].pp[gCurrMovePos] = 5;
+
+        PREPARE_MOVE_BUFFER(gBattleTextBuff1, gLastMoves[gBattlerTarget])
+
+        gDisableStructs[gBattlerAttacker].mimickedMoves |= gBitTable[gCurrMovePos];
+        gBattlescriptCurrInstr += 5;
+#endif
     }
 }
 
 static void Cmd_metronome(void)
 {
-    while (TRUE)
+#if !MODERN
+    while (1)
     {
         s32 i;
 
@@ -7837,6 +7873,26 @@ static void Cmd_metronome(void)
             return;
         }
     }
+#else
+
+    u32 i;
+back:
+
+    gCurrentMove = (Random() & 0x1FF) + 1;
+    if (gCurrentMove >= MOVES_COUNT)
+        goto back;
+
+    for (i = 0; sMovesForbiddenToCopy[i] != METRONOME_FORBIDDEN_END; i++)
+    {
+        if (sMovesForbiddenToCopy[i] == gCurrentMove)
+            goto back;
+    }
+
+    gHitMarker &= ~HITMARKER_ATTACKSTRING_PRINTED;
+    gBattlescriptCurrInstr = gBattleScriptsForMoveEffects[gBattleMoves[gCurrentMove].effect];
+    gBattlerTarget = GetMoveTarget(gCurrentMove, NO_TARGET_OVERRIDE);
+    return;
+#endif
 }
 
 static void Cmd_dmgtolevel(void)
@@ -7849,7 +7905,7 @@ static void Cmd_psywavedamageeffect(void)
 {
     s32 randDamage;
 
-    while ((randDamage = Random() % 16) > 10);
+    while ((randDamage = Random() & 0xf) > 10);
 
     randDamage *= 10;
     gBattleMoveDamage = gBattleMons[gBattlerAttacker].level * (randDamage + 50) / 100;
@@ -7907,7 +7963,7 @@ static void Cmd_mirrorcoatdamagecalculator(void)
 
 static void Cmd_disablelastusedattack(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
@@ -7932,7 +7988,7 @@ static void Cmd_disablelastusedattack(void)
 
 static void Cmd_trysetencore(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
@@ -7993,19 +8049,21 @@ static void Cmd_settypetorandomresistance(void)
      || gLastLandedMoves[gBattlerAttacker] == MOVE_UNAVAILABLE)
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+        return;
     }
-    else if (IsTwoTurnsMove(gLastLandedMoves[gBattlerAttacker])
+    if (IsTwoTurnsMove(gLastLandedMoves[gBattlerAttacker])
             && gBattleMons[gLastHitBy[gBattlerAttacker]].status2 & STATUS2_MULTIPLETURNS)
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+        return;
     }
     else
     {
-        s32 i, j, rands;
+        m32 i, rands;
 
         for (rands = 0; rands < 1000; rands++)
         {
-            while (((i = Random() % 128) > sizeof(gTypeEffectiveness) / 3));
+            while (((i = Random() & 0x7f) > sizeof(gTypeEffectiveness) / 3));
 
             i *= 3;
 
@@ -8021,16 +8079,16 @@ static void Cmd_settypetorandomresistance(void)
             }
         }
 
-        for (j = 0, rands = 0; rands < sizeof(gTypeEffectiveness); j += 3, rands += 3)
+        for (rands = 0; rands < sizeof(gTypeEffectiveness); rands += 3)
         {
-            switch (TYPE_EFFECT_ATK_TYPE(j))
+            switch (TYPE_EFFECT_ATK_TYPE(rands))
             {
             case TYPE_ENDTABLE:
             case TYPE_FORESIGHT:
                 break;
             default:
-                if (TYPE_EFFECT_ATK_TYPE(j) == gLastHitByType[gBattlerAttacker]
-                 && TYPE_EFFECT_MULTIPLIER(j) <= 5
+                if (TYPE_EFFECT_ATK_TYPE(rands) == gLastHitByType[gBattlerAttacker]
+                 && TYPE_EFFECT_MULTIPLIER(rands) <= 5
                  && !IS_BATTLER_OF_TYPE(gBattlerAttacker, TYPE_EFFECT_DEF_TYPE(i)))
                 {
                     SET_BATTLER_TYPE(gBattlerAttacker, TYPE_EFFECT_DEF_TYPE(rands));
@@ -8066,7 +8124,7 @@ static void Cmd_copymovepermanently(void)
         && gLastPrintedMoves[gBattlerTarget] != MOVE_UNAVAILABLE
         && gLastPrintedMoves[gBattlerTarget] != MOVE_SKETCH)
     {
-        s32 i;
+        m32 i;
 
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
@@ -8218,10 +8276,10 @@ static void Cmd_trysetdestinybondtohappen(void)
 
 static void Cmd_remaininghptopower(void)
 {
-    s32 i;
+    m32 i;
     s32 hpFraction = GetScaledHPFraction(gBattleMons[gBattlerAttacker].hp, gBattleMons[gBattlerAttacker].maxHP, 48);
 
-    for (i = 0; i < (s32) sizeof(sFlailHpScaleToPowerTable); i += 2)
+    for (i = 0; i < (m32) sizeof(sFlailHpScaleToPowerTable); i += 2)
     {
         if (hpFraction <= sFlailHpScaleToPowerTable[i])
             break;
@@ -8236,7 +8294,7 @@ static void Cmd_tryspiteppreduce(void)
     if (gLastMoves[gBattlerTarget] != MOVE_NONE
      && gLastMoves[gBattlerTarget] != MOVE_UNAVAILABLE)
     {
-        s32 i;
+        m32 i;
 
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
@@ -8291,7 +8349,7 @@ static void Cmd_healpartystatus(void)
     if (gCurrentMove == MOVE_HEAL_BELL)
     {
         struct Pokemon *party;
-        s32 i;
+        m32 i;
 
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_BELL;
 
@@ -9809,8 +9867,7 @@ static void Cmd_handleballthrow(void)
     if (gBattleControllerExecFlags)
         return;
 
-    
-    #if !MODERN
+#if !MODERN
     gActiveBattler = gBattlerAttacker;
     gBattlerTarget = gBattlerAttacker ^ BIT_SIDE;
 
@@ -9826,7 +9883,7 @@ static void Cmd_handleballthrow(void)
         MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr = BattleScript_WallyBallThrow;
     }
-    #else
+#else
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
         BtlController_EmitBallThrowAnim(BUFFER_A, BALL_TRAINER_BLOCK);
@@ -9841,12 +9898,12 @@ static void Cmd_handleballthrow(void)
         gBattlescriptCurrInstr = BattleScript_WallyBallThrow;
         return;
     }
-    #endif
+#endif
     else
     {
         u32 odds;
         u8 catchRate;
-        #if !MODERN
+#if !MODERN
 
         if (gLastUsedItem == ITEM_SAFARI_BALL)
             catchRate = gBattleStruct->safariCatchFactor * 1275 / 100;
@@ -9966,7 +10023,7 @@ static void Cmd_handleballthrow(void)
                 gBattlescriptCurrInstr = BattleScript_ShakeBallThrow;
             }
         }
-        #else
+#else
             gActiveBattler = gBattlerAttacker;
             gBattlerTarget = gBattlerAttacker ^ BIT_SIDE;
         // TODO: REMOVE THIS CHEAT
@@ -10101,7 +10158,7 @@ static void Cmd_handleballthrow(void)
             }
             return;
         }
-        #endif
+#endif
     }
 }
 
