@@ -663,22 +663,21 @@ static void RotatingGate_RotateInDirection(u8 gateId, u32 rotationDirection)
         if (orientation)
             orientation--;
         else
-            orientation = GATE_ORIENTATION_270;
+            orientation = GATE_ORIENTATION_MAX - 1;
     }
     else
     {
         orientation++;
-        orientation = orientation % GATE_ORIENTATION_MAX;
+        orientation %= GATE_ORIENTATION_MAX;
     }
     RotatingGate_SetGateOrientation(gateId, orientation);
 }
 
 static void RotatingGate_LoadPuzzleConfig(void)
 {
-    s32 puzzleType = GetCurrentMapRotatingGatePuzzleType();
     u32 i;
 
-    switch (puzzleType)
+    switch (GetCurrentMapRotatingGatePuzzleType())
     {
     case PUZZLE_FORTREE_CITY_GYM:
         sRotatingGate_PuzzleConfig = sRotatingGate_FortreePuzzleConfig;
