@@ -1967,7 +1967,7 @@ static void CopyTile(u8 *dest, u16 tile)
 
 static void SetDecorSelectionBoxTiles(struct PlaceDecorationGraphicsDataBuffer *data)
 {
-    u16 i;
+    m16 i;
     for (i = 0; i < 64; i++)
         CopyTile(&data->image[i * TILE_SIZE_4BPP], data->tiles[i]);
 }
