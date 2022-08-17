@@ -1384,6 +1384,8 @@ static u16 QuantizePixel_PrimaryColors(u16 *color)
 
     #else
     // We know red > 19
+    // if (red < 12 && green < 12 && blue < 12)
+    // is false
     if (red > 19)
     {
         if (green > 19)
@@ -1429,9 +1431,9 @@ static u16 QuantizePixel_PrimaryColors(u16 *color)
         {
             if (blue > 11)
             {
-                if (red < blue)
-                    return 9;
-                return 7;
+                if (red > blue)
+                    return 7;
+                return 9;
             }
             return 11;
         }
@@ -1449,10 +1451,9 @@ static u16 QuantizePixel_PrimaryColors(u16 *color)
         {
             if (red > 11)
             {
-                if (red < green)
-                    return 9;
-                else
+                if (red > green)
                     return 8;
+                return 9;
             }
             return 12;
         }
