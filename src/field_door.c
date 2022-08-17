@@ -414,7 +414,7 @@ static void Task_AnimateDoor(u8 taskId)
         DestroyTask(taskId);
 }
 
-static const struct DoorAnimFrame *GetLastDoorFrame(const struct DoorAnimFrame *frame, const void *unused)
+static const struct DoorAnimFrame *GetLastDoorFrame(const struct DoorAnimFrame *frame)
 {
     while (frame->time != 0)
         frame++;
@@ -432,7 +432,7 @@ static const struct DoorGraphics *GetDoorGraphics(const struct DoorGraphics *gfx
     return NULL;
 }
 
-static s8 StartDoorAnimationTask(const struct DoorGraphics *gfx, const struct DoorAnimFrame *frames, u32 x, u32 y)
+static s8 StartDoorAnimationTask(const struct DoorGraphics *gfx, const struct DoorAnimFrame *frames, int x, int y)
 {
     if (FuncIsActiveTask(Task_AnimateDoor) == TRUE)
         return -1;
@@ -454,35 +454,39 @@ static s8 StartDoorAnimationTask(const struct DoorGraphics *gfx, const struct Do
     }
 }
 
-static void DrawClosedDoor(const struct DoorGraphics *gfx, u32 x, u32 y)
+static void DrawClosedDoor(const struct DoorGraphics *gfx, int x, int y)
 {
     DrawClosedDoorTiles(gfx, x, y);
 }
 
-static void DrawOpenedDoor(const struct DoorGraphics *gfx, u32 x, u32 y)
+static void DrawOpenedDoor(const struct DoorGraphics *gfx, int x, int y)
 {
+    const struct DoorAnimFrame *frame;
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
-    if (gfx != NULL)
-        DrawDoor(gfx, GetLastDoorFrame(sDoorOpenAnimFrames, sDoorOpenAnimFrames), x, y);
+    
+    if (gfx != NULL) {
+    //     DrawDoor(gfx, GetLastDoorFrame(sDoorOpenAnimFrames), x, y);
+        frame = sDoorOpenAnimFrames;
+        frame = GetLastDoorFrame(frame);
+        DrawDoor(gfx, frame, x, y);
+    }
 }
 
-static s8 StartDoorOpenAnimation(const struct DoorGraphics *gfx, u32 x, u32 y)
+static s8 StartDoorOpenAnimation(const struct DoorGraphics *gfx, int x, int y)
 {
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx == NULL)
     {
         return -1;
     }
+
+    if (gfx->size == 2)
+        return StartDoorAnimationTask(gfx, sBigDoorOpenAnimFrames, x, y);
     else
-    {
-        if (gfx->size == 2)
-            return StartDoorAnimationTask(gfx, sBigDoorOpenAnimFrames, x, y);
-        else
-            return StartDoorAnimationTask(gfx, sDoorOpenAnimFrames, x, y);
-    }
+        return StartDoorAnimationTask(gfx, sDoorOpenAnimFrames, x, y);
 }
 
-static s8 StartDoorCloseAnimation(const struct DoorGraphics *gfx, u32 x, u32 y)
+static s8 StartDoorCloseAnimation(const struct DoorGraphics *gfx, int x, int y)
 {
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx == NULL)
@@ -491,7 +495,7 @@ static s8 StartDoorCloseAnimation(const struct DoorGraphics *gfx, u32 x, u32 y)
         return StartDoorAnimationTask(gfx, sDoorCloseAnimFrames, x, y);
 }
 
-static s8 GetDoorSoundType(const struct DoorGraphics *gfx, u32 x, u32 y)
+static s8 GetDoorSoundType(const struct DoorGraphics *gfx, int x, int y)
 {
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx == NULL)
@@ -501,7 +505,7 @@ static s8 GetDoorSoundType(const struct DoorGraphics *gfx, u32 x, u32 y)
 }
 
 // Unused. Debug? Same as FieldAnimateDoorOpen but doesnt return or check if metatile is actually a door
-static void Debug_FieldAnimateDoorOpen(u32 x, u32 y)
+static void Debug_FieldAnimateDoorOpen(int x, int y)
 {
     StartDoorOpenAnimation(sDoorAnimGraphicsTable, x, y);
 }
