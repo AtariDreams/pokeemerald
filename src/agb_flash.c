@@ -24,9 +24,8 @@ void SwitchFlashBank(u8 bankNum)
     FLASH_WRITE(0x5555, 0xAA);
     FLASH_WRITE(0x2AAA, 0x55);
     FLASH_WRITE(0x5555, 0xB0);
-    FLASH_WRITE(0x0000, bankNum);
+    *(vu8*)FLASH_BASE = bankNum;
 }
-
 #define DELAY()                  \
 do {                             \
     vu16 i;                      \
@@ -138,16 +137,15 @@ void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 __attribute__((naked))
 void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 {
-    //clang did this
+    //clang did this plus hand optimized
     asm("cmp     r2, #0\n\
         beq     .LBB0_2 \n\
 .LBB0_1: \n\
         ldrb    r3, [r0]\n\
         strb    r3, [r1]\n\
-        subs    r2, r2, #1\n\
-        adds    r1, r1, #1\n\
         adds    r0, r0, #1\n\
-        cmp     r2, #0\n\
+        adds    r1, r1, #1\n\
+        subs    r2, r2, #1\n\
         bne     .LBB0_1\n\
 .LBB0_2:\n\
         bx      lr");
