@@ -44,9 +44,9 @@ struct EReaderData gEReaderData;
 extern const u8 gMultiBootProgram_EReader_Start[];
 extern const u8 gMultiBootProgram_EReader_End[];
 
-static void EReader_Load(struct EReaderData *eReader, int size, u32 *data)
+static void EReader_Load(struct EReaderData *eReader, u32 size, u32 *data)
 {
-    volatile u16 backupIME = REG_IME;
+    vu16 backupIME = REG_IME;
     REG_IME = 0;
     gIntrTable[1] = EReaderHelper_SerialCallback;
     gIntrTable[2] = EReaderHelper_Timer3Callback;
@@ -61,7 +61,7 @@ static void EReader_Load(struct EReaderData *eReader, int size, u32 *data)
 
 static void EReader_Reset(struct EReaderData *eReader)
 {
-    volatile u16 backupIME = REG_IME;
+    vu16 backupIME = REG_IME;
     REG_IME = 0;
     EReaderHelper_ClearSendRecvMgr();
     EReaderHelper_RestoreRegsState();
@@ -105,7 +105,7 @@ static void OpenEReaderLink(void)
 
 static bool32 ValidateEReaderConnection(void)
 {
-    volatile u16 backupIME;
+    vu16 backupIME;
     u16 handshakes[MAX_LINK_PLAYERS];
 
     backupIME = REG_IME;
@@ -170,8 +170,9 @@ static u32 TryReceiveCard(u8 *state, u16 *timer)
         if (IsLinkMaster() && GetLinkPlayerCount_2() > 1)
         {
             *state = RECV_STATE_WAIT_START;
+            break;
         }
-        else if (JOY_NEW(B_BUTTON))
+        if (JOY_NEW(B_BUTTON))
         {
             *state = 0;
             return RECV_CANCELED;
@@ -237,7 +238,7 @@ static u32 TryReceiveCard(u8 *state, u16 *timer)
         }
         break;
     default:
-        return RECV_ACTIVE;
+        break;
     }
 
     return RECV_ACTIVE;
@@ -329,14 +330,14 @@ static void Task_EReader(u8 taskId)
             data->state = ER_STATE_INIT_LINK_CHECK;
         break;
     case ER_STATE_INIT_LINK_CHECK:
-        if (!IsChildConnected())
+        if (IsChildConnected())
         {
-            CloseLink();
-            data->state = ER_STATE_MSG_SELECT_CONNECT;
+            data->state = ER_STATE_LOAD_CARD;
         }
         else
         {
-            data->state = ER_STATE_LOAD_CARD;
+            CloseLink();
+            data->state = ER_STATE_MSG_SELECT_CONNECT;
         }
         break;
     case ER_STATE_MSG_SELECT_CONNECT:
@@ -368,22 +369,25 @@ static void Task_EReader(u8 taskId)
             CloseLink();
             ResetTimer(&data->timer);
             data->state = ER_STATE_CANCELED_CARD_READ;
+            break;
         }
-        else if (GetLinkPlayerCount_2() > 1)
+        if (GetLinkPlayerCount_2() >= 2)
         {
             ResetTimer(&data->timer);
             CloseLink();
             data->state = ER_STATE_INCORRECT_LINK;
+            break;
         }
-        else if (ValidateEReaderConnection())
+        if (ValidateEReaderConnection())
         {
             // Successful connection
             PlaySE(SE_SELECT);
             CloseLink();
             ResetTimer(&data->timer);
             data->state = ER_STATE_CONNECTING;
+            break;
         }
-        else if (UpdateTimer(&data->timer, 10))
+        if (UpdateTimer(&data->timer, 10))
         {
             // Retry connection
             CloseLink();
@@ -397,8 +401,8 @@ static void Task_EReader(u8 taskId)
         break;
     case ER_STATE_CONNECTING:
         AddTextPrinterToWindow1(gJPText_Connecting);
-        // XXX: This (u32 *) cast is discarding the const qualifier from gMultiBootProgram_EReader_Start
-        EReader_Load(&gEReaderData, gMultiBootProgram_EReader_End - gMultiBootProgram_EReader_Start, (u32 *)gMultiBootProgram_EReader_Start);
+        // XXX: This (u32*) cast is discarding the const qualifier from gMultiBootProgram_EReader_Start
+        EReader_Load(&gEReaderData, (u32)(gMultiBootProgram_EReader_End - gMultiBootProgram_EReader_Start), (u32*)gMultiBootProgram_EReader_Start);
         data->state = ER_STATE_TRANSFER;
         break;
     case ER_STATE_TRANSFER:
@@ -462,8 +466,9 @@ static void Task_EReader(u8 taskId)
         {
             CloseLink();
             data->state = ER_STATE_LINK_ERROR;
+            break;
         }
-        else if (GetBlockReceivedStatus())
+        if (GetBlockReceivedStatus())
         {
             ResetBlockReceivedFlags();
             data->state = ER_STATE_VALIDATE_CARD;
