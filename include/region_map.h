@@ -113,7 +113,11 @@ bool8 IsRegionMapZoomed(void);
 void TrySetPlayerIconBlink(void);
 
 // coeff should be u8
+#if !MODERN
 void BlendRegionMap(u16 color, u32 coeff);
+#else
+void BlendRegionMap(u16 color, u8 coeff);
+#endif
 void SetRegionMapDataForZoom(void);
 
 extern const struct RegionMapLocation gRegionMapEntries[];
