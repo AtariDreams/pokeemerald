@@ -464,12 +464,11 @@ static void SpriteCB_BagVisualSwitchingPockets(struct Sprite *sprite)
     if (sprite->y2 != 0)
     {
         sprite->y2++;
+        return;
     }
-    else
-    {
-        StartSpriteAnim(sprite, sprite->sPocketId);
-        sprite->callback = SpriteCallbackDummy;
-    }
+
+    StartSpriteAnim(sprite, sprite->sPocketId);
+    sprite->callback = SpriteCallbackDummy;
 }
 
 #undef sPocketId
@@ -619,10 +618,13 @@ static void LoadBerryGfx(u8 berryId)
 {
     struct CompressedSpritePalette pal;
 
+    // TODO: was this a typo or bad commenting out?
+    #if !MODERN
     if (berryId == ITEM_TO_BERRY(ITEM_ENIGMA_BERRY) - 1 && IsEnigmaBerryValid())
     {
         // unknown empty if statement
     }
+    #endif
 
     pal.data = sBerryPicTable[berryId].pal;
     pal.tag = TAG_BERRY_PIC_PAL;
