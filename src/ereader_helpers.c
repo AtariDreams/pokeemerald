@@ -380,7 +380,7 @@ static u8 GetTrainerHillUnkVal(void)
 
 static bool32 ValidateTrainerChecksum(struct EReaderTrainerHillTrainer * hillTrainer)
 {
-    int checksum = CalcByteArraySum((u8 *)hillTrainer, offsetof(typeof(*hillTrainer), checksum));
+    u32 checksum = CalcByteArraySum((u8 *)hillTrainer, offsetof(typeof(*hillTrainer), checksum));
     if (checksum != hillTrainer->checksum)
         return FALSE;
 
@@ -391,10 +391,10 @@ bool8 ValidateTrainerHillData(struct EReaderTrainerHillSet * hillSet)
 {
     u32 i;
     u32 checksum;
-    int numTrainers = hillSet->numTrainers;
+    u32 numTrainers = hillSet->numTrainers;
 
     // Validate number of trainers
-    if (numTrainers < 1 || numTrainers > NUM_TRAINER_HILL_TRAINERS)
+    if (numTrainers == 0 || numTrainers > NUM_TRAINER_HILL_TRAINERS)
         return FALSE;
 
     // Validate trainers
@@ -415,8 +415,8 @@ bool8 ValidateTrainerHillData(struct EReaderTrainerHillSet * hillSet)
 static bool32 ValidateTrainerHillChecksum(struct EReaderTrainerHillSet *hillSet)
 {
     u32 checksum;
-    int numTrainers = hillSet->numTrainers;
-    if (numTrainers < 1 || numTrainers > NUM_TRAINER_HILL_TRAINERS)
+    u32 numTrainers = hillSet->numTrainers;
+    if (numTrainers == 0 || numTrainers > NUM_TRAINER_HILL_TRAINERS)
         return FALSE;
 
     checksum = CalcByteArraySum((u8 *)hillSet->trainers, sizeof(struct EReaderTrainerHillSet) - offsetof(struct EReaderTrainerHillSet, trainers));
@@ -501,10 +501,9 @@ bool32 ReadTrainerHillAndValidate(void)
     return result;
 }
 
-int EReader_Send(int size, const void * src)
+int EReader_Send(u32 size, const void * src)
 {
     int result;
-    int sendStatus;
 
     EReaderHelper_SaveRegsState();
     while (1)
@@ -513,8 +512,7 @@ int EReader_Send(int size, const void * src)
         if (sJoyNew & B_BUTTON)
             gShouldAdvanceLinkState = 2;
 
-        sendStatus = EReaderHandleTransfer(1, size, src, NULL);
-        sSendRecvStatus = sendStatus;
+        sSendRecvStatus = EReaderHandleTransfer(1, size, src, NULL);
         if ((sSendRecvStatus & EREADER_XFER_MASK) == 0 && sSendRecvStatus & EREADER_CHECKSUM_OK_MASK)
         {
             result = 0;
@@ -545,7 +543,6 @@ int EReader_Send(int size, const void * src)
 int EReader_Recv(void * dest)
 {
     int result;
-    int recvStatus;
 
     EReaderHelper_SaveRegsState();
     while (1)
@@ -554,8 +551,7 @@ int EReader_Recv(void * dest)
         if (sJoyNew & B_BUTTON)
             gShouldAdvanceLinkState = 2;
 
-        recvStatus = EReaderHandleTransfer(0, 0, NULL, dest);
-        sSendRecvStatus = recvStatus;
+        sSendRecvStatus = EReaderHandleTransfer(0, 0, NULL, dest);
         if ((sSendRecvStatus & EREADER_XFER_MASK) == 0 && sSendRecvStatus & EREADER_CHECKSUM_OK_MASK)
         {
             result = 0;
@@ -619,7 +615,7 @@ static void OpenSerial32(void)
     sCounter2 = 0;
 }
 
-int EReaderHandleTransfer(u8 mode, size_t size, const void * data, void * recvBuffer)
+u16 EReaderHandleTransfer(u8 mode, u32 size, const void * data, void * recvBuffer)
 {
     switch (sSendRecvMgr.state)
     {
@@ -659,18 +655,19 @@ int EReaderHandleTransfer(u8 mode, size_t size, const void * data, void * recvBu
                 sSendRecvMgr.state = EREADER_XFR_STATE_DONE;
             }
 
-            if (sSendRecvMgr.xferState != EREADER_XFER_CHK)
+            if (sSendRecvMgr.xferState == EREADER_XFER_CHK)
+                break;
+            
+            // These 2 branches are literally the same. Why is this here?
+            if (sSendRecvMgr.isParent && sCounter1 > 2)
             {
-                if (sSendRecvMgr.isParent && sCounter1 > 2)
-                {
-                    EnableSio();
-                    sSendRecvMgr.xferState = EREADER_XFER_CHK;
-                }
-                else
-                {
-                    EnableSio();
-                    sSendRecvMgr.xferState = EREADER_XFER_CHK;
-                }
+                EnableSio();
+                sSendRecvMgr.xferState = EREADER_XFER_CHK;
+            }
+            else
+            {
+                EnableSio();
+                sSendRecvMgr.xferState = EREADER_XFER_CHK;
             }
         }
         break;
@@ -846,7 +843,7 @@ static void DisableTm3(void)
 
 static void GetKeyInput(void)
 {
-    int rawKeys = REG_KEYINPUT ^ KEYS_MASK;
+    u16 rawKeys = REG_KEYINPUT ^ KEYS_MASK;
     sJoyNew = rawKeys & ~sJoyNewOrRepeated;
     sJoyNewOrRepeated = rawKeys;
 }

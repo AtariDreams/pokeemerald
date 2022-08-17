@@ -189,7 +189,7 @@ static void InitPocketListPositions(void);
 static void InitPocketScrollPositions(void);
 static u8 CreateBagInputHandlerTask(u8);
 static void DrawItemListBgRow(u8);
-static void BagMenu_MoveCursorCallback(s32, bool8, struct ListMenu *);
+static void BagMenu_MoveCursorCallback(u32, u8);
 static void BagMenu_ItemPrintCallback(u8, u32, u8);
 static void ItemMenu_UseOutOfBattle(u8);
 static void ItemMenu_Toss(u8);
@@ -924,7 +924,7 @@ static void GetItemName(s8 *dest, u16 itemId)
     }
 }
 
-static void BagMenu_MoveCursorCallback(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void BagMenu_MoveCursorCallback(u32 itemIndex, bool8 onInit)
 {
     if (onInit != TRUE)
     {
