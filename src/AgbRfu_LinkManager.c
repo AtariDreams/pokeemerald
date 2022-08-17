@@ -1266,7 +1266,7 @@ static void rfu_LMAN_checkNICommunicateStatus(void)
                     flags = 0;
                     for (j = 0; j < RFU_CHILD_MAX; j++)
                     {
-                        if ((gRfuSlotStatusNI[i]->send.bmSlot >> j) & 1 && gRfuSlotStatusNI[j]->send.failCounter > lman.NI_failCounter_limit)
+                        if ((gRfuSlotStatusNI[i]->send.bmSlot & (1 << j)) && gRfuSlotStatusNI[j]->send.failCounter > lman.NI_failCounter_limit)
                         {
                             flags |= (1 << j);
                         }
