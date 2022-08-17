@@ -202,3 +202,25 @@ u8 SmokescreenImpact(s16 x, s16 y, bool8 persist)
     StartSpriteAnim(&gSprites[spriteId1], 3);
     AnimateSprite(&gSprites[spriteId1]);
 }
+
+static void SpriteCB_SmokescreenImpactMain(struct Sprite *sprite)
+{
+    if (sprite->sActiveSprites == 0)
+    {
+        FreeSpriteTilesByTag(sSmokescreenImpactSpriteSheet.tag);
+        FreeSpritePaletteByTag(sSmokescreenImpactSpritePalette.tag);
+        if (!sprite->sPersist)
+            DestroySprite(sprite);
+        else
+            sprite->callback = SpriteCallbackDummy;
+    }
+}
+
+static void SpriteCB_SmokescreenImpact(struct Sprite *sprite)
+{
+    if (sprite->animEnded)
+    {
+        gSprites[sprite->sMainSpriteId].sActiveSprites--;
+        DestroySprite(sprite);
+    }
+}
