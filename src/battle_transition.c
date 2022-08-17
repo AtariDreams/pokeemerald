@@ -582,8 +582,10 @@ static const TransitionSpriteCallback sMugshotTrainerPicFuncs[] =
 
 // One element per slide direction.
 // Sign of acceleration is opposite speed, so slide decelerates.
+#if !MODERN
 static const s16 sTrainerPicSlideSpeeds[2] = {12, -12};
 static const s16 sTrainerPicSlideAccels[2] = {-1,   1};
+#endif
 
 static const TransitionStateFunc sSlice_Funcs[] =
 {
@@ -2081,7 +2083,7 @@ static bool8 ClockwiseWipe_TopLeft(struct Task *task)
         start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX;
         if (sTransitionData->tWipeCurrX >= DISPLAY_WIDTH / 2)
             start = 0, end = DISPLAY_WIDTH;
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = end | (start << 8);
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
     } while (!UpdateBlackWipe(sTransitionData->data, TRUE, TRUE));
 
     sTransitionData->tWipeEndX += 16;
@@ -2129,7 +2131,7 @@ static void Task_Ripple(u8 taskId)
 
 static bool8 Ripple_Init(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2161,12 +2163,18 @@ static bool8 Ripple_Main(struct Task *task)
     if (task->tAmplitudeVal <= 0x1FFF)
         task->tAmplitudeVal += 0x180;
 
+    #if !MODERN
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += speed)
     {
         s16 sinIndex = sinVal >> 8;
-        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex & 0xffff, amplitude);
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex & 0xFF, amplitude);
     }
-
+    #else
+    for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += speed)
+    {
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinVal >> 8, amplitude);
+    }
+    #endif
     if (++task->tTimer == 81)
     {
         task->tFadeStarted++;
@@ -2214,7 +2222,7 @@ static void Task_Wave(u8 taskId)
 
 static bool8 Wave_Init(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2235,8 +2243,9 @@ static bool8 Wave_Init(struct Task *task)
 
 static bool8 Wave_Main(struct Task *task)
 {
-    u8 i, sinIndex;
-    u16 *toStore;
+    m8 i;
+    u8 sinIndex;
+    u16* toStore;
     bool8 finished;
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -2347,7 +2356,7 @@ static void DoMugshotTransition(u8 taskId)
 
 static bool8 Mugshot_Init(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2371,7 +2380,7 @@ static bool8 Mugshot_Init(struct Task *task)
 
 static bool8 Mugshot_SetGfx(struct Task *task)
 {
-    s16 i, j;
+    ms16 i, j;
     u16 *tilemap, *tileset;
     const u16 *mugshotsMap;
 
@@ -2396,10 +2405,10 @@ static bool8 Mugshot_SetGfx(struct Task *task)
 
 static bool8 Mugshot_ShowBanner(struct Task *task)
 {
-    u8 i, sinIndex;
-    u16 *toStore;
+    m8 i;
+    u8 sinIndex;
+    u16* toStore;
     s16 x;
-    s32 mergedValue;
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -2438,8 +2447,7 @@ static bool8 Mugshot_ShowBanner(struct Task *task)
     if (task->tBottomBannerX < 0)
         task->tBottomBannerX = 0;
 
-    mergedValue = *(s32 *)(&task->tTopBannerX);
-    if (mergedValue == DISPLAY_WIDTH)
+    if (task->tTopBannerX == 240 && task->tBottomBannerX == 0)
         task->tState++;
 
     sTransitionData->BG0HOFS_Lower -= 8;
@@ -2450,12 +2458,13 @@ static bool8 Mugshot_ShowBanner(struct Task *task)
 
 static bool8 Mugshot_StartOpponentSlide(struct Task *task)
 {
-    u8 i;
-    u16 *toStore;
+    m8 i;
+    u16* toStore;
 
     sTransitionData->VBlank_DMA = FALSE;
 
-    for (i = 0, toStore = gScanlineEffectRegBuffers[0]; i < DISPLAY_HEIGHT; i++, toStore++)
+    toStore = gScanlineEffectRegBuffers[0];
+    for (i = 0; i < DISPLAY_HEIGHT; i++, toStore++)
         *toStore = DISPLAY_WIDTH;
 
     task->tState++;
@@ -2540,12 +2549,12 @@ static bool8 Mugshot_GradualWhiteFade(struct Task *task)
             // spreads outwards in both directions.
             s16 index1 = DISPLAY_HEIGHT / 2 - i;
             s16 index2 = DISPLAY_HEIGHT / 2 + i;
-            if (gScanlineEffectRegBuffers[0][index1] <= 15)
+            if (gScanlineEffectRegBuffers[0][index1] < 16)
             {
                 active = TRUE;
                 gScanlineEffectRegBuffers[0][index1]++;
             }
-            if (gScanlineEffectRegBuffers[0][index2] <= 15)
+            if (gScanlineEffectRegBuffers[0][index2] < 16)
             {
                 active = TRUE;
                 gScanlineEffectRegBuffers[0][index2]++;
@@ -2579,7 +2588,7 @@ static bool8 Mugshot_FadeToBlack(struct Task *task)
 
     task->tTimer++;
     memset(gScanlineEffectRegBuffers[0], task->tTimer, DISPLAY_HEIGHT * 2);
-    if (task->tTimer > 15)
+    if (task->tTimer >= 16)
         task->tState++;
 
     sTransitionData->VBlank_DMA++;
@@ -2677,15 +2686,31 @@ static bool8 MugshotTrainerPic_Pause(struct Sprite *sprite)
 
 static bool8 MugshotTrainerPic_Init(struct Sprite *sprite)
 {
+    #if !MODERN
     s16 speeds[ARRAY_COUNT(sTrainerPicSlideSpeeds)];
     s16 accels[ARRAY_COUNT(sTrainerPicSlideAccels)];
 
     memcpy(speeds, sTrainerPicSlideSpeeds, sizeof(sTrainerPicSlideSpeeds));
     memcpy(accels, sTrainerPicSlideAccels, sizeof(sTrainerPicSlideAccels));
+    #endif
+
 
     sprite->sState++;
+    #if !MODERN
     sprite->sSlideSpeed = speeds[sprite->sSlideDir];
     sprite->sSlideAccel = accels[sprite->sSlideDir];
+#else
+    if (sprite->sSlideDir)
+    {
+        sprite->sSlideSpeed = -12;
+        sprite->sSlideAccel = 1;
+    }
+    else
+    {
+        sprite->sSlideSpeed = 12;
+        sprite->sSlideAccel = -1;
+    }
+#endif
     return TRUE;
 }
 
@@ -2694,10 +2719,18 @@ static bool8 MugshotTrainerPic_Slide(struct Sprite *sprite)
     sprite->x += sprite->sSlideSpeed;
 
     // Advance state when pic passes ~40% of screen
-    if (sprite->sSlideDir && sprite->x < DISPLAY_WIDTH - 107)
-        sprite->sState++;
-    else if (!sprite->sSlideDir && sprite->x > 103)
-        sprite->sState++;
+    if (sprite->sSlideDir)
+    {
+        if (sprite->x < DISPLAY_WIDTH - 107)
+            sprite->sState++;
+    }
+    else
+    {
+        if (sprite->x > 103)
+            sprite->sState++;
+
+    }
+
     return FALSE;
 }
 
@@ -2725,7 +2758,7 @@ static bool8 MugshotTrainerPic_SlideOffscreen(struct Sprite *sprite)
 {
     sprite->sSlideSpeed += sprite->sSlideAccel;
     sprite->x += sprite->sSlideSpeed;
-    if (sprite->x < -31 || sprite->x > DISPLAY_WIDTH + 31)
+    if (sprite->x <= -32 || sprite->x >= DISPLAY_WIDTH + 32)
         sprite->sState++;
     return FALSE;
 }
@@ -2774,7 +2807,7 @@ static void Task_Slice(u8 taskId)
 
 static bool8 Slice_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2804,14 +2837,14 @@ static bool8 Slice_Init(struct Task *task)
 
 static bool8 Slice_Main(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     sTransitionData->VBlank_DMA = FALSE;
 
     task->tEffectX += (task->tSpeed >> 8);
     if (task->tEffectX > DISPLAY_WIDTH)
         task->tEffectX = DISPLAY_WIDTH;
-    if (task->tSpeed <= 0xFFF)
+    if (task->tSpeed < 0x1000)
         task->tSpeed += task->tAccel;
     if (task->tAccel < 128)
         task->tAccel <<= 1; // multiplying by two
@@ -2819,10 +2852,10 @@ static bool8 Slice_Main(struct Task *task)
     for (i = 0; i < DISPLAY_HEIGHT; i++)
     {
         u16 *storeLoc1 = &gScanlineEffectRegBuffers[0][i];
-        u16 *storeLoc2 = &gScanlineEffectRegBuffers[0][i + DISPLAY_HEIGHT];
+        u16 *storeLoc2 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT + i];
         
         // Alternate rows
-        if (i % 2)
+        if (i & 1)
         {
             *storeLoc1 = sTransitionData->cameraX + task->tEffectX;
             *storeLoc2 = DISPLAY_WIDTH - task->tEffectX;
