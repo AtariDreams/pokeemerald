@@ -393,7 +393,7 @@ bool32 OpenConditionSearchListFromGraph(void)
     return TRUE;
 }
 
-void CreateSearchResultsLoopedTask(s32 idx)
+void CreateSearchResultsLoopedTask(u32 idx)
 {
     struct Pokenav_SearchResultsGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_SEARCH_RESULTS_GFX);
     gfx->loopedTaskId = CreateLoopedTask(sSearchResultLoopTaskFuncs[idx], 1);

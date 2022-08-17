@@ -415,7 +415,7 @@ static struct Pokenav_MenuGfx * OpenPokenavMenu(void)
     return gfx;
 }
 
-void CreateMenuHandlerLoopedTask(s32 ltIdx)
+void CreateMenuHandlerLoopedTask(u32 ltIdx)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
     gfx->loopedTaskId = CreateLoopedTask(sMenuHandlerLoopTaskFuncs[ltIdx], 1);
@@ -446,6 +446,7 @@ static bool32 GetCurrentLoopedTaskActive(void)
     return IsLoopedTaskActive(gfx->loopedTaskId);
 }
 
+// Should be u32 but that doesn't match. Will look into it.
 static u32 LoopedTask_OpenMenu(s32 state)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
