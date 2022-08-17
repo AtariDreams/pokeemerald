@@ -321,8 +321,6 @@ u8 GetBattlerSpriteFinal_Y(u8 battlerId, u16 species, bool8 a3)
 u8 GetBattlerSpriteCoord2(u8 battlerId, u8 coordType)
 {
     u16 species;
-    struct BattleSpriteInfo *spriteInfo;
-
     if (coordType == BATTLER_COORD_Y_PIC_OFFSET || coordType == BATTLER_COORD_Y_PIC_OFFSET_DEFAULT)
     {
         if (IsContest())
@@ -334,11 +332,10 @@ u8 GetBattlerSpriteCoord2(u8 battlerId, u8 coordType)
         }
         else
         {
-            spriteInfo = gBattleSpritesDataPtr->battlerData;
-            if (!spriteInfo[battlerId].transformSpecies)
+            if (!gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies)
                 species = gAnimBattlerSpecies[battlerId];
             else
-                species = spriteInfo[battlerId].transformSpecies;
+                species = gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies;
         }
         if (coordType == BATTLER_COORD_Y_PIC_OFFSET)
             return GetBattlerSpriteFinal_Y(battlerId, species, TRUE);
