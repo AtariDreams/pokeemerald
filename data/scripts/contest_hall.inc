@@ -246,12 +246,16 @@ ContestHall_EventScript_GetMasterStringId::
 
 @ This whole switch is equivalent to copyvar VAR_0x8008, VAR_CONTEST_CATEGORY
 ContestHall_EventScript_GetContestCategory::
+	.if !MODERN
 	switch VAR_CONTEST_CATEGORY
 	case CONTEST_CATEGORY_COOL, ContestHall_EventScript_GetCategoryCool
 	case CONTEST_CATEGORY_BEAUTY, ContestHall_EventScript_GetCategoryBeauty
 	case CONTEST_CATEGORY_CUTE, ContestHall_EventScript_GetCategoryCute
 	case CONTEST_CATEGORY_SMART, ContestHall_EventScript_GetCategorySmart
 	case CONTEST_CATEGORY_TOUGH, ContestHall_EventScript_GetCategoryTough
+	.else
+	copyvar VAR_0x8008, VAR_CONTEST_CATEGORY
+	.endif
 	return
 
 ContestHall_EventScript_GetCategoryCool::

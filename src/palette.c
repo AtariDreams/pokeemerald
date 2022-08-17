@@ -803,7 +803,11 @@ static u8 UpdateHardwarePaletteFade(void)
 
     // gPaletteFade.active cannot change since the last time it was checked. So this
     // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
+    #if !MODERN
     return gPaletteFade.active;
+    #else
+    return PALETTE_FADE_STATUS_ACTIVE;
+    #endif
 }
 
 static void UpdateBlendRegisters(void)
