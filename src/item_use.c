@@ -394,12 +394,11 @@ static bool8 IsHiddenItemPresentAtCoords(const struct MapEvents *events, s16 x, 
 
 static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, int x, int y)
 {
-
     u16 localX, localY;
     u32 localOffset;
     s32 localLength;
 
-    struct MapHeader const *const mapHeader = GetMapHeaderFromConnection(connection);
+    const struct MapHeader *const mapHeader = GetMapHeaderFromConnection(connection);
 
     switch (connection->direction)
     {
