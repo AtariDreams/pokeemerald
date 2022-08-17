@@ -914,11 +914,11 @@ void CgbModVol(struct CgbChannel *chan)
     if ((soundInfo->mode & 1) || !CgbPan(chan, chan->rightVolume, chan->leftVolume))
     {
         chan->pan = 0xFF;
-        chan->envelopeGoal = (u32)(chan->leftVolume + chan->rightVolume) / 16;
+        chan->envelopeGoal = (u32)(chan->leftVolume + chan->rightVolume) >> 4;
     }
     else
     {
-        chan->envelopeGoal = (u32)(chan->leftVolume + chan->rightVolume) / 16;
+        chan->envelopeGoal = (u32)(chan->leftVolume + chan->rightVolume) >> 4;
         if (chan->envelopeGoal > 15)
             chan->envelopeGoal = 15;
     }
@@ -1240,7 +1240,7 @@ void CgbSound(void)
 #else
 void CgbSound(void)
 {
-    u32 ch;
+    s32 ch;
     struct CgbChannel *channels;
     s32 prevC15;
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
@@ -1250,8 +1250,6 @@ void CgbSound(void)
     vu8 *nrx3ptr;
     vu8 *nrx4ptr;
     u32 envelopeStepTimeAndDir;
-
-    // Most comparision operations that cast to s8 perform 'and' by 0xFF.
 
     if (soundInfo->c15)
         soundInfo->c15--;
@@ -1344,7 +1342,7 @@ void CgbSound(void)
                     break;
                 }
                 channels->envelopeCounter = channels->attack;
-                if ((s8)(channels->envelopeCounter))
+                if (channels->envelopeCounter)
                 {
                     channels->envelopeVolume = 0;
                     goto envelope_step_complete;
@@ -1375,7 +1373,7 @@ void CgbSound(void)
         {
             channels->statusFlags &= ~SOUND_CHANNEL_SF_ENV;
             channels->envelopeCounter = channels->release;
-            if (channels->release)
+            if (channels->envelopeCounter)
             {
                 channels->modify |= CGB_CHANNEL_MO_VOL;
                 if (ch != 3)
@@ -1456,8 +1454,7 @@ void CgbSound(void)
                 }
                 else
                 {
-                    channels->envelopeVolume++;
-                    if (channels->envelopeVolume >= channels->envelopeGoal)
+                    if ((++channels->envelopeVolume) >= channels->envelopeGoal)
                     {
                     envelope_decay_start:
                         channels->statusFlags--;
@@ -1532,8 +1529,6 @@ void CgbSound(void)
             {
                 *nrx2ptr = (envelopeStepTimeAndDir & 0xF) + (channels->envelopeVolume << 4);
                 *nrx4ptr = channels->n4 | 0x80;
-                if (ch == 1 && !(*nrx0ptr & 0x08))
-                    *nrx4ptr = channels->n4 | 0x80;
             }
         }
 
@@ -1845,10 +1840,16 @@ cond_false:
 
 void ply_xcmd(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
+    #if !MODERN
     u8 n = *track->cmdPtr;
     track->cmdPtr++;
 
+
     gXcmdTable[n](mplayInfo, track);
+     #else
+     gXcmdTable[*track->cmdPtr](mplayInfo, track);
+     track->cmdPtr++;
+     #endif
 }
 
 void ply_xxx(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
@@ -1953,8 +1954,7 @@ void ply_xcmd_0C(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *tra
 
     if (track->unk_3A < (u16)unk)
 #else
-    u16 unk = track->cmdPtr[0] | track->cmdPtr[1] << 8;
-    if (track->unk_3A < unk)
+    if (track->unk_3A < track->cmdPtr[0] | track->cmdPtr[1] << 8)
 #endif
     {
         track->unk_3A++;
