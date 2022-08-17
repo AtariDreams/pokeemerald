@@ -52,7 +52,6 @@ static void ResetCameraOffset(struct FieldCameraOffset *cameraOffset)
     cameraOffset->copyBGToVRAM = TRUE;
 }
 
-// Why not do the bitwise AND to shrink the number BEFORE the assignment to memory?
 static void AddCameraTileOffset(struct FieldCameraOffset *cameraOffset, int xOffset, int yOffset)
 {
     cameraOffset->xTileOffset += xOffset;
@@ -373,8 +372,9 @@ void CameraUpdate(void)
     curMovementOffsetX = gFieldCamera.x;
     curMovementOffsetY = gFieldCamera.y;
 
+    #if !MODERN
 
-    if (curMovementOffsetX == 0 && movementSpeedX != 0)
+    if ((curMovementOffsetX == 0 && movementSpeedX != 0))
     {
         deltaX = (movementSpeedX > 0) ? 1 : -1;
     }
@@ -397,6 +397,45 @@ void CameraUpdate(void)
         deltaY = (movementSpeedY > 0) ? 1 : -1;
         #endif
     }
+
+    #else
+    #if 1
+    if (movementSpeedX == -curMovementOffsetX)
+    {
+        if (curMovementOffsetX != 0)
+            deltaX = (movementSpeedX > 0) ? 1 : -1;
+        
+    }
+    else if (movementSpeedX != 0)
+    {
+        if (curMovementOffsetX == 0)
+            deltaX = (movementSpeedX > 0) ? 1 : -1;
+    }
+
+    if (movementSpeedY == -curMovementOffsetY)
+    {
+        if (curMovementOffsetY != 0)
+            deltaY = (movementSpeedY > 0) ? 1 : -1;
+        
+    }
+    else if (movementSpeedY != 0)
+    {
+        if (curMovementOffsetY == 0)
+            deltaY = (movementSpeedY > 0) ? 1 : -1;
+    }
+    #else
+    if ((curMovementOffsetX == 0 && movementSpeedX != 0) || (curMovementOffsetX != 0 && curMovementOffsetX == -movementSpeedX) )
+    {
+        deltaX = (movementSpeedX > 0) ? 1 : -1;
+    }
+
+    if ((curMovementOffsetY == 0 && movementSpeedY != 0) || (curMovementOffsetY != 0 && curMovementOffsetY == -movementSpeedY))
+    {
+        deltaY = (movementSpeedY > 0) ? 1 : -1;
+    }
+    #endif
+    #endif
+
 
     gFieldCamera.x += movementSpeedX;
     gFieldCamera.x %= 16;
