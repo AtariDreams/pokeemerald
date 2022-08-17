@@ -1589,8 +1589,13 @@ static const struct MatchCallText *GetBattleMatchCallText(int matchCallId, u8 *s
 
 static const struct MatchCallText *GetGeneralMatchCallText(int matchCallId, u8 *str)
 {
+    #if !MODERN
     int i;
     int count;
+    #else
+    u16 i;
+    u32 count;
+    #endif
     u32 topic, id;
     u16 rand;
 
