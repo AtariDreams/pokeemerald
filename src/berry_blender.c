@@ -3350,16 +3350,9 @@ static void TryUpdateProgressBar(u16 current, u16 limit)
 static void UpdateProgressBar(u16 value, u16 limit)
 {
     s32 amountFilled, maxFilledSegment, subSegmentsFilled, i;
-    #if !MODERN
     u16 *vram;
 
     vram = (u16*)(BG_SCREEN_ADDR(12));
-    #else
-    vu16 *vram;
-
-    vram = (vu16*)(BG_SCREEN_ADDR(12));
-    #endif
-
     amountFilled = (value * 64) / limit;
     maxFilledSegment = amountFilled / 8;
 
@@ -3409,11 +3402,11 @@ static void UpdateRPM(u16 speed)
         digits[i] = currentRPM % 10;
         currentRPM /= 10;
     }
-    *((vu16*)(BG_SCREEN_ADDR(12) + 0x458)) = digits[4] + RPM_DIGIT;
-    *((vu16*)(BG_SCREEN_ADDR(12) + 0x45A)) = digits[3] + RPM_DIGIT;
-    *((vu16*)(BG_SCREEN_ADDR(12) + 0x45C)) = digits[2] + RPM_DIGIT;
-    *((vu16*)(BG_SCREEN_ADDR(12) + 0x460)) = digits[1] + RPM_DIGIT;
-    *((vu16*)(BG_SCREEN_ADDR(12) + 0x462)) = digits[0] + RPM_DIGIT;
+    *((u16*)(BG_SCREEN_ADDR(12) + 0x458)) = digits[4] + RPM_DIGIT;
+    *((u16*)(BG_SCREEN_ADDR(12) + 0x45A)) = digits[3] + RPM_DIGIT;
+    *((u16*)(BG_SCREEN_ADDR(12) + 0x45C)) = digits[2] + RPM_DIGIT;
+    *((u16*)(BG_SCREEN_ADDR(12) + 0x460)) = digits[1] + RPM_DIGIT;
+    *((u16*)(BG_SCREEN_ADDR(12) + 0x462)) = digits[0] + RPM_DIGIT;
 }
 
 // Passed a pointer to the bg x/y
