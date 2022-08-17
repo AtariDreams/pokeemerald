@@ -318,7 +318,11 @@ static void Task_UseItemfinder(u8 taskId)
             }
             else
             {
-                m8 i;
+                #if !MODERN
+                u8 i;
+                #else
+                s16 i;
+                #endif
                 // Player is standing on hidden item
                 playerDir = GetPlayerFacingDirection();
                 for (i = 0; i < ARRAY_COUNT(sClockwiseDirections); i++)
