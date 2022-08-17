@@ -933,7 +933,7 @@ static void SpriteCB_UpArrow(struct Sprite *sprite)
         sprite->sTimer = 0;
         offset = (sprite->sOffset + 1) & 7;
         sprite->sOffset = offset;
-        sprite->y2 = -1 * offset;
+        sprite->y2 = -offset;
     }
 }
 
