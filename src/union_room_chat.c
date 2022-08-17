@@ -2125,7 +2125,7 @@ static bool8 TryAllocDisplay(void)
     sDisplay = Alloc(sizeof(*sDisplay));
     if (sDisplay && TryAllocSprites())
     {
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         InitWindows(sWinTemplates);
         ResetTempTileDataBuffers();
