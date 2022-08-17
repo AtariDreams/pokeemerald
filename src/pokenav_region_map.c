@@ -499,7 +499,7 @@ static void FreeCityZoomViewGfx(void)
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
     FreeSpriteTilesByTag(GFXTAG_CITY_ZOOM);
     FreeSpritePaletteByTag(PALTAG_CITY_ZOOM);
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(state->cityZoomTextSprites); i++)
         DestroySprite(state->cityZoomTextSprites[i]);
 }
 
@@ -677,7 +677,7 @@ static void CreateCityZoomTextSprites(void)
     else
         y = 132;
 
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(state->cityZoomTextSprites); i++)
     {
         u8 spriteId = CreateSprite(&sCityZoomTextSpriteTemplate, 152 + i * 32, y, 8);
         sprite = &gSprites[spriteId];
@@ -731,7 +731,7 @@ static void UpdateCityZoomTextPosition(void)
     int i;
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
     int y = 132 - (GetBgY(1) >> 8);
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(state->cityZoomTextSprites); i++)
         state->cityZoomTextSprites[i]->y = y;
 }
 
@@ -739,6 +739,6 @@ static void SetCityZoomTextInvisibility(bool32 invisible)
 {
     int i;
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(state->cityZoomTextSprites); i++)
         state->cityZoomTextSprites[i]->invisible = invisible;
 }

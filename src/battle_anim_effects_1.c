@@ -6675,7 +6675,7 @@ static void AnimWavyMusicNotes_Step(struct Sprite *sprite)
     if (sprite->sBlendCycleTime && ++sprite->sBlendTimer > sprite->sBlendCycleTime)
     {
         sprite->sBlendTimer = 0;
-        if (++sprite->sBlendTableIdx > (int)ARRAY_COUNT(gParticlesColorBlendTable) - 1)
+        if (++sprite->sBlendTableIdx > (m32)ARRAY_COUNT(gParticlesColorBlendTable) - 1)
             sprite->sBlendTableIdx = 0;
 
         index = IndexOfSpritePaletteTag(gParticlesColorBlendTable[sprite->sBlendTableIdx][0]);

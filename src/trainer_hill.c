@@ -1087,7 +1087,7 @@ static u16 GetPrizeItemId(void)
     }
     prizeListSetId = trainerNumSum / 256;
     #if !MODERN
-    prizeListSetId %= (int)ARRAY_COUNT(sPrizeListSets);
+    prizeListSetId %= (m32)ARRAY_COUNT(sPrizeListSets);
     #else
     prizeListSetId %= ARRAY_COUNT(sPrizeListSets);
     #endif

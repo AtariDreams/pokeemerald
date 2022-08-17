@@ -2011,7 +2011,7 @@ static void UpdateJump(int multiplayerId)
         return;
 
     jumpOffsetIdx -= 4;
-    if (jumpOffsetIdx < (int)ARRAY_COUNT(sJumpOffsets[0]))
+    if (jumpOffsetIdx < (m32)ARRAY_COUNT(sJumpOffsets[0]))
         jumpOffset = sJumpOffsets[player->monJumpType][jumpOffsetIdx];
     else
         jumpOffset = 0;
@@ -2699,7 +2699,7 @@ static void LoadSpriteSheetsAndPalettes(struct PokemonJumpGfx *jumpGfx)
 static void ResetPokeJumpSpriteData(struct Sprite *sprite)
 {
     int i;
-    for (i = 0; i < (int)ARRAY_COUNT(sprite->data); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sprite->data); i++)
         sprite->data[i] = 0;
 }
 

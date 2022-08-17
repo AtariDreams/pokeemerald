@@ -9742,7 +9742,7 @@ static void Cmd_pickup(void)
                 if (lvlDivBy10 > 9)
                     lvlDivBy10 = 9;
 
-                for (j = 0; j < (int)ARRAY_COUNT(sPickupProbabilities); j++)
+                for (j = 0; j < (m32)ARRAY_COUNT(sPickupProbabilities); j++)
                 {
                     if (sPickupProbabilities[j] > rand)
                     {

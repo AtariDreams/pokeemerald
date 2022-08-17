@@ -3534,7 +3534,7 @@ static void FlyInFieldEffect_JumpOffBird(struct Task *task)
     struct Sprite *sprite = &gSprites[gPlayerAvatar.spriteId];
     sprite->y2 = sYPositions[task->tTimer];
 
-    if ((++task->tTimer) >= (int)ARRAY_COUNT(sYPositions))
+    if ((++task->tTimer) >= (m32)ARRAY_COUNT(sYPositions))
         task->tState++;
 }
 

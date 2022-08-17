@@ -6045,7 +6045,7 @@ static void BufferBattlePartyOrder(u8 *partyBattleOrder, u8 flankId)
             }
         }
     }
-    for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
         partyBattleOrder[i] = (partyIds[i << 1] << 4) | partyIds[(i << 1) + 1];
 }
 
@@ -6215,7 +6215,7 @@ u8 GetPartyIdFromBattlePartyId(u8 battlePartyId)
 {
     u8 i, j;
 
-    for (i = 0, j = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+    for (i = 0, j = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
     {
         if ((gBattlePartyCurrentOrder[i] >> 4) == battlePartyId)
         {
