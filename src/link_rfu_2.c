@@ -717,7 +717,7 @@ static void ReadySendDataForSlots(u8 slots)
 
 static void ReadAllPlayerRecvCmds(void)
 {
-    s32 i, j;
+    m32 i, j;
 
     for (i = 0; i < MAX_RFU_PLAYERS; i++)
     {

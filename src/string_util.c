@@ -513,7 +513,11 @@ u8 *StringCopyPadded(u8 *dest, const u8 *src, u8 c, u16 n)
             n--;
     }
 
+    #if !MODERN
     while (n--)
+    #else
+    for (;n; n--)
+    #endif
     {
         *dest++ = c;
     }
@@ -529,7 +533,11 @@ u8 *StringFillWithTerminator(u8 *dest, u16 n)
 
 u8 *StringCopyN_Multibyte(u8 *dest, u8 *src, u32 n)
 {
+#if !MODERN
     while (n--)
+#else
+    for (; n; n--)
+#endif
     {
         if (*src == EOS)
         {
