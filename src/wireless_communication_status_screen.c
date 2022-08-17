@@ -208,7 +208,11 @@ static void CB2_InitWirelessCommunicationScreen(void)
 
 static void CB2_ExitWirelessCommunicationStatusScreen(void)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
     FreeAllWindowBuffers();
     for (i = 0; i < (m32)ARRAY_COUNT(sBgTemplates); i++)
     {
