@@ -694,9 +694,13 @@ static void AnimTask_MoveTargetMementoShadow_Step(u8 taskId)
             task->data[1] = 1;
         }
 
-        gBattle_WIN0H = (task->data[14] << 8) | task->data[15];
+        gBattle_WIN0H = BLDALPHA_BLEND(task->data[15], task->data[14]);
         task->data[4] += 8;
+        #if !MODERN
         if (task->data[4] >= task->data[6])
+        #else
+        if (task->data[4] > task->data[6])
+        #endif
             task->data[4] = task->data[6];
 
         DoMementoShadowEffect(task);
