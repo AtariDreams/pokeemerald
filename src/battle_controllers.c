@@ -82,6 +82,8 @@ void InitBattleControllers(void)
     else
         RecordedBattle_Init(B_RECORD_MODE_PLAYBACK);
 
+    // Should be moved to the branch of the condition above instead of being checked again.
+    // This did not happen due to debug stuff
     if (!(gBattleTypeFlags & BATTLE_TYPE_RECORDED))
         RecordedBattle_SaveParties();
 
@@ -98,6 +100,7 @@ void InitBattleControllers(void)
             BufferBattlePartyCurrentOrderBySide(i, 0);
     }
 
+    //Todo: use memset
     for (i = 0; i < sizeof(gBattleStruct->tvMovePoints); i++)
         *((u8 *)(&gBattleStruct->tvMovePoints) + i) = 0;
 
@@ -582,70 +585,57 @@ static void SetBattlePartyIds(void)
 {
     s32 i, j;
 
-    if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
+    if ((gBattleTypeFlags & BATTLE_TYPE_MULTI))
+        return;
+
+    for (i = 0; i < gBattlersCount; i++)
     {
-        for (i = 0; i < gBattlersCount; i++)
+        for (j = 0; j < PARTY_SIZE; j++)
         {
-            for (j = 0; j < PARTY_SIZE; j++)
+            if (i < 2)
             {
-                if (i < 2)
+                if (GET_BATTLER_SIDE2(i) == B_SIDE_PLAYER)
                 {
-                    if (GET_BATTLER_SIDE2(i) == B_SIDE_PLAYER)
+                    if (GetMonData(&gPlayerParty[j], MON_DATA_HP) != 0 && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES2) != SPECIES_NONE && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES2) != SPECIES_EGG && GetMonData(&gPlayerParty[j], MON_DATA_IS_EGG) == 0)
                     {
-                        if (GetMonData(&gPlayerParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES2) != SPECIES_NONE
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES2) != SPECIES_EGG
-                         && GetMonData(&gPlayerParty[j], MON_DATA_IS_EGG) == 0)
-                        {
-                            gBattlerPartyIndexes[i] = j;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (GetMonData(&gEnemyParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_NONE
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_EGG
-                         && GetMonData(&gEnemyParty[j], MON_DATA_IS_EGG) == 0)
-                        {
-                            gBattlerPartyIndexes[i] = j;
-                            break;
-                        }
+                        gBattlerPartyIndexes[i] = j;
+                        break;
                     }
                 }
                 else
                 {
-                    if (GET_BATTLER_SIDE2(i) == B_SIDE_PLAYER)
+                    if (GetMonData(&gEnemyParty[j], MON_DATA_HP) != 0 && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_NONE && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_EGG && GetMonData(&gEnemyParty[j], MON_DATA_IS_EGG) == 0)
                     {
-                        if (GetMonData(&gPlayerParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES) != SPECIES_NONE  // Probably a typo by Game Freak. The rest use SPECIES2.
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES2) != SPECIES_EGG
-                         && GetMonData(&gPlayerParty[j], MON_DATA_IS_EGG) == 0
-                         && gBattlerPartyIndexes[i - 2] != j)
-                        {
-                            gBattlerPartyIndexes[i] = j;
-                            break;
-                        }
+                        gBattlerPartyIndexes[i] = j;
+                        break;
                     }
-                    else
+                }
+            }
+            else
+            {
+                if (GET_BATTLER_SIDE2(i) == B_SIDE_PLAYER)
+                {
+                    if (GetMonData(&gPlayerParty[j], MON_DATA_HP) != 0 && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES) != SPECIES_NONE // Probably a typo by Game Freak. The rest use SPECIES2.
+                        && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES2) != SPECIES_EGG && GetMonData(&gPlayerParty[j], MON_DATA_IS_EGG) == 0 && gBattlerPartyIndexes[i - 2] != j)
                     {
-                        if (GetMonData(&gEnemyParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_NONE
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_EGG
-                         && GetMonData(&gEnemyParty[j], MON_DATA_IS_EGG) == 0
-                         && gBattlerPartyIndexes[i - 2] != j)
-                        {
-                            gBattlerPartyIndexes[i] = j;
-                            break;
-                        }
+                        gBattlerPartyIndexes[i] = j;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (GetMonData(&gEnemyParty[j], MON_DATA_HP) != 0 && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_NONE && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES2) != SPECIES_EGG && GetMonData(&gEnemyParty[j], MON_DATA_IS_EGG) == 0 && gBattlerPartyIndexes[i - 2] != j)
+                    {
+                        gBattlerPartyIndexes[i] = j;
+                        break;
                     }
                 }
             }
         }
-
-        if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
-            gBattlerPartyIndexes[1] = 0, gBattlerPartyIndexes[3] = 3;
     }
+
+    if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
+        gBattlerPartyIndexes[1] = 0, gBattlerPartyIndexes[3] = 3;
 }
 
 static void PrepareBufferDataTransfer(u8 bufferId, u8 *data, u16 size)
@@ -655,26 +645,25 @@ static void PrepareBufferDataTransfer(u8 bufferId, u8 *data, u16 size)
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
     {
         PrepareBufferDataTransferLink(bufferId, size, data);
+        return;
     }
-    else
+
+    switch (bufferId)
     {
-        switch (bufferId)
+    case BUFFER_A:
+        for (i = 0; i < size; i++)
         {
-        case BUFFER_A:
-            for (i = 0; i < size; i++)
-            {
-                gBattleBufferA[gActiveBattler][i] = *data;
-                data++;
-            }
-            break;
-        case BUFFER_B:
-            for (i = 0; i < size; i++)
-            {
-                gBattleBufferB[gActiveBattler][i] = *data;
-                data++;
-            }
-            break;
+            gBattleBufferA[gActiveBattler][i] = *data;
+            data++;
         }
+        break;
+    case BUFFER_B:
+        for (i = 0; i < size; i++)
+        {
+            gBattleBufferB[gActiveBattler][i] = *data;
+            data++;
+        }
+        break;
     }
 }
 
@@ -714,7 +703,7 @@ void PrepareBufferDataTransferLink(u8 bufferId, u16 size, u8 *data)
     s32 alignedSize;
     s32 i;
 
-    alignedSize = size - size % 4 + 4;
+    alignedSize = size + (4 - (size % 4));
     if (gTasks[sLinkSendTaskId].data[14] + alignedSize + LINK_BUFF_DATA + 1 > BATTLE_BUFFER_LINK_SIZE)
     {
         gTasks[sLinkSendTaskId].data[12] = gTasks[sLinkSendTaskId].data[14];
@@ -732,12 +721,13 @@ void PrepareBufferDataTransferLink(u8 bufferId, u16 size, u8 *data)
     for (i = 0; i < size; i++)
         gLinkBattleSendBuffer[gTasks[sLinkSendTaskId].data[14] + LINK_BUFF_DATA + i] = data[i];
 
+    // Should be +=
     gTasks[sLinkSendTaskId].data[14] = gTasks[sLinkSendTaskId].data[14] + alignedSize + LINK_BUFF_DATA;
 }
 
 static void Task_HandleSendLinkBuffersData(u8 taskId)
 {
-    u16 numPlayers;
+    u8 numPlayers;
     u16 blockSize;
 
     switch (gTasks[taskId].data[11])
@@ -795,7 +785,6 @@ static void Task_HandleSendLinkBuffersData(u8 taskId)
             else
             {
                 gTasks[taskId].data[13]--;
-                break;
             }
         }
         break;
@@ -809,8 +798,7 @@ static void Task_HandleSendLinkBuffersData(u8 taskId)
         }
         break;
     case 5:
-        gTasks[taskId].data[13]--;
-        if (gTasks[taskId].data[13] == 0)
+        if (--gTasks[taskId].data[13] == 0)
         {
             gTasks[taskId].data[13] = 1;
             gTasks[taskId].data[11] = 3;
@@ -845,6 +833,8 @@ void TryReceiveLinkBattleData(void)
                     }
 
                     dest = &gLinkBattleRecvBuffer[gTasks[sLinkReceiveTaskId].data[14]];
+                    // src = (u8 *)gBlockRecvBuffer[i];
+                    // Doesn't match though because it needs more unused vars above to match, so I am going with this for now
                     src = recvBuffer;
 
                     for (j = 0; j < dataSize + 8; j++)
@@ -1047,9 +1037,11 @@ void BtlController_EmitMoveAnimation(u8 bufferId, u16 move, u8 turnOfMove, u16 m
 {
     sBattleBuffersTransferData[0] = CONTROLLER_MOVEANIMATION;
     sBattleBuffersTransferData[1] = move;
+    // &0xFF00 is not neded for u16 if you shift by 8
     sBattleBuffersTransferData[2] = (move & 0xFF00) >> 8;
     sBattleBuffersTransferData[3] = turnOfMove;
     sBattleBuffersTransferData[4] = movePower;
+    // &0xFF00 is not neded for u16 if you shift by 8
     sBattleBuffersTransferData[5] = (movePower & 0xFF00) >> 8;
     sBattleBuffersTransferData[6] = dmg;
     sBattleBuffersTransferData[7] = (dmg & 0x0000FF00) >> 8;
@@ -1211,6 +1203,7 @@ void BtlController_EmitHealthBarUpdate(u8 bufferId, u16 hpValue)
 }
 
 // why is the argument u16 if it's being cast to s16 anyway?
+// TODO: come back to this after merging. it's a file boundary issue
 void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, u16 expPoints)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_EXPUPDATE;

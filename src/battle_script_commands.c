@@ -1817,13 +1817,10 @@ static void Cmd_healthbarupdate(void)
         {
             s16 healthValue;
 
-            s32 currDmg = gBattleMoveDamage;
-            s32 maxPossibleDmgValue = 10000; // not present in R/S, ensures that huge damage values don't change sign
-
-            if (currDmg <= maxPossibleDmgValue)
-                healthValue = currDmg;
+            if (gBattleMoveDamage > 10000) // not present in R/S, ensures that huge damage values don't change sign
+                healthValue = 10000;
             else
-                healthValue = maxPossibleDmgValue;
+                healthValue = gBattleMoveDamage;
 
             BtlController_EmitHealthBarUpdate(BUFFER_A, healthValue);
             MarkBattlerForControllerExec(gActiveBattler);
