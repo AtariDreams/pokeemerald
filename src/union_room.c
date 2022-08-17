@@ -379,8 +379,9 @@ void TryBecomeLinkLeader(void)
     struct WirelessLink_Leader *data;
 
     taskId = CreateTask(Task_TryBecomeLinkLeader, 0);
-    sWirelessLinkMain.leader = data = (void *)(gTasks[taskId].data);
-    sLeader = data;
+    sWirelessLinkMain.leader = (void*)(gTasks[taskId].data);
+    sLeader = sWirelessLinkMain.leader;
+    data = sWirelessLinkMain.leader;
 
     data->state = LL_STATE_INIT;
     data->textState = 0;
