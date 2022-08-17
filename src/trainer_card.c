@@ -1647,8 +1647,7 @@ static bool8 Task_AnimateCardFlipDown(struct Task *task)
     r6 = -cardTop << 16;
     r5 = (DISPLAY_HEIGHT << 16) / cardHeight;
     r5 -= 1 << 16;
-    var_24 = r6;
-    var_24 += r5 * cardHeight;
+    var_24 = r6 + r5 * cardHeight;
     r10 = r5 / cardHeight;
     r5 *= 2;
 
@@ -1661,8 +1660,8 @@ static bool8 Task_AnimateCardFlipDown(struct Task *task)
         r5 -= r10;
         gScanlineEffectRegBuffers[0][i] = var;
     }
-    var = var_24 >> 16;
-    for (; i < DISPLAY_HEIGHT; i++)
+    
+    for (var = var_24 >> 16; i < DISPLAY_HEIGHT; i++)
         gScanlineEffectRegBuffers[0][i] = var;
 
     sData->allowDMACopy = TRUE;
@@ -1766,8 +1765,7 @@ static bool8 Task_AnimateCardFlipUp(struct Task *task)
     r6 = -cardTop << 16;
     r5 = (DISPLAY_HEIGHT << 16) / cardHeight;
     r5 -= 1 << 16;
-    var_24 = r6;
-    var_24 += r5 * cardHeight;
+    var_24 = r6 + r5 * cardHeight;
     r10 = r5 / cardHeight;
     r5 /= 2;
 
@@ -1780,8 +1778,8 @@ static bool8 Task_AnimateCardFlipUp(struct Task *task)
         r5 += r10;
         gScanlineEffectRegBuffers[0][i] = var;
     }
-    var = var_24 >> 16;
-    for (; i < DISPLAY_HEIGHT; i++)
+
+    for (var = var_24 >> 16; i < DISPLAY_HEIGHT; i++)
         gScanlineEffectRegBuffers[0][i] = var;
 
     sData->allowDMACopy = TRUE;
