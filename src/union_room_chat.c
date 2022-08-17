@@ -1970,6 +1970,7 @@ static u32 GetTextEntryCursorPosition(void)
 static int GetShouldShowCaseToggleIcon(void)
 {
     u8 *str = GetLastCharOfMessagePtr();
+    // Should have been a u8
     u32 character = *str;
     if (character > EOS || sCaseToggleTable[character] == character || sCaseToggleTable[character] == CHAR_SPACE)
         return 3; // Don't show
@@ -2036,7 +2037,7 @@ static void Task_ReceiveChatMessage(u8 taskId)
         tState = 3;
         // fall through
     case 3:
-        for (; tI < 5 && ((tBlockReceivedStatus >> tI) & 1) == 0; tI++)
+        for (; tI < 5 && (tBlockReceivedStatus & (1 << tI)) == 0; tI++)
             ;
 
         if (tI == 5)
@@ -2790,7 +2791,7 @@ static void AddStdMessageWindow(int msgId, u16 bg0vofs)
         str = sDisplayStdMessages[msgId].text;
     }
 
-    ChangeBgY(0, bg0vofs * 256, BG_COORD_SET);
+    ChangeBgY(0, bg0vofs << 8, BG_COORD_SET);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
     PutWindowTilemap(windowId);
     if (sDisplayStdMessages[msgId].boxType == 1)
@@ -3226,7 +3227,8 @@ static void CreateTextEntrySprites(void)
 
 static void SpriteCB_TextEntryCursor(struct Sprite *sprite)
 {
-    int pos = GetTextEntryCursorPosition();
+    // Should be u8
+    u32 pos = GetTextEntryCursorPosition();
     if (pos == MAX_MESSAGE_LENGTH)
     {
         sprite->invisible = TRUE;
