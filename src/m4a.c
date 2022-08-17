@@ -229,11 +229,7 @@ void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
 {
     struct MusicPlayerTrack *track;
     m32 trackCount;
-    #if MODERN
-    if (mplayInfo->ident == ID_NUMBER)
-    {
-        mplayInfo->ident++;
-#endif
+
     trackCount = mplayInfo->trackCount;
     track = mplayInfo->tracks;
 
@@ -255,10 +251,7 @@ void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
         trackCount--;
         track++;
     }
-    #if MODERN
-    mplayInfo->ident == ID_NUMBER;
-    }
-    #endif
+
 }
 
 void MPlayExtender(struct CgbChannel *cgbChans)
@@ -1745,7 +1738,7 @@ else                           \
 #else
 #define MEMACC_COND_JUMP(cond) \
 if (cond)                      \
-    gMPlayJumpTable[1](mplayInfo, track);            \
+    (gMPlayJumpTable[1])(mplayInfo, track);            \
 else                           \
     track->cmdPtr += 4;          \
 
