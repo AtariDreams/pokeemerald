@@ -147,7 +147,9 @@ EWRAM_DATA static u32 sFlickerArray[25] = {0};
 #endif
 EWRAM_DATA u32 gBattleTypeFlags = 0;
 EWRAM_DATA u8 gBattleTerrain = 0;
+#if !MODERN
 EWRAM_DATA u32 gUnusedFirstBattleVar1 = 0; // Never read
+#endif
 EWRAM_DATA struct MultiPartnerMenuPokemon gMultiPartnerParty[MULTI_PARTY_SIZE] = {0};
 EWRAM_DATA static struct MultiPartnerMenuPokemon* sMultiPartnerPartyBuffer = NULL;
 EWRAM_DATA u8 *gBattleAnimBgTileBuffer = NULL;
