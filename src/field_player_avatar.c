@@ -2047,7 +2047,7 @@ static void AlignFishingAnimationFrames(void)
     if (animType == 5)
         playerSprite->y2 = -8;
     M_IF(animType == 10 || animType == 11)
-    playerSprite->y2 = 8;
+        playerSprite->y2 = 8;
     if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_SURFING)
         SetSurfBlob_PlayerOffset(gObjectEvents[gPlayerAvatar.objectEventId].fieldEffectSpriteId, TRUE, playerSprite->y2);
 }
