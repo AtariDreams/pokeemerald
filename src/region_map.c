@@ -675,22 +675,22 @@ static u8 ProcessRegionMapInput_Full(void)
         sRegionMap->cursorDeltaY = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    M_IF (JOY_HELD(DPAD_DOWN) && sRegionMap->cursorPosY < MAPCURSOR_Y_MAX)
+    if (JOY_HELD(DPAD_DOWN) && sRegionMap->cursorPosY < MAPCURSOR_Y_MAX)
     {
         sRegionMap->cursorDeltaY = +1;
         input = MAP_INPUT_MOVE_START;
     }
-    M_IF (JOY_HELD(DPAD_LEFT) && sRegionMap->cursorPosX > MAPCURSOR_X_MIN)
+    if (JOY_HELD(DPAD_LEFT) && sRegionMap->cursorPosX > MAPCURSOR_X_MIN)
     {
         sRegionMap->cursorDeltaX = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    M_IF (JOY_HELD(DPAD_RIGHT) && sRegionMap->cursorPosX < MAPCURSOR_X_MAX)
+    if (JOY_HELD(DPAD_RIGHT) && sRegionMap->cursorPosX < MAPCURSOR_X_MAX)
     {
         sRegionMap->cursorDeltaX = +1;
         input = MAP_INPUT_MOVE_START;
     }
-    M_IF (JOY_NEW(A_BUTTON))
+    if (JOY_NEW(A_BUTTON))
     {
         input = MAP_INPUT_A_BUTTON;
     }
@@ -717,7 +717,7 @@ static u8 MoveRegionMapCursor_Full(void)
     {
         sRegionMap->cursorPosX++;
     }
-    M_IF (sRegionMap->cursorDeltaX < 0)
+    if (sRegionMap->cursorDeltaX < 0)
     {
         sRegionMap->cursorPosX--;
     }
@@ -725,7 +725,7 @@ static u8 MoveRegionMapCursor_Full(void)
     {
         sRegionMap->cursorPosY++;
     }
-    M_IF (sRegionMap->cursorDeltaY < 0)
+    if (sRegionMap->cursorDeltaY < 0)
     {
         sRegionMap->cursorPosY--;
     }
