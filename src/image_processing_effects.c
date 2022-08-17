@@ -809,7 +809,7 @@ static u16 QuantizePixel_Blur(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     else
         diff = nextDiff;
 
-    factor = 31 - (diff >> 1);
+    factor = 31 - (diff / 2);
     red   = (red   * factor) / 31;
     green = (green * factor) / 31;
     blue  = (blue  * factor) / 31;
