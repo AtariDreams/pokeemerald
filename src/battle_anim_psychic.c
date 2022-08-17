@@ -987,7 +987,11 @@ static void AnimSkillSwapOrb(struct Sprite *sprite)
 // arg0: Stage. Stage 0 is a slight right distortion, 1 is a medium left distortion, and 2 is a severe right distortion
 void AnimTask_ExtrasensoryDistortion(u8 taskId)
 {
+    #if !MODERN
     s16 i;
+    #else
+    int i;
+    #endif
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
 
