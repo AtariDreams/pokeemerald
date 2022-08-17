@@ -927,13 +927,7 @@ void MoveRelearnerShowHideHearts(u32 moveId)
 {
     // I hope this works...
     // It makes logical sense but the way the code is might cause it to glitch out...
-#if !MODERN
-    u16 numHearts;
-    u16 i;
-#else
-    int i;
-    s16 numHearts;
-#endif
+    m16 i, numHearts
 
     if (!sMoveRelearnerMenuSate.showContestInfo || moveId == LIST_CANCEL)
     {
