@@ -1259,8 +1259,11 @@ void AllocateMonSpritesGfx(void)
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
     {
         gMonSpritesGfxPtr->sprites.ptr[i] = gMonSpritesGfxPtr->firstDecompressed + (i * MON_PIC_SIZE * 4);
-        *(gMonSpritesGfxPtr->templates + i) = gBattlerSpriteTemplates[i];
-
+        #if !MODERN
+        memcpy(&gMonSpritesGfxPtr->templates[i], &gBattlerSpriteTemplates[i], sizeof(struct SpriteTemplate));
+        #else
+        gMonSpritesGfxPtr->templates[i] = gBattlerSpriteTemplates[i];
+        #endif
         for (j = 0; j < 4; j++)
         {
             gMonSpritesGfxPtr->frameImages[i][j].data = gMonSpritesGfxPtr->sprites.ptr[i] + (j * MON_PIC_SIZE);
