@@ -2858,8 +2858,9 @@ void SetContestants(u8 contestType, u8 rank)
 {
     s32 i;
     u8 opponentsCount = 0;
-    u8 opponents[100];
-    bool8 allowPostgameContestants = FALSE;
+    // 1 for player I guess
+    u8 opponents[ARRAY_COUNT(gContestOpponents) + 1];
+    bool32 allowPostgameContestants = FALSE;
     const u8 * filter;
 
     TryPutPlayerLast();
