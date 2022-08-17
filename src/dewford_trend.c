@@ -422,7 +422,10 @@ static bool8 IsEasyChatPairEqual(u16 *words1, u16 *words2)
     }
     return TRUE;
     #else
-    return words1[0] == words2[0] && words1[1] == words2[1];
+    if (words1[0] == words2[0] && words1[1] == words2[1])
+        return TRUE;
+
+    return FALSE;
     #endif
 }
 
