@@ -328,7 +328,7 @@ static void SetRandomQuestionData(void)
 }
 
 #define APPRENTICE_SPECIES_ID(monId) \
-    ((monId < MULTI_PARTY_SIZE) ? (PLAYER_APPRENTICE.speciesIds[monId] >> (((PLAYER_APPRENTICE.party >> monId) & 1) << 2) & 0xF) : 0)
+    ((monId < MULTI_PARTY_SIZE) ? (PLAYER_APPRENTICE.speciesIds[monId] >> (4 * ((PLAYER_APPRENTICE.party >> monId) & 1))) & 0xF : 0)
 
 #define APPRENTICE_SPECIES_ID_NO_COND(monId, count) \
     monId = ((PLAYER_APPRENTICE.party >> count) & 1); \
@@ -430,8 +430,12 @@ static u16 GetRandomAlternateMove(u8 monId)
             do
             {
                 // Get a random move excluding the 4 it would know at max level
+                #if !MODERN
                 u8 learnsetId = Random() % (numLearnsetMoves - MAX_MON_MOVES);
                 moveId = learnset[learnsetId] & LEVEL_UP_MOVE_ID;
+                #else
+                moveId = learnset[Random() % (numLearnsetMoves - MAX_MON_MOVES)] & LEVEL_UP_MOVE_ID;
+                #endif
                 shouldUseMove = TRUE;
 
                 for (j = numLearnsetMoves - MAX_MON_MOVES; j < numLearnsetMoves; j++)
@@ -500,14 +504,23 @@ static void GetLatestLearnedMoves(u16 species, u16 *moves)
 
 // Get the level up move or previously suggested move to be the first move choice
 // Compare to GetRandomAlternateMove, which gets the move that will be the second choice
-static u16 GetDefaultMove(u8 monId, u8 speciesArrayId, u8 moveSlot)
+static u16 GetDefaultMove(const u8 monId, const u8 speciesArrayId, const u8 moveSlot)
 {
     u16 moves[MAX_MON_MOVES];
-    u8 i, numQuestions;
+    m8 i, numQuestions;
+    #if MODERN
+    u32 count;
+    #endif
 
+    #if !MODERN
     if (PLAYER_APPRENTICE.questionsAnswered < NUM_WHICH_MON_QUESTIONS)
+    #else
+    count = PLAYER_APPRENTICE.questionsAnswered;
+    if (count < NUM_WHICH_MON_QUESTIONS)
+    #endif
         return MOVE_NONE;
 
+    #if !MODERN
     numQuestions = 0;
     for (i = 0; i < APPRENTICE_MAX_QUESTIONS; i++)
     {
@@ -515,9 +528,24 @@ static u16 GetDefaultMove(u8 monId, u8 speciesArrayId, u8 moveSlot)
             break;
         numQuestions++;
     }
+    #else
+    count -= NUM_WHICH_MON_QUESTIONS;
+    // if count is higher, then set to max
+    if (count > APPRENTICE_MAX_QUESTIONS)
+        count = APPRENTICE_MAX_QUESTIONS;
+    for (numQuestions = 0; numQuestions < count; numQuestions++)
+    {
+        if (PLAYER_APPRENTICE.questions[numQuestions].questionId == QUESTION_ID_WIN_SPEECH)
+            break;
+    }
+    #endif
 
     GetLatestLearnedMoves(gApprentices[PLAYER_APPRENTICE.id].species[speciesArrayId], moves);
+    #if !MODERN
     for (i = 0; i < numQuestions && i < CURRENT_QUESTION_NUM; i++)
+    #else
+    for (i = 0; i < numQuestions; i++)
+    #endif
     {
         if (PLAYER_APPRENTICE.questions[i].questionId == QUESTION_ID_WHICH_MOVE
             && PLAYER_APPRENTICE.questions[i].monId == monId
@@ -533,8 +561,7 @@ static u16 GetDefaultMove(u8 monId, u8 speciesArrayId, u8 moveSlot)
 static void SaveApprenticeParty(u8 numQuestions)
 {
     struct ApprenticeMon *apprenticeMons[MULTI_PARTY_SIZE];
-    u8 i, j;
-    u32 speciesTableId;
+    m8 i, j;
 
     for (i = 0; i < MULTI_PARTY_SIZE; i++)
     {
@@ -555,7 +582,7 @@ static void SaveApprenticeParty(u8 numQuestions)
     // Save party species
     for (i = 0; i < MULTI_PARTY_SIZE; i++)
     {
-        speciesTableId = APPRENTICE_SPECIES_ID(i);
+        u32 speciesTableId = APPRENTICE_SPECIES_ID(i);
         apprenticeMons[i]->species = gApprentices[PLAYER_APPRENTICE.id].species[speciesTableId];
         GetLatestLearnedMoves(apprenticeMons[i]->species, apprenticeMons[i]->moves);
     }
@@ -563,8 +590,8 @@ static void SaveApprenticeParty(u8 numQuestions)
     // Update party based on response to held item / move choice questions
     for (i = 0; i < numQuestions; i++)
     {
-        u8 questionId = PLAYER_APPRENTICE.questions[i].questionId;
-        u8 monId = PLAYER_APPRENTICE.questions[i].monId;
+        m8 questionId = PLAYER_APPRENTICE.questions[i].questionId;
+        m8 monId = PLAYER_APPRENTICE.questions[i].monId;
         if (questionId == QUESTION_ID_WHAT_ITEM)
         {
             if (PLAYER_APPRENTICE.questions[i].suggestedChange)
