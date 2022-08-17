@@ -1603,7 +1603,7 @@ void CB2_LinkError(void)
     MPlayStop(&gMPlayInfo_SE1);
     MPlayStop(&gMPlayInfo_SE2);
     MPlayStop(&gMPlayInfo_SE3);
-    InitHeap(gHeap, HEAP_SIZE);
+    HeapInit();
     ResetSpriteData();
     FreeAllSpritePalettes();
     ResetPaletteFadeControl();

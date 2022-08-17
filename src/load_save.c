@@ -118,7 +118,7 @@ void MoveSaveBlocks_ResetHeap(void)
     *gPokemonStoragePtr = *pokemonStorageCopy;
 
     // heap was destroyed in the copying process, so reset it
-    InitHeap(gHeap, HEAP_SIZE);
+    HeapInit();
 
     // restore interrupt functions
     gMain.hblankCallback = hblankCB;
