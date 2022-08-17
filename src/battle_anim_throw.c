@@ -2647,7 +2647,8 @@ void AnimTask_GetTrappedMoveAnimId(u8 taskId)
         gBattleAnimArgs[0] = TRAP_ANIM_SAND_TOMB;
         break;
     default:
-        gBattleAnimArgs[0] = TRAP_ANIM_BIND break;
+        gBattleAnimArgs[0] = TRAP_ANIM_BIND;
+        break;
     }
 #endif
 
