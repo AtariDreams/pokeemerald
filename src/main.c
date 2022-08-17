@@ -57,9 +57,7 @@ const IntrFunc gIntrTableTemplate[] =
 
 #define INTR_COUNT ((int)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
 
-#if !MODERN
 static u16 sUnusedVar; // Never read
-#endif
 
 u16 gKeyRepeatStartDelay;
 bool8 gLinkTransferringData;
@@ -120,9 +118,7 @@ void AgbMain()
 
     gLinkTransferringData = FALSE;
 
-    #if !MODERN
     sUnusedVar = 0xFC0;
-    #endif
 
     for (;;)
     {

@@ -6,6 +6,8 @@
 #include "sprite.h"
 #include "constants/items.h"
 
+#define	ITEM_ICON_DEC_SIZE		( 0x20 * 9 )
+#define	ITEM_ICON_MAKE_SIZE		( 0x20 * 16 )
 // EWRAM vars
 EWRAM_DATA u8 *gItemIconDecompressionBuffer = NULL;
 EWRAM_DATA u8 *gItemIcon4x4Buffer = NULL;
@@ -55,11 +57,11 @@ const struct SpriteTemplate gItemIconSpriteTemplate =
 // code
 bool8 AllocItemIconTemporaryBuffers(void)
 {
-    gItemIconDecompressionBuffer = Alloc(0x120);
+    gItemIconDecompressionBuffer = Alloc(ITEM_ICON_DEC_SIZE);
     if (gItemIconDecompressionBuffer == NULL)
         return FALSE;
 
-    gItemIcon4x4Buffer = AllocZeroed(0x200);
+    gItemIcon4x4Buffer = AllocZeroed(ITEM_ICON_MAKE_SIZE);
     if (gItemIcon4x4Buffer == NULL)
     {
         Free(gItemIconDecompressionBuffer);
@@ -75,7 +77,8 @@ void FreeItemIconTemporaryBuffers(void)
     Free(gItemIcon4x4Buffer);
 }
 
-void CopyItemIconPicTo4x4Buffer(const void *src, void *dest)
+//TODO: inline the arguments since they are always the same
+void CopyItemIconPicTo4x4Buffer(const u8 *src, u8 *dest)
 {
     u8 i;
 
@@ -99,7 +102,7 @@ u8 AddItemIconSprite(u16 tilesTag, u16 paletteTag, u16 itemId)
         LZDecompressWram(GetItemIconPicOrPalette(itemId, 0), gItemIconDecompressionBuffer);
         CopyItemIconPicTo4x4Buffer(gItemIconDecompressionBuffer, gItemIcon4x4Buffer);
         spriteSheet.data = gItemIcon4x4Buffer;
-        spriteSheet.size = 0x200;
+        spriteSheet.size = ITEM_ICON_MAKE_SIZE;
         spriteSheet.tag = tilesTag;
         LoadSpriteSheet(&spriteSheet);
 
@@ -136,7 +139,7 @@ u8 AddCustomItemIconSprite(const struct SpriteTemplate *customSpriteTemplate, u1
         LZDecompressWram(GetItemIconPicOrPalette(itemId, 0), gItemIconDecompressionBuffer);
         CopyItemIconPicTo4x4Buffer(gItemIconDecompressionBuffer, gItemIcon4x4Buffer);
         spriteSheet.data = gItemIcon4x4Buffer;
-        spriteSheet.size = 0x200;
+        spriteSheet.size = ITEM_ICON_MAKE_SIZE;
         spriteSheet.tag = tilesTag;
         LoadSpriteSheet(&spriteSheet);
 
