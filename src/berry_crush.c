@@ -1400,6 +1400,7 @@ static void ResetCrusherPos(struct BerryCrushGame *game)
 }
 
 // Sprite data for berry sprites. Identical to fields for sparkle sprites
+#if MODERN
 #define sX         data[0]
 #define sYSpeed    data[1]
 #define sYAccel    data[2]
@@ -1409,8 +1410,36 @@ static void ResetCrusherPos(struct BerryCrushGame *game)
 #define sAmplitude data[6]
 // The last element (data[7]) is a bitfield.
 // The first 15 bits are the y coord to stop at.
-// The last bit is a flag for whether or not to move horizontally too
+// The last bit is a flag for whether or not to move on the x too
 #define sBitfield  data[7]
+typedef mash16 s16*;
+#else
+typedef struct{
+	s16	sX;
+	s16	sYSpeed;
+	s16	sYAccel;
+	s16	sXSpeed;
+	s16	sSinIdx;
+	s16	sSinSpeed;
+	s16	sAmplitude;
+	s16	sBitfield;
+} crushStruct;
+
+typedef crushStruct* mash16;
+
+#define sX         data->sX
+#define sYSpeed    data->sYSpeed
+#define sYAccel    data->sYAccel
+#define sXSpeed    data->sXSpeed
+#define sSinIdx    data->sSinIdx
+#define sSinSpeed  data->sSinSpeed
+#define sAmplitude data->sAmplitude
+// The last element (data[7]) is a bitfield.
+// The first 15 bits are the y coord to stop at.
+// The last bit is a flag for whether or not to move on the x too
+#define sBitfield  data->sBitfield
+#endif
+
 #define MASK_TARGET_Y 0x7FFF
 #define F_MOVE_HORIZ  0x8000
 
@@ -1419,10 +1448,7 @@ static void CreateBerrySprites(struct BerryCrushGame *game, struct BerryCrushGam
     u8 i;
     u8 spriteId;
     s16 distance, var1;
-    s16 *data;
-    s32 amplitude;
-    s16 speed;
-    u32 var2;
+    mash16 data;
 
     for (i = 0; i < game->playerCount; i++)
     {
@@ -1436,22 +1462,22 @@ static void CreateBerrySprites(struct BerryCrushGame *game, struct BerryCrushGam
         gfx->berrySprites[i]->affineAnimPaused = TRUE;
         gfx->berrySprites[i]->x = 120 + gfx->playerCoords[i]->berryXOffset;
         gfx->berrySprites[i]->y = -16;
-        data = gfx->berrySprites[i]->data;
-        speed = 512;
-        sYSpeed = speed;
+        data = (mash16)gfx->berrySprites[i]->data;
+        sYSpeed = 512;
         sYAccel = 32;
         sBitfield = 112; // Setting bits in MASK_TARGET_Y
-        distance = gfx->playerCoords[i]->berryXDest - gfx->playerCoords[i]->berryXOffset;
-        amplitude = distance;
-        if (distance < 0)
-            amplitude += 3;
 
-        sAmplitude = amplitude >> 2;
-        distance *= 128;
-        var2 = speed + 32;
-        var2 = var2 / 2;
-        var1 = MathUtil_Div16Shift(7, Q_8_8(63.5), var2);
-        sX = (u16)gfx->berrySprites[i]->x * 128;
+        distance = gfx->playerCoords[i]->berryXDest - gfx->playerCoords[i]->berryXOffset;
+        sAmplitude = distance/4;
+    
+        distance <<= 7;
+        #if !MODERN
+        var1 = MathUtil_Div16Shift(7, Q_8_8(63.5), (sYSpeed + sYAccel) >> 1);
+        #else
+        var1 = MathUtil_Div16Shift(7, Q_8_8(63.5), (512 + 32) >> 1);
+        #endif
+
+        sX = (gfx->berrySprites[i]->x << 7);
         sXSpeed = MathUtil_Div16Shift(7, distance, var1);
         var1 = MathUtil_Mul16Shift(7, var1, 85);
         sSinIdx = 0;
@@ -1464,13 +1490,13 @@ static void CreateBerrySprites(struct BerryCrushGame *game, struct BerryCrushGam
 
 static void SpriteCB_DropBerryIntoCrusher(struct Sprite *sprite)
 {
-    s16 *data = sprite->data;
+    mash16 data = (mash16)sprite->data;
 
     sYSpeed += sYAccel;
     sprite->y2 += sYSpeed >> 8;
     if (sBitfield & F_MOVE_HORIZ)
     {
-        sprite->sX += sXSpeed;
+        sX += sXSpeed;
         sSinIdx += sSinSpeed;
         sprite->x2 = Sin(sSinIdx >> 7, sAmplitude);
         if ((sBitfield & F_MOVE_HORIZ) && (sSinIdx >> 7) > 126)
