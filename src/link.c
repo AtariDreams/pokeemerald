@@ -2015,7 +2015,8 @@ static void CheckMasterOrSlave(void)
     {
         gLink.isMaster = LINK_SLAVE;
     }
-    #elif !MODERN
+    #elif 1
+    // TODO: this was what GF did and it makes different code than below due to one being volatile and this not being one. should I change or keep it?
 
     struct SioMultiCnt backup = *SIO_MULTI_CNT;
     if (!backup.si && backup.sd && gLink.localId == 0)
@@ -2162,6 +2163,7 @@ void LinkVSync(void)
             {
                 gLink.lag = LAG_SLAVE;
             }
+            // no else if? really?
             if (gLink.state == LINK_STATE_HANDSHAKE)
             {
                 gLink.playerCount = 0;
@@ -2273,7 +2275,7 @@ static void DoRecv(void)
     u8 i;
     u8 index;
 
-    *(vu64 *)recv = REG_SIOMLT_RECV;
+    *(u64 *)recv = REG_SIOMLT_RECV;
     if (gLink.sendCmdIndex == 0)
     {
         for (i = 0; i < gLink.playerCount; i++)
