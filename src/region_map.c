@@ -636,7 +636,11 @@ bool8 LoadRegionMapGfx(void)
 }
 
 // coeff should be u8
+#if !MODERN
 void BlendRegionMap(u16 color, u32 coeff)
+#else
+void BlendRegionMap(u16 color, u8 coeff)
+#endif
 {
     BlendPalettes(0x380, coeff, color);
     CpuCopy16(gPlttBufferFaded + 0x70, gPlttBufferUnfaded + 0x70, 0x60);
