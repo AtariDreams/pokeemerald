@@ -418,7 +418,9 @@ gSpecials::
 	def_special CallApprenticeFunction
 	def_special ShouldTryGetTrainerScript
 	def_special ShowMapNamePopup
+	.if !MODERN @ erroneously declared twice
 	def_special ShowMapNamePopup
+	.endif
 	def_special DoMirageTowerCeilingCrumble
 	def_special SetMirageTowerVisibility
 	def_special StartPlayerDescendMirageTower
