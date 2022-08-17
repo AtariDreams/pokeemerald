@@ -489,48 +489,68 @@ static void AnimTask_UnusedLevelUpHealthBox_Step(u8 taskId)
     switch (gTasks[taskId].data[15])
     {
     case 0:
-        if (gTasks[taskId].data[11]++ > 1)
+#if !MODERN
+        if (gTasks[taskId].data[11]++ < 2)
+            break;
+
+#else
+        if (gTasks[taskId].data[11] < 2)
         {
-            gTasks[taskId].data[11] = 0;
-            gTasks[taskId].data[12]++;
-            SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(gTasks[taskId].data[12], 16 - gTasks[taskId].data[12]));
-            if (gTasks[taskId].data[12] == 8)
-                gTasks[taskId].data[15]++;
+            gTasks[taskId].data[11]++;
+            break;
         }
+#endif
+
+        gTasks[taskId].data[11] = 0;
+
+        gTasks[taskId].data[12]++;
+        SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(gTasks[taskId].data[12], 16 - gTasks[taskId].data[12]));
+        if (gTasks[taskId].data[12] == 8)
+            gTasks[taskId].data[15]++;
+
         break;
     case 1:
         if (++gTasks[taskId].data[10] == 30)
             gTasks[taskId].data[15]++;
         break;
     case 2:
-        if (gTasks[taskId].data[11]++ > 1)
-        {
-            gTasks[taskId].data[11] = 0;
-            gTasks[taskId].data[12]--;
-            SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(gTasks[taskId].data[12], 16 - gTasks[taskId].data[12]));
-            if (gTasks[taskId].data[12] == 0)
-            {
-                ResetBattleAnimBg(FALSE);
-                gBattle_WIN0H = 0;
-                gBattle_WIN0V = 0;
-                SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
-                SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
-                if (!IsContest())
-                    SetAnimBgAttribute(1, BG_ANIM_CHAR_BASE_BLOCK, 0);
+#if !MODERN
+        if (gTasks[taskId].data[11]++ < 2)
+            break;
 
-                SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) ^ DISPCNT_OBJWIN_ON);
-                SetGpuReg(REG_OFFSET_BLDCNT, 0);
-                SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(0, 0));
-                DestroySprite(&gSprites[gTasks[taskId].data[0]]);
-                DestroySprite(&gSprites[gTasks[taskId].data[2]]);
-                SetAnimBgAttribute(1, BG_ANIM_AREA_OVERFLOW_MODE, 0);
-                spriteId1 = gSprites[gHealthboxSpriteIds[battler]].oam.affineParam;
-                spriteId2 = gSprites[gHealthboxSpriteIds[battler]].data[5];
-                gSprites[gHealthboxSpriteIds[battler]].oam.priority = 1;
-                gSprites[spriteId1].oam.priority = 1;
-                gSprites[spriteId2].oam.priority = 1;
-                DestroyAnimVisualTask(taskId);
-            }
+#else
+        if (gTasks[taskId].data[11] < 2)
+        {
+            gTasks[taskId].data[11]++;
+            break;
+        }
+#endif
+
+        gTasks[taskId].data[11] = 0;
+        gTasks[taskId].data[12]--;
+        SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(gTasks[taskId].data[12], 16 - gTasks[taskId].data[12]));
+        if (gTasks[taskId].data[12] == 0)
+        {
+            ResetBattleAnimBg(0);
+            gBattle_WIN0H = 0;
+            gBattle_WIN0V = 0;
+            SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
+            SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
+            if (!IsContest())
+                SetAnimBgAttribute(1, BG_ANIM_CHAR_BASE_BLOCK, 0);
+
+            SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) ^ DISPCNT_OBJWIN_ON);
+            SetGpuReg(REG_OFFSET_BLDCNT, 0);
+            SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(0, 0));
+            DestroySprite(&gSprites[gTasks[taskId].data[0]]);
+            DestroySprite(&gSprites[gTasks[taskId].data[2]]);
+            SetAnimBgAttribute(1, BG_ANIM_AREA_OVERFLOW_MODE, 0);
+            spriteId1 = gSprites[gHealthboxSpriteIds[battler]].oam.affineParam;
+            spriteId2 = gSprites[gHealthboxSpriteIds[battler]].data[5];
+            gSprites[gHealthboxSpriteIds[battler]].oam.priority = 1;
+            gSprites[spriteId1].oam.priority = 1;
+            gSprites[spriteId2].oam.priority = 1;
+            DestroyAnimVisualTask(taskId);
         }
         break;
     }
@@ -599,38 +619,44 @@ void AnimTask_FlashHealthboxOnLevelUp(u8 taskId)
 
 static void AnimTask_FlashHealthboxOnLevelUp_Step(u8 taskId)
 {
-    u8 paletteNum;
-    u32 paletteOffset, colorOffset;
+    u8 paletteNum, colorOffset;
 
+    #if !MODERN
     gTasks[taskId].data[0]++;
-    if (gTasks[taskId].data[0]++ >= gTasks[taskId].data[11])
+    if (gTasks[taskId].data[0]++ < gTasks[taskId].data[11])
+        return;
+    #else
+
+    if (gTasks[taskId].data[0] + 1 < gTasks[taskId].data[11])
     {
-        gTasks[taskId].data[0] = 0;
-        paletteNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PALS_1);
-        colorOffset = gTasks[taskId].data[10] == 0 ? 6 : 2;
-        switch (gTasks[taskId].data[1])
-        {
-        case 0:
-            gTasks[taskId].data[2] += 2;
-            if (gTasks[taskId].data[2] > 16)
-                gTasks[taskId].data[2] = 16;
+        gTasks[taskId].data[0] += 2;
+        return;
+    }
+    #endif
+    gTasks[taskId].data[0] = 0;
 
-            paletteOffset = paletteNum * 16 + 0x100;
-            BlendPalette(paletteOffset + colorOffset, 1, gTasks[taskId].data[2], RGB(20, 27, 31));
-            if (gTasks[taskId].data[2] == 16)
-                gTasks[taskId].data[1]++;
-            break;
-        case 1:
-            gTasks[taskId].data[2] -= 2;
-            if (gTasks[taskId].data[2] < 0)
-                gTasks[taskId].data[2] = 0;
+    paletteNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PALS_1);
+    colorOffset = gTasks[taskId].data[10] == 0 ? 6 : 2;
+    switch (gTasks[taskId].data[1])
+    {
+    case 0:
+        gTasks[taskId].data[2] += 2;
+        if (gTasks[taskId].data[2] > 16)
+            gTasks[taskId].data[2] = 16;
 
-            paletteOffset = paletteNum * 16 + 0x100;
-            BlendPalette(paletteOffset + colorOffset, 1, gTasks[taskId].data[2], RGB(20, 27, 31));
-            if (gTasks[taskId].data[2] == 0)
-                DestroyAnimVisualTask(taskId);
-            break;
-        }
+        BlendPalette(paletteNum * 16 + 0x100 + colorOffset, 1, gTasks[taskId].data[2], RGB(20, 27, 31));
+        if (gTasks[taskId].data[2] == 16)
+            gTasks[taskId].data[1]++;
+        break;
+    case 1:
+        gTasks[taskId].data[2] -= 2;
+        if (gTasks[taskId].data[2] < 0)
+            gTasks[taskId].data[2] = 0;
+
+        BlendPalette(paletteNum * 16 + 0x100 + colorOffset, 1, gTasks[taskId].data[2], RGB(20, 27, 31));
+        if (gTasks[taskId].data[2] == 0)
+            DestroyAnimVisualTask(taskId);
+        break;
     }
 }
 
