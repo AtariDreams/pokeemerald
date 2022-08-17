@@ -161,6 +161,8 @@ void AnimTask_ShakeMon2(u8 taskId)
     if (gBattleAnimArgs[0] < MAX_BATTLERS_COUNT)
     {
         spriteId = GetAnimBattlerSpriteId(gBattleAnimArgs[0]);
+        // TODO: should we place the code directly here like it was before.
+        // This is the way GF had it though. Seems to generate slightly worse code
         if (spriteId == SPRITE_NONE)
         {
             abort = TRUE;
