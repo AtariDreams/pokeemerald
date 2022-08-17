@@ -8598,14 +8598,15 @@ static void Cmd_setforesight(void)
 
 static void Cmd_trysetperishsong(void)
 {
-    s32 i;
-    s32 notAffectedCount = 0;
+    m32 i;
+    m32 notAffectedCount = 0;
 
     for (i = 0; i < gBattlersCount; i++)
     {
         if (gStatuses3[i] & STATUS3_PERISH_SONG || gBattleMons[i].ability == ABILITY_SOUNDPROOF)
         {
             notAffectedCount++;
+            continue;
         }
         else
         {
@@ -8632,7 +8633,7 @@ static void Cmd_rolloutdamagecalculation(void)
     }
     else
     {
-        s32 i;
+        m32 i;
 
         if (!(gBattleMons[gBattlerAttacker].status2 & STATUS2_MULTIPLETURNS)) // first hit
         {
@@ -8675,7 +8676,7 @@ static void Cmd_furycuttercalc(void)
     }
     else
     {
-        s32 i;
+        m32 i;
 
         if (gDisableStructs[gBattlerAttacker].furyCutterCounter != 5)
             gDisableStructs[gBattlerAttacker].furyCutterCounter++;
