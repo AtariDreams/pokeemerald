@@ -1154,8 +1154,8 @@ void TryPutPokemonTodayOnAir(void)
                             ballsUsed = 255;
                         itemLastUsed = gLastUsedItem;
                     }
-                    show->pokemonToday.nBallsUsed = ballsUsed;
-                    show->pokemonToday.ball = itemLastUsed;
+                    show->pokemonToday.nBallsUsed = (u8)ballsUsed;
+                    show->pokemonToday.ball = (u8)itemLastUsed;
                     StringCopy(show->pokemonToday.playerName, gSaveBlock2Ptr->playerName);
                     StringCopy(show->pokemonToday.nickname, gBattleResults.caughtMonNick);
                     language2 = GetNicknameLanguage(show->pokemonToday.nickname);
@@ -3122,7 +3122,7 @@ static void Script_FindFirstEmptyNormalTVShowSlot(void)
 
 static s8 FindFirstEmptyNormalTVShowSlot(TVShow *shows)
 {
-    u8 i;
+    u8 i; //should be s8
 
     for (i = 0; i < NUM_NORMAL_TVSHOW_SLOTS; i++)
     {
