@@ -413,9 +413,6 @@ void AnimTask_MoveAttackerMementoShadow(u8 taskId)
     struct ScanlineEffectParams scanlineParams;
     struct BattleAnimBgData animBg;
     m16 i;
-    #if !MODERN
-    u8 pos;
-    #endif
     u16 var0;
     struct Task *task = &gTasks[taskId];
 
