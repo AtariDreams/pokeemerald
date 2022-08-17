@@ -1754,7 +1754,11 @@ void AnimTask_RapinSpinMonElevation(u8 taskId)
     s16 var2;
     s16 var3;
     s16 var4;
+    #if !MODERN
     s16 i;
+    #else
+    int i;
+    #endif
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
 
@@ -3852,9 +3856,14 @@ static void AnimTask_FacadeColorBlend_Step(u8 taskId)
 // The sliding circle effect used by Refresh and Aromatherapy
 void AnimTask_StatusClearedEffect(u8 taskId)
 {
+    #if !MODERN
     StartMonScrollingBgMask(
         taskId,
         0,
+    #else
+    StartMonScrollingBgMask(
+        taskId,
+    #endif
         0x1A0,
         gBattleAnimAttacker,
         gBattleAnimArgs[0],

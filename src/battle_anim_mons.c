@@ -2150,6 +2150,7 @@ u8 GetBattlerSpriteSubpriority(u8 battlerId)
     return subpriority;
 }
 
+// TODO: These only get priority, so maybe I should inline this?
 u8 GetBattlerSpriteBGPriority(u8 battlerId)
 {
     u8 position = GetBattlerPosition(battlerId);

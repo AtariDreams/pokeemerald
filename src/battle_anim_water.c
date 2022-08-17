@@ -949,7 +949,11 @@ static void AnimTask_CreateSurfWave_Step2(u8 taskId)
 
 static void AnimTask_SurfWaveScanlineEffect(u8 taskId)
 {
+    #if !MODERN
     s16 i;
+    #else
+    int i;
+    #endif
     struct ScanlineEffectParams params;
     struct Task *task = &gTasks[taskId];
 
@@ -1545,7 +1549,9 @@ static void CreateWaterPulseRingBubbles(struct Sprite *sprite, int xDiff, int yD
 {
     s16 combinedX;
     s16 combinedY;
+    #if !MODERN
     s16 i;
+    #endif
     s16 something;
     #if !MODERN
     s16 unusedVar = 1; //unusedVar is needed to match
