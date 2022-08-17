@@ -3318,7 +3318,7 @@ Move_MILK_DRINK:
 Move_MAGNITUDE:
 	createvisualtask AnimTask_IsPowerOver99, 2
 	waitforvisualfinish
-	.if !MODERN
+	.if !MODERN @ TODO: find a better modern workaround. Make new function if neccesary
 	jumpargeq 15, FALSE, MagnitudeRegular
 	jumpargeq 15, TRUE, MagnitudeIntense
 	.else
