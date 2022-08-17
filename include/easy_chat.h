@@ -117,7 +117,7 @@ struct EasyChatScreenWordData
 struct EasyChatWordsByLetter
 {
     const u16 *words;
-    int numWords;
+    u32 numWords;
 };
 
 void InitEasyChatPhrases(void);
