@@ -554,6 +554,7 @@ void StartGroudonKyogreBattle(void)
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_KYOGRE_GROUDON;
 
+    // Why is this check here if this is never true? Sadly it must be here to match. TODO: revisit this sometime
     if (gGameVersion == VERSION_RUBY)
         CreateBattleStartTask(B_TRANSITION_ANGLED_WIPES, MUS_VS_KYOGRE_GROUDON); // GROUDON
     else
@@ -686,6 +687,8 @@ u8 BattleSetup_GetTerrainId(void)
     }
     if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(ROUTE113) && gSaveBlock1Ptr->location.mapNum == MAP_NUM(ROUTE113))
         return BATTLE_TERRAIN_SAND;
+
+    // TODO: does this ever actually happen?
     if (GetSavedWeather() == WEATHER_SANDSTORM)
         return BATTLE_TERRAIN_SAND;
 
@@ -740,10 +743,12 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
 {
     u8 i;
     u8 sum;
-    u32 count = numMons;
+    u8 partySize;
 
-    if (gTrainers[opponentId].partySize < count)
-        count = gTrainers[opponentId].partySize;
+    partySize = gTrainers[opponentId].partySize;
+
+    if (partySize < numMons)
+        numMons = partySize;
 
     sum = 0;
 
@@ -753,7 +758,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonNoItemDefaultMoves *party;
             party = gTrainers[opponentId].party.NoItemDefaultMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -761,7 +766,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonNoItemCustomMoves *party;
             party = gTrainers[opponentId].party.NoItemCustomMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -769,7 +774,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonItemDefaultMoves *party;
             party = gTrainers[opponentId].party.ItemDefaultMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -777,7 +782,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonItemCustomMoves *party;
             party = gTrainers[opponentId].party.ItemCustomMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -915,11 +920,8 @@ void ChooseStarter(void)
 
 static void CB2_GiveStarter(void)
 {
-    u16 starterMon;
-
     *GetVarPointer(VAR_STARTER_MON) = gSpecialVar_Result;
-    starterMon = GetStarterPokemon(gSpecialVar_Result);
-    ScriptGiveMon(starterMon, 5, ITEM_NONE, 0, 0, 0);
+    ScriptGiveMon(GetStarterPokemon(gSpecialVar_Result), 5, ITEM_NONE, 0, 0, 0);
     ResetTasks();
     PlayBattleBGM();
     SetMainCallback2(CB2_StartFirstBattle);

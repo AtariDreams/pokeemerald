@@ -558,10 +558,11 @@ static void StartRainSpriteFall(struct Sprite *sprite)
         sprite->tRandom = 361;
 
     rand = ISO_RANDOMIZE2(sprite->tRandom);
-    sprite->tRandom = ((rand & 0x7FFF0000) >> 16) % 600;
+    sprite->tRandom = (s16)(((rand >> 16) & 0x7FFF) % 600);
 
     numFallingFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][0];
 
+    // all the tileX stuff here is useless can be removed, but needed to match
     tileX = sprite->tRandom % 30;
     sprite->tPosX = tileX * 8; // Useless assignment, leftover from before fixed-point values were used
 
@@ -635,15 +636,16 @@ static void WaitRainSprite(struct Sprite *sprite)
 static void InitRainSpriteMovement(struct Sprite *sprite, u16 val)
 {
     u16 numFallingFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][0];
-    u16 numAdvanceRng = val / (sRainSpriteFallingDurations[gWeatherPtr->isDownpour][1] + numFallingFrames);
-    u16 frameVal = val % (sRainSpriteFallingDurations[gWeatherPtr->isDownpour][1] + numFallingFrames);
+    u16 animFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][1];
+    u16 numAdvanceRng = val / (animFrames + numFallingFrames);
+    u16 frameVal = val % (animFrames + numFallingFrames);
 
-    while (--numAdvanceRng != 0xFFFF)
+    while (numAdvanceRng--)
         StartRainSpriteFall(sprite);
 
     if (frameVal < numFallingFrames)
     {
-        while (--frameVal != 0xFFFF)
+        while (frameVal--)
             UpdateRainSprite(sprite);
 
         sprite->tWaiting = 0;
@@ -1439,7 +1441,7 @@ bool8 FogHorizontal_Finish(void)
 
 static void FogHorizontalSpriteCallback(struct Sprite *sprite)
 {
-    sprite->y2 = (u8)gSpriteCoordOffsetY;
+    sprite->y2 = gSpriteCoordOffsetY & 0xFF;
     sprite->x = gWeatherPtr->fogHScrollPosX + 32 + sprite->tSpriteColumn * 64;
     if (sprite->x > 271)
     {
