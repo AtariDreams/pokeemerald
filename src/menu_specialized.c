@@ -1243,7 +1243,7 @@ void LoadConditionSelectionIcons(struct SpriteSheet *sheets, struct SpriteTempla
 
 void LoadConditionSparkle(struct SpriteSheet *sheet, struct SpritePalette *pal)
 {
-    struct SpriteSheet dataSheet = {sConditionSparkle_Pal, 0x380, TAG_CONDITION_SPARKLE};
+    struct SpriteSheet dataSheet = {sConditionSparkle_Pal, sizeof(sConditionSparkle_Pal), TAG_CONDITION_SPARKLE};
     struct SpritePalette dataPal = {sConditionSparkle_Gfx, TAG_CONDITION_SPARKLE};
 
     *sheet = dataSheet;
@@ -1399,6 +1399,8 @@ void CreateConditionSparkleSprites(struct Sprite **sprites, u8 monSpriteId, u8 _
     for (i = 0; i < count + 1; i++)
     {
         spriteId = CreateSprite(&sSpriteTemplate_ConditionSparkle, 0, 0, 0);
+
+        // Should be inverted but that doesn't match
         if (spriteId != MAX_SPRITES)
         {
             sprites[i] = &gSprites[spriteId];
@@ -1549,11 +1551,8 @@ void DrawLevelUpWindowPg1(u16 windowId, u16 *statsBefore, u16 *statsAfter, u8 bg
                                      color,
                                      -1,
                                      text);
-        if (abs(statsDiff[i]) <= 9)
-            x = 18;
-        else
-            x = 12;
-
+       
+        x = abs(statsDiff[i]) < 10 ? 18 : 12;
         ConvertIntToDecimalStringN(text, abs(statsDiff[i]), STR_CONV_MODE_LEFT_ALIGN, 2);
         AddTextPrinterParameterized3(windowId,
                                      FONT_NORMAL,
@@ -1587,9 +1586,9 @@ void DrawLevelUpWindowPg2(u16 windowId, u16 *currStats, u8 bgClr, u8 fgClr, u8 s
 
     for (i = 0; i < NUM_STATS; i++)
     {
-        if (stats[i] > 99)
+        if (stats[i] >= 100)
             numDigits = 3;
-        else if (stats[i] > 9)
+        else if (stats[i] >= 10)
             numDigits = 2;
         else
             numDigits = 1;
