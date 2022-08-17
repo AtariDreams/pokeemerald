@@ -12,17 +12,17 @@ static const struct FlashSetupInfo * const sSetupInfos[] =
 
 u16 IdentifyFlash(void)
 {
-    u16 result;
-    u16 flashId;
+    u16 result, flashId;
     const struct FlashSetupInfo * const *setupInfo;
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
     flashId = ReadFlashId();
 
+    #if !MODERN
     setupInfo = sSetupInfos;
-    result = 1;
 
+    result = 1;
     while ((*setupInfo)->type.ids.separate.makerId != 0)
     {
         if (flashId == (*setupInfo)->type.ids.joined)
@@ -33,6 +33,18 @@ u16 IdentifyFlash(void)
 
         setupInfo++;
     }
+
+    #else
+    result = 1;
+    for (setupInfo = sSetupInfos;(*setupInfo)->type.ids.separate.makerId != 0; setupInfo++)
+    {
+        if (flashId == (*setupInfo)->type.ids.joined)
+        {
+            result = 0;
+            break;
+        }
+    }
+    #endif
 
     ProgramFlashByte = (*setupInfo)->programFlashByte;
     ProgramFlashSector = (*setupInfo)->programFlashSector;
