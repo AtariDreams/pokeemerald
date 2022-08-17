@@ -527,8 +527,10 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
             sprite->data[3] += 0x101;
 
             // why  not put the r5 = TRUE in the default branch?
+            #if !MODERN
             if (sprite->data[3] >> 8 == 4)
                 r5 = TRUE;
+            #endif
             switch (sprite->data[3] >> 8)
             {
             case 1:
@@ -540,6 +542,11 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
             case 3:
                 PlaySE(SE_BALL_BOUNCE_3);
                 break;
+            #if MODERN
+            case 4:
+                r5 = TRUE;
+                //Fallthrough
+            #endif
             default:
                 PlaySE(SE_BALL_BOUNCE_4);
                 break;
@@ -576,7 +583,11 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
 
 static void SpriteCB_BallThrow_StartShakes(struct Sprite *sprite)
 {
+#if !MODERN
     if (sprite->data[3]++ == 30)
+#else
+    if (sprite->data[3] == 30)
+#endif
     {
         sprite->data[3] = 0;
         sprite->affineAnimPaused = TRUE;
@@ -584,6 +595,10 @@ static void SpriteCB_BallThrow_StartShakes(struct Sprite *sprite)
         sprite->callback = SpriteCB_BallThrow_Shake;
         PlaySE(SE_BALL);
     }
+#if MODERN
+    else
+        sprite->data[3]++;
+#endif
 }
 
 static void SpriteCB_BallThrow_Shake(struct Sprite *sprite)
