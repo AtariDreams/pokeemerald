@@ -1778,8 +1778,9 @@ void LocalLinkPlayerToBlock(void)
     memcpy(gBlockSendBuffer, &gLocalLinkPlayerBlock, sizeof(gLocalLinkPlayerBlock));
 }
 
-void LinkPlayerFromBlock(u8 who)
+void LinkPlayerFromBlock(u32 who_)
 {
+    u8 who = who_;
     struct LinkPlayerBlock *block;
     struct LinkPlayer *player;
 
