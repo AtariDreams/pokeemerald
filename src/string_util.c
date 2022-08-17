@@ -283,7 +283,7 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
         state = WRITING_SPACES;
 
 // Should be else if here
-    if (mode == STR_CONV_MODE_LEADING_ZEROS)
+    M_IF (mode == STR_CONV_MODE_LEADING_ZEROS)
         state = WRITING_DIGITS;
 
     for (powerOfSixteen = largestPowerOfSixteen; powerOfSixteen > 0; powerOfSixteen /= 16)
