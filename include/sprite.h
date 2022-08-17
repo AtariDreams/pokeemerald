@@ -17,7 +17,7 @@ struct SpriteSheet
 
 struct CompressedSpriteSheet
 {
-    const u32 *data;  // LZ77 compressed pixel data
+    const u8 *data;  // LZ77 compressed pixel data
     u16 size;        // Uncompressed size of pixel data
     u16 tag;
 };
