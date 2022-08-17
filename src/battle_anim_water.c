@@ -501,7 +501,7 @@ static void AnimRainDrop(struct Sprite *sprite)
 
 static void AnimRainDrop_Step(struct Sprite *sprite)
 {
-    if (++sprite->data[0] <= 13)
+    if (++sprite->data[0] < 14)
     {
         sprite->x2++;
         sprite->y2 += 4;
@@ -518,15 +518,14 @@ static void AnimWaterBubbleProjectile(struct Sprite *sprite)
     if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
     {
         sprite->x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2) - gBattleAnimArgs[0];
-        sprite->y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET) + gBattleAnimArgs[1];
-        sprite->animPaused = TRUE;
+        sprite->y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET) + gBattleAnimArgs[1]; 
     }
     else
     {
         sprite->x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2) + gBattleAnimArgs[0];
         sprite->y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET) + gBattleAnimArgs[1];
-        sprite->animPaused = TRUE;
     }
+    sprite->animPaused = TRUE;
     if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
         gBattleAnimArgs[2] = -gBattleAnimArgs[2];
     sprite->data[0] = gBattleAnimArgs[6];
@@ -542,7 +541,7 @@ static void AnimWaterBubbleProjectile(struct Sprite *sprite)
     gSprites[spriteId].data[0] = gBattleAnimArgs[2];
     gSprites[spriteId].data[1] = gBattleAnimArgs[3];
     gSprites[spriteId].data[2] = gBattleAnimArgs[5];
-    gSprites[spriteId].data[3] = (u8)gBattleAnimArgs[4] * 256;
+    gSprites[spriteId].data[3] = (u8)gBattleAnimArgs[4] << 8;
     gSprites[spriteId].data[4] = gBattleAnimArgs[6];
     sprite->callback = AnimWaterBubbleProjectile_Step1;
     sprite->callback(sprite);
@@ -552,14 +551,14 @@ static void AnimWaterBubbleProjectile_Step1(struct Sprite *sprite)
 {
     u8 otherSpriteId = sprite->data[5];
     u8 timer = gSprites[otherSpriteId].data[4];
-    u16 trigIndex = gSprites[otherSpriteId].data[3];
+    u16 trigIndex = (u16)gSprites[otherSpriteId].data[3];
 
     sprite->data[0] = 1;
     AnimTranslateLinear(sprite);
     sprite->x2 += Sin(trigIndex >> 8, gSprites[otherSpriteId].data[0]);
     sprite->y2 += Cos(trigIndex >> 8, gSprites[otherSpriteId].data[1]);
     gSprites[otherSpriteId].data[3] = trigIndex + gSprites[otherSpriteId].data[2];
-    if (--timer != 0)
+    if (--timer > 0)
     {
         gSprites[otherSpriteId].data[4] = timer;
     }
@@ -625,7 +624,7 @@ void AnimTask_RotateAuroraRingColors(u8 taskId)
 
 static void AnimTask_RotateAuroraRingColors_Step(u8 taskId)
 {
-    int i;
+    m32 i;
     u16 palIndex;
 
     if (++gTasks[taskId].data[10] == 3)
@@ -659,12 +658,12 @@ static void AnimToTargetInSinWave(struct Sprite *sprite)
     retArg = gBattleAnimArgs[7];
     if (gBattleAnimArgs[7] > 127)
     {
-        sprite->data[6] = (retArg - 127) * 256;
+        sprite->data[6] = (retArg - 127) << 8;
         sprite->data[7] = -sprite->data[7];
     }
     else
     {
-        sprite->data[6] = retArg * 256;
+        sprite->data[6] = retArg << 8;
     }
     sprite->callback = AnimToTargetInSinWave_Step;
     sprite->callback(sprite);
@@ -751,7 +750,7 @@ static void AnimHydroCannonBeam(struct Sprite *sprite)
         animType = TRUE;
     else
         animType = FALSE;
-    if ((u8)gBattleAnimArgs[5] == 0)
+    if ((gBattleAnimArgs[5] & 0xFF) == 0)
         coordType = BATTLER_COORD_Y_PIC_OFFSET;
     else
         coordType = BATTLER_COORD_Y;
@@ -792,7 +791,7 @@ static void AnimSmallBubblePair_Step(struct Sprite *sprite)
     sprite->x2 = Sin(sprite->data[0], 4);
     sprite->data[1] += 48;
     sprite->y2 = -(sprite->data[1] >> 8);
-    if (--sprite->data[7] == -1)
+    if (sprite->data[7]-- == 0)
         DestroyAnimSprite(sprite);
 }
 
@@ -821,7 +820,10 @@ void AnimTask_CreateSurfWave(u8 taskId)
     }
     else
     {
+        // TODO: This possibly debug else is commented out.
         AnimLoadCompressedBgTilemapHandleContest(&animBg, gBattleAnimBgTilemap_SurfContest, TRUE);
+        //LZDecompressVram((void*)s_tsuna3_psc_ADRS, wazabg.ScrnAdrs);
+		//ScrnPalRewrite(wazabg.PlttNo, (u32)wazabg.ScrnAdrs, 0, 1);
     }
     AnimLoadCompressedBgGfx(animBg.bgId, gBattleAnimBgImage_Surf, animBg.tilesOffset);
     if (gBattleAnimArgs[0] == 0)
@@ -885,10 +887,10 @@ static void AnimTask_CreateSurfWave_Step1(u8 taskId)
     *BGptrY += gTasks[taskId].data[1];
     GetBattleAnimBg1Data(&animBg);
     gTasks[taskId].data[2] += gTasks[taskId].data[1];
-    if (++gTasks[taskId].data[5] == 4)
+    if (gTasks[taskId].data[5]++ == 3)
     {
         rgbBuffer = gPlttBufferFaded[animBg.paletteId * 16 + 7];
-        for (i = 6; i != 0; i--)
+        for (i = 6; i > 0; i--)
         {
             gPlttBufferFaded[animBg.paletteId * 16 + 1 + i] = gPlttBufferFaded[animBg.paletteId * 16 + 1 + i - 1]; // 1 + i - 1 is needed to match for some bizarre reason
         }
@@ -898,7 +900,7 @@ static void AnimTask_CreateSurfWave_Step1(u8 taskId)
     if (++gTasks[taskId].data[6] > 1)
     {
         gTasks[taskId].data[6] = 0;
-        if (++gTasks[taskId].data[3] <= 13)
+        if (++gTasks[taskId].data[3] < 14)
         {
             gTasks[gTasks[taskId].data[15]].data[1] = (s16)((gTasks[taskId].data[3]) | ((16 - gTasks[taskId].data[3]) << 8));
             gTasks[taskId].data[4]++;
@@ -909,9 +911,9 @@ static void AnimTask_CreateSurfWave_Step1(u8 taskId)
             gTasks[gTasks[taskId].data[15]].data[1] = (s16)((gTasks[taskId].data[4]) | ((16 - gTasks[taskId].data[4]) << 8));
         }
     }
-    if (!(gTasks[gTasks[taskId].data[15]].data[1] & 0x1F))
+    if ((gTasks[gTasks[taskId].data[15]].data[1] & 0x1F) == 0)
     {
-        gTasks[taskId].data[0] = gTasks[gTasks[taskId].data[15]].data[1] & 0x1F;
+        gTasks[taskId].data[0] = 0;
         gTasks[taskId].func = AnimTask_CreateSurfWave_Step2;
     }
 }
