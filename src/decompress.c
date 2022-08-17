@@ -233,9 +233,7 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
 
                 // Copy tile data
                 for (k = 0; k < 32 * object_size; k++) {
-                    *dest = *src;
-                    src++;
-                    dest++;
+                    *dest++ = *src++;
                 }
 
                 if (object_size == 6)
