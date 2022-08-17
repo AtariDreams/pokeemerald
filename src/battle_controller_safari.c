@@ -189,8 +189,9 @@ static void HandleInputChooseAction(void)
             break;
         }
         SafariBufferExecCompleted();
+        return;
     }
-    else if (JOY_NEW(DPAD_LEFT))
+    if (JOY_NEW(DPAD_LEFT))
     {
         if (gActionSelectionCursor[gActiveBattler] & 1)
         {
@@ -199,8 +200,9 @@ static void HandleInputChooseAction(void)
             gActionSelectionCursor[gActiveBattler] ^= 1;
             ActionSelectionCreateCursorAt(gActionSelectionCursor[gActiveBattler], 0);
         }
+        return;
     }
-    else if (JOY_NEW(DPAD_RIGHT))
+    if (JOY_NEW(DPAD_RIGHT))
     {
         if (!(gActionSelectionCursor[gActiveBattler] & 1))
         {
@@ -209,8 +211,9 @@ static void HandleInputChooseAction(void)
             gActionSelectionCursor[gActiveBattler] ^= 1;
             ActionSelectionCreateCursorAt(gActionSelectionCursor[gActiveBattler], 0);
         }
+        return;
     }
-    else if (JOY_NEW(DPAD_UP))
+    if (JOY_NEW(DPAD_UP))
     {
         if (gActionSelectionCursor[gActiveBattler] & 2)
         {
@@ -219,8 +222,9 @@ static void HandleInputChooseAction(void)
             gActionSelectionCursor[gActiveBattler] ^= 2;
             ActionSelectionCreateCursorAt(gActionSelectionCursor[gActiveBattler], 0);
         }
+        return;
     }
-    else if (JOY_NEW(DPAD_DOWN))
+    if (JOY_NEW(DPAD_DOWN))
     {
         if (!(gActionSelectionCursor[gActiveBattler] & 2))
         {
@@ -229,6 +233,7 @@ static void HandleInputChooseAction(void)
             gActionSelectionCursor[gActiveBattler] ^= 2;
             ActionSelectionCreateCursorAt(gActionSelectionCursor[gActiveBattler], 0);
         }
+        return;
     }
 }
 
@@ -357,7 +362,7 @@ static void SafariHandleDrawTrainerPic(void)
     gBattlerSpriteIds[gActiveBattler] = CreateSprite(
       &gMultiuseSpriteTemplate,
       80,
-      (8 - gTrainerBackPicCoords[gSaveBlock2Ptr->playerGender].size) * 4 + 80,
+      80 + 4 * (8 - gTrainerBackPicCoords[gSaveBlock2Ptr->playerGender].size),
       30);
     gSprites[gBattlerSpriteIds[gActiveBattler]].oam.paletteNum = gActiveBattler;
     gSprites[gBattlerSpriteIds[gActiveBattler]].x2 = DISPLAY_WIDTH;
@@ -448,7 +453,11 @@ static void HandleChooseActionAfterDma3(void)
 
 static void SafariHandleChooseAction(void)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     gBattlerControllerFuncs[gActiveBattler] = HandleChooseActionAfterDma3;
     BattlePutTextOnWindow(gText_SafariZoneMenu, B_WIN_ACTION_MENU);
@@ -614,9 +623,7 @@ static void SafariHandlePlayFanfareOrBGM(void)
 
 static void SafariHandleFaintingCry(void)
 {
-    u16 species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
-
-    PlayCry_Normal(species, 25);
+    PlayCry_Normal(GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES), 25);
     SafariBufferExecCompleted();
 }
 

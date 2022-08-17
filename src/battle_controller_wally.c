@@ -320,12 +320,16 @@ static void Intro_TryShinyAnimShowHealthbox(void)
 // TODO: look into this
 static void Intro_WaitForShinyAnimAndHealthbox(void)
 {
+    #if !MODERN
     bool32 healthboxAnimDone = FALSE;
 
     if (gSprites[gHealthboxSpriteIds[gActiveBattler]].callback == SpriteCallbackDummy)
         healthboxAnimDone = TRUE;
 
     if (healthboxAnimDone && gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].finishedShinyMonAnim
+    #else
+    if (gSprites[gHealthboxSpriteIds[gActiveBattler]].callback == SpriteCallbackDummy && gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].finishedShinyMonAnim
+    #endif
         && gBattleSpritesDataPtr->healthBoxesData[gActiveBattler ^ BIT_FLANK].finishedShinyMonAnim)
     {
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].triedShinyMonAnim = FALSE;

@@ -40,10 +40,11 @@ bool8 FldEff_SweetScent(void)
 {
     u8 taskId;
 
+    // This function was added to resolve a bug
     SetWeatherScreenFadeOut();
     taskId = CreateFieldMoveTask();
     gTasks[taskId].data[8] = (u32)StartSweetScentFieldEffect >> 16;
-    gTasks[taskId].data[9] = (u32)StartSweetScentFieldEffect;
+    gTasks[taskId].data[9] = (u32)StartSweetScentFieldEffect & 0xFFFF;
     return FALSE;
 }
 
@@ -52,6 +53,7 @@ static void StartSweetScentFieldEffect(void)
     u8 taskId;
 
     PlaySE(SE_M_SWEET_SCENT);
+    // the two fastcopy functions were to fix the same bug as above as part of its fix
     CpuFastCopy(gPlttBufferUnfaded, gPaletteDecompressionBuffer, PLTT_SIZE);
     CpuFastCopy(gPlttBufferFaded, gPlttBufferUnfaded, PLTT_SIZE);
     BeginNormalPaletteFade(~(1 << (gSprites[GetPlayerAvatarSpriteId()].oam.paletteNum + 16)), 4, 0, 8, RGB_RED);
@@ -91,6 +93,7 @@ static void FailSweetScentEncounter(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
+        // The two function calls below were added to fix a bug
         CpuFastCopy(gPaletteDecompressionBuffer, gPlttBufferUnfaded, PLTT_SIZE);
         SetWeatherPalStateIdle();
         ScriptContext_SetupScript(EventScript_FailSweetScent);
