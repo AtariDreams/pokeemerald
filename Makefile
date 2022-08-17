@@ -104,7 +104,7 @@ ifneq ($(MODERN),1)
 CPPFLAGS += -I tools/agbcc/include -I tools/agbcc -nostdinc -undef
 endif
 
-LDFLAGS = -Map ../../$(MAP) -no-pie #-flto --relax --plugin=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/liblto_plugin.so -plugin-opt=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/lto-wrapper -plugin-opt=-fresolution=%u.res
+LDFLAGS = -Map ../../$(MAP) #-flto --relax --plugin=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/liblto_plugin.so -plugin-opt=/opt/local/libexec/gcc/arm-none-eabi/11.2.0/lto-wrapper -plugin-opt=-fresolution=%u.res
 
 SHA1 := $(shell { command -v sha1sum || command -v shasum; } 2>/dev/null) -c
 GFX := tools/gbagfx/gbagfx$(EXE)
