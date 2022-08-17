@@ -707,10 +707,17 @@ void AnimTask_SwitchOutBallEffect(u8 taskId)
     {
     case 0:
         x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
+        #if !MODERN
         y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y);
         priority = gSprites[spriteId].oam.priority;
         subpriority = gSprites[spriteId].subpriority;
         gTasks[taskId].data[10] = AnimateBallOpenParticles(x, y + 32, priority, subpriority, ballId);
+        #else
+        y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y) + 32;
+        priority = gSprites[spriteId].oam.priority;
+        subpriority = gSprites[spriteId].subpriority;
+        gTasks[taskId].data[10] = AnimateBallOpenParticles(x, y, priority, subpriority, ballId);
+        #endif
         selectedPalettes = GetBattlePalettesMask(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         gTasks[taskId].data[11] = LaunchBallFadeMonTask(FALSE, gBattleAnimAttacker, selectedPalettes, ballId);
         gTasks[taskId].data[0]++;
@@ -828,7 +835,7 @@ void AnimTask_ThrowBall_StandingTrainer(u8 taskId)
 
     ballId = ItemIdToBallId(gLastUsedItem);
     subpriority = GetBattlerSpriteSubpriority(GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT)) + 1;
-    spriteId = CreateSprite(&gBallSpriteTemplates[ballId], x + 32, y | 80, subpriority);
+    spriteId = CreateSprite(&gBallSpriteTemplates[ballId], x + 32, y + 80, subpriority);
     gSprites[spriteId].sDuration = 34;
     gSprites[spriteId].sTargetX = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
     gSprites[spriteId].sTargetY = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y) - 16;
@@ -875,8 +882,8 @@ static void Task_PlayerThrow_Wait(u8 taskId)
 
 static void SpriteCB_Ball_Throw(struct Sprite *sprite)
 {
-    u16 targetX = sprite->sTargetXArg;
-    u16 targetY = sprite->sTargetYArg;
+    s16 targetX = sprite->sTargetXArg;
+    s16 targetY = sprite->sTargetYArg;
 
     sprite->sOffsetX = sprite->x;
     sprite->sTargetX = targetX;
@@ -908,30 +915,36 @@ static void SpriteCB_Ball_Arc(struct Sprite *sprite)
         if (gBattleSpritesDataPtr->animationData->ballThrowCaseId == BALL_TRAINER_BLOCK)
         {
             sprite->callback = SpriteCB_Ball_Block;
+            return;
         }
-        else
+
+        StartSpriteAnim(sprite, 1);
+        sprite->x += sprite->x2;
+        sprite->y += sprite->y2;
+        sprite->x2 = 0;
+        sprite->y2 = 0;
+
+        for (i = 0; i < 8; i++)
+            sprite->data[i] = 0;
+
+        sprite->sTimer = 0;
+        sprite->callback = SpriteCB_Ball_MonShrink;
+
+        ballId = ItemIdToBallId(gLastUsedItem);
+
+#if !MODERN
+// useless statement since it always does the same thing
+        switch (ballId)
         {
-            StartSpriteAnim(sprite, 1);
-            sprite->x += sprite->x2;
-            sprite->y += sprite->y2;
-            sprite->x2 = 0;
-            sprite->y2 = 0;
-
-            for (i = 0; i < 8; i++)
-                sprite->data[i] = 0;
-
-            sprite->sTimer = 0;
-            sprite->callback = SpriteCB_Ball_MonShrink;
-
-            ballId = ItemIdToBallId(gLastUsedItem);
-            switch (ballId)
-            {
-            case 0 ... POKEBALL_COUNT - 1:
-                AnimateBallOpenParticles(sprite->x, sprite->y - 5, 1, 28, ballId);
-                LaunchBallFadeMonTask(FALSE, gBattleAnimTarget, 14, ballId);
-                break;
-            }
+        case 0 ... POKEBALL_COUNT - 1:
+            AnimateBallOpenParticles(sprite->x, sprite->y - 5, 1, 28, ballId);
+            LaunchBallFadeMonTask(FALSE, gBattleAnimTarget, 14, ballId);
+            break;
         }
+#else
+        AnimateBallOpenParticles(sprite->x, sprite->y - 5, 1, 28, ballId);
+        LaunchBallFadeMonTask(FALSE, gBattleAnimTarget, 14, ballId);
+#endif
     }
 }
 
@@ -953,15 +966,23 @@ static void SpriteCB_Ball_MonShrink(struct Sprite *sprite)
 #define sTaskId data[5]
 
 // iwram
+# if !MODERN
 u32 gMonShrinkDuration;
 u16 gMonShrinkDelta;
 u16 gMonShrinkDistance;
+#endif
 
-#define POKE_BALL_AFF	0x0020
+#define POKE_BALL_AFF 0x0020
 static void SpriteCB_Ball_MonShrink_Step(struct Sprite *sprite)
 {
     u8 spriteId;
     u8 taskId;
+
+#if MODERN
+    u32 gMonShrinkDuration;
+    u16 gMonShrinkDelta;
+    u16 gMonShrinkDistance;
+#endif
 
     // gMonShrinkDuration, gMonShrinkDistance, and gMonShrinkDelta were local vars
     // but GF made them global in the final version of emerald for some reason
@@ -1019,16 +1040,13 @@ static void SpriteCB_Ball_MonShrink_Step(struct Sprite *sprite)
 
 static void SpriteCB_Ball_Bounce(struct Sprite *sprite)
 {
-    s16 phase;
-
     if (sprite->animEnded)
     {
         sprite->sState = 0;
         sprite->sAmplitude = 40;
         sprite->sPhase = 0;
-        phase = 0;
-        sprite->y += Cos(phase, sprite->sAmplitude);
-        sprite->y2 = -Cos(phase, sprite->sAmplitude);
+        sprite->y += Cos(0, sprite->sAmplitude);
+        sprite->y2 = -Cos(0, sprite->sAmplitude);
         sprite->callback = SpriteCB_Ball_Bounce_Step;
     }
 }
