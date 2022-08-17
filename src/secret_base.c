@@ -508,7 +508,7 @@ void EnterNewlyCreatedSecretBase(void)
 bool8 CurMapIsSecretBase(void)
 {
     if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SECRET_BASE_RED_CAVE1)
-        // Non-UB way would be to do huge comparison with ORs
+        // Non-UB way would be to do huge comparison with OR
      && (u8)gSaveBlock1Ptr->location.mapNum <= MAP_NUM(SECRET_BASE_SHRUB4))
         return TRUE;
     else
@@ -664,7 +664,7 @@ void SetCurSecretBaseIdFromPosition(const struct MapPosition *position, const st
           && position->x == events->bgEvents[i].x + MAP_OFFSET
           && position->y == events->bgEvents[i].y + MAP_OFFSET)
         {
-            sCurSecretBaseId = events->bgEvents[i].bgUnion.secretBaseId;
+            sCurSecretBaseId = (u8)events->bgEvents[i].bgUnion.secretBaseId;
             break;
         }
     }
@@ -867,9 +867,10 @@ static u8 GetNumRegisteredSecretBases(void)
 {
     s16 i;
     u8 count = 0;
+    // Why the hell didn't GF do u8 i then?!
     for (i = 1; i < SECRET_BASES_COUNT; i++)
     {
-        if (IsSecretBaseRegistered(i) == TRUE)
+        if (IsSecretBaseRegistered((u8)i) == TRUE)
             count++;
     }
 
@@ -1218,7 +1219,7 @@ void SecretBasePerStepCallback(u8 taskId)
         // End if player hasn't moved
         PlayerGetDestCoords(&x, &y);
         if (x == tPlayerX && y == tPlayerY)
-            return;
+            break;
 
         tPlayerX = x;
         tPlayerY = y;
@@ -1283,6 +1284,8 @@ void SecretBasePerStepCallback(u8 taskId)
             PopSecretBaseBalloon(MapGridGetMetatileIdAt(x, y), x, y);
             if (sInFriendSecretBase == TRUE)
             {
+                // why is this int here?
+                // answer, because the OG code returns an int
                 switch ((int)MapGridGetMetatileIdAt(x, y))
                 {
                 case METATILE_SecretBase_RedBalloon:
@@ -1371,8 +1374,10 @@ static bool8 SecretBasesHaveSameTrainerId(struct SecretBase *secretBase1, struct
 static bool8 SecretBasesHaveSameTrainerName(struct SecretBase *sbr1, struct SecretBase *sbr2)
 {
     u8 i;
-    for (i = 0; i < PLAYER_NAME_LENGTH && (sbr1->trainerName[i] != EOS || sbr2->trainerName[i] != EOS); i++)
+    for (i = 0; i < PLAYER_NAME_LENGTH; i++)
     {
+        if (sbr1->trainerName[i] == EOS && sbr2->trainerName[i] == EOS)
+            break;
         if (sbr1->trainerName[i] != sbr2->trainerName[i])
             return FALSE;
     }
@@ -2062,6 +2067,7 @@ void CheckInteractedWithFriendsSandOrnament(void)
     s16 x, y;
 
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
+    // again with the (int)
     switch ((int)MapGridGetMetatileIdAt(x, y))
     {
         case METATILE_SecretBase_SandOrnament_Base1:
