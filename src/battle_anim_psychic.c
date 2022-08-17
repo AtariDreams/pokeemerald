@@ -613,10 +613,15 @@ static void AnimWallSparkle(struct Sprite *sprite)
     bool8 respectMonPicOffsets;
     if (sprite->data[0] == 0)
     {
+        #if !MODERN
         if (gBattleAnimArgs[3] == 0)
             respectMonPicOffsets = TRUE;
         else
             respectMonPicOffsets = FALSE;
+        #else
+            respectMonPicOffsets = !gBattleAnimArgs[3];
+        #endif
+
 
         if (!IsContest() && IsDoubleBattle())
         {
@@ -713,7 +718,7 @@ static void AnimQuestionMark_Step2(struct Sprite *sprite)
         }
         break;
     case 1:
-        if (--sprite->data[1] == -1)
+        if (sprite->data[1]-- == 0)
             DestroyAnimSprite(sprite);
         break;
     }
@@ -737,8 +742,7 @@ static void AnimTask_MeditateStretchAttacker_Step(u8 taskId)
 void AnimTask_Teleport(u8 taskId)
 {
     struct Task *task = &gTasks[taskId];
-    u8 spriteId = GetAnimBattlerSpriteId(ANIM_ATTACKER);
-    task->data[0] = spriteId;
+    task->data[0] = GetAnimBattlerSpriteId(ANIM_ATTACKER);
     task->data[1] = 0;
     task->data[2] = 0;
     task->data[3] = GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER ? 4 : 8;
@@ -755,7 +759,7 @@ static void AnimTask_Teleport_Step(u8 taskId)
     {
     case 0:
         RunAffineAnimFromTaskData(task);
-        if (++task->data[2] > 19)
+        if (++task->data[2] >= 20)
             task->data[1]++;
         break;
     case 1:
@@ -984,12 +988,10 @@ static void AnimSkillSwapOrb(struct Sprite *sprite)
 void AnimTask_ExtrasensoryDistortion(u8 taskId)
 {
     s16 i;
-    u8 yOffset;
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
 
-    yOffset = GetBattlerYCoordWithElevation(gBattleAnimTarget);
-    task->data[14] = yOffset - 32;
+    task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimTarget) - 32;
 
     switch (gBattleAnimArgs[0])
     {
@@ -997,19 +999,19 @@ void AnimTask_ExtrasensoryDistortion(u8 taskId)
         task->data[11] = 2;
         task->data[12] = 5;
         task->data[13] = 64;
-        task->data[15] = yOffset + 32;
+        task->data[15] = task->data[14] + 64;
         break;
     case 1:
         task->data[11] = 2;
         task->data[12] = 5;
         task->data[13] = 192;
-        task->data[15] = yOffset + 32;
+        task->data[15] = task->data[14] + 64;
         break;
     case 2:
         task->data[11] = 4;
         task->data[12] = 4;
         task->data[13] = 0;
-        task->data[15] = yOffset + 32;
+        task->data[15] = task->data[14] + 64;
         break;
     }
 
@@ -1027,7 +1029,7 @@ void AnimTask_ExtrasensoryDistortion(u8 taskId)
         scanlineParams.dmaDest = &REG_BG2HOFS;
     }
 
-    for (i = task->data[14]; i <= task->data[14] + 64; i++)
+    for (i = task->data[14]; i <= task->data[14] + 64; i ++)
     {
         gScanlineEffectRegBuffers[0][i] = task->data[10];
         gScanlineEffectRegBuffers[1][i] = task->data[10];
