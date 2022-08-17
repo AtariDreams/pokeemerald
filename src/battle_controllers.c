@@ -1308,7 +1308,7 @@ void BtlController_EmitDMA3Transfer(u8 bufferId, void *dst, u16 size, void *data
     s32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_DMA3TRANSFER;
-    sBattleBuffersTransferData[1] = (u32)(dst);
+    sBattleBuffersTransferData[1] = (u32)(dst & 0xFF);
     sBattleBuffersTransferData[2] = ((u32)(dst) & 0x0000FF00) >> 8;
     sBattleBuffersTransferData[3] = ((u32)(dst) & 0x00FF0000) >> 16;
     sBattleBuffersTransferData[4] = ((u32)(dst) & 0xFF000000) >> 24;
