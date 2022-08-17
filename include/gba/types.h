@@ -12,6 +12,16 @@ typedef int16_t  s16;
 typedef int32_t  s32;
 typedef int64_t  s64;
 
+#if !MODERN
+typedef u8 m8;
+typedef u16 m16;
+typedef int m32;
+#else
+typedef u32 m8;
+typedef u32 m16;
+typedef u32 m32;
+#endif
+
 typedef volatile u8   vu8;
 typedef volatile u16 vu16;
 typedef volatile u32 vu32;
