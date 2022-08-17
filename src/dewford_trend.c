@@ -182,11 +182,10 @@ bool8 TrySetTrendyPhrase(u16 *phrase)
             {
                 // New trend is "trendier" than dewfordTrend[i]
                 // Shift other trends back to insert new trend
-                u16 j = SAVED_TRENDS_COUNT - 1;
-                while (j > i)
+                u16 j;
+                for (j = SAVED_TRENDS_COUNT - 1; j > i; j--)
                 {
                     gSaveBlock1Ptr->dewfordTrends[j] = gSaveBlock1Ptr->dewfordTrends[j - 1];
-                    j--;
                 }
                 gSaveBlock1Ptr->dewfordTrends[i] = trend;
 
