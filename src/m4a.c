@@ -38,7 +38,11 @@ u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
     val2 = gScaleTable[key + 1];
     val2 = gFreqTable[val2 & 0xF] >> (val2 >> 4);
 
+    #if !MODERN
     return umul3232H32(wav->freq, val1 + umul3232H32(val2 - val1, fineAdjustShifted));
+    #else
+    return umul3232H32(val1, val2, wav->freq, fineAdjustShifted);
+    #endif
 }
 
 void UnusedDummyFunc(void)

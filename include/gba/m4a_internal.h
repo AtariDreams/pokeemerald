@@ -400,7 +400,11 @@ extern char gMaxLines[];
 #define NUM_MUSIC_PLAYERS ((u16)gNumMusicPlayers)
 #define MAX_LINES ((u32)gMaxLines)
 
+#if !MODERN
 u32 umul3232H32(u32 multiplier, u32 multiplicand);
+#else
+u32 umul3232H32(u32 multiplier, u32 multiplicand, u32 multiplier1, u32 multiplicand2);
+#endif
 void SoundMain(void);
 void SoundMainBTM(void);
 void TrackStop(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track);
