@@ -218,7 +218,7 @@ struct ContestAppealMoveResults
     u8 turnOrder[CONTESTANT_COUNT];
     s16 jam;
     s16 jam2;
-    u8 jamQueue[5];
+    u8 jamQueue[CONTESTANT_COUNT + 1];
     u8 unnervedPokes[CONTESTANT_COUNT];
     u8 contestant;
 };
@@ -230,11 +230,11 @@ struct ContestAIInfo
     /*0x04*/ u8 nextMoveIndex;
     /*0x05*/ u8 moveScores[MAX_MON_MOVES];
     /*0x09*/ u8 aiAction;
-    /*0x0A*/ u8 filler[6];
+             u32 filler;
     /*0x10*/ u8 currentAIFlag;
     /*0x14*/ u32 aiFlags;
     /*0x18*/ s16 scriptResult;
-    /*0x1A*/ s16 vars[3];
+    /*0x1A*/ s16 vars[2];
     /*0x20*/ const u8 *stack[8];
     /*0x40*/ u8 stackSize;
     /*0x41*/ u8 contestantId;
