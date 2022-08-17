@@ -137,7 +137,7 @@ static const u16 sLandmarkData[][2] =
 };
 
 #include "data/pokedex_area_glow.h"
-
+#if !MODERN
 static const struct PokedexAreaMapTemplate sPokedexAreaMapTemplate =
 {
     .bg = 3,
@@ -145,6 +145,7 @@ static const struct PokedexAreaMapTemplate sPokedexAreaMapTemplate =
     .mode = 0,
     .unk = 2,
 };
+#endif
 
 static const u8 sAreaMarkerTiles[];
 static const struct SpriteSheet sAreaMarkerSpriteSheet =
@@ -617,7 +618,11 @@ static void Task_ShowPokedexAreaScreen(u8 taskId)
         break;
     case 1:
         SetBgAttribute(3, BG_ATTR_CHARBASEINDEX, 3);
+        #if !MODERN
         LoadPokedexAreaMapGfx(&sPokedexAreaMapTemplate);
+        #else
+        LoadPokedexAreaMapGfx();
+        #endif
         StringFill(sPokedexAreaScreen->charBuffer, CHAR_SPACE, 16);
         break;
     case 2:
@@ -708,7 +713,10 @@ static void Task_HandlePokedexAreaScreenInput(u8 taskId)
         sPokedexAreaScreen->screenSwitchState[0] = gTasks[taskId].data[1];
         ResetPokedexAreaMapBg();
         DestroyTask(taskId);
+        #if !MODERN
+        // has no effect
         FreePokedexAreaMapBgNum();
+        #endif
         FREE_AND_SET_NULL(sPokedexAreaScreen);
         return;
     }

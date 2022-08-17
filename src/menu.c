@@ -1893,6 +1893,7 @@ void CopyToBufferFromBgTilemap(u8 bgId, u16 *dest, u8 left, u8 top, u8 width, u8
     }
 }
 
+#if !MODERN
 void AddValToTilemapBuffer(void *ptr, int delta, int width, int height, bool32 isAffine)
 {
     int i;
@@ -1911,6 +1912,7 @@ void AddValToTilemapBuffer(void *ptr, int delta, int width, int height, bool32 i
             as4BPP[i] = (as4BPP[i] & 0xFC00) | ((as4BPP[i] + delta) & 0x3FF);
     }
 }
+#endif
 
 void ResetBgPositions(void)
 {
