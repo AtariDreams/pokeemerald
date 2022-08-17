@@ -9967,12 +9967,16 @@ static void Cmd_handleballthrow(void)
         #else
             gActiveBattler = gBattlerAttacker;
             gBattlerTarget = gBattlerAttacker ^ BIT_SIDE;
+        // TODO: REMOVE THIS CHEAT
+        if (gLastUsedItem == ITEM_POKE_BALL)
+            goto catch;
+        
         if (UNLIKELY(gLastUsedItem == ITEM_MASTER_BALL))
             {
                 gBattleResults.usedMasterBall = TRUE;
                 goto catch;
             }
-            
+        
         if (gLastUsedItem == ITEM_SAFARI_BALL)
         {
             catchRate = gBattleStruct->safariCatchFactor * 1275 / 100;
