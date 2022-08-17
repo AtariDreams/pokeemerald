@@ -15,7 +15,7 @@ SECTIONS {
         src/decompress.o(ewram_data)
         . = 0x20000;
 
-        *.o(ewram_data);
+        *(ewram_data);
         *(.data)
         *(.data.*)
         . = 0x40000;
