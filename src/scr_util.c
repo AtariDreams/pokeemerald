@@ -2828,7 +2828,7 @@ static const u8 *const sScrollableMultichoiceOptions[][MAX_SCROLL_MULTI_LENGTH] 
 
 static void Task_ShowScrollableMultichoice(u8 taskId)
 {
-    u32 width;
+    int width;
     u8 i, windowId;
     struct WindowTemplate template;
     struct Task *task = &gTasks[taskId];
