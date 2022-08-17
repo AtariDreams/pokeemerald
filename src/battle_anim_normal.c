@@ -1668,7 +1668,7 @@ void AnimTask_Flash(u8 taskId)
 
 static void AnimTask_Flash_Step(u8 taskId)
 {
-    u16 i;
+    m16 i;
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
