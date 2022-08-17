@@ -2540,17 +2540,16 @@ static void AnimGreenStar_Step2(struct Sprite *sprite)
 
 static void AnimGreenStar_Callback(struct Sprite *sprite)
 {
-    if (!sprite->invisible)
+    if (sprite->invisible)
+        return;
+
+    sprite->data[3] += sprite->data[2];
+    sprite->y2 -= sprite->data[3] >> 8;
+    sprite->data[3] &= 0xFF;
+    if (sprite->data[1]-- == 0)
     {
-        s16 delta = sprite->data[3] + sprite->data[2];
-        sprite->y2 -= delta >> 8;
-        sprite->data[3] += sprite->data[2];
-        sprite->data[3] &= 0xFF;
-        if (--sprite->data[1] == -1)
-        {
-            sprite->invisible = TRUE;
-            sprite->callback = SpriteCallbackDummy;
-        }
+        sprite->invisible = TRUE;
+        sprite->callback = SpriteCallbackDummy;
     }
 }
 
@@ -3772,8 +3771,7 @@ static void AnimTask_SquishAndSweatDroplets_Step(u8 taskId)
     switch (task->tState)
     {
     case 0:
-        task->tTimer++;
-        if (task->tTimer == 6)
+        if (++task->tTimer == 6)
             CreateSweatDroplets(taskId, TRUE);
 
         if (task->tTimer == 18)
