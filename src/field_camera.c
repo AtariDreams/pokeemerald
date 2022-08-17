@@ -104,8 +104,8 @@ static void DrawWholeMapViewInternal(int x, int y, const struct MapLayout *mapLa
 {
     u8 i;
     u8 j;
-    u16 r6;
     u8 temp;
+    u16 r6;
 
     for (i = 0; i < 32; i += 2)
     {
@@ -129,11 +129,11 @@ static void RedrawMapSlicesForCameraUpdate(struct FieldCameraOffset *cameraOffse
 
     if (x > 0)
         RedrawMapSliceWest(cameraOffset, mapLayout);
-    if (x < 0)
+    M_IF (x < 0)
         RedrawMapSliceEast(cameraOffset, mapLayout);
     if (y > 0)
         RedrawMapSliceNorth(cameraOffset, mapLayout);
-    if (y < 0)
+    M_IF (y < 0)
         RedrawMapSliceSouth(cameraOffset, mapLayout);
     cameraOffset->copyBGToVRAM = TRUE;
 }
