@@ -242,9 +242,12 @@ bool8 IsWirelessAdapterConnected(void)
 
 void Task_DestroySelf(u8 taskId)
 {
+    // There was a thing here that would obtain Parent info, but the variable being assigned to isn't used so it was optimized out.
+    // Hard to figure out what was meant to be here
     DestroyTask(taskId);
 }
 
+// Meant for debug but made it to the final game
 static void InitLinkTestBG(u8 paletteNum, u8 bgNum, u8 screenBaseBlock, u8 charBaseBlock, u16 baseChar)
 {
     LoadPalette(sLinkTestDigitsPal, paletteNum * 16, 0x20);
@@ -302,6 +305,7 @@ static void LinkTestScreen(void)
     AnimateSprites();
     BuildOamBuffer();
     UpdatePaletteFade();
+    // some sort of unused count var
     sDummy3 = FALSE;
     InitLocalLinkPlayer();
     CreateTask(Task_PrintTestData, 0);
@@ -320,7 +324,9 @@ static void InitLocalLinkPlayer(void)
     gLocalLinkPlayer.gender = gSaveBlock2Ptr->playerGender;
     gLocalLinkPlayer.linkType = gLinkType;
     gLocalLinkPlayer.language = gGameLanguage;
+    // 0x4000 is the pokemon gen code apparently
     gLocalLinkPlayer.version = gGameVersion + 0x4000;
+    // 0x8000 is the "pokedex code"
     gLocalLinkPlayer.lp_field_2 = 0x8000;
     gLocalLinkPlayer.progressFlags = IsNationalPokedexEnabled();
     if (FlagGet(FLAG_IS_CHAMPION))
@@ -405,6 +411,7 @@ static void TestBlockTransfer(u8 nothing, u8 is, u8 used)
 
     if (sLinkTestLastBlockSendPos != sBlockSend.pos)
     {
+        //LinkTest is a debug function mistakenly left in
         LinkTest_PrintHex(sBlockSend.pos, 2, 3, 2);
         sLinkTestLastBlockSendPos = sBlockSend.pos;
     }
@@ -412,6 +419,7 @@ static void TestBlockTransfer(u8 nothing, u8 is, u8 used)
     {
         if (sLinkTestLastBlockRecvPos[i] != sBlockRecv[i].pos)
         {
+            //LinkTest is a debug function mistakenly left in
             LinkTest_PrintHex(sBlockRecv[i].pos, 2, i + 4, 2);
             sLinkTestLastBlockRecvPos[i] = sBlockRecv[i].pos;
         }
@@ -437,6 +445,7 @@ static void TestBlockTransfer(u8 nothing, u8 is, u8 used)
 
 static void LinkTestProcessKeyInput(void)
 {
+    // no else if?!
     if (JOY_NEW(A_BUTTON))
     {
         gShouldAdvanceLinkState = 1;
@@ -463,6 +472,7 @@ static void LinkTestProcessKeyInput(void)
     }
     if (sLinkTestDebugValuesEnabled)
     {
+        // debug mistakenly left in
         SetLinkDebugValues(gMain.vblankCounter2, gLinkCallback ? gLinkVSyncDisabled : gLinkVSyncDisabled | 0x10);
     }
 }
@@ -505,6 +515,7 @@ static void HandleReceiveRemoteLinkPlayer(u8 who)
 
     count = 0;
     gRemoteLinkPlayersNotReceived[who] = FALSE;
+    // this function should not be called every time, but it is
     for (i = 0; i < GetLinkPlayerCount_2(); i++)
     {
         count += gRemoteLinkPlayersNotReceived[i];
@@ -530,14 +541,11 @@ static void ProcessRecvCmds(u8 unused)
         {
             case LINKCMD_SEND_LINK_TYPE:
             {
-                struct LinkPlayerBlock *block;
-
                 InitLocalLinkPlayer();
-                block = &gLocalLinkPlayerBlock;
-                block->linkPlayer = gLocalLinkPlayer;
-                memcpy(block->magic1, sASCIIGameFreakInc, sizeof(block->magic1) - 1);
-                memcpy(block->magic2, sASCIIGameFreakInc, sizeof(block->magic2) - 1);
-                InitBlockSend(block, sizeof(*block));
+                gLocalLinkPlayerBlock.linkPlayer = gLocalLinkPlayer;
+                strcpy(gLocalLinkPlayerBlock.magic1, sASCIIGameFreakInc);
+                strcpy(gLocalLinkPlayerBlock.magic2, sASCIIGameFreakInc);
+                InitBlockSend(&gLocalLinkPlayerBlock, sizeof(gLocalLinkPlayerBlock));
                 break;
             }
             case LINKCMD_BLENDER_SEND_KEYS:
@@ -551,12 +559,9 @@ static void ProcessRecvCmds(u8 unused)
                 break;
             case LINKCMD_INIT_BLOCK:
             {
-                struct BlockTransfer *blockRecv;
-
-                blockRecv = &sBlockRecv[i];
-                blockRecv->pos = 0;
-                blockRecv->size = gRecvCmds[i][1];
-                blockRecv->multiplayerId = gRecvCmds[i][2];
+                sBlockRecv[i].pos = 0;
+                sBlockRecv[i].size = gRecvCmds[i][1];
+                sBlockRecv[i].multiplayerId = gRecvCmds[i][2];
                 break;
             }
             case LINKCMD_CONT_BLOCK:
@@ -592,8 +597,8 @@ static void ProcessRecvCmds(u8 unused)
                         struct LinkPlayer *linkPlayer;
 
                         block = (struct LinkPlayerBlock *)&gBlockRecvBuffer[i];
-                        linkPlayer = &gLinkPlayers[i];
-                        *linkPlayer = block->linkPlayer;
+                        gLinkPlayers[i] = block->linkPlayer;
+
                         if ((linkPlayer->version & 0xFF) == VERSION_RUBY || (linkPlayer->version & 0xFF) == VERSION_SAPPHIRE)
                         {
                             linkPlayer->progressFlagsCopy = 0;
@@ -1722,8 +1727,6 @@ static void CB2_PrintErrorMessage(void)
     if (gMain.state != 160)
         gMain.state++;
 }
-
-// TODO: there might be a file boundary here, let's name it
 
 bool8 GetSioMultiSI(void)
 {
