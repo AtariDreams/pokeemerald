@@ -440,102 +440,105 @@ void rfu_LMAN_manager_entity(u32 rand)
     }
     do
     {
-        if (lman.state != LMAN_STATE_READY)
+        if (lman.state == LMAN_STATE_READY)
         {
-            rfu_waitREQComplete();
-            lman.active = 1;
-            switch (lman.state)
-            {
-            case LMAN_FORCED_STOP_AND_RFU_RESET:
-                if (rfu_LMAN_REQBN_softReset_and_checkID() == RFU_ID)
-                {
-                    msg=LMAN_MSG_MANAGER_FORCED_STOPPED_AND_RFU_RESET;
-                }
-                else
-                {
-                    msg=LMAN_MSG_RFU_FATAL_ERROR;
-                }
-                lman.state = lman.next_state = LMAN_STATE_READY;
-                rfu_LMAN_occureCallback(msg, 0);
-                break;
-            case LMAN_STATE_SOFT_RESET_AND_CHECK_ID:
-                if (rfu_LMAN_REQBN_softReset_and_checkID() == RFU_ID)
-                {
-                    lman.state = lman.next_state;
-                    lman.next_state = LMAN_STATE_CONFIG_SYSTEM;
-                }
-                else
-                {
-                    lman.state = lman.next_state = LMAN_STATE_READY;
-                    rfu_LMAN_occureCallback(LMAN_MSG_RFU_FATAL_ERROR, 0);
-                }
-                break;
-            case LMAN_STATE_RESET:
-                rfu_REQ_reset();
-                break;
-            case LMAN_STATE_CONFIG_SYSTEM:
-                rfu_REQ_configSystem(lman.init_param->availSlot_flag, lman.init_param->maxMFrame, lman.init_param->MC_TimerCount);
-                break;
-            case LMAN_STATE_CONFIG_GAME_DATA:
-                rfu_REQ_configGameData(lman.init_param->mboot_flag, lman.init_param->serialNo, (const u8 *)lman.init_param->gameName, lman.init_param->userName);
-                break;
-            case LMAN_STATE_START_SEARCH_CHILD:
-                rfu_REQ_startSearchChild();
-                break;
-            case LMAN_STATE_POLL_SEARCH_CHILD:
-                rfu_REQ_pollSearchChild();
-                break;
-            case LMAN_STATE_END_SEARCH_CHILD:
-                rfu_REQ_endSearchChild();
-                break;
-            case LMAN_STATE_WAIT_RECV_CHILD_NAME:
-                break;
-            case LMAN_STATE_START_SEARCH_PARENT:
-                rfu_REQ_startSearchParent();
-                break;
-            case LMAN_STATE_POLL_SEARCH_PARENT:
-                rfu_REQ_pollSearchParent();
-                break;
-            case LMAN_STATE_END_SEARCH_PARENT:
-                rfu_REQ_endSearchParent();
-                break;
-            case LMAN_STATE_START_CONNECT_PARENT:
-                rfu_REQ_startConnectParent(lman.work);
-                break;
-            case LMAN_STATE_POLL_CONNECT_PARENT:
-                rfu_REQ_pollConnectParent();
-                break;
-            case LMAN_STATE_END_CONNECT_PARENT:
-                rfu_REQ_endConnectParent();
-                break;
-            case LMAN_STATE_SEND_CHILD_NAME:
-                break;
-            case LMAN_STATE_START_LINK_RECOVERY:
-                rfu_REQ_CHILD_startConnectRecovery(gRfuLinkStatus->linkLossSlotFlag);
-                break;
-            case LMAN_STATE_POLL_LINK_RECOVERY:
-                rfu_REQ_CHILD_pollConnectRecovery();
-                break;
-            case LMAN_STATE_END_LINK_RECOVERY:
-                rfu_REQ_CHILD_endConnectRecovery();
-                break;
-            case LMAN_STATE_MS_CHANGE:
-                rfu_REQ_changeMasterSlave();
-                break;
-            case LMAN_STATE_WAIT_CLOCK_MASTER:
-                break;
-            case LMAN_STATE_STOP_MODE:
-                rfu_REQ_stopMode();
-                break;
-            case LMAN_STATE_BACK_STATE:
-                break;
-            default:
-                break;
-            }
-            rfu_waitREQComplete();
-            lman.active = 0;
+            continue;
         }
+
+        rfu_waitREQComplete();
+        lman.active = 1;
+        switch (lman.state)
+        {
+        case LMAN_FORCED_STOP_AND_RFU_RESET:
+            if (rfu_LMAN_REQBN_softReset_and_checkID() == RFU_ID)
+            {
+                msg = LMAN_MSG_MANAGER_FORCED_STOPPED_AND_RFU_RESET;
+            }
+            else
+            {
+                msg = LMAN_MSG_RFU_FATAL_ERROR;
+            }
+            lman.state = lman.next_state = LMAN_STATE_READY;
+            rfu_LMAN_occureCallback(msg, 0);
+            break;
+        case LMAN_STATE_SOFT_RESET_AND_CHECK_ID:
+            if (rfu_LMAN_REQBN_softReset_and_checkID() == RFU_ID)
+            {
+                lman.state = lman.next_state;
+                lman.next_state = LMAN_STATE_CONFIG_SYSTEM;
+            }
+            else
+            {
+                lman.state = lman.next_state = LMAN_STATE_READY;
+                rfu_LMAN_occureCallback(LMAN_MSG_RFU_FATAL_ERROR, 0);
+            }
+            break;
+        case LMAN_STATE_RESET:
+            rfu_REQ_reset();
+            break;
+        case LMAN_STATE_CONFIG_SYSTEM:
+            rfu_REQ_configSystem(lman.init_param->availSlot_flag, lman.init_param->maxMFrame, lman.init_param->MC_TimerCount);
+            break;
+        case LMAN_STATE_CONFIG_GAME_DATA:
+            rfu_REQ_configGameData(lman.init_param->mboot_flag, lman.init_param->serialNo, (const u8 *)lman.init_param->gameName, lman.init_param->userName);
+            break;
+        case LMAN_STATE_START_SEARCH_CHILD:
+            rfu_REQ_startSearchChild();
+            break;
+        case LMAN_STATE_POLL_SEARCH_CHILD:
+            rfu_REQ_pollSearchChild();
+            break;
+        case LMAN_STATE_END_SEARCH_CHILD:
+            rfu_REQ_endSearchChild();
+            break;
+        case LMAN_STATE_WAIT_RECV_CHILD_NAME:
+            break;
+        case LMAN_STATE_START_SEARCH_PARENT:
+            rfu_REQ_startSearchParent();
+            break;
+        case LMAN_STATE_POLL_SEARCH_PARENT:
+            rfu_REQ_pollSearchParent();
+            break;
+        case LMAN_STATE_END_SEARCH_PARENT:
+            rfu_REQ_endSearchParent();
+            break;
+        case LMAN_STATE_START_CONNECT_PARENT:
+            rfu_REQ_startConnectParent(lman.work);
+            break;
+        case LMAN_STATE_POLL_CONNECT_PARENT:
+            rfu_REQ_pollConnectParent();
+            break;
+        case LMAN_STATE_END_CONNECT_PARENT:
+            rfu_REQ_endConnectParent();
+            break;
+        case LMAN_STATE_SEND_CHILD_NAME:
+            break;
+        case LMAN_STATE_START_LINK_RECOVERY:
+            rfu_REQ_CHILD_startConnectRecovery(gRfuLinkStatus->linkLossSlotFlag);
+            break;
+        case LMAN_STATE_POLL_LINK_RECOVERY:
+            rfu_REQ_CHILD_pollConnectRecovery();
+            break;
+        case LMAN_STATE_END_LINK_RECOVERY:
+            rfu_REQ_CHILD_endConnectRecovery();
+            break;
+        case LMAN_STATE_MS_CHANGE:
+            rfu_REQ_changeMasterSlave();
+            break;
+        case LMAN_STATE_WAIT_CLOCK_MASTER:
+            break;
+        case LMAN_STATE_STOP_MODE:
+            rfu_REQ_stopMode();
+            break;
+        case LMAN_STATE_BACK_STATE:
+            break;
+        default:
+            break;
+        }
+        rfu_waitREQComplete();
+        lman.active = 0;
     } while (lman.state == LMAN_STATE_END_LINK_RECOVERY || lman.state == LMAN_STATE_MS_CHANGE);
+
     if (gRfuLinkStatus->parentChild == MODE_PARENT)
     {
         if (rfu_LMAN_linkWatcher(0))
