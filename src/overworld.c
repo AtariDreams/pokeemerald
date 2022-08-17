@@ -156,7 +156,7 @@ static void InitMenuBasedScript(const u8 *);
 static void LoadCableClubPlayer(s32, s32, struct CableClubPlayer *);
 static bool32 IsCableClubPlayerUnfrozen(struct CableClubPlayer *);
 static bool32 CanCableClubPlayerPressStart(struct CableClubPlayer *);
-static u8 *TryGetTileEventScript(struct CableClubPlayer *);
+static const u8 *TryGetTileEventScript(struct CableClubPlayer *);
 static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *);
 static const u8 *TryInteractWithPlayer(struct CableClubPlayer *);
 static u16 KeyInterCB_DeferToRecvQueue(u32);
@@ -1476,7 +1476,8 @@ void CB2_OverworldBasic(void)
 
 void CB2_Overworld(void)
 {
-    bool32 fading = (gPaletteFade.active != 0);
+    // should be bool32. Yes I know it fits in a bool8 but still
+    bool8 fading = gPaletteFade.active;
     if (fading)
         SetVBlankCallback(NULL);
     OverworldBasic();
@@ -1544,22 +1545,22 @@ void CB2_WhiteOut(void)
 {
     u8 state;
 
-    if (++gMain.state >= 120)
-    {
-        FieldClearVBlankHBlankCallbacks();
-        StopMapMusic();
-        ResetSafariZoneFlag_();
-        DoWhiteOut();
-        ResetInitialPlayerAvatarState();
-        ScriptContext_Init();
-        UnlockPlayerFieldControls();
-        gFieldCallback = FieldCB_WarpExitFadeFromBlack;
-        state = 0;
-        DoMapLoadLoop(&state);
-        SetFieldVBlankCallback();
-        SetMainCallback1(CB1_Overworld);
-        SetMainCallback2(CB2_Overworld);
-    }
+    if (++gMain.state < 120)
+        return;
+
+    FieldClearVBlankHBlankCallbacks();
+    StopMapMusic();
+    ResetSafariZoneFlag_();
+    DoWhiteOut();
+    ResetInitialPlayerAvatarState();
+    ScriptContext_Init();
+    UnlockPlayerFieldControls();
+    gFieldCallback = FieldCB_WarpExitFadeFromBlack;
+    state = 0;
+    DoMapLoadLoop(&state);
+    SetFieldVBlankCallback();
+    SetMainCallback1(CB1_Overworld);
+    SetMainCallback2(CB2_Overworld);
 }
 
 void CB2_LoadMap(void)
@@ -1793,7 +1794,7 @@ static void InitCurrentFlashLevelScanlineEffect(void)
         WriteBattlePyramidViewScanlineEffectBuffer();
         ScanlineEffect_SetParams(sFlashEffectParams);
     }
-    else if ((flashLevel = GetFlashLevel()))
+    else if ((flashLevel = GetFlashLevel()) != 0)
     {
         WriteFlashScanlineEffectBuffer(flashLevel);
         ScanlineEffect_SetParams(sFlashEffectParams);
@@ -2214,7 +2215,7 @@ static void SpawnLinkPlayers(void)
 
     for (i = 0; i < gFieldLinkPlayerCount; i++)
     {
-        SpawnLinkPlayerObjectEvent(i, i + x, y, gLinkPlayers[i].gender);
+        SpawnLinkPlayerObjectEvent(i, x + i, y, gLinkPlayers[i].gender);
         CreateLinkPlayerSprite(i, gLinkPlayers[i].version);
     }
 
@@ -2228,28 +2229,28 @@ static void CreateLinkPlayerSprites(void)
         CreateLinkPlayerSprite(i, gLinkPlayers[i].version);
 }
 
-
 static void CB1_OverworldLink(void)
 {
-    if (gWirelessCommType == 0 || !IsRfuRecvQueueEmpty() || !IsSendingKeysToLink())
-    {
-        u8 selfId = gLocalLinkPlayerId;
-        UpdateAllLinkPlayers(gLinkPartnersHeldKeys, selfId);
+    u8 selfId;
+    if (gWirelessCommType != 0 && IsRfuRecvQueueEmpty() && IsSendingKeysToLink())
+        return;
 
-        // Note: Because guestId is between 0 and 4, while the smallest key code is
-        // LINK_KEY_CODE_EMPTY, this is functionally equivalent to `sPlayerKeyInterceptCallback(0)`.
-        // It is expecting the callback to be KeyInterCB_SelfIdle, and that will
-        // completely ignore any input parameters.
-        //
-        // UpdateHeldKeyCode performs a sanity check on its input; if
-        // sPlayerKeyInterceptCallback echoes back the argument, which is selfId, then
-        // it'll use LINK_KEY_CODE_EMPTY instead.
-        //
-        // Note 2: There are some key intercept callbacks that treat the key as a player
-        // ID. It's so hacky.
-        UpdateHeldKeyCode(sPlayerKeyInterceptCallback(selfId));
-        ClearAllPlayerKeys();
-    }
+    selfId = gLocalLinkPlayerId;
+    UpdateAllLinkPlayers(gLinkPartnersHeldKeys, selfId);
+
+    // Note: Because guestId is between 0 and 4, while the smallest key code is
+    // LINK_KEY_CODE_EMPTY, this is functionally equivalent to `sPlayerKeyInterceptCallback(0)`.
+    // It is expecting the callback to be KeyInterCB_SelfIdle, and that will
+    // completely ignore any input parameters.
+    //
+    // UpdateHeldKeyCode performs a sanity check on its input; if
+    // sPlayerKeyInterceptCallback echoes back the argument, which is selfId, then
+    // it'll use LINK_KEY_CODE_EMPTY instead.
+    //
+    // Note 2: There are some key intercept callbacks that treat the key as a player
+    // ID. It's so hacky.
+    UpdateHeldKeyCode(sPlayerKeyInterceptCallback(selfId));
+    ClearAllPlayerKeys();
 }
 
 void ResetAllMultiplayerState(void)
@@ -2426,7 +2427,7 @@ static void UpdateAllLinkPlayers(u16 *keys, s32 selfId)
 
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
-        u8 key = keys[i];
+        u16 key = keys[i] & 0xFF; // Why not make it s u8? Well the function takes a u16. We can make this a u8, but do we need to?!
         u16 setFacing = FACING_NONE;
         LoadCableClubPlayer(i, selfId, &trainer);
         HandleLinkPlayerKeyInput(i, key, &trainer, &setFacing);
@@ -2438,7 +2439,7 @@ static void UpdateAllLinkPlayers(u16 *keys, s32 selfId)
 
 static void UpdateHeldKeyCode(u16 key)
 {
-    if (key >= LINK_KEY_CODE_EMPTY && key < LINK_KEY_CODE_UNK_8)
+    if (LINK_KEY_CODE_EMPTY <= key && key < LINK_KEY_CODE_UNK_8)
         gHeldKeyCodeToSend = key;
     else
         gHeldKeyCodeToSend = LINK_KEY_CODE_EMPTY;
@@ -2588,16 +2589,12 @@ static u16 KeyInterCB_Ready(u32 keyOrPlayerId)
             SetKeyInterceptCallback(KeyInterCB_ExitingSeat);
             return LINK_KEY_CODE_EXIT_SEAT;
         }
-        else
-        {
-            return LINK_KEY_CODE_EMPTY;
-        }
     }
     else
     {
-        CheckRfuKeepAliveTimer();
-        return LINK_KEY_CODE_EMPTY;
+        CheckRfuKeepAliveTimer();    
     }
+    return LINK_KEY_CODE_EMPTY;
 }
 
 static u16 KeyInterCB_SetReady(u32 key)
@@ -2657,13 +2654,13 @@ static bool32 IsAnyPlayerExitingCableClub(void)
     return IsAnyPlayerInLinkState(PLAYER_LINK_STATE_EXITING_ROOM);
 }
 
-u16 SetInCableClubSeat(void)
+u32 SetInCableClubSeat(void)
 {
     SetKeyInterceptCallback(KeyInterCB_SetReady);
     return 0;
 }
 
-u16 SetLinkWaitingForScript(void)
+u32 SetLinkWaitingForScript(void)
 {
     SetKeyInterceptCallback(KeyInterCB_DeferToEventScript);
     return 0;
@@ -2671,13 +2668,13 @@ u16 SetLinkWaitingForScript(void)
 
 // The exit room key will be sent at the next opportunity.
 // The return value is meaningless.
-u16 QueueExitLinkRoomKey(void)
+u32 QueueExitLinkRoomKey(void)
 {
     SetKeyInterceptCallback(KeyInterCB_SendExitRoomKey);
     return 0;
 }
 
-u16 SetStartedCableClubActivity(void)
+u32 SetStartedCableClubActivity(void)
 {
     SetKeyInterceptCallback(KeyInterCB_InLinkActivity);
     return 0;
@@ -2688,7 +2685,7 @@ static void LoadCableClubPlayer(s32 linkPlayerId, s32 myPlayerId, struct CableCl
     s16 x, y;
 
     trainer->playerId = linkPlayerId;
-    trainer->isLocalPlayer = (linkPlayerId == myPlayerId) ? 1 : 0;
+    trainer->isLocalPlayer = (linkPlayerId == myPlayerId) ? TRUE : FALSE;
     trainer->movementMode = gLinkPlayerObjectEvents[linkPlayerId].movementMode;
     trainer->facing = GetLinkPlayerFacingDirection(linkPlayerId);
     GetLinkPlayerCoords(linkPlayerId, &x, &y);
@@ -2700,8 +2697,7 @@ static void LoadCableClubPlayer(s32 linkPlayerId, s32 myPlayerId, struct CableCl
 
 static bool32 IsCableClubPlayerUnfrozen(struct CableClubPlayer *player)
 {
-    u8 mode = player->movementMode;
-    if (mode == MOVEMENT_MODE_SCRIPTED || mode == MOVEMENT_MODE_FREE)
+    if (player->movementMode == MOVEMENT_MODE_SCRIPTED || player->movementMode == MOVEMENT_MODE_FREE)
         return TRUE;
     else
         return FALSE;
@@ -2710,14 +2706,13 @@ static bool32 IsCableClubPlayerUnfrozen(struct CableClubPlayer *player)
 // Identical to IsCableClubPlayerUnfrozen
 static bool32 CanCableClubPlayerPressStart(struct CableClubPlayer *player)
 {
-    u8 mode = player->movementMode;
-    if (mode == MOVEMENT_MODE_SCRIPTED || mode == MOVEMENT_MODE_FREE)
+    if (player->movementMode == MOVEMENT_MODE_SCRIPTED || player->movementMode == MOVEMENT_MODE_FREE)
         return TRUE;
     else
         return FALSE;
 }
 
-static u8 *TryGetTileEventScript(struct CableClubPlayer *player)
+static const u8 *TryGetTileEventScript(struct CableClubPlayer *player)
 {
     if (player->movementMode != MOVEMENT_MODE_SCRIPTED)
         return FACING_NONE;
@@ -2726,14 +2721,12 @@ static u8 *TryGetTileEventScript(struct CableClubPlayer *player)
 
 static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *player)
 {
-    if (player->movementMode != MOVEMENT_MODE_SCRIPTED && player->movementMode != MOVEMENT_MODE_FREE)
-        return FALSE;
-    else if (!MetatileBehavior_IsSouthArrowWarp(player->metatileBehavior))
-        return FALSE;
-    else if (player->facing != DIR_SOUTH)
-        return FALSE;
-    else
+    if ((player->movementMode == MOVEMENT_MODE_SCRIPTED || player->movementMode == MOVEMENT_MODE_FREE)
+        && MetatileBehavior_IsSouthArrowWarp(player->metatileBehavior)
+        && player->facing == DIR_SOUTH)
         return TRUE;
+    
+    return FALSE;
 }
 
 static const u8 *TryInteractWithPlayer(struct CableClubPlayer *player)
