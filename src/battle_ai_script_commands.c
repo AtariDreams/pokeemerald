@@ -453,7 +453,7 @@ static u8 ChooseMoveOrAction_Doubles(void)
 {
     int i;
     int mostViableTargetsNo;
-#ifndef BUGFIX
+#ifndef UBFIX
     s32 scriptsToRun;
 #else
     // the value assigned to this is a u32 (aiFlags)
@@ -1607,15 +1607,10 @@ static void Cmd_if_status_not_in_party(void)
     u32 statusToCompareTo;
     u8 battlerId;
 
-    switch(gAIScriptPtr[1])
-    {
-    case 1:
+    if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
-        break;
-    default:
+    else
         battlerId = gBattlerTarget;
-        break;
-    }
 
     party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty : gEnemyParty;
 
@@ -1643,6 +1638,9 @@ static void Cmd_get_weather(void)
 {
     if (gBattleWeather & B_WEATHER_RAIN)
         AI_THINKING_STRUCT->funcResult = AI_WEATHER_RAIN;
+
+    // Would the weather bug be resolved if these were else-ifs?
+    //TODO: look into this
     if (gBattleWeather & B_WEATHER_SANDSTORM)
         AI_THINKING_STRUCT->funcResult = AI_WEATHER_SANDSTORM;
     if (gBattleWeather & B_WEATHER_SUN)
@@ -1671,7 +1669,7 @@ static void Cmd_if_not_effect(void)
 
 static void Cmd_if_stat_level_less_than(void)
 {
-    u32 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
@@ -1686,7 +1684,7 @@ static void Cmd_if_stat_level_less_than(void)
 
 static void Cmd_if_stat_level_more_than(void)
 {
-    u32 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
@@ -1701,7 +1699,7 @@ static void Cmd_if_stat_level_more_than(void)
 
 static void Cmd_if_stat_level_equal(void)
 {
-    u32 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
@@ -1716,7 +1714,7 @@ static void Cmd_if_stat_level_equal(void)
 
 static void Cmd_if_stat_level_not_equal(void)
 {
-    u32 battlerId;
+    u8 battlerId;
 
     if (gAIScriptPtr[1] == AI_USER)
         battlerId = sBattler_AI;
@@ -1792,7 +1790,7 @@ static void Cmd_if_cant_faint(void)
 static void Cmd_if_has_move(void)
 {
     s32 i;
-    const u16 *movePtr = (u16 *)(gAIScriptPtr + 2);
+    const u16 *movePtr = (const u16 *)(gAIScriptPtr + 2);
 
     switch (gAIScriptPtr[1])
     {
@@ -1813,14 +1811,13 @@ static void Cmd_if_has_move(void)
             gAIScriptPtr += 8;
             break;
         }
-        else
+
+        for (i = 0; i < MAX_MON_MOVES; i++)
         {
-            for (i = 0; i < MAX_MON_MOVES; i++)
-            {
-                if (gBattleMons[sBattler_AI ^ BIT_FLANK].moves[i] == *movePtr)
-                    break;
-            }
+            if (gBattleMons[sBattler_AI ^ BIT_FLANK].moves[i] == *movePtr)
+                break;
         }
+
         if (i == MAX_MON_MOVES)
             gAIScriptPtr += 8;
         else
@@ -1844,12 +1841,17 @@ static void Cmd_if_has_move(void)
 static void Cmd_if_doesnt_have_move(void)
 {
     s32 i;
-    const u16 *movePtr = (u16 *)(gAIScriptPtr + 2);
+    const u16 *movePtr = (const u16 *)(gAIScriptPtr + 2);
 
     switch(gAIScriptPtr[1])
     {
+    #ifndef BUGFIX
     case AI_USER:
     case AI_USER_PARTNER: // UB: no separate check for user partner.
+    #else
+    case AI_USER:
+    #endif
+
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
             if (gBattleMons[sBattler_AI].moves[i] == *movePtr)
@@ -1860,6 +1862,27 @@ static void Cmd_if_doesnt_have_move(void)
         else
             gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 4);
         break;
+
+    #ifdef BUGFIX
+    case AI_USER_PARTNER:
+    if (gBattleMons[sBattler_AI ^ BIT_FLANK].hp == 0)
+        {
+            gAIScriptPtr += 8;
+            break;
+        }
+
+        for (i = 0; i < MAX_MON_MOVES; i++)
+        {
+            if (gBattleMons[sBattler_AI ^ BIT_FLANK].moves[i] == *movePtr)
+                break;
+        }
+
+        if (i != MAX_MON_MOVES)
+            gAIScriptPtr += 8;
+        else
+            gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 4);
+        break;
+    #endif
     case AI_TARGET:
     case AI_TARGET_PARTNER:
         for (i = 0; i < MAX_MON_MOVES; i++)
