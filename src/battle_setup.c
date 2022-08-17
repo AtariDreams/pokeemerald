@@ -1037,26 +1037,6 @@ static void InitTrainerBattleVariables(void)
     sTrainerBattleEndScript = NULL;
 }
 
-static inline void SetU8(void *ptr, u8 value)
-{
-    *(u8 *)(ptr) = value;
-}
-
-static inline void SetU16(void *ptr, u16 value)
-{
-    *(u16 *)(ptr) = value;
-}
-
-static inline void SetU32(void *ptr, u32 value)
-{
-    *(u32 *)(ptr) = value;
-}
-
-static inline void SetPtr(const void *ptr, const void *value)
-{
-    *(const void **)(ptr) = value;
-}
-
 static void TrainerBattleLoadArgs(const struct TrainerBattleParameter *specs, const u8 *data)
 {
     while (1)
@@ -1064,28 +1044,28 @@ static void TrainerBattleLoadArgs(const struct TrainerBattleParameter *specs, co
         switch (specs->ptrType)
         {
         case TRAINER_PARAM_LOAD_VAL_8BIT:
-            SetU8(specs->varPtr, TrainerBattleLoadArg8(data));
+            *(u8*)specs->varPtr = TrainerBattleLoadArg8(data);
             data += 1;
             break;
         case TRAINER_PARAM_LOAD_VAL_16BIT:
-            SetU16(specs->varPtr, TrainerBattleLoadArg16(data));
+            *(u16*)specs->varPtr = TrainerBattleLoadArg16(data);
             data += 2;
             break;
         case TRAINER_PARAM_LOAD_VAL_32BIT:
-            SetU32(specs->varPtr, TrainerBattleLoadArg32(data));
+            *(u32*)specs->varPtr = TrainerBattleLoadArg32(data);
             data += 4;
             break;
         case TRAINER_PARAM_CLEAR_VAL_8BIT:
-            SetU8(specs->varPtr, 0);
+            *(u8*)specs->varPtr = 0;
             break;
         case TRAINER_PARAM_CLEAR_VAL_16BIT:
-            SetU16(specs->varPtr, 0);
+            *(u16*)specs->varPtr = 0;
             break;
         case TRAINER_PARAM_CLEAR_VAL_32BIT:
-            SetU32(specs->varPtr, 0);
+            *(u32*)specs->varPtr = 0;
             break;
         case TRAINER_PARAM_LOAD_SCRIPT_RET_ADDR:
-            SetPtr(specs->varPtr, data);
+            *(const void**)specs->varPtr = data;
             return;
         }
         specs++;
@@ -1215,7 +1195,7 @@ void SetUpTwoTrainersBattle(void)
 
 bool32 GetTrainerFlagFromScriptPointer(const u8 *data)
 {
-    u32 flag = TrainerBattleLoadArg16(data + 2);
+    u16 flag = TrainerBattleLoadArg16(data + 2);
     return FlagGet(TRAINER_FLAGS_START + flag);
 }
 
@@ -1380,7 +1360,7 @@ void ShowTrainerIntroSpeech(void)
 {
     if (InBattlePyramid())
     {
-        if (gNoOfApproachingTrainers == 0 || gNoOfApproachingTrainers == 1)
+        if (gNoOfApproachingTrainers < 2)
             CopyPyramidTrainerSpeechBefore(LocalIdToPyramidTrainerId(gSpecialVar_LastTalked));
         else
             CopyPyramidTrainerSpeechBefore(LocalIdToPyramidTrainerId(gObjectEvents[gApproachingTrainers[gApproachingTrainerId].objectEventId].localId));
@@ -1389,7 +1369,7 @@ void ShowTrainerIntroSpeech(void)
     }
     else if (InTrainerHillChallenge())
     {
-        if (gNoOfApproachingTrainers == 0 || gNoOfApproachingTrainers == 1)
+        if (gNoOfApproachingTrainers < 2)
             CopyTrainerHillTrainerText(TRAINER_HILL_TEXT_INTRO, LocalIdToHillTrainerId(gSpecialVar_LastTalked));
         else
             CopyTrainerHillTrainerText(TRAINER_HILL_TEXT_INTRO, LocalIdToHillTrainerId(gObjectEvents[gApproachingTrainers[gApproachingTrainerId].objectEventId].localId));
@@ -1404,11 +1384,12 @@ void ShowTrainerIntroSpeech(void)
 
 const u8 *BattleSetup_GetScriptAddrAfterBattle(void)
 {
-    if (sTrainerBattleEndScript != NULL)
-        return sTrainerBattleEndScript;
-    else
+    // Why is this check here? it should have been removed before shipping
+    if (sTrainerBattleEndScript == NULL)
         return EventScript_TestSignpostMsg;
+    return sTrainerBattleEndScript;
 }
+        
 
 const u8 *BattleSetup_GetTrainerPostBattleScript(void)
 {
@@ -1494,6 +1475,7 @@ void PlayTrainerEncounterMusic(void)
             break;
         default:
             music = MUS_ENCOUNTER_SUSPICIOUS;
+            break;
         }
         PlayNewMapMusic(music);
     }
@@ -1618,6 +1600,7 @@ static bool32 UpdateRandomTrainerRematches(const struct RematchTrainer *table, u
                 ret = TRUE;
             }
             else if (FlagGet(FLAG_MATCH_CALL_REGISTERED + i)
+            // Should be < 30, since it is 0 based. Documentation says 30%. Error makes it 31%
              && (Random() % 100) <= 30)  // 31% chance of getting a rematch.
             {
                 SetRematchIdForTrainer(table, i);
@@ -1741,6 +1724,7 @@ static void ClearTrainerWantRematchState(const struct RematchTrainer *table, u16
 
 static u32 GetTrainerMatchCallFlag(u32 trainerId)
 {
+    // should be u32 or u16
     s32 i;
 
     for (i = 0; i < REMATCH_TABLE_ENTRIES; i++)
@@ -1756,6 +1740,7 @@ static void RegisterTrainerInMatchCall(void)
 {
     if (FlagGet(FLAG_HAS_MATCH_CALL))
     {
+        // Should be u16
         u32 matchCallFlagId = GetTrainerMatchCallFlag(gTrainerBattleOpponent_A);
         if (matchCallFlagId != 0xFFFF)
             FlagSet(matchCallFlagId);
