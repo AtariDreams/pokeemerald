@@ -345,7 +345,7 @@ static void InitTradeMenu(void)
 
         DeactivateAllTextPrinters();
 
-        for (i = 0; i < 18; i++)
+        for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuWindowTemplates) - 1; i++)
         {
             ClearWindowTilemap(i);
             FillWindowPixelBuffer(i, PIXEL_FILL(0));
@@ -378,7 +378,7 @@ static void CB2_CreateTradeMenu(void)
     int i;
     struct SpriteTemplate temp;
     u8 id;
-    u32 xPos;
+    int xPos;
 
     switch (gMain.state)
     {
@@ -494,25 +494,23 @@ static void CB2_CreateTradeMenu(void)
 
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PLAYER]; i++)
         {
-            struct Pokemon *mon = &gPlayerParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PLAYER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2),
+            sTradeMenuData->partySpriteIds[TRADE_PLAYER][i] = CreateMonIcon(GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i][1] * 8) - 12,
                                                          1,
-                                                         GetMonData(mon, MON_DATA_PERSONALITY),
+                                                         GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY),
                                                          TRUE);
         }
 
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PARTNER]; i++)
         {
-            struct Pokemon *mon = &gEnemyParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2, NULL),
+            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(&gEnemyParty[i], MON_DATA_SPECIES2, NULL),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][1] * 8) - 12,
                                                          1,
-                                                         GetMonData(mon, MON_DATA_PERSONALITY),
+                                                         GetMonData(&gEnemyParty[i], MON_DATA_PERSONALITY),
                                                          FALSE);
         }
         gMain.state++;
@@ -546,7 +544,7 @@ static void CB2_CreateTradeMenu(void)
         {
             temp = sSpriteTemplate_MenuText;
             temp.tileTag += i + GFXTAG_PLAYER_NAME_L;
-            CreateSprite(&temp, xPos + (i * 32) + 16, 10, 1);
+            CreateSprite(&temp, xPos + i * 32 + 16, 10, 1);
         }
 
         // Create partner's name text sprites
@@ -555,7 +553,7 @@ static void CB2_CreateTradeMenu(void)
         {
             temp = sSpriteTemplate_MenuText;
             temp.tileTag += i + GFXTAG_PARTNER_NAME_L;
-            CreateSprite(&temp, xPos + (i * 32) + 136, 10, 1);
+            CreateSprite(&temp, xPos + i * 32 + 120 + 16, 10, 1);
         }
         gMain.state++;
         break;
@@ -595,6 +593,8 @@ static void CB2_CreateTradeMenu(void)
         PrintPartyNicknamesForTradeMenu(TRADE_PARTNER);
         gMain.state++;
         // fallthrough
+        // Was a break forgotten here?
+        // This seems to be more efficient, but does it break anything as a result?
     case 16:
         LoadTradeBgGfx(0);
         gMain.state++;
@@ -642,7 +642,7 @@ static void CB2_ReturnToTradeMenu(void)
     int i;
     struct SpriteTemplate temp;
     u8 id;
-    u32 xPos;
+    int xPos;
 
     switch (gMain.state)
     {
@@ -654,6 +654,8 @@ static void CB2_ReturnToTradeMenu(void)
         gMain.state++;
         sTradeMenuData->timer = 0;
         break;
+
+    // Cases should be merged
     case 2:
         gMain.state++;
         break;
@@ -685,25 +687,23 @@ static void CB2_ReturnToTradeMenu(void)
 
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PLAYER]; i++)
         {
-            struct Pokemon *mon = &gPlayerParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PLAYER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2, NULL),
+            sTradeMenuData->partySpriteIds[TRADE_PLAYER][i] = CreateMonIcon(GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2, NULL),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i][1] * 8) - 12,
                                                          1,
-                                                         GetMonData(mon, MON_DATA_PERSONALITY),
+                                                         GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY),
                                                          TRUE);
         }
 
         for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PARTNER]; i++)
         {
-            struct Pokemon *mon = &gEnemyParty[i];
-            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(mon, MON_DATA_SPECIES2, NULL),
+            sTradeMenuData->partySpriteIds[TRADE_PARTNER][i] = CreateMonIcon(GetMonData(&gEnemyParty[i], MON_DATA_SPECIES2, NULL),
                                                          SpriteCB_MonIcon,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][0] * 8) + 14,
                                                          (sTradeMonSpriteCoords[i + PARTY_SIZE][1] * 8) - 12,
                                                          1,
-                                                         GetMonData(mon, MON_DATA_PERSONALITY),
+                                                         GetMonData(&gEnemyParty[i], MON_DATA_PERSONALITY),
                                                          FALSE);
         }
         gMain.state++;
@@ -737,7 +737,7 @@ static void CB2_ReturnToTradeMenu(void)
         {
             temp = sSpriteTemplate_MenuText;
             temp.tileTag += i + GFXTAG_PLAYER_NAME_L;
-            CreateSprite(&temp, xPos + (i * 32) + 16, 10, 1);
+            CreateSprite(&temp, xPos + i * 32 + 16, 10, 1);
         }
 
         // Create partner's name text sprites
@@ -746,7 +746,7 @@ static void CB2_ReturnToTradeMenu(void)
         {
             temp = sSpriteTemplate_MenuText;
             temp.tileTag += i + GFXTAG_PARTNER_NAME_L;
-            CreateSprite(&temp, xPos + (i * 32) + 136, 10, 1);
+            CreateSprite(&temp, xPos + i * 32 + 120 + 16, 10, 1);
         }
         gMain.state++;
         break;
@@ -1085,11 +1085,12 @@ static bool8 BufferTradeParties(void)
         }
         break;
     case 21:
+    {
+        u8 name[POKEMON_NAME_LENGTH + 1];
         for (i = 0, mon = gEnemyParty; i < PARTY_SIZE; mon++, i++)
         {
-            u8 name[POKEMON_NAME_LENGTH + 1];
             u16 species = GetMonData(mon, MON_DATA_SPECIES);
-
+            // This check is so redundant. Just check for the shedninja!!!
             if (species != SPECIES_NONE)
             {
                 if (species == SPECIES_SHEDINJA && GetMonData(mon, MON_DATA_LANGUAGE) != LANGUAGE_JAPANESE)
@@ -1104,6 +1105,7 @@ static bool8 BufferTradeParties(void)
             }
         }
         return TRUE;
+    }
     // Delay until next state
     case 2:
     case 6:
@@ -1349,6 +1351,8 @@ static void TradeMenuMoveCursor(u8 *cursorPosition, u8 direction)
     if (*cursorPosition != newPosition)
     {
         PlaySE(SE_SELECT);
+        // why not just return here
+        //return;
     }
 
     *cursorPosition = newPosition;
@@ -1465,6 +1469,7 @@ static void TradeMenuProcessInput_SelectedMon(void)
 
 static void ChooseMonAfterButtonPress(void)
 {
+    //AB_BUTTON is a thing
     if ((JOY_NEW(A_BUTTON)) || (JOY_NEW(B_BUTTON)))
     {
         PlaySE(SE_SELECT);
@@ -1515,6 +1520,7 @@ static u8 CheckValidityOfTradeMons(u8 *aliveMons, u8 playerPartyCount, u8 player
             return PARTNER_MON_INVALID;
     }
 
+    // it is ok to continue the trade if both are valid, or rather we made it this far
     if (hasLiveMon)
         hasLiveMon = BOTH_MONS_VALID;
 
@@ -1525,6 +1531,7 @@ static u8 CheckValidityOfTradeMons(u8 *aliveMons, u8 playerPartyCount, u8 player
 static bool32 CheckMonsBeforeTrade(void)
 {
     int i;
+    // Why not just PARTY_SIZE
     u8 aliveMons[PARTY_SIZE * 2];
 
     for (i = 0; i < sTradeMenuData->partyCounts[TRADE_PLAYER]; i++)
@@ -1937,7 +1944,7 @@ static void PrintPartyNicknamesForTradeMenu(u8 whichParty)
 {
     u8 i;
     u8 nickname[20];
-    u8 str[32];
+    u8 str[30];
     struct Pokemon *party = (whichParty == TRADE_PLAYER) ? gPlayerParty : gEnemyParty;
 
     for (i = 0; i < sTradeMenuData->partyCounts[whichParty]; i++)
@@ -1951,6 +1958,7 @@ static void PrintPartyNicknamesForTradeMenu(u8 whichParty)
 static void DrawTradeMenuPartyMonInfo(u8 whichParty, u8 monIdx, u8 x, u8 y, u8 width, u8 height)
 {
     u8 level;
+    // should be u16
     u32 symbolTile;
     u8 gender;
     u8 nickname[12];
@@ -1966,14 +1974,14 @@ static void DrawTradeMenuPartyMonInfo(u8 whichParty, u8 monIdx, u8 x, u8 y, u8 w
     if (!sTradeMenuData->isEgg[whichParty][monIdx])
     {
         if (level / 10 != 0)
-            sTradeMenuData->tilemapBuffer[x + (y * 32)] = (level / 10) + 0x60;
+            sTradeMenuData->tilemapBuffer[x + y * 32] = (level / 10) + 0x60;
 
-        sTradeMenuData->tilemapBuffer[x + (y * 32) + 1] = (level % 10) + 0x70;
+        sTradeMenuData->tilemapBuffer[x + y * 32 + 1] = (level % 10) + 0x70;
     }
     else
     {
-        sTradeMenuData->tilemapBuffer[x + (y * 32) - 32] = sTradeMenuData->tilemapBuffer[x + (y * 32) - 33];
-        sTradeMenuData->tilemapBuffer[x + (y * 32) - 31] = sTradeMenuData->tilemapBuffer[x + (y * 32) - 36] | 0x400;
+        sTradeMenuData->tilemapBuffer[x + y * 32 - 32] = sTradeMenuData->tilemapBuffer[x + y * 32 - 33];
+        sTradeMenuData->tilemapBuffer[x + y * 32 - 31] = sTradeMenuData->tilemapBuffer[x + y * 32 - 36] | 0x400;
     }
 
     if (sTradeMenuData->isEgg[whichParty][monIdx])
@@ -2011,24 +2019,27 @@ static void DrawTradeMenuPartyMonInfo(u8 whichParty, u8 monIdx, u8 x, u8 y, u8 w
 
 static void DrawTradeMenuPartyInfo(u8 whichParty)
 {
-    s32 i;
+    s32 i, w;
     for (i = 0; i < sTradeMenuData->partyCounts[whichParty]; i++)
     {
-        const u8 (*r5)[2];
-        const u8 (*r4)[2];
-        u32 r0 = 3 * whichParty;
-        const u8 (*r1)[2][2] = sTradeMonLevelCoords;
-
-        r5 = r1[r0];
-        r4 = sTradeMonBoxCoords[r0];
+        w = i + whichParty * PARTY_SIZE;
         DrawTradeMenuPartyMonInfo(
             whichParty,
             i,
-            r5[i][0],
-            r5[i][1],
-            r4[i][0],
-            r4[i][1]
+            sTradeMonLevelCoords[w][0],
+            sTradeMonLevelCoords[w][1],
+            sTradeMonBoxCoords[w][0],
+            sTradeMonBoxCoords[w][1]
         );
+        
+/*         DrawTradeMenuPartyMonInfo(
+            whichParty,
+            i,
+            sTradeMonLevelCoords[whichParty][i][0],
+            sTradeMonLevelCoords[whichParty][i][1],
+            sTradeMonBoxCoords[whichParty][i][0],
+            sTradeMonBoxCoords[whichParty][i][1]
+        ); */
     }
 }
 
@@ -2450,7 +2461,7 @@ int GetUnionRoomTradeMessageId(struct RfuGameCompatibilityData player, struct Rf
     {
         if (!playerIsChampion)
             return UR_TRADE_MSG_CANT_TRADE_WITH_PARTNER_1;
-        else if (!partnerIsChampion)
+        if (!partnerIsChampion)
             return UR_TRADE_MSG_CANT_TRADE_WITH_PARTNER_2;
     }
 
@@ -2550,11 +2561,13 @@ int CanSpinTradeMon(struct Pokemon *mon, u16 monIdx)
         struct LinkPlayer *player = &gLinkPlayers[i];
 
         // Does player not have National Dex
+        // Todo: remove this. Actual GF code is more convoluted though so switching this with that doesn't seem beneficial
         do
         {
             if (!(player->progressFlags & 0xF))
                 canTradeAnyMon = FALSE;
 
+// Should be >> 4 instead of /= 16
             if (versions && (player->progressFlags / 16))
                 canTradeAnyMon = FALSE;
         } while (0);
@@ -2568,7 +2581,6 @@ int CanSpinTradeMon(struct Pokemon *mon, u16 monIdx)
         if (speciesArray[monIdx] == SPECIES_NONE)
             return CANT_TRADE_EGG_YET;
     }
-
     numMonsLeft = 0;
     for (i = 0; i < gPlayerPartyCount; i++)
     {
@@ -2708,7 +2720,7 @@ static void CheckForLinkTimeout(void)
     sTradeData->linkTimeoutZero2 = sTradeData->linkTimeoutZero1;
 }
 
-static u32 TradeGetMultiplayerId(void)
+static u8 TradeGetMultiplayerId(void)
 {
     if (gReceivedRemoteLinkPlayers)
         return GetMultiplayerId();
@@ -2717,7 +2729,7 @@ static u32 TradeGetMultiplayerId(void)
 
 static void LoadTradeMonPic(u8 whichParty, u8 state)
 {
-    int pos = 0;
+    u8 pos = 0;
     struct Pokemon *mon = NULL;
     u16 species;
     u32 personality;
@@ -3023,6 +3035,7 @@ static void UpdatePokedexForReceivedMon(u8 partyIdx)
 }
 
 // Functionally nop after commented code
+//Should have commented everything out
 static void TryEnableNationalDexFromLinkPartner(void)
 {
     u8 mpId = GetMultiplayerId();
@@ -4371,6 +4384,7 @@ static void CB2_TryLinkTradeEvolution(void)
 static void UpdateTradeFinishFlags(void)
 {
     u8 blockReceivedStatus;
+    // TODO: Remove this
     TradeGetMultiplayerId(); // no effect call, ret val ignored
     blockReceivedStatus = GetBlockReceivedStatus();
     if (blockReceivedStatus & 0x01)
@@ -4477,7 +4491,7 @@ u16 GetInGameTradeSpeciesInfo(void)
 
 static void BufferInGameTradeMonName(void)
 {
-    u8 nickname[32];
+    u8 nickname[30];
     const struct InGameTrade *inGameTrade = &sIngameTrades[gSpecialVar_0x8004];
     GetMonData(&gPlayerParty[gSpecialVar_0x8005], MON_DATA_NICKNAME, nickname);
     StringCopy_Nickname(gStringVar1, nickname);
@@ -4545,9 +4559,9 @@ static void SetInGameTradeMail(struct Mail *mail, const struct InGameTrade *trad
     PadNameString(mail->playerName, CHAR_SPACE);
 
     mail->trainerId[0] = trade->otId >> 24;
-    mail->trainerId[1] = trade->otId >> 16;
-    mail->trainerId[2] = trade->otId >> 8;
-    mail->trainerId[3] = trade->otId;
+    mail->trainerId[1] = trade->otId >> 16 & 0xFF;
+    mail->trainerId[2] = trade->otId >> 8 & 0xFF;
+    mail->trainerId[3] = trade->otId & 0xFF;
     mail->species = trade->species;
     mail->itemId = trade->heldItem;
 }
