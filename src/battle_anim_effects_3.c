@@ -4912,7 +4912,7 @@ static void AnimBlockX_Step(struct Sprite *sprite)
     case 1:
         sprite->data[1] += 4;
         sprite->y2 = -(gSineTable[sprite->data[1]] >> 3);
-        if (sprite->data[1] > 0x7F)
+        if (sprite->data[1] > 127)
         {
             PlaySE12WithPanning(SE_M_SKETCH, BattleAnimAdjustPanning(63));
             sprite->data[1] = 0;
@@ -4923,7 +4923,7 @@ static void AnimBlockX_Step(struct Sprite *sprite)
     case 2:
         sprite->data[1] += 6;
         sprite->y2 = -(gSineTable[sprite->data[1]] >> 4);
-        if (sprite->data[1] > 0x7F)
+        if (sprite->data[1] > 127)
         {
             sprite->data[1] = 0;
             sprite->y2 = 0;
@@ -5078,8 +5078,8 @@ void AnimTask_GetReturnPowerLevel(u8 taskId)
 void AnimTask_SnatchOpposingMonMove(u8 taskId)
 {
     u8 spriteId, spriteId2;
-    int personality;
-    int otId;
+    u32 personality;
+    u32 otId;
     u16 species;
     u8 subpriority;
     bool8 isBackPic;
