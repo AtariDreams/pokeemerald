@@ -1247,8 +1247,8 @@ static void AnimWhiteHalo_Step2(struct Sprite *sprite)
 static void AnimTealAlert(struct Sprite *sprite)
 {
     u16 rotation;
-    u8 x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2);
-    u8 y = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET);
+    s16 x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2);
+    s16 y = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET);
 
     InitSpritePosToAnimTarget(sprite, TRUE);
 
@@ -1428,8 +1428,8 @@ static void FadeScreenToWhite_Step(u8 taskId)
 
 static void AnimSpikes(struct Sprite *sprite)
 {
-    u16 x;
-    u16 y;
+    s16 x;
+    s16 y;
 
     InitSpritePosToAnimAttacker(sprite, TRUE);
     SetAverageBattlerPositions(gBattleAnimTarget, FALSE, &x, &y);
@@ -1477,7 +1477,7 @@ static void AnimLeer(struct Sprite *sprite)
 
 static void AnimLetterZ(struct Sprite *sprite)
 {
-    int var0;
+    s16 var0;
     if (sprite->data[0] == 0)
     {
         SetSpriteCoordsToAnimAttackerCoords(sprite);
@@ -1507,9 +1507,9 @@ static void AnimLetterZ(struct Sprite *sprite)
     sprite->data[3] += sprite->data[1];
     sprite->data[4] += sprite->data[2];
     sprite->x2 = sprite->data[3] / 2;
-    sprite->y2 = Sin(var0 & 0xFF, 5) + (sprite->data[4] / 2);
-
-    if ((u16)(sprite->x + sprite->x2) > DISPLAY_WIDTH)
+    sprite->y2 = Sin(var0, 5) + (sprite->data[4] / 2);
+    var0 = sprite->x + sprite->x2;
+    if (var0 < 0 || var0 > DISPLAY_WIDTH)
         DestroyAnimSprite(sprite);
 }
 
@@ -1721,7 +1721,7 @@ static void AnimRapidSpin(struct Sprite *sprite)
 
     sprite->y2 = gBattleAnimArgs[2];
 
-    sprite->data[0] = (sprite->y2 > gBattleAnimArgs[3]);
+    sprite->data[0] = gBattleAnimArgs[2] > gBattleAnimArgs[3];
     sprite->data[1] = 0;
     sprite->data[2] = gBattleAnimArgs[4];
     sprite->data[3] = gBattleAnimArgs[5];
@@ -1752,8 +1752,8 @@ void AnimTask_RapinSpinMonElevation(u8 taskId)
     s16 var0;
     u8 toBG2;
     s16 var2;
-    int var3;
-    int var4;
+    s16 var3;
+    s16 var4;
     s16 i;
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
@@ -1780,48 +1780,32 @@ void AnimTask_RapinSpinMonElevation(u8 taskId)
     task->data[5] = gBattleAnimArgs[1];
     task->data[6] = 0;
     task->data[7] = 0;
+    
+    task->data[8] = (toBG2 == 1) ? gBattle_BG1_X : gBattle_BG2_X;
+    task->data[9] = task->data[8] + DISPLAY_WIDTH;
 
-    if (toBG2 == 1)
-    {
-        var3 = gBattle_BG1_X;
-        task->data[8] = var3;
-        var4 = var3 + DISPLAY_WIDTH;
-    }
-    else
-    {
-        var3 = gBattle_BG2_X;
-        task->data[8] = var3;
-        var4 = var3 + DISPLAY_WIDTH;
-    }
-
-    task->data[9] = var4;
     task->data[10] = gBattleAnimArgs[2];
 
-    if (!gBattleAnimArgs[2])
+    if (gBattleAnimArgs[2] == 0)
     {
-        task->data[11] = var4;
+        task->data[11] = task->data[9];
         var2 = task->data[8];
     }
     else
     {
-        task->data[11] = var3;
+        task->data[11] = task->data[8];
         var2 = task->data[9];
     }
 
     task->data[15] = 0;
 
-    i = task->data[2];
-    while (i <= task->data[3])
+    for (i = task->data[2]; i <= task->data[3]; i++)
     {
         gScanlineEffectRegBuffers[0][i] = var2;
         gScanlineEffectRegBuffers[1][i] = var2;
-        i++;
     }
 
-    if (toBG2 == 1)
-        scanlineParams.dmaDest = &REG_BG1HOFS;
-    else
-        scanlineParams.dmaDest = &REG_BG2HOFS;
+    scanlineParams.dmaDest = (toBG2 == 1) ? &REG_BG1HOFS : &REG_BG2HOFS;
 
     scanlineParams.dmaControl = SCANLINE_EFFECT_DMACNT_16BIT;
     scanlineParams.initState = 1;
@@ -1857,28 +1841,21 @@ static void RapinSpinMonElevation_Step(u8 taskId)
     if (++task->data[6] > 1)
     {
         task->data[6] = 0;
-        task->data[7] = task->data[7] == 0 ? 1 : 0;
+        task->data[7] = !task->data[7];
 
-        if (task->data[7])
-            task->data[12] = task->data[8];
-        else
-            task->data[12] = task->data[9];
+        task->data[12] = task->data[7] ? task->data[8] : task->data[9];     
     }
 
-    i = task->data[0];
-    while (i < task->data[1])
+    for (i = task->data[0]; i < task->data[1]; i++)
     {
         gScanlineEffectRegBuffers[0][i] = task->data[12];
         gScanlineEffectRegBuffers[1][i] = task->data[12];
-        i++;
     }
 
-    i = task->data[1];
-    while (i <= task->data[3])
+    for (i = task->data[1]; i <= task->data[3]; i++)
     {
         gScanlineEffectRegBuffers[0][i] = task->data[11];
         gScanlineEffectRegBuffers[1][i] = task->data[11];
-        i++;
     }
 
     if (task->data[15])
@@ -1907,7 +1884,6 @@ void AnimTask_TormentAttacker(u8 taskId)
 
 static void TormentAttacker_Step(u8 taskId)
 {
-    int var0, var1;
     s16 x, y;
     u16 i, j;
     u8 spriteId;
@@ -1916,18 +1892,8 @@ static void TormentAttacker_Step(u8 taskId)
     switch (task->data[0])
     {
     case 0:
-        var0 = task->data[2];
-        if (task->data[1] & 1)
-        {
-            var1 = task->data[4];
-            x = var0 - var1;
-        }
-        else
-        {
-            var1 = task->data[4];
-            x = var0 + var1;
-        }
-
+        // This ternary can be done better. Probably an if statement would work better, one for addition, one for subtraction, to be honest
+        x = task->data[2] + ((task->data[1] & 1) ? -(task->data[4]) : task->data[4]);
         y = task->data[3] + task->data[5];
         spriteId = CreateSprite(&gThoughtBubbleSpriteTemplate, x, y, 6 - task->data[1]);
         PlaySE12WithPanning(SE_M_METRONOME, BattleAnimAdjustPanning(-64));
@@ -2020,8 +1986,7 @@ static void AnimTriAttackTriangle(struct Sprite *sprite)
 
     if (++sprite->data[0] < 40)
     {
-        u16 var = sprite->data[0];
-        if ((var & 1) == 0)
+        if ((sprite->data[0] % 2) == 0)
             sprite->invisible = TRUE;
         else
             sprite->invisible = FALSE;
@@ -2080,6 +2045,8 @@ static void AnimBatonPassPokeball(struct Sprite *sprite)
 
         if (++sprite->data[3] == 5)
             sprite->data[0]++;
+        
+        // Should there be a break here?
         // fall through
     case 2:
         sprite->data[1] += 96;
@@ -2115,8 +2082,7 @@ static void AnimWishStar(struct Sprite *sprite)
 
 static void AnimWishStar_Step(struct Sprite *sprite)
 {
-    u32 newX;
-
+    int newX;
     sprite->data[0] += 72;
     if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
         sprite->x2 = sprite->data[0] >> 4;
@@ -2134,9 +2100,8 @@ static void AnimWishStar_Step(struct Sprite *sprite)
             sprite->y + sprite->y2,
             sprite->subpriority + 1);
     }
-
-    newX = sprite->x + sprite->x2 + 32;
-    if (newX > 304)
+    newX = sprite->x + sprite->x2;
+    if (newX > 272 || newX < -32)
         DestroyAnimSprite(sprite);
 }
 
@@ -2504,9 +2469,8 @@ static void AnimGreenStar(struct Sprite *sprite)
 
 static void AnimGreenStar_Step1(struct Sprite *sprite)
 {
-    s16 delta = sprite->data[3] + sprite->data[2];
-    sprite->y2 -= delta >> 8;
     sprite->data[3] += sprite->data[2];
+    sprite->y2 -= sprite->data[3] >> 8;
     sprite->data[3] &= 0xFF;
     if (sprite->data[4] == 0 && sprite->y2 < -8)
     {
@@ -2520,7 +2484,7 @@ static void AnimGreenStar_Step1(struct Sprite *sprite)
         sprite->data[4]++;
     }
 
-    if (--sprite->data[1] == -1)
+    if (sprite->data[1]-- == 0)
     {
         sprite->invisible = TRUE;
         sprite->callback = AnimGreenStar_Step2;
@@ -3033,8 +2997,8 @@ void AnimTask_PainSplitMovement(u8 taskId)
 static void AnimFlatterConfetti(struct Sprite *sprite)
 {
     u8 tileOffset;
-    int rand1;
-    int rand2;
+    u16 rand1;
+    u16 rand2;
 
     tileOffset = Random2() % 12;
     sprite->oam.tileNum += tileOffset;
@@ -3153,7 +3117,7 @@ static void AnimReversalOrb_Step(struct Sprite *sprite)
     sprite->y2 = Cos(sprite->data[1], sprite->data[3] >> 8);
     sprite->data[1] = (sprite->data[1] + 9) & 0xFF;
 
-    if ((u16)sprite->data[1] < 64 || sprite->data[1] > 195)
+    if ((sprite->data[1] >= 0 && sprite->data[1]< 64) || sprite->data[1] > 195)
         sprite->subpriority = GetBattlerSpriteSubpriority(gBattleAnimAttacker) - 1;
     else
         sprite->subpriority = GetBattlerSpriteSubpriority(gBattleAnimAttacker) + 1;
@@ -3162,8 +3126,7 @@ static void AnimReversalOrb_Step(struct Sprite *sprite)
     {
         sprite->data[2] += 0x400;
         sprite->data[3] += 0x100;
-        sprite->data[4]++;
-        if (sprite->data[4] == sprite->data[0])
+        if (++sprite->data[4] == sprite->data[0])
         {
             sprite->data[4] = 0;
             sprite->data[5] = 1;
@@ -3173,8 +3136,7 @@ static void AnimReversalOrb_Step(struct Sprite *sprite)
     {
         sprite->data[2] -= 0x400;
         sprite->data[3] -= 0x100;
-        sprite->data[4]++;
-        if (sprite->data[4] == sprite->data[0])
+        if (++sprite->data[4] == sprite->data[0])
             DestroyAnimSprite(sprite);
     }
 }
@@ -3189,7 +3151,7 @@ void AnimTask_RolePlaySilhouette(u8 taskId)
     s16 xOffset;
     u32 priority;
     u8 spriteId;
-    s16 coord1, coord2;
+    s16 x, y;
 
     GetAnimBattlerSpriteId(ANIM_ATTACKER);
     if (IsContest())
@@ -3201,53 +3163,50 @@ void AnimTask_RolePlaySilhouette(u8 taskId)
         xOffset = 20;
         priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker);
     }
-    else
+    else if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
     {
-        if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
+        isBackPic = 0;
+        personality = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_PERSONALITY);
+        otId = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_OT_ID);
+        if (gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies == SPECIES_NONE)
         {
-            isBackPic = 0;
-            personality = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_PERSONALITY);
-            otId = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_OT_ID);
-            if (gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies == SPECIES_NONE)
-            {
-                if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_PLAYER)
-                    species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
-                else
-                    species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
-            }
+            if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_PLAYER)
+                species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
             else
-            {
-                species = gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies;
-            }
-
-            xOffset = 20;
-            priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker);
+                species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
         }
         else
         {
-            isBackPic = 1;
-            personality = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_PERSONALITY);
-            otId = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_OT_ID);
-            if (gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies == SPECIES_NONE)
-            {
-                if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_PLAYER)
-                    species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
-                else
-                    species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
-            }
-            else
-            {
-                species = gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies;
-            }
-
-            xOffset = -20;
-            priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker);
+            species = gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies;
         }
+
+        xOffset = 20;
+        priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker);
+    }
+    else
+    {
+        isBackPic = 1;
+        personality = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_PERSONALITY);
+        otId = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_OT_ID);
+        if (gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies == SPECIES_NONE)
+        {
+            if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_PLAYER)
+                species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
+            else
+                species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimTarget]], MON_DATA_SPECIES);
+        }
+        else
+        {
+            species = gBattleSpritesDataPtr->battlerData[gBattleAnimTarget].transformSpecies;
+        }
+
+        xOffset = -20;
+        priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker);
     }
 
-    coord1 = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
-    coord2 = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y);
-    spriteId = CreateAdditionalMonSpriteForMoveAnim(species, isBackPic, 0, coord1 + xOffset, coord2, 5, personality, otId, gBattleAnimTarget, TRUE);
+    x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
+    y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y);
+    spriteId = CreateAdditionalMonSpriteForMoveAnim(species, isBackPic, 0, x + xOffset, y, 5, personality, otId, gBattleAnimTarget, TRUE);
 
     gSprites[spriteId].oam.priority = priority;
     gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
@@ -3301,10 +3260,7 @@ void AnimTask_AcidArmor(u8 taskId)
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
 
-    if (gBattleAnimArgs[0] == ANIM_ATTACKER)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
+    battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
 
     task->data[0] = 0;
     task->data[1] = 0;
@@ -3393,8 +3349,7 @@ static void AnimTask_AcidArmor_Step(u8 taskId)
         task->data[11] = task->data[7];
         var3 = task->data[11] >> 5;
         task->data[12] = var3;
-        var0 = task->data[14];
-        while (var0 > task->data[13])
+        for (var0 = task->data[14]; var0 > task->data[13]; var0--)
         {
             gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][offset + 1] = (i - var2) + bgY;
             gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][offset] = bgX + var3 + (gSineTable[sineIndex] >> 5);
@@ -3407,18 +3362,15 @@ static void AnimTask_AcidArmor_Step(u8 taskId)
             offset -= 2;
             var1 += task->data[6];
             var2 = var1 >> 5;
-            var0--;
         }
-
-        var0 *= 2;
-        while (var0 >= 0)
+        // You can use offset here too. Either one works.
+        for (var0 *=2; var0 >= 0; var0 -=2)
         {
             gScanlineEffectRegBuffers[0][var0] = bgX + 240;
             gScanlineEffectRegBuffers[1][var0] = bgX + 240;
-            var0 -= 2;
         }
 
-        if (++task->data[6] > 63)
+        if (++task->data[6] >= 64)
         {
             task->data[6] = 64;
             task->data[2]++;
@@ -3485,10 +3437,9 @@ static void AnimTask_DeepInhale_Step(u8 taskId)
     u16 var0;
 
     struct Task *task = &gTasks[taskId];
-    var0 = task->data[0];
     task->data[0]++;
-    var0 -= 20;
-    if (var0 < 23)
+
+    if(task->data[0] > 20 && task->data[0] < 44)
     {
         if (++task->data[1] > 1)
         {
@@ -3543,7 +3494,7 @@ static void AnimYawnCloud(struct Sprite *sprite)
 
 static void AnimYawnCloud_Step(struct Sprite *sprite)
 {
-    int index;
+    s16 index;
 
     sprite->data[0]++;
     index = (sprite->data[0] * 8) & 0xFF;
@@ -3622,11 +3573,10 @@ static void AnimTask_SlideMonForFocusBand_Step2(u8 taskId)
     else
         gSprites[gTasks[taskId].data[15]].y2 = gTasks[taskId].data[10] + (var1 >> 8);
 
-    if (gTasks[taskId].data[0] < 1)
-    {
-        DestroyTask(taskId);
-        gAnimVisualTaskCount--;
-    }
+    if (gTasks[taskId].data[0] > 0)
+        return;
+    DestroyTask(taskId);
+    gAnimVisualTaskCount--;
 }
 
 static void AnimTask_SlideMonForFocusBand_Step1(u8 taskId)
@@ -3674,12 +3624,12 @@ static void AnimTask_SlideMonForFocusBand_Step1(u8 taskId)
 
     gTasks[taskId].data[7] = var0;
     gTasks[taskId].data[8] = var1;
-    if (gTasks[taskId].data[0] < 1)
-    {
-        gTasks[taskId].data[0] = 30;
-        gTasks[taskId].data[13] = 0;
-        gTasks[taskId].func = AnimTask_SlideMonForFocusBand_Step2;
-    }
+    if (gTasks[taskId].data[0] > 0)
+        return;
+
+    gTasks[taskId].data[0] = 30;
+    gTasks[taskId].data[13] = 0;
+    gTasks[taskId].func = AnimTask_SlideMonForFocusBand_Step2;
 }
 
 void AnimTask_SlideMonForFocusBand(u8 taskId)
@@ -4630,7 +4580,7 @@ static void AnimForesightMagnifyingGlass(struct Sprite *sprite)
 
 static void AnimForesightMagnifyingGlass_Step(struct Sprite *sprite)
 {
-    u16 x, y;
+    s16 x, y;
 
     switch (sprite->data[5])
     {
@@ -4902,7 +4852,7 @@ static void AnimBlockX_Step(struct Sprite *sprite)
         sprite->y2 += 10;
         if (sprite->y2 >= 0)
         {
-            PlaySE12WithPanning(SE_M_SKETCH, BattleAnimAdjustPanning(63));
+            PlaySE12WithPanning(SE_M_SKETCH, BattleAnimAdjustPanning(SOUND_PAN_TARGET));
             sprite->y2 = 0;
             sprite->data[0]++;
         }
@@ -4912,7 +4862,7 @@ static void AnimBlockX_Step(struct Sprite *sprite)
         sprite->y2 = -(gSineTable[sprite->data[1]] >> 3);
         if (sprite->data[1] > 127)
         {
-            PlaySE12WithPanning(SE_M_SKETCH, BattleAnimAdjustPanning(63));
+            PlaySE12WithPanning(SE_M_SKETCH, BattleAnimAdjustPanning(SOUND_PAN_TARGET));
             sprite->data[1] = 0;
             sprite->y2 = 0;
             sprite->data[0]++;
@@ -4931,7 +4881,7 @@ static void AnimBlockX_Step(struct Sprite *sprite)
     case 3:
         if (++sprite->data[1] > 8)
         {
-            PlaySE12WithPanning(SE_M_LEER, BattleAnimAdjustPanning(63));
+            PlaySE12WithPanning(SE_M_LEER, BattleAnimAdjustPanning(SOUND_PAN_TARGET));
             sprite->data[1] = 0;
             sprite->data[0]++;
         }
@@ -5029,7 +4979,7 @@ static void MoveOdorSleuthClone(struct Sprite *sprite)
             sprite->invisible ^= 1;
     }
 
-    sprite->data[4] = sprite->data[4] + sprite->data[3];
+    sprite->data[4] += sprite->data[3];
     sprite->data[4] &= 0xFF;
     sprite->x2 = Cos(sprite->data[4], sprite->data[5]);
     switch (sprite->data[0])
@@ -5059,13 +5009,13 @@ static void MoveOdorSleuthClone(struct Sprite *sprite)
 void AnimTask_GetReturnPowerLevel(u8 taskId)
 {
     gBattleAnimArgs[ARG_RET_ID] = 0;
-    if (gAnimFriendship < 60)
+    if (gAnimFriendship <= 60)
         gBattleAnimArgs[ARG_RET_ID] = 0;
     if (gAnimFriendship > 60 && gAnimFriendship <= 91)
         gBattleAnimArgs[ARG_RET_ID] = 1;
     if (gAnimFriendship > 91 && gAnimFriendship <= 200)
         gBattleAnimArgs[ARG_RET_ID] = 2;
-    if (gAnimFriendship > 200)
+    if (gAnimFriendship > 200) // Check is not needed
         gBattleAnimArgs[ARG_RET_ID] = 3;
 
     DestroyAnimVisualTask(taskId);
@@ -5111,34 +5061,31 @@ void AnimTask_SnatchOpposingMonMove(u8 taskId)
             isBackPic = FALSE;
             x = -32;
         }
+        else if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
+        {
+            personality = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_PERSONALITY);
+            otId = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_OT_ID);
+            if (gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies == SPECIES_NONE)
+                species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+            else
+                species = gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies;
+
+            subpriority = gSprites[GetAnimBattlerSpriteId(ANIM_TARGET)].subpriority + 1;
+            isBackPic = FALSE;
+            x = DISPLAY_WIDTH + 32;
+        }
         else
         {
-            if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
-            {
-                personality = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_PERSONALITY);
-                otId = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_OT_ID);
-                if (gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies == SPECIES_NONE)
-                    species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
-                else
-                    species = gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies;
-
-                subpriority = gSprites[GetAnimBattlerSpriteId(ANIM_TARGET)].subpriority + 1;
-                isBackPic = FALSE;
-                x = DISPLAY_WIDTH + 32;
-            }
+            personality = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_PERSONALITY);
+            otId = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_OT_ID);
+            if (gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies == SPECIES_NONE)
+                species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
             else
-            {
-                personality = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_PERSONALITY);
-                otId = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_OT_ID);
-                if (gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies == SPECIES_NONE)
-                    species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
-                else
-                    species = gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies;
+                species = gBattleSpritesDataPtr->battlerData[gBattleAnimAttacker].transformSpecies;
 
-                subpriority = gSprites[GetAnimBattlerSpriteId(ANIM_TARGET)].subpriority - 1;
-                isBackPic = TRUE;
-                x = -32;
-            }
+            subpriority = gSprites[GetAnimBattlerSpriteId(ANIM_TARGET)].subpriority - 1;
+            isBackPic = TRUE;
+            x = -32;
         }
 
         spriteId2 = CreateAdditionalMonSpriteForMoveAnim(species, isBackPic, 0, x, GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y), subpriority, personality, otId, gBattleAnimAttacker, FALSE);
