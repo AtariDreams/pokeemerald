@@ -125,7 +125,12 @@ void ApplyImageProcessingEffects(struct ImageProcessingContext *context)
 // Is it checking memory twice?
 static void ApplyImageEffect_RedChannelGrayscale(u8 delta)
 {
-    u8 i, j, grayValue;
+    m8 i, j;
+    #if !MODERN
+    u8 grayValue;
+    #else
+    u16 grayValue;
+    #endif
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -140,8 +145,12 @@ static void ApplyImageEffect_RedChannelGrayscale(u8 delta)
             if (IS_ALPHA(*pixel)) continue;
             // Gets the grayscale value, based on the pixel's red channel.
             // Also adds a delta to skew lighter or darker.
+            #if !MODERN
             grayValue = (*pixel & RGB_RED);
             grayValue += delta;
+            #else 
+            grayValue = (*pixel & RGB_RED) + delta;
+            #endif
             if (grayValue > RGB_RED)
                 grayValue = RGB_RED;
 
@@ -152,7 +161,7 @@ static void ApplyImageEffect_RedChannelGrayscale(u8 delta)
 
 static void ApplyImageEffect_RedChannelGrayscaleHighlight(u8 highlight)
 {
-    u8 i, j, grayValue;
+    m8 i, j, grayValue;
     u16*pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -186,7 +195,7 @@ static void ApplyImageEffect_Pointillism(void)
 
 static void ApplyImageEffect_Grayscale(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -210,7 +219,7 @@ static void ApplyImageEffect_Grayscale(void)
 
 static void ApplyImageEffect_Blur(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 prevPixel;
     u16 *pixel;
 
@@ -237,7 +246,7 @@ static void ApplyImageEffect_Blur(void)
 
 static void ApplyImageEffect_PersonalityColor(u8 personality)
 {
-    u8 i, j;
+    m8 i, j;
     u16* pixel;
     for (j = 0; j < gCanvasRowEnd; j++)
     {
@@ -259,7 +268,7 @@ static void ApplyImageEffect_PersonalityColor(u8 personality)
 
 static void ApplyImageEffect_BlackAndWhite(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -282,7 +291,7 @@ static void ApplyImageEffect_BlackAndWhite(void)
 
 static void ApplyImageEffect_BlackOutline(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     // Handle top row of pixels first.
@@ -326,7 +335,7 @@ static void ApplyImageEffect_BlackOutline(void)
 
 static void ApplyImageEffect_Invert(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -349,7 +358,7 @@ static void ApplyImageEffect_Invert(void)
 
 static void ApplyImageEffect_Shimmer(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
     u16 prevPixel;
 
@@ -418,7 +427,7 @@ static void ApplyImageEffect_Shimmer(void)
 
 static void ApplyImageEffect_BlurRight(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 prevPixel;
     u16 *pixel;
 
@@ -444,7 +453,7 @@ static void ApplyImageEffect_BlurRight(void)
 
 static void ApplyImageEffect_BlurDown(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 prevPixel;
     u16 *pixel;
 
@@ -577,13 +586,25 @@ static void AddPointillismPoints(u16 point)
     }
 }
 
+#define RGBtoY(r,g,b) (((r)*76 + (g)*151 + (b)*29) >> 8)
 static u16 ConvertColorToGrayscale(u16 *color)
 {
+    #if !MODERN
     s32 clr = *color;
     s32 r = GET_R(clr);
     s32 g = GET_G(clr);
     s32 b = GET_B(clr);
     s32 gray = (r * Q_8_8(0.3) + g * Q_8_8(0.59) + b * Q_8_8(0.1133)) >> 8;
+    #else
+    u16 clr, r, g, b, gray;
+    clr = *color;
+    r = GET_R(clr);
+    g = GET_G(clr);
+    b = GET_B(clr);
+    gray = RGBtoY(r,g,b);
+    #endif
+
+
     return RGB2(gray, gray, gray);
 }
 
@@ -697,7 +718,7 @@ static u16 QuantizePixel_MotionBlur(u16 *prevPixel, u16 *curPixel)
 {
     u16 pixelChannels[2][3];
     u16 diffs[3];
-    u8 i;
+    m8 i;
     u16 largestDiff;
     u16 red, green, blue;
 
@@ -975,7 +996,9 @@ static void SetPresetPalette_Grayscale(void)
 
 static void QuantizePalette_Standard(bool8 useLimitedPalette)
 {
-    u8 i, j, curIndex, maxIndex;
+    m8 i, j;
+    
+    u8 curIndex, maxIndex;
     u16 *pixel;
     u16 quantizedColor;
 
@@ -984,7 +1007,7 @@ static void QuantizePalette_Standard(bool8 useLimitedPalette)
     else
         maxIndex = 0xDF;
 
-    #if !MODERN
+    #if 1
     for (i = 0; i < maxIndex; i++)
         gCanvasPalette[i] = RGB_BLACK;
     #else
@@ -1043,7 +1066,7 @@ static void QuantizePalette_Standard(bool8 useLimitedPalette)
 
 static void QuantizePalette_BlackAndWhite(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -1077,7 +1100,7 @@ static void QuantizePalette_BlackAndWhite(void)
 
 static void QuantizePalette_GrayscaleSmall(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
@@ -1125,7 +1148,7 @@ static void QuantizePalette_Grayscale(void)
 
 static void QuantizePalette_PrimaryColors(void)
 {
-    u8 i, j;
+    m8 i, j;
     u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
