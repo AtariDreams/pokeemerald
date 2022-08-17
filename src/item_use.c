@@ -378,7 +378,7 @@ static bool8 IsHiddenItemPresentAtCoords(const struct MapEvents *events, s16 x, 
 {
     u8 bgEventCount = events->bgEventCount;
     struct BgEvent *bgEvent = events->bgEvents;
-    int i;
+    m32 i;
 
     for (i = 0; i < bgEventCount; i++)
     {
