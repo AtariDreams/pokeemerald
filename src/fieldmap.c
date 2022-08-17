@@ -110,7 +110,7 @@ static void InitMapLayoutData(struct MapHeader *mapHeader)
 static void InitBackupMapLayoutData(u16 *map, u16 width, u16 height)
 {
     u16 *dest;
-    m32 y;
+    s32 y;
     dest = gBackupMapLayout.map;
     dest += gBackupMapLayout.width * MAP_OFFSET + MAP_OFFSET;
     #if !MODERN
