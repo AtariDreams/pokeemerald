@@ -13,8 +13,8 @@ LD := arm-none-eabi-ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := clang -mllvm -compute-dead=false --rtlib=libgcc --gcc-toolchain=/Users/Main/devkitPro/devkitARM -no-integrated-as -fno-addrsig -specs=nosys.specs
-CC := clang -mllvm -compute-dead=false --rtlib=libgcc --gcc-toolchain=/Users/Main/devkitPro/devkitARM -no-integrated-as -fno-addrsig -specs=nosys.specs
+MODERNCC := clang -fno-function-sections -fno-strict-aliasing -mllvm -compute-dead=false --rtlib=libgcc --gcc-toolchain=/Users/Main/devkitPro/devkitARM -no-integrated-as -fno-addrsig -specs=nosys.specs
+CC := clang -fno-function-sections -fno-strict-aliasing -mllvm -compute-dead=false --rtlib=libgcc --gcc-toolchain=/Users/Main/devkitPro/devkitARM -no-integrated-as -fno-addrsig -specs=nosys.specs
 
 ifeq ($(OS),Windows_NT)
 EXE := .exe
@@ -93,7 +93,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(CC) -Xclang -quiet
-override CFLAGS += -no-pthread -mthumb -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fomit-frame-pointer -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -msoft-float -mfpu=none  -m32  #-flto -ffat-lto-objects -fuse-linker-plugin
+override CFLAGS += -no-pthread -mthumb -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fomit-frame-pointer -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -msoft-float -mfpu=none -m32  #-flto -ffat-lto-objects -fuse-linker-plugin
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
 ARCH_CFLAGS += \
@@ -311,7 +311,7 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS +=
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -fomit-frame-pointer -no-pthread -marm -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -msoft-float -mfpu=none  -m32 #-flto -ffat-lto-objects -fuse-linker-plugin
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -fomit-frame-pointer -no-pthread -marm -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -msoft-float -mfpu=none -m32 #-flto -ffat-lto-objects -fuse-linker-plugin
 endif
 
 ifeq ($(DINFO),1)
