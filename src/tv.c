@@ -1781,7 +1781,7 @@ static void TryPutFishingAdviceOnAir(void)
         show = &gSaveBlock1Ptr->tvShows[sCurTVShowSlot];
         show->pokemonAngler.kind = TVSHOW_FISHING_ADVICE;
         show->pokemonAngler.active = FALSE; // NOTE: Show is not active until passed via Record Mix.
-        show->pokemonAngler.nBites = (u8)sPokemonAnglerAttemptCounters;
+        show->pokemonAngler.nBites = (u8)(sPokemonAnglerAttemptCounters & 0xFF);
         show->pokemonAngler.nFails = (u8)(sPokemonAnglerAttemptCounters >> 8);
         show->pokemonAngler.species = sPokemonAnglerSpecies;
         StringCopy(show->pokemonAngler.playerName, gSaveBlock2Ptr->playerName);
