@@ -569,7 +569,7 @@ static void AnimUnusedCirclingShock(struct Sprite *sprite)
 static void AnimSparkElectricity(struct Sprite *sprite)
 {
     u8 battler;
-    u32 matrixNum;
+    u8 matrixNum;
     s16 sineVal;
 
     switch (gBattleAnimArgs[4])
@@ -656,7 +656,7 @@ static void AnimZapCannonSpark_Step(struct Sprite *sprite)
 
 static void AnimThunderboltOrb_Step(struct Sprite *sprite)
 {
-    if (--sprite->data[5] == -1)
+    if (sprite->data[5]-- == 0)
     {
         sprite->invisible ^= 1;
         sprite->data[5] = sprite->data[4];
@@ -769,7 +769,9 @@ static void AnimTask_ElectricBolt_Step(u8 taskId)
     switch (gTasks[taskId].data[10])
     {
     case 0:
+        #if !MODERN
         r12 *= 1;
+        #endif
         spriteId = CreateSprite(&gElectricBoltSegmentSpriteTemplate, x, y + r12, 2);
         r7++;
         break;
@@ -843,13 +845,13 @@ static void AnimThunderWave(struct Sprite *sprite)
 
 static void AnimThunderWave_Step(struct Sprite *sprite)
 {
-    if (++sprite->data[0] == 3)
+    if (sprite->data[0]++ == 2)
     {
         sprite->data[0] = 0;
         sprite->invisible ^= 1;
     }
 
-    if (++sprite->data[1] == 51)
+    if (sprite->data[1]++ == 50)
         DestroyAnimSprite(sprite);
 }
 
@@ -1005,7 +1007,7 @@ static void AnimVoltTackleOrbSlide_Step(struct Sprite *sprite)
     case 1:
         sprite->x += sprite->data[7];
         gSprites[sprite->data[6]].x2 += sprite->data[7];
-        if ((u16)(sprite->x + 80) > 400)
+        if(sprite->x < -80 || sprite->x > 320)
             DestroySpriteAndMatrix(sprite);
     }
 }
@@ -1105,8 +1107,8 @@ void AnimTask_VoltTackleBolt(u8 taskId)
             }
             else
             {
-                u16 temp;
-                task->data[5] = gBattleAnimArgs[0] * 10 + 40;
+                s16 temp;
+                task->data[5] = 40 + gBattleAnimArgs[0] * 10;
                 temp = task->data[3];
                 task->data[3] = task->data[4];
                 task->data[4] = temp;
