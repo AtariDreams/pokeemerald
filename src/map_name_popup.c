@@ -198,13 +198,15 @@ static const u8 * const sBattlePyramid_MapHeaderStrings[FRONTIER_STAGES_PER_CHAL
     sText_Pyramid,
 };
 
-// Unused
+// Unused DEBUG
+#if !MODERN
 static bool8 StartMenu_ShowMapNamePopup(void)
 {
     HideStartMenu();
     ShowMapNamePopup();
     return TRUE;
 }
+#endif
 
 void ShowMapNamePopup(void)
 {
@@ -347,7 +349,11 @@ static void ShowMapNamePopUpWindow(void)
 
 static void DrawMapNamePopUpFrame(u8 bg, u8 x, u8 y, u8 deltaX, u8 deltaY, u8 unused)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     // Draw top edge
     for (i = 0; i < 1 + TILE_TOP_EDGE_END - TILE_TOP_EDGE_START; i++)
