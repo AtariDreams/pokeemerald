@@ -308,6 +308,7 @@ static void SetRandomQuestionData(void)
         #endif
         if (questionOrder[i] == QUESTION_ID_WHICH_MOVE)
         {
+            #if !MODERN
             do
             {
                 rand1 = Random() % MAX_MON_MOVES;
@@ -317,6 +318,15 @@ static void SetRandomQuestionData(void)
                         break;
                 }
             } while (j != gApprenticePartyMovesData->moveCounter + 1);
+            #else
+            back:
+            rand1 = Random() % MAX_MON_MOVES;
+            for (j = 0; j < gApprenticePartyMovesData->moveCounter + 1; j++)
+            {
+                if (gApprenticePartyMovesData->moveSlots[id][j] == rand1)
+                    goto back;
+            }
+            #endif
 
             gApprenticePartyMovesData->moveSlots[id][gApprenticePartyMovesData->moveCounter] = rand1;
             PLAYER_APPRENTICE.questions[i].moveSlot = rand1;
