@@ -6085,7 +6085,12 @@ static void DrawLevelUpBannerText(void)
     u8 monGender;
     struct TextPrinterTemplate printerTemplate;
     u8 *txtPtr;
+    // Both MODERN and not match on their own, but MODERN causes a nonmatch in an unrelated function
+    #if MODERN
     u8 *var;
+    #else
+    u32 var;
+    #endif
 
     monLevel = GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_LEVEL);
     monGender = GetMonGender(&gPlayerParty[gBattleStruct->expGetterMonId]);
@@ -6111,9 +6116,16 @@ static void DrawLevelUpBannerText(void)
     *(txtPtr)++ = CHAR_EXTRA_SYMBOL;
     *(txtPtr)++ = CHAR_LV_2;
 
+    #if !MODERN
+    var = (u32)(txtPtr);
+    txtPtr = ConvertIntToDecimalStringN(txtPtr, monLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
+    var = (u32)(txtPtr)-var;
+    txtPtr = StringFill(txtPtr, CHAR_SPACER, 4 - var);
+    #else
     var = txtPtr;
     txtPtr = ConvertIntToDecimalStringN(txtPtr, monLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
     txtPtr = StringFill(txtPtr, CHAR_SPACER, 4 - (txtPtr - var));
+    #endif
 
     if (monGender != MON_GENDERLESS)
     {
@@ -6279,7 +6291,7 @@ static void Cmd_jumpifplayerran(void)
 static void Cmd_hpthresholds(void)
 {
     u8 opposingBank;
-    s32 result;
+    m32 result;
 
     if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
     {
@@ -6306,7 +6318,7 @@ static void Cmd_hpthresholds(void)
 static void Cmd_hpthresholds2(void)
 {
     u8 opposingBank;
-    s32 result;
+    m32 result;
     u8 hpSwitchout;
 
     if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
@@ -6318,9 +6330,9 @@ static void Cmd_hpthresholds2(void)
 
         if (gBattleMons[opposingBank].hp >= hpSwitchout)
             gBattleStruct->hpScale = 0;
-        else if (result <= 29)
+        else if (result < 30)
             gBattleStruct->hpScale = 1;
-        else if (result <= 69)
+        else if (result < 70)
             gBattleStruct->hpScale = 2;
         else
             gBattleStruct->hpScale = 3;
@@ -6339,7 +6351,7 @@ static void Cmd_useitemonopponent(void)
 static void Cmd_various(void)
 {
     u8 side;
-    s32 i;
+    m32 i;
 
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
 
