@@ -309,7 +309,8 @@ void ResetSpriteData(void)
 
 void AnimateSprites(void)
 {
-    m8 i;
+    //GCC makes better code with this as u8?
+    u8 i;
     for (i = 0; i < MAX_SPRITES; i++)
     {
         struct Sprite *sprite = &gSprites[i];
