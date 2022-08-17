@@ -36,7 +36,7 @@ struct PokenavCallbacks
 };
 
 static u32 GetCurrentMenuCB(void);
-static u32 IsActiveMenuLoopTaskActive_(void);
+static bool32 IsActiveMenuLoopTaskActive_(void);
 static bool32 SetActivePokenavMenu(u32);
 static bool32 AnyMonHasRibbon(void);
 static void InitPokenavResources(struct PokenavResources *);
@@ -254,6 +254,8 @@ static void Task_RunLoopedTask(u8 taskId)
     s16 *state = &gTasks[taskId].data[0];
     bool32 exitLoop = FALSE;
 
+    // Should be a forever for loop, not have this var here.
+    // The reason it has to be here to match is because this was a do while with a flag needed to leave
     while (!exitLoop)
     {
         u32 action = loopedTask(*state);
@@ -291,13 +293,16 @@ static void Task_RunLoopedTask_LinkMode(u8 taskId)
         return;
 
     task = (LoopedTask)GetWordTaskArg(taskId, 1);
-    state = &gTasks[taskId].data[0];
+    state = gTasks[taskId].data;
     action = task(*state);
     switch (action)
     {
     case LT_INC_AND_PAUSE:
     case LT_INC_AND_CONTINUE:
         (*state)++;
+        break;
+    case LT_PAUSE:
+    case LT_CONTINUE:
         break;
     case LT_FINISH:
         DestroyTask(taskId);
@@ -306,11 +311,10 @@ static void Task_RunLoopedTask_LinkMode(u8 taskId)
     default:
         *state = LOOPED_TASK_DECODE_STATE(action);
         break;
-    case LT_PAUSE:
-    case LT_CONTINUE:
-        break;
     }
 }
+// TODO: SHOULD everything above be its own file and not optimized with pokenav?
+
 
 void CB2_InitPokeNav(void)
 {
@@ -318,16 +322,15 @@ void CB2_InitPokeNav(void)
     if (gPokenavResources == NULL)
     {
         SetMainCallback2(CB2_ReturnToFieldWithOpenMenu);
+        return;
     }
-    else
-    {
-        InitPokenavResources(gPokenavResources);
-        ResetTasks();
-        SetVBlankCallback(NULL);
-        CreateTask(Task_Pokenav, 0);
-        SetMainCallback2(CB2_Pokenav);
-        SetVBlankCallback(VBlankCB_Pokenav);
-    }
+
+    InitPokenavResources(gPokenavResources);
+    ResetTasks();
+    SetVBlankCallback(NULL);
+    CreateTask(Task_Pokenav, 0);
+    SetMainCallback2(CB2_Pokenav);
+    SetVBlankCallback(VBlankCB_Pokenav);
 }
 
 void OpenPokenavForTutorial(void)
@@ -346,19 +349,18 @@ static void CB2_InitPokenavForTutorial(void)
     if (gPokenavResources == NULL)
     {
         SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
+        return;
     }
-    else
-    {
-        InitPokenavResources(gPokenavResources);
-        gPokenavResources->mode = POKENAV_MODE_FORCE_CALL_READY;
-        ResetTasks();
-        ResetSpriteData();
-        FreeAllSpritePalettes();
-        SetVBlankCallback(NULL);
-        CreateTask(Task_Pokenav, 0);
-        SetMainCallback2(CB2_Pokenav);
-        SetVBlankCallback(VBlankCB_Pokenav);
-    }
+
+    InitPokenavResources(gPokenavResources);
+    gPokenavResources->mode = POKENAV_MODE_FORCE_CALL_READY;
+    ResetTasks();
+    ResetSpriteData();
+    FreeAllSpritePalettes();
+    SetVBlankCallback(NULL);
+    CreateTask(Task_Pokenav, 0);
+    SetMainCallback2(CB2_Pokenav);
+    SetVBlankCallback(VBlankCB_Pokenav);
 }
 
 static void FreePokenavResources(void)
@@ -519,7 +521,7 @@ static bool32 SetActivePokenavMenu(u32 menuId)
     return TRUE;
 }
 
-static u32 IsActiveMenuLoopTaskActive_(void)
+static bool32 IsActiveMenuLoopTaskActive_(void)
 {
     return IsActiveMenuLoopTaskActive();
 }
@@ -546,17 +548,22 @@ void SetPokenavVBlankCallback(void)
 
 void *AllocSubstruct(u32 index, u32 size)
 {
+    //ASSERT(index < WP_MAX);
+	//ASSERT(gPokenavResources->substructPtrs[index] == NULL);
+
     gPokenavResources->substructPtrs[index] = Alloc(size);
     return gPokenavResources->substructPtrs[index];
 }
 
 void *GetSubstructPtr(u32 index)
 {
+    //ASSERT(index < WP_MAX);
     return gPokenavResources->substructPtrs[index];
 }
 
 void FreePokenavSubstruct(u32 index)
 {
+    //ASSERT(index < WP_MAX);
     TRY_FREE_AND_SET_NULL(gPokenavResources->substructPtrs[index]);
 }
 
@@ -572,11 +579,9 @@ void SetPokenavMode(u16 mode)
 
 void SetSelectedConditionSearch(u32 cursorPos)
 {
-    u32 searchId = cursorPos;
-
-    if (searchId > POKENAV_MENUITEM_CONDITION_SEARCH_TOUGH - POKENAV_MENUITEM_CONDITION_SEARCH_COOL)
-        searchId = 0;
-    gPokenavResources->conditionSearchId = searchId;
+    if (cursorPos > POKENAV_MENUITEM_CONDITION_SEARCH_TOUGH - POKENAV_MENUITEM_CONDITION_SEARCH_COOL)
+        cursorPos = 0;
+    gPokenavResources->conditionSearchId = cursorPos;
 }
 
 u32 GetSelectedConditionSearch(void)
