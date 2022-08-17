@@ -194,7 +194,7 @@ static void HideStartSelectButtons(void);
 static void UpdateWordSelectCursorPos(void);
 static void PrintWordSelectNextRowDown(void);
 static void PrintWordSelectNextRowUp(void);
-static int GetLowerWindowScrollOffset(void);
+static u16 GetLowerWindowScrollOffset(void);
 static void PrintWordSelectRowsPageDown(void);
 static void PrintWordSelectRowsPageUp(void);
 static void PrintEasyChatTextWithColors(u8, u8, const u8 *, u8, u8, u8, u8, u8, u8);
@@ -4589,7 +4589,7 @@ static bool8 UpdateLowerWindowScroll(void)
     }
 }
 
-static int GetLowerWindowScrollOffset(void)
+static u16 GetLowerWindowScrollOffset(void)
 {
     return sScreenControl->scrollOffset;
 }
@@ -4618,8 +4618,8 @@ static void LoadEasyChatGfx(void)
 static void CreateMainCursorSprite(void)
 {
     u8 frameId = GetEasyChatScreenFrameId();
-    int x = sPhraseFrameDimensions[frameId].left * 8 + 13;
-    int y = sPhraseFrameDimensions[frameId].top * 8 + 8;
+    s16 x = sPhraseFrameDimensions[frameId].left * 8 + 13;
+    s16 y = sPhraseFrameDimensions[frameId].top * 8 + 8;
     u8 spriteId = CreateSprite(&sSpriteTemplate_TriangleCursor, x, y, 2);
     sScreenControl->mainCursorSprite = &gSprites[spriteId];
     gSprites[spriteId].sAnimateCursor = TRUE;
@@ -4740,7 +4740,7 @@ static void SetRectangleCursorPos_AlphabetMode(s8 column, s8 row)
         else
         {
             // Cursor is on a letter
-            x += sAlphabetKeyboardColumnOffsets[(u8)column < NUM_ALPHABET_COLUMNS ? column : 0];
+            x += sAlphabetKeyboardColumnOffsets[column < ARRAY_COUNT(sAlphabetKeyboardColumnOffsets) ? column : 0];
             anim = RECTCURSOR_ANIM_ON_LETTER;
         }
 
@@ -4832,8 +4832,6 @@ static bool8 ShowSideWindow(void)
 {
     switch (sScreenControl->modeWindowState)
     {
-    default:
-        return FALSE;
     case 0:
         // Slide button window on
         sScreenControl->buttonWindowSprite->x2 += 8;
@@ -4856,6 +4854,9 @@ static bool8 ShowSideWindow(void)
             sScreenControl->modeWindowState = 2;
             return FALSE;
         }
+        break;
+    default:
+        return FALSE;
     }
 
     return TRUE;
@@ -4871,8 +4872,6 @@ static bool8 DestroySideWindowSprites(void)
 {
     switch (sScreenControl->modeWindowState)
     {
-    default:
-        return FALSE;
     case 0:
         if (sScreenControl->modeWindowSprite->animEnded)
             sScreenControl->modeWindowState = 1;
@@ -4888,6 +4887,9 @@ static bool8 DestroySideWindowSprites(void)
             sScreenControl->modeWindowState++;
             return FALSE;
         }
+        break;
+    default:
+        return FALSE;
     }
 
     return TRUE;
@@ -5030,7 +5032,7 @@ static void TryAddInterviewObjectEvents(void)
     }
 }
 
-int GetFooterIndex(void)
+static int GetFooterIndex(void)
 {
     u8 frameId = GetEasyChatScreenFrameId();
     switch (sPhraseFrameDimensions[frameId].footerId)
@@ -5360,7 +5362,7 @@ u16 GetRandomEasyChatWordFromUnlockedGroup(u16 groupId)
 void ShowEasyChatProfile(void)
 {
     u16 *easyChatWords;
-    int columns, rows;
+    u16 columns, rows;
     switch (gSpecialVar_0x8004)
     {
     case 0:
@@ -5402,15 +5404,15 @@ void ShowEasyChatProfile(void)
 // The phrase that a man in Dewford Hall suggests has a "deep link" to the current trendy phrase
 void BufferDeepLinkPhrase(void)
 {
-    int groupId = Random() & 1 ? EC_GROUP_HOBBIES : EC_GROUP_LIFESTYLE;
-    u16 easyChatWord = GetRandomEasyChatWordFromUnlockedGroup(groupId);
+    u16 easyChatWord = Random() & 1 ? EC_GROUP_HOBBIES : EC_GROUP_LIFESTYLE;
+    easyChatWord = GetRandomEasyChatWordFromUnlockedGroup(easyChatWord);
     CopyEasyChatWord(gStringVar2, easyChatWord);
 }
 
 static bool8 IsAdditionalPhraseUnlocked(u8 additionalPhraseId)
 {
-    int byteOffset = additionalPhraseId / 8;
-    int shift = additionalPhraseId % 8;
+    u8 byteOffset = additionalPhraseId / 8;
+    u8 shift = additionalPhraseId & 7;
     return (gSaveBlock1Ptr->additionalPhrases[byteOffset] >> shift) & 1;
 }
 
@@ -5418,8 +5420,8 @@ void UnlockAdditionalPhrase(u8 additionalPhraseId)
 {
     if (additionalPhraseId < NUM_ADDITIONAL_PHRASES)
     {
-        int byteOffset = additionalPhraseId / 8;
-        int shift = additionalPhraseId % 8;
+        u8 byteOffset = additionalPhraseId / 8;
+        u8 shift = additionalPhraseId % 8;
         gSaveBlock1Ptr->additionalPhrases[byteOffset] |= 1 << shift;
     }
 }
@@ -5451,15 +5453,12 @@ u16 GetNewHipsterPhraseToTeach(void)
     {
         if (!IsAdditionalPhraseUnlocked(i))
         {
-            if (additionalPhraseId)
-            {
-                additionalPhraseId--;
-            }
-            else
+            if (!additionalPhraseId)
             {
                 UnlockAdditionalPhrase(i);
                 return EC_WORD(EC_GROUP_TRENDY_SAYING, i);
             }
+            additionalPhraseId--;
         }
     }
 
@@ -5511,10 +5510,9 @@ static u16 GetRandomUnlockedEasyChatPokemon(void)
         u16 dexNum = SpeciesToNationalPokedexNum(*species);
         if (GetSetPokedexFlag(dexNum, FLAG_GET_SEEN))
         {
-            if (index)
-                index--;
-            else
+            if (index==0)
                 return EC_WORD(EC_GROUP_POKEMON, *species);
+            index--;
         }
 
         species++;
@@ -5561,7 +5559,7 @@ void InitEasyChatPhrases(void)
 static bool8 InitEasyChatScreenWordData(void)
 {
     sWordData = Alloc(sizeof(*sWordData));
-    if (!sWordData)
+    if (sWordData == NULL)
         return FALSE;
 
     SetUnlockedEasyChatGroups();
@@ -5649,10 +5647,11 @@ static u8 *CopyEasyChatWordPadded(u8 *dest, u16 easyChatWord, u16 totalChars)
 
 static void SetUnlockedWordsByAlphabet(void)
 {
+    // Should all be u32
     int i, j, k;
     int numWords;
     const u16 *words;
-    u16 numToProcess;
+    int numToProcess;
     int index;
 
     for (i = 0; i < EC_NUM_ALPHABET_GROUPS; i++)
@@ -5666,8 +5665,7 @@ static void SetUnlockedWordsByAlphabet(void)
             if (*words == EC_EMPTY_WORD)
             {
                 words++;
-                numToProcess = *words;
-                words++;
+                numToProcess = *words++;
                 j += 1 + numToProcess;
             }
             else
@@ -5714,7 +5712,7 @@ static u16 GetNumWordsInSelectedGroup(void)
 static u16 SetSelectedWordGroup_GroupMode(u16 groupId)
 {
     u32 i;
-    int totalWords;
+    u32 totalWords;
     const u16 *list;
     const struct EasyChatWordInfo *wordInfo;
     u16 numWords = gEasyChatGroups[groupId].numWords;
@@ -5805,7 +5803,7 @@ static int IsRestrictedWordSpecies(u16 species)
 static u8 IsEasyChatWordUnlocked(u16 easyChatWord)
 {
     u8 groupId = EC_GROUP(easyChatWord);
-    u32 index = EC_INDEX(easyChatWord);
+    u16 index = EC_INDEX(easyChatWord);
     if (!IsEasyChatGroupUnlocked2(groupId))
         return FALSE;
     else
@@ -5814,9 +5812,10 @@ static u8 IsEasyChatWordUnlocked(u16 easyChatWord)
 
 void InitializeEasyChatWordArray(u16 *words, u16 length)
 {
-    u16 i;
-    for (i = length - 1; i != EC_EMPTY_WORD; i--)
+    while (length--)
+    {
         *(words++) = EC_EMPTY_WORD;
+    }
 }
 
 void InitQuestionnaireWords(void)
@@ -5829,11 +5828,10 @@ void InitQuestionnaireWords(void)
 
 bool32 IsEasyChatAnswerUnlocked(int easyChatWord)
 {
-    int groupId = EC_GROUP(easyChatWord);
-    int mask = EC_MASK_GROUP;
+    int groupId = EC_GROUP(easyChatWord) & EC_MASK_GROUP;
     int index = EC_INDEX(easyChatWord);
-    if (!IsEasyChatGroupUnlocked(groupId & mask))
+    if (!IsEasyChatGroupUnlocked(groupId))
         return FALSE;
     else
-        return IsEasyChatIndexAndGroupUnlocked(index, groupId & mask);
+        return IsEasyChatIndexAndGroupUnlocked(index, groupId);
 }
