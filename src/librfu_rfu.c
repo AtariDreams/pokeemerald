@@ -368,27 +368,26 @@ void rfu_REQ_stopMode(void)
     {
         rfu_STC_REQ_callback(ID_STOP_MODE_REQ, 6);
         gSTWIStatus->error = ERR_REQ_CMD_IME_DISABLE;
+        return;
+    }
+
+    AgbRFU_SoftReset();
+    rfu_STC_clearAPIVariables();
+    if (AgbRFU_checkID(8) == RFU_ID)
+    {
+        timerReg = &REG_TMCNT(gSTWIStatus->timerSelect);
+        *timerReg = 0;
+        *timerReg = (TIMER_ENABLE | TIMER_1024CLK) << 16;
+        while (*timerReg << 16 < 262 << 16)
+            ;
+        *timerReg = 0;
+        STWI_set_Callback_M(rfu_CB_stopMode);
+        STWI_send_StopModeREQ();
     }
     else
     {
-        AgbRFU_SoftReset();
-        rfu_STC_clearAPIVariables();
-        if (AgbRFU_checkID(8) == RFU_ID)
-        {
-            timerReg = &REG_TMCNT(gSTWIStatus->timerSelect);
-            *timerReg = 0;
-            *timerReg = (TIMER_ENABLE | TIMER_1024CLK) << 16;
-            while (*timerReg << 16 < 262 << 16)
-                ;
-            *timerReg = 0;
-            STWI_set_Callback_M(rfu_CB_stopMode);
-            STWI_send_StopModeREQ();
-        }
-        else
-        {
-            REG_SIOCNT = SIO_MULTI_MODE;
-            rfu_STC_REQ_callback(ID_STOP_MODE_REQ, 0);
-        }
+        REG_SIOCNT = SIO_MULTI_MODE;
+        rfu_STC_REQ_callback(ID_STOP_MODE_REQ, 0);
     }
 }
 

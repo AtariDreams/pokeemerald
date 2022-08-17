@@ -894,7 +894,7 @@ static void SetSelectedPartyOrder(void)
     ReducePlayerPartyToSelectedMons();
 }
 
-static void DoSoftReset_(void)
+NORETURN static void DoSoftReset_(void)
 {
     DoSoftReset();
 }
