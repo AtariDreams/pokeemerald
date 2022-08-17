@@ -33,7 +33,7 @@ bool32 ConfettiUtil_Init(u8 count)
     for (i = 0; i < count; i++)
     {
         memcpy(&sWork->array[i].oam, &gDummyOamData, sizeof(struct OamData));
-        sWork->array[i].dummied = TRUE;
+        sWork->array[i].invisible = TRUE;
     }
 
     return TRUE;
@@ -71,7 +71,7 @@ bool32 ConfettiUtil_Update(void)
             if (sWork->array[i].callback != NULL)
                 sWork->array[i].callback(&sWork->array[i]);
 
-            if (sWork->array[i].dummied)
+            if (sWork->array[i].invisible)
             {
                 memcpy(&gMain.oamBuffer[i + 64], &gDummyOamData, sizeof(struct OamData));
                 continue;
@@ -174,7 +174,7 @@ u8 ConfettiUtil_Remove(u8 id)
     memset(&sWork->array[id], 0, sizeof(struct ConfettiUtil));
     sWork->array[id].oam.y = DISPLAY_HEIGHT;
     sWork->array[id].oam.x = DISPLAY_WIDTH;
-    sWork->array[id].dummied = TRUE;
+    sWork->array[id].invisible = TRUE;
     memcpy(&gMain.oamBuffer[id + 64], &gDummyOamData, sizeof(struct OamData));
     return id;
 }

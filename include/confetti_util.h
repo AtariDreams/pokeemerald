@@ -12,12 +12,15 @@ struct ConfettiUtil
     u16 palTag;
     u16 tileNum;
     u8 id;
+    // TODO: this was an unused field forgotten to be removed.
+    // Remove this latet when we know it is safe to due to things like memcpy
     u8 filler;
     u8 animNum;
     u8 active:1;
     u8 allowUpdates:1;
-    u8 dummied:1;
+    u8 invisible:1;
     u8 priority:2;
+    // u8 dummy:3;
     s16 data[8];
     void (*callback)(struct ConfettiUtil *);
 };
