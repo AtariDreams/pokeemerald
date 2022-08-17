@@ -6743,8 +6743,8 @@ const u8 *GetTrainerPartnerName(void)
 
 #define STORE_PTR_IN_TASK(ptr, taskId, dataId)                 \
 {                                                              \
-    gTasks[taskId].data[dataId] = (u32)(ptr);                  \
-    gTasks[taskId].data[dataId + 1] = (u32)(ptr) >> 16;        \
+    gTasks[taskId].data[dataId] = (s16)((u32)(ptr) & 0xFFFF);                  \
+    gTasks[taskId].data[dataId + 1] = (s16)((u32)(ptr) >> 16);        \
 }
 
 #define sAnimId    data[2]
@@ -6867,10 +6867,15 @@ void BattleAnimateBackSprite(struct Sprite *sprite, u16 species)
 
 // Unused, identical to GetOpposingLinkMultiBattlerId but for the player
 // "rightSide" from that team's perspective, i.e. B_POSITION_*_RIGHT
+
 static u8 GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
 {
-    s32 i;
+    m32 i;
+    #if !MODERN
     s32 battlerId = 0;
+    #else
+    u8 battlerId = 0; // this is what GF did
+    #endif
     u8 multiplayerId = GetMultiplayerId();
     switch (gLinkPlayers[multiplayerId].id)
     {
@@ -6885,16 +6890,25 @@ static u8 GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
     }
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
+        #if !MODERN
         if (gLinkPlayers[i].id == (s16)battlerId)
             break;
+        #else
+        if (gLinkPlayers[i].id == battlerId)
+            break;
+        #endif
     }
     return i;
 }
 
 u8 GetOpposingLinkMultiBattlerId(bool8 rightSide, u8 multiplayerId)
 {
-    s32 i;
+    m32 i;
+    #if !MODERN
     s32 battlerId = 0;
+    #else
+    u8 battlerId = 0; // this is what GF did
+    #endif
     switch (gLinkPlayers[multiplayerId].id)
     {
     case 0:
@@ -6908,8 +6922,13 @@ u8 GetOpposingLinkMultiBattlerId(bool8 rightSide, u8 multiplayerId)
     }
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
+        #if !MODERN
         if (gLinkPlayers[i].id == (s16)battlerId)
             break;
+        #else
+        if (gLinkPlayers[i].id == battlerId)
+            break;
+        #endif
     }
     return i;
 }
