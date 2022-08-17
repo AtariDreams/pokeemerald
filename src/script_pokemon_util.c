@@ -491,38 +491,38 @@ static void FormatMonSizeRecord(u8 *string, u32 size)
 
 static u8 CompareMonSize(u16 species, u16 *sizeRecord)
 {
+    struct Pokemon *pkmn;
+
+    u32 oldSize;
+    u32 newSize;
+#if !MODERN
+    vu16 sizeParams;
+#else
+    u16 sizeParams
+#endif
     if (gSpecialVar_Result == 0xFF)
     {
         return 0;
     }
+    pkmn = &gPlayerParty[gSpecialVar_Result];
+
+    if (GetMonData(pkmn, MON_DATA_IS_EGG) == TRUE || GetMonData(pkmn, MON_DATA_SPECIES) != species)
+    {
+        return 1;
+    }
+
+    sizeParams = GetMonSizeHash(pkmn);
+    newSize = GetMonSize(species, sizeParams);
+    oldSize = GetMonSize(species, *sizeRecord);
+    FormatMonSizeRecord(gStringVar2, newSize);
+    if (newSize <= oldSize)
+    {
+        return 2;
+    }
     else
     {
-        struct Pokemon *pkmn = &gPlayerParty[gSpecialVar_Result];
-
-        if (GetMonData(pkmn, MON_DATA_IS_EGG) == TRUE || GetMonData(pkmn, MON_DATA_SPECIES) != species)
-        {
-            return 1;
-        }
-        else
-        {
-            u32 oldSize;
-            u32 newSize;
-            u16 sizeParams;
-
-            *(&sizeParams) = GetMonSizeHash(pkmn);
-            newSize = GetMonSize(species, sizeParams);
-            oldSize = GetMonSize(species, *sizeRecord);
-            FormatMonSizeRecord(gStringVar2, newSize);
-            if (newSize <= oldSize)
-            {
-                return 2;
-            }
-            else
-            {
-                *sizeRecord = sizeParams;
-                return 3;
-            }
-        }
+        *sizeRecord = sizeParams;
+        return 3;
     }
 }
 
