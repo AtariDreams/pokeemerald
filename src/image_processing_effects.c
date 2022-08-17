@@ -609,9 +609,8 @@ static u16 GetColorFromPersonality(u8 personality)
     u16 green = 0;
     u16 blue =  0;
     u8 strength = (personality / 6) % 3;
-    u8 colorType = personality % 6;
 
-    switch (colorType)
+    switch (personality % 6)
     {
     case 0:
         // Teal color
