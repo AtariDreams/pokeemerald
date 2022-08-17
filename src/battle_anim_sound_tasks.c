@@ -77,9 +77,12 @@ static void SoundTask_FireBlast_Step2(u8 taskId)
 
 void SoundTask_LoopSEAdjustPanning(u8 taskId)
 {
+    // This is u16, which is odd but eg
     u16 songId = gBattleAnimArgs[0];
     s8 targetPan = gBattleAnimArgs[2];
     s8 panIncrement = gBattleAnimArgs[3];
+    // why are these u8? GF made them u8 but why?
+    // TODO: check to see if this or s8 is better
     u8 r10 = gBattleAnimArgs[4];
     u8 r7 = gBattleAnimArgs[5];
     u8 r9 = gBattleAnimArgs[6];
