@@ -492,7 +492,11 @@ void StoreSpriteCallbackInData6(struct Sprite *sprite, void (*callback)(struct S
 
 void SetCallbackToStoredInData6(struct Sprite *sprite)
 {
+    #if MODERN
+    sprite->callback = (void (*)(struct Sprite *))((u16)sprite->data[6] | ((u16)sprite->data[7] << 16));
+    #else
     sprite->callback = (void (*)(struct Sprite *))((u16)sprite->data[6] | (sprite->data[7] << 16));
+    #endif
 }
 
 // Sprite data for TranslateSpriteInCircle/Ellipse and related
@@ -643,7 +647,7 @@ static void AnimPosToTranslateLinear(struct Sprite *sprite)
 {
     ConvertPosDataToTranslateLinearData(sprite);
     sprite->callback = TranslateSpriteLinear;
-    sprite->callback(sprite);
+    TranslateSpriteLinear(sprite);
 }
 
 void ConvertPosDataToTranslateLinearData(struct Sprite *sprite)
