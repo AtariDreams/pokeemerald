@@ -1833,16 +1833,11 @@ cond_false:
 
 void ply_xcmd(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    #if !MODERN
     u8 n = *track->cmdPtr;
     track->cmdPtr++;
 
-
     gXcmdTable[n](mplayInfo, track);
-     #else
-     gXcmdTable[*track->cmdPtr](mplayInfo, track);
-     track->cmdPtr++;
-     #endif
+
 }
 
 void ply_xxx(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
