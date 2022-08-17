@@ -220,7 +220,7 @@ void RouletteFlash_Enable(struct RouletteFlashUtil *flash, u16 flags)
 
 void RouletteFlash_Stop(struct RouletteFlashUtil *flash, u16 flags)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < ARRAY_COUNT(flash->palettes); i++)
     {
@@ -240,9 +240,14 @@ void RouletteFlash_Stop(struct RouletteFlashUtil *flash, u16 flags)
                     memcpy(&gPlttBufferFaded[offset],  &gPlttBufferUnfaded[offset], flash->palettes[i].settings.numColors * 2);
                     #endif
                     flash->palettes[i].state = 0;
+                    #if !MODERN
                     flash->palettes[i].fadeCycleCounter = 0;
                     flash->palettes[i].delayCounter = 0;
-                    if (flash->palettes[i].settings.colorDeltaDir < 0)
+                    #else
+                    flash->palettes[i].delayCounter = 0;
+                    flash->palettes[i].fadeCycleCounter = 0;
+                    #endif
+                    if (flash->palettes[i].settings.colorDeltaDir)
                         flash->palettes[i].colorDelta = -1;
                     else
                         flash->palettes[i].colorDelta = 1;
@@ -272,12 +277,19 @@ void InitPulseBlend(struct PulseBlend *pulseBlend)
         pulseBlend->pulseBlendPalettes[i].paletteSelector = i;
 }
 
-int InitPulseBlendPaletteSettings(struct PulseBlend *pulseBlend, const struct PulseBlendSettings *settings)
+u32 InitPulseBlendPaletteSettings(struct PulseBlend *pulseBlend, const struct PulseBlendSettings *settings)
 {
+    #if !MODERN
     u8 i = 0;
+    #else
+    u32 i;
+    #endif
     struct PulseBlendPalette *pulseBlendPalette = NULL;
-
+    #if !MODERN
     for (; i < 16; i++)
+    #else
+    for (i = 0; i < 16; i++)
+    #endif
     {
         if (!pulseBlend->pulseBlendPalettes[i].inUse)
         {
@@ -321,28 +333,34 @@ static void ClearPulseBlendPalettesSettings(struct PulseBlendPalette *pulseBlend
 
 void UnloadUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendPaletteSelector, u8 multiSelection)
 {
+    #if !MODERN
     u16 i = 0;
+    #else
+    u32 i;
+    #endif
 
     if (!multiSelection)
     {
         ClearPulseBlendPalettesSettings(&pulseBlend->pulseBlendPalettes[pulseBlendPaletteSelector & 0xF]);
         return;
     }
-    else
-    {
-        for (i = 0; i < 16; i++)
-        {
-            if ((pulseBlendPaletteSelector & 1) && pulseBlend->pulseBlendPalettes[i].inUse)
-                ClearPulseBlendPalettesSettings(&pulseBlend->pulseBlendPalettes[i]);
 
-            pulseBlendPaletteSelector >>= 1;
-        }
+    for (i = 0; i < 16; i++)
+    {
+        if ((pulseBlendPaletteSelector & 1) && pulseBlend->pulseBlendPalettes[i].inUse)
+            ClearPulseBlendPalettesSettings(&pulseBlend->pulseBlendPalettes[i]);
+
+        pulseBlendPaletteSelector >>= 1;
     }
 }
 
 void MarkUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendPaletteSelector, u8 multiSelection)
 {
+    #if !MODERN
     u8 i = 0;
+    #else
+    u32 i;
+    #endif
 
     if (!multiSelection)
     {
@@ -367,9 +385,13 @@ void MarkUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendPal
 
 void UnmarkUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendPaletteSelector, u8 multiSelection)
 {
-    u16 i;
+    m16 i;
     struct PulseBlendPalette *pulseBlendPalette;
+    #if !MODERN
     u8 j = 0;
+    #else
+    u32 j;
+    #endif
 
     if (!multiSelection)
     {
@@ -411,7 +433,7 @@ void UnmarkUsedPulseBlendPalettes(struct PulseBlend *pulseBlend, u16 pulseBlendP
 void UpdatePulseBlend(struct PulseBlend *pulseBlend)
 {
     struct PulseBlendPalette *pulseBlendPalette;
-    u8 i = 0;
+    m8 i = 0;
 
     if (pulseBlend->usedPulseBlendPalettes)
     {
@@ -430,28 +452,46 @@ void UpdatePulseBlend(struct PulseBlend *pulseBlend)
                         // BUG: This comparison will never be true for maxBlendCoeff values that are >= 8. This is because
                         // maxBlendCoeff is a signed 4-bit field, but blendCoeff is an unsigned 4-bit field. This code is never
                         // reached, anyway, so the bug is not observable in vanilla gameplay.
+#if !UBFIX
                         if (pulseBlendPalette->blendCoeff++ == pulseBlendPalette->pulseBlendSettings.maxBlendCoeff)
                         {
                             pulseBlendPalette->fadeCycleCounter++;
                             pulseBlendPalette->blendCoeff = 0;
                         }
+#else
+                        if (pulseBlendPalette->blendCoeff == (u8)pulseBlendPalette->pulseBlendSettings.maxBlendCoeff)
+                        {
+                            pulseBlendPalette->fadeCycleCounter++;
+                            pulseBlendPalette->blendCoeff = 0;
+                        }
+                        else
+                            pulseBlendPalette->blendCoeff++;
+#endif
                         break;
                     case 1: // Fade in and out
                         if (pulseBlendPalette->fadeDirection)
                         {
-                            if (--pulseBlendPalette->blendCoeff == 0)
+                            if (pulseBlendPalette->blendCoeff-- == 1)
                             {
                                 pulseBlendPalette->fadeCycleCounter++;
+                                #if !MODERN
                                 pulseBlendPalette->fadeDirection ^= 1;
+                                #else
+                                pulseBlendPalette->fadeDirection = FALSE;
+                                #endif
                             }
                         }
                         else
                         {
-                            u8 max = (pulseBlendPalette->pulseBlendSettings.maxBlendCoeff - 1) & 0xF;
+                            u8 max = (u8)((pulseBlendPalette->pulseBlendSettings.maxBlendCoeff - 1) & 0xF);
                             if (pulseBlendPalette->blendCoeff++ == max)
                             {
                                 pulseBlendPalette->fadeCycleCounter++;
+                                #if !MODERN
                                 pulseBlendPalette->fadeDirection ^= 1;
+                                #else
+                                pulseBlendPalette->fadeDirection = FALSE;
+                                #endif
                             }
                         }
                         break;
@@ -479,12 +519,18 @@ void UpdatePulseBlend(struct PulseBlend *pulseBlend)
 // Below used for the Roulette grid
 void FillTilemapRect(u16 *dest, u16 value, u8 left, u8 top, u8 width, u8 height)
 {
+    #if !MODERN
     u16 *_dest;
     u8 i;
     u8 j;
     i = 0;
     dest += top * 32 + left;
     for (; i < height; i++)
+    #else
+    u16 *_dest;
+    u32 i, j;
+    for (i = 0; i < height; i++)
+    #endif
     {
         _dest = dest + i * 32;
         for (j = 0; j < width; j++)
@@ -492,6 +538,7 @@ void FillTilemapRect(u16 *dest, u16 value, u8 left, u8 top, u8 width, u8 height)
     }
 }
 
+#if !MODERN
 void SetTilemapRect(u16 *dest, const u16 *src, u8 left, u8 top, u8 width, u8 height)
 {
     u16 *_dest;
@@ -507,7 +554,20 @@ void SetTilemapRect(u16 *dest, const u16 *src, u8 left, u8 top, u8 width, u8 hei
             *_dest++ = *_src++;
     }
 }
-
+#else
+void SetTilemapRect(u16 *dest, const u16 *src, u8 left, u8 top, u8 width, u8 height)
+{
+    u16 *_dest;
+    u32 i, j;
+    dest += top * 32 + left;
+    for (i = 0; i < height; i++)
+    {
+        _dest = dest + i * 32;
+        for (j = 0; j < width; j++)
+            *_dest++ = *src++;
+    }
+}
+#endif
 static void FillTilemapRect_Unused(void *dest, u16 value, u8 left, u8 top, u8 width, u8 height)
 {
     u8 i, j;
