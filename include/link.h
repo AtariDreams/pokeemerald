@@ -297,7 +297,7 @@ void ConvertLinkPlayerName(struct LinkPlayer *linkPlayer);
 void ClearSavedLinkPlayers(void);
 void SetLinkErrorBuffer(u32 status, u8 lastSendQueueCount, u8 lastRecvQueueCount, bool8 disconnected);
 void LocalLinkPlayerToBlock(void);
-void LinkPlayerFromBlock(u32 who);
+void LinkPlayerFromBlock(u8 who);
 bool32 Link_AnyPartnersPlayingFRLG_JP(void);
 void ResetLinkPlayerCount(void);
 void SaveLinkPlayers(u8 playerCount);
