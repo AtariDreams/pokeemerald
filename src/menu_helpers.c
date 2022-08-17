@@ -406,6 +406,7 @@ void CreateSwapLineSprites(u8 *spriteIds, u8 count)
     }
 }
 
+// TODO: inline this
 void DestroySwapLineSprites(u8 *spriteIds, u8 count)
 {
     m8 i;
@@ -432,7 +433,7 @@ void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, u16 y)
 void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, s16 y)
 #endif
 {
-    u8 i;
+    m8 i;
     bool8 hasMargin = count & SWAP_LINE_HAS_MARGIN;
     count &= ~SWAP_LINE_HAS_MARGIN;
 
