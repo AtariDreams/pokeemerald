@@ -1108,7 +1108,7 @@ u8 AddScrollIndicatorArrowPair(const struct ScrollArrowsTemplate *arrowInfo, u16
     return taskId;
 }
 
-u8 AddScrollIndicatorArrowPairParameterized(u32 arrowType, s32 commonPos, s32 firstPos, s32 secondPos, s32 fullyDownThreshold, s32 tileTag, s32 palTag, u16 *scrollOffset)
+u8 AddScrollIndicatorArrowPairParameterized(u32 arrowType, u32 commonPos, u32 firstPos, u32 secondPos, u32 fullyDownThreshold, u32 tileTag, u32 palTag, u16 *scrollOffset)
 {
     if (arrowType == SCROLL_ARROW_UP || arrowType == SCROLL_ARROW_DOWN)
     {
@@ -1194,8 +1194,8 @@ static u8 ListMenuAddCursorObjectInternal(struct CursorStruct *cursor, u32 curso
 {
     switch (cursorKind)
     {
-    case 0:
     default:
+    case 0:
         return ListMenuAddRedOutlineCursorObject(cursor);
     case 1:
         return ListMenuAddRedArrowCursorObject(cursor);
@@ -1257,23 +1257,23 @@ void ListMenuSetUpRedOutlineCursorSpriteOamTable(u16 rowWidth, u16 rowHeight, st
     s32 i, j, id = 0;
 
     subsprites[id] = sSubsprite_RedOutline1;
-    subsprites[id].x = 136;
-    subsprites[id].y = 136;
+    subsprites[id].x = -120;
+    subsprites[id].y = -120;
     id++;
 
     subsprites[id] = sSubsprite_RedOutline2;
-    subsprites[id].x = rowWidth + 128;
-    subsprites[id].y = 136;
+    subsprites[id].x = rowWidth - 128;
+    subsprites[id].y = -120;
     id++;
 
     subsprites[id] = sSubsprite_RedOutline7;
-    subsprites[id].x = 136;
-    subsprites[id].y = rowHeight + 128;
+    subsprites[id].x = -120;
+    subsprites[id].y = rowHeight - 128;
     id++;
 
     subsprites[id] = sSubsprite_RedOutline8;
-    subsprites[id].x = rowWidth + 128;
-    subsprites[id].y = rowHeight + 128;
+    subsprites[id].x = rowWidth - 128;
+    subsprites[id].y = rowHeight - 128;
     id++;
 
     if (rowWidth > 16)
@@ -1297,7 +1297,7 @@ void ListMenuSetUpRedOutlineCursorSpriteOamTable(u16 rowWidth, u16 rowHeight, st
         for (j = 8; j < rowHeight - 8; j += 8)
         {
             subsprites[id] = sSubsprite_RedOutline4;
-            subsprites[id].x = 136;
+            subsprites[id].x = - 120;
             subsprites[id].y = j - 120;
             id++;
 
@@ -1324,7 +1324,7 @@ static u8 ListMenuAddRedOutlineCursorObject(struct CursorStruct *cursor)
 
     if (cursor->palTag == TAG_NONE)
     {
-        LoadPalette(sRedArrowPal, (16 * cursor->palNum) + 0x100, 0x20);
+        LoadPalette(sRedArrowPal, 0x100 + (cursor->palNum * 16), 0x20);
     }
     else
     {
