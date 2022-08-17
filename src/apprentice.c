@@ -332,7 +332,7 @@ static void SetRandomQuestionData(void)
 
 #define APPRENTICE_SPECIES_ID_NO_COND(monId, count) \
     monId = ((PLAYER_APPRENTICE.party >> count) & 1); \
-    monId = ((PLAYER_APPRENTICE.speciesIds[count]) >> (monId << 2)) & 0xF; \
+    monId = ((PLAYER_APPRENTICE.speciesIds[count]) >> (4 * monId)) & 0xF; \
 
 // Get the second move choice for the "Which move" question
 // Unlike the first move choice, this can be either a level up move or a TM/HM move
@@ -582,8 +582,12 @@ static void SaveApprenticeParty(u8 numQuestions)
     // Save party species
     for (i = 0; i < MULTI_PARTY_SIZE; i++)
     {
+        #if !MODERN
         u32 speciesTableId = APPRENTICE_SPECIES_ID(i);
         apprenticeMons[i]->species = gApprentices[PLAYER_APPRENTICE.id].species[speciesTableId];
+        #else
+        apprenticeMons[i]->species = gApprentices[PLAYER_APPRENTICE.id].species[APPRENTICE_SPECIES_ID(i)];
+        #endif
         GetLatestLearnedMoves(apprenticeMons[i]->species, apprenticeMons[i]->moves);
     }
 
@@ -601,8 +605,12 @@ static void SaveApprenticeParty(u8 numQuestions)
         {
             if (PLAYER_APPRENTICE.questions[i].suggestedChange)
             {
+                #if !MODERN
                 u32 moveSlot = PLAYER_APPRENTICE.questions[i].moveSlot;
                 apprenticeMons[monId]->moves[moveSlot] = PLAYER_APPRENTICE.questions[i].data;
+                #else
+                apprenticeMons[monId]->moves[ PLAYER_APPRENTICE.questions[i].moveSlot] = PLAYER_APPRENTICE.questions[i].data;
+                #endif
             }
         }
     }
@@ -614,8 +622,12 @@ static void CreateApprenticeMenu(u8 menu)
     u8 windowId;
     const u8 *strings[3];
     u8 count = 2;
+    #if !MODERN
     u8 width;
     u8 left;
+    #else
+    s32 width, left;
+    #endif
     u8 top;
     s32 pixelWidth;
 
@@ -633,21 +645,37 @@ static void CreateApprenticeMenu(u8 menu)
         top = 6;
         for (i = 0; i < MULTI_PARTY_SIZE; i++)
         {
+            #if !MODERN
             u16 species;
             u32 speciesTableId;
 
             speciesTableId = APPRENTICE_SPECIES_ID(i);
             species =  gApprentices[PLAYER_APPRENTICE.id].species[speciesTableId];
             strings[i] = gSpeciesNames[species];
+            #else
+            strings[i] = gSpeciesNames[gApprentices[PLAYER_APPRENTICE.id].species[APPRENTICE_SPECIES_ID(i)]];
+            #endif
         }
         break;
     case APPRENTICE_ASK_2SPECIES:
+        #if !MODERN
         left = 18;
         top = 8;
         if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS)
             return;
+        #else
+        if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS)
+            return;
+        left = 18;
+        top = 8;
+        #endif
+        #if !MODERN
         strings[1] = gSpeciesNames[gApprenticeQuestionData->altSpeciesId];
         strings[0] = gSpeciesNames[gApprenticeQuestionData->speciesId];
+        #else
+        strings[0] = gSpeciesNames[gApprenticeQuestionData->speciesId];
+        strings[1] = gSpeciesNames[gApprenticeQuestionData->altSpeciesId];
+        #endif
         break;
     case APPRENTICE_ASK_MOVES:
         left = 17;
@@ -769,7 +797,7 @@ void CallApprenticeFunction(void)
 
 static void Script_ResetPlayerApprentice(void)
 {
-    u8 i;
+    m8 i;
 
     SetApprenticeId();
     PLAYER_APPRENTICE.lvlMode = 0;
@@ -837,17 +865,15 @@ static void IsFinalQuestion(void)
     {
         // Not finished asking initial questions
         gSpecialVar_Result = FALSE;
+        return;
     }
-    else
-    {
-        if (questionNum > APPRENTICE_MAX_QUESTIONS - 1)
-            gSpecialVar_Result = TRUE;
+    if (questionNum >= APPRENTICE_MAX_QUESTIONS)
+        gSpecialVar_Result = TRUE;
 
-        if (PLAYER_APPRENTICE.questions[questionNum].questionId == QUESTION_ID_WIN_SPEECH)
-            gSpecialVar_Result = TRUE;
-        else
-            gSpecialVar_Result = FALSE;
-    }
+    M_IF (PLAYER_APPRENTICE.questions[questionNum].questionId == QUESTION_ID_WIN_SPEECH)
+        gSpecialVar_Result = TRUE;
+    else
+        gSpecialVar_Result = FALSE;
 }
 
 static void Script_CreateApprenticeMenu(void)
@@ -972,8 +998,7 @@ static void ApprenticeGetQuestion(void)
     }
     else
     {
-        s32 id = CURRENT_QUESTION_NUM;
-        switch (PLAYER_APPRENTICE.questions[id].questionId)
+        switch (PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].questionId)
         {
         case QUESTION_ID_WHAT_ITEM:
             gSpecialVar_Result = APPRENTICE_QUESTION_WHAT_ITEM;
@@ -998,8 +1023,12 @@ static void SetApprenticePartyMon(void)
 {
     if (gSpecialVar_0x8005)
     {
+        #if !MODERN
         u8 partySlot = gSpecialVar_0x8006;
         PLAYER_APPRENTICE.party |= 1 << partySlot;
+        #else
+        PLAYER_APPRENTICE.party |= 1 << gSpecialVar_0x8006;
+        #endif
     }
 }
 
@@ -1007,24 +1036,48 @@ static void SetApprenticePartyMon(void)
 // Selection 0 is implicitly the default move assigned
 static void SetApprenticeMonMove(void)
 {
-    if (PLAYER_APPRENTICE.questionsAnswered >= NUM_WHICH_MON_QUESTIONS)
+    #if !MODERN
+    u8 id;
+    #endif
+    if (PLAYER_APPRENTICE.questionsAnswered < NUM_WHICH_MON_QUESTIONS)
     {
-        u8 id = CURRENT_QUESTION_NUM;
-        if (gSpecialVar_0x8005)
-            PLAYER_APPRENTICE.questions[id].suggestedChange = TRUE;
-        else
-            PLAYER_APPRENTICE.questions[id].suggestedChange = FALSE;
+        return;
     }
+    #if !MODERN
+    id = CURRENT_QUESTION_NUM;
+    if (gSpecialVar_0x8005)
+        PLAYER_APPRENTICE.questions[id].suggestedChange = TRUE;
+    else
+        PLAYER_APPRENTICE.questions[id].suggestedChange = FALSE;
+    #else
+    if (gSpecialVar_0x8005)
+        PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].suggestedChange = TRUE;
+    else
+        PLAYER_APPRENTICE.questions[CURRENT_QUESTION_NUM].suggestedChange = FALSE;
+    #endif
 }
 
 static void InitQuestionData(void)
 {
     u8 i;
-    u8 count = 0;
+    u8 count;
     u8 id1, id2;
 
-    for (i = 0; i < APPRENTICE_MAX_QUESTIONS && (PLAYER_APPRENTICE.questions[i].questionId != QUESTION_ID_WIN_SPEECH); count++, i++)
-        ;
+    #if !MODERN
+    count = 0;
+    for (i = 0; i < APPRENTICE_MAX_QUESTIONS; i++)
+    {
+        if (PLAYER_APPRENTICE.questions[i].questionId == QUESTION_ID_WIN_SPEECH)
+            break;
+        count++;
+    }
+    #else
+    for (count = 0; count < APPRENTICE_MAX_QUESTIONS; count++)
+    {
+        if (PLAYER_APPRENTICE.questions[count].questionId == QUESTION_ID_WIN_SPEECH)
+            break;
+    }
+    #endif
 
     gApprenticeQuestionData = AllocZeroed(sizeof(*gApprenticeQuestionData));
     if (gSpecialVar_0x8005 == APPRENTICE_QUESTION_WHICH_MON)
