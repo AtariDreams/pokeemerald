@@ -5410,7 +5410,7 @@ static void TryTutorSelectedMon(u8 taskId)
         #if !MODERN
         move[1] = 2;
         #else
-        gPartyMenu.learnMoveState = 2
+        gPartyMenu.learnMoveState = 2;
         #endif
         switch (CanMonLearnTMTutor(mon, 0, gSpecialVar_0x8005))
         {
