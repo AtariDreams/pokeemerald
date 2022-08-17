@@ -4351,7 +4351,9 @@ void SortContestants(bool8 useRanking)
                         gContestantTurnOrder[j] = gContestantTurnOrder[j - 1];
 
                     // Insert into the new spot.
+                    #if !MODERN
                     gContestantTurnOrder[v3] = i;
+                    #endif
                     break;
                 }
             }
@@ -4359,8 +4361,12 @@ void SortContestants(bool8 useRanking)
             // This is redundant.
             // Perhaps GF switched from true insertion sort to in-place insertion sort, and forgot to
             // remove this check?
+            #if !MODERN
             if (v3 == i)
                 gContestantTurnOrder[i] = i;
+            #else
+            gContestantTurnOrder[v3] = i;
+            #endif
         }
 
         // Invert gContestantTurnOrder; above, it was a list of contestant IDs. Now it's a list of turn orderings.
