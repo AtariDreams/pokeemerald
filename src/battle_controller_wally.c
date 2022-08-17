@@ -316,6 +316,8 @@ static void Intro_TryShinyAnimShowHealthbox(void)
 
 }
 
+// so not supposed to be shiny but it has code handling it?! Ok then...
+// TODO: look into this
 static void Intro_WaitForShinyAnimAndHealthbox(void)
 {
     bool32 healthboxAnimDone = FALSE;
@@ -428,7 +430,11 @@ static void WallyHandleGetMonData(void)
     u8 monData[sizeof(struct Pokemon) * 2 + 56]; // this allows to get full data of two pokemon, trying to get more will result in overwriting data
     u32 size = 0;
     u8 monToCheck;
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     if (gBattleBufferA[gActiveBattler][2] == 0)
     {
@@ -454,7 +460,11 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
     struct MovePpInfo moveData;
     u8 nickname[20];
     u8 *src;
+    #if !MODERN
     s16 data16;
+    #else
+    u16 data16; // this is what GF did
+    #endif
     u32 data32;
     s32 size = 0;
 
@@ -499,13 +509,13 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
         break;
     case REQUEST_SPECIES_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_HELDITEM_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_HELD_ITEM);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -525,7 +535,7 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
     case REQUEST_MOVE3_BATTLE:
     case REQUEST_MOVE4_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_MOVE1 + gBattleBufferA[gActiveBattler][1] - REQUEST_MOVE1_BATTLE);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -647,7 +657,7 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
         break;
     case REQUEST_CHECKSUM_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_CHECKSUM);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -665,43 +675,43 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
         break;
     case REQUEST_HP_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_HP);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_MAX_HP_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_MAX_HP);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_ATK_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_ATK);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_DEF_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_DEF);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_SPEED_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPEED);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_SPATK_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPATK);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_SPDEF_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPDEF);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
