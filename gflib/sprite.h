@@ -215,6 +215,7 @@ struct Sprite
     // general purpose data fields
     /*0x2E*/ s16 data[8];
 
+    // Should all be bool8 because of techical UB
     /*0x3E*/ bool16 inUse:1;               //1
              bool16 coordOffsetEnabled:1;  //2
              bool16 invisible:1;           //4
