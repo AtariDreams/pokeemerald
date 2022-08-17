@@ -1165,8 +1165,8 @@ static void RegionMap_InitializeStateBasedOnSSTidalLocation(void)
     case SS_TIDAL_LOCATION_ROUTE131:
         sRegionMap->mapSecId = MAPSEC_ROUTE_131;
         break;
-    default:
     case SS_TIDAL_LOCATION_CURRENTS:
+    default:
         mapHeader = Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum);
 
         sRegionMap->mapSecId = mapHeader->regionMapSectionId;
