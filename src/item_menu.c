@@ -821,7 +821,7 @@ static bool8 LoadBagMenu_Graphics(void)
         else
             LoadCompressedPalette(gBagScreenMale_Pal, 0, 0x40);
     #else
-        if (gSaveBlock2Ptr->playerGender == MALE || IsWallysBag())
+        if (gSaveBlock2Ptr->playerGender == MALE || UNLIKELY(IsWallysBag()))
             LoadCompressedPalette(gBagScreenMale_Pal, 0, 0x40);
             
         else
@@ -837,7 +837,7 @@ static bool8 LoadBagMenu_Graphics(void)
         else
             LoadCompressedSpriteSheet(&gBagFemaleSpriteSheet);
 #else
-        if (gSaveBlock2Ptr->playerGender == MALE || IsWallysBag())
+        if (gSaveBlock2Ptr->playerGender == MALE || UNLIKELY(IsWallysBag()))
             LoadCompressedSpriteSheet(&gBagMaleSpriteSheet);
         else
             LoadCompressedSpriteSheet(&gBagFemaleSpriteSheet);
@@ -1370,7 +1370,7 @@ static void Task_SwitchBagPocket(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
-    if (!MenuHelpers_IsLinkActive() && !IsWallysBag())
+    if (!MenuHelpers_IsLinkActive() && LIKELY(!IsWallysBag()))
     {
         switch (GetSwitchBagPocketDirection())
         {
@@ -2299,7 +2299,7 @@ static void WaitDepositErrorMessage(u8 taskId)
 
 static bool8 IsWallysBag(void)
 {
-    if (gBagPosition.location == ITEMMENULOCATION_WALLY)
+    if (UNLIKELY(gBagPosition.location == ITEMMENULOCATION_WALLY))
         return TRUE;
     return FALSE;
 }
