@@ -180,7 +180,7 @@ bool8 IsNotWaitingForBGMStop(void)
 void PlayFanfareByFanfareNum(u8 fanfareNum)
 {
     u16 songNum;
-    MPlayStop(&gMPlayInfo_BGM);
+    m4aMPlayStop(&gMPlayInfo_BGM);
     songNum = sFanfares[fanfareNum].songNum;
     sFanfareCounter = sFanfares[fanfareNum].duration;
     m4aSongNumStart(songNum);
@@ -509,13 +509,13 @@ bool8 IsCryFinished(void)
 
 void StopCryAndClearCrySongs(void)
 {
-    MPlayStop(gMPlay_PokemonCry);
+    m4aMPlayStop(gMPlay_PokemonCry);
     ClearPokemonCrySongs();
 }
 
 void StopCry(void)
 {
-    MPlayStop(gMPlay_PokemonCry);
+    m4aMPlayStop(gMPlay_PokemonCry);
 }
 
 bool8 IsCryPlayingOrClearCrySongs(void)

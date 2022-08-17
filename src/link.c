@@ -1588,9 +1588,9 @@ void CB2_LinkError(void)
     u8 *tilemapBuffer;
 
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
-    MPlayStop(&gMPlayInfo_SE1);
-    MPlayStop(&gMPlayInfo_SE2);
-    MPlayStop(&gMPlayInfo_SE3);
+    m4aMPlayStop(&gMPlayInfo_SE1);
+    m4aMPlayStop(&gMPlayInfo_SE2);
+    m4aMPlayStop(&gMPlayInfo_SE3);
     InitHeap(gHeap, HEAP_SIZE);
     ResetSpriteData();
     FreeAllSpritePalettes();
