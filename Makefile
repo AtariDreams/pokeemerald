@@ -92,7 +92,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(shell $(MODERNCC) --print-prog-name=cc1) -quiet
-override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=aapcs -fno-strict-aliasing -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition #-flto -ffat-lto-objects -fuse-linker-plugin
+override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=aapcs -fno-strict-aliasing -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition -flto -ffat-lto-objects -fuse-linker-plugin
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
 LIBPATH := -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libc.a))"
@@ -282,7 +282,7 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=aapcs -fno-strict-aliasing -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition #-flto -ffat-lto-objects -fuse-linker-plugin
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=aapcs -fno-strict-aliasing -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition -flto -ffat-lto-objects -fuse-linker-plugin
 endif
 
 ifeq ($(DINFO),1)

@@ -2208,7 +2208,11 @@ static void MainMenu_FormatSavegameBadges(void)
     u8 str[0x20];
     u8 badgeCount = 0;
     // i should be u16. asm just gets reordered as a result but that doesn't match
+    #if !MODERN
     u32 i;
+    #else
+    u16 i;
+    #endif
 
     for (i = FLAG_BADGE01_GET; i < FLAG_BADGE01_GET + NUM_BADGES; i++)
     {
