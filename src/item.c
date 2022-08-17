@@ -454,7 +454,11 @@ void ClearItemSlots(struct ItemSlot *itemSlots, u8 itemCount)
 
 static s32 FindFreePCItemSlot(void)
 {
+    #if !MODERN
     s8 i;
+    #else
+    s32 i;
+    #endif
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
@@ -497,7 +501,11 @@ bool8 AddPCItem(u16 itemId, u16 count)
     struct ItemSlot *newItems;
 
     // Copy PC items
+    #if !MODERN
     newItems = AllocZeroed(sizeof(gSaveBlock1Ptr->pcItems));
+    #else
+    newItems=Alloc(sizeof(gSaveBlock1Ptr->pcItems));
+    #endif
     memcpy(newItems, gSaveBlock1Ptr->pcItems, sizeof(gSaveBlock1Ptr->pcItems));
 
     // Use any item slots that already contain this item
