@@ -191,13 +191,12 @@ bool8 AdjustQuantityAccordingToDPadInput(s16 *quantity, u16 max)
         {
             return FALSE;
         }
-        else
-        {
-            PlaySE(SE_SELECT);
-            return TRUE;
-        }
+
+        PlaySE(SE_SELECT);
+        return TRUE;
     }
-    else if (JOY_REPEAT(DPAD_ANY) == DPAD_DOWN)
+    
+    if (JOY_REPEAT(DPAD_ANY) == DPAD_DOWN)
     {
         (*quantity)--;
         if (*quantity <= 0)
@@ -207,13 +206,10 @@ bool8 AdjustQuantityAccordingToDPadInput(s16 *quantity, u16 max)
         {
             return FALSE;
         }
-        else
-        {
-            PlaySE(SE_SELECT);
-            return TRUE;
-        }
+        PlaySE(SE_SELECT);
+        return TRUE;
     }
-    else if (JOY_REPEAT(DPAD_ANY) == DPAD_RIGHT)
+    if (JOY_REPEAT(DPAD_ANY) == DPAD_RIGHT)
     {
         *quantity += 10;
         if (*quantity > max)
@@ -223,13 +219,11 @@ bool8 AdjustQuantityAccordingToDPadInput(s16 *quantity, u16 max)
         {
             return FALSE;
         }
-        else
-        {
-            PlaySE(SE_SELECT);
-            return TRUE;
-        }
+
+        PlaySE(SE_SELECT);
+        return TRUE;
     }
-    else if (JOY_REPEAT(DPAD_ANY) == DPAD_LEFT)
+    if (JOY_REPEAT(DPAD_ANY) == DPAD_LEFT)
     {
         *quantity -= 10;
         if (*quantity <= 0)
@@ -239,11 +233,9 @@ bool8 AdjustQuantityAccordingToDPadInput(s16 *quantity, u16 max)
         {
             return FALSE;
         }
-        else
-        {
-            PlaySE(SE_SELECT);
-            return TRUE;
-        }
+
+        PlaySE(SE_SELECT);
+        return TRUE;
     }
 
     return FALSE;
@@ -321,7 +313,7 @@ bool8 MenuHelpers_ShouldWaitForLinkRecv(void)
 
 void SetItemListPerPageCount(struct ItemSlot *slots, u8 slotsCount, u8 *pageItems, u8 *totalItems, u8 maxPerPage)
 {
-    u16 i;
+    m16 i;
     struct ItemSlot *slots_ = slots;
 
     // Count the number of non-empty item slots
@@ -356,14 +348,14 @@ void SetCursorWithinListBounds(u16 *scrollOffset, u16 *cursorPos, u8 maxShownIte
 
 void SetCursorScrollWithinListBounds(u16 *scrollOffset, u16 *cursorPos, u8 shownItems, u8 totalItems, u8 maxShownItems)
 {
-    u8 i;
+    m8 i;
 
-    if (maxShownItems % 2 != 0)
+    if ((maxShownItems & 1) != 0)
     {
         // Is cursor at least halfway down visible list
-        if (*cursorPos >= maxShownItems / 2)
+        if (*cursorPos >= maxShownItems >> 1)
         {
-            for (i = 0; i < *cursorPos - (maxShownItems / 2); i++)
+            for (i = 0; i < *cursorPos - (maxShownItems >> 1); i++)
             {
                 // Stop if reached end of list
                 if (*scrollOffset + shownItems == totalItems)
@@ -376,9 +368,13 @@ void SetCursorScrollWithinListBounds(u16 *scrollOffset, u16 *cursorPos, u8 shown
     else
     {
         // Is cursor at least halfway down visible list
-        if (*cursorPos >= (maxShownItems / 2) + 1)
+        #if !MODERN
+        if (*cursorPos >= (maxShownItems >> 1) + 1)
+        #else
+        if (*cursorPos > (maxShownItems >> 1))
+        #endif
         {
-            for (i = 0; i <= *cursorPos - (maxShownItems / 2); i++)
+            for (i = 0; i <= *cursorPos - (maxShownItems >> 1); i++)
             {
                 // Stop if reached end of list
                 if (*scrollOffset + shownItems == totalItems)
@@ -412,7 +408,7 @@ void CreateSwapLineSprites(u8 *spriteIds, u8 count)
 
 void DestroySwapLineSprites(u8 *spriteIds, u8 count)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < count; i++)
     {
@@ -425,13 +421,16 @@ void DestroySwapLineSprites(u8 *spriteIds, u8 count)
 
 void SetSwapLineSpritesInvisibility(u8 *spriteIds, u8 count, bool8 invisible)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < count; i++)
         gSprites[spriteIds[i]].invisible = invisible;
 }
-
+#if !MODERN
 void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, u16 y)
+#else
+void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, s16 y)
+#endif
 {
     u8 i;
     bool8 hasMargin = count & SWAP_LINE_HAS_MARGIN;
@@ -448,6 +447,6 @@ void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, u16 y)
         else
             gSprites[spriteIds[i]].x2 = x;
 
-        gSprites[spriteIds[i]].y = 1 + y;
+        gSprites[spriteIds[i]].y = y + 1;
     }
 }
