@@ -768,7 +768,11 @@ static bool32 InitFrontierPass(void)
         CopyBgTilemapBufferToVram(2);
         break;
     case 8:
+        #ifndef UBFIX
         LoadPalette(gFrontierPassBg_Pal[0], 0, 0x1A0);
+        #else
+        LoadPalette(gFrontierPassBg_Pal[0], 0, 0x100);
+        #endif
         LoadPalette(gFrontierPassBg_Pal[1 + sPassData->trainerStars], 0x10, 0x20);
         LoadPalette(GetTextWindowPalette(0), 0xF0, 0x20);
         DrawFrontierPassBg();
@@ -1412,7 +1416,11 @@ static bool32 InitFrontierMap(void)
     case 5:
         if (FreeTempTileDataBuffersIfPossible())
             return FALSE;
+        #ifndef UBFIX
         LoadPalette(gFrontierPassBg_Pal[0], 0, 0x1A0);
+        #else
+        LoadPalette(gFrontierPassBg_Pal[0], 0, 0x100);
+        #endif
         LoadPalette(GetTextWindowPalette(0), 0xF0, 0x20);
         CopyToBgTilemapBuffer(2, sMapScreen_Tilemap, 0, 0);
         CopyBgTilemapBufferToVram(2);
