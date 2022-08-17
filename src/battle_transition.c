@@ -289,7 +289,9 @@ static bool8 MugshotTrainerPic_Slide(struct Sprite *);
 static bool8 MugshotTrainerPic_SlideSlow(struct Sprite *);
 static bool8 MugshotTrainerPic_SlideOffscreen(struct Sprite *);
 
+#if !MODERN
 static s16 sDebug_RectangularSpiralData;
+#endif
 static u8 sTestingTransitionId;
 static u8 sTestingTransitionState;
 static struct RectangularSpiralLine sRectangularSpiralLines[4];
@@ -602,9 +604,10 @@ static const TransitionStateFunc sShredSplit_Funcs[] =
     ShredSplit_End
 };
 
+#if !MODERN
 static const u8 sShredSplit_SectionYCoords[] = {39, DISPLAY_HEIGHT - 41};
 static const s16 sShredSplit_SectionMoveDirs[] = {1, -1};
-
+#endif
 static const TransitionStateFunc sBlackhole_Funcs[] =
 {
     Blackhole_Init,
@@ -620,7 +623,9 @@ static const TransitionStateFunc sBlackholePulsate_Funcs[] =
 
 // Blackhole rapidly alternates adding these values to the radius,
 // resulting in a vibrating shrink/grow effect.
+#if !MODERN
 static const s16 sBlackhole_Vibrations[] = {-6, 4};
+#endif
 
 static const TransitionStateFunc sRectangularSpiral_Funcs[] =
 {
@@ -2962,14 +2967,17 @@ static bool8 ShredSplit_Init(struct Task *task)
 static bool8 ShredSplit_Main(struct Task *task)
 {
     u16 i, j, k;
+    #if !MODERN
     u8 baseY[ARRAY_COUNT(sShredSplit_SectionYCoords)];
     s16 moveDirs[ARRAY_COUNT(sShredSplit_SectionMoveDirs)];
+    #endif
     u8 linesFinished;
     u16 *ptr4, *ptr3, *ptr1, *ptr2;
     s16 y;
-
+    # if !MODERN
     memcpy(baseY, sShredSplit_SectionYCoords, sizeof(baseY));
     memcpy(moveDirs, sShredSplit_SectionMoveDirs, sizeof(moveDirs));
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
     linesFinished = 0;
@@ -2987,9 +2995,9 @@ static bool8 ShredSplit_Main(struct Task *task)
                 if (y == DISPLAY_HEIGHT / 2 - 1 && j == 1)
                     continue;
 
-                    ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
-                    ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
+                    ptr4 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT * 2 + y];
+                    ptr3 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT * 3 + y];
+                    ptr1 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT * 4 + y];
                     if (*ptr4 >= DISPLAY_WIDTH)
                     {
                         *ptr4 = DISPLAY_WIDTH;
@@ -3019,32 +3027,34 @@ static bool8 ShredSplit_Main(struct Task *task)
             for (k = 0; k < 2; k++)
             {
                 y = baseY[j] + 1 + (moveDirs[k] * -i * 2);
-                if (y <= DISPLAY_HEIGHT && (y != DISPLAY_HEIGHT / 2 || j != 1))
-                {
-                    ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
-                    ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
-                    if (*ptr4 >= DISPLAY_WIDTH)
-                    {
-                        *ptr4 = DISPLAY_WIDTH;
-                        linesFinished++;
-                    }
-                    else
-                    {
-                        *ptr4 += (*ptr3 >> 8);
-                        if (*ptr1 <= 0x7F)
-                            *ptr1 *= 2;
-                        if (*ptr3 <= 0xFFF)
-                            *ptr3 += *ptr1;
-                    }
-                    ptr2 = &gScanlineEffectRegBuffers[0][y];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT];
-                    *ptr2 = sTransitionData->cameraX - *ptr4;
-                    *ptr3 = (*ptr4 << 8) | (DISPLAY_WIDTH + 1);
+                if (y > DISPLAY_HEIGHT)
+                    continue;
+                if (y == DISPLAY_HEIGHT / 2 && j == 1)
+                    continue;
 
-                    if (i == 0)
-                        break;
+                ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
+                ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
+                ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
+                if (*ptr4 >= DISPLAY_WIDTH)
+                {
+                    *ptr4 = DISPLAY_WIDTH;
+                    linesFinished++;
                 }
+                else
+                {
+                    *ptr4 += (*ptr3 >> 8);
+                    if (*ptr1 < 0x80)
+                        *ptr1 <<= 1;
+                    if (*ptr3 < 0x1000)
+                        *ptr3 += *ptr1;
+                }
+                ptr2 = &gScanlineEffectRegBuffers[0][y];
+                ptr3 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT + y];
+                *ptr2 = sTransitionData->cameraX - *ptr4;
+                *ptr3 = (*ptr4 << 8) | (DISPLAY_WIDTH + 1);
+
+                if (i == 0)
+                    break;
             }
         }
     }
@@ -3127,7 +3137,7 @@ static void Task_BlackholePulsate(u8 taskId)
 // Init is shared by both transitions
 static bool8 Blackhole_Init(struct Task *task)
 {
-    s32 i;
+    m32 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3157,26 +3167,25 @@ static bool8 Blackhole_GrowEnd(struct Task *task)
         DmaStop(0);
         SetVBlankCallback(NULL);
         DestroyTask(FindTaskIdByFunc(task->func));
+        return FALSE
+    }
+
+    sTransitionData->VBlank_DMA = FALSE;
+    if (task->tGrowSpeed < 1024)
+        task->tGrowSpeed += 128;
+    if (task->tRadius < DISPLAY_HEIGHT)
+        task->tRadius += task->tGrowSpeed >> 8;
+    if (task->tRadius > DISPLAY_HEIGHT)
+        task->tRadius = DISPLAY_HEIGHT;
+    SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
+    if (task->tRadius == DISPLAY_HEIGHT)
+    {
+        task->tFlag = TRUE;
+        FadeScreenBlack();
     }
     else
     {
-        sTransitionData->VBlank_DMA = FALSE;
-        if (task->tGrowSpeed < 1024)
-            task->tGrowSpeed += 128;
-        if (task->tRadius < DISPLAY_HEIGHT)
-            task->tRadius += task->tGrowSpeed >> 8;
-        if (task->tRadius > DISPLAY_HEIGHT)
-            task->tRadius = DISPLAY_HEIGHT;
-        SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
-        if (task->tRadius == DISPLAY_HEIGHT)
-        {
-            task->tFlag = TRUE;
-            FadeScreenBlack();
-        }
-        else
-        {
-            sTransitionData->VBlank_DMA++;
-        }
+        sTransitionData->VBlank_DMA++;
     }
 
     return FALSE;
@@ -3191,10 +3200,24 @@ static bool8 Blackhole_Vibrate(struct Task *task)
         task->tRadius = 48;
         task->tVibrateId = 0;
     }
+    #if !MODERN
     task->tRadius += sBlackhole_Vibrations[task->tVibrateId];
     task->tVibrateId = (task->tVibrateId + 1) % (int)ARRAY_COUNT(sBlackhole_Vibrations);
+    #else
+    if (task->tVibrateId)
+    {
+        task->tRadius += 4;
+        task->tVibrateId = 0;
+    }
+    else
+    {
+        task->tRadius -= 6;
+        task->tVibrateId = 1;
+    }
+    #endif
+
     SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
-    if (task->tRadius < 9)
+    if (task->tRadius <= 8)
     {
         task->tState++;
         task->tFlag = FALSE;
@@ -3206,7 +3229,11 @@ static bool8 Blackhole_Vibrate(struct Task *task)
 
 static bool8 BlackholePulsate_Main(struct Task *task)
 {
+    #if !MODERN
     u16 index; // should be s16 I think
+    #else
+    s16 index;
+    #endif 
     s16 amplitude;
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -3228,6 +3255,7 @@ static bool8 BlackholePulsate_Main(struct Task *task)
         DestroyTask(FindTaskIdByFunc(task->func));
     }
 
+    #if !MODERN
     index = task->tSinIndex;
     if ((task->tSinIndex & 0xFF) <= 128)
     {
@@ -3240,6 +3268,20 @@ static bool8 BlackholePulsate_Main(struct Task *task)
         task->tSinIndex += 16;
     }
     task->tRadius += Sin(index & 0xFF, amplitude);
+    #else
+    index = task->tSinIndex & 0xFF;
+    if (index <= 128)
+    {
+        amplitude = task->tAmplitude;
+        task->tSinIndex += 8;
+    }
+    else
+    {
+        amplitude = task->tAmplitude - 1;
+        task->tSinIndex += 16;
+    }
+    task->tRadius += Sin(index, amplitude);
+    #endif
 
     if (task->tRadius <= 0)
         task->tRadius = 1;
@@ -3317,8 +3359,8 @@ static bool8 RectangularSpiral_Init(struct Task *task)
 static bool8 RectangularSpiral_Main(struct Task *task)
 {
     u16 *tilemap, *tileset;
-    u8 i;
-    u16 j;
+    m8 i;
+    m16 j;
     bool32 done = TRUE;
 
     GetBg0TilesDst(&tilemap, &tileset);
@@ -3374,10 +3416,12 @@ static bool16 UpdateRectangularSpiralLine(const s16 * const *moveDataTable, stru
         return FALSE;
 
     // Presumably saving data for debug.
+    #if !MODERN
     sDebug_RectangularSpiralData = moveData[0];
     sDebug_RectangularSpiralData = moveData[1];
     sDebug_RectangularSpiralData = moveData[2];
     sDebug_RectangularSpiralData = moveData[3];
+    #endif
 
     // Note that for the two lines originating at the bottom the 
     // position is inverted, so the directions are flipped.
@@ -3401,8 +3445,14 @@ static bool16 UpdateRectangularSpiralLine(const s16 * const *moveDataTable, stru
 
     // Below check is never true.
     // SPIRAL_END was already checked, and position is never >= 640
+    #if !MODERN
     if (line->position >= 640 || moveData[line->moveIdx] == SPIRAL_END)
         return FALSE;
+    #else // just in case
+    if (line->position >= 640)
+        return FALSE;
+    #endif
+
 
     if (!line->outward && moveData[line->moveIdx] == SPIRAL_REBOUND)
     {
