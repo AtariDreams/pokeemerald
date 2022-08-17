@@ -3533,18 +3533,17 @@ static void AnimSolarBeamSmallOrb_Step(struct Sprite *sprite)
     if (AnimTranslateLinear(sprite))
     {
         DestroySprite(sprite);
+        return;
     }
-    else
-    {
-        if (sprite->data[5] > 0x7F)
-            sprite->subpriority = GetBattlerSpriteSubpriority(gBattleAnimTarget) + 1;
-        else
-            sprite->subpriority = GetBattlerSpriteSubpriority(gBattleAnimTarget) + 6;
 
-        sprite->x2 += Sin(sprite->data[5], 5);
-        sprite->y2 += Cos(sprite->data[5], 14);
-        sprite->data[5] = (sprite->data[5] + 15) & 0xFF;
-    }
+    if (sprite->data[5] > 0x7F)
+        sprite->subpriority = GetBattlerSpriteSubpriority(gBattleAnimTarget) + 1;
+    else
+        sprite->subpriority = GetBattlerSpriteSubpriority(gBattleAnimTarget) + 6;
+
+    sprite->x2 += Sin(sprite->data[5], 5);
+    sprite->y2 += Cos(sprite->data[5], 14);
+    sprite->data[5] = (sprite->data[5] + 15) & 0xFF;
 }
 
 // Creates 15 small secondary orbs used in the SolarBeam anim effect.
@@ -3552,7 +3551,7 @@ static void AnimSolarBeamSmallOrb_Step(struct Sprite *sprite)
 // No args.
 void AnimTask_CreateSmallSolarBeamOrbs(u8 taskId)
 {
-    if (--gTasks[taskId].data[0] == -1)
+    if (gTasks[taskId].data[0]-- == 0)
     {
         gTasks[taskId].data[1]++;
         gTasks[taskId].data[0] = 6;
@@ -3594,9 +3593,8 @@ static void AnimAbsorptionOrb_Step(struct Sprite *sprite)
 static void AnimHyperBeamOrb(struct Sprite *sprite)
 {
     u16 speed;
-    u16 animNum = Random2();
 
-    StartSpriteAnim(sprite, animNum % 8);
+    StartSpriteAnim(sprite, Random2() % 8);
     sprite->x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2);
     sprite->y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET);
     if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
