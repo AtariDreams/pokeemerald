@@ -63,7 +63,13 @@ extern const u8 *const gBattleScriptsForMoveEffects[];
 
 static bool8 IsTwoTurnsMove(u16 move);
 static void TrySetDestinyBondToHappen(void);
+#if !MODERN
 static u8 AttacksThisTurn(u8 battlerId, u16 move); // Note: returns 1 if it's a charging turn, otherwise 2.
+#define AttacksThisTurn1(a, b) AttacksThisTurn(a, b)
+#else
+static u8 AttacksThisTurn(u8 battlerId);
+#define AttacksThisTurn1(a, b) AttacksThisTurn(b)
+#endif
 static void CheckWonderGuardAndLevitate(void);
 static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8, const u8 *BS_ptr);
 static bool32 IsMonGettingExpSentOut(void);
@@ -1387,7 +1393,7 @@ static void Cmd_typecalc(void)
         }
     }
 
-    if (gBattleMons[gBattlerTarget].ability == ABILITY_WONDER_GUARD && AttacksThisTurn(gBattlerAttacker, gCurrentMove) == 2 && (!(gMoveResultFlags & MOVE_RESULT_SUPER_EFFECTIVE) || ((gMoveResultFlags & (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE)) == (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE))) && gBattleMoves[gCurrentMove].power)
+    if (gBattleMons[gBattlerTarget].ability == ABILITY_WONDER_GUARD && AttacksThisTurn1(gBattlerAttacker, gCurrentMove) == 2 && (!(gMoveResultFlags & MOVE_RESULT_SUPER_EFFECTIVE) || ((gMoveResultFlags & (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE)) == (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE))) && gBattleMoves[gCurrentMove].power)
     {
         gLastUsedAbility = ABILITY_WONDER_GUARD;
         gMoveResultFlags |= MOVE_RESULT_MISSED;
@@ -1461,7 +1467,7 @@ static void CheckWonderGuardAndLevitate(void)
         i += 3;
     }
 
-    if (gBattleMons[gBattlerTarget].ability == ABILITY_WONDER_GUARD && AttacksThisTurn(gBattlerAttacker, gCurrentMove) == 2)
+    if (gBattleMons[gBattlerTarget].ability == ABILITY_WONDER_GUARD && AttacksThisTurn1(gBattlerAttacker, gCurrentMove) == 2)
     {
         if (((flags & 2) || !(flags & 1)) && gBattleMoves[gCurrentMove].power)
         {
@@ -1554,7 +1560,7 @@ u8 TypeCalc(u16 move, u8 attacker, u8 defender)
         }
     }
 
-    if (gBattleMons[defender].ability == ABILITY_WONDER_GUARD && !(flags & MOVE_RESULT_MISSED) && AttacksThisTurn(attacker, move) == 2 && (!(flags & MOVE_RESULT_SUPER_EFFECTIVE) || ((flags & (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE)) == (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE))) && gBattleMoves[move].power)
+    if (gBattleMons[defender].ability == ABILITY_WONDER_GUARD && !(flags & MOVE_RESULT_MISSED) && AttacksThisTurn1(attacker, move) == 2 && (!(flags & MOVE_RESULT_SUPER_EFFECTIVE) || ((flags & (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE)) == (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE))) && gBattleMoves[move].power)
     {
         flags |= MOVE_RESULT_MISSED;
     }
@@ -4502,7 +4508,7 @@ static void Cmd_typecalc2(void)
         }
     }
 
-    if (gBattleMons[gBattlerTarget].ability == ABILITY_WONDER_GUARD && !(flags & MOVE_RESULT_NO_EFFECT) && AttacksThisTurn(gBattlerAttacker, gCurrentMove) == 2 && (!(flags & MOVE_RESULT_SUPER_EFFECTIVE) || ((flags & (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE)) == (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE))) && gBattleMoves[gCurrentMove].power)
+    if (gBattleMons[gBattlerTarget].ability == ABILITY_WONDER_GUARD && !(flags & MOVE_RESULT_NO_EFFECT) && AttacksThisTurn1(gBattlerAttacker, gCurrentMove) == 2 && (!(flags & MOVE_RESULT_SUPER_EFFECTIVE) || ((flags & (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE)) == (MOVE_RESULT_SUPER_EFFECTIVE | MOVE_RESULT_NOT_VERY_EFFECTIVE))) && gBattleMoves[gCurrentMove].power)
     {
         gLastUsedAbility = ABILITY_WONDER_GUARD;
         gMoveResultFlags |= MOVE_RESULT_MISSED;
@@ -8111,7 +8117,7 @@ static void Cmd_painsplitdmgcalc(void)
     if (!(gBattleMons[gBattlerTarget].status2 & STATUS2_SUBSTITUTE))
     {
         s32 hpDiff = (gBattleMons[gBattlerAttacker].hp + gBattleMons[gBattlerTarget].hp) / 2;
-        #if !MODERN
+#if !MODERN
         u8 *storeLoc;
         gBattleMoveDamage = gBattleMons[gBattlerTarget].hp - hpDiff;
 
@@ -8121,9 +8127,9 @@ static void Cmd_painsplitdmgcalc(void)
         storeLoc[1] = (gBattleMoveDamage & 0x0000FF00) >> 8;
         storeLoc[2] = (gBattleMoveDamage & 0x00FF0000) >> 16;
         storeLoc[3] = (gBattleMoveDamage & 0xFF000000) >> 24;
-        #else
+#else
         gBattleScripting.painSplitHp = gBattleMons[gBattlerTarget].hp - hpDiff;
-        #endif
+#endif
 
         gBattleMoveDamage = gBattleMons[gBattlerAttacker].hp - hpDiff;
         gSpecialStatuses[gBattlerTarget].dmg = 0xFFFF;
@@ -8206,6 +8212,8 @@ static void Cmd_setalwayshitflag(void)
 
 static void Cmd_copymovepermanently(void) // sketch
 {
+    m32 i;
+    struct MovePpInfo movePpData;
     gChosenMove = MOVE_UNAVAILABLE;
 
     if (!(gBattleMons[gBattlerAttacker].status2 & STATUS2_TRANSFORMED)
@@ -8214,47 +8222,54 @@ static void Cmd_copymovepermanently(void) // sketch
         && gLastPrintedMoves[gBattlerTarget] != MOVE_UNAVAILABLE
         && gLastPrintedMoves[gBattlerTarget] != MOVE_SKETCH)
     {
-        m32 i;
+        gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+        return;
+    }
+
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (gBattleMons[gBattlerAttacker].moves[i] == MOVE_SKETCH)
+            continue;
+#if !MODERN
+        if (gBattleMons[gBattlerAttacker].moves[i] == gLastPrintedMoves[gBattlerTarget])
+            break;
+#else
+        if (gBattleMons[gBattlerAttacker].moves[i] == gLastPrintedMoves[gBattlerTarget])
+        {
+            gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+            return;
+        }
+#endif
+    }
+
+#if !MODERN
+    if (i == MAX_MON_MOVES) // sketch worked
+    {
+#endif
+        gBattleMons[gBattlerAttacker].moves[gCurrMovePos] = gLastPrintedMoves[gBattlerTarget];
+        gBattleMons[gBattlerAttacker].pp[gCurrMovePos] = gBattleMoves[gLastPrintedMoves[gBattlerTarget]].pp;
+        gActiveBattler = gBattlerAttacker;
 
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
-            if (gBattleMons[gBattlerAttacker].moves[i] == MOVE_SKETCH)
-                continue;
-            if (gBattleMons[gBattlerAttacker].moves[i] == gLastPrintedMoves[gBattlerTarget])
-                break;
+            movePpData.moves[i] = gBattleMons[gBattlerAttacker].moves[i];
+            movePpData.pp[i] = gBattleMons[gBattlerAttacker].pp[i];
         }
+        movePpData.ppBonuses = gBattleMons[gBattlerAttacker].ppBonuses;
 
-        if (i != MAX_MON_MOVES)
-        {
-            gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
-        }
-        else // sketch worked
-        {
-            struct MovePpInfo movePpData;
+        BtlController_EmitSetMonData(BUFFER_A, REQUEST_MOVES_PP_BATTLE, 0, sizeof(movePpData), &movePpData);
+        MarkBattlerForControllerExec(gActiveBattler);
 
-            gBattleMons[gBattlerAttacker].moves[gCurrMovePos] = gLastPrintedMoves[gBattlerTarget];
-            gBattleMons[gBattlerAttacker].pp[gCurrMovePos] = gBattleMoves[gLastPrintedMoves[gBattlerTarget]].pp;
-            gActiveBattler = gBattlerAttacker;
+        PREPARE_MOVE_BUFFER(gBattleTextBuff1, gLastPrintedMoves[gBattlerTarget])
 
-            for (i = 0; i < MAX_MON_MOVES; i++)
-            {
-                movePpData.moves[i] = gBattleMons[gBattlerAttacker].moves[i];
-                movePpData.pp[i] = gBattleMons[gBattlerAttacker].pp[i];
-            }
-            movePpData.ppBonuses = gBattleMons[gBattlerAttacker].ppBonuses;
-
-            BtlController_EmitSetMonData(BUFFER_A, REQUEST_MOVES_PP_BATTLE, 0, sizeof(movePpData), &movePpData);
-            MarkBattlerForControllerExec(gActiveBattler);
-
-            PREPARE_MOVE_BUFFER(gBattleTextBuff1, gLastPrintedMoves[gBattlerTarget])
-
-            gBattlescriptCurrInstr += 5;
-        }
+        gBattlescriptCurrInstr += 5;
+#if !MODERN
     }
     else
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
     }
+#endif
 }
 
 static bool8 IsTwoTurnsMove(u16 move)
@@ -8281,8 +8296,12 @@ static bool8 IsInvalidForSleepTalkOrAssist(u16 move)
     else
         return FALSE;
 }
+#if !MODERN
 
 static u8 AttacksThisTurn(u8 battlerId, u16 move) // Note: returns 1 if it's a charging turn, otherwise 2
+#else
+static u8 AttacksThisTurn(u16 move) // Note: returns 1 if it's a charging turn, otherwise 2
+#endif
 {
     // first argument is unused
     if (gBattleMoves[move].effect == EFFECT_SOLAR_BEAM && (gBattleWeather & B_WEATHER_SUN))
@@ -8303,7 +8322,7 @@ static u8 AttacksThisTurn(u8 battlerId, u16 move) // Note: returns 1 if it's a c
 
 static void Cmd_trychoosesleeptalkmove(void)
 {
-    s32 i;
+    m32 i;
     u8 unusableMovesBits = 0;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
@@ -8318,6 +8337,7 @@ static void Cmd_trychoosesleeptalkmove(void)
     if (unusableMovesBits == (1 << MAX_MON_MOVES) - 1) // all 4 moves cannot be chosen
     {
         gBattlescriptCurrInstr += 5;
+        return;
     }
     else // at least one move can be chosen
     {
@@ -8361,7 +8381,13 @@ static void Cmd_trysetdestinybondtohappen(void)
 static void Cmd_remaininghptopower(void)
 {
     m32 i;
-    s32 hpFraction = GetScaledHPFraction(gBattleMons[gBattlerAttacker].hp, gBattleMons[gBattlerAttacker].maxHP, 48);
+    #if !MODERN
+    s32 hpFraction;
+    #else
+    u8 hpFraction;
+    #endif
+    
+    hpFraction = GetScaledHPFraction(gBattleMons[gBattlerAttacker].hp, gBattleMons[gBattlerAttacker].maxHP, 48);
 
     for (i = 0; i < (m32)sizeof(sFlailHpScaleToPowerTable); i += 2)
     {
