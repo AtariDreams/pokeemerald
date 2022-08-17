@@ -733,8 +733,8 @@ void LoadIntroPart2Graphics(u8 scenery)
     LoadPalette(&sGrass_Pal, 240, sizeof(sGrass_Pal));
     switch (scenery)
     {
-    case 0:
     default:
+    case 0:
         // Never reached, only called with an argument of 1
         // Clouds are never used in this part of the intro
         LZ77UnCompVram(sCloudsBg_Gfx, (void *)(VRAM));

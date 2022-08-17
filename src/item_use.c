@@ -171,12 +171,20 @@ static void Task_CloseCantUseKeyItemMessage(u8 taskId)
 
 u8 CheckIfItemIsTMHMOrEvolutionStone(u16 itemId)
 {
+    #if !MODERN
     if (ItemId_GetFieldFunc(itemId) == ItemUseOutOfBattle_TMHM)
         return 1;
-    else if (ItemId_GetFieldFunc(itemId) == ItemUseOutOfBattle_EvolutionStone)
+    if (ItemId_GetFieldFunc(itemId) == ItemUseOutOfBattle_EvolutionStone)
         return 2;
-    else
-        return 0;
+    #else
+    ItemUseFunc func = ItemId_GetFieldFunc(itemId);
+    if (func == ItemUseOutOfBattle_TMHM)
+        return 1;
+    if (func == ItemUseOutOfBattle_EvolutionStone)
+        return 2;
+    #endif
+
+    return 0;
 }
 
 // Mail in the bag menu can't have a message but it can be checked (view the mail background, no message)
@@ -203,16 +211,13 @@ void ItemUseOutOfBattle_Bike(u8 taskId)
     behavior = MapGridGetMetatileBehaviorAt(coordsX, coordsY);
     if (FlagGet(FLAG_SYS_CYCLING_ROAD) == TRUE || MetatileBehavior_IsVerticalRail(behavior) == TRUE || MetatileBehavior_IsHorizontalRail(behavior) == TRUE || MetatileBehavior_IsIsolatedVerticalRail(behavior) == TRUE || MetatileBehavior_IsIsolatedHorizontalRail(behavior) == TRUE)
         DisplayCannotDismountBikeMessage(taskId, tUsingRegisteredKeyItem);
-    else
+    else if (Overworld_IsBikingAllowed() == TRUE && IsBikingDisallowedByPlayer() == 0)
     {
-        if (Overworld_IsBikingAllowed() == TRUE && IsBikingDisallowedByPlayer() == 0)
-        {
-            sItemUseOnFieldCB = ItemUseOnFieldCB_Bike;
-            SetUpItemUseOnFieldCallback(taskId);
-        }
-        else
-            DisplayDadsAdviceCannotUseItemMessage(taskId, tUsingRegisteredKeyItem);
+        sItemUseOnFieldCB = ItemUseOnFieldCB_Bike;
+        SetUpItemUseOnFieldCallback(taskId);
     }
+    else
+        DisplayDadsAdviceCannotUseItemMessage(taskId, tUsingRegisteredKeyItem);
 }
 
 static void ItemUseOnFieldCB_Bike(u8 taskId)
@@ -300,7 +305,6 @@ static void Task_UseItemfinder(u8 taskId)
 {
     u8 playerDir;
     u8 playerDirToItem;
-    u8 i;
     s16 *data = gTasks[taskId].data;
     if (tCounter == 0)
     {
@@ -314,6 +318,7 @@ static void Task_UseItemfinder(u8 taskId)
             }
             else
             {
+                m8 i;
                 // Player is standing on hidden item
                 playerDir = GetPlayerFacingDirection();
                 for (i = 0; i < ARRAY_COUNT(sClockwiseDirections); i++)
@@ -343,7 +348,6 @@ static void Task_CloseItemfinderMessage(u8 taskId)
 
 static bool8 ItemfinderCheckForHiddenItems(const struct MapEvents *events, u8 taskId)
 {
-    int itemX, itemY;
     s16 playerX, playerY, i, distanceX, distanceY;
     PlayerGetDestCoords(&playerX, &playerY);
     gTasks[taskId].tItemFound = FALSE;
@@ -353,10 +357,8 @@ static bool8 ItemfinderCheckForHiddenItems(const struct MapEvents *events, u8 ta
         // Check if there are any hidden items on the current map that haven't been picked up
         if (events->bgEvents[i].kind == BG_EVENT_HIDDEN_ITEM && !FlagGet(events->bgEvents[i].bgUnion.hiddenItem.hiddenItemId + FLAG_HIDDEN_ITEMS_START))
         {
-            itemX = (u16)events->bgEvents[i].x + MAP_OFFSET;
-            distanceX = itemX - playerX;
-            itemY = (u16)events->bgEvents[i].y + MAP_OFFSET;
-            distanceY = itemY - playerY;
+            distanceX = events->bgEvents[i].x + MAP_OFFSET - playerX;
+            distanceY = events->bgEvents[i].y + MAP_OFFSET - playerY;
 
             // Player can see 7 metatiles on either side horizontally
             // and 5 metatiles on either side vertically
