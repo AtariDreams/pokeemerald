@@ -366,6 +366,7 @@ static const struct ScanlineEffectParams sPokenavMainMenuScanlineEffectParams =
 // GF says it should be in pokenav menu handler, but it is only called here and works here too, so...
 static bool32 AreAnyTrainerRematchesNearby(void)
 {
+    // This should be u32, but it is not, even though GF says the parameters to the functions called are u32
     s32 i;
 
     for (i = 0; i < REMATCH_TABLE_ENTRIES; i++)
