@@ -2514,7 +2514,7 @@ static u32 Cmd_GoToBerryPouch(struct BerryCrushGame *game, u8 *args)
 
 static u32 Cmd_WaitForOthersToPickBerries(struct BerryCrushGame *game, u8 *args)
 {
-    u8 i;
+    m8 i;
 
     switch (game->cmdState)
     {
@@ -2643,14 +2643,14 @@ static u32 Cmd_DropLid(struct BerryCrushGame *game,  u8 *args)
         SetGpuReg(REG_OFFSET_BG0VOFS, -game->vibration);
         SetGpuReg(REG_OFFSET_BG2VOFS, -game->vibration);
         SetGpuReg(REG_OFFSET_BG3VOFS, -game->vibration);
-        game->gfx.counter++;
-        if (game->gfx.counter < game->gfx.numVibrations)
-            return 0;
-        if (game->gfx.vibrationIdx == 0)
-            break;
-        game->gfx.vibrationIdx--;
-        game->gfx.numVibrations = sIntroOutroVibrationData[game->gfx.vibrationIdx][0];
-        game->gfx.counter = 0;
+        if (++game->gfx.counter >= game->gfx.numVibrations)
+        {
+            if (game->gfx.vibrationIdx == 0)
+                break;
+            game->gfx.vibrationIdx--;
+            game->gfx.numVibrations = sIntroOutroVibrationData[game->gfx.vibrationIdx][0];
+            game->gfx.counter = 0;
+        }
         return 0;
     case 2:
         game->vibration = 0;
@@ -2712,7 +2712,7 @@ static u32 Cmd_Countdown(struct BerryCrushGame *game,  u8 *args)
 static void HandlePartnerInput(struct BerryCrushGame *game)
 {
     u8 numPlayersPressed = 0;
-    u8 i = 0;
+    m8 i = 0;
     u16 timeDiff;
     s32 temp = 0;
     struct BerryCrushGame_LinkState *linkState;
@@ -2782,12 +2782,16 @@ static void HandlePartnerInput(struct BerryCrushGame *game)
     numPlayersPressed += sSyncPressBonus[numPlayersPressed - 1];
     game->sparkleCounter += numPlayersPressed;
     game->totalAPresses += numPlayersPressed;
+    #if !MODERN
     if (game->targetAPresses - game->totalAPresses > 0)
+    #else
+    if (game->targetAPresses > game->totalAPresses)
+    #endif
     {
         temp = (s32)game->totalAPresses;
-        temp = Q_24_8(temp);
+        temp <<= 8;
         temp = MathUtil_Div32(temp, game->targetDepth);
-        temp = Q_24_8_TO_INT(temp);
+        temp >>= 8;
         game->newDepth = (u8)temp;
         return;
     }
@@ -2804,19 +2808,24 @@ static void UpdateLeaderGameState(struct BerryCrushGame *game)
     u8 numPlayersPressed = 0;
     u16 flags = 0;
     u16 temp = 0;
+    #if !MODERN
     u8 i = 0;
+    #else
+    u32 i;
+    #endif
 
     for (i = 0; i < game->playerCount; i++)
     {
-        if (game->players[i].inputState != INPUT_STATE_NONE)
+        if (game->players[i].inputState == INPUT_STATE_NONE)
         {
-            numPlayersPressed++;
-            flags = game->players[i].inputFlags + F_INPUT_HIT_A;
-            if (game->players[i].inputState & INPUT_STATE_HIT_SYNC)
-                flags |= F_INPUT_HIT_SYNC;
-            flags <<= INPUT_FLAGS_PER_PLAYER * i;
-            game->localState.inputFlags |= flags;
+            continue;
         }
+        numPlayersPressed++;
+        flags = game->players[i].inputFlags + F_INPUT_HIT_A;
+        if (game->players[i].inputState & INPUT_STATE_HIT_SYNC)
+            flags |= F_INPUT_HIT_SYNC;
+        flags <<= INPUT_FLAGS_PER_PLAYER * i;
+        game->localState.inputFlags |= flags;
     }
     temp = (u16)game->newDepth;
     game->localState.depth = temp;
@@ -2956,7 +2965,7 @@ static void HandlePlayerInput(struct BerryCrushGame *game)
 
 static void RecvLinkData(struct BerryCrushGame *game)
 {
-    u8 i = 0;
+    m8 i = 0;
     struct BerryCrushGame_LinkState *linkState = NULL;
 
     for (i = 0; i < game->playerCount; i++)
@@ -3007,14 +3016,12 @@ static u32 Cmd_PlayGame_Leader(struct BerryCrushGame *game, u8 *args)
         game->cmdState = 0;
         return 0;
     }
-    else
-    {
-        game->leaderTimer++;
-        HandlePartnerInput(game);
-        UpdateLeaderGameState(game);
-        HandlePlayerInput(game);
-        return 0;
-    }
+
+    game->leaderTimer++;
+    HandlePartnerInput(game);
+    UpdateLeaderGameState(game);
+    HandlePlayerInput(game);
+    return 0;
 }
 
 static u32 Cmd_PlayGame_Member(struct BerryCrushGame *game, u8 *args)
@@ -3040,11 +3047,9 @@ static u32 Cmd_PlayGame_Member(struct BerryCrushGame *game, u8 *args)
         game->cmdState = 0;
         return 0;
     }
-    else
-    {
-        HandlePlayerInput(game);
-        return 0;
-    }
+
+    HandlePlayerInput(game);
+    return 0;
 }
 
 // Game was 'won', crusher was pushed down fully before time was up
@@ -3059,11 +3064,21 @@ static u32 Cmd_FinishGame(struct BerryCrushGame *game, u8 *args)
         game->gfx.counter = 2;
         break;
     case 1:
-        if (--game->gfx.counter != (u8)-1)
+        #if !MODERN
+        if (game->gfx.counter--)
             return 0;
+        #else
+        if (game->gfx.counter)
+        {
+            game->gfx.counter--;
+            return 0;
+        }
+        #endif
         BlendPalettes(PALETTES_ALL, 0, RGB(31, 31, 0));
         game->gfx.vibrationIdx = 4;
+        #if !MODERN
         game->gfx.counter = 0;
+        #endif
         game->gfx.numVibrations = sIntroOutroVibrationData[game->gfx.vibrationIdx][0];
         break;
     case 2:
@@ -3071,16 +3086,17 @@ static u32 Cmd_FinishGame(struct BerryCrushGame *game, u8 *args)
         SetGpuReg(REG_OFFSET_BG0VOFS, -game->vibration);
         SetGpuReg(REG_OFFSET_BG2VOFS, -game->vibration);
         SetGpuReg(REG_OFFSET_BG3VOFS, -game->vibration);
-        if (++game->gfx.counter < game->gfx.numVibrations)
-            return 0;
-        if (game->gfx.vibrationIdx != 0)
+        if (++game->gfx.counter >= game->gfx.numVibrations)
         {
+            if (game->gfx.vibrationIdx == 0)
+            {
+                break;
+            }
             game->gfx.vibrationIdx--;
             game->gfx.numVibrations = sIntroOutroVibrationData[game->gfx.vibrationIdx][0];
             game->gfx.counter = 0;
-            return 0;
         }
-        break;
+        return 0;
     case 3:
         game->vibration = 0;
         SetGpuReg(REG_OFFSET_BG0VOFS, 0);
@@ -3116,10 +3132,20 @@ static u32 Cmd_HandleTimeUp(struct BerryCrushGame *game, u8 *args)
         game->gfx.counter = 4;
         break;
     case 1:
-        if (--game->gfx.counter != (u8)-1)
+        #if !MODERN
+        if (game->gfx.counter--)
             return 0;
+        #else
+        if (game->gfx.counter)
+        {
+            game->gfx.counter--;
+            return 0;
+        }
+        #endif
         BlendPalettes(PALETTES_ALL, 0, RGB(31, 0, 0));
+        #if !MODERN
         game->gfx.counter = 0;
+        #endif
         break;
     case 2:
         if (!AreEffectsFinished(game, &game->gfx))
@@ -3192,17 +3218,17 @@ static u32 Cmd_TabulateResults(struct BerryCrushGame *game, u8 *args)
         // Calculate silkiness
         // Silkiness is the percentage of times big sparkles were produced when possible,
         // which itself depends on the number of A presses every 30 frames
-        temp1 = MathUtil_Mul32(Q_24_8(game->numBigSparkles), Q_24_8(50));
-        temp1 = MathUtil_Div32(temp1, Q_24_8(game->numBigSparkleChecks)) + Q_24_8(50);
-        temp1 = Q_24_8_TO_INT(temp1);
+        temp1 = MathUtil_Mul32(game->numBigSparkles << 8, Q_24_8(50));
+        temp1 = MathUtil_Div32(temp1, game->numBigSparkleChecks << 8) + Q_24_8(50);
+        temp1 >>= 8;
         game->results.silkiness = temp1 & 0x7F;
 
         // Calculate amount of powder
-        temp1 = Q_24_8(temp1);
+        temp1 <<= 8;
         temp1 = MathUtil_Div32(temp1, Q_24_8(100));
-        temp2 = Q_24_8(game->powder * game->playerCount);
+        temp2 = (game->powder * game->playerCount) << 8;
         temp2 = MathUtil_Mul32(temp2, temp1);
-        game->results.powder = Q_24_8_TO_INT(temp2);
+        game->results.powder = temp2 >> 8;
 
         // Choose random second results page
         game->results.randomPageId = Random() % NUM_RANDOM_RESULTS_PAGES;
@@ -3218,60 +3244,56 @@ static u32 Cmd_TabulateResults(struct BerryCrushGame *game, u8 *args)
             switch (game->results.randomPageId)
             {
             case RESULTS_PAGE_NEATNESS:
-                if (game->players[i].numAPresses != 0)
-                {
-                    // Calculate percentage of inputs that were in largest "neat" streak
-                    // "Neat" inputs are those done at a regular interval
-                    temp1 = game->players[i].maxNeatInputStreak;
-                    temp1 = Q_24_8(temp1);
-                    temp1 = MathUtil_Mul32(temp1, Q_24_8(100));
-                    temp2 = game->players[i].numAPresses;
-                    temp2 = Q_24_8(temp2);
-                    temp2 = MathUtil_Div32(temp1, temp2);
-                }
-                else
+                if (game->players[i].numAPresses == 0)
                 {
                     temp2 = 0;
+                    break;
                 }
+                // Calculate percentage of inputs that were in largest "neat" streak
+                // "Neat" inputs are those done at a regular interval
+                temp1 = game->players[i].maxNeatInputStreak;
+                temp1 <<=8;
+                temp1 = MathUtil_Mul32(temp1, Q_24_8(100));
+                temp2 = game->players[i].numAPresses;
+                temp2 <<= 8;
+                temp2 = MathUtil_Div32(temp1, temp2);
                 break;
             case RESULTS_PAGE_COOPERATIVE:
-                if (game->players[i].numAPresses != 0)
-                {
-                    // Calculate percentage of inputs that were
-                    // done at the same time as another player
-                    temp1 = game->players[i].numSyncedAPresses;
-                    temp1 = Q_24_8(temp1);
-                    temp1 = MathUtil_Mul32(temp1, Q_24_8(100));
-                    temp2 = game->players[i].numAPresses;
-                    temp2 = Q_24_8(temp2);
-                    temp2 = MathUtil_Div32(temp1, temp2);
-                }
-                else
+                if (game->players[i].numAPresses == 0)
                 {
                     temp2 = 0;
+                    break;
                 }
+                // Calculate percentage of inputs that were
+                // done at the same time as another player
+                temp1 = game->players[i].numSyncedAPresses;
+                temp1 = Q_24_8(temp1);
+                temp1 = MathUtil_Mul32(temp1, Q_24_8(100));
+                temp2 = game->players[i].numAPresses;
+                temp2 = Q_24_8(temp2);
+                temp2 = MathUtil_Div32(temp1, temp2);
                 break;
             case RESULTS_PAGE_POWER:
                 if (game->players[i].numAPresses == 0)
                 {
                     temp2 = 0;
+                    break;
                 }
-                else if (game->players[i].timePressingA >= game->timer)
+                if (game->players[i].timePressingA >= game->timer)
                 {
                     // Spent 100% of the time pressing A
                     temp2 = Q_24_8(100);
+                    break;
                 }
-                else
-                {
-                    // Calculate percentage of time the
-                    // player spent pressing A
-                    temp1 = game->players[i].timePressingA;
-                    temp1 = Q_24_8(temp1);
-                    temp1 = MathUtil_Mul32(temp1, Q_24_8(100));
-                    temp2 = game->timer;
-                    temp2 = Q_24_8(temp2);
-                    temp2 = MathUtil_Div32(temp1, temp2);
-                }
+
+                // Calculate percentage of time the
+                // player spent pressing A
+                temp1 = game->players[i].timePressingA;
+                temp1 <<= 8;
+                temp1 = MathUtil_Mul32(temp1, Q_24_8(100));
+                temp2 = game->timer;
+                temp2 <<= 8;
+                temp2 = MathUtil_Div32(temp1, temp2);
                 break;
             }
             temp2 >>= 4;
@@ -3434,30 +3456,31 @@ static u32 Cmd_AskPlayAgain(struct BerryCrushGame *game, u8 *args)
         break;
     case 2:
         input = Menu_ProcessInputNoWrapClearOnChoose();
-        if (input != -2)
+        if (input == -2)
         {
-            memset(game->sendCmd, 0, sizeof(game->sendCmd));
-            if (input == 0)
-            {
-                // Selected Yes
-                if (HasAtLeastOneBerry())
-                    game->playAgainState = PLAY_AGAIN_YES;
-                else
-                    game->playAgainState = PLAY_AGAIN_NO_BERRIES;
-            }
-            else
-            {
-                // Selected No
-                game->playAgainState = PLAY_AGAIN_NO;
-            }
-
-            // Close Yes/No and start communication
-            ClearDialogWindowAndFrame(0, TRUE);
-            SetPrintMessageArgs(args, MSG_COMM_STANDBY, 0, 0, 0);
-            game->nextCmd = CMD_COMM_PLAY_AGAIN;
-            RunOrScheduleCommand(CMD_PRINT_MSG, SCHEDULE_CMD, NULL);
-            game->cmdState = 0;
+            return 0;
         }
+        memset(game->sendCmd, 0, sizeof(game->sendCmd));
+        if (input == 0)
+        {
+            // Selected Yes
+            if (HasAtLeastOneBerry())
+                game->playAgainState = PLAY_AGAIN_YES;
+            else
+                game->playAgainState = PLAY_AGAIN_NO_BERRIES;
+        }
+        else
+        {
+            // Selected No
+            game->playAgainState = PLAY_AGAIN_NO;
+        }
+
+        // Close Yes/No and start communication
+        ClearDialogWindowAndFrame(0, 1);
+        SetPrintMessageArgs(args, MSG_COMM_STANDBY, 0, 0, 0);
+        game->nextCmd = CMD_COMM_PLAY_AGAIN;
+        RunOrScheduleCommand(CMD_PRINT_MSG, SCHEDULE_CMD, NULL);
+        game->cmdState = 0;
         return 0;
     }
     game->cmdState++;
@@ -3466,7 +3489,11 @@ static u32 Cmd_AskPlayAgain(struct BerryCrushGame *game, u8 *args)
 
 static u32 Cmd_CommunicatePlayAgainResponses(struct BerryCrushGame *game, u8 *args)
 {
+    #if !MODERN
     u8 i = 0;
+    #else
+    u32 i;
+    #endif
 
     switch (game->cmdState)
     {
@@ -3589,7 +3616,12 @@ static u32 Cmd_CloseLink(struct BerryCrushGame *game, u8 *args)
             return 0;
         game->nextCmd = CMD_QUIT;
         RunOrScheduleCommand(CMD_HIDE_GAME, SCHEDULE_CMD, NULL);
+        #ifndef BUGFIX
         game->cmdState = 2; // ???
+        #else
+        // TODO: is this a bugfix?
+        game->cmdState = 0;
+        #endif
         return 0;
     }
     game->cmdState++;
@@ -3604,7 +3636,11 @@ static u32 Cmd_Quit(struct BerryCrushGame *game, u8 *args)
 
 static void ResetGame(struct BerryCrushGame *game)
 {
+    #if !MODERN
     u8 i = 0;
+    #else
+    u32 i;
+    #endif
 
     IncrementGameStat(GAME_STAT_PLAYED_BERRY_CRUSH);
     game->unused = 0;
@@ -3649,7 +3685,7 @@ static void SetPaletteFadeArgs(u8 *args, bool8 communicateAfter, u32 selectedPal
     args[1] = ((u8 *)&selectedPals)[1];
     args[2] = ((u8 *)&selectedPals)[2];
     args[3] = ((u8 *)&selectedPals)[3];
-    args[4] = delay;
+    args[4] = (u8)delay;
     args[5] = startY;
     args[6] = targetY;
     args[7] = ((u8 *)&palette)[0];
