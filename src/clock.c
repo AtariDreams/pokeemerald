@@ -74,8 +74,13 @@ static void UpdatePerDay(struct Time *localTime)
     UpdateBirchState(daysSince);
     UpdateFrontierManiac(daysSince);
     UpdateFrontierGambler(daysSince);
+    #if !MODERN
     SetShoalItemFlag(daysSince);
+    #endif
     SetRandomLotteryNumber(daysSince);
+    #if MODERN
+    FlagSet(FLAG_SYS_SHOAL_ITEM);
+    #endif
     *days = localTime->days;
 }
 

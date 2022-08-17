@@ -992,8 +992,12 @@ void SetRegionMapDataForZoom(void)
     HideRegionMapPlayerIcon();
 }
 
+#if MODERN
+NAKED
+#endif
 bool8 UpdateRegionMapZoom(void)
 {
+    #if !MODERN
     bool8 retVal;
 
     if (sRegionMap->unk_06e >= ZOOM_SYNC)
@@ -1120,6 +1124,259 @@ bool8 UpdateRegionMapZoom(void)
     }
     CalcZoomScrollParams(sRegionMap->scrollX, sRegionMap->scrollY, ZOOM_CENTER_X_POS, ZOOM_CENTER_Y_POS, sRegionMap->zoomRatio >> 8, sRegionMap->zoomRatio >> 8, 0);
     return retVal;
+    #else
+    asm_unified("push	{r4, r5, r6, r7, lr}\n\
+	sub	sp, #4\n\
+	ldr	r5, .LCPI15_0\n\
+	ldr	r0, [r5]\n\
+	movs	r1, #110\n\
+	ldrh	r3, [r0, r1]\n\
+	cmp	r3, #15\n\
+	bls	.LBB15_2\n\
+	movs	r0, #0\n\
+	b	.LBB15_29\n\
+.LBB15_2:\n\
+	movs	r2, r0\n\
+	adds	r2, #88\n\
+	movs	r1, r0\n\
+	adds	r1, #120\n\
+	adds	r3, r3, #1\n\
+	strh	r3, [r2, #22]\n\
+	cmp	r3, #16\n\
+	bne	.LBB15_5\n\
+	movs	r3, #0\n\
+	str	r3, [r0, #72]\n\
+	str	r3, [sp]\n\
+	str	r3, [r0, #68]\n\
+	ldr	r3, [r2, #8]\n\
+	str	r3, [r2, #4]\n\
+	ldrb	r3, [r1]\n\
+	movs	r6, #1\n\
+	cmp	r3, #0\n\
+	beq	.LBB15_15\n\
+	lsls	r6, r6, #16\n\
+	b	.LBB15_16\n\
+.LBB15_5:\n\
+	ldr	r7, [r0, #68]\n\
+	ldr	r3, [r0, #60]\n\
+	adds	r6, r3, r7\n\
+	str	r6, [r0, #60]\n\
+	ldr	r4, [r0, #72]\n\
+	ldr	r3, [r0, #64]\n\
+	str	r4, [sp]\n\
+	adds	r4, r3, r4\n\
+	str	r4, [r0, #64]\n\
+	ldr	r3, [r0, #80]\n\
+	ldr	r5, [r0, #76]\n\
+	adds	r3, r5, r3\n\
+	str	r3, [r0, #76]\n\
+	lsrs	r4, r4, #8\n\
+	strh	r4, [r2, #6]\n\
+	lsrs	r6, r6, #8\n\
+	strh	r6, [r2, #4]\n\
+	cmp	r7, #0\n\
+	bmi	.LBB15_22\n\
+	beq	.LBB15_9\n\
+	movs	r5, #8\n\
+	ldrsh	r7, [r2, r5]\n\
+	lsls	r5, r6, #16\n\
+	asrs	r5, r5, #16\n\
+	cmp	r7, r5\n\
+	bge	.LBB15_9\n\
+.LBB15_8:\n\
+	movs	r5, #0\n\
+	str	r5, [r0, #68]\n\
+	strh	r7, [r2, #4]\n\
+.LBB15_9:\n\
+	ldr	r5, [sp]\n\
+	cmp	r5, #0\n\
+	bmi	.LBB15_23\n\
+	beq	.LBB15_13\n\
+	movs	r5, #10\n\
+	ldrsh	r5, [r2, r5]\n\
+	lsls	r4, r4, #16\n\
+	asrs	r4, r4, #16\n\
+	cmp	r5, r4\n\
+	bge	.LBB15_13\n\
+.LBB15_12:\n\
+	movs	r4, #0\n\
+	str	r4, [r0, #72]\n\
+	strh	r5, [r2, #6]\n\
+.LBB15_13:\n\
+	ldrb	r1, [r1]\n\
+	cmp	r1, #0\n\
+	beq	.LBB15_24\n\
+	movs	r1, #1\n\
+	str	r1, [sp]\n\
+	lsls	r1, r1, #16\n\
+	cmp	r3, r1\n\
+	bgt	.LBB15_25\n\
+	b	.LBB15_28\n\
+.LBB15_15:\n\
+	lsls	r6, r6, #15\n\
+.LBB15_16:\n\
+	str	r6, [r0, #76]\n\
+	cmp	r3, #0\n\
+	beq	.LBB15_18\n\
+	ldr	r6, .LCPI15_2\n\
+	b	.LBB15_19\n\
+.LBB15_18:\n\
+	ldr	r6, .LCPI15_1\n\
+.LBB15_19:\n\
+	str	r6, [r0, #24]\n\
+	rsbs	r0, r3, #0\n\
+	adcs	r0, r3\n\
+	strb	r0, [r1]\n\
+	ldrh	r1, [r2, #2]\n\
+	ldrh	r0, [r2]\n\
+	bl	CreateRegionMapCursor\n\
+	ldr	r0, [r5]\n\
+	ldr	r2, [r0, #32]\n\
+	cmp	r2, #0\n\
+	beq	.LBB15_28\n\
+	movs	r1, r0\n\
+	adds	r1, #116\n\
+	ldrh	r3, [r1]\n\
+	ldrb	r5, [r1, #4]\n\
+	cmp	r5, #1\n\
+	bne	.LBB15_26\n\
+	lsls	r3, r3, #4\n\
+	subs	r3, #48\n\
+	strh	r3, [r2, #32]\n\
+	ldr	r2, [r0, #32]\n\
+	ldrh	r1, [r1, #2]\n\
+	lsls	r1, r1, #4\n\
+	subs	r1, #66\n\
+	strh	r1, [r2, #34]\n\
+	ldr	r1, [r0, #32]\n\
+	ldr	r2, .LCPI15_4\n\
+	b	.LBB15_27\n\
+.LBB15_22:\n\
+	movs	r5, #8\n\
+	ldrsh	r7, [r2, r5]\n\
+	lsls	r5, r6, #16\n\
+	asrs	r5, r5, #16\n\
+	cmp	r7, r5\n\
+	bgt	.LBB15_8\n\
+	b	.LBB15_9\n\
+.LBB15_23:\n\
+	movs	r5, #10\n\
+	ldrsh	r5, [r2, r5]\n\
+	lsls	r4, r4, #16\n\
+	asrs	r4, r4, #16\n\
+	cmp	r5, r4\n\
+	bgt	.LBB15_12\n\
+	b	.LBB15_13\n\
+.LBB15_24:\n\
+	movs	r2, #1\n\
+	lsls	r1, r2, #15\n\
+	cmp	r3, r1\n\
+	str	r2, [sp]\n\
+	bge	.LBB15_28\n\
+.LBB15_25:\n\
+	movs	r2, #0\n\
+	str	r2, [r0, #80]\n\
+	str	r1, [r0, #76]\n\
+	b	.LBB15_28\n\
+.LBB15_26:\n\
+	lsls	r3, r3, #3\n\
+	adds	r3, r3, #4\n\
+	strh	r3, [r2, #32]\n\
+	ldr	r2, [r0, #32]\n\
+	ldrh	r1, [r1, #2]\n\
+	lsls	r1, r1, #3\n\
+	adds	r1, r1, #4\n\
+	strh	r1, [r2, #34]\n\
+	ldr	r1, [r0, #32]\n\
+	movs	r2, #0\n\
+	strh	r2, [r1, #36]\n\
+	ldr	r1, [r0, #32]\n\
+	str	r2, [sp]\n\
+	strh	r2, [r1, #38]\n\
+	ldr	r1, [r0, #32]\n\
+	ldr	r2, .LCPI15_3\n\
+.LBB15_27:\n\
+	str	r2, [r1, #28]\n\
+	ldr	r1, [r0, #32]\n\
+	ldrh	r2, [r1, #62]\n\
+	movs	r3, #4\n\
+	bics	r2, r3\n\
+	strh	r2, [r1, #62]\n\
+.LBB15_28:\n\
+	movs	r1, #125\n\
+	movs	r2, #1\n\
+	strb	r2, [r0, r1]\n\
+	movs	r1, #128\n\
+	ldr	r2, .LCPI15_5\n\
+	ldrsh	r1, [r2, r1]\n\
+	ldr	r3, [r0, #76]\n\
+	lsrs	r3, r3, #8\n\
+	ldr	r5, .LCPI15_6\n\
+	ands	r5, r3\n\
+	muls	r1, r5, r1\n\
+	asrs	r1, r1, #8\n\
+	str	r1, [r0, #56]\n\
+	ldrh	r2, [r2]\n\
+	lsls	r2, r2, #16\n\
+	asrs	r3, r2, #16\n\
+	muls	r3, r5, r3\n\
+	asrs	r2, r3, #8\n\
+	str	r2, [r0, #52]\n\
+	str	r1, [r0, #44]\n\
+	rsbs	r3, r3, #0\n\
+	asrs	r5, r3, #8\n\
+	str	r5, [r0, #48]\n\
+	movs	r3, #71\n\
+	mvns	r3, r3\n\
+	movs	r6, r3\n\
+	muls	r6, r1, r6\n\
+	movs	r7, r0\n\
+	adds	r7, #92\n\
+	movs	r4, #2\n\
+	ldrsh	r4, [r7, r4]\n\
+	lsls	r4, r4, #8\n\
+	adds	r4, r4, r6\n\
+	movs	r6, r3\n\
+	adds	r6, #16\n\
+	muls	r5, r6, r5\n\
+	adds	r4, r4, r5\n\
+	movs	r5, #9\n\
+	lsls	r5, r5, #11\n\
+	adds	r4, r4, r5\n\
+	str	r4, [r0, #40]\n\
+	muls	r6, r1, r6\n\
+	movs	r1, #92\n\
+	ldrsh	r1, [r0, r1]\n\
+	lsls	r1, r1, #8\n\
+	adds	r1, r1, r6\n\
+	muls	r3, r2, r3\n\
+	adds	r1, r1, r3\n\
+	movs	r2, #7\n\
+	lsls	r2, r2, #11\n\
+	adds	r1, r1, r2\n\
+	str	r1, [r0, #36]\n\
+	ldr	r0, [sp]\n\
+.LBB15_29:\n\
+	add	sp, #4\n\
+	pop	{r4, r5, r6, r7}\n\
+	pop	{r1}\n\
+	bx	r1\n\
+	.p2align	2\n\
+.LCPI15_0:\n\
+	.long	sRegionMap\n\
+.LCPI15_1:\n\
+	.long	ProcessRegionMapInput_Zoomed\n\
+.LCPI15_2:\n\
+	.long	ProcessRegionMapInput_Full\n\
+.LCPI15_3:\n\
+	.long	SpriteCB_PlayerIconMapFull\n\
+.LCPI15_4:\n\
+	.long	SpriteCB_PlayerIconMapZoomed\n\
+.LCPI15_5:\n\
+	.long	gSineTable\n\
+.LCPI15_6:\n\
+	.long	65535");
+#endif
 }
 
 static void CalcZoomScrollParams(s16 scrollX, s16 scrollY, s16 centerX, s16 centerY, u16 ratioX, u16 ratioY, u8 rotation)
@@ -1371,8 +1628,10 @@ static void RegionMap_InitializeStateBasedOnSSTidalLocation(void)
     u8 mapGroup;
     u8 mapNum;
     u16 dimensionScale;
+
     s16 xOnMap;
     s16 yOnMap;
+
     const struct MapHeader *mapHeader;
 
     x = y = 0;
