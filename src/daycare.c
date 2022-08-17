@@ -186,7 +186,7 @@ static void StorePokemonInDaycare(struct Pokemon *mon, struct DaycareMon *daycar
 static void StorePokemonInEmptyDaycareSlot(struct Pokemon *mon, struct DayCare *daycare)
 {
     s8 slotId = Daycare_FindEmptySpot(daycare);
-    // What if this is -1?
+    // TODO: what if this is -1?
     StorePokemonInDaycare(mon, &daycare->mons[slotId]);
 }
 
