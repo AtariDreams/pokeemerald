@@ -941,7 +941,8 @@ void LaunchAnimationTaskForFrontSprite(struct Sprite *sprite, u8 frontAnimId)
 {
     u8 taskId = CreateTask(Task_HandleMonAnimation, 128);
     gTasks[taskId].tPtrHi = (u32)(sprite) >> 16;
-    gTasks[taskId].tPtrLo = (u32)(sprite);
+    // 0xFFFF is not needed but just in case
+    gTasks[taskId].tPtrLo = (u32)(sprite) & 0xFFFF;
     gTasks[taskId].tAnimId = frontAnimId;
 }
 
@@ -957,8 +958,9 @@ void LaunchAnimationTaskForBackSprite(struct Sprite *sprite, u8 backAnimSet)
     u8 nature, taskId, animId, battlerId;
 
     taskId = CreateTask(Task_HandleMonAnimation, 128);
+    // 0xFFFF is not needed but just in case
     gTasks[taskId].tPtrHi = (u32)(sprite) >> 16;
-    gTasks[taskId].tPtrLo = (u32)(sprite);
+    gTasks[taskId].tPtrLo = (u32)(sprite) & 0xFFFF;
 
     battlerId = sprite->data[0];
     nature = GetNature(&gPlayerParty[gBattlerPartyIndexes[battlerId]]);
@@ -1074,6 +1076,7 @@ static void ResetSpriteAfterAnim(struct Sprite *sprite)
         sprite->oam.affineMode = ST_OAM_AFFINE_OFF;
     }
 #ifdef BUGFIX
+    // TODO: check this. I did not write this though. pret did
     else
     {
         // FIX: Reset these back to normal after they were changed so Poké Ball catch/release
@@ -1088,6 +1091,7 @@ static void Anim_CircularStretchTwice(struct Sprite *sprite)
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
 
+    // no else if?
     if (sprite->data[2] > 40)
     {
         HandleSetAffineData(sprite, 256, 256, 0);
@@ -1147,7 +1151,7 @@ static void HorizontalSlide(struct Sprite *sprite)
 
 static void Anim_HorizontalSlide(struct Sprite *sprite)
 {
-    sprite->data[0] = 40;
+    sprite->data[0] = 40; // GF dev comment: I use a param structure, but since there is only one, I have set the parameters directly on the work.
     HorizontalSlide(sprite);
     sprite->callback = HorizontalSlide;
 }
@@ -1172,7 +1176,7 @@ static void VerticalSlide(struct Sprite *sprite)
 
 static void Anim_VerticalSlide(struct Sprite *sprite)
 {
-    sprite->data[0] = 40;
+    sprite->data[0] = 40; // Same comment as above
     VerticalSlide(sprite);
     sprite->callback = VerticalSlide;
 }
@@ -1188,8 +1192,12 @@ static void VerticalJumps(struct Sprite *sprite)
     }
     else
     {
-        s16 divCounter = counter / 128;
-        switch (divCounter)
+        // for some reason, we have to either use divCounter with counter to match, or we have to use sprite->data[2] directly
+        // Newer gcc likes the latter
+
+        //s16 divCounter = counter / 128;
+        //switch (divCounter)
+        switch (sprite->data[2]/128)
         {
         case 0:
         case 1:
@@ -1225,9 +1233,11 @@ static void Anim_VerticalJumpsHorizontalJumps(struct Sprite *sprite)
     }
     else
     {
-        s16 divCounter = counter / 128;
+        //s16 divCounter = counter / 128;
 
-        switch (divCounter)
+        // switch (divCounter)
+        // see comment above
+        switch (sprite->data[2]/128)
         {
         case 0:
         case 1:
@@ -1240,6 +1250,8 @@ static void Anim_VerticalJumpsHorizontalJumps(struct Sprite *sprite)
             sprite->x2 = -(counter % 128 * 8) / 128;
             break;
         case 4:
+            // TODO: commented is GF ver, other is pret. see which is better
+            // sprite->x2 = (counter % 128 * 16) / 128 - 8;
             sprite->x2 = (counter % 128) / 8 - 8;
             break;
         case 5:
@@ -1323,14 +1335,13 @@ static void Zigzag(struct Sprite *sprite)
     if (sZigzagData[sprite->data[3]][2] == 0)
     {
         sprite->callback = WaitAnimEnd;
+        return;
     }
-    else
-    {
-        sprite->x2 += sZigzagData[sprite->data[3]][0];
-        sprite->y2 += sZigzagData[sprite->data[3]][1];
-        sprite->data[2]++;
-        TryFlipX(sprite);
-    }
+
+    sprite->x2 += sZigzagData[sprite->data[3]][0];
+    sprite->y2 += sZigzagData[sprite->data[3]][1];
+    sprite->data[2]++;
+    TryFlipX(sprite);
 }
 
 static void Anim_ZigzagFast(struct Sprite *sprite)
@@ -1358,7 +1369,7 @@ static void HorizontalShake(struct Sprite *sprite)
 
 static void Anim_HorizontalShake(struct Sprite *sprite)
 {
-    sprite->data[0] = 60;
+    sprite->data[0] = 60; // The larger the time, the faster the movement
     sprite->data[7] = 3;
     HorizontalShake(sprite);
     sprite->callback = HorizontalShake;
@@ -1383,7 +1394,7 @@ static void VerticalShake(struct Sprite *sprite)
 
 static void Anim_VerticalShake(struct Sprite *sprite)
 {
-    sprite->data[0] = 60;
+    sprite->data[0] = 60; // see above
     VerticalShake(sprite);
     sprite->callback = VerticalShake;
 }
@@ -1423,46 +1434,52 @@ static void Twist(struct Sprite *sprite)
     if (sAnims[id].delay != 0)
     {
         sAnims[id].delay--;
+        return;
     }
-    else
+
+    if (sprite->data[2] == 0 && sAnims[id].data == 0)
     {
-        if (sprite->data[2] == 0 && sAnims[id].data == 0)
-        {
-            HandleStartAffineAnim(sprite);
-            sAnims[id].data++;
-        }
+        HandleStartAffineAnim(sprite);
+        sAnims[id].data++;
+    }
 
-        if (sprite->data[2] > sAnims[id].rotation)
-        {
-            HandleSetAffineData(sprite, 256, 256, 0);
+    if (sprite->data[2] > sAnims[id].rotation)
+    {
+        HandleSetAffineData(sprite, 256, 256, 0);
 
-            if (sAnims[id].runs > 1)
-            {
-                sAnims[id].runs--;
-                sAnims[id].delay = 10;
-                sprite->data[2] = 0;
-            }
-            else
-            {
-                ResetSpriteAfterAnim(sprite);
-                sprite->callback = WaitAnimEnd;
-            }
+        if (sAnims[id].runs > 1)
+        {
+            sAnims[id].runs--;
+            sAnims[id].delay = 10;
+            sprite->data[2] = 0;
         }
         else
         {
-            sprite->data[6] = Sin(sprite->data[2] % 256, 4096);
-            HandleSetAffineData(sprite, 256, 256, sprite->data[6]);
+            ResetSpriteAfterAnim(sprite);
+            sprite->callback = WaitAnimEnd;
         }
-
-        sprite->data[2] += 16;
     }
+    else
+    {
+        sprite->data[6] = Sin(sprite->data[2] % 256, 4096);
+        HandleSetAffineData(sprite, 256, 256, sprite->data[6]);
+    }
+
+    sprite->data[2] += 16;
 }
 
 static void Anim_Twist(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
 
-    sAnims[id].rotation = 512;
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+    
+    sAnims[id].rotation = 512; // Number of clicks 256, 1 time on each side, 2 times each
     sAnims[id].delay = 0;
     Twist(sprite);
     sprite->callback = Twist;
@@ -1526,7 +1543,14 @@ static void CircleCounterclockwise(struct Sprite *sprite)
 
 static void Anim_CircleCounterclockwise(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+        // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 512;
     sAnims[id].data = 6;
@@ -1560,7 +1584,8 @@ static void Anim_GlowBlack(struct Sprite *sprite)
 
 static void Anim_HorizontalStretch(struct Sprite *sprite)
 {
-    s16 index1 = 0, index2 = 0;
+    // TODO: See if we can move the declarations down
+    s16 index1 = 0, index2;
 
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
@@ -1578,7 +1603,7 @@ static void Anim_HorizontalStretch(struct Sprite *sprite)
         if (sprite->data[2] >= 10 && sprite->data[2] <= 29)
         {
             sprite->data[7] += 51;
-            index1 = 0xFF & sprite->data[7];
+            index1 = sprite->data[7] & 0xFF;
         }
 
         if (!sprite->sDontFlip)
@@ -1595,7 +1620,8 @@ static void Anim_HorizontalStretch(struct Sprite *sprite)
 
 static void Anim_VerticalStretch(struct Sprite *sprite)
 {
-    s16 posY = 0, index1 = 0, index2 = 0;
+    // todo: see if we can move declarations down
+    s16 posY = 0, index1 = 0, index2;
 
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
@@ -1642,11 +1668,11 @@ static void VerticalShakeTwice(struct Sprite *sprite)
     u8 var6 = sVerticalShakeData[sprite->data[5]][1];
     u8 amplitude = 0;
 
-    if (var5 != (u8)-2)
-        amplitude = (var6 - var7) * var5 / var6;
-    else
+    if (var5 == (u8)-2)
         amplitude = 0;
-
+    else
+        amplitude = (var6 - var7) * var5 / var6;
+        
     if (var5 == (u8)-1)
     {
         sprite->callback = WaitAnimEnd;
@@ -1699,7 +1725,7 @@ static void Anim_TipMoveForward(struct Sprite *sprite)
 
         if (counter < 10)
             HandleSetAffineData(sprite, 256, 256, counter / 2 * 512);
-        else if (counter >= 10 && counter <= 29)
+        else if (counter >= 10 && counter < 30)
             sprite->x2 = -(Sin(index, 5));
         else
             HandleSetAffineData(sprite, 256, 256, (35 - counter) / 2 * 1024);
@@ -1723,6 +1749,9 @@ static void Anim_HorizontalPivot(struct Sprite *sprite)
     }
     else
     {
+        // calculations regarding an unused var here were optimized out
+
+        
         s16 index = (sprite->data[2] * 256) / 100;
         sprite->y2 = Sin(index, 10);
         HandleSetAffineData(sprite, 256, 256, Sin(index, 3276));
@@ -1733,8 +1762,8 @@ static void Anim_HorizontalPivot(struct Sprite *sprite)
 
 static void VerticalSlideWobble(struct Sprite *sprite)
 {
-    s32 var = 0;
-    s16 index = 0;
+    s16 index;
+    s16 index2 = 0; // needed to match
 
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
@@ -1749,10 +1778,12 @@ static void VerticalSlideWobble(struct Sprite *sprite)
     else
     {
         index = (sprite->data[2] * 256) / 100;
-        var = (sprite->data[2] * 512) / 100;
-        var &= 0xFF;
+        index2 = ((sprite->data[2] * 512) / 100) & 0xFF;
+        // index = 256 * sprite->data[2]/ 100;
+        // index2 = (512 * sprite->data[2]/ 100) & 0xFF;
+
         sprite->y2 = Sin(index, sprite->data[0]);
-        HandleSetAffineData(sprite, 256, 256, Sin(var, 3276));
+        HandleSetAffineData(sprite, 256, 256, Sin(index2, 3276));
     }
 
     sprite->data[2]++;
@@ -1767,8 +1798,8 @@ static void Anim_VerticalSlideWobble(struct Sprite *sprite)
 
 static void RisingWobble(struct Sprite *sprite)
 {
-    s32 var = 0;
-    s16 index = 0;
+    s16 index;
+    s16 index2 = 0; // needed to match
 
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
@@ -1783,10 +1814,10 @@ static void RisingWobble(struct Sprite *sprite)
     else
     {
         index = (sprite->data[2] * 256) / 100;
-        var = (sprite->data[2] * 512) / 100;
-        var &= 0xFF;
+        index2 = ((sprite->data[2] * 512) / 100) & 0xFF;
+
         sprite->y2 = -(Sin(index / 2, sprite->data[0] * 2));
-        HandleSetAffineData(sprite, 256, 256, Sin(var, 3276));
+        HandleSetAffineData(sprite, 256, 256, Sin(index2, 3276));
     }
 
     sprite->data[2]++;
@@ -1801,11 +1832,12 @@ static void Anim_RisingWobble(struct Sprite *sprite)
 
 static void Anim_HorizontalSlideWobble(struct Sprite *sprite)
 {
-    s32 var;
-    s16 index = 0;
+    
+    s16 index;
+    s16 index2;
 
     TryFlipX(sprite);
-    var = 0;
+    index2 = 0;
 
     if (sprite->data[2] == 0)
         HandleStartAffineAnim(sprite);
@@ -1820,10 +1852,10 @@ static void Anim_HorizontalSlideWobble(struct Sprite *sprite)
     else
     {
         index = (sprite->data[2] * 256) / 100;
-        var = (sprite->data[2] * 512) / 100;
-        var &= 0xFF;
+        index2 = ((sprite->data[2] * 512) / 100) & 0xFF;
+
         sprite->x2 = Sin(index, 8);
-        HandleSetAffineData(sprite, 256, 256, Sin(var, 3276));
+        HandleSetAffineData(sprite, 256, 256, Sin(index2, 3276));
     }
 
     sprite->data[2]++;
@@ -1857,7 +1889,8 @@ static void VerticalSquishBounce(struct Sprite *sprite)
             sprite->data[3] += (128 / sprite->data[0]);
         if (yScale > 256)
             posY = (256 - yScale) / 8;
-
+        
+        // TODO: make a posX var that is 256 - Sin(sprite->data[4], 32) and replace that in the second statement below?
         sprite->y2 = -(Sin(sprite->data[3], 10)) - posY;
         HandleSetAffineData(sprite, 256 - Sin(sprite->data[4], 32), yScale, 0);
         sprite->data[2]++;
@@ -1891,7 +1924,7 @@ static void ShrinkGrow(struct Sprite *sprite)
 
         if (yScale > 256)
             posY = (256 - yScale) / 8;
-
+         // see above function
         sprite->y2 = -(posY);
         HandleSetAffineData(sprite, Sin(sprite->data[4], 48) + 256, yScale, 0);
         sprite->data[2]++;
@@ -1937,7 +1970,7 @@ static const s8 sBounceRotateToSidesData[][8][3] =
 
 static void BounceRotateToSides(struct Sprite *sprite)
 {
-    s16 var;
+    s16 tilt;
     u8 structId;
     s8 r9;
     s16 r10;
@@ -1946,7 +1979,7 @@ static void BounceRotateToSides(struct Sprite *sprite)
 
     TryFlipX(sprite);
     structId = sprite->data[0];
-    var = sAnims[structId].rotation;
+    tilt = sAnims[structId].rotation;
     r9 = sBounceRotateToSidesData[sAnims[structId].data][sprite->data[4]][0];
     r10 = sBounceRotateToSidesData[sAnims[structId].data][sprite->data[4]][1] - r9;
     arrId = sAnims[structId].data;
@@ -1970,10 +2003,11 @@ static void BounceRotateToSides(struct Sprite *sprite)
     {
         u16 rotation;
 
+        //TODO: was there a type conversion bug or did the programmers want this. The way GF did it is UB, sorta but the compiler inlined it. Maybe we should do it the way GF did it, assigning this to a u16? Maybe s16 also matches?
         sprite->y2 = -(Sin(r7 * 128 / sBounceRotateToSidesData[arrId][sprite->data[4]][2], 10));
         sprite->x2 = (r10 * r7 / sBounceRotateToSidesData[arrId][sprite->data[4]][2]) + r9;
 
-        rotation = -(var * sprite->x2) / 8;
+        rotation = -(tilt * sprite->x2) / 8;
         HandleSetAffineData(sprite, 256, 256, rotation);
 
         if (r7 == sBounceRotateToSidesData[arrId][sprite->data[4]][2])
@@ -1992,7 +2026,15 @@ static void BounceRotateToSides(struct Sprite *sprite)
 
 static void Anim_BounceRotateToSides(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
     sAnims[id].rotation = 4096;
     sAnims[id].data = sprite->data[6];
     BounceRotateToSides(sprite);
@@ -2039,7 +2081,7 @@ static void Anim_BackAndLunge(struct Sprite *sprite)
 static void BackAndLunge_0(struct Sprite *sprite)
 {
     TryFlipX(sprite);
-    if (++sprite->x2 > 7)
+    if (++sprite->x2 >= 8)
     {
         sprite->x2 = 8;
         sprite->data[7] = 2;
@@ -2069,7 +2111,7 @@ static void BackAndLunge_1(struct Sprite *sprite)
         }
         while (subResult > -8);
 
-        sprite->data[5] = 1;
+        sprite->data[5] = 1; // Slope calculation count set?
         sprite->callback = BackAndLunge_2;
     }
 
@@ -2084,11 +2126,11 @@ static void BackAndLunge_2(struct Sprite *sprite)
     sprite->x2 -= sprite->data[7];
     sprite->data[7]++;
     rotation = (sprite->data[5] * 6) / sprite->data[6];
-
+    // This would be better written as having the ++ be in the else clause but that does not match, does it?
     if (++sprite->data[5] > sprite->data[6])
         sprite->data[5] = sprite->data[6];
 
-    HandleSetAffineData(sprite, 256, 256, rotation * 256);
+    HandleSetAffineData(sprite, 256, 256, rotation << 8);
 
     if (sprite->x2 < -8)
     {
@@ -2106,7 +2148,7 @@ static void BackAndLunge_3(struct Sprite *sprite)
 {
     TryFlipX(sprite);
 
-    if (sprite->data[3] > 11)
+    if (sprite->data[3] >= 12)
     {
         sprite->data[2] -= 2;
         if (sprite->data[2] < 0)
@@ -2160,7 +2202,7 @@ static void BackFlip_0(struct Sprite *sprite)
 
     if (sprite->x2 % 2 == 0 && sprite->data[3] <= 0)
         sprite->data[3] = 10;
-    if (sprite->x2 > 7)
+    if (sprite->x2 >= 8)
     {
         sprite->x2 = 8;
         sprite->y2 = -8;
@@ -2177,7 +2219,7 @@ static void BackFlip_1(struct Sprite *sprite)
     sprite->x2 = Cos(sprite->data[4], 16) - 8;
     sprite->y2 = Sin(sprite->data[4], 16) - 8;
 
-    if (sprite->data[4] > 63)
+    if (sprite->data[4] >= 64)
     {
         sprite->data[2] = 160;
         sprite->data[3] = 10;
@@ -2200,13 +2242,19 @@ static void BackFlip_2(struct Sprite *sprite)
     }
     else
     {
-        u32 rotation;
+        s16 rotation;
+       // u32 rotation;
+       // s32 rotation
 
         sprite->x2 = Cos(sprite->data[2], 5) - 4;
         sprite->y2 = -(Sin(sprite->data[2], 5)) + 4;
         sprite->data[2] -= 4;
-        rotation = sprite->data[2] - 32;
-        HandleSetAffineData(sprite, 256, 256, rotation * 512);
+        // If this is s16, this * 2 has to be here, even though u32 of it matches with << 9
+        rotation = (sprite->data[2] - 32) * 2;
+        HandleSetAffineData(sprite, 256, 256, rotation << 8);
+
+        // rotation = (sprite->data[2] - 32);
+        // HandleSetAffineData(sprite, 256, 256, rotation << 9);
 
         if (sprite->data[2] <= 32)
         {
@@ -2230,7 +2278,7 @@ static void Anim_Flicker(struct Sprite *sprite)
     {
         sprite->data[4] = (sprite->data[4] == 0) ? TRUE : FALSE;
         sprite->invisible = sprite->data[4];
-        if (++sprite->data[2] > 19)
+        if (++sprite->data[2] >= 20)
         {
             sprite->invisible = FALSE;
             sprite->callback = WaitAnimEnd;
@@ -2268,14 +2316,14 @@ static void BackFlipBig_0(struct Sprite *sprite)
 
 static void BackFlipBig_1(struct Sprite *sprite)
 {
-    u32 rotation;
+    s16 rotation;
 
     TryFlipX(sprite);
     sprite->data[2] -= 4;
     sprite->x2 = Cos(sprite->data[2], 22);
     sprite->y2 = -(Sin(sprite->data[2], 22));
-    rotation = sprite->data[2] - 32;
-    HandleSetAffineData(sprite, 256, 256, rotation * 512);
+    rotation = (sprite->data[2] - 32) * 2;
+    HandleSetAffineData(sprite, 256, 256, rotation << 8);
 
     if (sprite->data[2] <= 32)
         sprite->callback = BackFlipBig_2;
@@ -2314,7 +2362,7 @@ static void FrontFlip_0(struct Sprite *sprite)
     sprite->x2++;
     sprite->y2--;
 
-    if (sprite->x2 > 15)
+    if (sprite->x2 >= 16)
     {
         sprite->data[2] = 0;
         sprite->callback = FrontFlip_1;
@@ -2366,7 +2414,15 @@ static void TumblingFrontFlip(struct Sprite *sprite);
 
 static void Anim_TumblingFrontFlip(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
     sAnims[id].speed = 2;
     TumblingFrontFlip(sprite);
     sprite->callback = TumblingFrontFlip;
@@ -2377,58 +2433,57 @@ static void TumblingFrontFlip(struct Sprite *sprite)
     if (sAnims[sprite->data[0]].delay != 0)
     {
         sAnims[sprite->data[0]].delay--;
+        return;
     }
-    else
+
+    TryFlipX(sprite);
+    if (sprite->data[2] == 0)
     {
-        TryFlipX(sprite);
-        if (sprite->data[2] == 0)
+        sprite->data[2]++;
+        HandleStartAffineAnim(sprite);
+        sprite->data[7] = sAnims[sprite->data[0]].speed;
+        sprite->data[3] = -1;
+        sprite->data[4] = -1;
+        sprite->data[5] = 0;
+        sprite->data[6] = 0;
+    }
+
+    sprite->x2 += (sprite->data[7] * 2 * sprite->data[3]);
+    sprite->y2 += (sprite->data[7] * sprite->data[4]);
+    sprite->data[6] += 8;
+    if (sprite->x2 <= -16 || sprite->x2 >= 16)
+    {
+        sprite->x2 = sprite->data[3] * 16;
+        sprite->data[3] *= -1;
+        sprite->data[5]++;
+    }
+    else if (sprite->y2 <= -16 || sprite->y2 >= 16)
+    {
+        sprite->y2 = sprite->data[4] * 16;
+        sprite->data[4] *= -1;
+        sprite->data[5]++;
+    }
+
+    if (sprite->data[5] > 5 && sprite->x2 <= 0)
+    {
+        sprite->x2 = 0;
+        sprite->y2 = 0;
+        if (sAnims[sprite->data[0]].runs > 1)
         {
-            sprite->data[2]++;
-            HandleStartAffineAnim(sprite);
-            sprite->data[7] = sAnims[sprite->data[0]].speed;
-            sprite->data[3] = -1;
-            sprite->data[4] = -1;
+            sAnims[sprite->data[0]].runs--;
             sprite->data[5] = 0;
             sprite->data[6] = 0;
+            sAnims[sprite->data[0]].delay = 10;
         }
-
-        sprite->x2 += (sprite->data[7] * 2 * sprite->data[3]);
-        sprite->y2 += (sprite->data[7] * sprite->data[4]);
-        sprite->data[6] += 8;
-        if (sprite->x2 <= -16 || sprite->x2 >= 16)
+        else
         {
-            sprite->x2 = sprite->data[3] * 16;
-            sprite->data[3] *= -1;
-            sprite->data[5]++;
+            ResetSpriteAfterAnim(sprite);
+            sprite->callback = WaitAnimEnd;
         }
-        else if (sprite->y2 <= -16 || sprite->y2 >= 16)
-        {
-            sprite->y2 = sprite->data[4] * 16;
-            sprite->data[4] *= -1;
-            sprite->data[5]++;
-        }
-
-        if (sprite->data[5] > 5 && sprite->x2 <= 0)
-        {
-            sprite->x2 = 0;
-            sprite->y2 = 0;
-            if (sAnims[sprite->data[0]].runs > 1)
-            {
-                sAnims[sprite->data[0]].runs--;
-                sprite->data[5] = 0;
-                sprite->data[6] = 0;
-                sAnims[sprite->data[0]].delay = 10;
-            }
-            else
-            {
-                ResetSpriteAfterAnim(sprite);
-                sprite->callback = WaitAnimEnd;
-            }
-        }
-
-        HandleSetAffineData(sprite, 256, 256, sprite->data[6] << 8);
-        TryFlipX(sprite);
     }
+
+    HandleSetAffineData(sprite, 256, 256, sprite->data[6] << 8);
+    TryFlipX(sprite);
 }
 
 static void Figure8(struct Sprite *sprite);
@@ -2471,7 +2526,7 @@ static void Figure8(struct Sprite *sprite)
 
 static void Anim_FlashYellow(struct Sprite *sprite)
 {
-    if (++sprite->data[2] == 1)
+    if (sprite->data[2]++ == 0)
     {
         sprite->data[7] = (sprite->oam.paletteNum * 16) + 256;
         sprite->data[6] = 0;
@@ -2542,7 +2597,15 @@ static void SwingConcave(struct Sprite *sprite)
 
 static void Anim_SwingConcave_FastShort(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
     sAnims[id].data = 50;
     SwingConcave(sprite);
     sprite->callback = SwingConcave;
@@ -2582,7 +2645,15 @@ static void SwingConvex(struct Sprite *sprite)
 
 static void Anim_SwingConvex_FastShort(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
     sAnims[id].data = 50;
     SwingConvex(sprite);
     sprite->callback = SwingConvex;
@@ -2657,60 +2728,67 @@ static void DeepVerticalSquishBounce(struct Sprite *sprite)
     if (sAnims[sprite->data[0]].delay != 0)
     {
         sAnims[sprite->data[0]].delay--;
+        return;
     }
-    else
+
+    if (sprite->data[2] == 0)
     {
-        if (sprite->data[2] == 0)
-        {
-            HandleStartAffineAnim(sprite);
-            sprite->data[4] = 0;
-            sprite->data[5] = 0;
-            sprite->data[2] = 1;
-        }
-
-        if (sprite->data[5] == 0)
-        {
-            sprite->data[7] = Sin(sprite->data[4], 256);
-            sprite->y2 = Sin(sprite->data[4], 16);
-            sprite->data[6] = Sin(sprite->data[4], 32);
-            HandleSetAffineData(sprite, 256 - sprite->data[6], 256 + sprite->data[7], 0);
-            if (sprite->data[4] == 128)
-            {
-                sprite->data[4] = 0;
-                sprite->data[5] = 1;
-            }
-        }
-        else if (sprite->data[5] == 1)
-        {
-            sprite->data[7] = Sin(sprite->data[4], 32);
-            sprite->y2 = -(Sin(sprite->data[4], 8));
-            sprite->data[6] = Sin(sprite->data[4], 128);
-            HandleSetAffineData(sprite, 256 + sprite->data[6], 256 - sprite->data[7], 0);
-            if (sprite->data[4] == 128)
-            {
-                if (sAnims[sprite->data[0]].runs > 1)
-                {
-                    sAnims[sprite->data[0]].runs--;
-                    sAnims[sprite->data[0]].delay = 10;
-                    sprite->data[4] = 0;
-                    sprite->data[5] = 0;
-                }
-                else
-                {
-                    HandleSetAffineData(sprite, 256, 256, 0);
-                    ResetSpriteAfterAnim(sprite);
-                    sprite->callback = WaitAnimEnd;
-                }
-            }
-        }
-
-        sprite->data[4] += sAnims[sprite->data[0]].rotation;
+        HandleStartAffineAnim(sprite);
+        sprite->data[4] = 0;
+        sprite->data[5] = 0;
+        sprite->data[2] = 1;
     }
+
+    if (sprite->data[5] == 0)
+    {
+        sprite->data[7] = Sin(sprite->data[4], 256);
+        sprite->y2 = Sin(sprite->data[4], 16);
+        sprite->data[6] = Sin(sprite->data[4], 32);
+        HandleSetAffineData(sprite, 256 - sprite->data[6], 256 + sprite->data[7], 0);
+        if (sprite->data[4] == 128)
+        {
+            sprite->data[4] = 0;
+            sprite->data[5] = 1;
+        }
+    }
+    else if (sprite->data[5] == 1)
+    {
+        sprite->data[7] = Sin(sprite->data[4], 32);
+        sprite->y2 = -(Sin(sprite->data[4], 8));
+        sprite->data[6] = Sin(sprite->data[4], 128);
+        HandleSetAffineData(sprite, 256 + sprite->data[6], 256 - sprite->data[7], 0);
+        if (sprite->data[4] == 128)
+        {
+            if (sAnims[sprite->data[0]].runs > 1)
+            {
+                sAnims[sprite->data[0]].runs--;
+                sAnims[sprite->data[0]].delay = 10;
+                sprite->data[4] = 0;
+                sprite->data[5] = 0;
+            }
+            else
+            {
+                HandleSetAffineData(sprite, 256, 256, 0);
+                ResetSpriteAfterAnim(sprite);
+                sprite->callback = WaitAnimEnd;
+            }
+        }
+    }
+
+    sprite->data[4] += sAnims[sprite->data[0]].rotation;
 }
 
 static void Anim_DeepVerticalSquishBounce(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
     sAnims[id].rotation = 4;
     DeepVerticalSquishBounce(sprite);
     sprite->callback = DeepVerticalSquishBounce;
@@ -2728,16 +2806,33 @@ static void Anim_HorizontalJumps(struct Sprite *sprite)
     }
     else
     {
+        // TODO: find out which is better
+        // switch (sprite->data[2] / 128)
+        // {
+        // case 0:
+        //     sprite->x2 = -(counter % 128 * 8) / 128;
+        //     break;
+        // case 1:
+        //     sprite->x2 = (counter % 128 / 16) - 8;
+        //     break;
+        // case 2:
+        //     sprite->x2 = (counter % 128 / 16);
+        //     break;
+        // case 3:
+        //     sprite->x2 = -(counter % 128 * 8) / 128 + 8;
+        //     break;
+        // }
+
         switch (sprite->data[2] / 128)
         {
         case 0:
             sprite->x2 = -(counter % 128 * 8) / 128;
             break;
         case 1:
-            sprite->x2 = (counter % 128 / 16) - 8;
+            sprite->x2 = (counter % 128 * 8) / 128 - 8;
             break;
         case 2:
-            sprite->x2 = (counter % 128 / 16);
+            sprite->x2 = (counter % 128 * 8) / 128;
             break;
         case 3:
             sprite->x2 = -(counter % 128 * 8) / 128 + 8;
@@ -2757,8 +2852,16 @@ static void HorizontalJumpsVerticalStretch_2(struct Sprite *sprite);
 
 static void Anim_HorizontalJumpsVerticalStretch(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
-    sAnims[id].data = -1;
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
+    sAnims[id].data = -1; // step to the left?
     HandleStartAffineAnim(sprite);
     sprite->data[3] = 0;
     HorizontalJumpsVerticalStretch_0(sprite);
@@ -2767,31 +2870,29 @@ static void Anim_HorizontalJumpsVerticalStretch(struct Sprite *sprite)
 
 static void HorizontalJumpsVerticalStretch_0(struct Sprite *sprite)
 {
+    s32 counter;
+
     if (sAnims[sprite->data[0]].delay != 0)
     {
         sAnims[sprite->data[0]].delay--;
+        return;
+    }
+
+    TryFlipX(sprite);
+    counter = sprite->data[2];
+    if (sprite->data[2] > 128)
+    {
+        sprite->data[2] = 0;
+        sprite->callback = HorizontalJumpsVerticalStretch_1;
     }
     else
     {
-        s32 counter;
-
-        TryFlipX(sprite);
-        counter = sprite->data[2];
-        if (sprite->data[2] > 128)
-        {
-            sprite->data[2] = 0;
-            sprite->callback = HorizontalJumpsVerticalStretch_1;
-        }
-        else
-        {
-            s32 var = 8 * sAnims[sprite->data[0]].data;
-            sprite->x2 = var * (counter % 128) / 128;
-            sprite->y2 = -(Sin(counter % 128, 8));
-            sprite->data[2] += 12;
-        }
-
-        TryFlipX(sprite);
+        sprite->x2 = sAnims[sprite->data[0]].data * (counter % 128 * 8) / 128;
+        sprite->y2 = -(Sin(counter % 128, 8));
+        sprite->data[2] += 12;
     }
+
+    TryFlipX(sprite);
 }
 
 static void HorizontalJumpsVerticalStretch_1(struct Sprite *sprite)
@@ -2875,7 +2976,7 @@ static void RotateToSides(struct Sprite *sprite)
     }
 
     TryFlipX(sprite);
-    if (sprite->data[7] > 254)
+    if (sprite->data[7] >= 255)
     {
         sprite->x2 = 0;
         sprite->y2 = 0;
@@ -2896,7 +2997,8 @@ static void RotateToSides(struct Sprite *sprite)
     }
     else
     {
-        u16 rotation;
+        s16 rotation;
+        // also matches as u16. u16 is the parameter of what is being passed, but sin returns an s16
 
         sprite->x2 = -(Sin(sprite->data[7], 16));
         rotation = Sin(sprite->data[7], 32);
@@ -2908,7 +3010,15 @@ static void RotateToSides(struct Sprite *sprite)
 
 static void Anim_RotateToSides_Fast(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    // id = sprite->data[0] = AddNewAnim();
+   // u8 id = sprite->data[0] = AddNewAnim();
     sAnims[id].rotation = 4;
     RotateToSides(sprite);
     sprite->callback = RotateToSides;
@@ -2923,7 +3033,7 @@ static void Anim_RotateUpToSides(struct Sprite *sprite)
     }
 
     TryFlipX(sprite);
-    if (sprite->data[7] > 254)
+    if (sprite->data[7] >= 255)
     {
         sprite->x2 = 0;
         sprite->y2 = 0;
@@ -2931,10 +3041,11 @@ static void Anim_RotateUpToSides(struct Sprite *sprite)
         ResetSpriteAfterAnim(sprite);
         sprite->callback = WaitAnimEnd;
         TryFlipX(sprite);
+        return;
     }
     else
     {
-        u16 rotation;
+        s16 rotation;
 
         sprite->x2 = -(Sin(sprite->data[7], 16));
         sprite->y2 = -(Sin(sprite->data[7] % 128, 16));
@@ -2982,7 +3093,7 @@ static void Anim_TipHopForward(struct Sprite *sprite)
 
 static void TipHopForward_0(struct Sprite *sprite)
 {
-    if (sprite->data[7] > 31)
+    if (sprite->data[7] >= 32)
     {
         sprite->data[7] = 32;
         sprite->data[2] = 0;
@@ -3036,7 +3147,9 @@ static void TipHopForward_2(struct Sprite *sprite)
 
 static void Anim_PivotShake(struct Sprite *sprite)
 {
-    u16 rotation;
+    // oh so NOW GF decides to use u16. So inconsistent these devs are...
+    // Luckily matching does not change, and I am using s16 to be safe and consistent
+    s16 rotation;
 
     if (sprite->data[2] == 0)
     {
@@ -3062,7 +3175,7 @@ static void Anim_PivotShake(struct Sprite *sprite)
     }
 
     rotation = Sin(sprite->data[7] % 128, 16);
-    HandleSetAffineData(sprite, 256, 256, rotation << 8);
+    HandleSetAffineData(sprite, 256, 256, rotation * 256);
     TryFlipX(sprite);
 }
 
@@ -3084,7 +3197,7 @@ static void TipAndShake_0(struct Sprite *sprite)
     TryFlipX(sprite);
     if (sprite->data[7] > 24)
     {
-        if (++sprite->data[4] > 4)
+        if (++sprite->data[4] >= 5)
         {
             sprite->data[4] = 0;
             sprite->callback = TipAndShake_1;
@@ -3124,7 +3237,7 @@ static void TipAndShake_2(struct Sprite *sprite)
 {
     TryFlipX(sprite);
     sprite->data[7] += (sprite->data[6] * 4);
-    if (sprite->data[5] > 9)
+    if (sprite->data[5] >= 10)
     {
         sprite->data[7] = 32;
         sprite->callback = TipAndShake_3;
@@ -3132,7 +3245,7 @@ static void TipAndShake_2(struct Sprite *sprite)
 
     sprite->x2 = Sin(sprite->data[7], 8);
     sprite->y2 = -(Sin(sprite->data[7], 8));
-    if (sprite->data[7] <= 28 || sprite->data[7] >= 36)
+    if (sprite->data[7] >= 36 || sprite->data[7] <= 28)
     {
         sprite->data[6] *= -1;
         sprite->data[5]++;
@@ -3196,6 +3309,7 @@ static void Anim_VibrateToCorners(struct Sprite *sprite)
 
 static void Anim_GrowInStages(struct Sprite *sprite)
 {
+    s16 var;
     TryFlipX(sprite);
     if (sprite->data[2] == 0)
     {
@@ -3212,17 +3326,16 @@ static void Anim_GrowInStages(struct Sprite *sprite)
         if (sprite->data[5] != 3)
         {
             s16 scale = (8 * sprite->data[6]) / 20;
-            scale = Sin(sprite->data[7] - scale, 64);
-            HandleSetAffineData(sprite, 256 - scale, 256 - scale, 0);
+            var = Sin(sprite->data[7] - scale, 64);
+            HandleSetAffineData(sprite, 256 - var, 256 - var, 0);
         }
     }
     else
     {
-        s16 var;
 
         if (sprite->data[5] == 3)
         {
-            if (sprite->data[7] > 63)
+            if (sprite->data[7] >= 64)
             {
                 sprite->data[7] = 64;
                 HandleSetAffineData(sprite, 256, 256, 0);
@@ -3234,24 +3347,21 @@ static void Anim_GrowInStages(struct Sprite *sprite)
         else
         {
             var = Sin(sprite->data[7], 64);
-            if (sprite->data[7] > 63)
+            if (sprite->data[7] >= 64)
             {
                 sprite->data[5] = 3;
                 sprite->data[6] = 10;
                 sprite->data[7] = 0;
             }
-            else
+            else if (var > 48 && sprite->data[5] == 1)
             {
-                if (var > 48 && sprite->data[5] == 1)
-                {
-                    sprite->data[5] = 2;
-                    sprite->data[6] = 20;
-                }
-                else if (var > 16 && sprite->data[5] == 0)
-                {
-                    sprite->data[5] = 1;
-                    sprite->data[6] = 20;
-                }
+                sprite->data[5] = 2;
+                sprite->data[6] = 20;
+            }
+            else if (var > 16 && sprite->data[5] == 0)
+            {
+                sprite->data[5] = 1;
+                sprite->data[6] = 20;
             }
         }
 
@@ -3332,7 +3442,7 @@ static void SpringRising_0(struct Sprite *sprite)
     s16 yScale;
 
     sprite->data[7] += 8;
-    if (sprite->data[7] > 63)
+    if (sprite->data[7] >= 64)
     {
         sprite->data[7] = 0;
         sprite->data[6] = 0;
@@ -3352,7 +3462,7 @@ static void SpringRising_1(struct Sprite *sprite)
     s16 yScale;
 
     sprite->data[7] += 4;
-    if (sprite->data[7] > 95)
+    if (sprite->data[7] >= 96)
     {
         yScale = Cos(0, 128); // 128 * (-1) = -128
         sprite->data[7] = 0;
@@ -3363,7 +3473,7 @@ static void SpringRising_1(struct Sprite *sprite)
         s16 sign, index;
 
         sprite->y2 = -(sprite->data[6] * 4) - Sin(sprite->data[7], 8);
-        if (sprite->data[7] > 63)
+        if (sprite->data[7] >= 64)
         {
             sign = -1;
             index = sprite->data[7] - 64;
@@ -3374,7 +3484,7 @@ static void SpringRising_1(struct Sprite *sprite)
             index = 0;
         }
 
-        yScale = Cos((index * 2) + sprite->data[7], 128) * sign;
+        yScale = Cos(sprite->data[7] + (index * 2), 128) * sign;
     }
 
     HandleSetAffineData(sprite, 256, 256 + yScale, 0);
@@ -3392,7 +3502,7 @@ static void SpringRising_2(struct Sprite *sprite)
     sprite->data[7] += 8;
     yScale = Cos(sprite->data[7], 128);
     sprite->y2 = -(Cos(sprite->data[7], 12));
-    if (sprite->data[7] > 63)
+    if (sprite->data[7] >= 64)
     {
         ResetSpriteAfterAnim(sprite);
         sprite->callback = WaitAnimEnd;
@@ -3572,18 +3682,33 @@ static void Anim_RapidHorizontalHops(struct Sprite *sprite)
         sprite->data[6] = 0;
     }
     else
-    {
-        s16 caseVar = (sprite->data[2] / 512) % 4;
-        switch (caseVar)
+    {;
+        // switch ((sprite->data[2] / 512) % 4)
+        // {
+        // case 0:
+        //     sprite->x2 = -(sprite->data[2] % 512 * 16) / 512;
+        //     break;
+        // case 1:
+        //     sprite->x2 = (sprite->data[2] % 512 / 32) - 16;
+        //     break;
+        // case 2:
+        //     sprite->x2 = (sprite->data[2] % 512) / 32;
+        //     break;
+        // case 3:
+        //     sprite->x2 = -(sprite->data[2] % 512 * 16) / 512 + 16;
+        //     break;
+        // }
+
+        switch ((sprite->data[2] / 512) % 4)
         {
         case 0:
             sprite->x2 = -(sprite->data[2] % 512 * 16) / 512;
             break;
         case 1:
-            sprite->x2 = (sprite->data[2] % 512 / 32) - 16;
+            sprite->x2 = (sprite->data[2] % 512 * 16) / 512 - 16;
             break;
         case 2:
-            sprite->x2 = (sprite->data[2] % 512) / 32;
+            sprite->x2 = (sprite->data[2] % 512 * 16) / 512;
             break;
         case 3:
             sprite->x2 = -(sprite->data[2] % 512 * 16) / 512 + 16;
@@ -3610,7 +3735,7 @@ static void Anim_FourPetal(struct Sprite *sprite)
     sprite->data[7] += 8;
     if (sprite->data[6] == 4)
     {
-        if (sprite->data[7] > 63)
+        if (sprite->data[7] >= 64)
         {
             sprite->data[7] = 0;
             sprite->data[6]++;
@@ -3618,7 +3743,7 @@ static void Anim_FourPetal(struct Sprite *sprite)
     }
     else
     {
-        if (sprite->data[7] > 127)
+        if (sprite->data[7] >= 128)
         {
             sprite->data[7] = 0;
             sprite->data[6]++;
@@ -3677,7 +3802,14 @@ static void Anim_VerticalSlide_Slow(struct Sprite *sprite)
 
 static void Anim_BounceRotateToSides_Small(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 2048;
     sAnims[id].data = sprite->data[6];
@@ -3730,7 +3862,14 @@ static void Anim_VertialShake_Slow(struct Sprite *sprite)
 
 static void Anim_Twist_Twice(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 1024;
     sAnims[id].delay = 0;
@@ -3741,7 +3880,14 @@ static void Anim_Twist_Twice(struct Sprite *sprite)
 
 static void Anim_CircleCounterclockwise_Slow(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 512;
     sAnims[id].data = 3;
@@ -3773,7 +3919,14 @@ static void Anim_VerticalJumps_Small(struct Sprite *sprite)
 
 static void Anim_Spin(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].delay = 60;
     sAnims[id].data = 30;
@@ -3783,7 +3936,14 @@ static void Anim_Spin(struct Sprite *sprite)
 
 static void Anim_TumblingFrontFlip_Twice(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].speed = 1;
     sAnims[id].runs = 2;
@@ -3793,7 +3953,14 @@ static void Anim_TumblingFrontFlip_Twice(struct Sprite *sprite)
 
 static void Anim_DeepVerticalSquishBounce_Twice(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 4;
     sAnims[id].runs = 2;
@@ -3803,7 +3970,14 @@ static void Anim_DeepVerticalSquishBounce_Twice(struct Sprite *sprite)
 
 static void Anim_HorizontalJumpsVerticalStretch_Twice(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].data = 1;
     sAnims[id].runs = 2;
@@ -3815,7 +3989,14 @@ static void Anim_HorizontalJumpsVerticalStretch_Twice(struct Sprite *sprite)
 
 static void Anim_RotateToSides(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 2;
     RotateToSides(sprite);
@@ -3824,7 +4005,14 @@ static void Anim_RotateToSides(struct Sprite *sprite)
 
 static void Anim_RotateToSides_Twice(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 4;
     sAnims[id].runs = 2;
@@ -3834,7 +4022,14 @@ static void Anim_RotateToSides_Twice(struct Sprite *sprite)
 
 static void Anim_SwingConcave(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].data = 100;
     SwingConcave(sprite);
@@ -3843,7 +4038,14 @@ static void Anim_SwingConcave(struct Sprite *sprite)
 
 static void Anim_SwingConcave_Fast(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].data = 50;
     sAnims[id].runs = 2;
@@ -3853,7 +4055,14 @@ static void Anim_SwingConcave_Fast(struct Sprite *sprite)
 
 static void Anim_SwingConvex(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].data = 100;
     SwingConvex(sprite);
@@ -3862,7 +4071,14 @@ static void Anim_SwingConvex(struct Sprite *sprite)
 
 static void Anim_SwingConvex_Fast(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].data = 50;
     sAnims[id].runs = 2;
@@ -3913,11 +4129,26 @@ static void Anim_VerticalShakeHorizontalSlide_Slow(struct Sprite *sprite)
     }
     else
     {
-        s16 divCase = (sprite->data[2] / 512) % 4;
-        switch (divCase)
+        // switch ((sprite->data[2] / 512) % 4)
+        // {
+        // case 0:
+        //     sprite->x2 = (sprite->data[2] % 512) / 32;
+        //     break;
+        // case 2:
+        //     sprite->x2 = -(sprite->data[2] % 512 * 16) / 512;
+        //     break;
+        // case 1:
+        //     sprite->x2 = -(sprite->data[2] % 512 * 16) / 512 + 16;
+        //     break;
+        // case 3:
+        //     sprite->x2 = (sprite->data[2] % 512) / 32 - 16;
+        //     break;
+        // }
+
+        switch ((sprite->data[2] / 512) % 4)
         {
         case 0:
-            sprite->x2 = (sprite->data[2] % 512) / 32;
+            sprite->x2 = (sprite->data[2] % 512 * 16) / 512;
             break;
         case 2:
             sprite->x2 = -(sprite->data[2] % 512 * 16) / 512;
@@ -3926,7 +4157,7 @@ static void Anim_VerticalShakeHorizontalSlide_Slow(struct Sprite *sprite)
             sprite->x2 = -(sprite->data[2] % 512 * 16) / 512 + 16;
             break;
         case 3:
-            sprite->x2 = (sprite->data[2] % 512) / 32 - 16;
+            sprite->x2 = (sprite->data[2] % 512 * 16) / 512 - 16;
             break;
         }
 
@@ -3939,7 +4170,8 @@ static void Anim_VerticalShakeHorizontalSlide_Slow(struct Sprite *sprite)
 
 static void VerticalStretchBothEnds(struct Sprite *sprite)
 {
-    s16 index1 = 0, index2 = 0;
+    s16 index1;
+    s16 index2 = 0;
 
     if (sprite->data[5] > sprite->data[6])
     {
@@ -3962,22 +4194,22 @@ static void VerticalStretchBothEnds(struct Sprite *sprite)
         u8 amplitude, cmpVal1, cmpVal2;
         s16 xScale, yScale;
 
-        index2 = (sprite->data[5] * 128) / sprite->data[6];
+        index1 = (sprite->data[5] * 128) / sprite->data[6];
         cmpVal1 = sprite->data[6] / 4;
         cmpVal2 = cmpVal1 * 3;
         if (sprite->data[5] >= cmpVal1 && sprite->data[5] < cmpVal2)
         {
             sprite->data[7] += 51;
-            index1 = sprite->data[7] & 0xFF;
+            index2 = sprite->data[7] & 0xFF;
         }
 
         if (!sprite->sDontFlip)
-            xScale = -256 - Sin(index2, 16);
+            xScale = -256 - Sin(index1, 16);
         else
-            xScale = 256 + Sin(index2, 16);
+            xScale = 256 + Sin(index1, 16);
 
-        amplitude = sprite->data[3];
-        yScale = 256 - Sin(index2, amplitude) - Sin(index1, amplitude / 5);
+        amplitude = (u8)sprite->data[3];
+        yScale = 256 - Sin(index1, amplitude) - Sin(index2, amplitude / 5);
         SetAffineData(sprite, xScale, yScale, 0);
         sprite->data[5]++;
     }
@@ -4032,7 +4264,7 @@ static void HorizontalStretchFar(struct Sprite *sprite)
             index1 = sprite->data[7] & 0xFF;
         }
 
-        amplitude = sprite->data[3];
+        amplitude = (u8)sprite->data[3];
 
         if (!sprite->sDontFlip)
             xScale = -256 + Sin(index2, amplitude) + Sin(index1, amplitude / 5 * 2);
@@ -4070,11 +4302,13 @@ static void VerticalShakeLowTwice(struct Sprite *sprite)
         var5 = sprite->data[7];
 
     var6 = sVerticalShakeData[sprite->data[5]][1];
-    var7 = 0;
-    if (sVerticalShakeData[sprite->data[5]][0] != (u8)-2)
-        var7 = (var6 - var9) * var5 / var6;
-    else
+    
+    var7 = 0; // Needed to match because GF
+    if (sVerticalShakeData[sprite->data[5]][0] == (u8)-2)
         var7 = 0;
+    else
+        var7 = (var6 - var9) * var5 / var6;
+        
 
     if (var5 == (u8)-1)
     {
@@ -4189,7 +4423,14 @@ static void Anim_VerticalShakeLowTwice_Fast(struct Sprite *sprite)
 
 static void Anim_CircleCounterclockwise_Long(struct Sprite *sprite)
 {
-    u8 id = sprite->data[0] = AddNewAnim();
+    u8 id;
+    // TODO: fine which is better:
+    // WHAT GF wrote and seems more correct
+    
+    sprite->data[0] = id = AddNewAnim();
+
+    // What pret does and makes better code in modern
+    //id = sprite->data[0] = AddNewAnim();
 
     sAnims[id].rotation = 1024;
     sAnims[id].data = 6;
@@ -4200,7 +4441,7 @@ static void Anim_CircleCounterclockwise_Long(struct Sprite *sprite)
 
 static void GrowStutter(struct Sprite *sprite)
 {
-    s16 index1 = 0, index2 = 0;
+    s16 index1 = 0, index2;
     if (sprite->data[5] > sprite->data[6])
     {
         sprite->y2 = 0;
@@ -4231,7 +4472,7 @@ static void GrowStutter(struct Sprite *sprite)
             index1 = sprite->data[7] & 0xFF;
         }
 
-        amplitude = sprite->data[3];
+        amplitude = (u8)sprite->data[3];
 
         if (!sprite->sDontFlip)
             xScale = Sin(index2, amplitude) + (Sin(index1, amplitude / 5 * 2) - 256);
@@ -4270,8 +4511,7 @@ static void Anim_VerticalShakeHorizontalSlide(struct Sprite *sprite)
     }
     else
     {
-        s16 divCase = (sprite->data[2] / 512) % 4;
-        switch (divCase)
+        switch ((sprite->data[2] / 512) % 4)
         {
         case 0:
             sprite->x2 = (sprite->data[2] % 512) / 32;
@@ -4304,8 +4544,7 @@ static void Anim_VerticalShakeHorizontalSlide_Fast(struct Sprite *sprite)
     }
     else
     {
-        s16 divCase = (sprite->data[2] / 512) % 4;
-        switch (divCase)
+        switch ((sprite->data[2] / 512) % 4)
         {
         case 0:
             sprite->x2 = (sprite->data[2] % 512) / 32;
@@ -4355,9 +4594,15 @@ static void TriangleDown(struct Sprite *sprite)
             sprite->callback = WaitAnimEnd;
         else
             sprite->data[2] = 0;
+        return;
     }
     else
     {
+        //     	dir = 1;
+        // act->dx += (dir)*(act->work[5])*PokemonTriangleTbl[act->work[ACT_CNT]][0];	//テーブルの指定する移動を行う
+        // act->dy += (act->work[5])*PokemonTriangleTbl[act->work[ACT_CNT]][1];
+        // act->work[ACT_TIME]++;
+        // ChangeReverse(act);
         s32 amplitude = sprite->data[5];
         sprite->x2 += (sTriangleDownData[sprite->data[3]][0] * amplitude);
         sprite->y2 += (sTriangleDownData[sprite->data[3]][1] * sprite->data[5]); // Not using amplitude here. No reason for this.
