@@ -733,14 +733,12 @@ static u32 ShowCheckPage(s32 state)
 
 static u32 ShowCheckPageDown(s32 state)
 {
-    int topId;
     int delta;
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
     switch (state)
     {
     case 0:
-        topId = PokenavList_GetTopIndex();
-        delta = GetIndexDeltaOfNextCheckPageDown(topId);
+        delta = GetIndexDeltaOfNextCheckPageDown(PokenavList_GetTopIndex());
         if (delta)
         {
             PlaySE(SE_SELECT);
@@ -798,14 +796,12 @@ static u32 ExitCheckPage(s32 state)
 
 static u32 ShowCheckPageUp(s32 state)
 {
-    int topId;
     int delta;
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
     switch (state)
     {
     case 0:
-        topId = PokenavList_GetTopIndex();
-        delta = GetIndexDeltaOfNextCheckPageUp(topId);
+        delta = GetIndexDeltaOfNextCheckPageUp(PokenavList_GetTopIndex());
         if (delta)
         {
             PlaySE(SE_SELECT);
