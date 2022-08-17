@@ -281,10 +281,14 @@ struct RfuPacket8
     u8 data[0x74];
 };
 
+struct RfuPacket16
+{
+    u16 data[0x3A];
+};
+
 struct RfuPacket32
 {
-    u32 command;
-    u32 data[0x1C];
+    u32 data[0x1D];
 };
 
 union RfuPacket
