@@ -86,7 +86,7 @@ struct TextPrinter
 
     void (*callback)(struct TextPrinterTemplate *, u16); // 0x10
 
-    #if 1
+    #if !MODERN
     u8 subStructFields[7]; // always cast to struct TextPrinterSubStruct... so why bother
     #else
     struct TextPrinterSubStruct subStructFields;
