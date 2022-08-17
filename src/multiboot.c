@@ -436,6 +436,7 @@ static int MultiBootHandShake(struct MultiBootParam *mp)
 #undef must_data
 }
 
+NAKED
 static void MultiBootWaitCycles(u32 cycles)
 {
     asm_unified("\
@@ -450,8 +451,8 @@ static void MultiBootWaitCycles(u32 cycles)
     movs r1, 4\n\
     MultiBootWaitCyclesLoop:\n\
     subs r0, r1\n\
-    bgt  MultiBootWaitCyclesLoop\n");
-    // bx lr is automatically generated
+    bgt  MultiBootWaitCyclesLoop\n\
+    bx   lr\n");
 }
 
 static void MultiBootWaitSendDone(void)

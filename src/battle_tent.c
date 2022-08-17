@@ -127,7 +127,9 @@ static void SetVerdanturfTentPrize(void)
 
 static void SetVerdanturfTentTrainerGfx(void)
 {
-    gTrainerBattleOpponent_A = (u32)((Random() % 255) * 5) / 64;
+    // * 20 >> 8 but that got optimized to * 5 / 64.
+    // doing one over the other without a u32 cast causes asr instead of lsr?
+    gTrainerBattleOpponent_A = (Random() % 255) * 20 >> 8;
     SetBattleFacilityTrainerGfxId(gTrainerBattleOpponent_A, 0);
 }
 
