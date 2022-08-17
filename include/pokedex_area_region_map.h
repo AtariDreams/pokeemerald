@@ -1,7 +1,6 @@
 #ifndef GUARD_POKEDEX_AREA_REGION_MAP_H
 #define GUARD_POKEDEX_AREA_REGION_MAP_H
 
-#if !MODERN
 struct PokedexAreaMapTemplate
 {
     u32 bg:2;
@@ -11,13 +10,8 @@ struct PokedexAreaMapTemplate
 };
 
 void LoadPokedexAreaMapGfx(const struct PokedexAreaMapTemplate *);
-#else
-void LoadPokedexAreaMapGfx(void);
-#endif
 bool32 TryShowPokedexAreaMap(void);
 void PokedexAreaMapChangeBgY(u32);
-#if !MODERN
 void FreePokedexAreaMapBgNum(void);
-#endif
 
 #endif // GUARD_POKEDEX_AREA_REGION_MAP_H
