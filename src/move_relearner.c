@@ -166,13 +166,13 @@ static EWRAM_DATA struct
     u8 moveListScrollArrowTask;                          /*0x113*/
     u8 moveDisplayArrowTask;                             /*0x114*/
     u16 scrollOffset;                                    /*0x116*/
-} *sMoveRelearnerStruct = {0};
+} *sMoveRelearnerStruct = {};
 
 static EWRAM_DATA struct {
     u16 listOffset;
     u16 listRow;
     bool8 showContestInfo;
-} sMoveRelearnerMenuSate = {0};
+} sMoveRelearnerMenuSate = {};
 
 static const u16 sMoveRelearnerPaletteData[] = INCBIN_U16("graphics/interface/ui_learn_move.gbapal");
 
@@ -615,6 +615,7 @@ static void DoMoveRelearnerMain(void)
             else if (var == MENU_B_PRESSED || var == 1)
             {
                 // What's the point? It gets set to MENU_STATE_PRINT_TRYING_TO_LEARN_PROMPT, anyway.
+                #if !MODERN
                 if (sMoveRelearnerMenuSate.showContestInfo == FALSE)
                 {
                     sMoveRelearnerStruct->state = MENU_STATE_SETUP_BATTLE_MODE;
@@ -623,6 +624,7 @@ static void DoMoveRelearnerMain(void)
                 {
                     sMoveRelearnerStruct->state = MENU_STATE_SETUP_CONTEST_MODE;
                 }
+                #endif
                 // Below may be a typo, or above was kept when it was meant to be rmeoved
                 sMoveRelearnerStruct->state = MENU_STATE_PRINT_TRYING_TO_LEARN_PROMPT;
             }
@@ -636,6 +638,7 @@ static void DoMoveRelearnerMain(void)
             {
                 sMoveRelearnerStruct->state = MENU_STATE_SETUP_BATTLE_MODE;
             }
+            // TODO: can it only be 0 or 1? if so, remove this check
             else if (sMoveRelearnerMenuSate.showContestInfo == TRUE)
             {
                 sMoveRelearnerStruct->state = MENU_STATE_SETUP_CONTEST_MODE;
@@ -756,7 +759,7 @@ static void FreeMoveRelearnerResources(void)
 // which is called whenever the cursor in either list changes.
 static void HideHeartSpritesAndShowTeachMoveText(bool8 onlyHideSprites)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < 16; i++)
     {
@@ -843,7 +846,7 @@ static void ShowTeachMoveText(bool8 shouldDoNothingInstead)
 
 static void CreateUISprites(void)
 {
-    int i;
+    m32 i;
 
     sMoveRelearnerStruct->moveDisplayArrowTask = TASK_NONE;
     sMoveRelearnerStruct->moveListScrollArrowTask = TASK_NONE;
@@ -852,15 +855,15 @@ static void CreateUISprites(void)
     // These are the appeal hearts.
     for (i = 0; i < 8; i++)
     {
-        sMoveRelearnerStruct->heartSpriteIds[i] = CreateSprite(&sConstestMoveHeartSprite, (i - (i / 4) * 4) * 8 + 104, (i / 4) * 8 + 36, 0);
+        sMoveRelearnerStruct->heartSpriteIds[i] = CreateSprite(&sConstestMoveHeartSprite, 104 + (i % 4) * 8,  36 + (i / 4) * 8, 0);
     }
 
     // These are the jam harts.
     // The animation is used to toggle between full/empty heart sprites.
     for (i = 0; i < 8; i++)
     {
-        sMoveRelearnerStruct->heartSpriteIds[i + 8] = CreateSprite(&sConstestMoveHeartSprite, (i - (i / 4) * 4) * 8 + 104, (i / 4) * 8 + 52, 0);
-        StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i + 8]], 2);
+        sMoveRelearnerStruct->heartSpriteIds[i + 8] = CreateSprite(&sConstestMoveHeartSprite, 104 + (i % 4) * 8, 52 + (i / 4) * 8, 0);
+        StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[8 + i]], 2);
     }
 
     for (i = 0; i < 16; i++)
@@ -901,7 +904,7 @@ static void RemoveScrollArrows(void)
 
 static void CreateLearnableMovesList(void)
 {
-    s32 i;
+    m32 i;
     u8 nickname[POKEMON_NAME_LENGTH + 1];
 
     sMoveRelearnerStruct->numMenuChoices = GetMoveRelearnerMoves(&gPlayerParty[sMoveRelearnerStruct->partyMon], sMoveRelearnerStruct->movesToLearn);
@@ -922,8 +925,15 @@ static void CreateLearnableMovesList(void)
 
 void MoveRelearnerShowHideHearts(u32 moveId)
 {
+    // I hope this works...
+    // It makes logical sense but the way the code is might cause it to glitch out...
+#if !MODERN
     u16 numHearts;
     u16 i;
+#else
+    int i;
+    s16 numHearts;
+#endif
 
     if (!sMoveRelearnerMenuSate.showContestInfo || moveId == LIST_CANCEL)
     {
@@ -931,47 +941,46 @@ void MoveRelearnerShowHideHearts(u32 moveId)
         {
             gSprites[sMoveRelearnerStruct->heartSpriteIds[i]].invisible = TRUE;
         }
+        return;
     }
-    else
+
+    numHearts = gContestEffects[gContestMoves[moveId].effect].appeal / 10;
+
+    if (numHearts == 0xFF)
     {
-        numHearts = gContestEffects[gContestMoves[moveId].effect].appeal / 10;
+        numHearts = 0;
+    }
 
-        if (numHearts == 0xFF)
+    for (i = 0; i < 8; i++)
+    {
+        if (i < numHearts)
         {
-            numHearts = 0;
+            StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i]], 1);
         }
-
-        for (i = 0; i < 8; i++)
+        else
         {
-            if (i < numHearts)
-            {
-                StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i]], 1);
-            }
-            else
-            {
-                StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i]], 0);
-            }
-            gSprites[sMoveRelearnerStruct->heartSpriteIds[i]].invisible = FALSE;
+            StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i]], 0);
         }
+        gSprites[sMoveRelearnerStruct->heartSpriteIds[i]].invisible = FALSE;
+    }
 
-        numHearts = gContestEffects[gContestMoves[moveId].effect].jam / 10;
+    numHearts = gContestEffects[gContestMoves[moveId].effect].jam / 10;
 
-        if (numHearts == 0xFF)
+    if (numHearts == 0xFF)
+    {
+        numHearts = 0;
+    }
+
+    for (i = 0; i < 8; i++)
+    {
+        if (i < numHearts)
         {
-            numHearts = 0;
+            StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[8 + i]], 3);
         }
-
-        for (i = 0; i < 8; i++)
+        else
         {
-            if (i < numHearts)
-            {
-                StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i + 8]], 3);
-            }
-            else
-            {
-                StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[i + 8]], 2);
-            }
-            gSprites[sMoveRelearnerStruct->heartSpriteIds[i + 8]].invisible = FALSE;
+            StartSpriteAnim(&gSprites[sMoveRelearnerStruct->heartSpriteIds[8 + i]], 2);
         }
+        gSprites[sMoveRelearnerStruct->heartSpriteIds[8 + i]].invisible = FALSE;
     }
 }
