@@ -3701,13 +3701,13 @@ static void Cmd_jumpifarrayequal(void)
 
 static void Cmd_jumpifarraynotequal(void)
 {
-    u8 equalBytes = 0;
+    m8 equalBytes = 0;
     const u8 *mem1 = T2_READ_PTR(gBattlescriptCurrInstr + 1);
     const u8 *mem2 = T2_READ_PTR(gBattlescriptCurrInstr + 5);
-    u32 size = gBattlescriptCurrInstr[9];
+    m8 size = gBattlescriptCurrInstr[9];
     const u8 *jumpPtr = T2_READ_PTR(gBattlescriptCurrInstr + 10);
 
-    u8 i;
+    m8 i;
     for (i = 0; i < size; i++)
     {
         if (*mem1 == *mem2)
@@ -3747,9 +3747,9 @@ static void Cmd_copyarray(void)
 {
     u8 *dest = T2_READ_PTR(gBattlescriptCurrInstr + 1);
     const u8 *src = T2_READ_PTR(gBattlescriptCurrInstr + 5);
-    s32 size = gBattlescriptCurrInstr[9];
+    m8 size = gBattlescriptCurrInstr[9];
 
-    s32 i;
+    m32 i;
     for (i = 0; i < size; i++)
         dest[i] = src[i];
 
