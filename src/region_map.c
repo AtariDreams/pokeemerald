@@ -865,7 +865,7 @@ bool8 UpdateRegionMapZoom(void)
         sRegionMap->unk_048 = 0;
         sRegionMap->scrollX = sRegionMap->unk_060;
         sRegionMap->scrollY = sRegionMap->unk_062;
-        #if !MODERN
+        #if 1
         sRegionMap->zoomRatio = (sRegionMap->zoomed == FALSE) ? (128 << 8) : (256 << 8);
         sRegionMap->zoomed = !sRegionMap->zoomed;
         sRegionMap->inputCallback = (sRegionMap->zoomed == FALSE) ? ProcessRegionMapInput_Full : ProcessRegionMapInput_Zoomed;
