@@ -743,12 +743,14 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
     {
         for (x = 0; x < w; x++)
         {
-            u32 tile = (*tilemap & 0x3ff) * 32;
+            // Maybe better off as a u32?
+            u16 tile = (*tilemap & 0x3ff) * 32;
 
             if ((*tilemap & 0xc00) == 0)
             {
                 CpuCopy32(tiles + tile, output, 32);
             }
+            //else if(((*tilemap) & 0x0800) && (((*tilemap) & 0x0400) == 0))
             else if ((*tilemap & 0xc00) == 0x800)  // yflip
             {
                 for (i = 0; i < 8; i++)
@@ -761,8 +763,7 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
                     for (j = 0; j < 4; j++)
                     {
                         u8 i2 = i * 4;
-                        xflip[i2 + (3-j)] = (tiles[tile + i2 + j] & 0xf) << 4;
-                        xflip[i2 + (3-j)] |= tiles[tile + i2 + j] >> 4;
+                        xflip[i2 + (3-j)] = ((tiles[tile + i2 + j] & 0xf) << 4) | (tiles[tile + i2 + j] >> 4);
                     }
                 }
                 if (*tilemap & 0x800)  // yflip
