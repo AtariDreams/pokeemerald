@@ -47,6 +47,13 @@ struct HallofFameMon
     u8 nick[POKEMON_NAME_LENGTH];
 };
 
+struct SomeUnusedHoFThing
+{
+    u16 id1, id2, id3, id4, id5, id6;
+    s16 id7;
+    u32 id8;
+};
+
 struct HallofFameTeam
 {
     struct HallofFameMon mon[PARTY_SIZE];
@@ -331,7 +338,7 @@ static const struct SpriteTemplate sSpriteTemplate_HofConfetti =
 static const u16 sHallOfFame_Pal[] = INCBIN_U16("graphics/misc/japanese_hof.gbapal");
 
 static const u8 sHallOfFame_Gfx[] = INCBIN_U8("graphics/misc/japanese_hof.4bpp.lz");
-
+#if 0
 static const struct HallofFameMon sDummyFameMon =
 {
     .tid = 0x3EA03EA,
@@ -340,6 +347,12 @@ static const struct HallofFameMon sDummyFameMon =
     .lvl = 0,
     .nick = {0}
 };
+#else
+static const struct SomeUnusedHoFThing sDummyFameMon = 
+{
+    1002,1002,0,0,0,0,0,0
+};
+#endif
 
 // Unused, order of party slots on Hall of Fame screen
 static const u8 sHallOfFame_SlotOrder[] = {
@@ -825,8 +838,12 @@ void CB2_DoHallOfFamePC(void)
     case 3:
         if (!LoadHofBgs())
         {
-            struct HallofFameTeam *fameTeam = (struct HallofFameTeam *)(gDecompressionBuffer);
+            #if 0
+            struct HallofFameTeam *fameTeam = (struct HallofFameTeam*)(gDecompressionBuffer);
             fameTeam->mon[0] = sDummyFameMon;
+            #else
+            *(struct SomeUnusedHoFThing *)gDecompressionBuffer = sDummyFameMon;
+            #endif
             ComputerScreenOpenEffect(0, 0, 0);
             SetVBlankCallback(VBlankCB_HallOfFame);
             gMain.state++;
@@ -1049,8 +1066,12 @@ static void Task_HofPC_HandlePaletteOnExit(u8 taskId)
     struct HallofFameTeam *fameTeam;
 
     CpuCopy16(gPlttBufferFaded, gPlttBufferUnfaded, 0x400);
-    fameTeam = (struct HallofFameTeam *)(gDecompressionBuffer);
+    #if 0
+    fameTeam = (struct HallofFameTeam*)(gDecompressionBuffer);
     fameTeam->mon[0] = sDummyFameMon;
+    #else
+    *(struct SomeUnusedHoFThing *)gDecompressionBuffer = sDummyFameMon;
+    #endif
     ComputerScreenCloseEffect(0, 0, 0);
     gTasks[taskId].func = Task_HofPC_HandleExit;
 }
