@@ -22,11 +22,6 @@
 #include "constants/songs.h"
 #include "constants/rgb.h"
 
-// iwram
-u32 gMonShrinkDuration;
-u16 gMonShrinkDelta;
-u16 gMonShrinkDistance;
-
 enum {
     BALL_ROLL_1,
     BALL_PIVOT_1,
@@ -931,15 +926,24 @@ static void SpriteCB_Ball_MonShrink(struct Sprite *sprite)
 #define sTimer  data[1]
 #define sTaskId data[5]
 
+// iwram
+u32 gMonShrinkDuration;
+u16 gMonShrinkDelta;
+u16 gMonShrinkDistance;
+
+#define POKE_BALL_AFF	0x0020
 static void SpriteCB_Ball_MonShrink_Step(struct Sprite *sprite)
 {
     u8 spriteId;
     u8 taskId;
 
+    // gMonShrinkDuration, gMonShrinkDistance, and gMonShrinkDelta were local vars
+    // but GF made them global in the final version of emerald for some reason
+    // despite them only being used here
     spriteId = gBattlerSpriteIds[gBattleAnimTarget];
     taskId = sprite->sTaskId;
 
-    if (++gTasks[taskId].sTimer == 11)
+    if (gTasks[taskId].sTimer++ == 10)
         PlaySE(SE_BALL_TRADE);
 
     switch (gTasks[taskId].tState)
@@ -947,14 +951,14 @@ static void SpriteCB_Ball_MonShrink_Step(struct Sprite *sprite)
     case MON_SHRINK:
         PrepareBattlerSpriteForRotScale(spriteId, ST_OAM_OBJ_NORMAL);
         gTasks[taskId].data[10] = 256;
-        gMonShrinkDuration = 28;
+        gMonShrinkDuration = (((1152 - 256) << 8) / POKE_BALL_AFF) >> 8;
         gMonShrinkDistance = (gSprites[spriteId].y + gSprites[spriteId].y2) - (sprite->y + sprite->y2);
-        gMonShrinkDelta = (u32)(gMonShrinkDistance * 256) / gMonShrinkDuration;
+        gMonShrinkDelta = (gMonShrinkDistance << 8) / gMonShrinkDuration;
         gTasks[taskId].data[2] = gMonShrinkDelta;
         gTasks[taskId].tState++; // MON_SHRINK_STEP
         break;
     case MON_SHRINK_STEP:
-        gTasks[taskId].data[10] += 32;
+        gTasks[taskId].data[10] += POKE_BALL_AFF;
         SetSpriteRotScale(spriteId, gTasks[taskId].data[10], gTasks[taskId].data[10], 0);
         gTasks[taskId].data[3] += gTasks[taskId].data[2];
         gSprites[spriteId].y2 = -gTasks[taskId].data[3] >> 8;
@@ -997,7 +1001,7 @@ static void SpriteCB_Ball_Bounce(struct Sprite *sprite)
         sprite->sAmplitude = 40;
         sprite->sPhase = 0;
         phase = 0;
-        sprite->y += Cos(phase, 40);
+        sprite->y += Cos(phase, sprite->sAmplitude);
         sprite->y2 = -Cos(phase, sprite->sAmplitude);
         sprite->callback = SpriteCB_Ball_Bounce_Step;
     }
@@ -1515,8 +1519,7 @@ static void SpriteCB_Ball_Block(struct Sprite *sprite)
 
     sprite->x += sprite->x2;
     sprite->y += sprite->y2;
-    sprite->y2 = 0;
-    sprite->x2 = 0;
+    sprite->x2 = sprite->y2 = 0;
     for (i = 0; i < 6; i++)
         sprite->data[i] = 0;
 
@@ -1531,12 +1534,12 @@ static void SpriteCB_Ball_Block(struct Sprite *sprite)
 // Poké Ball moves down off screen after being blocked. The x-speed oscillates.
 static void SpriteCB_Ball_Block_Step(struct Sprite *sprite)
 {
-    s16 dy = sprite->sDy + 0x800;
-    s16 dx = sprite->sDx + 0x680;
-    sprite->x2 -= dx >> 8;
-    sprite->y2 += dy >> 8;
-    sprite->sDy = (sprite->sDy + 0x800) & 0xFF;
-    sprite->sDx = (sprite->sDx + 0x680) & 0xFF;
+    sprite->sDy += 0x800;
+    sprite->sDx += 0x680;
+    sprite->x2 -= sprite->sDx >> 8;
+    sprite->y2 += sprite->sDy >> 8;
+    sprite->sDy &= 0xFF;
+    sprite->sDx &= 0xFF;
 
     if (sprite->y + sprite->y2 > DISPLAY_HEIGHT
      || sprite->x + sprite->x2 < -8)
@@ -1819,7 +1822,7 @@ static void GreatBallOpenParticleAnimation(u8 taskId)
         }
 
         gTasks[taskId].data[7] = 8;
-        if (++gTasks[taskId].data[0] == 2)
+        if (gTasks[taskId].data[0]++ == 1)
         {
             if (!gMain.inBattle)
                 gSprites[spriteId].data[7] = 1;
@@ -1833,10 +1836,11 @@ static void FanOutBallOpenParticles_Step1(struct Sprite *sprite)
 {
     sprite->x2 = Sin(sprite->data[0], sprite->data[1]);
     sprite->y2 = Cos(sprite->data[0], sprite->data[2]);
-    sprite->data[0] = (sprite->data[0] + sprite->data[4]) & 0xFF;
+    sprite->data[0] += sprite->data[4];
+    sprite->data[0] &= 0xFF;
     sprite->data[1] += sprite->data[5];
     sprite->data[2] += sprite->data[6];
-    if (++sprite->data[3] == 51)
+    if (sprite->data[3]++ == 50)
         DestroyBallOpenAnimationParticle(sprite);
 }
 
@@ -1963,16 +1967,17 @@ static void PremierBallOpenParticleAnimation_Step1(struct Sprite *sprite)
 {
     sprite->x2 = Sin(sprite->data[0], sprite->data[1]);
     sprite->y2 = Cos(sprite->data[0], Sin(sprite->data[0] & 0x3F, sprite->data[2]));
-    sprite->data[0] = (sprite->data[0] + 10) & 0xFF;
-    sprite->data[1]++;
-    sprite->data[2]++;
-    if (++sprite->data[3] == 51)
+    sprite->data[0] += 10;
+    sprite->data[0] &= 0xFF;
+    sprite->data[1] += 1;
+    sprite->data[2] += 1;
+    if (sprite->data[3]++ == 50)
         DestroyBallOpenAnimationParticle(sprite);
 }
 
 static void DestroyBallOpenAnimationParticle(struct Sprite *sprite)
 {
-    s32 i, j;
+    int i, j;
 
     if (!gMain.inBattle)
     {
@@ -2049,7 +2054,7 @@ static void Task_FadeMon_ToBallColor(u8 taskId)
 {
     u8 ballId = gTasks[taskId].tBallId;
 
-    if (gTasks[taskId].tTimer <= 16)
+    if (gTasks[taskId].tTimer < 17)
     {
         BlendPalette(gTasks[taskId].tPalOffset * 16 + 0x100, 16, gTasks[taskId].tCoeff, gBallOpenFadeColors[ballId]);
         gTasks[taskId].tCoeff += gTasks[taskId].tdCoeff;
@@ -2077,7 +2082,7 @@ static void Task_FadeMon_ToNormal_Step(u8 taskId)
 {
     u8 ballId = gTasks[taskId].tBallId;
 
-    if (gTasks[taskId].tTimer <= 16)
+    if (gTasks[taskId].tTimer < 17)
     {
         BlendPalette(gTasks[taskId].tPalOffset * 16 + 0x100, 16, gTasks[taskId].tCoeff, gBallOpenFadeColors[ballId]);
         gTasks[taskId].tCoeff += gTasks[taskId].tdCoeff;
@@ -2101,8 +2106,8 @@ static void Task_FadeMon_ToNormal_Step(u8 taskId)
 void AnimTask_SwapMonSpriteToFromSubstitute(u8 taskId)
 {
     u8 spriteId;
-    u32 x;
-    u32 done = FALSE;
+    s32 x;
+    bool32 done = FALSE;
 
     spriteId = gBattlerSpriteIds[gBattleAnimAttacker];
     switch (gTasks[taskId].data[10])
@@ -2116,8 +2121,8 @@ void AnimTask_SwapMonSpriteToFromSubstitute(u8 taskId)
             gSprites[spriteId].x2 -= gTasks[taskId].data[0] >> 8;
 
         gTasks[taskId].data[0] &= 0xFF;
-        x = gSprites[spriteId].x + gSprites[spriteId].x2 + 32;
-        if (x > 304)
+        x = gSprites[spriteId].x + gSprites[spriteId].x2;
+        if (x > 240 + 32 || x < -32)
             gTasks[taskId].data[10]++;
         break;
     case 1:
@@ -2259,7 +2264,7 @@ static void Task_ShinyStars(u8 taskId)
     u8 spriteId;
     u16 timer;
     s16 starIdx;
-    u8 pan;
+    s8 pan;
 
     if (gTasks[taskId].tTimer < 60)
     {
@@ -2271,28 +2276,28 @@ static void Task_ShinyStars(u8 taskId)
     if (gBattleSpritesDataPtr->animationData->numBallParticles)
         return;
 
-    timer = gTasks[taskId].tStarTimer++;
-    if (timer % 4) // Create sprite 1 of every 4 frames
+    if (gTasks[taskId].tStarTimer++ % 4) // Create sprite 1 of every 4 frames
         return;
 
     battler = gTasks[taskId].tBattler;
     x = GetBattlerSpriteCoord(battler, BATTLER_COORD_X);
     y = GetBattlerSpriteCoord(battler, BATTLER_COORD_Y);
 
-    starIdx = gTasks[taskId].tStarIdx;
-    if (starIdx == 0) // Big star
-    {
+    switch (gTasks[taskId].tStarIdx) {
+    case 0: // Big star
         spriteId = CreateSprite(&gWishStarSpriteTemplate, x, y, 5);
-    }
-    else if (starIdx >= 0 && gTasks[taskId].tStarIdx < 4) // Medium star
-    {
+        break;
+    case 1:
+    case 2:
+    case 3:
+        // Medium star
         spriteId = CreateSprite(&gMiniTwinklingStarSpriteTemplate, x, y, 5);
         gSprites[spriteId].oam.tileNum += 4;
-    }
-    else // Small star
-    {
+        break;
+    default: // Small star
         spriteId = CreateSprite(&gMiniTwinklingStarSpriteTemplate, x, y, 5);
         gSprites[spriteId].oam.tileNum += 5;
+        break;
     }
 
     if (gTasks[taskId].tStarMove == SHINY_STAR_ENCIRCLE)
