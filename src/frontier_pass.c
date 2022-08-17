@@ -1358,8 +1358,13 @@ static void HandleFrontierMapCursorMove(u8 direction);
 
 static void ShowFrontierMap(void (*callback)(void))
 {
+    // TODO: did the developers mean to do something but forgot?
+    // Maybe return? Maybe debug?
+    #if !MODERN
     if (sMapData != NULL)
         SetMainCallback2(callback); // This line doesn't make sense at all, since it gets overwritten later anyway.
+    #endif
+
 
     sMapData = AllocZeroed(sizeof(*sMapData));
     sMapData->callback = callback;
@@ -1372,7 +1377,9 @@ static void FreeFrontierMap(void)
 {
     ResetTasks();
     SetMainCallback2(sMapData->callback);
+    #if !MODERN
     memset(sMapData, 0, sizeof(*sMapData)); // Pointless memory clear.
+    #endif
     FREE_AND_SET_NULL(sMapData);
 }
 
