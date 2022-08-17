@@ -23,11 +23,8 @@ u16 IdentifyFlash(void)
     setupInfo = sSetupInfos;
     result = 1;
 
-    for (;;)
+    while ((*setupInfo)->type.ids.separate.makerId != 0)
     {
-        if ((*setupInfo)->type.ids.separate.makerId == 0)
-            break;
-
         if (flashId == (*setupInfo)->type.ids.joined)
         {
             result = 0;

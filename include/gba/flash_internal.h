@@ -39,7 +39,7 @@ struct FlashSetupInfo
     u16 (*eraseFlashChip)(void);
     u16 (*eraseFlashSector)(u16);
     u16 (*WaitForFlashWrite)(u8, u8 *, u8);
-    const u16 *maxTime;
+    const u16 (*maxTime)[3];
     struct FlashType type;
 };
 
@@ -50,7 +50,7 @@ extern u16 (*ProgramFlashSector)(u16, u8 *);
 extern u16 (*EraseFlashChip)(void);
 extern u16 (*EraseFlashSector)(u16);
 extern u16 (*WaitForFlashWrite)(u8, u8 *, u8);
-extern const u16 *gFlashMaxTime;
+extern const u16 (*gFlashMaxTime)[3];
 extern const struct FlashType *gFlash;
 
 extern u8 (*PollFlashStatus)(u8 *);

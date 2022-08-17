@@ -1,12 +1,12 @@
 #include "gba/gba.h"
 #include "gba/flash_internal.h"
 
-const u16 mxMaxTime[] =
+static const u16 mxMaxTime[][3] =
 {
-      10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
-      10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
-    2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
-    2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
+      {10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
+      {10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
+    {2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
+    {2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
 };
 
 const struct FlashSetupInfo MX29L010 =
@@ -18,7 +18,7 @@ const struct FlashSetupInfo MX29L010 =
     WaitForFlashWrite_Common,
     mxMaxTime,
     {
-        131072, // ROM size
+        0x20000, // ROM size
         {
             4096, // sector size
               12, // bit shift to multiply by sector size (4096 == 1 << 12)
@@ -39,7 +39,7 @@ const struct FlashSetupInfo DefaultFlash =
     WaitForFlashWrite_Common,
     mxMaxTime,
     {
-        131072, // ROM size
+        0x20000, // ROM size
         {
             4096, // sector size
               12, // bit shift to multiply by sector size (4096 == 1 << 12)
@@ -99,20 +99,19 @@ try_erase:
     FLASH_WRITE(0x5555, 0x80);
     FLASH_WRITE(0x5555, 0xAA);
     FLASH_WRITE(0x2AAA, 0x55);
-    *addr = 0x30;
+    // just to silence the stupid warning
+    *(vu8 *)addr = 0x30;
 
     SetReadFlash1(readFlash1Buffer);
 
     result = WaitForFlashWrite(2, addr, 0xFF);
 
-    if (!(result & 0xA000) || numTries > 3)
-        goto done;
-
-    numTries++;
-
-    goto try_erase;
-
-done:
+    if ((result & 0xA000) && numTries < 4)
+    {
+        numTries++;
+        goto try_erase;
+    }
+ 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
     return result;

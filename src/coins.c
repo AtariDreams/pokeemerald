@@ -12,7 +12,7 @@ static EWRAM_DATA u8 sCoinsWindowId = 0;
 
 void PrintCoinsString(u32 coinAmount)
 {
-    u32 xAlign;
+    s32 xAlign;
 
     ConvertIntToDecimalStringN(gStringVar1, coinAmount, STR_CONV_MODE_RIGHT_ALIGN, MAX_COIN_DIGITS);
     StringExpandPlaceholders(gStringVar4, gText_Coins);
