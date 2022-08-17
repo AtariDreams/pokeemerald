@@ -80,6 +80,8 @@ SECTIONS {
         src/rom_header_gf.o(.rodata);
         *(.rodata)
         *(.rodata.*)
+        src/m4a_tables.o(.rodata);
+        data/sound_data.o(.rodata);
     } =0
 
     song_data :
