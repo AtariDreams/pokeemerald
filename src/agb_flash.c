@@ -70,7 +70,7 @@ void FlashTimerIntr(void)
 
 u16 SetFlashTimerIntr(u8 timerNum, void (**intrFunc)(void))
 {
-    if (timerNum >= 4)
+    if (timerNum > 3)
         return 1;
 
     sTimerNum = timerNum;
@@ -116,18 +116,17 @@ void SetReadFlash1(u16 *dest)
     PollFlashStatus = (u8 (*)(u8 *))((u8 *)dest + 1);
 
     src = (u16 *)ReadFlash1;
+    // What Nintendo did
+    //src = (u16 *)((u32)src & 0xFFFFFFFE);
+    // What matches
     src = (u16 *)((u32)src ^ 1);
 
-    i = ((u32)SetReadFlash1 - (u32)ReadFlash1) >> 1;
-
-    while (i != 0)
-    {
-        *dest++ = *src++;
-        i--;
-    }
+    for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>1;i>0;i--)
+		*dest++=*src++;
 }
 
 // Using volatile here to make sure the flash memory will ONLY be read as bytes, to prevent any compiler optimizations.
+#if !MODERN
 void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 {
     while (size-- != 0)
@@ -135,7 +134,25 @@ void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
         *dest++ = *src++;
     }
 }
-
+#else
+__attribute__((naked))
+void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
+{
+    //clang did this
+    asm_unified("cmp     r2, #0\n\
+        beq     .LBB0_2 \n\
+.LBB0_1: \n\
+        ldrb    r3, [r0]\n\
+        strb    r3, [r1]\n\
+        subs    r2, r2, #1\n\
+        adds    r1, r1, #1\n\
+        adds    r0, r0, #1\n\
+        cmp     r2, #0\n\
+        bne     .LBB0_1\n\
+.LBB0_2:\n\
+        bx      lr");
+}
+#endif
 void ReadFlash(u16 sectorNum, u32 offset, u8 *dest, u32 size)
 {
     u8 *src;
