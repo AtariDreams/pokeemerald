@@ -62,7 +62,7 @@ SECTIONS {
         gflib/blit.o(.text);
         gflib/window.o(.text);
         gflib/text.o(.text);
-        sprite.o(.text);
+        src/sprite.o(.text);
         string_util.o(.text);
         src/link.o(.text);
         src/AgbRfu_LinkManager.o(.text);
@@ -437,7 +437,7 @@ SECTIONS {
         gflib/bg.o(.rodata);
         gflib/window.o(.rodata);
         gflib/text.o(.rodata);
-        sprite.o(.rodata);
+        src/sprite.o(.rodata);
         gflib/io_reg.o(.rodata);
         string_util.o(.rodata);
         src/link.o(.rodata);
