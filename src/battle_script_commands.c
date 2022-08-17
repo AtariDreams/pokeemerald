@@ -4127,7 +4127,7 @@ static void Cmd_playstatchangeanimation(void)
 
 static void Cmd_moveend(void)
 {
-    s32 i;
+    m32 i;
     bool32 effect = FALSE;
     u8 moveType = 0;
     u8 holdEffectAtk = 0;
@@ -4135,6 +4135,7 @@ static void Cmd_moveend(void)
     u8 endMode, endState;
     u16 originallyUsedMove;
 
+    // This if else statement was to fix some sort of bug, according to GF
     if (gChosenMove == MOVE_UNAVAILABLE)
         originallyUsedMove = MOVE_NONE;
     else
@@ -4356,9 +4357,10 @@ static void Cmd_moveend(void)
                 && !(gHitMarker & HITMARKER_FAINTED(gBattlerTarget))
                 && !(gMoveResultFlags & MOVE_RESULT_NO_EFFECT))
             {
+                #if !MODERN
                 u8 target, attacker;
 
-                *(gBattleStruct->lastTakenMove + gBattlerTarget * 2 + 0) = gChosenMove;
+                *(gBattleStruct->lastTakenMove + gBattlerTarget * 2 + 0) = gChosenMove & 0xFF;
                 *(gBattleStruct->lastTakenMove + gBattlerTarget * 2 + 1) = gChosenMove >> 8;
 
                 target = gBattlerTarget;
@@ -4367,7 +4369,16 @@ static void Cmd_moveend(void)
 
                 target = gBattlerTarget;
                 attacker = gBattlerAttacker;
-                *(attacker * 2 + target * 8 + (u8  *)(gBattleStruct->lastTakenMoveFrom) + 1) = gChosenMove >> 8;
+                *(attacker * 2 + target * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 1) = gChosenMove >> 8;
+                #else
+                u8 *temp = &gBattleStruct->lastTakenMove[gBattlerTarget * 2];
+                temp[0] = gChosenMove & 0xFF;
+                temp[1] = gChosenMove >> 8;
+
+                temp = &gBattleStruct->lastTakenMoveFrom[gBattlerTarget * 8 + gBattlerAttacker * 2];
+                temp[0] = gChosenMove & 0xFF;
+                temp[1] = gChosenMove >> 8;
+                #endif
             }
             gBattleScripting.moveendState++;
             break;
@@ -4396,10 +4407,24 @@ static void Cmd_moveend(void)
             break;
         }
 
+        #if !MODERN
+
         if (endMode == 1 && effect == FALSE)
             gBattleScripting.moveendState = MOVEEND_COUNT;
         if (endMode == 2 && endState == gBattleScripting.moveendState)
             gBattleScripting.moveendState = MOVEEND_COUNT;
+        #else
+        if (endMode == 1)
+        {
+            if (effect == FALSE)
+                gBattleScripting.moveendState = MOVEEND_COUNT;
+        }
+        else if (endMode == 2)
+        {
+            if (endState == gBattleScripting.moveendState)
+                gBattleScripting.moveendState = MOVEEND_COUNT;
+        }
+        #endif
 
     } while (gBattleScripting.moveendState != MOVEEND_COUNT && effect == FALSE);
 
@@ -4410,7 +4435,7 @@ static void Cmd_moveend(void)
 static void Cmd_typecalc2(void)
 {
     u8 flags = 0;
-    s32 i = 0;
+    u32 i = 0;
     u8 moveType = gBattleMoves[gCurrentMove].type;
 
     if (gBattleMons[gBattlerTarget].ability == ABILITY_LEVITATE && moveType == TYPE_GROUND)
@@ -4522,7 +4547,7 @@ static void Cmd_getswitchedmondata(void)
 static void Cmd_switchindataupdate(void)
 {
     struct BattlePokemon oldData;
-    s32 i;
+    m32 i;
     u8 *monData;
 
     if (gBattleControllerExecFlags)
@@ -4533,7 +4558,7 @@ static void Cmd_switchindataupdate(void)
     monData = (u8  *)(&gBattleMons[gActiveBattler]);
 
     for (i = 0; i < sizeof(struct BattlePokemon); i++)
-        monData[i] = gBattleBufferB[gActiveBattler][4 + i];
+        monData[i] = gBattleBufferB[gActiveBattler][i + 4];
 
     gBattleMons[gActiveBattler].type1 = gBaseStats[gBattleMons[gActiveBattler].species].type1;
     gBattleMons[gActiveBattler].type2 = gBaseStats[gBattleMons[gActiveBattler].species].type2;
@@ -4592,8 +4617,7 @@ static void Cmd_switchinanim(void)
 
 static void Cmd_jumpifcantswitch(void)
 {
-    s32 i;
-    s32 lastMonId;
+    m32 i, lastMonId;
     struct Pokemon *party;
 
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1] & ~SWITCH_IGNORE_ESCAPE_PREVENTION);
@@ -4601,8 +4625,10 @@ static void Cmd_jumpifcantswitch(void)
     if (!(gBattlescriptCurrInstr[1] & SWITCH_IGNORE_ESCAPE_PREVENTION) && ((gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)) || (gStatuses3[gActiveBattler] & STATUS3_ROOTED)))
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 2);
+        return;
     }
-    else if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
+    
+    if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
     {
         if (GetBattlerSide(gActiveBattler) == B_SIDE_OPPONENT)
             party = gEnemyParty;
@@ -4733,8 +4759,13 @@ static void Cmd_jumpifcantswitch(void)
 // Note that this is not used by the Switch action, only replacing fainted Pokémon or Baton Pass
 static void ChooseMonToSendOut(u8 slotId)
 {
+    #if !MODERN
     *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
     *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
+    #else
+    gBattleStruct->battlerPartyIndexes[gActiveBattler] = gBattlerPartyIndexes[gActiveBattler];
+    gBattleStruct->monToSwitchIntoId[gActiveBattler] = PARTY_SIZE;
+    #endif
     gBattleStruct->field_93 &= ~(gBitTable[gActiveBattler]);
 
     BtlController_EmitChoosePokemon(BUFFER_A, PARTY_ACTION_SEND_OUT, slotId, ABILITY_NONE, gBattleStruct->battlerPartyOrders[gActiveBattler]);
@@ -4786,7 +4817,7 @@ static void Cmd_openpartyscreen(void)
 
             hitmarkerFaintBits = gHitMarker >> 28;
 
-            if (gBitTable[0] & hitmarkerFaintBits)
+            if (hitmarkerFaintBits & gBitTable[0])
             {
                 gActiveBattler = 0;
                 if (HasNoMonsToSwitch(gActiveBattler, PARTY_SIZE, PARTY_SIZE))
