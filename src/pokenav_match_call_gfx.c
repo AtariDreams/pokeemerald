@@ -554,13 +554,8 @@ static u32 SelectMatchCallEntry(s32 state)
 
 static u32 MoveMatchCallOptionsCursor(s32 state)
 {
-    struct Pokenav_MatchCallGfx *gfx;
-    u16 cursorPos;
-
     PlaySE(SE_SELECT);
-    gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
-    cursorPos = GetMatchCallOptionCursorPos();
-    UpdateCursorGfxPos(gfx, cursorPos);
+    UpdateCursorGfxPos(GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN), GetMatchCallOptionCursorPos());
     return LT_FINISH;
 }
 
