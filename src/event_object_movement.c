@@ -165,6 +165,7 @@ static void DestroyLevitateMovementTask(u8);
 static bool8 NpcTakeStep(struct Sprite *);
 static bool8 IsElevationMismatchAt(u8, s16, s16);
 static bool8 AreElevationsCompatible(u8, u8);
+static u32 StartFieldEffectForObjectEvent(u8, struct ObjectEvent *);
 
 static const struct SpriteFrameImage sPicTable_PechaBerryTree[];
 
@@ -7641,18 +7642,17 @@ u8 GetLedgeJumpDirection(s16 x, s16 y, u8 direction)
     };
 
     u8 behavior;
-    u8 index = direction;
 
-    if (index == DIR_NONE)
+    if (direction == DIR_NONE)
         return DIR_NONE;
-    else if (index > DIR_EAST)
-        index -= DIR_EAST;
+    else if (direction > DIR_EAST)
+        direction -= DIR_EAST;
 
-    index--;
+    direction--;
     behavior = MapGridGetMetatileBehaviorAt(x, y);
 
-    if (ledgeBehaviorFuncs[index](behavior) == TRUE)
-        return index + 1;
+    if (ledgeBehaviorFuncs[direction](behavior) == TRUE)
+        return direction + 1;
 
     return DIR_NONE;
 }
@@ -7736,18 +7736,18 @@ void ObjectEventUpdateElevation(struct ObjectEvent *objEvent)
 
     objEvent->currentElevation = curElevation;
 
-    if (curElevation != 0 && curElevation != 15)
-        objEvent->previousElevation = curElevation;
+    if (curElevation == 0 || curElevation == 15)
+        return;
+    
+    objEvent->previousElevation = curElevation;
 }
 
 void SetObjectSubpriorityByElevation(u8 elevation, struct Sprite *sprite, u8 subpriority)
 {
-    s32 tmp = sprite->centerToCornerVecY;
-    u32 tmpa = *(u16 *)&sprite->y;
-    u32 tmpb = *(u16 *)&gSpriteCoordOffsetY;
-    s32 tmp2 = (tmpa - tmp) + tmpb;
-    u16 tmp3 = (16 - ((((u32)tmp2 + 8) & 0xFF) >> 4)) * 2;
-    sprite->subpriority = tmp3 + sElevationToSubpriority[elevation] + subpriority;
+    u16 y = (sprite->y - sprite->centerToCornerVecY + gSpriteCoordOffsetY + 8) & 0xFF;
+    y = (16 - (y >> 4)) << 1;
+
+    sprite->subpriority = sElevationToSubpriority[elevation] + y + subpriority;
 }
 
 static void ObjectEventUpdateSubpriority(struct ObjectEvent *objEvent, struct Sprite *sprite)
@@ -7760,13 +7760,10 @@ static void ObjectEventUpdateSubpriority(struct ObjectEvent *objEvent, struct Sp
 
 static bool8 AreElevationsCompatible(u8 a, u8 b)
 {
-    if (a == 0 || b == 0)
+    if (a == 0 || b == 0 || a == b)
         return TRUE;
 
-    if (a != b)
-        return FALSE;
-
-    return TRUE;
+    return FALSE;
 }
 
 void GroundEffect_SpawnOnTallGrass(struct ObjectEvent *objEvent, struct Sprite *sprite)
@@ -7926,15 +7923,15 @@ void GroundEffect_JumpOnTallGrass(struct ObjectEvent *objEvent, struct Sprite *s
     gFieldEffectArguments[3] = 2;
     FieldEffectStart(FLDEFF_JUMP_TALL_GRASS);
 
-    spriteId = FindTallGrassFieldEffectSpriteId(
-        objEvent->localId,
-        objEvent->mapNum,
-        objEvent->mapGroup,
-        objEvent->currentCoords.x,
-        objEvent->currentCoords.y);
-
-    if (spriteId == MAX_SPRITES)
+    if (FindTallGrassFieldEffectSpriteId(
+            objEvent->localId,
+            objEvent->mapNum,
+            objEvent->mapGroup,
+            objEvent->currentCoords.x,
+            objEvent->currentCoords.y) == MAX_SPRITES)
+    {
         GroundEffect_SpawnOnTallGrass(objEvent, sprite);
+    }
 }
 
 void GroundEffect_JumpOnLongGrass(struct ObjectEvent *objEvent, struct Sprite *sprite)
@@ -8154,28 +8151,29 @@ static void Step1(struct Sprite *sprite, u8 dir)
     sprite->y += sDirectionToVectors[dir].y;
 }
 
+// Should be a multiplication, not shift. Same applies for every other instance below
 static void Step2(struct Sprite *sprite, u8 dir)
 {
-    sprite->x += 2 * (u16) sDirectionToVectors[dir].x;
-    sprite->y += 2 * (u16) sDirectionToVectors[dir].y;
+    sprite->x += sDirectionToVectors[dir].x << 1;
+    sprite->y += sDirectionToVectors[dir].y << 1;
 }
 
 static void Step3(struct Sprite *sprite, u8 dir)
 {
-    sprite->x += 2 * (u16) sDirectionToVectors[dir].x + (u16) sDirectionToVectors[dir].x;
-    sprite->y += 2 * (u16) sDirectionToVectors[dir].y + (u16) sDirectionToVectors[dir].y;
+    sprite->x += (sDirectionToVectors[dir].x << 1) + sDirectionToVectors[dir].x;
+    sprite->y += (sDirectionToVectors[dir].y << 1) + sDirectionToVectors[dir].y;
 }
 
 static void Step4(struct Sprite *sprite, u8 dir)
 {
-    sprite->x += 4 * (u16) sDirectionToVectors[dir].x;
-    sprite->y += 4 * (u16) sDirectionToVectors[dir].y;
+    sprite->x += sDirectionToVectors[dir].x << 2;
+    sprite->y += sDirectionToVectors[dir].y << 2;
 }
 
 static void Step8(struct Sprite *sprite, u8 dir)
 {
-    sprite->x += 8 * (u16) sDirectionToVectors[dir].x;
-    sprite->y += 8 * (u16) sDirectionToVectors[dir].y;
+    sprite->x += sDirectionToVectors[dir].x << 3;
+    sprite->y += sDirectionToVectors[dir].y << 3;
 }
 
 #define sSpeed data[4]
@@ -8367,7 +8365,9 @@ static bool8 AnimateSpriteInFigure8(struct Sprite *sprite)
         sprite->y2 += GetFigure8YOffset((FIGURE_8_LENGTH - 1) - sprite->data[6]);
         break;
     }
-    if (++sprite->data[6] == FIGURE_8_LENGTH)
+    sprite->data[6]++;
+
+    if (sprite->data[6] == FIGURE_8_LENGTH)
     {
         sprite->data[6] = 0;
         sprite->data[7]++;
@@ -8646,11 +8646,11 @@ void SetVirtualObjectSpriteAnim(u8 virtualObjId, u8 animNum)
 {
     u8 spriteId = GetVirtualObjectSpriteId(virtualObjId);
 
-    if (spriteId != MAX_SPRITES)
-    {
-        gSprites[spriteId].sAnimNum = animNum;
-        gSprites[spriteId].sAnimState = 0;
-    }
+    if (spriteId == MAX_SPRITES)
+        return;
+
+    gSprites[spriteId].sAnimNum = animNum;
+    gSprites[spriteId].sAnimState = 0;
 }
 
 static void MoveUnionRoomObjectUp(struct Sprite *sprite)
@@ -8693,13 +8693,13 @@ static void VirtualObject_UpdateAnim(struct Sprite *sprite)
 {
     switch(sprite->sAnimNum)
     {
+    case 0:
+        break;
     case UNION_ROOM_SPAWN_IN:
         MoveUnionRoomObjectDown(sprite);
         break;
     case UNION_ROOM_SPAWN_OUT:
         MoveUnionRoomObjectUp(sprite);
-        break;
-    case 0:
         break;
     default:
         sprite->sAnimNum = 0;
@@ -8720,7 +8720,7 @@ bool32 IsVirtualObjectAnimating(u8 virtualObjId)
     return FALSE;
 }
 
-u32 StartFieldEffectForObjectEvent(u8 fieldEffectId, struct ObjectEvent *objectEvent)
+static u32 StartFieldEffectForObjectEvent(u8 fieldEffectId, struct ObjectEvent *objectEvent)
 {
     ObjectEventGetLocalIdAndMap(objectEvent, &gFieldEffectArguments[0], &gFieldEffectArguments[1], &gFieldEffectArguments[2]);
     return FieldEffectStart(fieldEffectId);
@@ -8780,11 +8780,11 @@ u8 MovementAction_StoreAndLockAnim_Step0(struct ObjectEvent *objectEvent, struct
     else
     {
         u8 i;
-        u8 firstFreeSlot;
-        bool32 found;
-        for (firstFreeSlot = 16, found = FALSE, i = 0; i < 16; i++)
+        u8 firstFreeSlot = OBJECT_EVENTS_COUNT;
+        bool32 found = FALSE;
+        for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
         {
-            if (firstFreeSlot == 16 && sLockedAnimObjectEvents->objectEventIds[i] == 0)
+            if (firstFreeSlot == OBJECT_EVENTS_COUNT && sLockedAnimObjectEvents->objectEventIds[i] == 0)
                 firstFreeSlot = i;
 
             if (sLockedAnimObjectEvents->objectEventIds[i] == objectEvent->localId)
@@ -8794,7 +8794,7 @@ u8 MovementAction_StoreAndLockAnim_Step0(struct ObjectEvent *objectEvent, struct
             }
         }
 
-        if (!found && firstFreeSlot != 16)
+        if (!found && firstFreeSlot != OBJECT_EVENTS_COUNT)
         {
             sLockedAnimObjectEvents->objectEventIds[firstFreeSlot] = objectEvent->localId;
             sLockedAnimObjectEvents->count++;
@@ -8822,7 +8822,7 @@ u8 MovementAction_FreeAndUnlockAnim_Step0(struct ObjectEvent *objectEvent, struc
     {
         ableToStore = FALSE;
         index = FindLockedObjectEventIndex(objectEvent);
-        if (index != 16)
+        if (index != OBJECT_EVENTS_COUNT)
         {
             sLockedAnimObjectEvents->objectEventIds[index] = 0;
             sLockedAnimObjectEvents->count--;
@@ -8860,7 +8860,7 @@ static void CreateLevitateMovementTask(struct ObjectEvent *objectEvent)
 
     StoreWordInTwoHalfwords(&task->data[0], (u32)objectEvent);
     objectEvent->warpArrowSpriteId = taskId;
-    task->data[3] = 0xFFFF;
+    task->data[3] = -1;
 }
 
 static void ApplyLevitateMovement(u8 taskId)
