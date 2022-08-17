@@ -239,7 +239,7 @@ static u32 GetNewIncomingPlayerId(struct RfuPlayer *, struct RfuIncomingPlayer *
 static u8 TryAddIncomingPlayerToList(struct RfuPlayer *, struct RfuIncomingPlayer *, u8);
 static u8 GetNewLeaderCandidate(void);
 static u32 IsTryingToTradeAcrossVersionTooSoon(struct WirelessLink_Group *, s32);
-static void AskToJoinRfuGroup(struct WirelessLink_Group *, s32);
+static void AskToJoinRfuGroup(struct WirelessLink_Group *, u32);
 static void JoinGroup_EnableScriptContexts(void);
 static void PrintGroupMemberOnWindow(u8, u8, u8, struct RfuPlayer *, u8, u8);
 static bool32 ArePlayerDataDifferent(struct RfuPlayerData *, struct RfuPlayerData *);
@@ -981,7 +981,7 @@ void TryJoinLinkGroup(void)
 
 static void Task_TryJoinLinkGroup(u8 taskId)
 {
-    s32 id;
+    u32 id;
     struct WirelessLink_Group *data = sWirelessLinkMain.group;
 
     switch (data->state)
@@ -1031,49 +1031,45 @@ static void Task_TryJoinLinkGroup(u8 taskId)
         break;
     case LG_STATE_CHOOSE_LEADER_HANDLE_INPUT:
         id = GetNewLeaderCandidate();
-        switch (id)
+        if (id)
         {
-        case 1:
-            PlaySE(SE_PC_LOGIN);
+            if (id == 1)
+                PlaySE(SE_PC_LOGIN);
             RedrawListMenu(data->listTaskId);
             break;
-        case 0:
-            id = ListMenu_ProcessInput(data->listTaskId);
-            if (JOY_NEW(A_BUTTON) && id != MENU_B_PRESSED)
-            {
-                // this unused variable along with the assignment is needed to match
-                u32 activity = data->playerList->players[id].rfu.data.activity;
+        }
 
-                if (data->playerList->players[id].groupScheduledAnim == UNION_ROOM_SPAWN_IN && !data->playerList->players[id].rfu.data.startedActivity)
+        id = ListMenu_ProcessInput(data->listTaskId);
+        if (JOY_NEW(A_BUTTON) && id != MENU_B_PRESSED)
+        {
+            // this unused variable along with the assignment is needed to match
+            u32 activity = data->playerList->players[id].rfu.data.activity;
+
+            if (data->playerList->players[id].groupScheduledAnim == UNION_ROOM_SPAWN_IN && !data->playerList->players[id].rfu.data.startedActivity)
+            {
+                u32 readyStatus = IsTryingToTradeAcrossVersionTooSoon(data, id);
+                if (readyStatus == UR_TRADE_READY)
                 {
-                    u32 readyStatus = IsTryingToTradeAcrossVersionTooSoon(data, id);
-                    if (readyStatus == UR_TRADE_READY)
-                    {
-                        // Trading is allowed, or not trading at all
-                        AskToJoinRfuGroup(data, id);
-                        data->state = LG_STATE_ASK_JOIN_GROUP;
-                        PlaySE(SE_POKENAV_ON);
-                    }
-                    else
-                    {
-                        StringCopy(gStringVar4, sCantTransmitToTrainerTexts[readyStatus - 1]);
-                        data->state = LG_STATE_TRADE_NOT_READY;
-                        PlaySE(SE_POKENAV_ON);
-                    }
+                    // Trading is allowed, or not trading at all
+                    AskToJoinRfuGroup(data, id);
+                    data->state = LG_STATE_ASK_JOIN_GROUP;
+                    PlaySE(SE_POKENAV_ON);
                 }
                 else
                 {
-                    PlaySE(SE_WALL_HIT);
+                    StringCopy(gStringVar4, sCantTransmitToTrainerTexts[readyStatus - 1]);
+                    data->state = LG_STATE_TRADE_NOT_READY;
+                    PlaySE(SE_POKENAV_ON);
                 }
             }
-            else if (JOY_NEW(B_BUTTON))
+            else
             {
-                data->state = LG_STATE_CANCEL_CHOOSE_LEADER;
+                PlaySE(SE_WALL_HIT);
             }
-            break;
-        default:
-            RedrawListMenu(data->listTaskId);
-            break;
+        }
+        else if (JOY_NEW(B_BUTTON))
+        {
+            data->state = LG_STATE_CANCEL_CHOOSE_LEADER;
         }
         break;
     case LG_STATE_ASK_JOIN_GROUP:
@@ -1264,7 +1260,7 @@ static void Task_TryJoinLinkGroup(u8 taskId)
 static u32 IsTryingToTradeAcrossVersionTooSoon(struct WirelessLink_Group *data, s32 id)
 {
     struct RfuPlayer *partner = &data->playerList->players[id];
-
+    
     if (gPlayerCurrActivity == ACTIVITY_TRADE && partner->rfu.data.compatibility.version != VERSION_EMERALD)
     {
         if (!(gSaveBlock2Ptr->specialSaveWarpFlags & CHAMPION_SAVEWARP))
@@ -1280,7 +1276,7 @@ static u32 IsTryingToTradeAcrossVersionTooSoon(struct WirelessLink_Group *data, 
     return UR_TRADE_PARTNER_NOT_READY;
 }
 
-static void AskToJoinRfuGroup(struct WirelessLink_Group *data, s32 id)
+static void AskToJoinRfuGroup(struct WirelessLink_Group *data, u32 id)
 {
     data->leaderId = id;
     LoadWirelessStatusIndicatorSpriteGfx();
@@ -1297,7 +1293,7 @@ u8 CreateTask_ListenToWireless(void)
     struct WirelessLink_Group *data;
 
     taskId = CreateTask(Task_ListenToWireless, 0);
-    sWirelessLinkMain.group = data = (void *)(gTasks[taskId].data);
+    data = sWirelessLinkMain.group = (void *)(gTasks[taskId].data);
 
     data->state = 0;
     data->textState = 0;
@@ -1469,9 +1465,7 @@ static void Task_CreateTradeMenu(u8 taskId)
 
 u8 CreateTask_CreateTradeMenu(void)
 {
-    u8 taskId = CreateTask(Task_CreateTradeMenu, 0);
-
-    return taskId;
+    return CreateTask(Task_CreateTradeMenu, 0);
 }
 
 static void Task_StartUnionRoomTrade(u8 taskId)
@@ -1532,7 +1526,7 @@ static void Task_ExchangeCards(u8 taskId)
             for (i = 0; i < GetLinkPlayerCount(); i++)
             {
                 recvBuff = gBlockRecvBuffer[i];
-                CopyTrainerCardData(&gTrainerCards[i], (struct TrainerCard *)recvBuff, gLinkPlayers[i].version);
+                CopyTrainerCardData(&gTrainerCards[i], (struct TrainerCard *)recvBuff, gLinkPlayers[i].version & 0xFF);
             }
 
             if (GetLinkPlayerCount() == 2)
@@ -2077,8 +2071,10 @@ void CreateTask_LinkMysteryGiftWithFriend(u32 activity)
     struct WirelessLink_Group *data;
 
     taskId = CreateTask(Task_CardOrNewsWithFriend, 0);
-    sWirelessLinkMain.group = data = (void *)(gTasks[taskId].data);
-    sGroup = data;
+    sWirelessLinkMain.group = (void *)(gTasks[taskId].data);
+
+    data = sWirelessLinkMain.group;
+    sGroup = sWirelessLinkMain.group;
 
     data->state = 0;
     data->textState = 0;
@@ -2138,42 +2134,39 @@ static void Task_CardOrNewsWithFriend(u8 taskId)
         break;
     case 3:
         id = GetNewLeaderCandidate();
-        switch (id)
+        if (id)
         {
-        case 1:
-            PlaySE(SE_PC_LOGIN);
-        default:
+            if (id == 1)
+                PlaySE(SE_PC_LOGIN);
             RedrawListMenu(data->listTaskId);
             break;
-        case 0:
-            id = ListMenu_ProcessInput(data->listTaskId);
-            if (JOY_NEW(A_BUTTON) && id != -1)
-            {
-                // this unused variable along with the assignment is needed to match
-                u32 unusedVar;
-                unusedVar  = data->playerList->players[id].rfu.data.activity;
+        }
 
-                if (data->playerList->players[id].groupScheduledAnim == UNION_ROOM_SPAWN_IN && !data->playerList->players[id].rfu.data.startedActivity)
-                {
-                    data->leaderId = id;
-                    LoadWirelessStatusIndicatorSpriteGfx();
-                    CreateWirelessStatusIndicatorSprite(0, 0);
-                    RedrawListMenu(data->listTaskId);
-                    CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
-                    CreateTask_RfuReconnectWithParent(data->playerList->players[data->leaderId].rfu.name, ReadAsU16(data->playerList->players[data->leaderId].rfu.data.compatibility.playerTrainerId));
-                    PlaySE(SE_POKENAV_ON);
-                    data->state = 4;
-                }
-                else
-                {
-                    PlaySE(SE_WALL_HIT);
-                }
-            }
-            else if (JOY_NEW(B_BUTTON))
+        id = ListMenu_ProcessInput(data->listTaskId);
+        if (JOY_NEW(A_BUTTON) && id != -1)
+        {
+            // this unused variable along with the assignment is needed to match
+            u32 unusedVar = data->playerList->players[id].rfu.data.activity;
+
+            if (data->playerList->players[id].groupScheduledAnim == UNION_ROOM_SPAWN_IN && !data->playerList->players[id].rfu.data.startedActivity)
             {
-                data->state = 6;
+                data->leaderId = id;
+                LoadWirelessStatusIndicatorSpriteGfx();
+                CreateWirelessStatusIndicatorSprite(0, 0);
+                RedrawListMenu(data->listTaskId);
+                CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
+                CreateTask_RfuReconnectWithParent(data->playerList->players[data->leaderId].rfu.name, ReadAsU16(data->playerList->players[data->leaderId].rfu.data.compatibility.playerTrainerId));
+                PlaySE(SE_POKENAV_ON);
+                data->state = 4;
             }
-            break;
+            else
+            {
+                PlaySE(SE_WALL_HIT);
+            }
+        }
+        else if (JOY_NEW(B_BUTTON))
+        {
+            data->state = 6;
         }
         break;
     case 4:
@@ -2204,7 +2197,7 @@ static void Task_CardOrNewsWithFriend(u8 taskId)
     case 6:
     case 8:
     case 10:
-        DestroyListMenuTask(data->listTaskId, 0, 0);
+        DestroyListMenuTask(data->listTaskId, NULL, NULL);
         CopyBgTilemapBufferToVram(0);
         RemoveWindow(data->playerNameAndIdWindowId);
         RemoveWindow(data->listWindowId);
@@ -2245,9 +2238,11 @@ void CreateTask_LinkMysteryGiftOverWireless(u32 activity)
     u8 taskId;
     struct WirelessLink_Group *data;
 
+    // So dumb, just do the assignment from data or sGroup
     taskId = CreateTask(Task_CardOrNewsOverWireless, 0);
-    sWirelessLinkMain.group = data = (void *)(gTasks[taskId].data);
-    sGroup = data;
+    sWirelessLinkMain.group = (void *)(gTasks[taskId].data);
+    sGroup = sWirelessLinkMain.group;
+    data = sWirelessLinkMain.group;
 
     data->state = 0;
     data->textState = 0;
@@ -2300,47 +2295,49 @@ static void Task_CardOrNewsOverWireless(u8 taskId)
         break;
     case 3:
         id = GetNewLeaderCandidate();
-        switch (id)
+        if (id)
         {
-        case 1:
-            PlaySE(SE_PC_LOGIN);
-        default:
+            if (id == 1)
+                PlaySE(SE_PC_LOGIN);
+            // GF says this is for debug so maybe this wasn't meant to be here?
             if (data->showListMenu)
                 RedrawListMenu(data->listTaskId);
             break;
-        case 0:
-            if (data->showListMenu)
-                id = ListMenu_ProcessInput(data->listTaskId);
-            if (data->refreshTimer > 120)
+        }
+
+        // GF says this is for debug so maybe this wasn't meant to be here?
+        if (data->showListMenu)
+            id = ListMenu_ProcessInput(data->listTaskId);
+
+        if (data->refreshTimer > 120)
+        {
+            if (data->playerList->players[0].groupScheduledAnim == UNION_ROOM_SPAWN_IN && !data->playerList->players[0].rfu.data.startedActivity)
             {
-                if (data->playerList->players[0].groupScheduledAnim == UNION_ROOM_SPAWN_IN && !data->playerList->players[0].rfu.data.startedActivity)
+                if (HasWonderCardOrNewsByLinkGroup(&data->playerList->players[0].rfu.data, data->isWonderNews + LINK_GROUP_WONDER_CARD))
                 {
-                    if (HasWonderCardOrNewsByLinkGroup(&data->playerList->players[0].rfu.data, data->isWonderNews + LINK_GROUP_WONDER_CARD))
-                    {
-                        data->leaderId = 0;
-                        data->refreshTimer = 0;
-                        LoadWirelessStatusIndicatorSpriteGfx();
-                        CreateWirelessStatusIndicatorSprite(0, 0);
-                        CreateTask_RfuReconnectWithParent(data->playerList->players[0].rfu.name, ReadAsU16(data->playerList->players[0].rfu.data.compatibility.playerTrainerId));
-                        PlaySE(SE_POKENAV_ON);
-                        data->state = 4;
-                    }
-                    else
-                    {
-                        PlaySE(SE_BOO);
-                        data->state = 10;
-                    }
+                    data->leaderId = 0;
+                    data->refreshTimer = 0;
+                    LoadWirelessStatusIndicatorSpriteGfx();
+                    CreateWirelessStatusIndicatorSprite(0, 0);
+                    CreateTask_RfuReconnectWithParent(data->playerList->players[0].rfu.name, ReadAsU16(data->playerList->players[0].rfu.data.compatibility.playerTrainerId));
+                    PlaySE(SE_POKENAV_ON);
+                    data->state = 4;
+                }
+                else
+                {
+                    PlaySE(SE_BOO);
+                    data->state = 10;
                 }
             }
-            else if (JOY_NEW(B_BUTTON))
-            {
-                data->state = 6;
-                data->refreshTimer = 0;
-            }
-            data->refreshTimer++;
-            break;
         }
+        else if (JOY_NEW(B_BUTTON))
+        {
+            data->state = 6;
+            data->refreshTimer = 0;
+        }
+        data->refreshTimer++;
         break;
+
     case 4:
         AddTextPrinterToWindow1(sText_AwaitingResponseFromWirelessSystem);
         CopyAndTranslatePlayerName(gStringVar1, &data->playerList->players[data->leaderId]);
