@@ -498,7 +498,7 @@ static u8 CompareMonSize(u16 species, u16 *sizeRecord)
 #if !MODERN
     vu16 sizeParams;
 #else
-    u16 sizeParams
+    u16 sizeParams;
 #endif
     if (gSpecialVar_Result == 0xFF)
     {
