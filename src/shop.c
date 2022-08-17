@@ -880,7 +880,7 @@ static void BuyMenuCopyMenuBgToBg1TilemapBuffer(void)
 {
     // why is i an s16?!!!!!!!!
     // GF wrote it that way but why???
-    s16 i;
+    ms16 i;
     u16 *dest = sShopData->tilemapBuffers[1];
     const u16 *src = sShopData->tilemapBuffers[0];
 
