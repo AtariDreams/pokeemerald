@@ -702,17 +702,14 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
         {
             data->state = LL_STATE_MEMBER_DISCONNECTED;
         }
-        else
+        else if (gReceivedRemoteLinkPlayers != 0)
         {
-            if (gReceivedRemoteLinkPlayers != 0)
-            {
-                if (IsActivityWithVariableGroupSize(gPlayerCurrActivity))
-                    GetOtherPlayersInfoFlags();
-                UpdateGameData_GroupLockedIn(TRUE);
-                CreateTask_RunScriptAndFadeToActivity();
-                Leader_DestroyResources(data);
-                DestroyTask(taskId);
-            }
+            if (IsActivityWithVariableGroupSize(gPlayerCurrActivity))
+                GetOtherPlayersInfoFlags();
+            UpdateGameData_GroupLockedIn(TRUE);
+            CreateTask_RunScriptAndFadeToActivity();
+            Leader_DestroyResources(data);
+            DestroyTask(taskId);
         }
         break;
     }
@@ -868,6 +865,8 @@ static void ItemPrintFunc_PossibleGroupMembers(u8 windowId, u32 id, u8 y)
 
     switch (data->playerList->players[id].groupScheduledAnim)
     {
+    default:
+        break;
     case UNION_ROOM_SPAWN_IN:
         if (data->playerList->players[id].newPlayerCountdown != 0)
             colorIdx = UR_COLOR_GREEN;
@@ -889,8 +888,7 @@ static u8 LeaderUpdateGroupMembership(struct RfuPlayerList *list)
 
     for (i = 1; i < MAX_RFU_PLAYERS; i++)
     {
-        u16 var = data->playerList->players[i].groupScheduledAnim;
-        if (var == UNION_ROOM_SPAWN_IN)
+        if (data->playerList->players[i].groupScheduledAnim == UNION_ROOM_SPAWN_IN)
         {
             id = GetNewIncomingPlayerId(&data->playerList->players[i], data->incomingPlayerList->players);
             if (id != 0xFF)
