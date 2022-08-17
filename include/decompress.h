@@ -4,9 +4,13 @@
 #include "sprite.h"
 
 extern u8 gDecompressionBuffer[0x4000];
-
+#if !MODERN
 void LZDecompressWram(const u32 *src, void *dest);
 void LZDecompressVram(const u32 *src, void *dest);
+#else
+#define LZDecompressWram LZ77UnCompWram
+#define LZDecompressVram LZ77UnCompVram
+#endif
 
 u16 LoadCompressedSpriteSheet(const struct CompressedSpriteSheet *src);
 void LoadCompressedSpriteSheetOverrideBuffer(const struct CompressedSpriteSheet *src, void *buffer);
