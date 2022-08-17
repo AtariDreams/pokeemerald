@@ -620,7 +620,9 @@ extern u8 gBattleTextBuff2[TEXT_BUFF_ARRAY_COUNT];
 extern u8 gBattleTextBuff3[TEXT_BUFF_ARRAY_COUNT];
 extern u32 gBattleTypeFlags;
 extern u8 gBattleTerrain;
+#if !MODERN
 extern u32 gUnusedFirstBattleVar1;
+#endif
 extern u8 *gBattleAnimBgTileBuffer;
 extern u16 *gBattleAnimBgTilemapBuffer;
 extern u8 gBattleBufferA[MAX_BATTLERS_COUNT][0x200];
