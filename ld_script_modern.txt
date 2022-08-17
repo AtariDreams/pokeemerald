@@ -16,7 +16,8 @@ SECTIONS {
         . = 0x20000;
 
         src/mystery_event_script.o(COMMON)
-        *.o(ewram_data);
+        gflib/*.o(ewram_data);
+        src/*.o(ewram_data);
         . = 0x40000;
     }
 
@@ -26,8 +27,17 @@ SECTIONS {
     ALIGN(4)
     {
         /* .bss starts at 0x3000000 */
+        
+        gflib/*.o(.bss);
+        src/*.o(.bss);
+		data/*.o(.bss);
+
         *(.bss)
 		*(.bss.*)
+        
+        gflib/*.o(COMMON);
+        src/*.o(COMMON);
+        data/*.o(COMMON);
 		*(COMMON)
         end = .;
         . = 0x8000;
@@ -39,6 +49,11 @@ SECTIONS {
     ALIGN(4)
     {
         src/rom_header.o(.text*);
+        src/rom_header_gf.o(.text*);
+        src/crt0.o(.text*);
+        src/main.o(.text*);
+        gflib/*.o(.text*);
+        src/*.o(.text*);
         *(.text)
 		*(.text.*)
     } =0
@@ -73,6 +88,10 @@ SECTIONS {
     .rodata :
     ALIGN(4)
     {
+        src/rom_header.o(.rodata);
+        src/rom_header_gf.o(.rodata);
+        gflib/*.o(.rodata);
+        src/*.o(.rodata);
         *(.rodata)
         *(.rodata.*)
     } =0
