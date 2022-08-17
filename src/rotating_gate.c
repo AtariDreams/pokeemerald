@@ -893,7 +893,7 @@ static s32 RotatingGate_HasArm(u8 gateId, u8 armInfo)
 
     s8 armOrientation = (arm - RotatingGate_GetGateOrientation(gateId) + 4) % 4;
     
-    u8 shape = gRotatingGate_PuzzleConfig[gateId].shape;
+    u8 shape = sRotatingGate_PuzzleConfig[gateId].shape;
     return sRotatingGate_ArmLayout[shape][armOrientation * 2 + isLongArm];
 }
 
