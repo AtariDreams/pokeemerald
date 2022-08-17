@@ -497,8 +497,8 @@ static void Cmd_end(void)
         }
         else
         {
-            MPlayStop(&gMPlayInfo_SE1);
-            MPlayStop(&gMPlayInfo_SE2);
+            m4aMPlayStop(&gMPlayInfo_SE1);
+            m4aMPlayStop(&gMPlayInfo_SE2);
         }
     }
 
@@ -1655,8 +1655,8 @@ static void Cmd_waitsound(void)
     {
         if (++sSoundAnimFramesToWait > 90)
         {
-            MPlayStop(&gMPlayInfo_SE1);
-            MPlayStop(&gMPlayInfo_SE2);
+            m4aMPlayStop(&gMPlayInfo_SE1);
+            m4aMPlayStop(&gMPlayInfo_SE2);
             sSoundAnimFramesToWait = 0;
         }
         else
@@ -1847,7 +1847,7 @@ static void Cmd_teamattack_movefwd(void)
 
 static void Cmd_stopsound(void)
 {
-    MPlayStop(&gMPlayInfo_SE1);
-    MPlayStop(&gMPlayInfo_SE2);
+    m4aMPlayStop(&gMPlayInfo_SE1);
+    m4aMPlayStop(&gMPlayInfo_SE2);
     sBattleAnimScriptPtr++;
 }
