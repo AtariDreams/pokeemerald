@@ -6,6 +6,8 @@
 static bool32 IsCurMapInLocationList(const u16 *list)
 {
     s32 i;
+    // Save the search key generated from the current map ID
+    // TODO: * 0x100 or << 8?
     u16 map = (gSaveBlock1Ptr->location.mapGroup << 8) + gSaveBlock1Ptr->location.mapNum;
 
     for (i = 0; list[i] != LIST_END; i++)
@@ -124,13 +126,19 @@ void TrySetMapSaveWarpStatus(void)
 // These flags are read by Pokemon Colosseum/XD for linking. XD Additionally requires FLAG_SYS_GAME_CLEAR
 void SetUnlockedPokedexFlags(void)
 {
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 15);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 0);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 1);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 2);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 4);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 5);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 3);
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_GAMECUBE);
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 0); // tradeflag for nat dex?
+#if BUGFIX || MODERN
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_RUBY);
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_SAPPHIRE);
+#else
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_SAPPHIRE);
+    // BUG: they mistakenly got RS confused Not that it matters, does it?
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_RUBY);
+#endif
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_FIRE_RED);
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_LEAF_GREEN);
+    gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_EMERALD);
 }
 
 void SetChampionSaveWarp(void)
