@@ -17,16 +17,15 @@ void BlitBitmapRect4Bit(const struct Bitmap *src, struct Bitmap *dst, u16 srcX, 
     const u8 *pixelsSrc;
     u8 *pixelsDst;
     s32 toOrr;
-    s32 toAnd;
     s32 toShift;
 
     if (dst->width - dstX < width)
-        xEnd = (dst->width - dstX) + srcX;
+        xEnd = dst->width - dstX + srcX;
     else
         xEnd = srcX + width;
 
     if (dst->height - dstY < height)
-        yEnd = (dst->height - dstY) + srcY;
+        yEnd = dst->height - dstY + srcY;
     else
         yEnd = height + srcY;
 
@@ -43,9 +42,8 @@ void BlitBitmapRect4Bit(const struct Bitmap *src, struct Bitmap *dst, u16 srcX, 
                 pixelsDst = dst->pixels + ((loopDstX >> 1) & 3) + ((loopDstX >> 3) << 5) + (((loopDstY >> 3) * multiplierDstY) << 5) + ((u32)(loopDstY << 0x1d) >> 0x1B);
                 toOrr = ((*pixelsSrc >> ((loopSrcX & 1) << 2)) & 0xF);
                 toShift = ((loopDstX & 1) << 2);
-                toOrr <<= toShift;
-                toAnd = 0xF0 >> (toShift);
-                *pixelsDst = toOrr | (*pixelsDst & toAnd);
+
+                *pixelsDst = (toOrr << toShift)| (*pixelsDst & (0xF0 >> toShift));
             }
         }
     }
@@ -61,9 +59,7 @@ void BlitBitmapRect4Bit(const struct Bitmap *src, struct Bitmap *dst, u16 srcX, 
                 if (toOrr != colorKey)
                 {
                     toShift = ((loopDstX & 1) << 2);
-                    toOrr <<= toShift;
-                    toAnd = 0xF0 >> (toShift);
-                    *pixelsDst = toOrr | (*pixelsDst & toAnd);
+                    *pixelsDst = (toOrr << toShift) | (*pixelsDst & (0xF0 >> toShift));
                 }
             }
         }
