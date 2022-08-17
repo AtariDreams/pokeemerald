@@ -2295,7 +2295,7 @@ static bool8 HasDecorationsInUse(u8 taskId)
 
 static void SetUpPuttingAwayDecorationPlayerAvatar(void)
 {
-    // No reason to call this. What happened is that GF assigned the resu;t to an unused var
+    // No reason to call this. What happened is that GF assigned the result to an unused var
     #if !MODERN
     GetPlayerFacingDirection();
     #endif
