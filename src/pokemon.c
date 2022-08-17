@@ -3265,13 +3265,13 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     switch (attackerHoldEffect)
     {
     case HOLD_EFFECT_CHOICE_BAND:
-        attack = attack * 3 / 2;
+        attack += attack/2; // * 3/2
     case HOLD_EFFECT_SOUL_DEW:
         if (attacker->species == SPECIES_LATIAS || attacker->species == SPECIES_LATIOS)
         {
             if (gBattleTypeFlags & (BATTLE_TYPE_FRONTIER))
                 break;
-            spAttack = spAttack * 3 / 2;
+            spAttack += spAttack / 2;
         }
         break;
     case HOLD_EFFECT_DEEP_SEA_TOOTH:
@@ -3294,21 +3294,21 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
             break;
         // Fallthru
     case ABILITY_HUSTLE:
-        attack = attack * 3 / 2;
+        attack += attack / 2;
         break;
     case ABILITY_PLUS:
         if (ABILITY_ON_FIELD2(ABILITY_MINUS))
-            spAttack = spAttack * 3 / 2;
+            spAttack += spAttack / 2;
         break;
     case ABILITY_MINUS:
         if (ABILITY_ON_FIELD2(ABILITY_PLUS))
-            spAttack = spAttack * 3 / 2;
+            spAttack += spAttack / 2;
         break;
     case ABILITY_OVERGROW:
         if (type == TYPE_GRASS)
         {
-            if (attacker->hp <= (attacker->maxHP / 3))
-                gBattleMovePower = gBattleMovePower * 3 / 2;
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower / 2;
             goto noType;
         }
 
@@ -3317,8 +3317,8 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     case ABILITY_BLAZE:
         if (type == TYPE_FIRE)
         {
-            if (attacker->hp <= (attacker->maxHP / 3))
-                gBattleMovePower = gBattleMovePower * 3 / 2;
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower / 2;
             goto noType;
         }
 
@@ -3326,8 +3326,8 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     case ABILITY_TORRENT:
         if (type == TYPE_WATER)
         {
-            if (attacker->hp <= (attacker->maxHP / 3))
-                gBattleMovePower = gBattleMovePower * 3 / 2;
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower/ 2;
             goto noType;
         }
 
@@ -3335,8 +3335,8 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     case ABILITY_SWARM:
         if (type == TYPE_BUG)
         {
-            if (attacker->hp <= (attacker->maxHP / 3))
-                gBattleMovePower = gBattleMovePower * 3 / 2;
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower/ 2;
             goto noType;
         }
 
@@ -3358,7 +3358,7 @@ noType:
     if (defenderHoldEffect == HOLD_EFFECT_SOUL_DEW)
     {
         if ((defender->species == SPECIES_LATIAS || defender->species == SPECIES_LATIOS) && !(gBattleTypeFlags & (BATTLE_TYPE_FRONTIER)))
-            spDefense = spDefense * 3 / 2;
+            spDefense += spDefense / 2;
     }
     else if (defenderHoldEffect == HOLD_EFFECT_DEEP_SEA_SCALE)
     {
@@ -3379,7 +3379,7 @@ noType:
     else if (defender->ability == ABILITY_MARVEL_SCALE)
     {
         if (defender->status1)
-            defense = defense * 3 / 2;
+            defense += defense / 2;
     }
 #endif
         // Apply abilities / field sports
