@@ -200,9 +200,13 @@ EWRAM_DATA u8 gLastHitBy[MAX_BATTLERS_COUNT] = {0};
 EWRAM_DATA u16 gChosenMoveByBattler[MAX_BATTLERS_COUNT] = {0};
 EWRAM_DATA u8 gMoveResultFlags = 0;
 EWRAM_DATA u32 gHitMarker = 0;
+#if !MODERN
 EWRAM_DATA static u8 sUnusedBattlersArray[MAX_BATTLERS_COUNT] = {0};
+#endif
 EWRAM_DATA u8 gTakenDmgByBattler[MAX_BATTLERS_COUNT] = {0};
+#if !MODERN
 EWRAM_DATA u8 gUnusedFirstBattleVar2 = 0; // Never read
+#endif
 EWRAM_DATA u16 gSideStatuses[2] = {0};
 EWRAM_DATA struct SideTimer gSideTimers[2] = {0};
 EWRAM_DATA u32 gStatuses3[MAX_BATTLERS_COUNT] = {0};
@@ -3019,9 +3023,11 @@ static void BattleMainCB1(void)
 
 static void BattleStartClearSetData(void)
 {
-    s32 i;
+    m32 i;
     u32 j;
+    #if !MODERN
     u8 *dataPtr;
+    #endif
 
     TurnValuesCleanUp(FALSE);
     SpecialStatusesClear();
@@ -3030,12 +3036,18 @@ static void BattleStartClearSetData(void)
     {
         gStatuses3[i] = 0;
 
+        #if !MODERN
         dataPtr = (u8 *)&gDisableStructs[i];
         for (j = 0; j < sizeof(struct DisableStruct); j++)
             dataPtr[j] = 0;
+        #else
+        memset(&gDisableStructs[i], 0, sizeof(struct DisableStruct));
+        #endif
 
         gDisableStructs[i].isFirstTurn = 2;
+        #if !MODERN
         sUnusedBattlersArray[i] = 0;
+        #endif
         gLastMoves[i] = MOVE_NONE;
         gLastLandedMoves[i] = MOVE_NONE;
         gLastHitByType[i] = 0;
@@ -3050,19 +3062,26 @@ static void BattleStartClearSetData(void)
     for (i = 0; i < 2; i++)
     {
         gSideStatuses[i] = 0;
-
+        #if !MODERN
         dataPtr = (u8 *)&gSideTimers[i];
         for (j = 0; j < sizeof(struct SideTimer); j++)
             dataPtr[j] = 0;
+        #else
+        memset(&gSideTimers[i], 0, sizeof(struct SideTimer));
+        #endif
     }
 
     gBattlerAttacker = 0;
     gBattlerTarget = 0;
     gBattleWeather = 0;
 
+    #if !MODERN
     dataPtr = (u8 *)&gWishFutureKnock;
     for (i = 0; i < sizeof(struct WishFutureKnock); i++)
         dataPtr[i] = 0;
+    #else
+    memset(&gWishFutureKnock, 0, sizeof(struct WishFutureKnock));
+    #endif
 
     gHitMarker = 0;
 
@@ -3096,13 +3115,18 @@ static void BattleStartClearSetData(void)
     gBattleStruct->runTries = 0;
     gBattleStruct->safariGoNearCounter = 0;
     gBattleStruct->safariPkblThrowCounter = 0;
+    #if !MODERN
     *(&gBattleStruct->safariCatchFactor) = gBaseStats[GetMonData(&gEnemyParty[0], MON_DATA_SPECIES)].catchRate * 100 / 1275;
+    #else
+    gBattleStruct->safariCatchFactor = Div(gBaseStats[GetMonData(&gEnemyParty[0], MON_DATA_SPECIES)].catchRate * 4, 51);
+    #endif
     gBattleStruct->safariEscapeFactor = 3;
     gBattleStruct->wildVictorySong = 0;
     gBattleStruct->moneyMultiplier = 1;
 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < MAX_BATTLERS_COUNT * 2; i++)
     {
+        #if !MODERN
         *((u8 *)gBattleStruct->lastTakenMove + i) = MOVE_NONE;
         *((u8 *)gBattleStruct->usedHeldItems + i) = ITEM_NONE;
         *((u8 *)gBattleStruct->choicedMove + i) = MOVE_NONE;
@@ -3111,11 +3135,24 @@ static void BattleStartClearSetData(void)
         *(i + 1 * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 0) = 0;
         *(i + 2 * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 0) = 0;
         *(i + 3 * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 0) = 0;
+        #else
+        gBattleStruct->lastTakenMove[i] = 0;
+        gBattleStruct->usedHeldItems[i] = 0;
+        gBattleStruct->choicedMove[i] = 0;
+        gBattleStruct->changedItems[i] = 0;
+        #endif
     }
+    #if MODERN
+    memset(gBattleStruct->lastTakenMoveFrom, 0, sizeof(gBattleStruct->lastTakenMoveFrom));
+    #endif
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
     {
+        #if !MODERN
         *(gBattleStruct->AI_monToSwitchIntoId + i) = PARTY_SIZE;
+        #else
+        gBattleStruct->AI_monToSwitchIntoId[i] = PARTY_SIZE;
+        #endif
     }
 
     gBattleStruct->givenExpMons = 0;
@@ -3123,9 +3160,15 @@ static void BattleStartClearSetData(void)
 
     gRandomTurnNumber = Random();
 
+    #if !MODERN
     dataPtr = (u8 *)(&gBattleResults);
     for (i = 0; i < sizeof(struct BattleResults); i++)
         dataPtr[i] = 0;
+    #else
+    memset(&gBattleResults, 0,  sizeof(struct BattleResults));
+    // Only use below if gBattleResults is word-aligned
+    // CpuFastFill(0, &gBattleResults, sizeof(struct BattleResults));
+    #endif
 
     gBattleResults.shinyWildMon = IsMonShiny(&gEnemyParty[0]);
 
@@ -3178,7 +3221,9 @@ void SwitchInClearSetData(void)
 
     for (i = 0; i < gBattlersCount; i++)
     {
+        #if !MODERN
         if (gBattleMons[i].status2 & STATUS2_INFATUATED_WITH(gActiveBattler))
+        #endif
             gBattleMons[i].status2 &= ~STATUS2_INFATUATED_WITH(gActiveBattler);
         if ((gBattleMons[i].status2 & STATUS2_WRAPPED) && *(gBattleStruct->wrappedBy + i) == gActiveBattler)
             gBattleMons[i].status2 &= ~STATUS2_WRAPPED;
@@ -3187,9 +3232,13 @@ void SwitchInClearSetData(void)
     gActionSelectionCursor[gActiveBattler] = 0;
     gMoveSelectionCursor[gActiveBattler] = 0;
 
+    #if !MODERN
     ptr = (u8 *)&gDisableStructs[gActiveBattler];
     for (i = 0; i < sizeof(struct DisableStruct); i++)
         ptr[i] = 0;
+    #else
+    memset(&gDisableStructs[gActiveBattler], 0, sizeof(struct DisableStruct));
+    #endif
 
     if (gBattleMoves[gCurrentMove].effect == EFFECT_BATON_PASS)
     {
