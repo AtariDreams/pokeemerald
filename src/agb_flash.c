@@ -26,15 +26,22 @@ void SwitchFlashBank(u8 bankNum)
     FLASH_WRITE(0x5555, 0xB0);
     *(vu8*)FLASH_BASE = bankNum;
 }
+
+#if !MODERN
 #define DELAY()                  \
 do {                             \
     vu16 i;                      \
     for (i = 20000; i != 0; i--) \
         ;                        \
 } while (0)
-
+#else
+#define DELAY() for (i = 20000; i != 0; i--);
+#endif
 u16 ReadFlashId(void)
 {
+    #if MODERN
+    vu16 i;
+    #endif
     u16 flashId;
     u16 readFlash1Buffer[0x20];
     u8 (*readFlash1)(u8 *);
@@ -55,7 +62,11 @@ u16 ReadFlashId(void)
     FLASH_WRITE(0x5555, 0xAA);
     FLASH_WRITE(0x2AAA, 0x55);
     FLASH_WRITE(0x5555, 0xF0);
+
+    // reset?
+    // This is writing twice. Is it needed? It's a volatile write...
     FLASH_WRITE(0x5555, 0xF0);
+
     DELAY();
 
     return flashId;
@@ -73,14 +84,14 @@ u16 SetFlashTimerIntr(u8 timerNum, void (**intrFunc)(void))
         return 1;
 
     sTimerNum = timerNum;
-    sTimerReg = &REG_TMCNT_L(sTimerNum);
+    sTimerReg = REG_NADDR_TMCNT_L(sTimerNum);
     *intrFunc = FlashTimerIntr;
     return 0;
 }
 
 void StartFlashTimer(u8 phase)
 {
-    const u16 *maxTime = (u16 *)(gFlashMaxTime + phase);
+    const u16 *maxTime = (const u16 *)(gFlashMaxTime + phase);
     sSavedIme = REG_IME;
     REG_IME = 0;
     sTimerReg[1] = 0;
@@ -115,9 +126,6 @@ void SetReadFlash1(u16 *dest)
     PollFlashStatus = (u8 (*)(u8 *))((u8 *)dest + 1);
 
     src = (u16 *)ReadFlash1;
-    // What Nintendo did
-    //src = (u16 *)((u32)src & 0xFFFFFFFE);
-    // What matches
     src = (u16 *)((u32)src ^ 1);
 
     for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>1;i>0;i--)
@@ -137,24 +145,24 @@ void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 __attribute__((naked))
 void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 {
-    //clang did this plus hand optimized
+    //hand optimized
     asm("cmp     r2, #0\n\
-        beq     .LBB0_2 \n\
-.LBB0_1: \n\
+        beq     .end \n\
+.loop: \n\
         ldrb    r3, [r0]\n\
         strb    r3, [r1]\n\
         adds    r0, r0, #1\n\
         adds    r1, r1, #1\n\
         subs    r2, r2, #1\n\
-        bne     .LBB0_1\n\
-.LBB0_2:\n\
+        bne     .loop\n\
+.end:\n\
         bx      lr");
 }
 #endif
 void ReadFlash(u16 sectorNum, u32 offset, u8 *dest, u32 size)
 {
     u8 *src;
-    u16 i;
+    m16 i;
     u16 readFlash_Core_Buffer[0x40];
     u16 *funcSrc;
     u16 *funcDest;
@@ -172,12 +180,9 @@ void ReadFlash(u16 sectorNum, u32 offset, u8 *dest, u32 size)
     funcSrc = (u16 *)((u32)funcSrc ^ 1);
     funcDest = readFlash_Core_Buffer;
 
-    i = ((u32)ReadFlash - (u32)ReadFlash_Core) >> 1;
-
-    while (i != 0)
+    for(i=((u32)ReadFlash-(u32)ReadFlash_Core)>>1;i!=0;i--)
     {
         *funcDest++ = *funcSrc++;
-        i--;
     }
 
     readFlash_Core = (void (*)(u8 *, u8 *, u32))((u8*)readFlash_Core_Buffer + 1);
