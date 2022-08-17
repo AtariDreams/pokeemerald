@@ -445,7 +445,7 @@ static const struct MailLayout sMailLayouts_Tall[] = {
 
 void ReadMail(struct Mail *mail, void (*exitCallback)(void), bool8 hasText)
 {
-    u16 buffer[2];
+    u16 unknownId;
     u16 species;
 
     sMailRead = calloc(1, sizeof(*sMailRead));
@@ -462,10 +462,13 @@ void ReadMail(struct Mail *mail, void (*exitCallback)(void), bool8 hasText)
         sMailRead->mailType = ITEM_TO_MAIL(FIRST_MAIL_INDEX);
         hasText = FALSE;
     }
+
+    // TODO: optimize this out?
+    #if !MODERN
     switch (sMailRead->international)
     {
-    case FALSE:
     default:
+    case FALSE:
         // Never reached. JP only?
         sMailRead->layout = &sMailLayouts_Wide[sMailRead->mailType];
         break;
@@ -473,7 +476,11 @@ void ReadMail(struct Mail *mail, void (*exitCallback)(void), bool8 hasText)
         sMailRead->layout = &sMailLayouts_Tall[sMailRead->mailType];
         break;
     }
-    species = MailSpeciesToSpecies(mail->species, buffer);
+    #else
+    sMailRead->layout = &sMailLayouts_Tall[sMailRead->mailType];
+    #endif
+
+    species = MailSpeciesToSpecies(mail->species, &unknownId);
     if (species > SPECIES_NONE && species < NUM_SPECIES)
     {
         switch (sMailRead->mailType)
