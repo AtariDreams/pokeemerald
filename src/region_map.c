@@ -1335,8 +1335,10 @@ static void GetPositionOfCursorWithinMapSec(void)
     {
         if (x <= MAPCURSOR_X_MIN)
         {
+            #if !MODERN
             if (RegionMap_IsMapSecIdInNextRow(y))
             {
+            
                 y--;
                 x = MAPCURSOR_X_MAX + 1;
             }
@@ -1344,6 +1346,13 @@ static void GetPositionOfCursorWithinMapSec(void)
             {
                 break;
             }
+            #else
+            if (!RegionMap_IsMapSecIdInNextRow(y))
+                break;
+            x = MAPCURSOR_X_MAX + 1;
+            y--;
+            #endif
+
         }
         else if (GetMapSecIdAt(--x, y) == sRegionMap->mapSecId)
         {
