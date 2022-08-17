@@ -491,41 +491,40 @@ static void InitPartyMenu(u8 menuType, u8 layout, u8 partyAction, bool8 keepCurs
     if (sPartyMenuInternal == NULL)
     {
         SetMainCallback2(callback);
+        return;
     }
+
+    gPartyMenu.menuType = menuType;
+    gPartyMenu.exitCallback = callback;
+    gPartyMenu.action = partyAction;
+    sPartyMenuInternal->messageId = messageId;
+    sPartyMenuInternal->task = task;
+    sPartyMenuInternal->exitCallback = NULL;
+    sPartyMenuInternal->lastSelectedSlot = 0;
+    sPartyMenuInternal->spriteIdConfirmPokeball = 0x7F;
+    sPartyMenuInternal->spriteIdCancelPokeball = 0x7F;
+
+    if (menuType == PARTY_MENU_TYPE_CHOOSE_HALF)
+        sPartyMenuInternal->chooseHalf = TRUE;
     else
-    {
-        gPartyMenu.menuType = menuType;
-        gPartyMenu.exitCallback = callback;
-        gPartyMenu.action = partyAction;
-        sPartyMenuInternal->messageId = messageId;
-        sPartyMenuInternal->task = task;
-        sPartyMenuInternal->exitCallback = NULL;
-        sPartyMenuInternal->lastSelectedSlot = 0;
-        sPartyMenuInternal->spriteIdConfirmPokeball = 0x7F;
-        sPartyMenuInternal->spriteIdCancelPokeball = 0x7F;
+        sPartyMenuInternal->chooseHalf = FALSE;
 
-        if (menuType == PARTY_MENU_TYPE_CHOOSE_HALF)
-            sPartyMenuInternal->chooseHalf = TRUE;
-        else
-            sPartyMenuInternal->chooseHalf = FALSE;
+    if (layout != KEEP_PARTY_LAYOUT)
+        gPartyMenu.layout = layout;
 
-        if (layout != KEEP_PARTY_LAYOUT)
-            gPartyMenu.layout = layout;
+    for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->data); i++)
+        sPartyMenuInternal->data[i] = 0;
+    for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->windowId); i++)
+        sPartyMenuInternal->windowId[i] = WINDOW_NONE;
 
-        for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->data); i++)
-            sPartyMenuInternal->data[i] = 0;
-        for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->windowId); i++)
-            sPartyMenuInternal->windowId[i] = WINDOW_NONE;
+    if (!keepCursorPos)
+        gPartyMenu.slotId = 0;
+    else if (gPartyMenu.slotId > PARTY_SIZE - 1 || GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES) == SPECIES_NONE)
+        gPartyMenu.slotId = 0;
 
-        if (!keepCursorPos)
-            gPartyMenu.slotId = 0;
-        else if (gPartyMenu.slotId > PARTY_SIZE - 1 || GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES) == SPECIES_NONE)
-            gPartyMenu.slotId = 0;
-
-        gTextFlags.autoScroll = 0;
-        CalculatePlayerPartyCount();
-        SetMainCallback2(CB2_InitPartyMenu);
-    }
+    gTextFlags.autoScroll = 0;
+    CalculatePlayerPartyCount();
+    SetMainCallback2(CB2_InitPartyMenu);
 }
 
 static void CB2_UpdatePartyMenu(void)
