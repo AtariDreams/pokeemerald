@@ -66,7 +66,11 @@ static bool8 CompareTrends(struct DewfordTrend *, struct DewfordTrend *, u8);
 static void SeedTrendRng(struct DewfordTrend *);
 static bool8 IsPhraseInSavedTrends(u16 *);
 static bool8 IsEasyChatPairEqual(u16 *, u16 *);
+#if !MODERN
 static s16 GetSavedTrendIndex(struct DewfordTrend *, struct DewfordTrend *, u16);
+#else
+static s32 GetSavedTrendIndex(struct DewfordTrend *, struct DewfordTrend *, s32);
+#endif
 
 void InitDewfordTrend(void)
 {
@@ -125,9 +129,9 @@ void UpdateDewfordTrendPerDay(u16 days)
         {
             // Reached limit, reset trendiness
             u32 newTrendiness = trendiness % trend->maxTrendiness;
-            trendiness = trendiness / trend->maxTrendiness;
+            trendiness /= trend->maxTrendiness;
 
-            trend->gainingTrendiness = trendiness ^ 1;
+            trend->gainingTrendiness = !(trendiness & 1);
             if (trend->gainingTrendiness)
                 trend->trendiness = newTrendiness;
             else
@@ -153,66 +157,64 @@ void UpdateDewfordTrendPerDay(u16 days)
 bool8 TrySetTrendyPhrase(u16 *phrase)
 {
     struct DewfordTrend trend = {};
-    u16 i;
+    m16 i, j;
 
-    if (!IsPhraseInSavedTrends(phrase))
+    if (IsPhraseInSavedTrends(phrase))
     {
-        if (!FlagGet(FLAG_SYS_CHANGED_DEWFORD_TREND))
-        {
-            FlagSet(FLAG_SYS_CHANGED_DEWFORD_TREND);
-
-            // Make sure player couldn't have received this phrase by mixing records
-            if (!FlagGet(FLAG_SYS_MIX_RECORD))
-            {
-                // This is the first time submitting a phrase
-                // No need to check saved phrases or reset rng, just set the new words
-                gSaveBlock1Ptr->dewfordTrends[0].words[0] = phrase[0];
-                gSaveBlock1Ptr->dewfordTrends[0].words[1] = phrase[1];
-                return TRUE;
-            }
-        }
-
-        // Initialize DewfordTrend using given phrase
-        trend.words[0] = phrase[0];
-        trend.words[1] = phrase[1];
-        trend.gainingTrendiness = TRUE;
-        SeedTrendRng(&trend);
-
-        for (i = 0; i < SAVED_TRENDS_COUNT; i++)
-        {
-            if (CompareTrends(&trend, &(gSaveBlock1Ptr->dewfordTrends[i]), SORT_MODE_NORMAL))
-            {
-                // New trend is "trendier" than dewfordTrend[i]
-                // Shift other trends back to insert new trend
-                u16 j;
-                for (j = SAVED_TRENDS_COUNT - 1; j > i; j--)
-                {
-                    gSaveBlock1Ptr->dewfordTrends[j] = gSaveBlock1Ptr->dewfordTrends[j - 1];
-                }
-                gSaveBlock1Ptr->dewfordTrends[i] = trend;
-
-                if (i == SAVED_TRENDS_COUNT - 1)
-                    TryPutTrendWatcherOnAir(phrase);
-
-                // If i is 0, the given phrase is the new current phrase
-                return (i == 0);
-            }
-        }
-
-        // New trend is less "trendy" than all other saved trends, put it in last
-        gSaveBlock1Ptr->dewfordTrends[SAVED_TRENDS_COUNT - 1] = trend;
-        TryPutTrendWatcherOnAir(phrase);
+        return FALSE;
     }
+    if (!FlagGet(FLAG_SYS_CHANGED_DEWFORD_TREND))
+    {
+        FlagSet(FLAG_SYS_CHANGED_DEWFORD_TREND);
+
+        // Make sure player couldn't have received this phrase by mixing records
+        if (!FlagGet(FLAG_SYS_MIX_RECORD))
+        {
+            // This is the first time submitting a phrase
+            // No need to check saved phrases or reset rng, just set the new words
+            gSaveBlock1Ptr->dewfordTrends[0].words[0] = phrase[0];
+            gSaveBlock1Ptr->dewfordTrends[0].words[1] = phrase[1];
+            return TRUE;
+        }
+    }
+
+    // Initialize DewfordTrend using given phrase
+    trend.words[0] = phrase[0];
+    trend.words[1] = phrase[1];
+    trend.gainingTrendiness = TRUE;
+    SeedTrendRng(&trend);
+
+    for (i = 0; i < SAVED_TRENDS_COUNT; i++)
+    {
+        if (CompareTrends(&trend, &(gSaveBlock1Ptr->dewfordTrends[i]), SORT_MODE_NORMAL))
+        {
+            // New trend is "trendier" than dewfordTrend[i]
+            // Shift other trends back to insert new trend
+            for (j = SAVED_TRENDS_COUNT - 1; j > i; j--)
+            {
+                gSaveBlock1Ptr->dewfordTrends[j] = gSaveBlock1Ptr->dewfordTrends[j - 1];
+            }
+            gSaveBlock1Ptr->dewfordTrends[i] = trend;
+
+            if (i == SAVED_TRENDS_COUNT - 1)
+                TryPutTrendWatcherOnAir(phrase);
+
+            // If i is 0, the given phrase is the new current phrase
+            return (i == 0);
+        }
+    }
+
+    // New trend is less "trendy" than all other saved trends, put it in last
+    gSaveBlock1Ptr->dewfordTrends[SAVED_TRENDS_COUNT - 1] = trend;
+    TryPutTrendWatcherOnAir(phrase);
     return FALSE;
 }
 
-
 static void SortTrends(struct DewfordTrend *trends, u16 numTrends, u8 mode)
 {
-    u16 i;
+    m16 i, j;
     for (i = 0; i < numTrends; i++)
     {
-        u16 j;
         for (j = i + 1; j < numTrends; j++)
         {
             if (CompareTrends(&trends[j], &trends[i], mode))
@@ -227,9 +229,18 @@ static void SortTrends(struct DewfordTrend *trends, u16 numTrends, u8 mode)
 #define SAVED_TRENDS_SIZE (sizeof(struct DewfordTrend) * SAVED_TRENDS_COUNT)
 #define BUFFER_SIZE (SAVED_TRENDS_SIZE * MAX_LINK_PLAYERS > 0x100 ? SAVED_TRENDS_SIZE * MAX_LINK_PLAYERS : 0x100) // More space was allocated than needed
 
-void ReceiveDewfordTrendData(struct DewfordTrend *linkedTrends, size_t size, u8 unused)
+#if !MODERN
+void ReceiveDewfordTrendData(struct DewfordTrend *linkedTrends, u32 size, u8 unused)
+#else
+void ReceiveDewfordTrendData(struct DewfordTrend *linkedTrends, u32 size)
+#endif
 {
-    u16 i, j, numTrends, players;
+    m16 i, j, players;
+    #if !MODERN
+    u16 numTrends;
+    #else
+    s16 numTrends;
+    #endif
     struct DewfordTrend *linkedTrendsBuffer, *savedTrendsBuffer, *src, *dst, *temp;
 
     // Exit if alloc fails
@@ -258,11 +269,11 @@ void ReceiveDewfordTrendData(struct DewfordTrend *linkedTrends, size_t size, u8 
     {
         for (j = 0; j < SAVED_TRENDS_COUNT; j++)
         {
-            s16 idx = GetSavedTrendIndex(savedTrendsBuffer, src, numTrends);
+            s32 idx = GetSavedTrendIndex(savedTrendsBuffer, src, numTrends);
             if (idx < 0)
             {
                 // This phrase is not a currently saved trend, save it
-                *(dst++) = *src;
+                *dst++ = *src;
                 numTrends++;
             }
             else
@@ -282,7 +293,7 @@ void ReceiveDewfordTrendData(struct DewfordTrend *linkedTrends, size_t size, u8 
     src = savedTrendsBuffer;
     dst = gSaveBlock1Ptr->dewfordTrends;
     for (i = 0; i < SAVED_TRENDS_COUNT; i++)
-        *(dst++) = *(src++);
+        *dst++ = *src++;
 
     Free(linkedTrendsBuffer);
     Free(savedTrendsBuffer);
@@ -290,8 +301,12 @@ void ReceiveDewfordTrendData(struct DewfordTrend *linkedTrends, size_t size, u8 
 
 void BufferTrendyPhraseString(void)
 {
+    #if !MODERN
     struct DewfordTrend *trend = &gSaveBlock1Ptr->dewfordTrends[gSpecialVar_0x8004];
     ConvertEasyChatWordsToString(gStringVar1, trend->words, 2, 1);
+    #else
+    ConvertEasyChatWordsToString(gStringVar1, gSaveBlock1Ptr->dewfordTrends[gSpecialVar_0x8004].words, 2, 1);
+    #endif
 }
 
 // Returns TRUE if the current trendy phrase is "boring", FALSE otherwise
@@ -385,7 +400,7 @@ static void SeedTrendRng(struct DewfordTrend *trend)
 
 static bool8 IsPhraseInSavedTrends(u16 *phrase)
 {
-    u16 i;
+    m16 i;
 
     for (i = 0; i < SAVED_TRENDS_COUNT; i++)
     {
@@ -397,7 +412,8 @@ static bool8 IsPhraseInSavedTrends(u16 *phrase)
 
 static bool8 IsEasyChatPairEqual(u16 *words1, u16 *words2)
 {
-    u16 i;
+    #if !MODERN
+    m16 i;
 
     for (i = 0; i < 2; i++)
     {
@@ -405,11 +421,22 @@ static bool8 IsEasyChatPairEqual(u16 *words1, u16 *words2)
             return FALSE;
     }
     return TRUE;
+    #else
+    return words1[0] == words2[0] && words1[1] == words2[1];
+    #endif
 }
 
-static s16 GetSavedTrendIndex(struct DewfordTrend *savedTrends, struct DewfordTrend *trend, u16 numSaved)
+#if !MODERN
+static s16 GetSavedTrendIndex(struct DewfordTrend * savedTrends, struct DewfordTrend * trend, u16 numSaved)
+#else
+static s32 GetSavedTrendIndex(struct DewfordTrend * savedTrends, struct DewfordTrend * trend, s32 numSaved)
+#endif
 {
+    #if !MODERN
     s16 i;
+    #else
+    s32 i;
+    #endif
     for (i = 0; i < numSaved; i++)
     {
         if (IsEasyChatPairEqual(trend->words, savedTrends->words))
