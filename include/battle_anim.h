@@ -106,7 +106,7 @@ void InitAnimLinearTranslation(struct Sprite *sprite);
 void AnimTranslateLinear_WithFollowup(struct Sprite *sprite);
 u8 GetBattlerSpriteBGPriority(u8 battlerId);
 void *LoadPointerFromVars(s16 bottom, s16 top);
-void StorePointerInVars(s16 *bottom, s16 *top, const void *ptr);
+void StorePointerInVars(s16 *bottom, s16 *top, void *ptr);
 void InitPrioritiesForVisibleBattlers(void);
 void GetBattleAnimBg1Data(struct BattleAnimBgData*);
 void GetBattleAnimBgData(struct BattleAnimBgData*, u32 bgId);
@@ -123,7 +123,7 @@ u32 GetBattleMonSpritePalettesMask(u8 playerLeft, u8 playerRight, u8 opponentLef
 u8 AnimDummyReturnArg(u8 battler);
 s16 CloneBattlerSpriteWithBlend(u8);
 void DestroySpriteWithActiveSheet(struct Sprite*);
-u8 CreateInvisibleSpriteCopy(int, u8, int);
+u8 CreateInvisibleSpriteCopy(u8, u8, u16);
 void AnimLoadCompressedBgTilemapHandleContest(struct BattleAnimBgData*, const void*, bool32);
 void AnimLoadCompressedBgGfx(u32, const u32*, u32);
 void UpdateAnimBg3ScreenSize(bool8);
