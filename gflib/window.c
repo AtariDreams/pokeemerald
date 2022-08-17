@@ -31,7 +31,6 @@ static void DummyWindowBgTilemap(void)
 bool16 InitWindows(const struct WindowTemplate *templates)
 {
     int i;
-    void *bgTilemapBuffer;
     int j;
     u8 bgLayer;
     u16 attrib;
@@ -40,11 +39,10 @@ bool16 InitWindows(const struct WindowTemplate *templates)
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {
-        bgTilemapBuffer = GetBgTilemapBuffer(i);
-        if (bgTilemapBuffer != NULL)
+        if (GetBgTilemapBuffer(i) != NULL)
             gWindowBgTilemapBuffers[i] = DummyWindowBgTilemap;
         else
-            gWindowBgTilemapBuffers[i] = bgTilemapBuffer;
+            gWindowBgTilemapBuffers[i] = NULL;
     }
 
     for (i = 0; i < WINDOWS_MAX; ++i)
@@ -183,7 +181,7 @@ u16 AddWindow(const struct WindowTemplate *template)
     return win;
 }
 
-int AddWindowWithoutTileMap(const struct WindowTemplate *template)
+u16 AddWindowWithoutTileMap(const struct WindowTemplate *template)
 {
     u16 win;
     u8 bgLayer;
@@ -291,8 +289,8 @@ void CopyWindowToVram(u8 windowId, u8 mode)
 void CopyWindowRectToVram(u32 windowId, u32 mode, u32 x, u32 y, u32 w, u32 h)
 {
     struct Window windowLocal;
-    int rectSize;
-    int rectPos;
+    u32 rectSize;
+    u32 rectPos;
 
     if (w != 0 && h != 0)
     {
@@ -454,7 +452,7 @@ void CopyToWindowPixelBuffer(u8 windowId, const void *src, u16 size, u16 tileOff
 // Sets all pixels within the window to the fillValue color.
 void FillWindowPixelBuffer(u8 windowId, u8 fillValue)
 {
-    int fillSize = gWindows[windowId].window.width * gWindows[windowId].window.height;
+    u32 fillSize = gWindows[windowId].window.width * gWindows[windowId].window.height;
     CpuFastFill8(fillValue, gWindows[windowId].tileData, 32 * fillSize);
 }
 
@@ -533,7 +531,7 @@ void CallWindowFunction(u8 windowId, void ( *func)(u8, u8, u8, u8, u8, u8))
     func(window.bg, window.tilemapLeft, window.tilemapTop, window.width, window.height, window.paletteNum);
 }
 
-bool8 SetWindowAttribute(u8 windowId, u8 attributeId, u32 value)
+bool32 SetWindowAttribute(u8 windowId, u8 attributeId, u32 value)
 {
     switch (attributeId)
     {
@@ -651,10 +649,10 @@ u16 AddWindow8Bit(const struct WindowTemplate *template)
 
 void FillWindowPixelBuffer8Bit(u8 windowId, u8 fillValue)
 {
-    s32 i;
-    s32 size;
+    int i;
+    u16 size;
 
-    size = (u16)(64 * (gWindows[windowId].window.width * gWindows[windowId].window.height));
+    size = 64 * (gWindows[windowId].window.width * gWindows[windowId].window.height);
     for (i = 0; i < size; i++)
         gWindows[windowId].tileData[i] = fillValue;
 }
