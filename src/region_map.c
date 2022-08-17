@@ -874,13 +874,13 @@ bool8 UpdateRegionMapZoom(void)
         {
             sRegionMap->zoomRatio = (256 << 8);
             sRegionMap->zoomed = FALSE;
-            sRegionMap->inputCallback = ProcessRegionMapInput_Zoomed;
+            sRegionMap->inputCallback = ProcessRegionMapInput_Full;
         }
         else
         {
             sRegionMap->zoomRatio = (128 << 8);
             sRegionMap->zoomed = TRUE;
-            sRegionMap->inputCallback = ProcessRegionMapInput_Full;
+            sRegionMap->inputCallback = ProcessRegionMapInput_Zoomed;
         }
         #endif
         CreateRegionMapCursor(sRegionMap->cursorTileTag, sRegionMap->cursorPaletteTag);
