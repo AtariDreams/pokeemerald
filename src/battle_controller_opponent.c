@@ -564,7 +564,9 @@ static u32 GetOpponentMonData(u8 monId, u8 *dst)
     struct BattlePokemon battleMon;
     struct MovePpInfo moveData;
     u8 nickname[20];
+    #if !MODERN
     u8 *src;
+    #endif
     s16 data16;
     u32 data32;
     s32 size = 0;
@@ -604,9 +606,13 @@ static u32 GetOpponentMonData(u8 monId, u8 *dst)
         GetMonData(&gEnemyParty[monId], MON_DATA_NICKNAME, nickname);
         StringCopy_Nickname(battleMon.nickname, nickname);
         GetMonData(&gEnemyParty[monId], MON_DATA_OT_NAME, battleMon.otName);
+        #if !MODERN
         src = (u8 *)&battleMon;
         for (size = 0; size < sizeof(battleMon); size++)
             dst[size] = src[size];
+        #else
+        memcpy(dst, &battleMon, sizeof(battleMon));
+        #endif
         break;
     case REQUEST_SPECIES_BATTLE:
         data16 = GetMonData(&gEnemyParty[monId], MON_DATA_SPECIES);
@@ -627,9 +633,13 @@ static u32 GetOpponentMonData(u8 monId, u8 *dst)
             moveData.pp[size] = GetMonData(&gEnemyParty[monId], MON_DATA_PP1 + size);
         }
         moveData.ppBonuses = GetMonData(&gEnemyParty[monId], MON_DATA_PP_BONUSES);
-        src = (u8 *)(&moveData);
+        #if !MODERN
+        src = (u8*)(&moveData);
         for (size = 0; size < sizeof(moveData); size++)
             dst[size] = src[size];
+        #else
+        memcpy(dst, &moveData, sizeof(moveData));
+        #endif
         break;
     case REQUEST_MOVE1_BATTLE:
     case REQUEST_MOVE2_BATTLE:

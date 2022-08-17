@@ -1310,47 +1310,74 @@ void AnimTask_DrawFallingWhiteLinesOnAttacker(u8 taskId)
 
     gBattle_WIN0H = 0;
     gBattle_WIN0V = 0;
-    SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR
-                              | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
-    SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR
-                               | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
+    SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
+    SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
     SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
     SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG1 | BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND);
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(8, 12));
     bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
     // TODO: SHOULD THESE BE VOLATILE?!
-    ((vBgCnt*)&bg1Cnt)->priority = 0;
-    ((vBgCnt*)&bg1Cnt)->screenSize = 0;
+    ((vBgCnt *)&bg1Cnt)->priority = 0;
+    ((vBgCnt *)&bg1Cnt)->screenSize = 0;
     SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
 
+#if !MODERN
     if (!IsContest())
     {
-        ((vBgCnt*)&bg1Cnt)->charBaseBlock = 1;
+        ((vBgCnt *)&bg1Cnt)->charBaseBlock = 1;
         SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
     }
 
     if (IsDoubleBattle() && !IsContest())
     {
-        if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_RIGHT
-         || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT)
+        if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_RIGHT || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT)
         {
             if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)) == TRUE)
             {
                 gSprites[gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimAttacker)]].oam.priority -= 1;
-                ((vBgCnt*)&bg1Cnt)->priority = 1;
+                ((vBgCnt *)&bg1Cnt)->priority = 1;
                 SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
                 var0 = TRUE;
             }
         }
     }
-
+#else
     if (IsContest())
+    {
         species = gContestResources->moveAnim->species;
-    else if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
-        species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+    }
     else
-        species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+    {
+        ((vBgCnt *)&bg1Cnt)->charBaseBlock = 1;
+        SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+        if (IsDoubleBattle())
+        {
+            if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_RIGHT || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT)
+            {
+                if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)) == TRUE)
+                {
+                    gSprites[gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimAttacker)]].oam.priority -= 1;
+                    ((vBgCnt *)&bg1Cnt)->priority = 1;
+                    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+                    var0 = TRUE;
+                }
+            }
+        }
+        if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
+            species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+        else
+            species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+    }
+#endif
 
+#if !MODERN
+        if (IsContest())
+            species = gContestResources->moveAnim->species;
+        else if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
+            species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+        else
+            species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+#endif
     spriteId = GetAnimBattlerSpriteId(ANIM_ATTACKER);
     newSpriteId = CreateInvisibleSpriteCopy(gBattleAnimAttacker, spriteId, species);
     GetBattleAnimBg1Data(&animBgData);
@@ -1397,13 +1424,13 @@ static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8 taskId)
             SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) ^ DISPCNT_OBJWIN_ON);
             SetGpuReg(REG_OFFSET_BLDCNT, 0);
             SetGpuReg(REG_OFFSET_BLDALPHA, 0);
-            #if !MODERN
+#if !MODERN
             sprite = &gSprites[GetAnimBattlerSpriteId(0)]; // unused
             sprite = &gSprites[gTasks[taskId].data[0]];
             DestroySprite(sprite);
-            #else
+#else
             DestroySprite(&gSprites[gTasks[taskId].data[0]]);
-            #endif
+#endif
 
             GetBattleAnimBg1Data(&animBgData);
             ClearBattleAnimBg(animBgData.bgId);
@@ -1577,7 +1604,7 @@ static void StatsChangeAnimation_Step3(u8 taskId)
     switch (gTasks[taskId].data[15])
     {
     case 0:
-    #if !MODERN
+#if !MODERN
         if (gTasks[taskId].data[11]++ > 0)
         {
             gTasks[taskId].data[11] = 0;
@@ -1586,7 +1613,7 @@ static void StatsChangeAnimation_Step3(u8 taskId)
             if (gTasks[taskId].data[12] == gTasks[taskId].data[4])
                 gTasks[taskId].data[15]++;
         }
-        #else
+#else
         if (gTasks[taskId].data[11] > 0)
         {
             gTasks[taskId].data[11] = 0;
@@ -1597,18 +1624,18 @@ static void StatsChangeAnimation_Step3(u8 taskId)
         }
         else
             gTasks[taskId].data[11]++;
-        #endif
+#endif
         break;
     case 1:
         if (++gTasks[taskId].data[10] == gTasks[taskId].data[5])
             gTasks[taskId].data[15]++;
         break;
     case 2:
-    #if !MODERN
+#if !MODERN
         if (gTasks[taskId].data[11]++ > 0)
-    #else
+#else
         if (gTasks[taskId].data[11] > 0)
-    #endif
+#endif
         {
             gTasks[taskId].data[11] = 0;
             gTasks[taskId].data[12]--;
@@ -1619,9 +1646,9 @@ static void StatsChangeAnimation_Step3(u8 taskId)
                 gTasks[taskId].data[15]++;
             }
         }
-        #if MODERN
+#if MODERN
         else gTasks[taskId].data[11]++;
-        #endif
+#endif
         break;
     case 3:
         gBattle_WIN0H = 0;

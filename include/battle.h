@@ -399,7 +399,11 @@ struct BattleStruct
     u8 wallyMovesState;
     u8 wallyWaitFrames;
     u8 wallyMoveFrames;
-    u8 lastTakenMove[MAX_BATTLERS_COUNT * 2 * 2]; // Last move that a battler was hit with. This field seems to erroneously take 16 bytes instead of 8.
+
+    u8 lastTakenMove[MAX_BATTLERS_COUNT * 2]; // Last move that a battler was hit with.
+    #if !MODERN
+    u8 someDebugField[MAX_BATTLERS_COUNT * 2];
+    #endif
     u16 hpOnSwitchout[2];
     u32 savedBattleTypeFlags;
     u8 abilityPreventingSwitchout;
@@ -672,7 +676,9 @@ extern u16 gChosenMoveByBattler[MAX_BATTLERS_COUNT];
 extern u8 gMoveResultFlags;
 extern u32 gHitMarker;
 extern u8 gTakenDmgByBattler[MAX_BATTLERS_COUNT];
+#if !MODERN
 extern u8 gUnusedFirstBattleVar2;
+#endif
 extern u16 gSideStatuses[2];
 extern struct SideTimer gSideTimers[2];
 extern u32 gStatuses3[MAX_BATTLERS_COUNT];
