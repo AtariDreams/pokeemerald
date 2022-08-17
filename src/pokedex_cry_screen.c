@@ -40,7 +40,7 @@ struct PokedexCryScreen
     u8 cryState;
     u8 playhead;
     u8 waveformPreviousY;
-    u16 unk; // Never read
+    u16 charBase; // Only read in RS
     u8 playStartPos;
     u16 species;
     u8 cryOverrideCountdown;
@@ -226,7 +226,7 @@ static const struct SpritePalette sCryMeterNeedleSpritePalettes[] =
 bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
 {
     u8 i;
-    u8 finished = FALSE;
+    bool8 finished = FALSE;
 
     switch (gDexCryScreenState)
     {
@@ -237,7 +237,9 @@ bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
             sCryWaveformWindowTiledata = (u8 *)GetWindowAttribute(windowId, WINDOW_TILE_DATA);
         }
 
-        sDexCryScreen->unk = window->unk0;
+        //useless write
+        sDexCryScreen->charBase = window->unk0;
+
         sDexCryScreen->playStartPos = window->yPos;
         sDexCryScreen->cryOverrideCountdown = 0;
         sDexCryScreen->cryRepeatDelay = 0;
@@ -352,8 +354,8 @@ static void PlayCryScreenCry(u16 species)
 static void BufferCryWaveformSegment(void)
 {
     u8 i;
-    s8 *baseBuffer;
-    s8 *buffer;
+    const s8 *baseBuffer;
+    const s8 *buffer;
 
     if (gPcmDmaCounter < 2)
         baseBuffer = gSoundInfo.pcmBuffer;
@@ -395,36 +397,34 @@ static void DrawWaveformSegment(u8 position, u8 amplitude)
     u8 currentPointY;
     u8 nybble;
     u16 offset;
-    u16 temp;
-    u8 y;
 
-    temp = (amplitude + 127) * 256;
-    y = temp / 1152.0;
-    if (y > WAVEFORM_WINDOW_HEIGHT - 1)
-        y = WAVEFORM_WINDOW_HEIGHT - 1;
-    currentPointY = y;
+    amplitude += 127;
+    amplitude = (amplitude << 8)/1152.0;
+    if (amplitude > WAVEFORM_WINDOW_HEIGHT - 1)
+        amplitude = WAVEFORM_WINDOW_HEIGHT - 1;
+    currentPointY = amplitude;
     nybble = VERT_SLICE;
-    if (y > sDexCryScreen->waveformPreviousY)
+    if (amplitude > sDexCryScreen->waveformPreviousY)
     {
         // Current point lower than previous point, draw point and draw line up to previous
         do
         {
-            offset = sWaveformOffsets[PLAYHEAD_POS][y] + PLAY_START_POS * TILE_SIZE_4BPP;
+            offset = sWaveformOffsets[PLAYHEAD_POS][amplitude] + PLAY_START_POS * TILE_SIZE_4BPP;
             sCryWaveformWindowTiledata[offset] &= sWaveformTileDataNybbleMasks[nybble];
-            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((y / 3) - 1) & 0x0F];
-            y--;
-        } while (y > sDexCryScreen->waveformPreviousY);
+            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((amplitude / 3) - 1) & 0x0F];
+            amplitude--;
+        } while (amplitude > sDexCryScreen->waveformPreviousY);
     }
     else
     {
         // Current point higher than previous point, draw point and draw line down to previous
         do
         {
-            offset = sWaveformOffsets[PLAYHEAD_POS][y] + PLAY_START_POS * TILE_SIZE_4BPP;
+            offset = sWaveformOffsets[PLAYHEAD_POS][amplitude] + PLAY_START_POS * TILE_SIZE_4BPP;
             sCryWaveformWindowTiledata[offset] &= sWaveformTileDataNybbleMasks[nybble];
-            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((y / 3) - 1) & 0x0F];
-            y++;
-        } while (y < sDexCryScreen->waveformPreviousY);
+            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((amplitude / 3) - 1) & 0x0F];
+            amplitude++;
+        } while (amplitude < sDexCryScreen->waveformPreviousY);
     }
 
     sDexCryScreen->waveformPreviousY = currentPointY;
@@ -442,8 +442,7 @@ static void ShiftWaveformOver(u8 windowId, s16 offset, bool8 rsVertical)
 {
     if (!rsVertical)
     {
-        u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-        ChangeBgX(bg, offset << 8, BG_COORD_SET);
+        ChangeBgX(GetWindowAttribute(windowId, WINDOW_BG), offset << 8, BG_COORD_SET);
     }
 }
 

@@ -536,8 +536,8 @@ bool8 IsBattleSEPlaying(u8 battlerId)
         if (gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].soundTimer < 30)
             return TRUE;
 
-        m4aMPlayStop(&gMPlayInfo_SE1);
-        m4aMPlayStop(&gMPlayInfo_SE2);
+        MPlayStop(&gMPlayInfo_SE1);
+        MPlayStop(&gMPlayInfo_SE2);
     }
     if (zero == 0)
     {

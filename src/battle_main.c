@@ -1876,8 +1876,8 @@ void CB2_QuitRecordedBattle(void)
     UpdatePaletteFade();
     if (!gPaletteFade.active)
     {
-        m4aMPlayStop(&gMPlayInfo_SE1);
-        m4aMPlayStop(&gMPlayInfo_SE2);
+        MPlayStop(&gMPlayInfo_SE1);
+        MPlayStop(&gMPlayInfo_SE2);
         FreeRestoreBattleData();
         FreeAllWindowBuffers();
         SetMainCallback2(gMain.savedCallback);
