@@ -9,14 +9,15 @@ SECTIONS {
     ewram (NOLOAD) :
     ALIGN(4)
     {
-        gflib/malloc.o(.data)
+        gflib/malloc.o(ewram_data)
         . = 0x1C000;
 
-        src/decompress.o(.data)
+        src/decompress.o(ewram_data)
         . = 0x20000;
 
-        gflib/*.o(.data);
-        src/*.o(.data);
+        gflib/*.o(ewram_data);
+        src/*.o(ewram_data);
+        *(.data.*)
         . = 0x40000;
     }
 
@@ -45,7 +46,6 @@ SECTIONS {
         src/main.o(.text*);
 		*(.text)
 		*(.text.*)
-        *(.stub)
     } =0
 
     script_data :
