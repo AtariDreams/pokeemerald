@@ -558,8 +558,8 @@ void RemovePCItem(u8 index, u16 count)
 
 void CompactPCItems(void)
 {
-    u16 i;
-    u16 j;
+    m16 i;
+    m16 j;
 
     for (i = 0; i < PC_ITEMS_COUNT - 1; i++)
     {
@@ -620,7 +620,7 @@ void CompactItemsInBagPocket(struct BagPocket *bagPocket)
 
 void SortBerriesOrTMHMs(struct BagPocket *bagPocket)
 {
-    u16 i, j;
+    m16 i, j;
 
     for (i = 0; i < bagPocket->capacity - 1; i++)
     {
@@ -640,7 +640,6 @@ void SortBerriesOrTMHMs(struct BagPocket *bagPocket)
 
 void MoveItemSlotInList(struct ItemSlot* itemSlots, u32 from, u32 to)
 {
-
     if (from != to)
     {
         s16 i;
