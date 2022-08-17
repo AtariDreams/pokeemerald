@@ -2253,8 +2253,7 @@ void BufferVarsForIVRater(void)
         }
         else if (ivStorage[gSpecialVar_0x8006] == ivStorage[i])
         {
-            u16 randomNumber = Random();
-            if (randomNumber & 1)
+            if (Random() % 2)
             {
                 gSpecialVar_0x8006 = i;
                 gSpecialVar_0x8007 = ivStorage[i];
@@ -2952,7 +2951,6 @@ static void Task_ScrollableMultichoice_WaitReturnToList(u8 taskId)
     switch (gTasks[taskId].tKeepOpenAfterSelect)
     {
     case 1:
-    default:
         break;
     case 2:
         gTasks[taskId].tKeepOpenAfterSelect = 1;
