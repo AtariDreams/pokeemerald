@@ -222,7 +222,7 @@ static void PrepareSongText(void)
 void PlayBardSong(void)
 {
     StartBardSong(gSpecialVar_0x8004);
-    ScriptContext1_Stop();
+    ScriptContext_Stop();
 }
 
 void GetHipsterSpokenFlag(void)
@@ -350,7 +350,11 @@ static void InitGiddyTaleList(void)
         {
             // Pick a random word id, then advance through the word
             // groups until the group where that id landed.
+            #if !MODERN
             s16 randWord = Random() % totalWords;
+            #else
+            s16 randWord = Mod(Random(),totalWords);
+            #endif
             for (var = 0; i < ARRAY_COUNT(wordGroupsAndCount); var++)
                 if ((randWord -= wordGroupsAndCount[var][1]) <= 0)
                     break;
@@ -542,7 +546,7 @@ static void BardSing(struct Task *task, struct BardSong *song)
             song->phonemeTimer--;
             if (song->phonemeTimer == 0)
             {
-                m4aMPlayStop(&gMPlayInfo_SE2);
+                MPlayStop(&gMPlayInfo_SE2);
                 song->state = 4;
             }
             break;
@@ -626,7 +630,7 @@ static void Task_BardSong(u8 taskId)
         {
             // End song
             FadeInBGM(6);
-            m4aMPlayFadeOutTemporarily(&gMPlayInfo_SE2, 2);
+            m4aMPlayFadeOutPause(&gMPlayInfo_SE2, 2);
             EnableBothScriptContexts();
             DestroyTask(taskId);
         }
@@ -1336,7 +1340,7 @@ static void PrintStoryList(void)
             width = curWidth;
     }
     sStorytellerWindowId = CreateWindowFromRect(0, 0, ConvertPixelWidthToTileWidth(width), GetFreeStorySlot() * 2 + 2);
-    SetStandardWindowBorderStyle(sStorytellerWindowId, 0);
+    SetStandardWindowBorderStyle(sStorytellerWindowId, FALSE);
     for (i = 0; i < NUM_STORYTELLER_TALES; i++)
     {
         u16 gameStatID = sStorytellerPtr->gameStatIDs[i];

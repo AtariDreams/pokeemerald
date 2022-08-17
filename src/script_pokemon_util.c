@@ -23,6 +23,20 @@
 #include "tv.h"
 #include "constants/items.h"
 #include "constants/battle_frontier.h"
+#include "battle_pike.h"
+#include "battle_pyramid.h"
+#include "field_message_box.h"
+#include "field_poison.h"
+#include "fldeff_misc.h"
+#include "frontier_util.h"
+#include "pokenav.h"
+#include "strings.h"
+#include "task.h"
+#include "trainer_hill.h"
+#include "constants/field_poison.h"
+#include "constants/party_menu.h"
+#include "pokemon_size_record.h"
+#include "text.h"
 
 static void CB2_ReturnFromChooseHalfParty(void);
 static void CB2_ReturnFromChooseBattleFrontierParty(void);
@@ -37,7 +51,7 @@ void HealPlayerParty(void)
     for(i = 0; i < gPlayerPartyCount; i++)
     {
         u16 maxHP = GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP);
-        arg[0] = maxHP;
+        arg[0] = maxHP & 0xFF;
         arg[1] = maxHP >> 8;
         SetMonData(&gPlayerParty[i], MON_DATA_HP, arg);
         ppBonuses = GetMonData(&gPlayerParty[i], MON_DATA_PP_BONUSES);
@@ -58,6 +72,7 @@ void HealPlayerParty(void)
     }
 }
 
+// TODO: remove these. We cannot atm since these are required to match and in the OG source too, for now
 u8 ScriptGiveMon(u16 species, u8 level, u16 item, u32 unused1, u32 unused2, u8 unused3)
 {
     u16 nationalDexNum;
@@ -119,7 +134,9 @@ static bool8 CheckPartyMonHasHeldItem(u16 item)
     for(i = 0; i < PARTY_SIZE; i++)
     {
         u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2);
-        if (species != SPECIES_NONE && species != SPECIES_EGG && GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == item)
+        if (species == SPECIES_NONE || species == SPECIES_EGG)
+            continue;
+        if (GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == item)
             return TRUE;
     }
     return FALSE;
@@ -142,7 +159,7 @@ void CreateScriptedWildMon(u16 species, u8 level, u16 item)
     CreateMon(&gEnemyParty[0], species, level, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
     if (item)
     {
-        heldItem[0] = item;
+        heldItem[0] = item & 0xFF;
         heldItem[1] = item >> 8;
         SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, heldItem);
     }
@@ -151,7 +168,7 @@ void CreateScriptedWildMon(u16 species, u8 level, u16 item)
 void ScriptSetMonMoveSlot(u8 monIndex, u16 move, u8 slot)
 {
 // Allows monIndex to go out of bounds of gPlayerParty. Doesn't occur in vanilla
-#ifdef BUGFIX
+#ifdef UBFIX
     if (monIndex >= PARTY_SIZE)
 #else
     if (monIndex > PARTY_SIZE)
@@ -172,14 +189,13 @@ void ChooseHalfPartyForBattle(void)
 
 static void CB2_ReturnFromChooseHalfParty(void)
 {
-    switch (gSelectedOrderFromParty[0])
+    if (gSelectedOrderFromParty[0] == 0)
     {
-    case 0:
         gSpecialVar_Result = FALSE;
-        break;
-    default:
+    }
+    else
+    {
         gSpecialVar_Result = TRUE;
-        break;
     }
 
     SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
@@ -193,14 +209,13 @@ void ChoosePartyForBattleFrontier(void)
 
 static void CB2_ReturnFromChooseBattleFrontierParty(void)
 {
-    switch (gSelectedOrderFromParty[0])
+    if (gSelectedOrderFromParty[0] == 0)
     {
-    case 0:
         gSpecialVar_Result = FALSE;
-        break;
-    default:
+    }
+    else
+    {
         gSpecialVar_Result = TRUE;
-        break;
     }
 
     SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
@@ -225,4 +240,372 @@ void ReducePlayerPartyToSelectedMons(void)
         gPlayerParty[i] = party[i];
 
     CalculatePlayerPartyCount();
+}
+
+static bool32 IsMonValidSpecies(struct Pokemon *pokemon)
+{
+    u16 species = GetMonData(pokemon, MON_DATA_SPECIES2);
+    if (species == SPECIES_NONE || species == SPECIES_EGG)
+    {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static bool32 AllMonsFainted(void)
+{
+    int i;
+    struct Pokemon *pokemon = gPlayerParty;
+
+    for (i = 0; i < PARTY_SIZE; i++, pokemon++)
+    {
+        if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP) != 0)
+        {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+static void FaintFromFieldPoison(u8 partyIdx)
+{
+    struct Pokemon *pokemon = gPlayerParty + partyIdx;
+    u32 status = STATUS1_NONE;
+
+    AdjustFriendship(pokemon, FRIENDSHIP_EVENT_FAINT_FIELD_PSN);
+    SetMonData(pokemon, MON_DATA_STATUS, &status);
+    GetMonData(pokemon, MON_DATA_NICKNAME, gStringVar1);
+    StringGet_Nickname(gStringVar1);
+}
+
+static bool32 MonFaintedFromPoison(u8 partyIdx)
+{
+    struct Pokemon *pokemon = gPlayerParty + partyIdx;
+    if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP) == 0 && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS)) == AILMENT_PSN)
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static void Task_TryFieldPoisonWhiteOut(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+    switch (data[0])
+    {
+        case 0:
+            for (; data[1] < PARTY_SIZE; data[1]++)
+            {
+                if (MonFaintedFromPoison(data[1]))
+                {
+                    FaintFromFieldPoison(data[1]);
+                    ShowFieldMessage(gText_PkmnFainted3);
+                    data[0]++;
+                    return;
+                }
+            }
+            data[0] = 2;
+            break;
+        case 1:
+            if (IsFieldMessageBoxHidden())
+            {
+                data[0]--;
+            }
+            break;
+        case 2:
+            if (AllMonsFainted())
+            {
+                // Maybe this should be logical or?
+                // the single | seems like a typo
+                #if MODERN || defined(BUGFIX)
+                if (InBattlePyramid() || InBattlePike() || InTrainerHillChallenge())
+                #else 
+                if (InBattlePyramid() | InBattlePike() || InTrainerHillChallenge())
+                #endif
+                {
+                    gSpecialVar_Result = FLDPSN_FRONTIER_WHITEOUT;
+                }
+                else
+                {
+                    gSpecialVar_Result = FLDPSN_WHITEOUT;
+                }
+            }
+            else
+            {
+                gSpecialVar_Result = FLDPSN_NO_WHITEOUT;
+            }
+            EnableBothScriptContexts();
+            DestroyTask(taskId);
+            break;
+    }
+}
+
+void TryFieldPoisonWhiteOut(void)
+{
+    CreateTask(Task_TryFieldPoisonWhiteOut, 80);
+    ScriptContext1_Stop();
+}
+
+s32 DoPoisonFieldEffect(void)
+{
+    int i;
+    u32 hp;
+    struct Pokemon *pokemon = gPlayerParty;
+    u32 numPoisoned = 0;
+    u32 numFainted = 0;
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES) && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS)) == AILMENT_PSN)
+        {
+            hp = GetMonData(pokemon, MON_DATA_HP);
+            if (hp == 0 || --hp == 0)
+            {
+                numFainted++;
+            }
+            SetMonData(pokemon, MON_DATA_HP, &hp);
+            numPoisoned++;
+        }
+        pokemon++;
+    }
+
+    #if MODERN
+    if (numFainted != 0)
+    {
+        FldEffPoison_Start();
+        return FLDPSN_FNT;
+    }
+    if (numPoisoned != 0)
+    {
+        FldEffPoison_Start();
+        return FLDPSN_PSN;
+    }
+    #else
+    if (numFainted != 0 || numPoisoned != 0)
+    {
+        FldEffPoison_Start();
+    }
+    // TODO: maybe move the function call above to be in both if statements
+    if (numFainted != 0)
+    {
+        return FLDPSN_FNT;
+    }
+    if (numPoisoned != 0)
+    {
+        return FLDPSN_PSN;
+    }
+    #endif
+    return FLDPSN_NONE;
+}
+
+#define DEFAULT_MAX_SIZE 0x8000 // was 0x8100 in Ruby/Sapphire
+
+struct UnknownStruct
+{
+    u16 unk0;
+    u8 unk2;
+    u16 unk4;
+};
+
+static const struct UnknownStruct sBigMonSizeTable[] =
+{
+    {  290,   1,      0 },
+    {  300,   1,     10 },
+    {  400,   2,    110 },
+    {  500,   4,    310 },
+    {  600,  20,    710 },
+    {  700,  50,   2710 },
+    {  800, 100,   7710 },
+    {  900, 150,  17710 },
+    { 1000, 150,  32710 },
+    { 1100, 100, -17826 },
+    { 1200,  50,  -7826 },
+    { 1300,  20,  -2826 },
+    { 1400,   5,   -826 },
+    { 1500,   2,   -326 },
+    { 1600,   1,   -126 },
+    { 1700,   1,   -26 },
+};
+
+// - 4 for unused gift ribbon bits in MON_DATA_UNUSED_RIBBONS
+static const u8 sGiftRibbonsMonDataIds[GIFT_RIBBONS_COUNT - 4] =
+{
+    MON_DATA_MARINE_RIBBON, MON_DATA_LAND_RIBBON, MON_DATA_SKY_RIBBON,
+    MON_DATA_COUNTRY_RIBBON, MON_DATA_NATIONAL_RIBBON, MON_DATA_EARTH_RIBBON,
+    MON_DATA_WORLD_RIBBON
+};
+
+extern const u8 gText_DecimalPoint[];
+extern const u8 gText_Marco[];
+
+#define CM_PER_INCH 2.54
+
+static u32 GetMonSizeHash(struct Pokemon *pkmn)
+{
+    u16 personality = GetMonData(pkmn, MON_DATA_PERSONALITY);
+    u16 hpIV = GetMonData(pkmn, MON_DATA_HP_IV) & 0xF;
+    u16 attackIV = GetMonData(pkmn, MON_DATA_ATK_IV) & 0xF;
+    u16 defenseIV = GetMonData(pkmn, MON_DATA_DEF_IV) & 0xF;
+    u16 speedIV = GetMonData(pkmn, MON_DATA_SPEED_IV) & 0xF;
+    u16 spAtkIV = GetMonData(pkmn, MON_DATA_SPATK_IV) & 0xF;
+    u16 spDefIV = GetMonData(pkmn, MON_DATA_SPDEF_IV) & 0xF;
+    u16 hibyte = ((attackIV ^ defenseIV) * hpIV) ^ (personality & 0xFF);
+    u16 lobyte = ((spAtkIV ^ spDefIV) * speedIV) ^ (personality >> 8);
+
+    return (hibyte << 8) + lobyte;
+}
+
+static u8 TranslateBigMonSizeTableIndex(u16 a)
+{
+    u8 i;
+
+    for (i = 1; i < ARRAY_COUNT(sBigMonSizeTable) - 1; i++)
+    {
+        if (a < sBigMonSizeTable[i].unk4)
+            return i - 1;
+    }
+    return i;
+}
+
+static u32 GetMonSize(u16 species, u16 b)
+{
+    u64 unk2;
+    u64 unk4;
+    u64 unk0;
+    u32 height;
+    u32 var;
+
+    height = GetPokedexHeightWeight(SpeciesToNationalPokedexNum(species), 0);
+    var = TranslateBigMonSizeTableIndex(b);
+    unk0 = sBigMonSizeTable[var].unk0;
+    unk2 = sBigMonSizeTable[var].unk2;
+    unk4 = sBigMonSizeTable[var].unk4;
+    unk0 += (b - unk4) / unk2;
+    return height * unk0 / 10;
+}
+
+static void FormatMonSizeRecord(u8 *string, u32 size)
+{
+#ifdef UNITS_IMPERIAL
+    //Convert size from centimeters to inches
+    //TODO: is the f64 cast needed? I don't think so
+    size = (size * 10) / (CM_PER_INCH * 10);
+#endif
+
+    string = ConvertIntToDecimalStringN(string, size / 10, STR_CONV_MODE_LEFT_ALIGN, 8);
+    string = StringAppend(string, gText_DecimalPoint);
+    ConvertIntToDecimalStringN(string, size % 10, STR_CONV_MODE_LEFT_ALIGN, 1);
+}
+
+static u8 CompareMonSize(u16 species, u16 *sizeRecord)
+{
+    struct Pokemon *pkmn;
+
+    u32 oldSize;
+    u32 newSize;
+#if !MODERN
+    vu16 sizeParams;
+#else
+    u16 sizeParams;
+#endif
+    if (gSpecialVar_Result == 0xFF)
+    {
+        return 0;
+    }
+    pkmn = &gPlayerParty[gSpecialVar_Result];
+
+    if (GetMonData(pkmn, MON_DATA_IS_EGG) == TRUE || GetMonData(pkmn, MON_DATA_SPECIES) != species)
+    {
+        return 1;
+    }
+
+    sizeParams = GetMonSizeHash(pkmn);
+    newSize = GetMonSize(species, sizeParams);
+    oldSize = GetMonSize(species, *sizeRecord);
+    FormatMonSizeRecord(gStringVar2, newSize);
+    if (newSize <= oldSize)
+    {
+        return 2;
+    }
+    else
+    {
+        *sizeRecord = sizeParams;
+        return 3;
+    }
+}
+
+// Stores species name in gStringVar1, trainer's name in gStringVar2, and size in gStringVar3
+static void GetMonSizeRecordInfo(u16 species, u16 *sizeRecord)
+{
+    u32 size = GetMonSize(species, *sizeRecord);
+
+    FormatMonSizeRecord(gStringVar3, size);
+    StringCopy(gStringVar1, gSpeciesNames[species]);
+    if (*sizeRecord == DEFAULT_MAX_SIZE)
+        StringCopy(gStringVar2, gText_Marco);
+    else
+        StringCopy(gStringVar2, gSaveBlock2Ptr->playerName);
+}
+
+void InitSeedotSizeRecord(void)
+{
+    VarSet(VAR_SEEDOT_SIZE_RECORD, DEFAULT_MAX_SIZE);
+}
+
+void GetSeedotSizeRecordInfo(void)
+{
+    u16 *sizeRecord = GetVarPointer(VAR_SEEDOT_SIZE_RECORD);
+
+    GetMonSizeRecordInfo(SPECIES_SEEDOT, sizeRecord);
+}
+
+void CompareSeedotSize(void)
+{
+    u16 *sizeRecord = GetVarPointer(VAR_SEEDOT_SIZE_RECORD);
+
+    gSpecialVar_Result = CompareMonSize(SPECIES_SEEDOT, sizeRecord);
+}
+
+void InitLotadSizeRecord(void)
+{
+    VarSet(VAR_LOTAD_SIZE_RECORD, DEFAULT_MAX_SIZE);
+}
+
+void GetLotadSizeRecordInfo(void)
+{
+    u16 *sizeRecord = GetVarPointer(VAR_LOTAD_SIZE_RECORD);
+
+    GetMonSizeRecordInfo(SPECIES_LOTAD, sizeRecord);
+}
+
+void CompareLotadSize(void)
+{
+    u16 *sizeRecord = GetVarPointer(VAR_LOTAD_SIZE_RECORD);
+
+    gSpecialVar_Result = CompareMonSize(SPECIES_LOTAD, sizeRecord);
+}
+
+void GiveGiftRibbonToParty(u8 index, u8 ribbonId)
+{
+    s32 i;
+    bool32 gotRibbon = FALSE;
+    u8 data = 1;
+    u8 array[ARRAY_COUNT(sGiftRibbonsMonDataIds)];
+    memcpy(array, sGiftRibbonsMonDataIds, sizeof(sGiftRibbonsMonDataIds));
+
+    if (index < GIFT_RIBBONS_COUNT && ribbonId <= MAX_GIFT_RIBBON)
+    {
+        gSaveBlock1Ptr->giftRibbons[index] = ribbonId;
+        for (i = 0; i < PARTY_SIZE; i++)
+        {
+            struct Pokemon *mon = &gPlayerParty[i];
+
+            if (GetMonData(mon, MON_DATA_SPECIES) != 0 && GetMonData(mon, MON_DATA_SANITY_IS_EGG) == 0)
+            {
+                SetMonData(mon, array[index], &data);
+                gotRibbon = TRUE;
+            }
+        }
+        if (gotRibbon)
+            FlagSet(FLAG_SYS_RIBBON_GET);
+    }
 }

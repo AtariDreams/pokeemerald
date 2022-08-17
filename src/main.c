@@ -34,8 +34,9 @@ static void IntrDummy(void);
 const u8 gGameVersion = GAME_VERSION;
 
 const u8 gGameLanguage = GAME_LANGUAGE; // English
-
+#if !MODERN
 const char BuildDateTime[] = "2005 02 21 11:10";
+#endif
 
 const IntrFunc gIntrTableTemplate[] =
 {
@@ -55,9 +56,11 @@ const IntrFunc gIntrTableTemplate[] =
     IntrDummy,  // Game Pak interrupt
 };
 
-#define INTR_COUNT ((int)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
+#define INTR_COUNT ((m32)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
 
+#if !MODERN
 static u16 sUnusedVar; // Never read
+#endif
 
 u16 gKeyRepeatStartDelay;
 bool8 gLinkTransferringData;
@@ -83,15 +86,16 @@ static void WaitForVBlank(void);
 void EnableVCountIntrAtLine150(void);
 
 #define B_START_SELECT (B_BUTTON | START_BUTTON | SELECT_BUTTON)
-
-void AgbMain()
+NORETURN void AgbMain(void)
 {
     // Modern compilers are liberal with the stack on entry to this function,
     // so RegisterRamReset may crash if it resets IWRAM.
 #if !MODERN
     RegisterRamReset(RESET_ALL);
-#endif //MODERN
-    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
+#endif
+
+    *(u16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
+
     InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
     InitKeys();
@@ -109,7 +113,7 @@ void AgbMain()
     ClearDma3Requests();
     ResetBgs();
     SetDefaultFontsPointer();
-    InitHeap(gHeap, HEAP_SIZE);
+    HeapInit();
 
     gSoftResetDisabled = FALSE;
 
@@ -117,15 +121,21 @@ void AgbMain()
         SetMainCallback2(NULL);
 
     gLinkTransferringData = FALSE;
+#if !MODERN
     sUnusedVar = 0xFC0;
+#endif
 
     for (;;)
     {
         ReadKeys();
 
         if (gSoftResetDisabled == FALSE
+        #if 1
          && (gMain.heldKeysRaw & A_BUTTON)
          && (gMain.heldKeysRaw & B_START_SELECT) == B_START_SELECT)
+        #else
+        && (gMain.heldKeysRaw == A_BUTTON | B_START_SELECT))
+        #endif
         {
             rfu_REQ_stopMode();
             rfu_waitREQComplete();
@@ -155,6 +165,7 @@ void AgbMain()
 
         PlayTimeCounter_Update();
         MapMusicMain();
+
         WaitForVBlank();
     }
 }
@@ -167,13 +178,24 @@ static void UpdateLinkAndCallCallbacks(void)
 
 static void InitMainCallbacks(void)
 {
+    #if !MODERN
     gMain.vblankCounter1 = 0;
     gTrainerHillVBlankCounter = NULL;
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
+    #else
+    gMain.vblankCounter1 = 0;
+    gMain.vblankCounter2 = 0;
+    gMain.callback1 = NULL;
+    gTrainerHillVBlankCounter = NULL;
+    #endif
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+
+    // None of these assignments are actually needed it seems
+    #if !MODERN
     gSaveBlock2Ptr = &gSaveblock2.block;
     gPokemonStoragePtr = &gPokemonStorage.block;
+    #endif
 }
 
 static void CallCallbacks(void)
@@ -191,10 +213,12 @@ void SetMainCallback2(MainCallback callback)
     gMain.state = 0;
 }
 
+#if !MODERN
 void StartTimer1(void)
 {
     REG_TM1CNT_H = 0x80;
 }
+#endif
 
 void SeedRngAndSetTrainerId(void)
 {
@@ -249,6 +273,28 @@ static void ReadKeys(void)
     // because it compares the raw key input with the remapped held keys.
     // Note that newAndRepeatedKeys is never remapped either.
 
+    // Potential solution, but needs more testing
+    #if 0
+    gMain.heldKeysRaw = keyInput;
+    gMain.heldKeys = gMain.heldKeysRaw;
+
+    // Remap L to A if the L=A option is enabled.
+    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+    {
+        if (JOY_NEW(L_BUTTON))
+        {
+            gMain.newKeys |= A_BUTTON;
+            keyInput |= L_BUTTON;
+        }
+
+        if (JOY_HELD(L_BUTTON))
+        {
+            gMain.heldKeys |= A_BUTTON;
+            keyInput |= L_BUTTON;
+        }
+    }
+    #endif
+
     if (keyInput != 0 && gMain.heldKeys == keyInput)
     {
         gMain.keyRepeatCounter--;
@@ -265,10 +311,12 @@ static void ReadKeys(void)
         gMain.keyRepeatCounter = gKeyRepeatStartDelay;
     }
 
+    #if 1
     gMain.heldKeysRaw = keyInput;
     gMain.heldKeys = gMain.heldKeysRaw;
 
     // Remap L to A if the L=A option is enabled.
+
     if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
     {
         if (JOY_NEW(L_BUTTON))
@@ -277,6 +325,7 @@ static void ReadKeys(void)
         if (JOY_HELD(L_BUTTON))
             gMain.heldKeys |= A_BUTTON;
     }
+    #endif
 
     if (gMain.newKeys & gMain.watchedKeysMask)
         gMain.watchedKeysPressed = TRUE;
@@ -284,14 +333,14 @@ static void ReadKeys(void)
 
 void InitIntrHandlers(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < INTR_COUNT; i++)
         gIntrTable[i] = gIntrTableTemplate[i];
 
     DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
 
-    INTR_VECTOR = IntrMain_Buffer;
+    INTR_VECTOR = (u32)IntrMain_Buffer;
 
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
@@ -353,9 +402,11 @@ static void VBlankIntr(void)
     m4aSoundMain();
     TryReceiveLinkBattleData();
 
+    // This check was added for the recorder to work
     if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
         Random();
 
+    //Check to see if communication was interrupted
     UpdateWirelessStatusIndicatorSprite();
 
     INTR_CHECK |= INTR_FLAG_VBLANK;
@@ -364,7 +415,7 @@ static void VBlankIntr(void)
 
 void InitFlashTimer(void)
 {
-    SetFlashTimerIntr(2, gIntrTable + 0x7);
+    SetFlashTimerIntr(2, &gIntrTable[7]);
 }
 
 static void HBlankIntr(void)
@@ -402,8 +453,12 @@ static void WaitForVBlank(void)
 {
     gMain.intrCheck &= ~INTR_FLAG_VBLANK;
 
+    #if !MODERN
     while (!(gMain.intrCheck & INTR_FLAG_VBLANK))
         ;
+    #else
+    VBlankIntrWait();
+    #endif
 }
 
 void SetTrainerHillVBlankCounter(u32 *counter)
@@ -416,7 +471,7 @@ void ClearTrainerHillVBlankCounter(void)
     gTrainerHillVBlankCounter = NULL;
 }
 
-void DoSoftReset(void)
+NORETURN void DoSoftReset(void)
 {
     REG_IME = 0;
     m4aSoundVSyncOff();

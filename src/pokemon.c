@@ -61,7 +61,7 @@ static void Task_PlayMapChosenOrBattleBGM(u8 taskId);
 static bool8 ShouldGetStatBadgeBoost(u16 flagId, u8 battlerId);
 static u16 GiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move);
 static bool8 ShouldSkipFriendshipChange(void);
-static u8 SendMonToPC(struct Pokemon* mon);
+static u8 SendMonToPC(struct Pokemon *mon);
 
 EWRAM_DATA static u8 sLearningMoveTableID = 0;
 EWRAM_DATA u8 gPlayerPartyCount = 0;
@@ -2119,7 +2119,7 @@ static const struct OamData sOamData_64x64 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -2170,14 +2170,14 @@ void ZeroMonData(struct Pokemon *mon)
 
 void ZeroPlayerPartyMons(void)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < PARTY_SIZE; i++)
         ZeroMonData(&gPlayerParty[i]);
 }
 
 void ZeroEnemyPartyMons(void)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < PARTY_SIZE; i++)
         ZeroMonData(&gEnemyParty[i]);
 }
@@ -2212,13 +2212,11 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     // Determine original trainer ID
     if (otIdType == OT_ID_RANDOM_NO_SHINY)
     {
-        u32 shinyValue;
         do
         {
             // Choose random OT IDs until one that results in a non-shiny Pokémon
             value = Random32();
-            shinyValue = GET_SHINY_VALUE(value, personality);
-        } while (shinyValue < SHINY_ODDS);
+        } while ((GET_SHINY_VALUE(value, personality)) < SHINY_ODDS);
     }
     else if (otIdType == OT_ID_PRESET)
     {
@@ -2309,7 +2307,7 @@ void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level,
 {
     u32 personality;
 
-    if ((u8)(unownLetter - 1) < NUM_UNOWN_FORMS)
+    if (unownLetter !=0 && unownLetter <= NUM_UNOWN_FORMS)
     {
         u16 actualLetter;
 
@@ -2346,7 +2344,12 @@ void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
         otId = Random32();
         personality = Random32();
     }
+    #ifndef BUGFIX
     while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE);
+    #else
+    // Prevents wally from getting a shiny pokemon
+    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE && (GET_SHINY_VALUE(species, personality) >= SHINY_ODDS));
+    #endif
     CreateMon(mon, species, level, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
 }
 
@@ -2372,7 +2375,7 @@ void CreateMonWithIVsOTID(struct Pokemon *mon, u16 species, u8 level, u8 *ivs, u
 void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 evSpread)
 {
     s32 i;
-    s32 statCount = 0;
+    m32 statCount = 0;
     u16 evAmount;
     u8 evsBits;
 
@@ -2387,6 +2390,7 @@ void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedI
         evsBits >>= 1;
     }
 
+    //TODO: what if statCount == 0?
     evAmount = MAX_TOTAL_EVS / statCount;
 
     evsBits = 1;
@@ -2403,8 +2407,12 @@ void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedI
 
 void CreateBattleTowerMon(struct Pokemon *mon, struct BattleTowerPokemon *src)
 {
+    #if !MODERN
     s32 i;
-    u8 nickname[30];
+    #else
+    u8 i;
+    #endif
+    u8 nickname[32];
     u8 language;
     u8 value;
 
@@ -2457,8 +2465,12 @@ void CreateBattleTowerMon(struct Pokemon *mon, struct BattleTowerPokemon *src)
 
 void CreateBattleTowerMon_HandleLevel(struct Pokemon *mon, struct BattleTowerPokemon *src, bool8 lvl50)
 {
+    #if !MODERN
     s32 i;
-    u8 nickname[30];
+    #else
+    u8 i;
+    #endif
+    u8 nickname[32];
     u8 level;
     u8 language;
     u8 value;
@@ -2552,7 +2564,7 @@ void CreateApprenticeMon(struct Pokemon *mon, const struct Apprentice *src, u8 m
 void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level, u8 nature, u8 fixedIV, u8 evSpread, u32 otId)
 {
     s32 i;
-    s32 statCount = 0;
+    m32 statCount = 0;
     u8 evsBits;
     u16 evAmount;
 
@@ -2622,7 +2634,11 @@ void ConvertPokemonToBattleTowerPokemon(struct Pokemon *mon, struct BattleTowerP
 
 void CreateEventLegalMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
 {
+    #if 1 // just in case
     bool32 isEventLegal = TRUE;
+    #else
+    bool8 isEventLegal = TRUE;
+    #endif
 
     CreateMon(mon, species, level, fixedIV, hasFixedPersonality, fixedPersonality, otIdType, fixedOtId);
     SetMonData(mon, MON_DATA_EVENT_LEGAL, &isEventLegal);
@@ -2633,8 +2649,8 @@ bool8 ShouldIgnoreDeoxysForm(u8 caseId, u8 battlerId)
 {
     switch (caseId)
     {
-    case 0:
     default:
+    case 0:
         return FALSE;
     case 1: // Player's side in battle
         if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
@@ -2684,27 +2700,28 @@ bool8 ShouldIgnoreDeoxysForm(u8 caseId, u8 battlerId)
 
     return TRUE;
 }
-
+#if !MODERN
 static u16 GetDeoxysStat(struct Pokemon *mon, s32 statId)
+#else
+static u16 GetDeoxysStat(struct Pokemon *mon, u8 statId)
+#endif
 {
-    s32 ivVal, evVal;
+    m32 ivVal, evVal;
     u16 statValue = 0;
-    u8 nature;
 
     if (gBattleTypeFlags & BATTLE_TYPE_LINK_IN_BATTLE || GetMonData(mon, MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS)
         return 0;
 
     ivVal = GetMonData(mon, MON_DATA_HP_IV + statId, NULL);
     evVal = GetMonData(mon, MON_DATA_HP_EV + statId, NULL);
-    statValue = ((sDeoxysBaseStats[statId] * 2 + ivVal + evVal / 4) * mon->level) / 100 + 5;
-    nature = GetNature(mon);
-    statValue = ModifyStatByNature(nature, statValue, (u8)statId);
+    statValue = ((2 * sDeoxysBaseStats[statId] + ivVal + evVal / 4) * mon->level) / 100 + 5;
+    statValue = ModifyStatByNature(GetNature(mon), statValue, (u8)statId);
     return statValue;
 }
 
 void SetDeoxysStats(void)
 {
-    s32 i, value;
+    m32 i, value;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -2760,6 +2777,7 @@ u16 GetUnionRoomTrainerClass(void)
     return gFacilityClassToTrainerClass[gLinkPlayerFacilityClasses[arrId]];
 }
 
+#if !MODERN
 void CreateEventLegalEnemyMon(void)
 {
     s32 species = gSpecialVar_0x8004;
@@ -2771,11 +2789,25 @@ void CreateEventLegalEnemyMon(void)
     if (itemId)
     {
         u8 heldItem[2];
-        heldItem[0] = itemId;
+        heldItem[0] = itemId & 0xFF;
         heldItem[1] = itemId >> 8;
         SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, heldItem);
     }
 }
+#else
+void CreateEventLegalEnemyMon(void)
+{
+    ZeroEnemyPartyMons();
+    CreateEventLegalMon(&gEnemyParty[0], gSpecialVar_0x8004, gSpecialVar_0x8005, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
+    if (gSpecialVar_0x8006)
+    {
+        u8 heldItem[2];
+        heldItem[0] = gSpecialVar_0x8006 & 0xFF;
+        heldItem[1] = gSpecialVar_0x8006 >> 8;
+        SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, heldItem);
+    }
+}
+#endif
 
 static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon)
 {
@@ -2784,6 +2816,7 @@ static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon)
     union PokemonSubstruct *substruct1 = GetSubstruct(boxMon, boxMon->personality, 1);
     union PokemonSubstruct *substruct2 = GetSubstruct(boxMon, boxMon->personality, 2);
     union PokemonSubstruct *substruct3 = GetSubstruct(boxMon, boxMon->personality, 3);
+    #if !MODERN
     s32 i;
 
     for (i = 0; i < (s32)ARRAY_COUNT(substruct0->raw); i++)
@@ -2797,38 +2830,58 @@ static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon)
 
     for (i = 0; i < (s32)ARRAY_COUNT(substruct3->raw); i++)
         checksum += substruct3->raw[i];
+    #else
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(substruct0->raw); i++)
+        checksum += substruct0->raw[i];
+
+    for (i = 0; i < ARRAY_COUNT(substruct1->raw); i++)
+        checksum += substruct1->raw[i];
+
+    for (i = 0; i < ARRAY_COUNT(substruct2->raw); i++)
+        checksum += substruct2->raw[i];
+
+    for (i = 0; i < ARRAY_COUNT(substruct3->raw); i++)
+        checksum += substruct3->raw[i];
+    #endif
 
     return checksum;
 }
-
-#define CALC_STAT(base, iv, ev, statIndex, field)               \
-{                                                               \
-    u8 baseStat = gBaseStats[species].base;                     \
-    s32 n = (((2 * baseStat + iv + ev / 4) * level) / 100) + 5; \
-    u8 nature = GetNature(mon);                                 \
-    n = ModifyStatByNature(nature, n, statIndex);               \
-    SetMonData(mon, field, &n);                                 \
-}
-
+#if 1 // just to be safe?
+#define CALC_STAT(base, iv, ev, statIndex, field)                               \
+    {                                                                           \
+        m32 n = (2 * gBaseStats[species].base + iv + ev / 4) * level / 100 + 5; \
+        n = ModifyStatByNature(GetNature(mon), n, statIndex);                   \
+        SetMonData(mon, field, &n);                                             \
+    }
+#else
+#define CALC_STAT(base, iv, ev, statIndex, field)                               \
+    {                                                                           \
+        u16 n = (2 * gBaseStats[species].base + iv + ev / 4) * level / 100 + 5; \
+        n = ModifyStatByNature(GetNature(mon), n, statIndex);                   \
+        SetMonData(mon, field, &n);                                             \
+    }
+#endif
 void CalculateMonStats(struct Pokemon *mon)
 {
-    s32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
-    s32 currentHP = GetMonData(mon, MON_DATA_HP, NULL);
-    s32 hpIV = GetMonData(mon, MON_DATA_HP_IV, NULL);
-    s32 hpEV = GetMonData(mon, MON_DATA_HP_EV, NULL);
-    s32 attackIV = GetMonData(mon, MON_DATA_ATK_IV, NULL);
-    s32 attackEV = GetMonData(mon, MON_DATA_ATK_EV, NULL);
-    s32 defenseIV = GetMonData(mon, MON_DATA_DEF_IV, NULL);
-    s32 defenseEV = GetMonData(mon, MON_DATA_DEF_EV, NULL);
-    s32 speedIV = GetMonData(mon, MON_DATA_SPEED_IV, NULL);
-    s32 speedEV = GetMonData(mon, MON_DATA_SPEED_EV, NULL);
-    s32 spAttackIV = GetMonData(mon, MON_DATA_SPATK_IV, NULL);
-    s32 spAttackEV = GetMonData(mon, MON_DATA_SPATK_EV, NULL);
-    s32 spDefenseIV = GetMonData(mon, MON_DATA_SPDEF_IV, NULL);
-    s32 spDefenseEV = GetMonData(mon, MON_DATA_SPDEF_EV, NULL);
-    u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
-    s32 level = GetLevelFromMonExp(mon);
-    s32 newMaxHP;
+    m32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
+    m32 currentHP = GetMonData(mon, MON_DATA_HP, NULL);
+    m32 hpIV = GetMonData(mon, MON_DATA_HP_IV, NULL);
+    m32 hpEV = GetMonData(mon, MON_DATA_HP_EV, NULL);
+    m32 attackIV = GetMonData(mon, MON_DATA_ATK_IV, NULL);
+    m32 attackEV = GetMonData(mon, MON_DATA_ATK_EV, NULL);
+    m32 defenseIV = GetMonData(mon, MON_DATA_DEF_IV, NULL);
+    m32 defenseEV = GetMonData(mon, MON_DATA_DEF_EV, NULL);
+    m32 speedIV = GetMonData(mon, MON_DATA_SPEED_IV, NULL);
+    m32 speedEV = GetMonData(mon, MON_DATA_SPEED_EV, NULL);
+    m32 spAttackIV = GetMonData(mon, MON_DATA_SPATK_IV, NULL);
+    m32 spAttackEV = GetMonData(mon, MON_DATA_SPATK_EV, NULL);
+    m32 spDefenseIV = GetMonData(mon, MON_DATA_SPDEF_IV, NULL);
+    m32 spDefenseEV = GetMonData(mon, MON_DATA_SPDEF_EV, NULL);
+    m16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
+    m32 level = GetLevelFromMonExp(mon);
+    m32 newMaxHP;
 
     SetMonData(mon, MON_DATA_LEVEL, &level);
 
@@ -2838,13 +2891,19 @@ void CalculateMonStats(struct Pokemon *mon)
     }
     else
     {
-        s32 n = 2 * gBaseStats[species].baseHP + hpIV;
-        newMaxHP = (((n + hpEV / 4) * level) / 100) + level + 10;
+        newMaxHP = (2 * gBaseStats[species].baseHP + hpIV + hpEV / 4) * level / 100 + level + 10;
     }
 
+    #if !MODERN
     gBattleScripting.levelUpHP = newMaxHP - oldMaxHP;
     if (gBattleScripting.levelUpHP == 0)
         gBattleScripting.levelUpHP = 1;
+    #else
+    if (newMaxHP > oldMaxHP)
+        gBattleScripting.levelUpHP = newMaxHP - oldMaxHP;
+    else
+        gBattleScripting.levelUpHP = 1;
+    #endif
 
     SetMonData(mon, MON_DATA_MAX_HP, &newMaxHP);
 
@@ -2856,25 +2915,41 @@ void CalculateMonStats(struct Pokemon *mon)
 
     if (species == SPECIES_SHEDINJA)
     {
-        if (currentHP != 0 || oldMaxHP == 0)
-            currentHP = 1;
-        else
+        if (currentHP == 0 && oldMaxHP != 0)
             return;
+        currentHP = 1;
     }
     else
     {
+        #if !MODERN
+        // TODO: any typos 
         if (currentHP == 0 && oldMaxHP == 0)
             currentHP = newMaxHP;
         else if (currentHP != 0) {
             // BUG: currentHP is unintentionally able to become <= 0 after the instruction below. This causes the pomeg berry glitch.
             currentHP += newMaxHP - oldMaxHP;
-            #ifdef BUGFIX
+#ifdef BUGFIX
             if (currentHP <= 0)
                 currentHP = 1;
             #endif
         }
         else
             return;
+        #else
+
+        if (currentHP == 0)
+        {
+            if (oldMaxHP != 0)
+                return;
+            currentHP = newMaxHP;
+        }
+        else if (newMaxHP > oldMaxHP)
+            currentHP += newMaxHP - oldMaxHP;
+        else if (currentHP > oldMaxHP - newMaxHP)
+            currentHP -= oldMaxHP - newMaxHP;
+        else
+            currentHP = 1;
+#endif
     }
 
     SetMonData(mon, MON_DATA_HP, &currentHP);
@@ -2896,7 +2971,7 @@ u8 GetLevelFromMonExp(struct Pokemon *mon)
 {
     u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
     u32 exp = GetMonData(mon, MON_DATA_EXP, NULL);
-    s32 level = 1;
+    m32 level = 1;
 
     while (level <= MAX_LEVEL && gExperienceTables[gBaseStats[species].growthRate][level] <= exp)
         level++;
@@ -2908,7 +2983,7 @@ u8 GetLevelFromBoxMonExp(struct BoxPokemon *boxMon)
 {
     u16 species = GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL);
     u32 exp = GetBoxMonData(boxMon, MON_DATA_EXP, NULL);
-    s32 level = 1;
+    m32 level = 1;
 
     while (level <= MAX_LEVEL && gExperienceTables[gBaseStats[species].growthRate][level] <= exp)
         level++;
@@ -2941,7 +3016,7 @@ static u16 GiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move)
 
 u16 GiveMoveToBattleMon(struct BattlePokemon *mon, u16 move)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
@@ -2976,17 +3051,14 @@ void GiveMonInitialMoveset(struct Pokemon *mon)
 void GiveBoxMonInitialMoveset(struct BoxPokemon *boxMon)
 {
     u16 species = GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL);
-    s32 level = GetLevelFromBoxMonExp(boxMon);
-    s32 i;
+    m8 level = GetLevelFromBoxMonExp(boxMon);
+    m32 i;
 
     for (i = 0; gLevelUpLearnsets[species][i] != LEVEL_UP_END; i++)
     {
-        u16 moveLevel;
         u16 move;
 
-        moveLevel = (gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_LV);
-
-        if (moveLevel > (level << 9))
+        if ((gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_LV) > (level << 9))
             break;
 
         move = (gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_ID);
@@ -3088,6 +3160,12 @@ void DeleteFirstMoveAndGiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move)
     (var) /= (gStatStageRatios)[(mon)->statStages[(statIndex)]][1];                 \
 }
 
+#if !MODERN
+#define MULT_CONST 110/100
+#else
+#define MULT_CONST 11/10
+#endif
+
 s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *defender, u32 move, u16 sideStatus, u16 powerOverride, u8 typeOverride, u8 battlerIdAtk, u8 battlerIdDef)
 {
     u32 i;
@@ -3116,7 +3194,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     spAttack = attacker->spAttack;
     spDefense = defender->spDefense;
 
-    // Get attacker hold item info    
+    // Get attacker hold item info
     if (attacker->item == ITEM_ENIGMA_BERRY)
     {
         attackerHoldEffect = gEnigmaBerries[battlerIdAtk].holdEffect;
@@ -3144,19 +3222,18 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         attack *= 2;
 
     if (ShouldGetStatBadgeBoost(FLAG_BADGE01_GET, battlerIdAtk))
-        attack = (110 * attack) / 100;
+        attack = attack * MULT_CONST;
     if (ShouldGetStatBadgeBoost(FLAG_BADGE05_GET, battlerIdDef))
-        defense = (110 * defense) / 100;
+        defense = defense * MULT_CONST;
     if (ShouldGetStatBadgeBoost(FLAG_BADGE07_GET, battlerIdAtk))
-        spAttack = (110 * spAttack) / 100;
+        spAttack = spAttack * MULT_CONST;
     if (ShouldGetStatBadgeBoost(FLAG_BADGE07_GET, battlerIdDef))
-        spDefense = (110 * spDefense) / 100;
+        spDefense = spDefense * MULT_CONST;
 
     // Apply type-bonus hold item
     for (i = 0; i < ARRAY_COUNT(sHoldEffectToType); i++)
     {
-        if (attackerHoldEffect == sHoldEffectToType[i][0]
-            && type == sHoldEffectToType[i][1])
+        if (attackerHoldEffect == sHoldEffectToType[i][0] && type == sHoldEffectToType[i][1])
         {
             if (IS_TYPE_PHYSICAL(type))
                 attack = (attack * (attackerHoldEffectParam + 100)) / 100;
@@ -3166,7 +3243,8 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         }
     }
 
-    // Apply boosts from hold items
+// Apply boosts from hold items
+#if !MODERN
     if (attackerHoldEffect == HOLD_EFFECT_CHOICE_BAND)
         attack = (150 * attack) / 100;
     if (attackerHoldEffect == HOLD_EFFECT_SOUL_DEW && !(gBattleTypeFlags & (BATTLE_TYPE_FRONTIER)) && (attacker->species == SPECIES_LATIAS || attacker->species == SPECIES_LATIOS))
@@ -3183,8 +3261,130 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         defense *= 2;
     if (attackerHoldEffect == HOLD_EFFECT_THICK_CLUB && (attacker->species == SPECIES_CUBONE || attacker->species == SPECIES_MAROWAK))
         attack *= 2;
+#else
+    switch (attackerHoldEffect)
+    {
+    case HOLD_EFFECT_CHOICE_BAND:
+        attack += attack/2; // * 3/2
+    case HOLD_EFFECT_SOUL_DEW:
+        if (attacker->species == SPECIES_LATIAS || attacker->species == SPECIES_LATIOS)
+        {
+            if (gBattleTypeFlags & (BATTLE_TYPE_FRONTIER))
+                break;
+            spAttack += spAttack / 2;
+        }
+        break;
+    case HOLD_EFFECT_DEEP_SEA_TOOTH:
+        if (attacker->species == SPECIES_CLAMPERL)
+            spAttack *= 2;
+        break;
+    case HOLD_EFFECT_LIGHT_BALL:
+        if (attacker->species == SPECIES_PIKACHU)
+            spAttack *= 2;
+        break;
+    case HOLD_EFFECT_THICK_CLUB:
+        if (attacker->species == SPECIES_CUBONE || attacker->species == SPECIES_MAROWAK)
+            attack *= 2;
+    }
 
-    // Apply abilities / field sports
+    switch (attacker->ability)
+    {
+    case ABILITY_GUTS:
+        if (!attacker->status1)
+            break;
+        // Fallthru
+    case ABILITY_HUSTLE:
+        attack += attack / 2;
+        break;
+    case ABILITY_PLUS:
+        if (ABILITY_ON_FIELD2(ABILITY_MINUS))
+            spAttack += spAttack / 2;
+        break;
+    case ABILITY_MINUS:
+        if (ABILITY_ON_FIELD2(ABILITY_PLUS))
+            spAttack += spAttack / 2;
+        break;
+    case ABILITY_OVERGROW:
+        if (type == TYPE_GRASS)
+        {
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower / 2;
+            goto noType;
+        }
+
+        break;
+
+    case ABILITY_BLAZE:
+        if (type == TYPE_FIRE)
+        {
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower / 2;
+            goto noType;
+        }
+
+        break;
+    case ABILITY_TORRENT:
+        if (type == TYPE_WATER)
+        {
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower/ 2;
+            goto noType;
+        }
+
+        break;
+    case ABILITY_SWARM:
+        if (type == TYPE_BUG)
+        {
+            if (attacker->hp <= Div(attacker->maxHP, 3))
+                gBattleMovePower += gBattleMovePower/ 2;
+            goto noType;
+        }
+
+        break;
+    }
+
+    if (type == TYPE_ELECTRIC)
+    {
+        if (AbilityBattleEffects(ABILITYEFFECT_FIELD_SPORT, 0, 0, ABILITYEFFECT_MUD_SPORT, 0))
+            gBattleMovePower /= 2;
+    }
+    else if (type == TYPE_FIRE)
+    {
+        if (AbilityBattleEffects(ABILITYEFFECT_FIELD_SPORT, 0, 0, ABILITYEFFECT_WATER_SPORT, 0))
+            gBattleMovePower /= 2;
+    }
+
+noType:
+    if (defenderHoldEffect == HOLD_EFFECT_SOUL_DEW)
+    {
+        if ((defender->species == SPECIES_LATIAS || defender->species == SPECIES_LATIOS) && !(gBattleTypeFlags & (BATTLE_TYPE_FRONTIER)))
+            spDefense += spDefense / 2;
+    }
+    else if (defenderHoldEffect == HOLD_EFFECT_DEEP_SEA_SCALE)
+    {
+        if (defender->species == SPECIES_CLAMPERL)
+            spDefense *= 2;
+    }
+    else if (defenderHoldEffect == HOLD_EFFECT_METAL_POWDER)
+    {
+        if (defender->species == SPECIES_DITTO)
+            defense *= 2;
+    }
+
+    if (defender->ability == ABILITY_THICK_FAT)
+    {
+        if (type == TYPE_FIRE || type == TYPE_ICE)
+            spAttack /= 2;
+    }
+    else if (defender->ability == ABILITY_MARVEL_SCALE)
+    {
+        if (defender->status1)
+            defense += defense / 2;
+    }
+#endif
+        // Apply abilities / field sports
+
+#if !MODERN
     if (defender->ability == ABILITY_THICK_FAT && (type == TYPE_FIRE || type == TYPE_ICE))
         spAttack /= 2;
     if (attacker->ability == ABILITY_HUSTLE)
@@ -3209,6 +3409,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         gBattleMovePower = (150 * gBattleMovePower) / 100;
     if (type == TYPE_BUG && attacker->ability == ABILITY_SWARM && attacker->hp <= (attacker->maxHP / 3))
         gBattleMovePower = (150 * gBattleMovePower) / 100;
+#endif
 
     // Self-destruct / Explosion cut defense in half
     if (gBattleMoves[gCurrentMove].effect == EFFECT_EXPLOSION)
@@ -3241,7 +3442,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         else
             APPLY_STAT_MOD(damageHelper, defender, defense, STAT_DEF)
 
-        damage = damage / damageHelper;
+        damage /= damageHelper;
         damage /= 50;
 
         // Burn cuts attack in half
@@ -3266,10 +3467,15 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
             damage = 1;
     }
 
-    if (type == TYPE_MYSTERY)
+    // TODO: Only curse fits this bill. We have to look at all possible side effects and if the side effects by this function actually matters before moving it upwards
+    M_IF (type == TYPE_MYSTERY)
         damage = 0; // is ??? type. does 0 damage.
 
+#if !MODERN
     if (IS_TYPE_SPECIAL(type))
+#else
+    else
+#endif
     {
         if (gCritMultiplier == 2)
         {
@@ -3324,7 +3530,11 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
                     damage /= 2;
                     break;
                 case TYPE_WATER:
+#if !MODERN
                     damage = (15 * damage) / 10;
+#else
+                    damage = damage * 3 / 2;
+#endif
                     break;
                 }
             }
@@ -3339,7 +3549,11 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
                 switch (type)
                 {
                 case TYPE_FIRE:
+#if !MODERN
                     damage = (15 * damage) / 10;
+#else
+                    damage = damage * 3 / 2;
+#endif
                     break;
                 case TYPE_WATER:
                     damage /= 2;
@@ -3350,7 +3564,13 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
 
         // Flash fire triggered
         if ((gBattleResources->flags->flags[battlerIdAtk] & RESOURCE_FLAG_FLASH_FIRE) && type == TYPE_FIRE)
+        {
+#if !MODERN
             damage = (15 * damage) / 10;
+#else
+            damage = damage * 3 / 2;
+#endif
+        }
     }
 
     return damage + 2;
@@ -3358,7 +3578,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
 
 u8 CountAliveMonsInBattle(u8 caseId)
 {
-    s32 i;
+    m32 i;
     u8 retVal = 0;
 
     switch (caseId)
@@ -3380,6 +3600,7 @@ u8 CountAliveMonsInBattle(u8 caseId)
     case BATTLE_ALIVE_DEF_SIDE:
         for (i = 0; i < MAX_BATTLERS_COUNT; i++)
         {
+            // TODO: should we inline this?
             if (GetBattlerSide(i) == GetBattlerSide(gBattlerTarget) && !(gAbsentBattlerFlags & gBitTable[i]))
                 retVal++;
         }
@@ -3411,22 +3632,14 @@ u8 GetDefaultMoveTarget(u8 battlerId)
         return GetBattlerAtPosition(opposing);
     if (CountAliveMonsInBattle(BATTLE_ALIVE_EXCEPT_ACTIVE) > 1)
     {
-        u8 position;
 
-        if ((Random() & 1) == 0)
-            position = BATTLE_PARTNER(opposing);
-        else
-            position = opposing;
-
-        return GetBattlerAtPosition(position);
+        return GetBattlerAtPosition((Random() & 1)? opposing : BATTLE_PARTNER(opposing));
     }
+
+    if ((gAbsentBattlerFlags & gBitTable[opposing]))
+        return GetBattlerAtPosition(BATTLE_PARTNER(opposing));
     else
-    {
-        if ((gAbsentBattlerFlags & gBitTable[opposing]))
-            return GetBattlerAtPosition(BATTLE_PARTNER(opposing));
-        else
-            return GetBattlerAtPosition(opposing);
-    }
+        return GetBattlerAtPosition(opposing);
 }
 
 u8 GetMonGender(struct Pokemon *mon)
@@ -3538,52 +3751,75 @@ static void DecryptBoxMon(struct BoxPokemon *boxMon)
     }
 }
 
-#define SUBSTRUCT_CASE(n, v1, v2, v3, v4)                               \
-case n:                                                                 \
-    {                                                                   \
-    union PokemonSubstruct *substructs0 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs1 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs2 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs3 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs4 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs5 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs6 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs7 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs8 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs9 = boxMon->secure.substructs;    \
-    union PokemonSubstruct *substructs10 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs11 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs12 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs13 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs14 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs15 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs16 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs17 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs18 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs19 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs20 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs21 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs22 = boxMon->secure.substructs;   \
-    union PokemonSubstruct *substructs23 = boxMon->secure.substructs;   \
-                                                                        \
-        switch (substructType)                                          \
-        {                                                               \
-        case 0:                                                         \
-            substruct = &substructs ## n [v1];                          \
-            break;                                                      \
-        case 1:                                                         \
-            substruct = &substructs ## n [v2];                          \
-            break;                                                      \
-        case 2:                                                         \
-            substruct = &substructs ## n [v3];                          \
-            break;                                                      \
-        case 3:                                                         \
-            substruct = &substructs ## n [v4];                          \
-            break;                                                      \
-        }                                                               \
-        break;                                                          \
-    }                                                                   \
-
+#if !MODERN
+#define SUBSTRUCT_CASE(n, v1, v2, v3, v4)                                 \
+    case n:                                                               \
+    {                                                                     \
+        union PokemonSubstruct *substructs0 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs1 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs2 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs3 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs4 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs5 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs6 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs7 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs8 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs9 = boxMon->secure.substructs;  \
+        union PokemonSubstruct *substructs10 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs11 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs12 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs13 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs14 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs15 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs16 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs17 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs18 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs19 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs20 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs21 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs22 = boxMon->secure.substructs; \
+        union PokemonSubstruct *substructs23 = boxMon->secure.substructs; \
+                                                                          \
+        switch (substructType)                                            \
+        {                                                                 \
+        case 0:                                                           \
+            substruct = &substructs##n[v1];                               \
+            break;                                                        \
+        case 1:                                                           \
+            substruct = &substructs##n[v2];                               \
+            break;                                                        \
+        case 2:                                                           \
+            substruct = &substructs##n[v3];                               \
+            break;                                                        \
+        case 3:                                                           \
+            substruct = &substructs##n[v4];                               \
+            break;                                                        \
+        }                                                                 \
+        break;                                                            \
+    }
+#else
+#define SUBSTRUCT_CASE(n, v1, v2, v3, v4)               \
+    case n:                                             \
+    {                                                   \
+                                                        \
+        switch (substructType)                          \
+        {                                               \
+        case 0:                                         \
+            substruct = &boxMon->secure.substructs[v1]; \
+            break;                                      \
+        case 1:                                         \
+            substruct = &boxMon->secure.substructs[v2]; \
+            break;                                      \
+        case 2:                                         \
+            substruct = &boxMon->secure.substructs[v3]; \
+            break;                                      \
+        case 3:                                         \
+            substruct = &boxMon->secure.substructs[v4];             \
+            break;                                      \
+        }                                               \
+        break;                                          \
+    }
+#endif
 
 static union PokemonSubstruct *GetSubstruct(struct BoxPokemon *boxMon, u32 personality, u8 substructType)
 {
@@ -3620,7 +3856,7 @@ static union PokemonSubstruct *GetSubstruct(struct BoxPokemon *boxMon, u32 perso
     return substruct;
 }
 
-u32 GetMonData(struct Pokemon *mon, s32 field, u8* data)
+u32 GetMonData(struct Pokemon *mon, s32 field, u8 *data)
 {
     u32 ret;
 
@@ -3690,7 +3926,7 @@ u32 GetMonData(struct Pokemon *mon, s32 field, u8* data)
 
 u32 GetBoxMonData(struct BoxPokemon *boxMon, s32 field, u8 *data)
 {
-    s32 i;
+    m32 i;
     u32 retVal = 0;
     struct PokemonSubstruct0 *substruct0 = NULL;
     struct PokemonSubstruct1 *substruct1 = NULL;
@@ -4130,7 +4366,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_NICKNAME:
     {
-        s32 i;
+        m32 i;
         for (i = 0; i < POKEMON_NAME_LENGTH; i++)
             boxMon->nickname[i] = data[i];
         break;
@@ -4370,12 +4606,13 @@ void CopyMon(void *dest, void *src, size_t size)
 
 u8 GiveMonToPlayer(struct Pokemon *mon)
 {
-    s32 i;
+    m32 i;
 
     SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
     SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);
     SetMonData(mon, MON_DATA_OT_ID, gSaveBlock2Ptr->playerTrainerId);
 
+    #if !MODERN
     for (i = 0; i < PARTY_SIZE; i++)
     {
         if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
@@ -4388,11 +4625,28 @@ u8 GiveMonToPlayer(struct Pokemon *mon)
     CopyMon(&gPlayerParty[i], mon, sizeof(*mon));
     gPlayerPartyCount = i + 1;
     return MON_GIVEN_TO_PARTY;
+    #else
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+        {
+            CopyMon(&gPlayerParty[i], mon, sizeof(*mon));
+            gPlayerPartyCount = i + 1;
+            return MON_GIVEN_TO_PARTY;
+        }
+    }
+
+    return SendMonToPC(mon);
+    #endif
 }
 
-static u8 SendMonToPC(struct Pokemon* mon)
+static u8 SendMonToPC(struct Pokemon *mon)
 {
+    #if !MODERN
     s32 boxNo, boxPos;
+    #else
+    u8 boxNo, boxPos;
+    #endif
 
     SetPCBoxToSendMon(VarGet(VAR_PC_BOX_TO_SEND_MON));
 
@@ -4426,12 +4680,10 @@ static u8 SendMonToPC(struct Pokemon* mon)
 
 u8 CalculatePlayerPartyCount(void)
 {
-    gPlayerPartyCount = 0;
-
-    while (gPlayerPartyCount < PARTY_SIZE
-        && GetMonData(&gPlayerParty[gPlayerPartyCount], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
+    for (gPlayerPartyCount = 0; gPlayerPartyCount < PARTY_SIZE; gPlayerPartyCount++)
     {
-        gPlayerPartyCount++;
+        if (GetMonData(&gPlayerParty[gPlayerPartyCount], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            break;
     }
 
     return gPlayerPartyCount;
@@ -4439,12 +4691,10 @@ u8 CalculatePlayerPartyCount(void)
 
 u8 CalculateEnemyPartyCount(void)
 {
-    gEnemyPartyCount = 0;
-
-    while (gEnemyPartyCount < PARTY_SIZE
-        && GetMonData(&gEnemyParty[gEnemyPartyCount], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
+    for (gEnemyPartyCount = 0; gEnemyPartyCount < PARTY_SIZE; gEnemyPartyCount++)
     {
-        gEnemyPartyCount++;
+        if (GetMonData(&gEnemyParty[gEnemyPartyCount], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            break;
     }
 
     return gEnemyPartyCount;
@@ -4452,12 +4702,18 @@ u8 CalculateEnemyPartyCount(void)
 
 u8 GetMonsStateToDoubles(void)
 {
-    s32 aliveCount = 0;
-    s32 i;
+    m32 aliveCount = 0;
+    m32 i;
     CalculatePlayerPartyCount();
 
     if (gPlayerPartyCount == 1)
+    {
+        #if !MODERN
         return gPlayerPartyCount; // PLAYER_HAS_ONE_MON
+        #else
+        return PLAYER_HAS_ONE_MON;
+        #endif
+    }
 
     for (i = 0; i < gPlayerPartyCount; i++)
     {
@@ -4472,8 +4728,8 @@ u8 GetMonsStateToDoubles(void)
 
 u8 GetMonsStateToDoubles_2(void)
 {
-    s32 aliveCount = 0;
-    s32 i;
+    m32 aliveCount = 0;
+    m32 i;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -4554,7 +4810,7 @@ u8 GetSecretBaseTrainerClass(void)
 
 bool8 IsPlayerPartyAndPokemonStorageFull(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < PARTY_SIZE; i++)
         if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
@@ -4565,7 +4821,11 @@ bool8 IsPlayerPartyAndPokemonStorageFull(void)
 
 bool8 IsPokemonStorageFull(void)
 {
+    #if !MODERN
     s32 i, j;
+    #else
+    u8 i, j;
+    #endif
 
     for (i = 0; i < TOTAL_BOXES_COUNT; i++)
         for (j = 0; j < IN_BOX_COUNT; j++)
@@ -4577,7 +4837,7 @@ bool8 IsPokemonStorageFull(void)
 
 void GetSpeciesName(u8 *name, u16 species)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i <= POKEMON_NAME_LENGTH; i++)
     {
@@ -4587,7 +4847,11 @@ void GetSpeciesName(u8 *name, u16 species)
             name[i] = gSpeciesNames[species][i];
 
         if (name[i] == EOS)
+        #if !MODERN
             break;
+        #else
+            return;
+        #endif
     }
 
     name[i] = EOS;
@@ -4613,7 +4877,7 @@ void RemoveBattleMonPPBonus(struct BattlePokemon *mon, u8 moveIndex)
 
 void CopyPlayerPartyMonToBattleData(u8 battlerId, u8 partyIndex)
 {
-    u16* hpSwitchout;
+    u16 *hpSwitchout;
     s32 i;
     u8 nickname[POKEMON_NAME_LENGTH * 2];
 
@@ -4690,7 +4954,7 @@ bool8 ExecuteTableBasedItemEffect(struct Pokemon *mon, u16 item, u8 partyIndex, 
         }                                                                                               \
         if (friendship < 0)                                                                             \
             friendship = 0;                                                                             \
-        if (friendship > MAX_FRIENDSHIP)                                                                \
+        M_IF (friendship > MAX_FRIENDSHIP)                                                                \
             friendship = MAX_FRIENDSHIP;                                                                \
         SetMonData(mon, MON_DATA_FRIENDSHIP, &friendship);                                              \
         retVal = FALSE;                                                                                 \
@@ -5448,7 +5712,7 @@ u8 GetNatureFromPersonality(u32 personality)
 
 u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 mode, u16 evolutionItem)
 {
-    int i;
+    m32 i;
     u16 targetSpecies = 0;
     u16 species = GetMonData(mon, MON_DATA_SPECIES, 0);
     u16 heldItem = GetMonData(mon, MON_DATA_HELD_ITEM, 0);
@@ -5568,15 +5832,16 @@ u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 mode, u16 evolutionItem)
 
 u16 HoennPokedexNumToSpecies(u16 hoennNum)
 {
-    u16 species;
+    m16 species;
 
     if (!hoennNum)
         return 0;
 
-    species = 0;
-
-    while (species < (NUM_SPECIES - 1) && sSpeciesToHoennPokedexNum[species] != hoennNum)
-        species++;
+    for (species = 0; species < (NUM_SPECIES - 1); species ++)
+    {
+        if (sSpeciesToHoennPokedexNum[species] == hoennNum)
+            break;
+    }
 
     if (species == NUM_SPECIES - 1)
         return 0;
@@ -5586,15 +5851,16 @@ u16 HoennPokedexNumToSpecies(u16 hoennNum)
 
 u16 NationalPokedexNumToSpecies(u16 nationalNum)
 {
-    u16 species;
+        m16 species;
 
     if (!nationalNum)
         return 0;
 
-    species = 0;
-
-    while (species < (NUM_SPECIES - 1) && sSpeciesToNationalPokedexNum[species] != nationalNum)
-        species++;
+    for (species = 0; species < (NUM_SPECIES - 1); species ++)
+    {
+        if (sSpeciesToNationalPokedexNum[species] == nationalNum)
+            break;
+    }
 
     if (species == NUM_SPECIES - 1)
         return 0;
@@ -5604,15 +5870,16 @@ u16 NationalPokedexNumToSpecies(u16 nationalNum)
 
 u16 NationalToHoennOrder(u16 nationalNum)
 {
-    u16 hoennNum;
+    m16 hoennNum;
 
     if (!nationalNum)
         return 0;
 
-    hoennNum = 0;
-
-    while (hoennNum < (NUM_SPECIES - 1) && sHoennToNationalOrder[hoennNum] != nationalNum)
-        hoennNum++;
+    for (hoennNum = 0; hoennNum < (NUM_SPECIES - 1); hoennNum++)
+    {
+        if (sHoennToNationalOrder[hoennNum] == nationalNum)
+            break;
+    }
 
     if (hoennNum == NUM_SPECIES - 1)
         return 0;
@@ -5686,58 +5953,56 @@ u16 SpeciesToCryId(u16 species)
     (destPixels) is an 8 bit pointer, so it addresses two pixels. Shifting by 4 accesses the 2nd
     of these pixels, so this is done every other time.
 */
-#define DRAW_SPINDA_SPOTS(personality, dest)                                    \
-{                                                                               \
-    s32 i;                                                                      \
-    for (i = 0; i < (s32)ARRAY_COUNT(gSpindaSpotGraphics); i++)                 \
-    {                                                                           \
-        s32 row;                                                                \
-        u8 x = gSpindaSpotGraphics[i].x + ((personality & 0x0F) - 8);           \
-        u8 y = gSpindaSpotGraphics[i].y + (((personality & 0xF0) >> 4) - 8);    \
-                                                                                \
-        for (row = 0; row < SPINDA_SPOT_HEIGHT; row++)                          \
-        {                                                                       \
-            s32 column;                                                         \
-            s32 spotPixelRow = gSpindaSpotGraphics[i].image[row];               \
-                                                                                \
-            for (column = x; column < x + SPINDA_SPOT_WIDTH; column++)          \
-            {                                                                   \
-                /* Get target pixels on Spinda's sprite */                      \
-                u8 *destPixels = dest + ((column / 8) * TILE_SIZE_4BPP) +       \
-                                        ((column % 8) / 2) +                    \
-                                             ((y / 8) * TILE_SIZE_4BPP * 8) +   \
-                                             ((y % 8) * 4);                     \
-                                                                                \
-                /* Is this pixel in the 16x16 spot image part of the spot? */   \
-                if (spotPixelRow & 1)                                           \
-                {                                                               \
-                    /* destPixels addressess two pixels, alternate which */     \
-                    /* of the two pixels is being considered for drawing */     \
-                    if (column & 1)                                             \
-                    {                                                           \
-                        /* Draw spot pixel if this is Spinda's body color */    \
-                        if ((u8)((*destPixels & 0xF0) - (FIRST_SPOT_COLOR << 4))\
-                                 <= ((LAST_SPOT_COLOR - FIRST_SPOT_COLOR) << 4))\
-                            *destPixels += (SPOT_COLOR_ADJUSTMENT << 4);        \
-                    }                                                           \
-                    else                                                        \
-                    {                                                           \
-                        /* Draw spot pixel if this is Spinda's body color */    \
-                        if ((u8)((*destPixels & 0xF) - FIRST_SPOT_COLOR)        \
-                                 <= (LAST_SPOT_COLOR - FIRST_SPOT_COLOR))       \
-                            *destPixels += SPOT_COLOR_ADJUSTMENT;               \
-                    }                                                           \
-                }                                                               \
-                                                                                \
-                spotPixelRow >>= 1;                                             \
-            }                                                                   \
-                                                                                \
-            y++;                                                                \
-        }                                                                       \
-                                                                                \
-        personality >>= 8;                                                      \
-    }                                                                           \
-}
+#define DRAW_SPINDA_SPOTS(personality, dest)                                                                                           \
+    {                                                                                                                                  \
+        m32 i;                                                                                                                         \
+        for (i = 0; i < (m32)ARRAY_COUNT(gSpindaSpotGraphics); i++)                                                                    \
+        {                                                                                                                              \
+            m32 row;                                                                                                                   \
+            u8 x = gSpindaSpotGraphics[i].x + ((personality & 0x0F) - 8);                                                              \
+            u8 y = gSpindaSpotGraphics[i].y + (((personality & 0xF0) >> 4) - 8);                                                       \
+                                                                                                                                       \
+            for (row = 0; row < SPINDA_SPOT_HEIGHT; row++)                                                                             \
+            {                                                                                                                          \
+                m32 column;                                                                                                            \
+                m32 spotPixelRow = gSpindaSpotGraphics[i].image[row];                                                                  \
+                                                                                                                                       \
+                for (column = x; column < x + SPINDA_SPOT_WIDTH; column++)                                                             \
+                {                                                                                                                      \
+                    /* Get target pixels on Spinda's sprite */                                                                         \
+                    u8 *destPixels = dest + ((column / 8) * TILE_SIZE_4BPP) +                                                          \
+                                     ((column % 8) / 2) +                                                                              \
+                                     ((y / 8) * TILE_SIZE_4BPP * 8) +                                                                  \
+                                     ((y % 8) * 4);                                                                                    \
+                                                                                                                                       \
+                    /* Is this pixel in the 16x16 spot image part of the spot? */                                                      \
+                    if (spotPixelRow & 1)                                                                                              \
+                    {                                                                                                                  \
+                        /* destPixels addressess two pixels, alternate which */                                                        \
+                        /* of the two pixels is being considered for drawing */                                                        \
+                        if (column & 1)                                                                                                \
+                        {                                                                                                              \
+                            /* Draw spot pixel if this is Spinda's body color */                                                       \
+                            if (((*destPixels & 0xF0) >= (FIRST_SPOT_COLOR << 4)) && ((*destPixels & 0xF0) <= (LAST_SPOT_COLOR << 4))) \
+                                *destPixels += (SPOT_COLOR_ADJUSTMENT << 4);                                                           \
+                        }                                                                                                              \
+                        else                                                                                                           \
+                        {                                                                                                              \
+                            /* Draw spot pixel if this is Spinda's body color */                                                       \
+                            if ((*destPixels & 0xF) >= FIRST_SPOT_COLOR && ((*destPixels & 0xF) <= LAST_SPOT_COLOR))                   \
+                                *destPixels += SPOT_COLOR_ADJUSTMENT;                                                                  \
+                        }                                                                                                              \
+                    }                                                                                                                  \
+                                                                                                                                       \
+                    spotPixelRow >>= 1;                                                                                                \
+                }                                                                                                                      \
+                                                                                                                                       \
+                y++;                                                                                                                   \
+            }                                                                                                                          \
+                                                                                                                                       \
+            personality >>= 8;                                                                                                         \
+        }                                                                                                                              \
+    }
 
 // Same as DrawSpindaSpots but attempts to discern for itself whether or
 // not it's the front pic.
@@ -6257,7 +6522,7 @@ u8 GetMoveRelearnerMoves(struct Pokemon *mon, u16 *moves)
 u8 GetLevelUpMovesBySpecies(u16 species, u16 *moves)
 {
     u8 numMoves = 0;
-    int i;
+    m32 i;
 
     for (i = 0; i < MAX_LEVEL_UP_MOVES && gLevelUpLearnsets[species][i] != LEVEL_UP_END; i++)
          moves[numMoves++] = gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_ID;
@@ -6480,7 +6745,7 @@ const struct CompressedSpritePalette *GetMonSpritePalStructFromOtIdPersonality(u
 
 bool32 IsHMMove2(u16 move)
 {
-    int i = 0;
+    u32 i = 0;
     while (sHMMoves[i] != HM_MOVES_END)
     {
         if (sHMMoves[i++] == move)
@@ -6509,10 +6774,8 @@ s8 GetFlavorRelationByPersonality(u32 personality, u8 flavor)
 bool8 IsTradedMon(struct Pokemon *mon)
 {
     u8 otName[PLAYER_NAME_LENGTH + 1];
-    u32 otId;
     GetMonData(mon, MON_DATA_OT_NAME, otName);
-    otId = GetMonData(mon, MON_DATA_OT_ID, 0);
-    return IsOtherTrainer(otId, otName);
+    return IsOtherTrainer(GetMonData(mon, MON_DATA_OT_ID, 0), otName);
 }
 
 bool8 IsOtherTrainer(u32 otId, u8 *otName)
@@ -6523,7 +6786,7 @@ bool8 IsOtherTrainer(u32 otId, u8 *otName)
       | (gSaveBlock2Ptr->playerTrainerId[2] << 16)
       | (gSaveBlock2Ptr->playerTrainerId[3] << 24)))
     {
-        int i;
+        m32 i;
         for (i = 0; otName[i] != EOS; i++)
             if (otName[i] != gSaveBlock2Ptr->playerName[i])
                 return TRUE;
@@ -6540,10 +6803,11 @@ void MonRestorePP(struct Pokemon *mon)
 
 void BoxMonRestorePP(struct BoxPokemon *boxMon)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
+        #if !MODERN
         if (GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0))
         {
             u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
@@ -6551,6 +6815,14 @@ void BoxMonRestorePP(struct BoxPokemon *boxMon)
             u8 pp = CalculatePPWithBonus(move, bonus, i);
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
+        #else
+        u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
+        if (move)
+        {
+            u8 pp = CalculatePPWithBonus(move, GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0), i);
+            SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
+        }
+        #endif
     }
 }
 
@@ -6573,10 +6845,10 @@ void SetMonPreventsSwitchingString(void)
     BattleStringExpandPlaceholders(gText_PkmnsXPreventsSwitching, gStringVar4);
 }
 
-static s32 GetWildMonTableIdInAlteringCave(u16 species)
+static m32 GetWildMonTableIdInAlteringCave(u16 species)
 {
-    s32 i;
-    for (i = 0; i < (s32) ARRAY_COUNT(sAlteringCaveWildMonHeldItems); i++)
+    m32 i;
+    for (i = 0; i < (m32) ARRAY_COUNT(sAlteringCaveWildMonHeldItems); i++)
         if (sAlteringCaveWildMonHeldItems[i].species == species)
             return i;
     return 0;
@@ -6586,7 +6858,8 @@ void SetWildMonHeldItem(void)
 {
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_TRAINER | BATTLE_TYPE_PYRAMID | BATTLE_TYPE_PIKE)))
     {
-        u16 rnd = Random() % 100;
+        // TODO: u32 or u16? GF did u32 and it seemed to look better in the asm?
+        u32 rnd = Random() % 100;
         u16 species = GetMonData(&gEnemyParty[0], MON_DATA_SPECIES, 0);
         u16 chanceNoItem = 45;
         u16 chanceNotRare = 95;
@@ -6598,7 +6871,7 @@ void SetWildMonHeldItem(void)
         }
         if (gMapHeader.mapLayoutId == LAYOUT_ALTERING_CAVE)
         {
-            s32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
+            m32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
             if (alteringCaveId != 0)
             {
                 // In active Altering Cave, use special item list
@@ -6623,16 +6896,15 @@ void SetWildMonHeldItem(void)
             {
                 // Both held items are the same, 100% chance to hold item
                 SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gBaseStats[species].itemCommon);
+                return;
             }
+
+            if (rnd < chanceNoItem)
+                return;
+            if (rnd < chanceNotRare)
+                SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gBaseStats[species].itemCommon);
             else
-            {
-                if (rnd < chanceNoItem)
-                    return;
-                if (rnd < chanceNotRare)
-                    SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gBaseStats[species].itemCommon);
-                else
-                    SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gBaseStats[species].itemRare);
-            }
+                SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gBaseStats[species].itemRare);
         }
     }
 }
@@ -6646,11 +6918,7 @@ bool8 IsMonShiny(struct Pokemon *mon)
 
 bool8 IsShinyOtIdPersonality(u32 otId, u32 personality)
 {
-    bool8 retVal = FALSE;
-    u32 shinyValue = GET_SHINY_VALUE(otId, personality);
-    if (shinyValue < SHINY_ODDS)
-        retVal = TRUE;
-    return retVal;
+    return ((GET_SHINY_VALUE(otId, personality)) < SHINY_ODDS);
 }
 
 const u8 *GetTrainerPartnerName(void)
@@ -6675,14 +6943,14 @@ const u8 *GetTrainerPartnerName(void)
 }
 
 #define READ_PTR_FROM_TASK(taskId, dataId)                      \
-    (void*)(                                                    \
+    (void *)(                                                    \
     ((u16)(gTasks[taskId].data[dataId]) |                       \
     ((u16)(gTasks[taskId].data[dataId + 1]) << 16)))
 
 #define STORE_PTR_IN_TASK(ptr, taskId, dataId)                 \
 {                                                              \
-    gTasks[taskId].data[dataId] = (u32)(ptr);                  \
-    gTasks[taskId].data[dataId + 1] = (u32)(ptr) >> 16;        \
+    gTasks[taskId].data[dataId] = (s16)((u32)(ptr) & 0xFFFF);                  \
+    gTasks[taskId].data[dataId + 1] = (s16)((u32)(ptr) >> 16);        \
 }
 
 #define sAnimId    data[2]
@@ -6707,7 +6975,7 @@ static void Task_PokemonSummaryAnimateAfterDelay(u8 taskId)
     }
 }
 
-void BattleAnimateFrontSprite(struct Sprite* sprite, u16 species, bool8 noCry, u8 panMode)
+void BattleAnimateFrontSprite(struct Sprite *sprite, u16 species, bool8 noCry, u8 panMode)
 {
     if (gHitMarker & HITMARKER_NO_ANIMATIONS && !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)))
         DoMonFrontSpriteAnimation(sprite, species, noCry, panMode | SKIP_FRONT_ANIM);
@@ -6715,7 +6983,7 @@ void BattleAnimateFrontSprite(struct Sprite* sprite, u16 species, bool8 noCry, u
         DoMonFrontSpriteAnimation(sprite, species, noCry, panMode);
 }
 
-void DoMonFrontSpriteAnimation(struct Sprite* sprite, u16 species, bool8 noCry, u8 panModeAnimFlag)
+void DoMonFrontSpriteAnimation(struct Sprite *sprite, u16 species, bool8 noCry, u8 panModeAnimFlag)
 {
     s8 pan;
     switch (panModeAnimFlag & (u8)~SKIP_FRONT_ANIM) // Exclude anim flag to get pan mode
@@ -6762,7 +7030,7 @@ void DoMonFrontSpriteAnimation(struct Sprite* sprite, u16 species, bool8 noCry, 
     }
 }
 
-void PokemonSummaryDoMonAnimation(struct Sprite* sprite, u16 species, bool8 oneFrame)
+void PokemonSummaryDoMonAnimation(struct Sprite *sprite, u16 species, bool8 oneFrame)
 {
     if (!oneFrame && HasTwoFramesAnimation(species))
         StartSpriteAnim(sprite, 1);
@@ -6790,7 +7058,7 @@ void StopPokemonAnimationDelayTask(void)
         DestroyTask(delayTaskId);
 }
 
-void BattleAnimateBackSprite(struct Sprite* sprite, u16 species)
+void BattleAnimateBackSprite(struct Sprite *sprite, u16 species)
 {
     if (gHitMarker & HITMARKER_NO_ANIMATIONS && !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)))
     {
@@ -6805,10 +7073,15 @@ void BattleAnimateBackSprite(struct Sprite* sprite, u16 species)
 
 // Unused, identical to GetOpposingLinkMultiBattlerId but for the player
 // "rightSide" from that team's perspective, i.e. B_POSITION_*_RIGHT
+
 static u8 GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
 {
-    s32 i;
+    m32 i;
+    #if !MODERN
     s32 battlerId = 0;
+    #else
+    u8 battlerId = 0; // this is what GF did
+    #endif
     u8 multiplayerId = GetMultiplayerId();
     switch (gLinkPlayers[multiplayerId].id)
     {
@@ -6823,16 +7096,25 @@ static u8 GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
     }
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
+        #if !MODERN
         if (gLinkPlayers[i].id == (s16)battlerId)
             break;
+        #else
+        if (gLinkPlayers[i].id == battlerId)
+            break;
+        #endif
     }
     return i;
 }
 
 u8 GetOpposingLinkMultiBattlerId(bool8 rightSide, u8 multiplayerId)
 {
-    s32 i;
+    m32 i;
+    #if !MODERN
     s32 battlerId = 0;
+    #else
+    u8 battlerId = 0; // this is what GF did
+    #endif
     switch (gLinkPlayers[multiplayerId].id)
     {
     case 0:
@@ -6846,8 +7128,13 @@ u8 GetOpposingLinkMultiBattlerId(bool8 rightSide, u8 multiplayerId)
     }
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
+        #if !MODERN
         if (gLinkPlayers[i].id == (s16)battlerId)
             break;
+        #else
+        if (gLinkPlayers[i].id == battlerId)
+            break;
+        #endif
     }
     return i;
 }
@@ -6925,8 +7212,9 @@ static bool8 ShouldSkipFriendshipChange(void)
 #define ALLOC_FAIL_BUFFER (1 << 0)
 #define ALLOC_FAIL_STRUCT (1 << 1)
 #define GFX_MANAGER_ACTIVE 0xA3 // Arbitrary value
-#define GFX_MANAGER_SPR_SIZE (MON_PIC_SIZE * 4) // Only Castform uses more than MON_PIC_SIZE, despite not displaying its forms.
 #define GFX_MANAGER_NUM_FRAMES 4  // Only 2 frames are needed
+#define GFX_MANAGER_SPR_SIZE (MON_PIC_SIZE * GFX_MANAGER_NUM_FRAMES) // Only Castform uses more than MON_PIC_SIZE, despite not displaying its forms.
+
 
 static void InitMonSpritesGfx_Battle(struct MonSpritesGfxManager* gfx)
 {
@@ -6943,7 +7231,8 @@ static void InitMonSpritesGfx_Battle(struct MonSpritesGfxManager* gfx)
 
 static void InitMonSpritesGfx_FullParty(struct MonSpritesGfxManager* gfx)
 {
-    u16 i, j;
+    u16 i;
+    m16 j;
     for (i = 0; i < gfx->numSprites; i++)
     {
         gfx->templates[i] = sSpriteTemplate_64x64;
@@ -6964,6 +7253,19 @@ struct MonSpritesGfxManager *CreateMonSpritesGfxManager(u8 managerId, u8 mode)
 
     failureFlags = 0;
     managerId %= MON_SPR_GFX_MANAGERS_COUNT;
+
+    // TODO: some mistake or typo was probably done here
+
+/*     	if(gfx != NULL){	//Repel illegal values
+		if(gfx->flag == GFX_MANAGER_ACTIVE){
+			return NULL;	//Already secured
+		}else{
+			// Initialize before use
+			memset(gfx,0,sizeof(POKE_DECORD_DATA));
+			gfx = NULL;
+		}
+	} */
+
     gfx = AllocZeroed(sizeof(*gfx));
     if (gfx == NULL)
         return NULL;
@@ -6990,7 +7292,11 @@ struct MonSpritesGfxManager *CreateMonSpritesGfxManager(u8 managerId, u8 mode)
 
     // Set up sprite / sprite pointer buffers
     gfx->spriteBuffer = AllocZeroed(gfx->dataSize * GFX_MANAGER_SPR_SIZE * gfx->numSprites);
+    #if !MODERN
     gfx->spritePointers = AllocZeroed(gfx->numSprites * 32); // ? Only * 4 is necessary, perhaps they were thinking bits.
+    #else
+    gfx->spritePointers = AllocZeroed(gfx->numSprites * GFX_MANAGER_NUM_FRAMES);
+    #endif
     if (gfx->spriteBuffer == NULL || gfx->spritePointers == NULL)
     {
         failureFlags |= ALLOC_FAIL_BUFFER;
@@ -7065,16 +7371,15 @@ void DestroyMonSpritesGfxManager(u8 managerId)
     if (gfx->active != GFX_MANAGER_ACTIVE)
     {
         memset(gfx, 0, sizeof(*gfx));
+        return;
     }
-    else
-    {
-        TRY_FREE_AND_SET_NULL(gfx->frameImages);
-        TRY_FREE_AND_SET_NULL(gfx->templates);
-        TRY_FREE_AND_SET_NULL(gfx->spritePointers);
-        TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
-        memset(gfx, 0, sizeof(*gfx));
-        Free(gfx);
-    }
+
+    TRY_FREE_AND_SET_NULL(gfx->frameImages);
+    TRY_FREE_AND_SET_NULL(gfx->templates);
+    TRY_FREE_AND_SET_NULL(gfx->spritePointers);
+    TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
+    memset(gfx, 0, sizeof(*gfx));
+    Free(gfx);
 }
 
 u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
@@ -7084,11 +7389,9 @@ u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
     {
         return NULL;
     }
-    else
-    {
-        if (spriteNum >= gfx->numSprites)
-            spriteNum = 0;
 
-        return gfx->spritePointers[spriteNum];
-    }
+    if (spriteNum >= gfx->numSprites)
+        spriteNum = 0;
+
+    return gfx->spritePointers[spriteNum];
 }

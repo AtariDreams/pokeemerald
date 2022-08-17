@@ -166,7 +166,7 @@ static void Task_RunTimeBasedEvents(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
-    if (!ScriptContext2_IsEnabled())
+    if (!ArePlayerFieldControlsLocked())
     {
         RunTimeBasedEvents(data);
         UpdateAmbientCry(&tAmbientCryState, &tAmbientCryDelay);
@@ -562,7 +562,11 @@ static void FortreeBridgePerStepCallback(u8 taskId)
         tBounceTime--;
         prevX = tOldBridgeX;
         prevY = tOldBridgeY;
+        #if !MODERN
         switch (tBounceTime % 7)
+        #else
+        switch (Mod(tBounceTime, 7))
+        #endif
         {
         case 0:
             CurrentMapDrawMetatileAt(prevX, prevY);
@@ -577,8 +581,11 @@ static void FortreeBridgePerStepCallback(u8 taskId)
             TryRaiseFortreeBridge(prevX, prevY);
         case 5:
         case 6:
+        #if !MODERN
         case 7: // Not possible with % 7
+        #endif
             break;
+
         }
         if (tBounceTime == 0)
             tState = 1;
@@ -872,7 +879,7 @@ static const u16 sMuddySlopeMetatiles[] = {
 };
 
 #define SLOPE_ANIM_TIME 32
-#define SLOPE_ANIM_STEP_TIME (SLOPE_ANIM_TIME / (int)ARRAY_COUNT(sMuddySlopeMetatiles))
+#define SLOPE_ANIM_STEP_TIME (SLOPE_ANIM_TIME / (m32)ARRAY_COUNT(sMuddySlopeMetatiles))
 
 static void SetMuddySlopeMetatile(s16 *data, s16 x, s16 y)
 {

@@ -743,10 +743,10 @@ static const struct MenuAction sKeyboardPageTitleTexts[UNION_ROOM_KB_PAGE_COUNT 
 };
 
 static const u16 sUnionRoomChatInterfacePal[] = INCBIN_U16("graphics/union_room_chat/interface.gbapal");
-static const u32 sKeyboardCursorTiles[] = INCBIN_U32("graphics/union_room_chat/keyboard_cursor.4bpp.lz");
-static const u32 sTextEntryCursorTiles[] = INCBIN_U32("graphics/union_room_chat/text_entry_cursor.4bpp.lz");
-static const u32 sTextEntryArrowTiles[] = INCBIN_U32("graphics/union_room_chat/text_entry_arrow.4bpp.lz");
-static const u32 sRButtonGfxTiles[] = INCBIN_U32("graphics/union_room_chat/r_button.4bpp.lz");
+static const u8 sKeyboardCursorTiles[] = INCBIN_U8("graphics/union_room_chat/keyboard_cursor.4bpp.lz");
+static const u8 sTextEntryCursorTiles[] = INCBIN_U8("graphics/union_room_chat/text_entry_cursor.4bpp.lz");
+static const u8 sTextEntryArrowTiles[] = INCBIN_U8("graphics/union_room_chat/text_entry_arrow.4bpp.lz");
+static const u8 sRButtonGfxTiles[] = INCBIN_U8("graphics/union_room_chat/r_button.4bpp.lz");
 
 static const struct CompressedSpriteSheet sSpriteSheets[] = {
     {sKeyboardCursorTiles,         0x1000, 0},
@@ -1025,7 +1025,7 @@ static void Chat_Join(void)
 
 static void Chat_HandleInput(void)
 {
-    bool8 updateMsgActive, cursorBlinkActive;
+    bool32 updateMsgActive, cursorBlinkActive;
 
     switch (sChat->funcState)
     {
@@ -1080,6 +1080,8 @@ static void Chat_HandleInput(void)
         break;
     case 1:
         updateMsgActive = IsDisplaySubtaskActive(0);
+        // Should we call these functions or can we get away with avoiding it in an and statement?
+        // TODO: look into this
         cursorBlinkActive = IsDisplaySubtaskActive(1);
         if (!updateMsgActive && !cursorBlinkActive)
             sChat->funcState = 0;
@@ -1106,36 +1108,34 @@ static void Chat_Switch(void)
         input = Menu_ProcessInput();
         switch (input)
         {
-        default:
-            StartDisplaySubtask(CHATDISPLAY_FUNC_HIDE_KB_SWAP_MENU, 0);
-            shouldSwitchPages = TRUE;
-            if (sChat->currentPage == input || input > UNION_ROOM_KB_PAGE_REGISTER)
-                shouldSwitchPages = FALSE;
-            break;
+
         case MENU_NOTHING_CHOSEN:
             if (JOY_NEW(SELECT_BUTTON))
             {
                 PlaySE(SE_SELECT);
                 Menu_MoveCursor(1);
             }
-            return;
+            break;
         case MENU_B_PRESSED:
             StartDisplaySubtask(CHATDISPLAY_FUNC_HIDE_KB_SWAP_MENU, 0);
             sChat->funcState = 3;
-            return;
-        }
+            break;
+        default:
+            StartDisplaySubtask(CHATDISPLAY_FUNC_HIDE_KB_SWAP_MENU, 0);
 
-        if (!shouldSwitchPages)
-        {
-            sChat->funcState = 3;
-            return;
+            if (sChat->currentPage == input || input > UNION_ROOM_KB_PAGE_REGISTER)
+                sChat->funcState = 3;
+            else
+            {
+                sChat->currentCol = 0;
+                sChat->currentRow = 0;
+                StartDisplaySubtask(CHATDISPLAY_FUNC_SWITCH_PAGES, 1);
+                sChat->currentPage = input;
+                sChat->funcState = 4;
+            }
+            break;
         }
-
-        sChat->currentCol = 0;
-        sChat->currentRow = 0;
-        StartDisplaySubtask(CHATDISPLAY_FUNC_SWITCH_PAGES, 1);
-        sChat->currentPage = input;
-        sChat->funcState = 4;
+        
         break;
     case 3:
         if (!IsDisplaySubtaskActive(0))
@@ -1150,8 +1150,6 @@ static void Chat_Switch(void)
 
 static void Chat_AskQuitChatting(void)
 {
-    s8 input;
-
     switch (sChat->funcState)
     {
     case 0:
@@ -1163,8 +1161,7 @@ static void Chat_AskQuitChatting(void)
             sChat->funcState = 2;
         break;
     case 2:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1202,8 +1199,7 @@ static void Chat_AskQuitChatting(void)
             sChat->funcState = 8;
         break;
     case 8:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1481,8 +1477,6 @@ static void Chat_Register(void)
 
 static void Chat_SaveAndExit(void)
 {
-    s8 input;
-
     switch (sChat->funcState)
     {
     case 0:
@@ -1504,8 +1498,7 @@ static void Chat_SaveAndExit(void)
         }
         break;
     case 2:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1529,8 +1522,7 @@ static void Chat_SaveAndExit(void)
             sChat->funcState = 5;
         break;
     case 5:
-        input = ProcessMenuInput();
-        switch (input)
+        switch (ProcessMenuInput())
         {
         case -1:
         case 1:
@@ -1681,18 +1673,14 @@ static void AppendTextToMessage(void)
         return;
 
     str = GetEndOfMessagePtr();
-    while (--strLength != -1 && sChat->bufferCursorPos < MAX_MESSAGE_LENGTH)
+    while (strLength-- && sChat->bufferCursorPos < MAX_MESSAGE_LENGTH)
     {
         if (*charsStr == CHAR_EXTRA_SYMBOL)
         {
-            *str = *charsStr;
-            charsStr++;
-            str++;
+            *str++ = *charsStr++;;
         }
 
-        *str = *charsStr;
-        charsStr++;
-        str++;
+        *str++ = *charsStr++;
 
         sChat->bufferCursorPos++;
     }
@@ -1720,9 +1708,12 @@ static void SwitchCaseOfLastMessageCharacter(void)
     str = GetLastCharOfMessagePtr();
     if (*str != CHAR_EXTRA_SYMBOL)
     {
+        // was this optimized out?
+        // if (*str < ARRAY_COUNT(sCaseToggleTable)) {
         character = sCaseToggleTable[*str];
-        if (character)
+        if (character != CHAR_SPACE)
             *str = character;
+     //}
     }
 }
 
@@ -1852,22 +1843,20 @@ static void PrepareSendBuffer_Disband(u8 *buffer)
 static bool32 ProcessReceivedChatMessage(u8 *dest, u8 *recvMessage)
 {
     u8 *tempStr;
-    u8 cmd = *recvMessage;
-    u8 *name = recvMessage + 1;
-    recvMessage = name;
+    u8 cmd = *recvMessage++;
+    u8 *name = recvMessage;
+
     recvMessage += PLAYER_NAME_LENGTH + 1;
 
     switch (cmd)
     {
     case CHAT_MESSAGE_JOIN:
-        if (sChat->multiplayerId != name[PLAYER_NAME_LENGTH + 1])
-        {
-            DynamicPlaceholderTextUtil_Reset();
-            DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, name);
-            DynamicPlaceholderTextUtil_ExpandPlaceholders(dest, gText_F700JoinedChat);
-            return TRUE;
-        }
-        break;
+        if (sChat->multiplayerId == *recvMessage)
+            break;
+        DynamicPlaceholderTextUtil_Reset();
+        DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, name);
+        DynamicPlaceholderTextUtil_ExpandPlaceholders(dest, gText_F700JoinedChat);
+        return TRUE;
     case CHAT_MESSAGE_CHAT:
         tempStr = StringCopy(dest, name);
         *(tempStr++) = EXT_CTRL_CODE_BEGIN;
@@ -1909,10 +1898,9 @@ static u8 *GetMessageEntryBuffer(void)
     return sChat->messageEntryBuffer;
 }
 
-static int GetLengthOfMessageEntry(void)
+static u32 GetLengthOfMessageEntry(void)
 {
-    u8 *str = GetMessageEntryBuffer();
-    return StringLength_Multibyte(str);
+    return StringLength_Multibyte(GetMessageEntryBuffer());
 }
 
 static void GetBufferSelectionRegion(u32 *x, u32 *width)
@@ -1973,8 +1961,8 @@ static u8 GetReceivedPlayerIndex(void)
 {
     return sChat->receivedPlayerIndex;
 }
-
-static int GetTextEntryCursorPosition(void)
+// Should be u8
+static u32 GetTextEntryCursorPosition(void)
 {
     return sChat->bufferCursorPos;
 }
@@ -1982,6 +1970,7 @@ static int GetTextEntryCursorPosition(void)
 static int GetShouldShowCaseToggleIcon(void)
 {
     u8 *str = GetLastCharOfMessagePtr();
+    // Should have been a u8
     u32 character = *str;
     if (character > EOS || sCaseToggleTable[character] == character || sCaseToggleTable[character] == CHAR_SPACE)
         return 3; // Don't show
@@ -2048,7 +2037,7 @@ static void Task_ReceiveChatMessage(u8 taskId)
         tState = 3;
         // fall through
     case 3:
-        for (; tI < 5 && ((tBlockReceivedStatus >> tI) & 1) == 0; tI++)
+        for (; tI < 5 && (tBlockReceivedStatus & (1 << tI)) == 0; tI++)
             ;
 
         if (tI == 5)
@@ -2136,7 +2125,7 @@ static bool8 TryAllocDisplay(void)
     sDisplay = Alloc(sizeof(*sDisplay));
     if (sDisplay && TryAllocSprites())
     {
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         InitWindows(sWinTemplates);
         ResetTempTileDataBuffers();
@@ -2180,7 +2169,7 @@ static void ResetDisplaySubtasks(void)
     if (!sDisplay)
         return;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sDisplay->subtasks); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sDisplay->subtasks); i++)
     {
         sDisplay->subtasks[i].callback = Display_Dummy;
         sDisplay->subtasks[i].active = FALSE;
@@ -2195,7 +2184,7 @@ static void RunDisplaySubtasks(void)
     if (!sDisplay)
         return;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sDisplay->subtasks); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sDisplay->subtasks); i++)
     {
         sDisplay->subtasks[i].active =
             sDisplay->subtasks[i].callback(&sDisplay->subtasks[i].state);
@@ -2802,7 +2791,7 @@ static void AddStdMessageWindow(int msgId, u16 bg0vofs)
         str = sDisplayStdMessages[msgId].text;
     }
 
-    ChangeBgY(0, bg0vofs * 256, BG_COORD_SET);
+    ChangeBgY(0, bg0vofs << 8, BG_COORD_SET);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
     PutWindowTilemap(windowId);
     if (sDisplayStdMessages[msgId].boxType == 1)
@@ -3238,7 +3227,8 @@ static void CreateTextEntrySprites(void)
 
 static void SpriteCB_TextEntryCursor(struct Sprite *sprite)
 {
-    int pos = GetTextEntryCursorPosition();
+    // Should be u8
+    u32 pos = GetTextEntryCursorPosition();
     if (pos == MAX_MESSAGE_LENGTH)
     {
         sprite->invisible = TRUE;
@@ -3286,7 +3276,7 @@ static void UpdateRButtonLabel(void)
     }
     else
     {
-        int anim = GetShouldShowCaseToggleIcon();
+        u32 anim = GetShouldShowCaseToggleIcon();
         if (anim == 3)
         {
             sSprites->rButtonLabel->invisible = TRUE;

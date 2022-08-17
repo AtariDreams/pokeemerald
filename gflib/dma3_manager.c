@@ -1,8 +1,6 @@
 #include "global.h"
 #include "dma3.h"
 
-#define MAX_DMA_REQUESTS 128
-
 #define DMA_REQUEST_COPY32 1
 #define DMA_REQUEST_FILL32 2
 #define DMA_REQUEST_COPY16 3
@@ -24,7 +22,7 @@ static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
-    int i;
+    m32 i;
 
     sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
@@ -41,7 +39,7 @@ void ClearDma3Requests(void)
 
 void ProcessDma3Requests(void)
 {
-    u16 bytesTransferred;
+    m16 bytesTransferred;
 
     if (sDma3ManagerLocked)
         return;
@@ -55,7 +53,7 @@ void ProcessDma3Requests(void)
 
         if (bytesTransferred > 40 * 1024)
             return; // don't transfer more than 40 KiB
-        if (*(u8 *)REG_ADDR_VCOUNT > 224)
+        if (*(vu8 *)REG_ADDR_VCOUNT > 224)
             return; // we're about to leave vblank, stop
 
         switch (sDma3Requests[sDma3RequestCursor].mode)
@@ -162,15 +160,18 @@ s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode)
 
 s16 CheckForSpaceForDma3Request(s16 index)
 {
+    #if !MODERN
     int i = 0;
+    #else
+    u32 i;
+    #endif
 
     if (index == -1)  // check if all requests are free
     {
-        while (i < MAX_DMA_REQUESTS)
+        for (i = 0; i < MAX_DMA_REQUESTS; i++)
         {
             if (sDma3Requests[i].size != 0)
                 return -1;
-            i++;
         }
         return 0;
     }

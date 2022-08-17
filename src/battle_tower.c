@@ -996,7 +996,7 @@ static bool8 ChooseSpecialBattleTowerTrainer(void)
     winStreak = GetCurrentBattleTowerWinStreak(lvlMode, battleMode);
     for (i = 0; i < BATTLE_TOWER_RECORD_COUNT; i++)
     {
-        u32 *record = (u32*)(&gSaveBlock2Ptr->frontier.towerRecords[i]);
+        u32 *record = (u32 *)(&gSaveBlock2Ptr->frontier.towerRecords[i]);
         u32 recordHasData = 0;
         u32 checksum = 0;
         for (j = 0; j < (sizeof(struct EmeraldBattleTowerRecord) - 4) / 4; j++) // - 4, because of the last field being the checksum itself.
@@ -1018,8 +1018,7 @@ static bool8 ChooseSpecialBattleTowerTrainer(void)
             && recordHasData
             && gSaveBlock2Ptr->frontier.towerRecords[i].checksum == checksum)
         {
-            trainerIds[idsCount] = i + TRAINER_RECORD_MIXING_FRIEND;
-            idsCount++;
+            trainerIds[idsCount++] = i + TRAINER_RECORD_MIXING_FRIEND;
         }
     }
 
@@ -1032,8 +1031,7 @@ static bool8 ChooseSpecialBattleTowerTrainer(void)
                 && sApprenticeChallengeThreshold[gSaveBlock2Ptr->apprentices[i].numQuestions] == winStreak
                 && gSaveBlock2Ptr->apprentices[i].lvlMode - 1 == lvlMode)
             {
-                trainerIds[idsCount] = i + TRAINER_RECORD_MIXING_APPRENTICE;
-                idsCount++;
+                trainerIds[idsCount++] = i + TRAINER_RECORD_MIXING_APPRENTICE;
             }
         }
     }
@@ -1080,7 +1078,7 @@ static void SetNextFacilityOpponent(void)
         else
         {
             s32 i;
-            while (1)
+            do
             {
                 id = GetRandomScaledFrontierTrainerId(challengeNum, gSaveBlock2Ptr->frontier.curChallengeBattleNum);
 
@@ -1090,9 +1088,8 @@ static void SetNextFacilityOpponent(void)
                     if (gSaveBlock2Ptr->frontier.trainerIds[i] == id)
                         break;
                 }
-                if (i == gSaveBlock2Ptr->frontier.curChallengeBattleNum)
-                    break;
-            }
+            } while (i != gSaveBlock2Ptr->frontier.curChallengeBattleNum);
+            
 
             gTrainerBattleOpponent_A = id;
             SetBattleFacilityTrainerGfxId(gTrainerBattleOpponent_A, 0);
@@ -1239,8 +1236,8 @@ void SetBattleFacilityTrainerGfxId(u16 trainerId, u8 tempVarId)
 
     switch (tempVarId)
     {
-    case 0:
     default:
+    case 0:
         VarSet(VAR_OBJ_GFX_ID_0, OBJ_EVENT_GFX_BOY_1);
         return;
     case 1:
@@ -1261,7 +1258,6 @@ u8 GetBattleFacilityTrainerGfxId(u16 trainerId)
 {
     u32 i;
     u8 facilityClass;
-    u8 trainerObjectGfxId;
 
     SetFacilityPtrsGetLevel();
     if (trainerId == TRAINER_EREADER)
@@ -1289,8 +1285,7 @@ u8 GetBattleFacilityTrainerGfxId(u16 trainerId)
     }
     if (i != ARRAY_COUNT(gTowerMaleFacilityClasses))
     {
-        trainerObjectGfxId = gTowerMaleTrainerGfxIds[i];
-        return trainerObjectGfxId;
+        return gTowerMaleTrainerGfxIds[i];
     }
 
     // Search female classes.
@@ -1301,8 +1296,7 @@ u8 GetBattleFacilityTrainerGfxId(u16 trainerId)
     }
     if (i != ARRAY_COUNT(gTowerFemaleFacilityClasses))
     {
-        trainerObjectGfxId = gTowerFemaleTrainerGfxIds[i];
-        return trainerObjectGfxId;
+        return gTowerFemaleTrainerGfxIds[i];
     }
     else
     {
@@ -1312,8 +1306,8 @@ u8 GetBattleFacilityTrainerGfxId(u16 trainerId)
 
 void PutNewBattleTowerRecord(struct EmeraldBattleTowerRecord *newRecordEm)
 {
-    u16 slotValues[6];
-    u16 slotIds[6];
+    u16 slotValues[5];
+    u16 slotIds[5];
     s32 i, j, k;
     s32 slotsCount = 0;
     struct EmeraldBattleTowerRecord *newRecord = newRecordEm; // Needed to match.
@@ -1385,7 +1379,7 @@ void PutNewBattleTowerRecord(struct EmeraldBattleTowerRecord *newRecordEm)
                 slotIds[0] = i;
                 break;
             }
-            else if (gSaveBlock2Ptr->frontier.towerRecords[i].winStreak > slotValues[j])
+            if (gSaveBlock2Ptr->frontier.towerRecords[i].winStreak > slotValues[j])
             {
                 break;
             }
@@ -2374,7 +2368,7 @@ static void LoadMultiPartnerCandidatesData(void)
     r10 = 0;
     for (i = 0; i < BATTLE_TOWER_RECORD_COUNT; i++)
     {
-        u32 *record = (u32*)(&gSaveBlock2Ptr->frontier.towerRecords[i]);
+        u32 *record = (u32 *)(&gSaveBlock2Ptr->frontier.towerRecords[i]);
         u32 recordHasData = 0;
         u32 checksum = 0;
         for (j = 0; j < (sizeof(struct EmeraldBattleTowerRecord) - 4) / 4; j++) // - 4, because of the last field being the checksum itself.
@@ -2690,7 +2684,7 @@ static void SetTowerInterviewData(void)
 static void ValidateBattleTowerRecordChecksums(void)
 {
     s32 i, j;
-    u32 *record = (u32*)(&gSaveBlock2Ptr->frontier.towerPlayer);
+    u32 *record = (u32 *)(&gSaveBlock2Ptr->frontier.towerPlayer);
     u32 checksum = 0;
 
     for (j = 0; j < (sizeof(struct EmeraldBattleTowerRecord) - 4) / 4; j++) // - 4, because of the last field being the checksum itself.
@@ -2702,7 +2696,7 @@ static void ValidateBattleTowerRecordChecksums(void)
 
     for (i = 0; i < BATTLE_TOWER_RECORD_COUNT; i++)
     {
-        record = (u32*)(&gSaveBlock2Ptr->frontier.towerRecords[i]);
+        record = (u32 *)(&gSaveBlock2Ptr->frontier.towerRecords[i]);
         checksum = 0;
         for (j = 0; j < (sizeof(struct EmeraldBattleTowerRecord) - 4) / 4; j++) // - 4, because of the last field being the checksum itself.
         {
@@ -3195,7 +3189,7 @@ static void ValidateApprenticesChecksums(void)
 
     for (i = 0; i < APPRENTICE_COUNT; i++)
     {
-        u32 *data = (u32*) &gSaveBlock2Ptr->apprentices[i];
+        u32 *data = (u32 *) &gSaveBlock2Ptr->apprentices[i];
         u32 checksum = 0;
         for (j = 0; j < (sizeof(struct Apprentice) - 4) / 4; j++)
             checksum += data[j];
@@ -3504,7 +3498,7 @@ u8 FacilityClassToGraphicsId(u8 facilityClass)
 bool32 ValidateBattleTowerRecord(u8 recordId) // unused
 {
     s32 i;
-    u32 *record = (u32*)(&gSaveBlock2Ptr->frontier.towerRecords[recordId]);
+    u32 *record = (u32 *)(&gSaveBlock2Ptr->frontier.towerRecords[recordId]);
     u32 checksum = 0;
     u32 hasData = 0;
     for (i = 0; i < (sizeof(struct EmeraldBattleTowerRecord) - 4) / 4; i++) // - 4, because of the last fjeld bejng the checksum jtself.

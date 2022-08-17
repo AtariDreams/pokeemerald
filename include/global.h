@@ -38,11 +38,11 @@
 #define INCBIN_S32  INCBIN
 #endif // IDE support
 
-#define ARRAY_COUNT(array) (size_t)(sizeof(array) / sizeof((array)[0]))
+#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 
 // GameFreak used a macro called "NELEMS", as evidenced by
 // AgbAssert calls.
-#define NELEMS(arr) (sizeof(arr)/sizeof(*(arr)))
+#define	NELEMS(array) ( sizeof(array) / sizeof(array[0]) )
 
 #define SWAP(a, b, temp)    \
 {                           \
@@ -81,7 +81,7 @@
 // Used in cases where division by 0 can occur in the retail version.
 // Avoids invalid opcodes on some emulators, and the otherwise UB.
 #ifdef UBFIX
-#define SAFE_DIV(a, b) ((b) ? (a) / (b) : 0)
+#define SAFE_DIV(a, b) ((b) ? Div(a, b) : 0)
 #else
 #define SAFE_DIV(a, b) ((a) / (b))
 #endif
@@ -102,16 +102,23 @@
 #define T1_READ_8(ptr)  ((ptr)[0])
 #define T1_READ_16(ptr) ((ptr)[0] | ((ptr)[1] << 8))
 #define T1_READ_32(ptr) ((ptr)[0] | ((ptr)[1] << 8) | ((ptr)[2] << 16) | ((ptr)[3] << 24))
-#define T1_READ_PTR(ptr) (u8*) T1_READ_32(ptr)
+#define T1_READ_PTR(ptr) (u8 *) T1_READ_32(ptr)
 
+#if !MODERN
 // T2_READ_8 is a duplicate to remain consistent with each group.
 #define T2_READ_8(ptr)  ((ptr)[0])
 #define T2_READ_16(ptr) ((ptr)[0] + ((ptr)[1] << 8))
 #define T2_READ_32(ptr) ((ptr)[0] + ((ptr)[1] << 8) + ((ptr)[2] << 16) + ((ptr)[3] << 24))
 #define T2_READ_PTR(ptr) (void*) T2_READ_32(ptr)
+#else
+#define T2_READ_8(ptr)  ((ptr)[0])
+#define T2_READ_16(ptr) ((ptr)[0] | ((ptr)[1] << 8))
+#define T2_READ_32(ptr) ((ptr)[0] | ((ptr)[1] << 8) | ((ptr)[2] << 16) | ((ptr)[3] << 24))
+#define T2_READ_PTR(ptr) (void*) T2_READ_32(ptr)
+#endif
 
 // Macros for checking the joypad
-#define TEST_BUTTON(field, button) ((field) & (button))
+#define TEST_BUTTON(field, button) (field & (button))
 #define JOY_NEW(button) TEST_BUTTON(gMain.newKeys,  button)
 #define JOY_HELD(button)  TEST_BUTTON(gMain.heldKeys, button)
 #define JOY_HELD_RAW(button) TEST_BUTTON(gMain.heldKeysRaw, button)

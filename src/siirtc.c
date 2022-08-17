@@ -69,8 +69,14 @@ extern vu16 GPIOPortDirection;
 static u16 sDummy; // unused variable
 static bool8 sLocked;
 
+#ifndef UBFIX
 static int WriteCommand(u8 value);
 static int WriteData(u8 value);
+#else
+static void WriteCommand(u8 value);
+static void WriteData(u8 value);
+#endif
+
 static u8 ReadData();
 
 static void EnableGpioPortRead();
@@ -230,7 +236,7 @@ bool8 SiiRtcSetStatus(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -261,7 +267,7 @@ bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -288,7 +294,7 @@ bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -319,7 +325,7 @@ bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
 
     if (sLocked == TRUE)
         return FALSE;
@@ -346,7 +352,7 @@ bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    m8 i;
     u8 alarmData[2];
 
     if (sLocked == TRUE)
@@ -355,7 +361,7 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     sLocked = TRUE;
 
     // Decode BCD.
-    alarmData[0] = (rtc->alarmHour & 0xF) + 10 * ((rtc->alarmHour >> 4) & 0xF);
+    alarmData[0] = (rtc->alarmHour & 0xF) + ((rtc->alarmHour >> 4) & 0xF) * 10;
 
     // The AM/PM flag must be set correctly even in 24-hour mode.
 
@@ -384,9 +390,13 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     return TRUE;
 }
 
+#ifndef UBFIX
 static int WriteCommand(u8 value)
+#else
+static void WriteCommand(u8 value)
+#endif
 {
-    u8 i;
+    m8 i;
     u8 temp;
 
     for (i = 0; i < 8; i++)
@@ -400,14 +410,15 @@ static int WriteCommand(u8 value)
 
     // Nothing uses the returned value from this function,
     // so the undefined behavior is harmless in the vanilla game.
-#ifdef UBFIX
-    return 0;
-#endif
 }
 
+#ifndef UBFIX
 static int WriteData(u8 value)
+#else
+static void WriteData(u8 value)
+#endif
 {
-    u8 i;
+    m8 i;
     u8 temp;
 
     for (i = 0; i < 8; i++)
@@ -421,14 +432,11 @@ static int WriteData(u8 value)
 
     // Nothing uses the returned value from this function,
     // so the undefined behavior is harmless in the vanilla game.
-#ifdef UBFIX
-    return 0;
-#endif
 }
 
 static u8 ReadData()
 {
-    u8 i;
+    m8 i;
     u8 temp;
     u8 value;
 

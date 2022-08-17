@@ -198,13 +198,15 @@ static const u8 * const sBattlePyramid_MapHeaderStrings[FRONTIER_STAGES_PER_CHAL
     sText_Pyramid,
 };
 
-// Unused
+// Unused DEBUG
+#if !MODERN
 static bool8 StartMenu_ShowMapNamePopup(void)
 {
     HideStartMenu();
     ShowMapNamePopup();
     return TRUE;
 }
+#endif
 
 void ShowMapNamePopup(void)
 {
@@ -303,7 +305,7 @@ static void ShowMapNamePopUpWindow(void)
     u8 mapDisplayHeader[24];
     u8 *withoutPrefixPtr;
     u8 x;
-    const u8* mapDisplayHeaderSource;
+    const u8 *mapDisplayHeaderSource;
 
     if (InBattlePyramid())
     {
@@ -322,7 +324,7 @@ static void ShowMapNamePopUpWindow(void)
     else
     {
         withoutPrefixPtr = &(mapDisplayHeader[3]);
-        GetMapName(withoutPrefixPtr, gMapHeader.regionMapSectionId, 0);
+        CopyMapName(withoutPrefixPtr, gMapHeader.regionMapSectionId, 0);
     }
     AddMapNamePopUpWindow();
     LoadMapNamePopUpWindowBg();
@@ -347,7 +349,11 @@ static void ShowMapNamePopUpWindow(void)
 
 static void DrawMapNamePopUpFrame(u8 bg, u8 x, u8 y, u8 deltaX, u8 deltaY, u8 unused)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     // Draw top edge
     for (i = 0; i < 1 + TILE_TOP_EDGE_END - TILE_TOP_EDGE_START; i++)

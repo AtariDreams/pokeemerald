@@ -69,12 +69,11 @@ void ClearSav1(void)
 // Offset is the sum of the trainer id bytes
 void SetSaveBlocksPointers(u16 offset)
 {
-    struct SaveBlock1** sav1_LocalVar = &gSaveBlock1Ptr;
-
+    gSaveBlock1Ptr = gSaveBlock1Ptr;
     offset = (offset + Random()) & (SAVEBLOCK_MOVE_RANGE - 4);
 
     gSaveBlock2Ptr = (void*)(&gSaveblock2) + offset;
-    *sav1_LocalVar = (void*)(&gSaveblock1) + offset;
+    gSaveBlock1Ptr = (void*)(&gSaveblock1) + offset;
     gPokemonStoragePtr = (void*)(&gPokemonStorage) + offset;
 
     SetBagItemsPointers();
@@ -119,7 +118,7 @@ void MoveSaveBlocks_ResetHeap(void)
     *gPokemonStoragePtr = *pokemonStorageCopy;
 
     // heap was destroyed in the copying process, so reset it
-    InitHeap(gHeap, HEAP_SIZE);
+    HeapInit();
 
     // restore interrupt functions
     gMain.hblankCallback = hblankCB;

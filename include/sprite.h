@@ -17,7 +17,7 @@ struct SpriteSheet
 
 struct CompressedSpriteSheet
 {
-    const u32 *data;  // LZ77 compressed pixel data
+    const u8 *data;  // LZ77 compressed pixel data
     u16 size;        // Uncompressed size of pixel data
     u16 tag;
 };
@@ -48,11 +48,11 @@ struct AnimFrameCmd
 {
     // If the sprite has an array of images, this is the array index.
     // If the sprite has a sheet, this is the tile offset.
-    u32 imageValue:16;
+    s16 imageValue;
 
-    u32 duration:6;
-    u32 hFlip:1;
-    u32 vFlip:1;
+    u8 duration:6;
+    u8 hFlip:1;
+    u8 vFlip:1;
 };
 
 struct AnimLoopCmd
@@ -157,8 +157,8 @@ enum
 
 struct Subsprite
 {
-    s8 x; // was u16 in R/S
-    s8 y; // was u16 in R/S
+    s8 x;
+    s8 y;
     u16 shape:2;
     u16 size:2;
     u16 tileOffset:10;
@@ -167,6 +167,7 @@ struct Subsprite
 
 struct SubspriteTable
 {
+    // const u8 subspriteCount;
     u8 subspriteCount;
     const struct Subsprite *subsprites;
 };
@@ -215,6 +216,7 @@ struct Sprite
     // general purpose data fields
     /*0x2E*/ s16 data[8];
 
+    // Should all be bool8 because of techical UB
     /*0x3E*/ bool16 inUse:1;               //1
              bool16 coordOffsetEnabled:1;  //2
              bool16 invisible:1;           //4
@@ -282,7 +284,7 @@ void FreeSpritePalette(struct Sprite *sprite);
 void FreeSpriteOamMatrix(struct Sprite *sprite);
 void DestroySpriteAndFreeResources(struct Sprite *sprite);
 void AnimateSprite(struct Sprite *sprite);
-void SetSpriteMatrixAnchor(struct Sprite* sprite, s16 x, s16 y);
+void SetSpriteMatrixAnchor(struct Sprite *sprite, s16 x, s16 y);
 void StartSpriteAnim(struct Sprite *sprite, u8 animNum);
 void StartSpriteAnimIfDifferent(struct Sprite *sprite, u8 animNum);
 void SeekSpriteAnim(struct Sprite *sprite, u8 animCmdIndex);
@@ -299,8 +301,6 @@ u16 LoadSpriteSheet(const struct SpriteSheet *sheet);
 void LoadSpriteSheets(const struct SpriteSheet *sheets);
 u16 AllocTilesForSpriteSheet(struct SpriteSheet *sheet);
 void AllocTilesForSpriteSheets(struct SpriteSheet *sheets);
-void LoadTilesForSpriteSheet(const struct SpriteSheet *sheet);
-void LoadTilesForSpriteSheets(struct SpriteSheet *sheets);
 void FreeSpriteTilesByTag(u16 tag);
 void FreeSpriteTileRanges(void);
 u16 GetSpriteTileStartByTag(u16 tag);

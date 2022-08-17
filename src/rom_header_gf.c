@@ -31,7 +31,7 @@ struct GFRomHeader
     u32 mysteryEventFlag;
     u32 pokedexCount;
     u8 playerNameLength;
-    u8 unk2;
+    u8 trainerNameLength;
     u8 pokemonNameLength1;
     u8 pokemonNameLength2;
     u8 unk5;
@@ -59,9 +59,10 @@ struct GFRomHeader
     u32 frontierStatusOffset2;
     u32 externalEventFlagsOffset;
     u32 externalEventDataOffset;
-    u32 unk18;
+    u32 unk18; // a struct for some test stuff not needed
+    // TODO: document this later
     const struct BaseStats * baseStats;
-    const u8 (* abilityNames)[];
+    const u8 (* abilityNames)[13];
     const u8 * const * abilityDescriptions;
     const struct Item * items;
     const struct BattleMove * moves;
@@ -111,7 +112,7 @@ static const struct GFRomHeader sGFRomHeader = {
     .mysteryEventFlag = FLAG_SYS_MYSTERY_EVENT_ENABLE,
     .pokedexCount = NATIONAL_DEX_COUNT,
     .playerNameLength = PLAYER_NAME_LENGTH,
-    .unk2 = 10,
+    .trainerNameLength = TRAINER_NAME_LENGTH,
     .pokemonNameLength1 = POKEMON_NAME_LENGTH,
     .pokemonNameLength2 = POKEMON_NAME_LENGTH,
     // Two of the below 12s are likely move/ability name length, given their presence in this header

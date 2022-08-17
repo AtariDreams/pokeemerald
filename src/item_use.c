@@ -163,20 +163,28 @@ static void DisplayCannotDismountBikeMessage(u8 taskId, bool8 isUsingRegisteredK
 
 static void Task_CloseCantUseKeyItemMessage(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 1);
+    ClearDialogWindowAndFrame(0, TRUE);
     DestroyTask(taskId);
     ScriptUnfreezeObjectEvents();
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
 }
 
 u8 CheckIfItemIsTMHMOrEvolutionStone(u16 itemId)
 {
+    #if !MODERN
     if (ItemId_GetFieldFunc(itemId) == ItemUseOutOfBattle_TMHM)
         return 1;
-    else if (ItemId_GetFieldFunc(itemId) == ItemUseOutOfBattle_EvolutionStone)
+    if (ItemId_GetFieldFunc(itemId) == ItemUseOutOfBattle_EvolutionStone)
         return 2;
-    else
-        return 0;
+    #else
+    ItemUseFunc func = ItemId_GetFieldFunc(itemId);
+    if (func == ItemUseOutOfBattle_TMHM)
+        return 1;
+    if (func == ItemUseOutOfBattle_EvolutionStone)
+        return 2;
+    #endif
+
+    return 0;
 }
 
 // Mail in the bag menu can't have a message but it can be checked (view the mail background, no message)
@@ -184,7 +192,7 @@ static void CB2_CheckMail(void)
 {
     struct Mail mail;
     mail.itemId = gSpecialVar_ItemId;
-    ReadMail(&mail, CB2_ReturnToBagMenuPocket, 0);
+    ReadMail(&mail, CB2_ReturnToBagMenuPocket, FALSE);
 }
 
 void ItemUseOutOfBattle_Mail(u8 taskId)
@@ -195,7 +203,7 @@ void ItemUseOutOfBattle_Mail(u8 taskId)
 
 void ItemUseOutOfBattle_Bike(u8 taskId)
 {
-    s16* data = gTasks[taskId].data;
+    s16 *data = gTasks[taskId].data;
     s16 coordsY;
     s16 coordsX;
     u8 behavior;
@@ -222,7 +230,7 @@ static void ItemUseOnFieldCB_Bike(u8 taskId)
     else // ACRO_BIKE
         GetOnOffBike(PLAYER_AVATAR_FLAG_ACRO_BIKE);
     ScriptUnfreezeObjectEvents();
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
     DestroyTask(taskId);
 }
 
@@ -247,7 +255,7 @@ static bool32 CanFish(void)
     }
     else
     {
-        if (MetatileBehavior_IsSurfableWaterOrUnderwater(tileBehavior) && !MapGridIsImpassableAt(x, y))
+        if (MetatileBehavior_IsSurfableWaterOrUnderwater(tileBehavior) && MapGridGetCollisionAt(x, y) == 0)
             return TRUE;
         if (MetatileBehavior_IsBridgeOverWaterNoEdge(tileBehavior) == TRUE)
             return TRUE;
@@ -314,6 +322,11 @@ static void Task_UseItemfinder(u8 taskId)
             }
             else
             {
+                #if !MODERN
+                u8 i;
+                #else
+                s16 i;
+                #endif
                 // Player is standing on hidden item
                 playerDir = GetPlayerFacingDirection();
                 for (i = 0; i < ARRAY_COUNT(sClockwiseDirections); i++)
@@ -335,15 +348,14 @@ static void Task_UseItemfinder(u8 taskId)
 
 static void Task_CloseItemfinderMessage(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 1);
+    ClearDialogWindowAndFrame(0, TRUE);
     ScriptUnfreezeObjectEvents();
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
     DestroyTask(taskId);
 }
 
 static bool8 ItemfinderCheckForHiddenItems(const struct MapEvents *events, u8 taskId)
 {
-    int itemX, itemY;
     s16 playerX, playerY, i, distanceX, distanceY;
     PlayerGetDestCoords(&playerX, &playerY);
     gTasks[taskId].tItemFound = FALSE;
@@ -353,10 +365,8 @@ static bool8 ItemfinderCheckForHiddenItems(const struct MapEvents *events, u8 ta
         // Check if there are any hidden items on the current map that haven't been picked up
         if (events->bgEvents[i].kind == BG_EVENT_HIDDEN_ITEM && !FlagGet(events->bgEvents[i].bgUnion.hiddenItem.hiddenItemId + FLAG_HIDDEN_ITEMS_START))
         {
-            itemX = (u16)events->bgEvents[i].x + MAP_OFFSET;
-            distanceX = itemX - playerX;
-            itemY = (u16)events->bgEvents[i].y + MAP_OFFSET;
-            distanceY = itemY - playerY;
+            distanceX = events->bgEvents[i].x + MAP_OFFSET - playerX;
+            distanceY = events->bgEvents[i].y + MAP_OFFSET - playerY;
 
             // Player can see 7 metatiles on either side horizontally
             // and 5 metatiles on either side vertically
@@ -376,56 +386,56 @@ static bool8 IsHiddenItemPresentAtCoords(const struct MapEvents *events, s16 x, 
 {
     u8 bgEventCount = events->bgEventCount;
     struct BgEvent *bgEvent = events->bgEvents;
-    int i;
+    m32 i;
 
     for (i = 0; i < bgEventCount; i++)
     {
-        if (bgEvent[i].kind == BG_EVENT_HIDDEN_ITEM && x == (u16)bgEvent[i].x && y == (u16)bgEvent[i].y) // hidden item and coordinates matches x and y passed?
+        if (bgEvent[i].kind == BG_EVENT_HIDDEN_ITEM && x == bgEvent[i].x && y == bgEvent[i].y) // hidden item and coordinates matches x and y passed?
         {
             if (!FlagGet(bgEvent[i].bgUnion.hiddenItem.hiddenItemId + FLAG_HIDDEN_ITEMS_START))
                 return TRUE;
-            else
-                return FALSE;
+            break;
         }
     }
     return FALSE;
 }
 
+#if !MODERN
 static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, int x, int y)
+#else
+static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, s16 x, s16 y)
+#endif
 {
+    s16 localX, localY;
 
-    u16 localX, localY;
-    u32 localOffset;
-    s32 localLength;
-
-    struct MapHeader const *const mapHeader = GetMapHeaderFromConnection(connection);
+    const struct MapHeader *const mapHeader = GetMapHeaderFromConnection(connection);
 
     switch (connection->direction)
     {
     // same weird temp variable behavior seen in IsHiddenItemPresentAtCoords
     case CONNECTION_NORTH:
-        localOffset = connection->offset + MAP_OFFSET;
-        localX = x - localOffset;
-        localLength = mapHeader->mapLayout->height - MAP_OFFSET;
-        localY = localLength + y; // additions are reversed for some reason
+        localX = x - MAP_OFFSET - connection->offset;
+        #if !MODERN
+        localY = mapHeader->mapLayout->height + (y - MAP_OFFSET);
+        #else
+        localY = y - MAP_OFFSET + mapHeader->mapLayout->height;
+        #endif
         break;
     case CONNECTION_SOUTH:
-        localOffset = connection->offset + MAP_OFFSET;
-        localX = x - localOffset;
-        localLength = gMapHeader.mapLayout->height + MAP_OFFSET;
-        localY = y - localLength;
+        localX = x - MAP_OFFSET - connection->offset;
+        localY = y - MAP_OFFSET - gMapHeader.mapLayout->height;
         break;
     case CONNECTION_WEST:
-        localLength = mapHeader->mapLayout->width - MAP_OFFSET;
-        localX = localLength + x; // additions are reversed for some reason
-        localOffset = connection->offset + MAP_OFFSET;
-        localY = y - localOffset;
+        #if !MODERN
+        localX = mapHeader->mapLayout->width + (x - MAP_OFFSET);
+        #else
+        localX = x - MAP_OFFSET + mapHeader->mapLayout->width;
+        #endif
+        localY = y - MAP_OFFSET - connection->offset;
         break;
     case CONNECTION_EAST:
-        localLength = gMapHeader.mapLayout->width + MAP_OFFSET;
-        localX = x - localLength;
-        localOffset = connection->offset + MAP_OFFSET;
-        localY = y - localOffset;
+        localX = x - MAP_OFFSET - gMapHeader.mapLayout->width;
+        localY = y - MAP_OFFSET - connection->offset;
         break;
     default:
         return FALSE;
@@ -437,11 +447,16 @@ static void CheckForHiddenItemsInMapConnection(u8 taskId)
 {
     s16 playerX, playerY;
     s16 x, y;
-    s16 width = gMapHeader.mapLayout->width + MAP_OFFSET;
-    s16 height = gMapHeader.mapLayout->height + MAP_OFFSET;
+    struct MapConnection *conn;
 
+    #if !MODERN
     s16 var1 = MAP_OFFSET;
     s16 var2 = MAP_OFFSET;
+    #endif
+    const s16 width = gMapHeader.mapLayout->width + MAP_OFFSET;
+    const s16 height = gMapHeader.mapLayout->height + MAP_OFFSET;
+
+    
 
     PlayerGetDestCoords(&playerX, &playerY);
 
@@ -451,15 +466,17 @@ static void CheckForHiddenItemsInMapConnection(u8 taskId)
     {
         for (y = playerY - 5; y <= playerY + 5; y++)
         {
-            if (var1 > x
-             || x >= width
-             || var2 > y
-             || y >= height)
-            {
-                struct MapConnection *conn = GetConnectionAtCoords(x, y);
-                if (conn && IsHiddenItemPresentInConnection(conn, x, y) == TRUE)
-                    SetDistanceOfClosestHiddenItem(taskId, x - playerX, y - playerY);
-            }
+#if !MODERN
+            if (var1 <= x && x < width && var2 <= y && y < height)
+                continue;
+#else
+            if (MAP_OFFSET <= x && x < width && MAP_OFFSET <= y && y < height)
+                continue;
+#endif
+
+            conn = GetConnectionAtCoords(x, y);
+            if (conn && IsHiddenItemPresentInConnection(conn, x, y) == TRUE)
+                SetDistanceOfClosestHiddenItem(taskId, x - playerX, y - playerY);
         }
     }
 }
@@ -468,6 +485,9 @@ static void SetDistanceOfClosestHiddenItem(u8 taskId, s16 itemDistanceX, s16 ite
 {
     s16 *data = gTasks[taskId].data;
     s16 oldItemAbsX, oldItemAbsY, newItemAbsX, newItemAbsY;
+    #if MODERN
+    int sum1, sum2;
+    #endif
 
     if (tItemFound == FALSE)
     {
@@ -475,53 +495,75 @@ static void SetDistanceOfClosestHiddenItem(u8 taskId, s16 itemDistanceX, s16 ite
         tItemDistanceX = itemDistanceX;
         tItemDistanceY = itemDistanceY;
         tItemFound = TRUE;
+        return;
     }
+
+    // Other items have been found, check if this one is closer
+
+    // Get absolute x distance of the already-found item
+    #if !MODERN
+    if (tItemDistanceX < 0)
+        oldItemAbsX = tItemDistanceX * -1; // WEST
     else
+        oldItemAbsX = tItemDistanceX; // EAST
+
+    // Get absolute y distance of the already-found item
+    if (tItemDistanceY < 0)
+        oldItemAbsY = tItemDistanceY * -1; // NORTH
+    else
+        oldItemAbsY = tItemDistanceY; // SOUTH
+
+    // Get absolute x distance of the newly-found item
+    if (itemDistanceX < 0)
+        newItemAbsX = itemDistanceX * -1;
+    else
+        newItemAbsX = itemDistanceX;
+
+    // Get absolute y distance of the newly-found item
+    if (itemDistanceY < 0)
+        newItemAbsY = itemDistanceY * -1;
+    else
+        newItemAbsY = itemDistanceY;
+
+    if (oldItemAbsX + oldItemAbsY > newItemAbsX + newItemAbsY)
     {
-        // Other items have been found, check if this one is closer
-
-        // Get absolute x distance of the already-found item
-        if (tItemDistanceX < 0)
-            oldItemAbsX = tItemDistanceX * -1; // WEST
-        else
-            oldItemAbsX = tItemDistanceX;      // EAST
-
-        // Get absolute y distance of the already-found item
-        if (tItemDistanceY < 0)
-            oldItemAbsY = tItemDistanceY * -1; // NORTH
-        else
-            oldItemAbsY = tItemDistanceY;      // SOUTH
-
-        // Get absolute x distance of the newly-found item
-        if (itemDistanceX < 0)
-            newItemAbsX = itemDistanceX * -1;
-        else
-            newItemAbsX = itemDistanceX;
-
-        // Get absolute y distance of the newly-found item
-        if (itemDistanceY < 0)
-            newItemAbsY = itemDistanceY * -1;
-        else
-            newItemAbsY = itemDistanceY;
-
-
-        if (oldItemAbsX + oldItemAbsY > newItemAbsX + newItemAbsY)
-        {
-            // New item is closer
-            tItemDistanceX = itemDistanceX;
-            tItemDistanceY = itemDistanceY;
-        }
-        else
-        {
-            if (oldItemAbsX + oldItemAbsY == newItemAbsX + newItemAbsY
-            && (oldItemAbsY > newItemAbsY || (oldItemAbsY == newItemAbsY && tItemDistanceY < itemDistanceY)))
-            {
-                // If items are equal distance, use whichever is closer on the Y axis or further south
-                tItemDistanceX = itemDistanceX;
-                tItemDistanceY = itemDistanceY;
-            }
-        }
+        // New item is closer
+        tItemDistanceX = itemDistanceX;
+        tItemDistanceY = itemDistanceY;
+        return;
     }
+
+    if (oldItemAbsX + oldItemAbsY == newItemAbsX + newItemAbsY && (oldItemAbsY > newItemAbsY || (oldItemAbsY == newItemAbsY && tItemDistanceY < itemDistanceY)))
+    {
+        // If items are equal distance, use whichever is closer on the Y axis or further south
+        tItemDistanceX = itemDistanceX;
+        tItemDistanceY = itemDistanceY;
+    }
+    #else
+    
+    oldItemAbsX = abs(tItemDistanceX);
+    oldItemAbsY = abs(tItemDistanceY);
+    newItemAbsX = abs(itemDistanceX);
+    newItemAbsY = abs(itemDistanceY);
+
+    sum1 = oldItemAbsX + oldItemAbsY;
+    sum2 = newItemAbsX + newItemAbsY;
+
+    if (sum1 > sum2)
+    {
+        // New item is closer
+        tItemDistanceX = itemDistanceX;
+        tItemDistanceY = itemDistanceY;
+        return;
+    }
+
+    if (sum1 == sum2 && (oldItemAbsY > newItemAbsY || (oldItemAbsY == newItemAbsY && tItemDistanceY < itemDistanceY)))
+    {
+        // If items are equal distance, use whichever is closer on the Y axis or further south
+        tItemDistanceX = itemDistanceX;
+        tItemDistanceY = itemDistanceY;
+    }
+    #endif
 }
 
 static u8 GetDirectionToHiddenItem(s16 itemDistanceX, s16 itemDistanceY)
@@ -532,6 +574,7 @@ static u8 GetDirectionToHiddenItem(s16 itemDistanceX, s16 itemDistanceY)
         return DIR_NONE; // player is standing on the item.
 
     // Get absolute X distance.
+    #if !MODERN
     if (itemDistanceX < 0)
         absX = itemDistanceX * -1;
     else
@@ -542,6 +585,10 @@ static u8 GetDirectionToHiddenItem(s16 itemDistanceX, s16 itemDistanceY)
         absY = itemDistanceY * -1;
     else
         absY = itemDistanceY;
+    #else
+    absX = abs(itemDistanceX);
+    absY = abs(itemDistanceY);
+    #endif
 
     if (absX > absY)
     {
@@ -550,24 +597,30 @@ static u8 GetDirectionToHiddenItem(s16 itemDistanceX, s16 itemDistanceY)
         else
             return DIR_NORTH;
     }
-    else
+
+    if (absX < absY)
     {
-        if (absX < absY)
-        {
-            if (itemDistanceY < 0)
-                return DIR_SOUTH;
-            else
-                return DIR_WEST;
-        }
-        if (absX == absY)
-        {
-            if (itemDistanceY < 0)
-                return DIR_SOUTH;
-            else
-                return DIR_WEST;
-        }
-        return DIR_NONE; // Unreachable
+        if (itemDistanceY < 0)
+            return DIR_SOUTH;
+        else
+            return DIR_WEST;
     }
+#if !MODERN
+    if (absX == absY)
+    {
+        if (itemDistanceY < 0)
+            return DIR_SOUTH;
+        else
+            return DIR_WEST;
+    }
+    return DIR_NONE; // Unreachable
+#else
+    // Above checks aren't needed
+    if (itemDistanceY < 0)
+        return DIR_SOUTH;
+    else
+        return DIR_WEST;
+#endif
 }
 
 static void PlayerFaceHiddenItem(u8 direction)
@@ -615,8 +668,9 @@ void ItemUseOutOfBattle_PokeblockCase(u8 taskId)
     if (MenuHelpers_IsLinkActive() == TRUE)
     {
         DisplayDadsAdviceCannotUseItemMessage(taskId, gTasks[taskId].tUsingRegisteredKeyItem);
+        return;
     }
-    else if (gTasks[taskId].tUsingRegisteredKeyItem != TRUE)
+    if (gTasks[taskId].tUsingRegisteredKeyItem != TRUE)
     {
         gBagMenu->newScreenCallback = CB2_OpenPokeblockFromBag;
         Task_FadeAndCloseBagMenu(taskId);
@@ -692,8 +746,8 @@ void ItemUseOutOfBattle_Berry(u8 taskId)
 static void ItemUseOnFieldCB_Berry(u8 taskId)
 {
     RemoveBagItem(gSpecialVar_ItemId, 1);
-    ScriptContext2_Enable();
-    ScriptContext1_SetupScript(BerryTree_EventScript_ItemUsePlantBerry);
+    LockPlayerFieldControls();
+    ScriptContext_SetupScript(BerryTree_EventScript_ItemUsePlantBerry);
     DestroyTask(taskId);
 }
 
@@ -717,14 +771,14 @@ void ItemUseOutOfBattle_WailmerPail(u8 taskId)
 
 static void ItemUseOnFieldCB_WailmerPailBerry(u8 taskId)
 {
-    ScriptContext2_Enable();
-    ScriptContext1_SetupScript(BerryTree_EventScript_ItemUseWailmerPail);
+    LockPlayerFieldControls();
+    ScriptContext_SetupScript(BerryTree_EventScript_ItemUseWailmerPail);
     DestroyTask(taskId);
 }
 
 static bool8 TryToWaterSudowoodo(void)
 {
-    u16 x, y;
+    s16 x, y;
     u8 elevation;
     u8 objId;
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
@@ -738,8 +792,8 @@ static bool8 TryToWaterSudowoodo(void)
 
 static void ItemUseOnFieldCB_WailmerPailSudowoodo(u8 taskId)
 {
-    ScriptContext2_Enable();
-    ScriptContext1_SetupScript(BattleFrontier_OutsideEast_EventScript_WaterSudowoodo);
+    LockPlayerFieldControls();
+    ScriptContext_SetupScript(BattleFrontier_OutsideEast_EventScript_WaterSudowoodo);
     DestroyTask(taskId);
 }
 
@@ -843,9 +897,9 @@ void ItemUseOutOfBattle_Repel(u8 taskId)
 
 static void Task_StartUseRepel(u8 taskId)
 {
-    s16* data = gTasks[taskId].data;
+    s16 *data = gTasks[taskId].data;
 
-    if (++data[8] > 7)
+    if (++data[8] >= 8)
     {
         data[8] = 0;
         PlaySE(SE_REPEL);
@@ -855,20 +909,19 @@ static void Task_StartUseRepel(u8 taskId)
 
 static void Task_UseRepel(u8 taskId)
 {
-    if (!IsSEPlaying())
-    {
-        VarSet(VAR_REPEL_STEP_COUNT, ItemId_GetHoldEffectParam(gSpecialVar_ItemId));
-        RemoveUsedItem();
-        if (!InBattlePyramid())
-            DisplayItemMessage(taskId, FONT_NORMAL, gStringVar4, CloseItemMessage);
-        else
-            DisplayItemMessageInBattlePyramid(taskId, gStringVar4, Task_CloseBattlePyramidBagMessage);
-    }
+    if (IsSEPlaying())
+        return;
+    VarSet(VAR_REPEL_STEP_COUNT, ItemId_GetHoldEffectParam(gSpecialVar_ItemId));
+    RemoveUsedItem();
+    if (!InBattlePyramid())
+        DisplayItemMessage(taskId, FONT_NORMAL, gStringVar4, CloseItemMessage);
+    else
+        DisplayItemMessageInBattlePyramid(taskId, gStringVar4, Task_CloseBattlePyramidBagMessage);
 }
 
 static void Task_UsedBlackWhiteFlute(u8 taskId)
 {
-    if(++gTasks[taskId].data[8] > 7)
+    if(++gTasks[taskId].data[8] >= 8)
     {
         PlaySE(SE_GLASS_FLUTE);
         if (!InBattlePyramid())
@@ -948,8 +1001,10 @@ void ItemUseInBattle_PokeBall(u8 taskId)
             Task_FadeAndCloseBagMenu(taskId);
         else
             CloseBattlePyramidBag(taskId);
+        return;
     }
-    else if (!InBattlePyramid())
+    
+    if (!InBattlePyramid())
     {
         DisplayItemMessage(taskId, FONT_NORMAL, gText_BoxFull, CloseItemMessage);
     }
@@ -970,7 +1025,7 @@ static void Task_CloseStatIncreaseMessage(u8 taskId)
 
 static void Task_UseStatIncreaseItem(u8 taskId)
 {
-    if(++gTasks[taskId].data[8] > 7)
+    if(++gTasks[taskId].data[8] >= 8)
     {
         PlaySE(SE_USE_ITEM);
         RemoveBagItem(gSpecialVar_ItemId, 1);
@@ -1036,7 +1091,6 @@ void ItemUseInBattle_PPRecovery(u8 taskId)
 // Fluffy Tail / Poke Doll
 void ItemUseInBattle_Escape(u8 taskId)
 {
-
     if((gBattleTypeFlags & BATTLE_TYPE_TRAINER) == FALSE)
     {
         RemoveUsedItem();

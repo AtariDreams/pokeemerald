@@ -41,9 +41,9 @@ u8 (*const gMovementTypeFuncs_WanderUpAndDown[])(struct ObjectEvent *, struct Sp
     MovementType_WanderUpAndDown_Step5,
     MovementType_WanderUpAndDown_Step6,
 };
-
+#if !MODERN
 const u8 gUpAndDownDirections[] = {DIR_SOUTH, DIR_NORTH};
-
+#endif
 u8 (*const gMovementTypeFuncs_WanderLeftAndRight[])(struct ObjectEvent *, struct Sprite *) = {
     MovementType_WanderLeftAndRight_Step0,
     MovementType_WanderLeftAndRight_Step1,
@@ -54,8 +54,9 @@ u8 (*const gMovementTypeFuncs_WanderLeftAndRight[])(struct ObjectEvent *, struct
     MovementType_WanderLeftAndRight_Step6,
 };
 
+#if !MODERN
 const u8 gLeftAndRightDirections[] = {DIR_WEST, DIR_EAST};
-
+#endif
 u8 (*const gMovementTypeFuncs_FaceDirection[])(struct ObjectEvent *, struct Sprite *) = {
     MovementType_FaceDirection_Step0,
     MovementType_FaceDirection_Step1,
@@ -94,8 +95,9 @@ u8 (*const gMovementTypeFuncs_FaceUpAndLeft[])(struct ObjectEvent *, struct Spri
     MovementType_FaceUpAndLeft_Step4,
 };
 
+#if !MODERN
 const u8 gUpAndLeftDirections[] = {DIR_NORTH, DIR_WEST};
-
+#endif
 u8 (*const gMovementTypeFuncs_FaceUpAndRight[])(struct ObjectEvent *, struct Sprite *) = {
     MovementType_FaceUpAndRight_Step0,
     MovementType_FaceUpAndRight_Step1,
@@ -103,9 +105,9 @@ u8 (*const gMovementTypeFuncs_FaceUpAndRight[])(struct ObjectEvent *, struct Spr
     MovementType_FaceUpAndRight_Step3,
     MovementType_FaceUpAndRight_Step4,
 };
-
+#if !MODERN
 const u8 gUpAndRightDirections[] = {DIR_NORTH, DIR_EAST};
-
+#endif
 u8 (*const gMovementTypeFuncs_FaceDownAndLeft[])(struct ObjectEvent *, struct Sprite *) = {
     MovementType_FaceDownAndLeft_Step0,
     MovementType_FaceDownAndLeft_Step1,
@@ -113,9 +115,9 @@ u8 (*const gMovementTypeFuncs_FaceDownAndLeft[])(struct ObjectEvent *, struct Sp
     MovementType_FaceDownAndLeft_Step3,
     MovementType_FaceDownAndLeft_Step4,
 };
-
+#if !MODERN
 const u8 gDownAndLeftDirections[] = {DIR_SOUTH, DIR_WEST};
-
+#endif
 u8 (*const gMovementTypeFuncs_FaceDownAndRight[])(struct ObjectEvent *, struct Sprite *) = {
     MovementType_FaceDownAndRight_Step0,
     MovementType_FaceDownAndRight_Step1,
@@ -123,9 +125,9 @@ u8 (*const gMovementTypeFuncs_FaceDownAndRight[])(struct ObjectEvent *, struct S
     MovementType_FaceDownAndRight_Step3,
     MovementType_FaceDownAndRight_Step4,
 };
-
+#if !MODERN
 const u8 gDownAndRightDirections[] = {DIR_SOUTH, DIR_EAST};
-
+#endif
 u8 (*const gMovementTypeFuncs_FaceDownUpAndLeft[])(struct ObjectEvent *, struct Sprite *) = {
     MovementType_FaceDownUpAndLeft_Step0,
     MovementType_FaceDownUpAndLeft_Step1,

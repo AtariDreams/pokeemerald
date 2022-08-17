@@ -586,7 +586,7 @@ bool8 SetUpFieldMove_SecretPower(void)
 static void FieldCallback_SecretBaseCave(void)
 {
     gFieldEffectArguments[0] = GetCursorSelectionMonId();
-    ScriptContext1_SetupScript(SecretBase_EventScript_CaveUseSecretPower);
+    ScriptContext_SetupScript(SecretBase_EventScript_CaveUseSecretPower);
 }
 
 bool8 FldEff_UseSecretPowerCave(void)
@@ -646,7 +646,7 @@ static void SpriteCB_CaveEntranceEnd(struct Sprite *sprite)
 static void FieldCallback_SecretBaseTree(void)
 {
     gFieldEffectArguments[0] = GetCursorSelectionMonId();
-    ScriptContext1_SetupScript(SecretBase_EventScript_TreeUseSecretPower);
+    ScriptContext_SetupScript(SecretBase_EventScript_TreeUseSecretPower);
 }
 
 bool8 FldEff_UseSecretPowerTree(void)
@@ -720,7 +720,7 @@ static void SpriteCB_TreeEntranceEnd(struct Sprite *sprite)
 static void FieldCallback_SecretBaseShrub(void)
 {
     gFieldEffectArguments[0] = GetCursorSelectionMonId();
-    ScriptContext1_SetupScript(SecretBase_EventScript_ShrubUseSecretPower);
+    ScriptContext_SetupScript(SecretBase_EventScript_ShrubUseSecretPower);
 }
 
 bool8 FldEff_UseSecretPowerShrub(void)
@@ -1034,7 +1034,7 @@ bool8 FldEff_SandPillar(void)
 {
     s16 x, y;
 
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
 
     gFieldEffectArguments[5] = x;
@@ -1200,28 +1200,34 @@ bool8 IsLargeBreakableDecoration(u16 metatileId, bool8 checkBase)
     return FALSE;
 }
 
+#define tState  data[0]
+#define tMosaic data[1]
+
 static void Task_FieldPoisonEffect(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
-    switch (data[0])
+    switch (tState)
     {
     case 0:
-        data[1] += 2;
-        if (data[1] > 8)
-            data[0]++;
+        tMosaic += 2;
+        if (tMosaic > 8)
+            tState++;
         break;
     case 1:
-        data[1] -= 2;
-        if (data[1] == 0)
-            data[0]++;
+        tMosaic -= 2;
+        if (tMosaic == 0)
+            tState++;
         break;
     case 2:
         DestroyTask(taskId);
         return;
     }
-    SetGpuReg(REG_OFFSET_MOSAIC, (data[1] << 4) | data[1]);
+    SetGpuReg(REG_OFFSET_MOSAIC, (tMosaic << 4) | tMosaic);
 }
+
+#undef tState
+#undef tMosaic
 
 void FldEffPoison_Start(void)
 {

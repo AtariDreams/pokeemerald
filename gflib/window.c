@@ -4,14 +4,17 @@
 #include "bg.h"
 #include "blit.h"
 
+// This global is set to 0 and never changed.
+#if !MODERN
 u32 gUnusedWindowVar1;
 u32 gUnusedWindowVar2;
-// This global is set to 0 and never changed.
 u8 gTransparentTileNumber;
 u32 gUnusedWindowVar3;
+#endif
 void *gWindowBgTilemapBuffers[NUM_BACKGROUNDS];
+#if !MODERN
 extern u32 gWindowTileAutoAllocEnabled;
-
+#endif
 #define WINDOWS_MAX  32
 
 EWRAM_DATA struct Window gWindows[WINDOWS_MAX] = {0};
@@ -23,6 +26,7 @@ static u8 GetNumActiveWindowsOnBg8Bit(u8 bgId);
 
 static const struct WindowTemplate sDummyWindowTemplate = DUMMY_WIN_TEMPLATE;
 
+//Reserve a screen buffer on another system???
 static void DummyWindowBgTilemap(void)
 {
 
@@ -30,37 +34,49 @@ static void DummyWindowBgTilemap(void)
 
 bool16 InitWindows(const struct WindowTemplate *templates)
 {
-    int i;
-    void *bgTilemapBuffer;
-    int j;
+    m32 i, j;
     u8 bgLayer;
     u16 attrib;
     u8* allocatedTilemapBuffer;
     int allocatedBaseBlock;
+    #endif
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {
-        bgTilemapBuffer = GetBgTilemapBuffer(i);
-        if (bgTilemapBuffer != NULL)
+        if (GetBgTilemapBuffer(i) != NULL)
             gWindowBgTilemapBuffers[i] = DummyWindowBgTilemap;
         else
-            gWindowBgTilemapBuffers[i] = bgTilemapBuffer;
+            gWindowBgTilemapBuffers[i] = NULL;
     }
+
 
     for (i = 0; i < WINDOWS_MAX; ++i)
     {
         gWindows[i].window = sDummyWindowTemplate;
         gWindows[i].tileData = NULL;
     }
+    #if !MODERN
+    i = 0;
+    allocatedBaseBlock = 0;
+    #endif
 
-    for (i = 0, allocatedBaseBlock = 0, bgLayer = templates[i].bg; bgLayer != 0xFF && i < WINDOWS_MAX; ++i, bgLayer = templates[i].bg)
+    #if !MODERN
+    while (((bgLayer = templates[i].bg) != 0xFF) && i < WINDOWS_MAX)
+    #else
+    for (i = 0; i < WINDOWS_MAX; i++)
+    #endif
     {
+        #if !MODERN
         if (gWindowTileAutoAllocEnabled == TRUE)
         {
             allocatedBaseBlock = BgTileAllocOp(bgLayer, 0, templates[i].width * templates[i].height, 0);
             if (allocatedBaseBlock == -1)
                 return FALSE;
         }
+        #else
+        if ((bgLayer = templates[i].bg) == 0xFF)
+            break;
+        #endif
 
         if (gWindowBgTilemapBuffers[bgLayer] == NULL)
         {
@@ -83,7 +99,7 @@ bool16 InitWindows(const struct WindowTemplate *templates)
                 SetBgTilemapBuffer(bgLayer, allocatedTilemapBuffer);
             }
         }
-
+        //todo: is the u16 cast needed? yes it is to match but is it needed?
         allocatedTilemapBuffer = AllocZeroed((u16)(32 * (templates[i].width * templates[i].height)));
 
         if (allocatedTilemapBuffer == NULL)
@@ -91,7 +107,7 @@ bool16 InitWindows(const struct WindowTemplate *templates)
             if ((GetNumActiveWindowsOnBg(bgLayer) == 0) && (gWindowBgTilemapBuffers[bgLayer] != DummyWindowBgTilemap))
             {
                 Free(gWindowBgTilemapBuffers[bgLayer]);
-                gWindowBgTilemapBuffers[bgLayer] = allocatedTilemapBuffer;
+                gWindowBgTilemapBuffers[bgLayer] = NULL;
             }
 
             return FALSE;
@@ -99,37 +115,54 @@ bool16 InitWindows(const struct WindowTemplate *templates)
 
         gWindows[i].tileData = allocatedTilemapBuffer;
         gWindows[i].window = templates[i];
-
+        
+        #if !MODERN
         if (gWindowTileAutoAllocEnabled == TRUE)
         {
             gWindows[i].window.baseBlock = allocatedBaseBlock;
             BgTileAllocOp(bgLayer, allocatedBaseBlock, templates[i].width * templates[i].height, 1);
         }
+        #endif
+
+    #if !MODERN
+        ++i;
+    #endif
     }
 
+    #if !MODERN
     gTransparentTileNumber = 0;
+    #endif
     return TRUE;
 }
 
 u16 AddWindow(const struct WindowTemplate *template)
 {
-    u16 win;
+    m16 win;
     u8 bgLayer;
+    
+    #if !MODERN
     int allocatedBaseBlock;
+    #endif
     u16 attrib;
     u8 *allocatedTilemapBuffer;
-    int i;
+    m32 i;
 
     for (win = 0; win < WINDOWS_MAX; ++win)
     {
-        if ((bgLayer = gWindows[win].window.bg) == 0xFF)
+        #if !MODERN
+        if ((bgLayer = gWindows[win].window.bg) == WINDOW_NONE)
             break;
+        #else
+        if (gWindows[win].window.bg == WINDOW_NONE)
+            break;
+        #endif
     }
 
     if (win == WINDOWS_MAX)
         return WINDOW_NONE;
 
     bgLayer = template->bg;
+    #if !MODERN
     allocatedBaseBlock = 0;
 
     if (gWindowTileAutoAllocEnabled == TRUE)
@@ -139,6 +172,7 @@ u16 AddWindow(const struct WindowTemplate *template)
         if (allocatedBaseBlock == -1)
             return WINDOW_NONE;
     }
+    #endif
 
     if (gWindowBgTilemapBuffers[bgLayer] == NULL)
     {
@@ -158,7 +192,8 @@ u16 AddWindow(const struct WindowTemplate *template)
             SetBgTilemapBuffer(bgLayer, allocatedTilemapBuffer);
         }
     }
-
+    // TODO: is the u16 cast needed?
+    // Keep it for now just in case
     allocatedTilemapBuffer = AllocZeroed((u16)(32 * (template->width * template->height)));
 
     if (allocatedTilemapBuffer == NULL)
@@ -166,7 +201,7 @@ u16 AddWindow(const struct WindowTemplate *template)
         if ((GetNumActiveWindowsOnBg(bgLayer) == 0) && (gWindowBgTilemapBuffers[bgLayer] != DummyWindowBgTilemap))
         {
             Free(gWindowBgTilemapBuffers[bgLayer]);
-            gWindowBgTilemapBuffers[bgLayer] = allocatedTilemapBuffer;
+            gWindowBgTilemapBuffers[bgLayer] = NULL;
         }
         return WINDOW_NONE;
     }
@@ -174,31 +209,43 @@ u16 AddWindow(const struct WindowTemplate *template)
     gWindows[win].tileData = allocatedTilemapBuffer;
     gWindows[win].window = *template;
 
+    #if !MODERN
     if (gWindowTileAutoAllocEnabled == TRUE)
     {
         gWindows[win].window.baseBlock = allocatedBaseBlock;
         BgTileAllocOp(bgLayer, allocatedBaseBlock, gWindows[win].window.width * gWindows[win].window.height, 1);
     }
+    #endif
 
     return win;
 }
 
-int AddWindowWithoutTileMap(const struct WindowTemplate *template)
+u16 AddWindowWithoutTileMap(const struct WindowTemplate *template)
 {
-    u16 win;
+    m16 win;
+    #if !MODERN
     u8 bgLayer;
     int allocatedBaseBlock;
 
     for (win = 0; win < WINDOWS_MAX; ++win)
     {
+        if ((bgLayer = gWindows[win].window.bg) == 0xFF)
+            break;
+    }
+    #else
+    for (win = 0; win < WINDOWS_MAX; ++win)
+    {
         if (gWindows[win].window.bg == 0xFF)
             break;
     }
+    #endif
 
     if (win == WINDOWS_MAX)
         return WINDOW_NONE;
 
+    #if !MODERN
     bgLayer = template->bg;
+
     allocatedBaseBlock = 0;
 
     if (gWindowTileAutoAllocEnabled == TRUE)
@@ -208,14 +255,17 @@ int AddWindowWithoutTileMap(const struct WindowTemplate *template)
         if (allocatedBaseBlock == -1)
             return WINDOW_NONE;
     }
+    #endif
 
-    gWindows[win].window = *template;
+    gWindows[win].window = *template; // storage of usage data?
 
+    #if !MODERN
     if (gWindowTileAutoAllocEnabled == TRUE)
     {
         gWindows[win].window.baseBlock = allocatedBaseBlock;
         BgTileAllocOp(bgLayer, allocatedBaseBlock, gWindows[win].window.width * gWindows[win].window.height, 1);
     }
+    #endif
 
     return win;
 }
@@ -224,8 +274,10 @@ void RemoveWindow(u8 windowId)
 {
     u8 bgLayer = gWindows[windowId].window.bg;
 
+    #if !MODERN
     if (gWindowTileAutoAllocEnabled == TRUE)
         BgTileAllocOp(bgLayer, gWindows[windowId].window.baseBlock, gWindows[windowId].window.width * gWindows[windowId].window.height, 2);
+    #endif
 
     gWindows[windowId].window = sDummyWindowTemplate;
 
@@ -247,7 +299,7 @@ void RemoveWindow(u8 windowId)
 
 void FreeAllWindowBuffers(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {
@@ -291,33 +343,33 @@ void CopyWindowToVram(u8 windowId, u8 mode)
 void CopyWindowRectToVram(u32 windowId, u32 mode, u32 x, u32 y, u32 w, u32 h)
 {
     struct Window windowLocal;
-    int rectSize;
-    int rectPos;
+    u32 rectSize;
+    u32 rectPos;
 
-    if (w != 0 && h != 0)
+    if (w == 0 || h == 0)
+        return;
+
+    windowLocal = gWindows[windowId];
+
+    rectSize = ((h - 1) * windowLocal.window.width);
+    rectSize += (windowLocal.window.width - x);
+    rectSize -= (windowLocal.window.width - (x + w));
+    rectSize *= 32;
+
+    rectPos = (y * windowLocal.window.width) + x;
+
+    switch (mode)
     {
-        windowLocal = gWindows[windowId];
-
-        rectSize = ((h - 1) * windowLocal.window.width);
-        rectSize += (windowLocal.window.width - x);
-        rectSize -= (windowLocal.window.width - (x + w));
-        rectSize *= 32;
-
-        rectPos = (y * windowLocal.window.width) + x;
-
-        switch (mode)
-        {
-        case COPYWIN_MAP:
-            CopyBgTilemapBufferToVram(windowLocal.window.bg);
-            break;
-        case COPYWIN_GFX:
-            LoadBgTiles(windowLocal.window.bg, windowLocal.tileData + (rectPos * 32), rectSize, windowLocal.window.baseBlock + rectPos);
-            break;
-        case COPYWIN_FULL:
-            LoadBgTiles(windowLocal.window.bg, windowLocal.tileData + (rectPos * 32), rectSize, windowLocal.window.baseBlock + rectPos);
-            CopyBgTilemapBufferToVram(windowLocal.window.bg);
-            break;
-        }
+    case COPYWIN_MAP:
+        CopyBgTilemapBufferToVram(windowLocal.window.bg);
+        break;
+    case COPYWIN_GFX:
+        LoadBgTiles(windowLocal.window.bg, windowLocal.tileData + (rectPos * 32), rectSize, windowLocal.window.baseBlock + rectPos);
+        break;
+    case COPYWIN_FULL:
+        LoadBgTiles(windowLocal.window.bg, windowLocal.tileData + (rectPos * 32), rectSize, windowLocal.window.baseBlock + rectPos);
+        CopyBgTilemapBufferToVram(windowLocal.window.bg);
+        break;
     }
 }
 
@@ -340,7 +392,7 @@ void PutWindowRectTilemapOverridePalette(u8 windowId, u8 x, u8 y, u8 width, u8 h
 {
     struct Window windowLocal = gWindows[windowId];
     u16 currentRow = windowLocal.window.baseBlock + (y * windowLocal.window.width) + x + GetBgAttribute(windowLocal.window.bg, BG_ATTR_BASETILE);
-    int i;
+    m32 i;
 
     for (i = 0; i < height; ++i)
     {
@@ -365,7 +417,11 @@ void ClearWindowTilemap(u8 windowId)
 
     FillBgTilemapBufferRect(
         windowLocal.window.bg,
+        #if !MODERN
         gTransparentTileNumber,
+        #else
+        0,
+        #endif
         windowLocal.window.tilemapLeft,
         windowLocal.window.tilemapTop,
         windowLocal.window.width,
@@ -377,7 +433,7 @@ void PutWindowRectTilemap(u8 windowId, u8 x, u8 y, u8 width, u8 height)
 {
     struct Window windowLocal = gWindows[windowId];
     u16 currentRow = windowLocal.window.baseBlock + (y * windowLocal.window.width) + x + GetBgAttribute(windowLocal.window.bg, BG_ATTR_BASETILE);
-    int i;
+    m32 i;
 
     for (i = 0; i < height; ++i)
     {
@@ -400,12 +456,12 @@ void BlitBitmapToWindow(u8 windowId, const u8 *pixels, u16 x, u16 y, u16 width, 
     BlitBitmapRectToWindow(windowId, pixels, 0, 0, width, height, x, y, width, height);
 }
 
-void BlitBitmapRectToWindow(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, int srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight)
+void BlitBitmapRectToWindow(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, u16 srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight)
 {
     struct Bitmap sourceRect;
     struct Bitmap destRect;
 
-    sourceRect.pixels = (u8*)pixels;
+    sourceRect.pixels = (u8 *)pixels;
     sourceRect.width = srcWidth;
     sourceRect.height = srcHeight;
 
@@ -416,12 +472,12 @@ void BlitBitmapRectToWindow(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u
     BlitBitmapRect4Bit(&sourceRect, &destRect, srcX, srcY, destX, destY, rectWidth, rectHeight, 0);
 }
 
-static void BlitBitmapRectToWindowWithColorKey(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, int srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 colorKey)
+static void BlitBitmapRectToWindowWithColorKey(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, u16 srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 colorKey)
 {
     struct Bitmap sourceRect;
     struct Bitmap destRect;
 
-    sourceRect.pixels = (u8*)pixels;
+    sourceRect.pixels = (u8 *)pixels;
     sourceRect.width = srcWidth;
     sourceRect.height = srcHeight;
 
@@ -454,29 +510,29 @@ void CopyToWindowPixelBuffer(u8 windowId, const void *src, u16 size, u16 tileOff
 // Sets all pixels within the window to the fillValue color.
 void FillWindowPixelBuffer(u8 windowId, u8 fillValue)
 {
-    int fillSize = gWindows[windowId].window.width * gWindows[windowId].window.height;
+    u32 fillSize = gWindows[windowId].window.width * gWindows[windowId].window.height;
     CpuFastFill8(fillValue, gWindows[windowId].tileData, 32 * fillSize);
 }
 
 #define MOVE_TILES_DOWN(a)                                                      \
 {                                                                               \
     destOffset = i + (a);                                                       \
-    srcOffset = i + (((width * (distanceLoop & ~7)) | (distanceLoop & 7)) * 4); \
+    srcOffset = i + (((width * (distanceLoop & ~7)) | (distanceLoop & 7)) << 2);\
     if (srcOffset < size)                                                       \
-        *(u32*)(tileData + destOffset) = *(u32*)(tileData + srcOffset);         \
+        *(u32 *)(tileData + destOffset) = *(u32 *)(tileData + srcOffset);         \
     else                                                                        \
-        *(u32*)(tileData + destOffset) = fillValue32;                           \
+        *(u32 *)(tileData + destOffset) = fillValue32;                           \
     distanceLoop++;                                                             \
 }
 
 #define MOVE_TILES_UP(a)                                                        \
 {                                                                               \
     destOffset = i + (a);                                                       \
-    srcOffset = i + (((width * (distanceLoop & ~7)) | (distanceLoop & 7)) * 4); \
+    srcOffset = i + (((width * (distanceLoop & ~7)) | (distanceLoop & 7)) << 2);\
     if (srcOffset < size)                                                       \
-        *(u32*)(tileData - destOffset) = *(u32*)(tileData - srcOffset);         \
+        *(u32 *)(tileData - destOffset) = *(u32 *)(tileData - srcOffset);         \
     else                                                                        \
-        *(u32*)(tileData - destOffset) = fillValue32;                           \
+        *(u32 *)(tileData - destOffset) = fillValue32;                           \
     distanceLoop++;                                                             \
 }
 
@@ -485,11 +541,13 @@ void ScrollWindow(u8 windowId, u8 direction, u8 distance, u8 fillValue)
     struct WindowTemplate window = gWindows[windowId].window;
     u8 *tileData = gWindows[windowId].tileData;
     u32 fillValue32 = (fillValue << 24) | (fillValue << 16) | (fillValue << 8) | fillValue;
+
+    // Keep them ints justin case, for now
     s32 size = window.height * window.width * 32;
-    u32 width = window.width;
+    s32 width = window.width;
     s32 i;
     s32 srcOffset, destOffset;
-    u32 distanceLoop;
+    s32 distanceLoop;
 
     switch (direction)
     {
@@ -533,7 +591,7 @@ void CallWindowFunction(u8 windowId, void ( *func)(u8, u8, u8, u8, u8, u8))
     func(window.bg, window.tilemapLeft, window.tilemapTop, window.width, window.height, window.paletteNum);
 }
 
-bool8 SetWindowAttribute(u8 windowId, u8 attributeId, u32 value)
+bool32 SetWindowAttribute(u8 windowId, u8 attributeId, u32 value)
 {
     switch (attributeId)
     {
@@ -550,7 +608,7 @@ bool8 SetWindowAttribute(u8 windowId, u8 attributeId, u32 value)
         gWindows[windowId].window.baseBlock = value;
         return FALSE;
     case WINDOW_TILE_DATA:
-        gWindows[windowId].tileData = (u8*)(value);
+        gWindows[windowId].tileData = (u8 *)(value);
         return TRUE;
     case WINDOW_BG:
     case WINDOW_WIDTH:
@@ -588,7 +646,7 @@ u32 GetWindowAttribute(u8 windowId, u8 attributeId)
 static u8 GetNumActiveWindowsOnBg(u8 bgId)
 {
     u8 windowsNum = 0;
-    s32 i;
+    m32 i;
     for (i = 0; i < WINDOWS_MAX; i++)
     {
         if (gWindows[i].window.bg == bgId)
@@ -605,7 +663,7 @@ static void DummyWindowBgTilemap8Bit(void)
 u16 AddWindow8Bit(const struct WindowTemplate *template)
 {
     u16 windowId;
-    u8* memAddress;
+    u8 *memAddress;
     u8 bgLayer;
 
     for (windowId = 0; windowId < WINDOWS_MAX; windowId++)
@@ -621,12 +679,20 @@ u16 AddWindow8Bit(const struct WindowTemplate *template)
         u16 attribute = GetBgAttribute(bgLayer, BG_ATTR_METRIC);
         if (attribute != 0xFFFF)
         {
+            // TODO: See if alloc zeroed is more performant
+            // Maybe inline if needed
+            #if !MODERN
             s32 i;
             memAddress = Alloc(attribute);
             if (memAddress == NULL)
                 return WINDOW_NONE;
             for (i = 0; i < attribute; i++) // if we're going to zero out the memory anyway, why not call AllocZeroed?
                 memAddress[i] = 0;
+            #else
+            memAddress = AllocZeroed(attribute);
+            if (memAddress == NULL)
+                return WINDOW_NONE;
+            #endif
             gWindowBgTilemapBuffers[bgLayer] = memAddress;
             SetBgTilemapBuffer(bgLayer, memAddress);
         }
@@ -651,10 +717,10 @@ u16 AddWindow8Bit(const struct WindowTemplate *template)
 
 void FillWindowPixelBuffer8Bit(u8 windowId, u8 fillValue)
 {
-    s32 i;
-    s32 size;
+    m32 i;
+    u16 size;
 
-    size = (u16)(64 * (gWindows[windowId].window.width * gWindows[windowId].window.height));
+    size = 64 * (gWindows[windowId].window.width * gWindows[windowId].window.height);
     for (i = 0; i < size; i++)
         gWindows[windowId].tileData[i] = fillValue;
 }
@@ -670,12 +736,12 @@ void FillWindowPixelRect8Bit(u8 windowId, u8 fillValue, u16 x, u16 y, u16 width,
     FillBitmapRect8Bit(&pixelRect, x, y, width, height, fillValue);
 }
 
-void BlitBitmapRectToWindow4BitTo8Bit(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, int srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 paletteNum)
+void BlitBitmapRectToWindow4BitTo8Bit(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, u16 srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 paletteNum)
 {
     struct Bitmap sourceRect;
     struct Bitmap destRect;
 
-    sourceRect.pixels = (u8*) pixels;
+    sourceRect.pixels = (u8 *) pixels;
     sourceRect.width = srcWidth;
     sourceRect.height = srcHeight;
 
@@ -709,7 +775,7 @@ void CopyWindowToVram8Bit(u8 windowId, u8 mode)
 static u8 GetNumActiveWindowsOnBg8Bit(u8 bgId)
 {
     u8 windowsNum = 0;
-    s32 i;
+    m32 i;
     for (i = 0; i < WINDOWS_MAX; i++)
     {
         if (gWindows[i].window.bg == bgId)

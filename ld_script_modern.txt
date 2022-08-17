@@ -9,15 +9,18 @@ SECTIONS {
     ewram (NOLOAD) :
     ALIGN(4)
     {
-        gHeap = .;
+        gflib/malloc.o(ewram_data)
+        src/decompress.o(ewram_data)
 
-        . = 0x1C000;
-
-        src/*.o(ewram_data);
-        gflib/*.o(ewram_data);
-
+        *(ewram_data);
         . = 0x40000;
-}
+    }
+    .sdata		:
+	{
+		*(.sdata) 
+	}
+	_edata  =  .;
+	PROVIDE (edata = .);
 
     . = 0x3000000;
 
@@ -25,20 +28,10 @@ SECTIONS {
     ALIGN(4)
     {
         /* .bss starts at 0x3000000 */
-        src/*.o(.bss);
-        gflib/*.o(.bss);
-        data/*.o(.bss);
-        *libc.a:*.o(.bss*);
-        *libnosys.a:*.o(.bss*);
 
-        /* .bss.code starts at 0x3001AA8 */
-        src/m4a.o(.bss.code);
-
-        /* COMMON starts at 0x30022A8 */
-        src/*.o(COMMON);
-        gflib/*.o(COMMON);
-        *libc.a:*.o(COMMON);
-        *libnosys.a:*.o(COMMON);
+        *(.bss)
+		*(.bss.*)
+		*(COMMON)
         end = .;
         . = 0x8000;
     }
@@ -49,9 +42,11 @@ SECTIONS {
     ALIGN(4)
     {
         src/rom_header.o(.text*);
-        src/*.o(.text*);
-        gflib/*.o(.text*);
-        asm/*.o(.text*);
+        src/rom_header_gf.o(.text*);
+        src/crt0.o(.text*);
+        src/main.o(.text*);
+		*(.text)
+		*(.text.*)
     } =0
 
     script_data :
@@ -84,9 +79,12 @@ SECTIONS {
     .rodata :
     ALIGN(4)
     {
-        src/*.o(.rodata*);
-        gflib/*.o(.rodata*);
-        data/*.o(.rodata*);
+        src/rom_header.o(.rodata);
+        src/rom_header_gf.o(.rodata);
+        *(.rodata)
+        *(.rodata.*)
+        src/m4a_tables.o(.rodata);
+        data/sound_data.o(.rodata);
     } =0
 
     song_data :

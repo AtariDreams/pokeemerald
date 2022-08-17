@@ -10,7 +10,7 @@
 #include "palette.h"
 #include "constants/rgb.h"
 
-static void SpriteCB_Sparkle_Dummy(struct Sprite* sprite);
+static void SpriteCB_Sparkle_Dummy(struct Sprite *sprite);
 
 static void Task_Sparkles_SpiralUpward_Init(u8 taskId);
 static void Task_Sparkles_SpiralUpward(u8 taskId);
@@ -39,7 +39,7 @@ static void EndOnPostEvoMon(u8 taskId);
 #define TAG_SPARKLE 1001
 
 static const u16 sEvoSparkle_Pal[] = INCBIN_U16("graphics/misc/evo_sparkle.gbapal");
-static const u32 sEvoSparkle_Gfx[] = INCBIN_U32("graphics/misc/evo_sparkle.4bpp.lz");
+static const u8 sEvoSparkle_Gfx[] = INCBIN_U8("graphics/misc/evo_sparkle.4bpp.lz");
 
 static const struct CompressedSpriteSheet sEvoSparkleSpriteSheets[] =
 {
@@ -58,7 +58,7 @@ static const struct OamData sOamData_EvoSparkle =
     .y = DISPLAY_HEIGHT,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x8),
     .x = 0,
@@ -127,7 +127,7 @@ static void SetEvoSparklesMatrices(void)
 #define sTrigIdx   data[6]
 #define sTimer     data[7]
 
-static void SpriteCB_Sparkle_SpiralUpward(struct Sprite* sprite)
+static void SpriteCB_Sparkle_SpiralUpward(struct Sprite *sprite)
 {
     if (sprite->y > 8)
     {
@@ -167,7 +167,7 @@ static void CreateSparkle_SpiralUpward(u8 trigIdx)
     }
 }
 
-static void SpriteCB_Sparkle_ArcDown(struct Sprite* sprite)
+static void SpriteCB_Sparkle_ArcDown(struct Sprite *sprite)
 {
     if (sprite->y < 88)
     {
@@ -196,7 +196,7 @@ static void CreateSparkle_ArcDown(u8 trigIdx)
     }
 }
 
-static void SpriteCB_Sparkle_CircleInward(struct Sprite* sprite)
+static void SpriteCB_Sparkle_CircleInward(struct Sprite *sprite)
 {
     if (sprite->sAmplitude > 8)
     {
@@ -225,7 +225,7 @@ static void CreateSparkle_CircleInward(u8 trigIdx, u8 speed)
     }
 }
 
-static void SpriteCB_Sparkle_Spray(struct Sprite* sprite)
+static void SpriteCB_Sparkle_Spray(struct Sprite *sprite)
 {
     if (!(sprite->sTimer & 3))
         sprite->y++;
@@ -260,7 +260,11 @@ static void CreateSparkle_Spray(u8 id)
     u8 spriteId = CreateSprite(&sEvoSparkleSpriteTemplate, DISPLAY_WIDTH / 2, 56, 0);
     if (spriteId != MAX_SPRITES)
     {
+        #if !MODERN
         gSprites[spriteId].sSpeed = 3 - (Random() % 7);
+        #else
+        gSprites[spriteId].sSpeed = 3 - Mod(Random(), 7);
+        #endif
         gSprites[spriteId].sAmplitude = 48 + (Random() & 0x3F);
         gSprites[spriteId].sTimer = 0;
         gSprites[spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
@@ -492,7 +496,7 @@ static void Task_Sparkles_SprayAndFlashTrade(u8 taskId)
 #undef tTimer
 #undef tSpecies
 
-static void SpriteCB_EvolutionMonSprite(struct Sprite* sprite)
+static void SpriteCB_EvolutionMonSprite(struct Sprite *sprite)
 {
 
 }

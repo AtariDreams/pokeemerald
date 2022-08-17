@@ -52,7 +52,7 @@ static void WCSS_AddTextPrinterParameterized(u8, u8, const u8 *, u8, u8, u8);
 static bool32 UpdateCommunicationCounts(u32 *, u32 *, u32 *, u8);
 
 static const u16 sBgTiles_Pal[] = INCBIN_U16("graphics/link/wireless_info_screen.gbapal");
-static const u32 sBgTiles_Gfx[] = INCBIN_U32("graphics/link/wireless_info_screen.4bpp.lz");
+static const u8 sBgTiles_Gfx[] = INCBIN_U8("graphics/link/wireless_info_screen.4bpp.lz");
 static const u32 sBgTiles_Tilemap[] = INCBIN_U32("graphics/link/wireless_info_screen.bin.lz");
 
 static const struct BgTemplate sBgTemplates[] = {
@@ -172,7 +172,7 @@ static void CB2_InitWirelessCommunicationScreen(void)
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
     sStatusScreen = AllocZeroed(sizeof(struct WirelessCommunicationStatusScreen));
     SetVBlankCallback(NULL);
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     SetBgTilemapBuffer(1, Alloc(BG_SCREEN_SIZE));
     SetBgTilemapBuffer(0, Alloc(BG_SCREEN_SIZE));
@@ -208,9 +208,13 @@ static void CB2_InitWirelessCommunicationScreen(void)
 
 static void CB2_ExitWirelessCommunicationStatusScreen(void)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
     FreeAllWindowBuffers();
-    for (i = 0; i < (int)ARRAY_COUNT(sBgTemplates); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sBgTemplates); i++)
     {
         Free(GetBgTilemapBuffer(i));
     }
@@ -237,7 +241,7 @@ static void PrintHeaderTexts(void)
     FillWindowPixelBuffer(1, PIXEL_FILL(0));
     FillWindowPixelBuffer(2, PIXEL_FILL(0));
     WCSS_AddTextPrinterParameterized(0, FONT_NORMAL, sHeaderTexts[0], GetStringCenterAlignXOffset(FONT_NORMAL, sHeaderTexts[0], 0xC0), 6, COLORMODE_GREEN);
-    for (i = 0; i < (int)ARRAY_COUNT(*sHeaderTexts) - 1; i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(*sHeaderTexts) - 1; i++)
     {
         WCSS_AddTextPrinterParameterized(1, FONT_NORMAL, sHeaderTexts[i + 1], 0, 30 * i + 8, COLORMODE_WHITE_LGRAY);
     }

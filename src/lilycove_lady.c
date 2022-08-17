@@ -34,7 +34,7 @@ static EWRAM_DATA struct LilycoveLadyFavor *sFavorLadyPtr = NULL;
 static EWRAM_DATA struct LilycoveLadyQuiz *sQuizLadyPtr = NULL;
 static EWRAM_DATA struct LilycoveLadyContest *sContestLadyPtr = NULL;
 
-extern EWRAM_DATA u16 gSpecialVar_ItemId;
+extern u16 gSpecialVar_ItemId;
 
 u8 GetLilycoveLadyId(void)
 {
@@ -357,7 +357,7 @@ u8 GetQuizLadyState(void)
 
 u8 GetQuizAuthor(void)
 {
-    s32 i, j;
+    m32 i, j;
     u8 authorNameId;
     struct LilycoveLadyQuiz *quiz = &gSaveBlock1Ptr->lilycoveLady.quiz;
 
@@ -366,7 +366,7 @@ u8 GetQuizAuthor(void)
         i = quiz->questionId;
         do
         {
-            if (++i >= (int)ARRAY_COUNT(sQuizLadyQuizQuestions))
+            if (++i >= (m32)ARRAY_COUNT(sQuizLadyQuizQuestions))
                 i = 0;
         } while (IsEasyChatAnswerUnlocked(sQuizLadyQuizAnswers[i]) == FALSE);
 
@@ -546,7 +546,7 @@ void QuizLadyTakePrizeForCustomQuiz(void)
 
 void QuizLadyRecordCustomQuizData(void)
 {
-    u8 i;
+    m8 i;
 
     sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
     sQuizLadyPtr->prize = gSpecialVar_ItemId;
@@ -589,7 +589,7 @@ void QuizLadyClearQuestionForRecordMix(const LilycoveLady *lilycoveLady)
             sQuizLadyPtr->questionId = Random() % ARRAY_COUNT(sQuizLadyQuizQuestions);
         }
         if (lilycoveLady->quiz.prevQuestionId == sQuizLadyPtr->questionId)
-            sQuizLadyPtr->questionId = (sQuizLadyPtr->questionId + 1) % (int)ARRAY_COUNT(sQuizLadyQuizQuestions);
+            sQuizLadyPtr->questionId = (sQuizLadyPtr->questionId + 1) % (m32)ARRAY_COUNT(sQuizLadyQuizQuestions);
 
         sQuizLadyPtr->prevQuestionId = lilycoveLady->quiz.prevQuestionId;
     }

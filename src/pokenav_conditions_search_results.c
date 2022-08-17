@@ -267,7 +267,7 @@ static u32 BuildPartyMonSearchResults(s32 state)
     item.boxId = TOTAL_BOXES_COUNT;
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        struct Pokemon * pokemon = &gPlayerParty[i];
+        struct Pokemon *pokemon = &gPlayerParty[i];
         if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES))
             return LT_INC_AND_CONTINUE;
         if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG))
@@ -393,7 +393,7 @@ bool32 OpenConditionSearchListFromGraph(void)
     return TRUE;
 }
 
-void CreateSearchResultsLoopedTask(s32 idx)
+void CreateSearchResultsLoopedTask(u32 idx)
 {
     struct Pokenav_SearchResultsGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_SEARCH_RESULTS_GFX);
     gfx->loopedTaskId = CreateLoopedTask(sSearchResultLoopTaskFuncs[idx], 1);
@@ -464,8 +464,8 @@ static u32 LoopedTask_OpenConditionSearchResults(s32 state)
         {
             u8 searchGfxId = GetSelectedConditionSearch() + POKENAV_MENUITEM_CONDITION_SEARCH_COOL;
             LoadLeftHeaderGfxForIndex(searchGfxId);
-            ShowLeftHeaderGfx(searchGfxId, 1, 0);
-            ShowLeftHeaderGfx(POKENAV_GFX_CONDITION_MENU, 1, 0);
+            ShowLeftHeaderGfx(searchGfxId, TRUE, FALSE);
+            ShowLeftHeaderGfx(POKENAV_GFX_CONDITION_MENU, TRUE, FALSE);
         }
         PokenavFadeScreen(POKENAV_FADE_FROM_BLACK);
         return LT_INC_AND_PAUSE;
@@ -697,7 +697,7 @@ static void BufferSearchMonListItem(struct PokenavMonListItem * item, u8 * dest)
     // Mon is in party
     if (item->boxId == TOTAL_BOXES_COUNT)
     {
-        struct Pokemon * mon = &gPlayerParty[item->monId];
+        struct Pokemon *mon = &gPlayerParty[item->monId];
         gender = GetMonGender(mon);
         level = GetLevelFromMonExp(mon);
         GetMonData(mon, MON_DATA_NICKNAME, gStringVar3);
@@ -715,14 +715,14 @@ static void BufferSearchMonListItem(struct PokenavMonListItem * item, u8 * dest)
     dest = GetStringClearToWidth(dest, FONT_NORMAL, gStringVar3, 60);
     switch (gender)
     {
-    default:
-        genderStr = sText_NoGenderSymbol;
-        break;
     case MON_MALE:
         genderStr = sText_MaleSymbol;
         break;
     case MON_FEMALE:
         genderStr = sText_FemaleSymbol;
+        break;
+    default:
+        genderStr = sText_NoGenderSymbol;
         break;
     }
     s = StringCopy(gStringVar1, genderStr);

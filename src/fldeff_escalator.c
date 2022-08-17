@@ -8,7 +8,12 @@
 
 static EWRAM_DATA u8 sEscalatorAnim_TaskId = 0;
 
+#if !MODERN
 static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatileMasks);
+#else
+static void SetEscalatorMetatile(u8 taskId, const u16 *metatileIds, u16 metatileMasks);
+#endif
+
 static void Task_DrawEscalator(u8 taskId);
 
 #define ESCALATOR_STAGES     3
@@ -63,13 +68,23 @@ static const u16 sEscalatorMetatiles_2F_2[ESCALATOR_STAGES] = {
 #define tPlayerX          data[4]
 #define tPlayerY          data[5]
 
+#if !MODERN
 static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatileMasks)
+#else
+static void SetEscalatorMetatile(u8 taskId, const u16 *metatileIds, u16 metatileMasks)
+#endif
 {
     s16 x = gTasks[taskId].tPlayerX - 1;
     s16 y = gTasks[taskId].tPlayerY - 1;
     s16 transitionStage = gTasks[taskId].tTransitionStage;
     s16 i;
     s16 j;
+
+    #if !MODERN
+    s16 metatileId;
+    #else
+    u16 metatileId;
+    #endif
 
     // Check all the escalator sections and only progress the selected one to the next stage
     if (!gTasks[taskId].tGoingUp)
@@ -78,7 +93,7 @@ static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatile
         {
             for (j = 0; j < 3; j++)
             {
-                s16 metatileId = MapGridGetMetatileIdAt(x + j, y + i);
+                metatileId = MapGridGetMetatileIdAt(x + j, y + i);
 
                 if (metatileIds[transitionStage] == metatileId)
                 {
@@ -96,7 +111,7 @@ static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatile
         {
             for (j = 0; j < 3; j++)
             {
-                s16 metatileId = MapGridGetMetatileIdAt(x + j, y + i);
+                metatileId = MapGridGetMetatileIdAt(x + j, y + i);
 
                 if (metatileIds[LAST_ESCALATOR_STAGE - transitionStage] == metatileId)
                 {

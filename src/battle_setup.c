@@ -400,7 +400,7 @@ void BattleSetup_StartBattlePikeWildBattle(void)
 
 static void DoStandardWildBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     FreezeObjectEvents();
     StopPlayerAvatar();
     gMain.savedCallback = CB2_EndWildBattle;
@@ -419,7 +419,7 @@ static void DoStandardWildBattle(void)
 
 void BattleSetup_StartRoamerBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     FreezeObjectEvents();
     StopPlayerAvatar();
     gMain.savedCallback = CB2_EndWildBattle;
@@ -433,7 +433,7 @@ void BattleSetup_StartRoamerBattle(void)
 
 static void DoSafariBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     FreezeObjectEvents();
     StopPlayerAvatar();
     gMain.savedCallback = CB2_EndSafariBattle;
@@ -443,7 +443,7 @@ static void DoSafariBattle(void)
 
 static void DoBattlePikeWildBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     FreezeObjectEvents();
     StopPlayerAvatar();
     gMain.savedCallback = CB2_EndWildBattle;
@@ -479,7 +479,7 @@ static void DoBattlePyramidTrainerHillBattle(void)
 void StartWallyTutorialBattle(void)
 {
     CreateMaleMon(&gEnemyParty[0], SPECIES_RALTS, 5);
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     gMain.savedCallback = CB2_ReturnToFieldContinueScriptPlayMapMusic;
     gBattleTypeFlags = BATTLE_TYPE_WALLY_TUTORIAL;
     CreateBattleStartTask(B_TRANSITION_SLICE, 0);
@@ -487,7 +487,7 @@ void StartWallyTutorialBattle(void)
 
 void BattleSetup_StartScriptedWildBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = 0;
     CreateBattleStartTask(GetWildBattleTransition(), 0);
@@ -499,7 +499,7 @@ void BattleSetup_StartScriptedWildBattle(void)
 
 void BattleSetup_StartLatiBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY;
     CreateBattleStartTask(GetWildBattleTransition(), 0);
@@ -511,7 +511,7 @@ void BattleSetup_StartLatiBattle(void)
 
 void BattleSetup_StartLegendaryBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY;
 
@@ -550,13 +550,16 @@ void BattleSetup_StartLegendaryBattle(void)
 
 void StartGroudonKyogreBattle(void)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_KYOGRE_GROUDON;
 
+    // Why is this check here if this is never true? Sadly it must be here to match. TODO: revisit this sometime
+    #if !MODERN
     if (gGameVersion == VERSION_RUBY)
         CreateBattleStartTask(B_TRANSITION_ANGLED_WIPES, MUS_VS_KYOGRE_GROUDON); // GROUDON
     else
+    #endif
         CreateBattleStartTask(B_TRANSITION_RIPPLE, MUS_VS_KYOGRE_GROUDON); // KYOGRE
 
     IncrementGameStat(GAME_STAT_TOTAL_BATTLES);
@@ -570,7 +573,7 @@ void StartRegiBattle(void)
     u8 transitionId;
     u16 species;
 
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     gMain.savedCallback = CB2_EndScriptedWildBattle;
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_REGI;
 
@@ -600,7 +603,7 @@ void StartRegiBattle(void)
 
 static void CB2_EndWildBattle(void)
 {
-    CpuFill16(0, (void*)(BG_PLTT), BG_PLTT_SIZE);
+    CpuFill16(0, (void *)(BG_PLTT), BG_PLTT_SIZE);
     ResetOamRange(0, 128);
 
     if (IsPlayerDefeated(gBattleOutcome) == TRUE && !InBattlePyramid() && !InBattlePike())
@@ -616,7 +619,7 @@ static void CB2_EndWildBattle(void)
 
 static void CB2_EndScriptedWildBattle(void)
 {
-    CpuFill16(0, (void*)(BG_PLTT), BG_PLTT_SIZE);
+    CpuFill16(0, (void *)(BG_PLTT), BG_PLTT_SIZE);
     ResetOamRange(0, 128);
 
     if (IsPlayerDefeated(gBattleOutcome) == TRUE)
@@ -686,6 +689,8 @@ u8 BattleSetup_GetTerrainId(void)
     }
     if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(ROUTE113) && gSaveBlock1Ptr->location.mapNum == MAP_NUM(ROUTE113))
         return BATTLE_TERRAIN_SAND;
+
+    // TODO: does this ever actually happen?
     if (GetSavedWeather() == WEATHER_SANDSTORM)
         return BATTLE_TERRAIN_SAND;
 
@@ -740,10 +745,12 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
 {
     u8 i;
     u8 sum;
-    u32 count = numMons;
+    u8 partySize;
 
-    if (gTrainers[opponentId].partySize < count)
-        count = gTrainers[opponentId].partySize;
+    partySize = gTrainers[opponentId].partySize;
+
+    if (partySize < numMons)
+        numMons = partySize;
 
     sum = 0;
 
@@ -753,7 +760,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonNoItemDefaultMoves *party;
             party = gTrainers[opponentId].party.NoItemDefaultMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -761,7 +768,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonNoItemCustomMoves *party;
             party = gTrainers[opponentId].party.NoItemCustomMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -769,7 +776,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonItemDefaultMoves *party;
             party = gTrainers[opponentId].party.ItemDefaultMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -777,7 +784,7 @@ static u8 GetSumOfEnemyPartyLevel(u16 opponentId, u8 numMons)
         {
             const struct TrainerMonItemCustomMoves *party;
             party = gTrainers[opponentId].party.ItemCustomMoves;
-            for (i = 0; i < count; i++)
+            for (i = 0; i < numMons; i++)
                 sum += party[i].lvl;
         }
         break;
@@ -915,11 +922,8 @@ void ChooseStarter(void)
 
 static void CB2_GiveStarter(void)
 {
-    u16 starterMon;
-
     *GetVarPointer(VAR_STARTER_MON) = gSpecialVar_Result;
-    starterMon = GetStarterPokemon(gSpecialVar_Result);
-    ScriptGiveMon(starterMon, 5, ITEM_NONE, 0, 0, 0);
+    ScriptGiveMon(GetStarterPokemon(gSpecialVar_Result), 5, ITEM_NONE, 0, 0, 0);
     ResetTasks();
     PlayBattleBGM();
     SetMainCallback2(CB2_StartFirstBattle);
@@ -1062,28 +1066,28 @@ static void TrainerBattleLoadArgs(const struct TrainerBattleParameter *specs, co
         switch (specs->ptrType)
         {
         case TRAINER_PARAM_LOAD_VAL_8BIT:
-            SetU8(specs->varPtr, TrainerBattleLoadArg8(data));
+            *(u8*)specs->varPtr = TrainerBattleLoadArg8(data);
             data += 1;
             break;
         case TRAINER_PARAM_LOAD_VAL_16BIT:
-            SetU16(specs->varPtr, TrainerBattleLoadArg16(data));
+            *(u16*)specs->varPtr = TrainerBattleLoadArg16(data);
             data += 2;
             break;
         case TRAINER_PARAM_LOAD_VAL_32BIT:
-            SetU32(specs->varPtr, TrainerBattleLoadArg32(data));
+            *(u32*)specs->varPtr = TrainerBattleLoadArg32(data);
             data += 4;
             break;
         case TRAINER_PARAM_CLEAR_VAL_8BIT:
-            SetU8(specs->varPtr, 0);
+            *(u8*)specs->varPtr = 0;
             break;
         case TRAINER_PARAM_CLEAR_VAL_16BIT:
-            SetU16(specs->varPtr, 0);
+            *(u16*)specs->varPtr = 0;
             break;
         case TRAINER_PARAM_CLEAR_VAL_32BIT:
-            SetU32(specs->varPtr, 0);
+            *(u32*)specs->varPtr = 0;
             break;
         case TRAINER_PARAM_LOAD_SCRIPT_RET_ADDR:
-            SetPtr(specs->varPtr, data);
+            *(const void**)specs->varPtr = data;
             return;
         }
         specs++;
@@ -1194,8 +1198,8 @@ void ConfigureAndSetUpOneTrainerBattle(u8 trainerObjEventId, const u8 *trainerSc
     gSelectedObjectEvent = trainerObjEventId;
     gSpecialVar_LastTalked = gObjectEvents[trainerObjEventId].localId;
     BattleSetup_ConfigureTrainerBattle(trainerScript + 1);
-    ScriptContext1_SetupScript(EventScript_StartTrainerApproach);
-    ScriptContext2_Enable();
+    ScriptContext_SetupScript(EventScript_StartTrainerApproach);
+    LockPlayerFieldControls();
 }
 
 void ConfigureTwoTrainersBattle(u8 trainerObjEventId, const u8 *trainerScript)
@@ -1207,13 +1211,13 @@ void ConfigureTwoTrainersBattle(u8 trainerObjEventId, const u8 *trainerScript)
 
 void SetUpTwoTrainersBattle(void)
 {
-    ScriptContext1_SetupScript(EventScript_StartTrainerApproach);
-    ScriptContext2_Enable();
+    ScriptContext_SetupScript(EventScript_StartTrainerApproach);
+    LockPlayerFieldControls();
 }
 
 bool32 GetTrainerFlagFromScriptPointer(const u8 *data)
 {
-    u32 flag = TrainerBattleLoadArg16(data + 2);
+    u16 flag = TrainerBattleLoadArg16(data + 2);
     return FlagGet(TRAINER_FLAGS_START + flag);
 }
 
@@ -1223,7 +1227,7 @@ bool32 GetTrainerFlagFromScriptPointer(const u8 *data)
 void SetTrainerFacingDirection(void)
 {
     struct ObjectEvent *objectEvent = &gObjectEvents[gSelectedObjectEvent];
-    SetTrainerMovementType(objectEvent, GetTrainerFacingDirectionMovementType(objectEvent->facingDirection));
+    SetTrainerMovementType(objectEvent, GetTrainerFacingDirectionMovementType(objectEvent->directions.regDir.facingDirection));
 }
 
 u8 GetTrainerBattleMode(void)
@@ -1320,7 +1324,7 @@ void BattleSetup_StartTrainerBattle(void)
     else
         DoTrainerBattle();
 
-    ScriptContext1_Stop();
+    ScriptContext_Stop();
 }
 
 static void CB2_EndTrainerBattle(void)
@@ -1371,14 +1375,14 @@ void BattleSetup_StartRematchBattle(void)
     gBattleTypeFlags = BATTLE_TYPE_TRAINER;
     gMain.savedCallback = CB2_EndRematchBattle;
     DoTrainerBattle();
-    ScriptContext1_Stop();
+    ScriptContext_Stop();
 }
 
 void ShowTrainerIntroSpeech(void)
 {
     if (InBattlePyramid())
     {
-        if (gNoOfApproachingTrainers == 0 || gNoOfApproachingTrainers == 1)
+        if (gNoOfApproachingTrainers < 2)
             CopyPyramidTrainerSpeechBefore(LocalIdToPyramidTrainerId(gSpecialVar_LastTalked));
         else
             CopyPyramidTrainerSpeechBefore(LocalIdToPyramidTrainerId(gObjectEvents[gApproachingTrainers[gApproachingTrainerId].objectEventId].localId));
@@ -1387,7 +1391,7 @@ void ShowTrainerIntroSpeech(void)
     }
     else if (InTrainerHillChallenge())
     {
-        if (gNoOfApproachingTrainers == 0 || gNoOfApproachingTrainers == 1)
+        if (gNoOfApproachingTrainers < 2)
             CopyTrainerHillTrainerText(TRAINER_HILL_TEXT_INTRO, LocalIdToHillTrainerId(gSpecialVar_LastTalked));
         else
             CopyTrainerHillTrainerText(TRAINER_HILL_TEXT_INTRO, LocalIdToHillTrainerId(gObjectEvents[gApproachingTrainers[gApproachingTrainerId].objectEventId].localId));
@@ -1402,11 +1406,12 @@ void ShowTrainerIntroSpeech(void)
 
 const u8 *BattleSetup_GetScriptAddrAfterBattle(void)
 {
-    if (sTrainerBattleEndScript != NULL)
-        return sTrainerBattleEndScript;
-    else
+    // Why is this check here? it should have been removed before shipping
+    if (sTrainerBattleEndScript == NULL)
         return EventScript_TestSignpostMsg;
+    return sTrainerBattleEndScript;
 }
+        
 
 const u8 *BattleSetup_GetTrainerPostBattleScript(void)
 {
@@ -1492,6 +1497,7 @@ void PlayTrainerEncounterMusic(void)
             break;
         default:
             music = MUS_ENCOUNTER_SUSPICIOUS;
+            break;
         }
         PlayNewMapMusic(music);
     }
@@ -1616,7 +1622,12 @@ static bool32 UpdateRandomTrainerRematches(const struct RematchTrainer *table, u
                 ret = TRUE;
             }
             else if (FlagGet(FLAG_MATCH_CALL_REGISTERED + i)
+            // Should be < 30, since it is 0 based. Documentation says 30%. Error makes it 31%
+            #if !MODERN
              && (Random() % 100) <= 30)  // 31% chance of getting a rematch.
+            #else
+            && Mod(Random(), 10) < 3)
+            #endif
             {
                 SetRematchIdForTrainer(table, i);
                 ret = TRUE;
@@ -1739,6 +1750,7 @@ static void ClearTrainerWantRematchState(const struct RematchTrainer *table, u16
 
 static u32 GetTrainerMatchCallFlag(u32 trainerId)
 {
+    // should be u32 or u16
     s32 i;
 
     for (i = 0; i < REMATCH_TABLE_ENTRIES; i++)
@@ -1754,6 +1766,7 @@ static void RegisterTrainerInMatchCall(void)
 {
     if (FlagGet(FLAG_HAS_MATCH_CALL))
     {
+        // Should be u16
         u32 matchCallFlagId = GetTrainerMatchCallFlag(gTrainerBattleOpponent_A);
         if (matchCallFlagId != 0xFFFF)
             FlagSet(matchCallFlagId);

@@ -33,6 +33,8 @@
 #define SOUND_MODE_DA_BIT_8     0x00900000
 #define SOUND_MODE_DA_BIT_7     0x00A00000
 #define SOUND_MODE_DA_BIT_6     0x00B00000
+#define SOUND_MODE_DA_BIT_VAL   0x00300000
+#define SOUND_MODE_DA_BIT_SET   0x00800000
 #define SOUND_MODE_DA_BIT       0x00B00000
 #define SOUND_MODE_DA_BIT_SHIFT 20
 
@@ -171,7 +173,7 @@ struct SoundChannel
 struct MusicPlayerInfo;
 
 typedef void (*MPlayFunc)();
-typedef void (*PlyNoteFunc)(u32, struct MusicPlayerInfo *, struct MusicPlayerTrack *);
+typedef void (*PlyNoteFunc)(u8, struct MusicPlayerInfo *, struct MusicPlayerTrack *);
 typedef void (*CgbSoundFunc)(void);
 typedef void (*CgbOscOffFunc)(u8);
 typedef u32 (*MidiKeyToCgbFreqFunc)(u8, u8, u8);
@@ -199,9 +201,11 @@ struct SoundInfo
     u8 pcmDmaPeriod; // number of V-blanks per PCM DMA
     u8 maxLines;
     u8 gap[3];
-    s32 pcmSamplesPerVBlank;
-    s32 pcmFreq;
-    s32 divFreq;
+    
+    //These 3 should be u32 but something is not matching
+    m32 pcmSamplesPerVBlank;
+    m32 pcmFreq;
+    m32 divFreq;
     struct CgbChannel *cgbChans;
     MPlayMainFunc MPlayMainHead;
     struct MusicPlayerInfo *musicPlayerHead;
@@ -275,30 +279,19 @@ struct MusicPlayerTrack
     u8 key;
     u8 velocity;
     u8 runningStatus;
-    u8 keyM;
-    u8 pitM;
-    s8 keyShift;
-    s8 keyShiftX;
-    s8 tune;
-    u8 pitX;
-    s8 bend;
-    u8 bendRange;
-    u8 volMR;
-    u8 volML;
-    u8 vol;
-    u8 volX;
-    s8 pan;
-    s8 panX;
+    s8 keyM; u8 pitM;
+    s8 keyShift; s8 keyShiftX;
+    s8 tune; u8 pitX;
+    s8 bend; u8 bendRange;
+    u8 volMR; u8 volML;
+    u8 vol; u8 volX;
+    s8 pan; s8 panX;
     s8 modM;
-    u8 mod;
-    u8 modT;
-    u8 lfoSpeed;
-    u8 lfoSpeedC;
-    u8 lfoDelay;
-    u8 lfoDelayC;
+    u8 mod; u8 modT;
+    u8 lfoSpeed; u8 lfoSpeedC;
+    u8 lfoDelay; u8 lfoDelayC;
     u8 priority;
-    u8 pseudoEchoVolume;
-    u8 pseudoEchoLength;
+    u8 pseudoEchoVolume; u8 pseudoEchoLength;
     struct SoundChannel *chan;
     struct ToneData tone;
     u8 gap[10];
@@ -338,6 +331,7 @@ struct MusicPlayerInfo
     u16 fadeOI;
     u16 fadeOC;
     u16 fadeOV;
+    u16 dummy; // Needed because of type punning BS
     struct MusicPlayerTrack *tracks;
     struct ToneData *tone;
     u32 ident;
@@ -349,7 +343,8 @@ struct MusicPlayer
 {
     struct MusicPlayerInfo *info;
     struct MusicPlayerTrack *track;
-    u8 numTracks;
+
+    u16 numTracks;
     u16 unk_A;
 };
 
@@ -405,7 +400,11 @@ extern char gMaxLines[];
 #define NUM_MUSIC_PLAYERS ((u16)gNumMusicPlayers)
 #define MAX_LINES ((u32)gMaxLines)
 
+#if !MODERN
 u32 umul3232H32(u32 multiplier, u32 multiplicand);
+#else
+u32 umul3232H32(u32 multiplier, u32 multiplicand, u32 multiplier1, u32 multiplicand2);
+#endif
 void SoundMain(void);
 void SoundMainBTM(void);
 void TrackStop(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track);
@@ -414,7 +413,7 @@ void RealClearChain(void *x);
 
 void MPlayContinue(struct MusicPlayerInfo *mplayInfo);
 void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader);
-void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo);
+void MPlayStop(struct MusicPlayerInfo *mplayInfo);
 void FadeOutBody(struct MusicPlayerInfo *mplayInfo);
 void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track);
 void MPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed);
@@ -477,7 +476,7 @@ void ply_tune(struct MusicPlayerInfo *, struct MusicPlayerTrack *);
 void ply_port(struct MusicPlayerInfo *, struct MusicPlayerTrack *);
 void ply_xcmd(struct MusicPlayerInfo *, struct MusicPlayerTrack *);
 void ply_endtie(struct MusicPlayerInfo *, struct MusicPlayerTrack *);
-void ply_note(u32 note_cmd, struct MusicPlayerInfo *, struct MusicPlayerTrack *);
+void ply_note(u8 note_cmd, struct MusicPlayerInfo *, struct MusicPlayerTrack *);
 
 // extended sound command handler functions
 void ply_xxx(struct MusicPlayerInfo *, struct MusicPlayerTrack *);

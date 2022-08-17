@@ -108,8 +108,8 @@ static void Task_MixingRecordsRecv(u8);
 static void Task_SendPacket(u8);
 static void Task_CopyReceiveBuffer(u8);
 static void Task_SendPacket_SwitchToReceive(u8);
-static void *LoadPtrFromTaskData(const u16 *);
-static void StorePtrInTaskData(void *, u16 *);
+static void *LoadPtrFromTaskData(const s16 *);
+static void StorePtrInTaskData(void *, s16 *);
 static u8 GetMultiplayerId_(void);
 static void *GetPlayerRecvBuffer(u8);
 static void ReceiveOldManData(OldMan *, size_t, u8);
@@ -262,7 +262,11 @@ static void ReceiveExchangePacket(u32 multiplayerId)
         ReceiveTvShowsData(sReceivedRecords->ruby.tvShows, sizeof(sReceivedRecords->ruby), multiplayerId);
         ReceivePokeNewsData(sReceivedRecords->ruby.pokeNews, sizeof(sReceivedRecords->ruby), multiplayerId);
         ReceiveOldManData(&sReceivedRecords->ruby.oldMan, sizeof(sReceivedRecords->ruby), multiplayerId);
+        #if !MODERN
         ReceiveDewfordTrendData(sReceivedRecords->ruby.dewfordTrends, sizeof(sReceivedRecords->ruby), multiplayerId);
+        #else
+        ReceiveDewfordTrendData(sReceivedRecords->ruby.dewfordTrends, sizeof(sReceivedRecords->ruby));
+        #endif
         ReceiveGiftItem(&sReceivedRecords->ruby.giftItem, multiplayerId);
     }
     else
@@ -273,7 +277,11 @@ static void ReceiveExchangePacket(u32 multiplayerId)
         ReceiveTvShowsData(sReceivedRecords->emerald.tvShows, sizeof(sReceivedRecords->emerald), multiplayerId);
         ReceivePokeNewsData(sReceivedRecords->emerald.pokeNews, sizeof(sReceivedRecords->emerald), multiplayerId);
         ReceiveOldManData(&sReceivedRecords->emerald.oldMan, sizeof(sReceivedRecords->emerald), multiplayerId);
+        #if !MODERN
         ReceiveDewfordTrendData(sReceivedRecords->emerald.dewfordTrends, sizeof(sReceivedRecords->emerald), multiplayerId);
+        #else
+        ReceiveDewfordTrendData(sReceivedRecords->emerald.dewfordTrends, sizeof(sReceivedRecords->emerald));
+        #endif
         ReceiveDaycareMailData(&sReceivedRecords->emerald.daycareMail, sizeof(sReceivedRecords->emerald), multiplayerId, sReceivedRecords->emerald.tvShows);
         ReceiveBattleTowerData(&sReceivedRecords->emerald.battleTowerRecord, sizeof(sReceivedRecords->emerald), multiplayerId);
         ReceiveGiftItem(&sReceivedRecords->emerald.giftItem, multiplayerId);
@@ -363,7 +371,7 @@ static void Task_RecordMixing_Main(u8 taskId)
             SetLinkWaitingForScript();
             if (gWirelessCommType != 0)
                 CreateTask(Task_ReturnToFieldRecordMixing, 10);
-            ClearDialogWindowAndFrame(0, 1);
+            ClearDialogWindowAndFrame(0, TRUE);
             DestroyTask(taskId);
             EnableBothScriptContexts();
         }
@@ -580,15 +588,15 @@ static void Task_SendPacket_SwitchToReceive(u8 taskId)
     sReadyToReceive = TRUE;
 }
 
-static void *LoadPtrFromTaskData(const u16 *asShort)
+static void *LoadPtrFromTaskData(const s16 *asShort)
 {
-    return (void *)(asShort[0] | (asShort[1] << 16));
+    return (void *)((u16)asShort[0] | ((u16)asShort[1] << 16));
 }
 
-static void StorePtrInTaskData(void *records, u16 *asShort)
+static void StorePtrInTaskData(void *records, s16 *asShort)
 {
-    asShort[0] = (u32)records;
-    asShort[1] = ((u32)records >> 16);
+    asShort[0] = (s16)(u32)records;
+    asShort[1] = (s16)((u32)records >> 16);
 }
 
 static u8 GetMultiplayerId_(void)
@@ -635,7 +643,7 @@ static void ReceiveOldManData(OldMan *records, size_t recordSize, u8 multiplayer
 
     ShufflePlayerIndices(mixIndices);
     oldMan = (void *)records + recordSize * mixIndices[multiplayerId];
-    version = gLinkPlayers[mixIndices[multiplayerId]].version;
+    version = gLinkPlayers[mixIndices[multiplayerId]].version & 0xFF;
     language = gLinkPlayers[mixIndices[multiplayerId]].language;
 
     if (Link_AnyPartnersPlayingRubyOrSapphire())
@@ -765,9 +773,11 @@ static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, size
     struct RecordMixingDaycareMail *mixMail;
     u8 playerSlot1, playerSlot2;
     void *ptr;
+    #if !MODERN
     u8 unusedArr1[MAX_LINK_PLAYERS];
     u8 unusedArr2[MAX_LINK_PLAYERS];
     struct RecordMixingDaycareMail *unusedMixMail[MAX_LINK_PLAYERS];
+    #endif
     bool8 canHoldItem[MAX_LINK_PLAYERS][DAYCARE_MON_COUNT];
     u8 idxs[MAX_LINK_PLAYERS][2];
     u8 numDaycareCanHold;
@@ -782,8 +792,10 @@ static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, size
     linkPlayerCount = GetLinkPlayerCount();
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
+        #if !MODERN
         unusedArr1[i] = 0xFF;
         unusedArr2[i] = 0;
+        #endif
         canHoldItem[i][0] = FALSE;
         canHoldItem[i][1] = FALSE;
     }
@@ -904,7 +916,7 @@ static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, size
             // Both daycare slots can hold an item, choose which one to use.
             // If either one is the only one to have associated mail, use that one.
             // If both do or don't have associated mail, choose one randomly.
-            u32 itemId1, itemId2;
+            u8 itemId1, itemId2;
             idxs[j][MULTIPLAYER_ID] = i;
             itemId1 = GetDaycareMailItemId(&mixMail->mail[0]);
             itemId2 = GetDaycareMailItemId(&mixMail->mail[1]);
@@ -920,12 +932,14 @@ static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, size
         }
     }
 
+    #if !MODERN
     // Copy the player's record mix mail 4 times to an array that's never read.
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
         mixMail = &records[multiplayerId * recordSize];
         unusedMixMail[i] = mixMail;
     }
+    #endif
 
     // Choose a random table id to determine who will
     // swap if there are more than 2 candidate players.
@@ -1171,10 +1185,11 @@ static void ReceiveApprenticeData(struct Apprentice *records, size_t recordSize,
     s32 i, numApprentices, apprenticeId;
     struct Apprentice *mixApprentice;
     u32 mixIndices[MAX_LINK_PLAYERS];
-    u32 apprenticeSaveId;
+    // Maybe this should be unsigned but it involves i so maybe it should be signed
+    s32 apprenticeSaveId;
 
     ShufflePlayerIndices(mixIndices);
-    mixApprentice = (void*)records + (recordSize * mixIndices[multiplayerId]);
+    mixApprentice = (void *)records + (recordSize * mixIndices[multiplayerId]);
     numApprentices = 0;
     apprenticeId = 0;
     for (i = 0; i < 2; i++)

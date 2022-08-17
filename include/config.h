@@ -19,8 +19,10 @@
 
 #ifdef ENGLISH
 #define UNITS_IMPERIAL
+#define CHAR_DEC_SEPARATOR CHAR_PERIOD // Period is used as a decimal separator only in the UK and the US.
 #else
 #define UNITS_METRIC
+#define CHAR_DEC_SEPARATOR CHAR_COMMA
 #endif
 
 // Uncomment to fix some identified minor bugs
@@ -28,10 +30,21 @@
 
 // Various undefined behavior bugs may or may not prevent compilation with
 // newer compilers. So always fix them when using a modern compiler.
-#if MODERN || defined(BUGFIX)
+#if MODERN
+#ifndef BUGFIX
+#define BUGFIX
+#endif
 #ifndef UBFIX
 #define UBFIX
 #endif
-#endif
 
+#ifndef M_IF
+#define M_IF else if
+#endif
+#else
+
+#ifndef M_IF
+#define M_IF if
+#endif
+#endif
 #endif // GUARD_CONFIG_H

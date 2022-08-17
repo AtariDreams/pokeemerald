@@ -1,4 +1,16 @@
 #include "global.h"
+#include "time_events.h"
+#include "credits.h"
+#include "load_save.h"
+#include "script_pokemon_util.h"
+#include "constants/heal_locations.h"
+#include "pokedex.h"
+#include "hall_of_fame.h"
+#include "main.h"
+#include "palette.h"
+#include "script.h"
+#include "script_menu.h"
+#include "constants/rgb.h"
 #include "malloc.h"
 #include "battle.h"
 #include "battle_tower.h"
@@ -34,8 +46,6 @@
 #include "rayquaza_scene.h"
 #include "region_map.h"
 #include "rtc.h"
-#include "script.h"
-#include "script_menu.h"
 #include "sound.h"
 #include "starter_choose.h"
 #include "string_util.h"
@@ -64,26 +74,6 @@
 #include "constants/battle_frontier.h"
 #include "constants/weather.h"
 #include "constants/metatile_labels.h"
-#include "palette.h"
-
-EWRAM_DATA bool8 gBikeCyclingChallenge = FALSE;
-EWRAM_DATA u8 gBikeCollisions = 0;
-static EWRAM_DATA u32 sBikeCyclingTimer = 0;
-static EWRAM_DATA u8 sSlidingDoorNextFrameCounter = 0;
-static EWRAM_DATA u8 sSlidingDoorFrame = 0;
-static EWRAM_DATA u8 sTutorMoveAndElevatorWindowId = 0;
-static EWRAM_DATA u16 sLilycoveDeptStore_NeverRead = 0;
-static EWRAM_DATA u16 sLilycoveDeptStore_DefaultFloorChoice = 0;
-static EWRAM_DATA struct ListMenuItem *sScrollableMultichoice_ListMenuItem = NULL;
-static EWRAM_DATA u16 sScrollableMultichoice_ScrollOffset = 0;
-static EWRAM_DATA u16 sFrontierExchangeCorner_NeverRead = 0;
-static EWRAM_DATA u8 sScrollableMultichoice_ItemSpriteId = 0;
-static EWRAM_DATA u8 sBattlePointsWindowId = 0;
-static EWRAM_DATA u8 sFrontierExchangeCorner_ItemIconWindowId = 0;
-static EWRAM_DATA u8 sPCBoxToSendMon = 0;
-static EWRAM_DATA u32 sBattleTowerMultiBattleTypeFlags = 0;
-
-struct ListMenuTemplate gScrollableMultichoice_ListMenuTemplate;
 
 void TryLoseFansFromPlayTime(void);
 void SetPlayerGotFirstFans(void);
@@ -110,7 +100,7 @@ static void ShowBattleFrontierTutorWindow(u8, u16);
 static void InitScrollableMultichoice(void);
 static void ScrollableMultichoice_ProcessInput(u8);
 static void ScrollableMultichoice_UpdateScrollArrows(u8);
-static void ScrollableMultichoice_MoveCursor(s32, bool8, struct ListMenu *);
+static void ScrollableMultichoice_MoveCursor(u32, bool8);
 static void HideFrontierExchangeCornerItemIcon(u16, u16);
 static void ShowBattleFrontierTutorMoveDescription(u8, u16);
 static void CloseScrollableMultichoice(u8);
@@ -129,17 +119,346 @@ static void SetInitialFansOfPlayer(void);
 static u16 PlayerGainRandomTrainerFan(void);
 static void BufferFanClubTrainerName_(struct LinkBattleRecords *, u8, u8);
 
+EWRAM_DATA bool8 gBikeCyclingChallenge = FALSE;
+EWRAM_DATA u8 gBikeCollisions = 0;
+static EWRAM_DATA u32 sBikeCyclingTimer = 0;
+static EWRAM_DATA u8 sSlidingDoorNextFrameCounter = 0;
+static EWRAM_DATA u8 sSlidingDoorFrame = 0;
+static EWRAM_DATA u8 sTutorMoveAndElevatorWindowId = 0;
+static EWRAM_DATA u16 sLilycoveDeptStore_NeverRead = 0;
+static EWRAM_DATA u16 sLilycoveDeptStore_DefaultFloorChoice = 0;
+static EWRAM_DATA struct ListMenuItem *sScrollableMultichoice_ListMenuItem = NULL;
+static EWRAM_DATA u16 sScrollableMultichoice_ScrollOffset = 0;
+static EWRAM_DATA u16 sFrontierExchangeCorner_NeverRead = 0;
+static EWRAM_DATA u8 sScrollableMultichoice_ItemSpriteId = 0;
+static EWRAM_DATA u8 sBattlePointsWindowId = 0;
+static EWRAM_DATA u8 sFrontierExchangeCorner_ItemIconWindowId = 0;
+static EWRAM_DATA u8 sPCBoxToSendMon = 0;
+static EWRAM_DATA u32 sBattleTowerMultiBattleTypeFlags = 0;
+
+struct ListMenuTemplate gScrollableMultichoice_ListMenuTemplate;
+
+u8 GameClear(void)
+{
+    int i;
+    bool32 ribbonGet;
+    struct RibbonCounter {
+        u8 partyIndex;
+        u8 count;
+    } ribbonCounts[6];
+
+    HealPlayerParty();
+
+    if (FlagGet(FLAG_SYS_GAME_CLEAR) == TRUE)
+    {
+        gHasHallOfFameRecords = TRUE;
+    }
+    else
+    {
+        gHasHallOfFameRecords = FALSE;
+        FlagSet(FLAG_SYS_GAME_CLEAR);
+    }
+
+    if (GetGameStat(GAME_STAT_FIRST_HOF_PLAY_TIME) == 0)
+        SetGameStat(GAME_STAT_FIRST_HOF_PLAY_TIME, (gSaveBlock2Ptr->playTimeHours << 16) | (gSaveBlock2Ptr->playTimeMinutes << 8) | gSaveBlock2Ptr->playTimeSeconds);
+
+    SetContinueGameWarpStatus();
+
+    if (gSaveBlock2Ptr->playerGender == MALE)
+        SetContinueGameWarpToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F);
+    else
+        SetContinueGameWarpToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE_2F);
+
+    ribbonGet = FALSE;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+
+        ribbonCounts[i].partyIndex = i;
+        ribbonCounts[i].count = 0;
+
+        if (GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES)
+         && !GetMonData(mon, MON_DATA_SANITY_IS_EGG)
+         && !GetMonData(mon, MON_DATA_CHAMPION_RIBBON))
+        {
+            #if MODERN
+            u8 val = TRUE;
+            SetMonData(mon, MON_DATA_CHAMPION_RIBBON, &val);
+            #else
+            u8 val[1] = {TRUE};
+            SetMonData(mon, MON_DATA_CHAMPION_RIBBON, val);
+            #endif
+
+            ribbonCounts[i].count = GetRibbonCount(mon);
+            ribbonGet = TRUE;
+        }
+    }
+
+    if (ribbonGet == TRUE)
+    {
+        IncrementGameStat(GAME_STAT_RECEIVED_RIBBONS);
+        FlagSet(FLAG_SYS_RIBBON_GET);
+
+        for (i = 1; i < 6; i++)
+        {
+            if (ribbonCounts[i].count > ribbonCounts[0].count)
+            {
+                struct RibbonCounter prevBest = ribbonCounts[0];
+                ribbonCounts[0] = ribbonCounts[i];
+                ribbonCounts[i] = prevBest;
+            }
+        }
+
+        if (ribbonCounts[0].count > NUM_CUTIES_RIBBONS)
+        {
+            TryPutSpotTheCutiesOnAir(&gPlayerParty[ribbonCounts[0].partyIndex], MON_DATA_CHAMPION_RIBBON);
+        }
+    }
+
+    SetMainCallback2(CB2_DoHallOfFameScreen);
+    return 0;
+}
+
+bool8 SetCB2WhiteOut(void)
+{
+    SetMainCallback2(CB2_WhiteOut);
+    return FALSE;
+}
+
+static u32 GetMirageRnd(void)
+{
+    u16 hi = VarGet(VAR_MIRAGE_RND_H);
+    u16 lo = VarGet(VAR_MIRAGE_RND_L);
+    return (hi << 16) | lo;
+}
+
+static void SetMirageRnd(u32 rnd)
+{
+    VarSet(VAR_MIRAGE_RND_H, rnd >> 16);
+    VarSet(VAR_MIRAGE_RND_L, rnd & 0xFFFF);
+}
+
+// unused
+void InitMirageRnd(void)
+{
+    SetMirageRnd((Random() << 16) | Random());
+}
+
+void UpdateMirageRnd(u16 days)
+{
+    u32 rnd = GetMirageRnd();
+    while (days)
+    {
+        rnd = ISO_RANDOMIZE2(rnd);
+        days--;
+    }
+    SetMirageRnd(rnd);
+}
+
+bool8 IsMirageIslandPresent(void)
+{
+    u16 rnd = GetMirageRnd() >> 16;
+    int i;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) && (GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY) & 0xFFFF) == rnd)
+            return TRUE;
+
+    return FALSE;
+}
+
+void UpdateShoalTideFlag(void)
+{
+    static const u8 tide[] =
+    {
+        1, // 00
+        1, // 01
+        1, // 02
+        0, // 03
+        0, // 04
+        0, // 05
+        0, // 06
+        0, // 07
+        0, // 08
+        1, // 09
+        1, // 10
+        1, // 11
+        1, // 12
+        1, // 13
+        1, // 14
+        0, // 15
+        0, // 16
+        0, // 17
+        0, // 18
+        0, // 19
+        0, // 20
+        1, // 21
+        1, // 22
+        1, // 23
+    };
+
+    if (IsMapTypeOutdoors(GetLastUsedWarpMapType()))
+    {
+        RtcCalcLocalTime();
+        if (tide[gLocalTime.hours])
+            FlagSet(FLAG_SYS_SHOAL_TIDE);
+        else
+            FlagClear(FLAG_SYS_SHOAL_TIDE);
+    }
+}
+
+static void Task_WaitWeather(u8 taskId)
+{
+    if (IsWeatherChangeComplete())
+    {
+        EnableBothScriptContexts();
+        DestroyTask(taskId);
+    }
+}
+
+void WaitWeather(void)
+{
+    CreateTask(Task_WaitWeather, 80);
+}
+
+void InitBirchState(void)
+{
+    *GetVarPointer(VAR_BIRCH_STATE) = 0;
+}
+
+void UpdateBirchState(u16 days)
+{
+    u16 *state = GetVarPointer(VAR_BIRCH_STATE);
+    *state += days;
+    *state %= 7;
+}
+
+bool16 ScriptGetPokedexInfo(void)
+{
+    if (gSpecialVar_0x8004 == 0) // is national dex not present?
+    {
+        gSpecialVar_0x8005 = GetHoennPokedexCount(FLAG_GET_SEEN);
+        gSpecialVar_0x8006 = GetHoennPokedexCount(FLAG_GET_CAUGHT);
+    }
+    else
+    {
+        gSpecialVar_0x8005 = GetNationalPokedexCount(FLAG_GET_SEEN);
+        gSpecialVar_0x8006 = GetNationalPokedexCount(FLAG_GET_CAUGHT);
+    }
+
+    return IsNationalPokedexEnabled();
+}
+
+// This shows your Hoenn Pokedex rating and not your National Dex.
+const u8 *GetPokedexRatingText(u16 count)
+{
+    if (count < 10)
+        return gBirchDexRatingText_LessThan10;
+    if (count < 20)
+        return gBirchDexRatingText_LessThan20;
+    if (count < 30)
+        return gBirchDexRatingText_LessThan30;
+    if (count < 40)
+        return gBirchDexRatingText_LessThan40;
+    if (count < 50)
+        return gBirchDexRatingText_LessThan50;
+    if (count < 60)
+        return gBirchDexRatingText_LessThan60;
+    if (count < 70)
+        return gBirchDexRatingText_LessThan70;
+    if (count < 80)
+        return gBirchDexRatingText_LessThan80;
+    if (count < 90)
+        return gBirchDexRatingText_LessThan90;
+    if (count < 100)
+        return gBirchDexRatingText_LessThan100;
+    if (count < 110)
+        return gBirchDexRatingText_LessThan110;
+    if (count < 120)
+        return gBirchDexRatingText_LessThan120;
+    if (count < 130)
+        return gBirchDexRatingText_LessThan130;
+    if (count < 140)
+        return gBirchDexRatingText_LessThan140;
+    if (count < 150)
+        return gBirchDexRatingText_LessThan150;
+    if (count < 160)
+        return gBirchDexRatingText_LessThan160;
+    if (count < 170)
+        return gBirchDexRatingText_LessThan170;
+    if (count < 180)
+        return gBirchDexRatingText_LessThan180;
+    if (count < 190)
+        return gBirchDexRatingText_LessThan190;
+    if (count < 200)
+        return gBirchDexRatingText_LessThan200;
+    if (count == 200)
+    {
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_JIRACHI), FLAG_GET_CAUGHT)
+         || GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_DEOXYS), FLAG_GET_CAUGHT)) // Jirachi or Deoxys is not counted towards the dex completion. If either of these flags are enabled, it means the actual count is less than 200.
+            return gBirchDexRatingText_LessThan200;
+        return gBirchDexRatingText_DexCompleted;
+    }
+    if (count == HOENN_DEX_COUNT - 1)
+    {
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_JIRACHI), FLAG_GET_CAUGHT)
+         && GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_DEOXYS), FLAG_GET_CAUGHT)) // If both of these flags are enabled, it means the actual count is less than 200.
+            return gBirchDexRatingText_LessThan200;
+        return gBirchDexRatingText_DexCompleted;
+    }
+    if (count == HOENN_DEX_COUNT)
+        return gBirchDexRatingText_DexCompleted;
+    return gBirchDexRatingText_LessThan10;
+}
+
+void ShowPokedexRatingMessage(void)
+{
+    ShowFieldMessage(GetPokedexRatingText(gSpecialVar_0x8004));
+}
+
+static void ReshowPCMenuAfterHallOfFamePC(void);
+static void Task_WaitForPaletteFade(u8);
+
+void AccessHallOfFamePC(void)
+{
+    SetMainCallback2(CB2_DoHallOfFamePC);
+    ScriptContext2_Enable();
+}
+
+void ReturnFromHallOfFamePC(void)
+{
+    SetMainCallback2(CB2_ReturnToField);
+    gFieldCallback = ReshowPCMenuAfterHallOfFamePC;
+}
+
+static void ReshowPCMenuAfterHallOfFamePC(void)
+{
+    ScriptContext2_Enable();
+    Overworld_PlaySpecialMapMusic();
+    ScriptMenu_CreatePCMultichoice();
+    ScriptMenu_DisplayPCStartupPrompt();
+    BeginNormalPaletteFade(PALETTES_ALL, 0, 0x10, 0, RGB_BLACK);
+    CreateTask(Task_WaitForPaletteFade, 10);
+}
+
+static void Task_WaitForPaletteFade(u8 taskId)
+{
+    if (!gPaletteFade.active)
+        DestroyTask(taskId);
+}
+
 void Special_ShowDiploma(void)
 {
     SetMainCallback2(CB2_ShowDiploma);
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
 }
 
 void Special_ViewWallClock(void)
 {
     gMain.savedCallback = CB2_ReturnToField;
     SetMainCallback2(CB2_ViewWallClock);
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
 }
 
 void ResetCyclingRoadChallengeData(void)
@@ -156,7 +475,7 @@ void Special_BeginCyclingRoadChallenge(void)
     sBikeCyclingTimer = gMain.vblankCounter1;
 }
 
-u16 GetPlayerAvatarBike(void)
+u8 GetPlayerAvatarBike(void)
 {
     if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_ACRO_BIKE))
         return 1;
@@ -182,7 +501,7 @@ static void DetermineCyclingRoadResults(u32 numFrames, u8 numBikeCollisions)
     if (numFrames < 3600)
     {
         ConvertIntToDecimalStringN(gStringVar2, numFrames / 60, STR_CONV_MODE_RIGHT_ALIGN, 2);
-        gStringVar2[2] = CHAR_PERIOD;
+        gStringVar2[2] = CHAR_DEC_SEPARATOR;
         ConvertIntToDecimalStringN(&gStringVar2[3], ((numFrames % 60) * 100) / 60, STR_CONV_MODE_LEADING_ZEROS, 2);
         StringAppend(gStringVar2, gText_SpaceSeconds);
     }
@@ -233,7 +552,8 @@ static void RecordCyclingRoadResults(u32 numFrames, u8 numBikeCollisions)
 
     if (framesRecord > numFrames || framesRecord == 0)
     {
-        VarSet(VAR_CYCLING_ROAD_RECORD_TIME_L, numFrames);
+        // & 0xFFFF is not needed but just in case
+        VarSet(VAR_CYCLING_ROAD_RECORD_TIME_L, numFrames & 0xFFFF);
         VarSet(VAR_CYCLING_ROAD_RECORD_TIME_H, numFrames >> 16);
         VarSet(VAR_CYCLING_ROAD_RECORD_COLLISIONS, numBikeCollisions);
     }
@@ -248,7 +568,7 @@ u16 GetRecordedCyclingRoadResults(void)
     if (framesRecord == 0)
         return FALSE;
 
-    DetermineCyclingRoadResults(framesRecord, VarGet(VAR_CYCLING_ROAD_RECORD_COLLISIONS));
+    DetermineCyclingRoadResults(framesRecord, (u8)VarGet(VAR_CYCLING_ROAD_RECORD_COLLISIONS));
     return TRUE;
 }
 
@@ -284,7 +604,9 @@ bool32 CountSSTidalStep(u16 delta)
     return TRUE;
 }
 
-u8 GetSSTidalLocation(s8 *mapGroup, s8 *mapNum, s16 *x, s16 *y)
+// TODO: look into s8 vs u8 pointers
+
+u8 GetSSTidalLocation(u8 *mapGroup, u8 *mapNum, s16 *x, s16 *y)
 {
     u16 *varCruiseStepCount = GetVarPointer(VAR_CRUISE_STEP_COUNT);
     switch (*GetVarPointer(VAR_SS_TIDAL_STATE))
@@ -351,12 +673,13 @@ bool32 ShouldDoWallyCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_WALLY_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
             break;
         default:
             return FALSE;
         }
+
+        if (++(*GetVarPointer(VAR_WALLY_CALL_STEP_COUNTER)) < 250)
+            return FALSE;
     }
     else
     {
@@ -376,12 +699,12 @@ bool32 ShouldDoScottFortreeCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_SCOTT_FORTREE_CALL_STEP_COUNTER)) < 10)
-                return FALSE;
             break;
         default:
             return FALSE;
         }
+        if (++(*GetVarPointer(VAR_SCOTT_FORTREE_CALL_STEP_COUNTER)) < 10)
+            return FALSE;
     }
     else
     {
@@ -426,12 +749,14 @@ bool32 ShouldDoRoxanneCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_ROXANNE_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
+
             break;
         default:
             return FALSE;
         }
+
+        if (++(*GetVarPointer(VAR_ROXANNE_CALL_STEP_COUNTER)) < 250)
+            return FALSE;
     }
     else
     {
@@ -451,12 +776,12 @@ bool32 ShouldDoRivalRayquazaCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_RIVAL_RAYQUAZA_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
             break;
         default:
             return FALSE;
         }
+        if (++(*GetVarPointer(VAR_RIVAL_RAYQUAZA_CALL_STEP_COUNTER)) < 250)
+            return FALSE;
     }
     else
     {
@@ -532,7 +857,7 @@ void SpawnLinkPartnerObjectEvent(void)
     {
         if (myLinkPlayerNumber != i)
         {
-            switch ((u8)gLinkPlayers[i].version)
+            switch (gLinkPlayers[i].version & 0xFF)
             {
             case VERSION_RUBY:
             case VERSION_SAPPHIRE:
@@ -717,12 +1042,11 @@ void MauvilleGymSetDefaultBarriers(void)
 // Presses all switches and deactivates all beams.
 void MauvilleGymDeactivatePuzzle(void)
 {
-    int i, x, y;
-    const struct UCoords8 *switchCoords = sMauvilleGymSwitchCoords;
-    for (i = ARRAY_COUNT(sMauvilleGymSwitchCoords) - 1; i >= 0; i--)
+    int x, y;
+    // should have been u32 for y;
+    for (y = 0; y < (m32)ARRAY_COUNT(sMauvilleGymSwitchCoords); y++)
     {
-        MapGridSetMetatileIdAt(switchCoords->x, switchCoords->y, METATILE_MauvilleGym_PressedSwitch);
-        switchCoords++;
+        MapGridSetMetatileIdAt(sMauvilleGymSwitchCoords[y].x, sMauvilleGymSwitchCoords[y].y, METATILE_MauvilleGym_PressedSwitch);
     }
     for (y = 5 + MAP_OFFSET; y < 17 + MAP_OFFSET; y++)
     {
@@ -757,10 +1081,12 @@ void MauvilleGymDeactivatePuzzle(void)
             case METATILE_MauvilleGym_GreenBeamV1_On:
                 MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_PoleBottom_On | MAPGRID_COLLISION_MASK);
                 break;
+            case METATILE_MauvilleGym_GreenBeamV2_On:
+                MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_FloorTile);
+                break;
             case METATILE_MauvilleGym_RedBeamV1_On:
                 MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_PoleBottom_Off | MAPGRID_COLLISION_MASK);
                 break;
-            case METATILE_MauvilleGym_GreenBeamV2_On:
             case METATILE_MauvilleGym_RedBeamV2_On:
                 MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_FloorTile);
                 break;
@@ -885,8 +1211,8 @@ void ShowFieldMessageStringVar4(void)
 
 void StorePlayerCoordsInVars(void)
 {
-    gSpecialVar_0x8004 = gSaveBlock1Ptr->pos.x;
-    gSpecialVar_0x8005 = gSaveBlock1Ptr->pos.y;
+    gSpecialVar_0x8004 = (u16)gSaveBlock1Ptr->pos.x;
+    gSpecialVar_0x8005 = (u16)gSaveBlock1Ptr->pos.y;
 }
 
 u8 GetPlayerTrainerIdOnesDigit(void)
@@ -939,6 +1265,7 @@ u16 GetWeekCount(void)
 
 u8 GetLeadMonFriendshipScore(void)
 {
+    // TODO: should I do this or do the array of whatever value this function is?
     struct Pokemon *pokemon = &gPlayerParty[GetLeadMonIndex()];
     if (GetMonData(pokemon, MON_DATA_FRIENDSHIP) == MAX_FRIENDSHIP)
         return 6;
@@ -1131,18 +1458,29 @@ void EndLotteryCornerComputerEffect(void)
 
 void SetTrickHouseNuggetFlag(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
-    *specVar = flag;
-    FlagSet(flag);
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
+    // *specVar = flag;
+    // FlagSet(flag);
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET - 500;
+    gSpecialVar_0x8004 += 500;
+
+    FlagSet(gSpecialVar_0x8004);
 }
 
 void ResetTrickHouseNuggetFlag(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
-    *specVar = flag;
-    FlagClear(flag);
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET;
+    // *specVar = flag;
+    // FlagClear(flag);
+
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_TRICK_HOUSE_NUGGET - 500;
+    gSpecialVar_0x8004 += 500;
+
+    FlagClear(gSpecialVar_0x8004);
 }
 
 bool8 CheckLeadMonCool(void)
@@ -1231,7 +1569,7 @@ u8 GetPokeblockNameByMonNature(void)
 
 void GetSecretBaseNearbyMapName(void)
 {
-    GetMapName(gStringVar1, VarGet(VAR_SECRET_BASE_MAP), 0);
+    CopyMapName(gStringVar1, VarGet(VAR_SECRET_BASE_MAP), 0);
 }
 
 u16 GetBestBattleTowerStreak(void)
@@ -1285,44 +1623,70 @@ u16 GetSlotMachineId(void)
 
 bool8 FoundAbandonedShipRoom1Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_1_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
-        return FALSE;
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_1_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    //     return FALSE;
 
+    // return TRUE;
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_1_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
+        return FALSE;
     return TRUE;
 }
 
 bool8 FoundAbandonedShipRoom2Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_2_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
-        return FALSE;
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_2_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    //     return FALSE;
 
+    // return TRUE;
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_2_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
+        return FALSE;
     return TRUE;
 }
 
 bool8 FoundAbandonedShipRoom4Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_4_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
-        return FALSE;
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_4_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    //     return FALSE;
 
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_4_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
+        return FALSE;
     return TRUE;
 }
 
 bool8 FoundAbandonedShipRoom6Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_6_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
+     // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_6_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    // return FALSE;
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_6_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
         return FALSE;
+    
 
     return TRUE;
 }
@@ -1373,10 +1737,12 @@ u8 TryUpdateRusturfTunnelState(void)
     return FALSE;
 }
 
+#if !MODERN
 void SetShoalItemFlag(u16 unused)
 {
     FlagSet(FLAG_SYS_SHOAL_ITEM);
 }
+#endif
 
 void PutZigzagoonInPlayerParty(void)
 {
@@ -1412,7 +1778,7 @@ bool8 ScriptCheckFreePokemonStorageSpace(void)
 
 bool8 IsPokerusInParty(void)
 {
-    if (!CheckPartyPokerus(gPlayerParty, 0x3f))
+    if (!CheckPartyPokerus(gPlayerParty, (1 << PARTY_SIZE) - 1))
         return FALSE;
 
     return TRUE;
@@ -1825,7 +2191,7 @@ void ShowDeptStoreElevatorFloorSelect(void)
     int xPos;
 
     sTutorMoveAndElevatorWindowId = AddWindow(&gElevatorFloor_WindowTemplate);
-    SetStandardWindowBorderStyle(sTutorMoveAndElevatorWindowId, 0);
+    SetStandardWindowBorderStyle(sTutorMoveAndElevatorWindowId, FALSE);
 
     xPos = GetStringCenterAlignXOffset(FONT_NORMAL, gText_ElevatorNowOn, 64);
     AddTextPrinterParameterized(sTutorMoveAndElevatorWindowId, FONT_NORMAL, gText_ElevatorNowOn, xPos, 1, TEXT_SKIP_DRAW, NULL);
@@ -1921,8 +2287,7 @@ void BufferVarsForIVRater(void)
         }
         else if (ivStorage[gSpecialVar_0x8006] == ivStorage[i])
         {
-            u16 randomNumber = Random();
-            if (randomNumber & 1)
+            if (Random() % 2)
             {
                 gSpecialVar_0x8006 = i;
                 gSpecialVar_0x8007 = ivStorage[i];
@@ -2471,12 +2836,12 @@ static const u8 *const sScrollableMultichoiceOptions[][MAX_SCROLL_MULTI_LENGTH] 
 
 static void Task_ShowScrollableMultichoice(u8 taskId)
 {
-    u32 width;
+    int width;
     u8 i, windowId;
     struct WindowTemplate template;
     struct Task *task = &gTasks[taskId];
 
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     sScrollableMultichoice_ScrollOffset = 0;
     sScrollableMultichoice_ItemSpriteId = MAX_SPRITES;
     FillFrontierExchangeCornerWindowAndItemIcon(task->tScrollMultiId, 0);
@@ -2507,7 +2872,7 @@ static void Task_ShowScrollableMultichoice(u8 taskId)
     template = CreateWindowTemplate(0, task->tLeft, task->tTop, task->tWidth, task->tHeight, 0xF, 0x64);
     windowId = AddWindow(&template);
     task->tWindowId = windowId;
-    SetStandardWindowBorderStyle(windowId, 0);
+    SetStandardWindowBorderStyle(windowId, FALSE);
 
     gScrollableMultichoice_ListMenuTemplate.totalItems = task->tNumItems;
     gScrollableMultichoice_ListMenuTemplate.maxShowed = task->tMaxItemsOnScreen;
@@ -2541,7 +2906,7 @@ static void InitScrollableMultichoice(void)
     gScrollableMultichoice_ListMenuTemplate.cursorKind = 0;
 }
 
-static void ScrollableMultichoice_MoveCursor(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void ScrollableMultichoice_MoveCursor(u32 itemIndex, bool8 onInit)
 {
     u8 taskId;
     PlaySE(SE_SELECT);
@@ -2606,7 +2971,7 @@ static void CloseScrollableMultichoice(u8 taskId)
     ScrollableMultichoice_RemoveScrollArrows(taskId);
     DestroyListMenuTask(task->tListTaskId, NULL, NULL);
     Free(sScrollableMultichoice_ListMenuItem);
-    ClearStdWindowAndFrameToTransparent(task->tWindowId, 1);
+    ClearStdWindowAndFrameToTransparent(task->tWindowId, TRUE);
     FillWindowPixelBuffer(task->tWindowId, PIXEL_FILL(0));
     CopyWindowToVram(task->tWindowId, COPYWIN_GFX);
     RemoveWindow(task->tWindowId);
@@ -2620,7 +2985,6 @@ static void Task_ScrollableMultichoice_WaitReturnToList(u8 taskId)
     switch (gTasks[taskId].tKeepOpenAfterSelect)
     {
     case 1:
-    default:
         break;
     case 2:
         gTasks[taskId].tKeepOpenAfterSelect = 1;
@@ -2641,7 +3005,7 @@ void ScrollableMultichoice_TryReturnToList(void)
 
 static void Task_ScrollableMultichoice_ReturnToList(u8 taskId)
 {
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     ScrollableMultichoice_UpdateScrollArrows(taskId);
     gTasks[taskId].func = ScrollableMultichoice_ProcessInput;
 }
@@ -2694,6 +3058,7 @@ void ShowGlassWorkshopMenu(void)
 void SetBattleTowerLinkPlayerGfx(void)
 {
     u8 i;
+    // one can make 2 loops instead...
     for (i = 0; i < 2; i++)
     {
         if (gLinkPlayers[i].gender == MALE)
@@ -2830,7 +3195,7 @@ void FrontierGamblerSetWonOrLost(bool8 won)
 void UpdateBattlePointsWindow(void)
 {
     u8 string[32];
-    u32 x;
+    s32 x;
     StringCopy(ConvertIntToDecimalStringN(string, gSaveBlock2Ptr->frontier.battlePoints, STR_CONV_MODE_RIGHT_ALIGN, 4), gText_BP);
     x = GetStringRightAlignXOffset(FONT_NORMAL, string, 48);
     AddTextPrinterParameterized(sBattlePointsWindowId, FONT_NORMAL, string, x, 1, 0, NULL);
@@ -2850,7 +3215,7 @@ void ShowBattlePointsWindow(void)
     };
 
     sBattlePointsWindowId = AddWindow(&sBattlePoints_WindowTemplate);
-    SetStandardWindowBorderStyle(sBattlePointsWindowId, 0);
+    SetStandardWindowBorderStyle(sBattlePointsWindowId, FALSE);
     UpdateBattlePointsWindow();
     CopyWindowToVram(sBattlePointsWindowId, COPYWIN_GFX);
 }
@@ -2896,7 +3261,7 @@ void ShowFrontierExchangeCornerItemIconWindow(void)
     };
 
     sFrontierExchangeCorner_ItemIconWindowId = AddWindow(&sFrontierExchangeCorner_ItemIconWindowTemplate);
-    SetStandardWindowBorderStyle(sFrontierExchangeCorner_ItemIconWindowId, 0);
+    SetStandardWindowBorderStyle(sFrontierExchangeCorner_ItemIconWindowId, FALSE);
     CopyWindowToVram(sFrontierExchangeCorner_ItemIconWindowId, COPYWIN_GFX);
 }
 
@@ -2918,7 +3283,7 @@ static void FillFrontierExchangeCornerWindowAndItemIcon(u16 menu, u16 selection)
         switch (menu)
         {
         case SCROLL_MULTI_BF_EXCHANGE_CORNER_DECOR_VENDOR_1:
-            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_Decor1Descriptions[selection], 0, NULL, 2, 1, 3);
+            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_Decor1Descriptions[selection], 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             if (sFrontierExchangeCorner_Decor1[selection] == 0xFFFF)
             {
                 ShowFrontierExchangeCornerItemIcon(sFrontierExchangeCorner_Decor1[selection]);
@@ -2931,7 +3296,7 @@ static void FillFrontierExchangeCornerWindowAndItemIcon(u16 menu, u16 selection)
             }
             break;
         case SCROLL_MULTI_BF_EXCHANGE_CORNER_DECOR_VENDOR_2:
-            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_Decor2Descriptions[selection], 0, NULL, 2, 1, 3);
+            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_Decor2Descriptions[selection], 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             if (sFrontierExchangeCorner_Decor2[selection] == 0xFFFF)
             {
                 ShowFrontierExchangeCornerItemIcon(sFrontierExchangeCorner_Decor2[selection]);
@@ -2944,11 +3309,11 @@ static void FillFrontierExchangeCornerWindowAndItemIcon(u16 menu, u16 selection)
             }
             break;
         case SCROLL_MULTI_BF_EXCHANGE_CORNER_VITAMIN_VENDOR:
-            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_VitaminsDescriptions[selection], 0, NULL, 2, 1, 3);
+            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_VitaminsDescriptions[selection], 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             ShowFrontierExchangeCornerItemIcon(sFrontierExchangeCorner_Vitamins[selection]);
             break;
         case SCROLL_MULTI_BF_EXCHANGE_CORNER_HOLD_ITEM_VENDOR:
-            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_HoldItemsDescriptions[selection], 0, NULL, 2, 1, 3);
+            AddTextPrinterParameterized2(0, FONT_NORMAL, sFrontierExchangeCorner_HoldItemsDescriptions[selection], 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             ShowFrontierExchangeCornerItemIcon(sFrontierExchangeCorner_HoldItems[selection]);
             break;
         }
@@ -2969,6 +3334,7 @@ static void ShowFrontierExchangeCornerItemIcon(u16 item)
     }
 }
 
+// TODO: make checks in this function move to before caller of function?
 static void HideFrontierExchangeCornerItemIcon(u16 menu, u16 unused)
 {
     if (sScrollableMultichoice_ItemSpriteId != MAX_SPRITES)
@@ -3040,7 +3406,7 @@ static void ShowBattleFrontierTutorWindow(u8 menu, u16 selection)
         if (gSpecialVar_0x8006 == 0)
         {
             sTutorMoveAndElevatorWindowId = AddWindow(&sBattleFrontierTutor_WindowTemplate);
-            SetStandardWindowBorderStyle(sTutorMoveAndElevatorWindowId, 0);
+            SetStandardWindowBorderStyle(sTutorMoveAndElevatorWindowId, FALSE);
         }
         ShowBattleFrontierTutorMoveDescription(menu, selection);
     }
@@ -3104,7 +3470,7 @@ void ScrollableMultichoice_RedrawPersistentMenu(void)
     {
         struct Task *task = &gTasks[taskId];
         ListMenuGetScrollAndRow(task->tListTaskId, &scrollOffset, &selectedRow);
-        SetStandardWindowBorderStyle(task->tWindowId, 0);
+        SetStandardWindowBorderStyle(task->tWindowId, FALSE);
 
         for (i = 0; i < MAX_SCROLL_MULTI_ON_SCREEN; i++)
             AddTextPrinterParameterized5(task->tWindowId, FONT_NORMAL, sScrollableMultichoiceOptions[gSpecialVar_0x8004][scrollOffset + i], 10, i * 16, TEXT_SKIP_DRAW, NULL, 0, 0);
@@ -3127,29 +3493,23 @@ void GetBattleFrontierTutorMoveIndex(void)
 
     if (moveTutor != 0)
     {
-        i = 0;
-        do
-        {
+        for (i = 0; i < TUTOR_MOVE_COUNT; i++) {
             if (gTutorMoves[i] == sBattleFrontier_TutorMoves2[moveIndex])
             {
                 gSpecialVar_0x8005 = i;
-                break;
+                return;
             }
-            i++;
-        } while (i < TUTOR_MOVE_COUNT);
+        }
     }
     else
     {
-        i = 0;
-        do
-        {
+        for (i = 0; i < TUTOR_MOVE_COUNT; i++) {
             if (gTutorMoves[i] == sBattleFrontier_TutorMoves1[moveIndex])
             {
                 gSpecialVar_0x8005 = i;
-                break;
+                return;
             }
-            i++;
-        } while (i < TUTOR_MOVE_COUNT);
+        }
     }
 }
 
@@ -3230,6 +3590,7 @@ static void Task_DeoxysRockInteraction(u8 taskId)
         gSpecialVar_Result = 3;
         EnableBothScriptContexts();
         DestroyTask(taskId);
+        return;
     }
     else
     {
@@ -3244,13 +3605,15 @@ static void Task_DeoxysRockInteraction(u8 taskId)
             VarSet(VAR_DEOXYS_ROCK_LEVEL, 0);
             gSpecialVar_Result = 0;
             DestroyTask(taskId);
+            return;
         }
-        else if (rockLevel == 10)
+        if (rockLevel == 10)
         {
             FlagSet(FLAG_DEOXYS_ROCK_COMPLETE);
             gSpecialVar_Result = 2;
             EnableBothScriptContexts();
             DestroyTask(taskId);
+            return;
         }
         else
         {
@@ -3314,6 +3677,8 @@ void IncrementBirthIslandRockStepCount(void)
 
 void SetDeoxysRockPalette(void)
 {
+    // GF code said LoadPalette( &triangle_Palette[pos*16], PA_OBJ10, 0x08 );
+    // Where did the * 16 go?!
     LoadPalette(&sDeoxysRockPalettes[(u8)VarGet(VAR_DEOXYS_ROCK_LEVEL)], 0x1A0, 8);
     BlendPalettes(0x04000000, 16, 0);
 }
@@ -3374,12 +3739,15 @@ void CreateAbnormalWeatherEvent(void)
     if (FlagGet(FLAG_DEFEATED_KYOGRE) == TRUE)
     {
         VarSet(VAR_ABNORMAL_WEATHER_LOCATION, (randomValue % TERRA_CAVE_LOCATIONS) + TERRA_CAVE_LOCATIONS_START);
+        return;
     }
-    else if (FlagGet(FLAG_DEFEATED_GROUDON) == TRUE)
+    if (FlagGet(FLAG_DEFEATED_GROUDON) == TRUE)
     {
         VarSet(VAR_ABNORMAL_WEATHER_LOCATION, (randomValue % MARINE_CAVE_LOCATIONS) + MARINE_CAVE_LOCATIONS_START);
+        return;
     }
-    else if ((randomValue & 1) == 0)
+    
+    if ((randomValue & 1) == 0)
     {
         randomValue = Random();
         VarSet(VAR_ABNORMAL_WEATHER_LOCATION, (randomValue % TERRA_CAVE_LOCATIONS) + TERRA_CAVE_LOCATIONS_START);
@@ -3416,7 +3784,7 @@ bool32 GetAbnormalWeatherMapNameAndType(void)
 
     u16 abnormalWeather = VarGet(VAR_ABNORMAL_WEATHER_LOCATION);
 
-    GetMapName(gStringVar1, sAbnormalWeatherMapNumbers[abnormalWeather - 1], 0);
+    CopyMapName(gStringVar1, sAbnormalWeatherMapNumbers[abnormalWeather - 1], 0);
 
     if (abnormalWeather < MARINE_CAVE_LOCATIONS_START)
         return FALSE;
@@ -3511,7 +3879,7 @@ void Unused_SetWeatherSunny(void)
 }
 
 // All mart employees have a local id of 1, so function always returns 1
-u32 GetMartEmployeeObjectEventId(void)
+u16 GetMartEmployeeObjectEventId(void)
 {
     static const u8 sPokeMarts[][3] =
     {
@@ -3553,7 +3921,7 @@ bool32 IsTrainerRegistered(void)
 }
 
 // Always returns FALSE
-bool32 ShouldDistributeEonTicket(void)
+bool16 ShouldDistributeEonTicket(void)
 {
     if (!VarGet(VAR_DISTRIBUTE_EON_TICKET))
         return FALSE;
@@ -3938,7 +4306,7 @@ u8 TryGainNewFanFromCounter(u8 incrementId)
 
     if (VarGet(VAR_LILYCOVE_FAN_CLUB_STATE) == 2)
     {
-        if (GET_TRAINER_FAN_CLUB_COUNTER + sCounterIncrements[incrementId] > 19)
+        if (GET_TRAINER_FAN_CLUB_COUNTER + sCounterIncrements[incrementId] >= 20)
         {
             if (GetNumFansOfPlayerInTrainerFanClub() < 3)
             {
@@ -4072,7 +4440,7 @@ void TryLoseFansFromPlayTime(void)
             }
             else if (gSaveBlock2Ptr->playTimeHours - gSaveBlock1Ptr->vars[VAR_FANCLUB_LOSE_FAN_TIMER - VARS_START] < 12)
             {
-                return;
+                break;
             }
             PlayerLoseRandomTrainerFan();
             gSaveBlock1Ptr->vars[VAR_FANCLUB_LOSE_FAN_TIMER - VARS_START] += 12;
@@ -4192,5 +4560,5 @@ void SetPlayerGotFirstFans(void)
 // return value is always ignored
 u8 Script_TryGainNewFanFromCounter(void)
 {
-    return TryGainNewFanFromCounter(gSpecialVar_0x8004);
+    return TryGainNewFanFromCounter((u8)gSpecialVar_0x8004);
 }

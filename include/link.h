@@ -129,7 +129,7 @@ struct LinkStatus
 #define SLAVE_HANDSHAKE   0xB9A0
 #define EREADER_HANDSHAKE 0xCCD0
 
-#define SIO_MULTI_CNT ((struct SioMultiCnt *)REG_ADDR_SIOCNT)
+#define SIO_MULTI_CNT ((struct SioMultiCnt * volatile)REG_ADDR_SIOCNT)
 
 enum
 {
@@ -297,7 +297,7 @@ void ConvertLinkPlayerName(struct LinkPlayer *linkPlayer);
 void ClearSavedLinkPlayers(void);
 void SetLinkErrorBuffer(u32 status, u8 lastSendQueueCount, u8 lastRecvQueueCount, bool8 disconnected);
 void LocalLinkPlayerToBlock(void);
-void LinkPlayerFromBlock(u32 who);
+void LinkPlayerFromBlock(u32 who_);
 bool32 Link_AnyPartnersPlayingFRLG_JP(void);
 void ResetLinkPlayerCount(void);
 void SaveLinkPlayers(u8 playerCount);

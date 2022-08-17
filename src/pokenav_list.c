@@ -55,11 +55,13 @@ struct PokenavListSub
     struct Sprite *upArrow;
     struct Sprite *downArrow;
     u8 itemTextBuffer[64];
+    // should be tileMap buffer be here or the list? GF says here
 };
 
 struct PokenavList
 {
     struct PokenavListSub sub;
+    // PRET says here
     u8 tilemapBuffer[BG_SCREEN_SIZE];
     struct PokenavListWindowState windowState;
     s32 eraseIndex;
@@ -72,7 +74,7 @@ static void InitPokenavListWindowState(struct PokenavListWindowState *, struct P
 static void SpriteCB_UpArrow(struct Sprite *);
 static void SpriteCB_DownArrow(struct Sprite *);
 static void SpriteCB_RightArrow(struct Sprite *);
-static void ToggleListArrows(struct PokenavListSub *, u32);
+static void ToggleListArrows(struct PokenavListSub *, bool32);
 static void DestroyListArrows(struct PokenavListSub *);
 static void CreateListArrowSprites(struct PokenavListWindowState *, struct PokenavListSub *);
 static void LoadListArrowGfx(void);
@@ -94,9 +96,7 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32);
 static u32 LoopedTask_PrintCheckPageInfo(s32);
 
 static const u16 sListArrow_Pal[] = INCBIN_U16("graphics/pokenav/list_arrows.gbapal");
-static const u32 sListArrow_Gfx[] = INCBIN_U32("graphics/pokenav/list_arrows.4bpp.lz");
-
-static EWRAM_DATA u32 sMoveWindowDownIndex = 0; // Read, but pointlessly
+static const u8 sListArrow_Gfx[] = INCBIN_U8("graphics/pokenav/list_arrows.4bpp.lz");
 
 bool32 CreatePokenavList(const struct BgTemplate *bgTemplate, struct PokenavListTemplate *listTemplate, s32 tileOffset)
 {
@@ -272,17 +272,19 @@ static void MoveListWindow(s32 delta, bool32 printItems)
     if (delta < 0)
     {
         if (windowState->windowTopIndex + delta < 0)
-            delta = -1 * windowState->windowTopIndex;
+            delta = -windowState->windowTopIndex;
         if (printItems)
             PrintListItems(windowState->listPtr, windowState->windowTopIndex + delta, delta * -1, windowState->listItemSize, delta, &list->sub);
     }
     else if (printItems)
     {
-        s32 index = sMoveWindowDownIndex = windowState->windowTopIndex + windowState->entriesOnscreen;
-        if (index + delta >= windowState->listLength)
-            delta = windowState->listLength - index;
+        // This is pointlessly static as it is reassigned every time, so why bother?
+        static EWRAM_DATA s32 sMoveWindowDownIndex = 0;
+        sMoveWindowDownIndex = windowState->windowTopIndex + windowState->entriesOnscreen;
+        if (sMoveWindowDownIndex + delta >= windowState->listLength)
+            delta = windowState->listLength - sMoveWindowDownIndex;
 
-        PrintListItems(windowState->listPtr, index, delta, windowState->listItemSize, windowState->entriesOnscreen, &list->sub);
+        PrintListItems(windowState->listPtr, sMoveWindowDownIndex, delta, windowState->listItemSize, windowState->entriesOnscreen, &list->sub);
     }
 
     CreateMoveListWindowTask(delta, &list->sub);
@@ -293,10 +295,7 @@ static void CreateMoveListWindowTask(s32 delta, struct PokenavListSub *list)
 {
     list->startBgY = GetBgY(list->listWindow.bg);
     list->endBgY = list->startBgY + (delta << 12);
-    if (delta > 0)
-        list->bgMoveType = BG_COORD_ADD;
-    else
-        list->bgMoveType = BG_COORD_SUB;
+    list->bgMoveType = (delta > 0) ? BG_COORD_ADD : BG_COORD_SUB;
     list->moveDelta = delta;
     list->loopedTaskId = CreateLoopedTask(LoopedTask_MoveListWindow, 6);
 }
@@ -311,9 +310,9 @@ static u32 LoopedTask_MoveListWindow(s32 state)
     switch (state)
     {
     case 0:
-        if (!IsPrintListItemsTaskActive())
-            return LT_INC_AND_CONTINUE;
-        return LT_PAUSE;
+        if (IsPrintListItemsTaskActive())
+            return LT_PAUSE;
+        return LT_INC_AND_CONTINUE;
     case 1:
         finished = FALSE;
         oldY = GetBgY(subPtr->listWindow.bg);
@@ -416,11 +415,11 @@ int PokenavList_PageDown(void)
 
     if (ShouldShowDownArrow())
     {
-        s32 windowBottomIndex = windowState->windowTopIndex + windowState->entriesOnscreen;
-        s32 scroll = windowState->entriesOffscreen - windowState->windowTopIndex;
-
-        if (windowBottomIndex <= windowState->entriesOffscreen)
+        s32 scroll;
+        if (windowState->windowTopIndex + windowState->entriesOnscreen <= windowState->entriesOffscreen)
             scroll = windowState->entriesOnscreen;
+        else
+            scroll = windowState->entriesOffscreen - windowState->windowTopIndex;
         MoveListWindow(scroll, TRUE);
         return 2;
     }
@@ -503,7 +502,7 @@ static u32 LoopedTask_EraseListForCheckPage(s32 state)
     switch (state)
     {
     case 0:
-        ToggleListArrows(&list->sub, 1);
+        ToggleListArrows(&list->sub, TRUE);
         // fall-through
     case 1:
         if (list->eraseIndex != list->windowState.selectedIndexOffset)
@@ -656,7 +655,7 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32 state)
             return LT_INC_AND_CONTINUE;
         return LT_SET_STATE(4);
     case 6:
-        ToggleListArrows(subPtr, 0);
+        ToggleListArrows(subPtr, FALSE);
         return LT_FINISH;
     }
 
@@ -665,7 +664,7 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32 state)
 
 static void EraseListEntry(struct PokenavListMenuWindow *listWindow, s32 offset, s32 entries)
 {
-    u8 *tileData = (u8*)GetWindowAttribute(listWindow->windowId, WINDOW_TILE_DATA);
+    u8 *tileData = (u8 *)GetWindowAttribute(listWindow->windowId, WINDOW_TILE_DATA);
     u32 width = listWindow->width * 64;
 
     offset = (listWindow->unkA + offset) & 0xF;
@@ -694,7 +693,7 @@ static void EraseListEntry(struct PokenavListMenuWindow *listWindow, s32 offset,
 static void SetListMarginTile(struct PokenavListMenuWindow *listWindow, bool32 draw)
 {
     u16 var;
-    u16 *tilemapBuffer = (u16*)GetBgTilemapBuffer(GetWindowAttribute(listWindow->windowId, WINDOW_BG));
+    u16 *tilemapBuffer = (u16 *)GetBgTilemapBuffer(GetWindowAttribute(listWindow->windowId, WINDOW_BG));
     tilemapBuffer += (listWindow->unkA << 6) + listWindow->x - 1;
 
     if (draw)
@@ -934,7 +933,7 @@ static void SpriteCB_UpArrow(struct Sprite *sprite)
         sprite->sTimer = 0;
         offset = (sprite->sOffset + 1) & 7;
         sprite->sOffset = offset;
-        sprite->y2 = -1 * offset;
+        sprite->y2 = -offset;
     }
 }
 

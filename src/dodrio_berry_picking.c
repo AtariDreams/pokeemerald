@@ -323,7 +323,7 @@ static bool32 TryPickBerry(u8, u8, u8);
 static void UpdateFallingBerries(void);
 static void UpdateGame_Leader(void);
 static void UpdateGame_Member(void);
-static void GetActiveBerryColumns(u8, u8*, u8*);
+static void GetActiveBerryColumns(u8, u8 *, u8 *);
 static bool32 AllPlayersReadyToStart(void);
 static void ResetReadyToStart(void);
 static bool32 ReadyToEndGame_Leader(void);
@@ -552,7 +552,7 @@ static const u8 sUnsharedColumns[MAX_RFU_PLAYERS][MAX_RFU_PLAYERS] =
 };
 
 // Duplicate and unused gfx. Feel free to remove.
-static const u32 sDuplicateGfx[] = INCBIN_U32("graphics/dodrio_berry_picking/bg.gbapal",
+static const u8 sDuplicateGfx[] = INCBIN_U8("graphics/dodrio_berry_picking/bg.gbapal",
                                      "graphics/dodrio_berry_picking/tree_border.gbapal",
                                      "graphics/dodrio_berry_picking/dodrio.gbapal",
                                      "graphics/dodrio_berry_picking/shiny.gbapal",
@@ -1795,7 +1795,7 @@ static void VBlankCB_DodrioGame(void)
     ProcessSpriteCopyRequests();
 }
 
-static void InitMonInfo(struct DodrioGame_MonInfo * monInfo, struct Pokemon * mon)
+static void InitMonInfo(struct DodrioGame_MonInfo * monInfo, struct Pokemon *mon)
 {
     monInfo->isShiny = IsMonShiny(mon);
 }
@@ -3592,13 +3592,13 @@ static const u16 sDodrioNormal_Pal[]        = INCBIN_U16("graphics/dodrio_berry_
 static const u16 sDodrioShiny_Pal[]         = INCBIN_U16("graphics/dodrio_berry_picking/shiny.gbapal");
 static const u16 sStatus_Pal[]              = INCBIN_U16("graphics/dodrio_berry_picking/status.gbapal");
 static const u16 sBerries_Pal[]             = INCBIN_U16("graphics/dodrio_berry_picking/berries.gbapal");
-static const u32 sBerries_Gfx[]             = INCBIN_U32("graphics/dodrio_berry_picking/berries.4bpp.lz");
+static const u8 sBerries_Gfx[]             = INCBIN_U8("graphics/dodrio_berry_picking/berries.4bpp.lz");
 static const u16 sCloud_Pal[]               = INCBIN_U16("graphics/dodrio_berry_picking/cloud.gbapal");
-static const u32 sBg_Gfx[]                  = INCBIN_U32("graphics/dodrio_berry_picking/bg.4bpp.lz");
-static const u32 sTreeBorder_Gfx[]          = INCBIN_U32("graphics/dodrio_berry_picking/tree_border.4bpp.lz");
-static const u32 sStatus_Gfx[]              = INCBIN_U32("graphics/dodrio_berry_picking/status.4bpp.lz");
-static const u32 sCloud_Gfx[]               = INCBIN_U32("graphics/dodrio_berry_picking/cloud.4bpp.lz");
-static const u32 sDodrio_Gfx[]              = INCBIN_U32("graphics/dodrio_berry_picking/dodrio.4bpp.lz");
+static const u8 sBg_Gfx[]                  = INCBIN_U8("graphics/dodrio_berry_picking/bg.4bpp.lz");
+static const u8 sTreeBorder_Gfx[]          = INCBIN_U8("graphics/dodrio_berry_picking/tree_border.4bpp.lz");
+static const u8 sStatus_Gfx[]              = INCBIN_U8("graphics/dodrio_berry_picking/status.4bpp.lz");
+static const u8 sCloud_Gfx[]               = INCBIN_U8("graphics/dodrio_berry_picking/cloud.4bpp.lz");
+static const u8 sDodrio_Gfx[]              = INCBIN_U8("graphics/dodrio_berry_picking/dodrio.4bpp.lz");
 static const u32 sBg_Tilemap[]              = INCBIN_U32("graphics/dodrio_berry_picking/bg.bin.lz");
 static const u32 sTreeBorderRight_Tilemap[] = INCBIN_U32("graphics/dodrio_berry_picking/tree_border_right.bin.lz");
 static const u32 sTreeBorderLeft_Tilemap[]  = INCBIN_U32("graphics/dodrio_berry_picking/tree_border_left.bin.lz");
@@ -3608,7 +3608,7 @@ static const struct OamData sOamData_Dodrio =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -3626,7 +3626,7 @@ static const struct OamData sOamData_16x16_Priority0 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -3643,7 +3643,7 @@ static const struct OamData sOamData_Berry =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -3660,7 +3660,7 @@ static const struct OamData sOamData_Cloud =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x32),
     .x = 0,
@@ -4327,7 +4327,7 @@ static void CreateCloudSprites(void)
 
 static void ResetCloudPos(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < NUM_CLOUDS; i++)
     {
         struct Sprite *sprite = &gSprites[*sCloudSpriteIds[i]];
@@ -4349,7 +4349,7 @@ static void StartCloudMovement(void)
 
 static void FreeCloudSprites(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < NUM_CLOUDS; i++)
     {
         struct Sprite *sprite = &gSprites[*sCloudSpriteIds[i]];
@@ -4562,7 +4562,7 @@ struct
 
 static void SetGfxFuncById(u8 funcId)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sGfxFuncs); i++)
     {
         if (sGfxFuncs[i].id == funcId)
@@ -5025,7 +5025,7 @@ static void Msg_SavingDontTurnOff(void)
     {
     case 0:
         DrawDialogueFrame(0, FALSE);
-        AddTextPrinterParameterized2(0, FONT_NORMAL, gText_SavingDontTurnOffPower, 0, NULL, 2, 1, 3);
+        AddTextPrinterParameterized2(0, FONT_NORMAL, gText_SavingDontTurnOffPower, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
         sGfx->state++;
         break;
     case 1:
@@ -5170,7 +5170,7 @@ static void InitBgs(void)
     DmaClear32(3,(void *)OAM, OAM_SIZE);
     DmaClear16(3, (void *)PLTT, PLTT_SIZE);
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     ChangeBgX(0, 0, BG_COORD_SET);
     ChangeBgY(0, 0, BG_COORD_SET);

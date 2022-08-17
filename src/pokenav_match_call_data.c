@@ -1024,6 +1024,8 @@ static void MatchCall_BufferCallMessageTextByRematchTeam(const match_call_text_d
     {
         if (FlagGet(FLAG_SYS_GAME_CLEAR))
         {
+            // Point of do while is to have flagset break, but if it can be outside, why even bother having this?
+            // TODO: look into it;
             do
             {
                 if (gSaveBlock1Ptr->trainerRematches[idx])
@@ -1125,7 +1127,7 @@ bool32 MatchCall_HasRematchId(u32 idx)
 {
     int i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sMatchCallHeaders); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sMatchCallHeaders); i++)
     {
         u32 id = MatchCall_GetRematchTableIdx(i);
         if (id != REMATCH_TABLE_ENTRIES && id == idx)

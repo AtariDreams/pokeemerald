@@ -31,10 +31,10 @@ extern const struct CompressedSpriteSheet gMonFrontPicTable[];
 EWRAM_DATA static u8 sMailboxWindowIds[MAILBOXWIN_COUNT] = {0};
 EWRAM_DATA static struct ListMenuItem *sMailboxList = NULL;
 
-static void MailboxMenu_MoveCursorFunc(s32, bool8, struct ListMenu *);
+static void MailboxMenu_MoveCursorFunc(u32, u8);
 static void ConditionGraph_CalcRightHalf(struct ConditionGraph *);
 static void ConditionGraph_CalcLeftHalf(struct ConditionGraph *);
-static void MoveRelearnerCursorCallback(s32, bool8, struct ListMenu *);
+static void MoveRelearnerCursorCallback(u32, u8);
 static void MoveRelearnerDummy(void);
 static void SetNextConditionSparkle(struct Sprite *);
 static void SpriteCB_ConditionSparkle(struct Sprite *);
@@ -223,14 +223,14 @@ u8 MailboxMenu_AddWindow(u8 windowIdx)
         {
             sMailboxWindowIds[windowIdx] = AddWindow(&sWindowTemplates_MailboxMenu[windowIdx]);
         }
-        SetStandardWindowBorderStyle(sMailboxWindowIds[windowIdx], 0);
+        SetStandardWindowBorderStyle(sMailboxWindowIds[windowIdx], FALSE);
     }
     return sMailboxWindowIds[windowIdx];
 }
 
 void MailboxMenu_RemoveWindow(u8 windowIdx)
 {
-    ClearStdWindowAndFrameToTransparent(sMailboxWindowIds[windowIdx], 0);
+    ClearStdWindowAndFrameToTransparent(sMailboxWindowIds[windowIdx], FALSE);
     ClearWindowTilemap(sMailboxWindowIds[windowIdx]);
     RemoveWindow(sMailboxWindowIds[windowIdx]);
     sMailboxWindowIds[windowIdx] = WINDOW_NONE;
@@ -291,7 +291,7 @@ u8 MailboxMenu_CreateList(struct PlayerPCItemPageStruct *page)
     return ListMenuInit(&gMultiuseListMenuTemplate, page->itemsAbove, page->cursorPos);
 }
 
-static void MailboxMenu_MoveCursorFunc(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void MailboxMenu_MoveCursorFunc(u32 itemIndex, bool8 onInit)
 {
     if (onInit != TRUE)
         PlaySE(SE_SELECT);
@@ -716,17 +716,17 @@ void InitMoveRelearnerWindows(bool8 useContextWindow)
     if (!useContextWindow)
     {
         PutWindowTilemap(0);
-        DrawStdFrameWithCustomTileAndPalette(0, 0, 0x1, 0xE);
+        DrawStdFrameWithCustomTileAndPalette(0, FALSE, 0x1, 0xE);
     }
     else
     {
         PutWindowTilemap(1);
-        DrawStdFrameWithCustomTileAndPalette(1, 0, 1, 0xE);
+        DrawStdFrameWithCustomTileAndPalette(1, FALSE, 1, 0xE);
     }
     PutWindowTilemap(2);
     PutWindowTilemap(3);
-    DrawStdFrameWithCustomTileAndPalette(2, 0, 1, 0xE);
-    DrawStdFrameWithCustomTileAndPalette(3, 0, 1, 0xE);
+    DrawStdFrameWithCustomTileAndPalette(2, FALSE, 1, 0xE);
+    DrawStdFrameWithCustomTileAndPalette(3, FALSE, 1, 0xE);
     MoveRelearnerDummy();
     ScheduleBgCopyTilemapToVram(1);
 }
@@ -807,7 +807,11 @@ static void MoveRelearnerLoadBattleMoveDescription(u32 chosenMove)
     }
     AddTextPrinterParameterized(0, FONT_NORMAL, str, 0x6A, 0x29, TEXT_SKIP_DRAW, NULL);
 
+    #if !MODERN
     str = gMoveDescriptionPointers[chosenMove - 1];
+    #else
+    str = gMoveDescriptionPointers[chosenMove];
+    #endif
     AddTextPrinterParameterized(0, FONT_NARROW, str, 0, 0x41, 0, NULL);
 }
 
@@ -847,7 +851,7 @@ static void MoveRelearnerMenuLoadContestMoveDescription(u32 chosenMove)
     CopyWindowToVram(1, COPYWIN_GFX);
 }
 
-static void MoveRelearnerCursorCallback(s32 itemIndex, bool8 onInit, struct ListMenu *list)
+static void MoveRelearnerCursorCallback(u32 itemIndex, bool8 onInit)
 {
     if (onInit != TRUE)
         PlaySE(SE_SELECT);
@@ -906,7 +910,6 @@ s32 GetBoxOrPartyMonData(u16 boxId, u16 monId, s32 request, u8 *dst)
 static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
 {
     u16 box, mon, species, level, gender;
-    struct BoxPokemon *boxMon;
     u8 *str;
 
     box = boxId;
@@ -928,7 +931,7 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
     }
     else
     {
-        boxMon = GetBoxedMonPtr(box, mon);
+        struct BoxPokemon *boxMon = GetBoxedMonPtr(box, mon);
         gender = GetBoxMonGender(boxMon);
         level = GetLevelFromBoxMonExp(boxMon);
     }
@@ -945,9 +948,6 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
 
     switch (gender)
     {
-    default:
-        *(str++) = CHAR_SPACE;
-        break;
     case MON_MALE:
         *(str++) = EXT_CTRL_CODE_BEGIN;
         *(str++) = EXT_CTRL_CODE_COLOR;
@@ -966,6 +966,9 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
         *(str++) = TEXT_COLOR_LIGHT_GREEN;
         *(str++) = CHAR_FEMALE;
         break;
+     default:
+        *(str++) = CHAR_SPACE;
+        break;
     }
 
     *(str++) = EXT_CTRL_CODE_BEGIN;
@@ -978,8 +981,8 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
     *(str++) = CHAR_LV_2;
     str = ConvertIntToDecimalStringN(str, level, STR_CONV_MODE_LEFT_ALIGN, 3);
     *(str++) = CHAR_SPACE;
+    
     *str = EOS;
-
     return str;
 }
 
@@ -1114,8 +1117,8 @@ bool8 ConditionMenu_UpdateMonExit(struct ConditionGraph *graph, s16 *x)
     return (graphUpdating || monUpdating);
 }
 
-static const u32 sConditionPokeball_Gfx[] = INCBIN_U32("graphics/pokenav/condition/pokeball.4bpp");
-static const u32 sConditionPokeballPlaceholder_Gfx[] = INCBIN_U32("graphics/pokenav/condition/pokeball_placeholder.4bpp");
+static const u8 sConditionPokeball_Gfx[] = INCBIN_U8("graphics/pokenav/condition/pokeball.4bpp");
+static const u8 sConditionPokeballPlaceholder_Gfx[] = INCBIN_U8("graphics/pokenav/condition/pokeball_placeholder.4bpp");
 static const u16 sConditionSparkle_Gfx[] = INCBIN_U16("graphics/pokenav/condition/sparkle.gbapal");
 static const u32 sConditionSparkle_Pal[] = INCBIN_U32("graphics/pokenav/condition/sparkle.4bpp");
 
@@ -1124,7 +1127,7 @@ static const struct OamData sOam_ConditionMonPic =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -1141,7 +1144,7 @@ static const struct OamData sOam_ConditionSelectionIcon =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -1243,7 +1246,7 @@ void LoadConditionSelectionIcons(struct SpriteSheet *sheets, struct SpriteTempla
 
 void LoadConditionSparkle(struct SpriteSheet *sheet, struct SpritePalette *pal)
 {
-    struct SpriteSheet dataSheet = {sConditionSparkle_Pal, 0x380, TAG_CONDITION_SPARKLE};
+    struct SpriteSheet dataSheet = {sConditionSparkle_Pal, sizeof(sConditionSparkle_Pal), TAG_CONDITION_SPARKLE};
     struct SpritePalette dataPal = {sConditionSparkle_Gfx, TAG_CONDITION_SPARKLE};
 
     *sheet = dataSheet;
@@ -1399,6 +1402,8 @@ void CreateConditionSparkleSprites(struct Sprite **sprites, u8 monSpriteId, u8 _
     for (i = 0; i < count + 1; i++)
     {
         spriteId = CreateSprite(&sSpriteTemplate_ConditionSparkle, 0, 0, 0);
+
+        // Should be inverted but that doesn't match
         if (spriteId != MAX_SPRITES)
         {
             sprites[i] = &gSprites[spriteId];
@@ -1549,11 +1554,8 @@ void DrawLevelUpWindowPg1(u16 windowId, u16 *statsBefore, u16 *statsAfter, u8 bg
                                      color,
                                      -1,
                                      text);
-        if (abs(statsDiff[i]) <= 9)
-            x = 18;
-        else
-            x = 12;
-
+       
+        x = abs(statsDiff[i]) < 10 ? 18 : 12;
         ConvertIntToDecimalStringN(text, abs(statsDiff[i]), STR_CONV_MODE_LEFT_ALIGN, 2);
         AddTextPrinterParameterized3(windowId,
                                      FONT_NORMAL,
@@ -1587,9 +1589,9 @@ void DrawLevelUpWindowPg2(u16 windowId, u16 *currStats, u8 bgClr, u8 fgClr, u8 s
 
     for (i = 0; i < NUM_STATS; i++)
     {
-        if (stats[i] > 99)
+        if (stats[i] >= 100)
             numDigits = 3;
-        else if (stats[i] > 9)
+        else if (stats[i] >= 10)
             numDigits = 2;
         else
             numDigits = 1;

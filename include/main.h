@@ -66,10 +66,12 @@ void SetSerialCallback(IntrCallback callback);
 void InitFlashTimer(void);
 void SetTrainerHillVBlankCounter(u32 *var);
 void ClearTrainerHillVBlankCounter(void);
-void DoSoftReset(void);
+NORETURN void DoSoftReset(void);
 void ClearPokemonCrySongs(void);
 void RestoreSerialTimer3IntrHandlers(void);
+#if !MODERN
 void StartTimer1(void);
+#endif
 void SeedRngAndSetTrainerId(void);
 u16 GetGeneratedTrainerIdLower(void);
 

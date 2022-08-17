@@ -826,29 +826,32 @@ u8 FindAnyTVShowOnTheAir(void)
 
 void UpdateTVScreensOnMap(int width, int height)
 {
+    u8 news;
     FlagSet(FLAG_SYS_TV_WATCH);
-    switch (CheckForPlayersHouseNews())
+
+    news = CheckForPlayersHouseNews();
+    if (news == PLAYERS_HOUSE_TV_LATI)
     {
-    case PLAYERS_HOUSE_TV_LATI:
         SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
-        break;
-    case PLAYERS_HOUSE_TV_MOVIE:
-        // Don't flash TV for movie text in player's house
-        break;
-//  case PLAYERS_HOUSE_TV_NONE:
-    default:
-        if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(LILYCOVE_CITY_COVE_LILY_MOTEL_1F)
-         && gSaveBlock1Ptr->location.mapNum == MAP_NUM(LILYCOVE_CITY_COVE_LILY_MOTEL_1F))
-        {
-            // NPC in Lilycove Hotel is always watching TV
-            SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
-        }
-        else if (FlagGet(FLAG_SYS_TV_START) && (FindAnyTVShowOnTheAir() != 0xFF || FindAnyPokeNewsOnTheAir() != 0xFF || IsGabbyAndTyShowOnTheAir()))
-        {
-            FlagClear(FLAG_SYS_TV_WATCH);
-            SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
-        }
-        break;
+        return;
+    }
+
+    if (news == PLAYERS_HOUSE_TV_MOVIE)
+    {
+        return;
+    }
+
+    if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(LILYCOVE_CITY_COVE_LILY_MOTEL_1F) && gSaveBlock1Ptr->location.mapNum == MAP_NUM(LILYCOVE_CITY_COVE_LILY_MOTEL_1F))
+    {
+        // NPC in Lilycove Hotel is always watching TV
+        SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
+        return;
+    }
+    
+    if (FlagGet(FLAG_SYS_TV_START) && (FindAnyTVShowOnTheAir() != 0xFF || FindAnyPokeNewsOnTheAir() != 0xFF || IsGabbyAndTyShowOnTheAir()))
+    {
+        FlagClear(FLAG_SYS_TV_WATCH);
+        SetTVMetatilesOnMap(width, height, METATILE_Building_TV_On);
     }
 }
 
@@ -1151,8 +1154,8 @@ void TryPutPokemonTodayOnAir(void)
                             ballsUsed = 255;
                         itemLastUsed = gLastUsedItem;
                     }
-                    show->pokemonToday.nBallsUsed = ballsUsed;
-                    show->pokemonToday.ball = itemLastUsed;
+                    show->pokemonToday.nBallsUsed = (u8)ballsUsed;
+                    show->pokemonToday.ball = (u8)itemLastUsed;
                     StringCopy(show->pokemonToday.playerName, gSaveBlock2Ptr->playerName);
                     StringCopy(show->pokemonToday.nickname, gBattleResults.caughtMonNick);
                     language2 = GetNicknameLanguage(show->pokemonToday.nickname);
@@ -1759,7 +1762,7 @@ void RecordFishingAttemptForTV(bool8 caughtFish)
     }
     else
     {
-        if ((u8)sPokemonAnglerAttemptCounters > 4)
+        if ((sPokemonAnglerAttemptCounters & 0xFF) > 4)
             TryPutFishingAdviceOnAir();
 
         sPokemonAnglerAttemptCounters &= 0xFF00;
@@ -1778,8 +1781,8 @@ static void TryPutFishingAdviceOnAir(void)
         show = &gSaveBlock1Ptr->tvShows[sCurTVShowSlot];
         show->pokemonAngler.kind = TVSHOW_FISHING_ADVICE;
         show->pokemonAngler.active = FALSE; // NOTE: Show is not active until passed via Record Mix.
-        show->pokemonAngler.nBites = sPokemonAnglerAttemptCounters;
-        show->pokemonAngler.nFails = sPokemonAnglerAttemptCounters >> 8;
+        show->pokemonAngler.nBites = (u8)(sPokemonAnglerAttemptCounters & 0xFF);
+        show->pokemonAngler.nFails = (u8)(sPokemonAnglerAttemptCounters >> 8);
         show->pokemonAngler.species = sPokemonAnglerSpecies;
         StringCopy(show->pokemonAngler.playerName, gSaveBlock2Ptr->playerName);
         StorePlayerIdInRecordMixShow(show);
@@ -2786,11 +2789,12 @@ void SetContestCategoryStringVarForInterview(void)
 
 void ConvertIntToDecimalString(u8 varIdx, int value)
 {
-    int nDigits = CountDigits(value);
+    //nDigits should be u8 but that doesn't match
+    u16 nDigits = CountDigits(value);
     ConvertIntToDecimalStringN(gTVStringVarPtrs[varIdx], value, STR_CONV_MODE_LEFT_ALIGN, nDigits);
 }
 
-size_t CountDigits(int value)
+u8 CountDigits(int value)
 {
     if (value / 10 == 0)        return 1;
     if (value / 100 == 0)       return 2;
@@ -3119,7 +3123,7 @@ static void Script_FindFirstEmptyNormalTVShowSlot(void)
 
 static s8 FindFirstEmptyNormalTVShowSlot(TVShow *shows)
 {
-    u8 i;
+    u8 i; //should be s8
 
     for (i = 0; i < NUM_NORMAL_TVSHOW_SLOTS; i++)
     {
@@ -3459,7 +3463,7 @@ void ReceiveTvShowsData(void *src, u32 size, u8 playersLinkId)
         rmBuffer = rmBuffer2;
         for (i = 0; i < GetLinkPlayerCount(); i++)
         {
-            version = (u8)gLinkPlayers[i].version;
+            version = (u8)(gLinkPlayers[i].version & 0xFF);
             if (version == VERSION_RUBY || version == VERSION_SAPPHIRE)
                 TranslateRubyShows((*rmBuffer)[i]);
             else if (version == VERSION_EMERALD && gLinkPlayers[i].language == LANGUAGE_JAPANESE)
@@ -4481,7 +4485,7 @@ static void DoTVShowTodaysSmartShopper(void)
     {
     case SMARTSHOPPER_STATE_INTRO:
         TVShowConvertInternationalString(gStringVar1, show->smartshopperShow.playerName, show->smartshopperShow.language);
-        GetMapName(gStringVar2, show->smartshopperShow.shopLocation, 0);
+        CopyMapName(gStringVar2, show->smartshopperShow.shopLocation, 0);
         if (show->smartshopperShow.itemAmounts[0] >= 255)
             sTVShowState = SMARTSHOPPER_STATE_CLERK_MAX;
         else
@@ -4738,7 +4742,7 @@ static void DoTVShowPokemonTodayFailedCapture(void)
         break;
     case 1:
         TVShowConvertInternationalString(gStringVar1, show->pokemonTodayFailed.playerName, show->pokemonTodayFailed.language);
-        GetMapName(gStringVar2, show->pokemonTodayFailed.location, 0);
+        CopyMapName(gStringVar2, show->pokemonTodayFailed.location, 0);
         StringCopy(gStringVar3, gSpeciesNames[show->pokemonTodayFailed.species2]);
         if (show->pokemonTodayFailed.outcome == 1)
             sTVShowState = 3;
@@ -4898,7 +4902,7 @@ static void DoTVShowPokemonNewsMassOutbreak(void)
     TVShow *show;
 
     show = &gSaveBlock1Ptr->tvShows[gSpecialVar_0x8004];
-    GetMapName(gStringVar1, show->massOutbreak.locationMapNum, 0);
+    CopyMapName(gStringVar1, show->massOutbreak.locationMapNum, 0);
     StringCopy(gStringVar2, gSpeciesNames[show->massOutbreak.species]);
     TVShowDone();
     StartMassOutbreak();
@@ -5430,7 +5434,7 @@ void DoTVShowInSearchOfTrainers(void)
     switch (state)
     {
     case 0:
-        GetMapName(gStringVar1, gSaveBlock1Ptr->gabbyAndTyData.mapnum, 0);
+        CopyMapName(gStringVar1, gSaveBlock1Ptr->gabbyAndTyData.mapnum, 0);
         if (gSaveBlock1Ptr->gabbyAndTyData.battleNum > 1)
             sTVShowState = 1;
         else
@@ -5527,7 +5531,7 @@ static void DoTVShowTheWorldOfMasters(void)
         break;
     case 2:
         TVShowConvertInternationalString(gStringVar1, show->worldOfMasters.playerName, show->worldOfMasters.language);
-        GetMapName(gStringVar2, show->worldOfMasters.location, 0);
+        CopyMapName(gStringVar2, show->worldOfMasters.location, 0);
         StringCopy(gStringVar3, gSpeciesNames[show->worldOfMasters.caughtPoke]);
         TVShowDone();
         break;
@@ -5572,7 +5576,7 @@ static void DoTVShowTodaysRivalTrainer(void)
     case 7:
         TVShowConvertInternationalString(gStringVar1, show->rivalTrainer.playerName, show->rivalTrainer.language);
         ConvertIntToDecimalString(1, show->rivalTrainer.dexCount);
-        GetMapName(gStringVar3, show->rivalTrainer.location, 0);
+        CopyMapName(gStringVar3, show->rivalTrainer.location, 0);
         if (show->rivalTrainer.badgeCount != 0)
             sTVShowState = 1;
         else
@@ -5736,7 +5740,7 @@ static void DoTVShowHoennTreasureInvestigators(void)
     case 1:
         StringCopy(gStringVar1, ItemId_GetName(show->treasureInvestigators.item));
         TVShowConvertInternationalString(gStringVar2, show->treasureInvestigators.playerName, show->treasureInvestigators.language);
-        GetMapName(gStringVar3, show->treasureInvestigators.location, 0);
+        CopyMapName(gStringVar3, show->treasureInvestigators.location, 0);
         TVShowDone();
         break;
     case 2:
@@ -5837,7 +5841,7 @@ static void DoTVShowBreakingNewsTV(void)
     case 1:
         TVShowConvertInternationalString(gStringVar1, show->breakingNews.playerName, show->breakingNews.language);
         StringCopy(gStringVar2, gSpeciesNames[show->breakingNews.lastOpponentSpecies]);
-        GetMapName(gStringVar3, show->breakingNews.location, 0);
+        CopyMapName(gStringVar3, show->breakingNews.location, 0);
         sTVShowState = 2;
         break;
     case 2:
@@ -5853,13 +5857,13 @@ static void DoTVShowBreakingNewsTV(void)
         break;
     case 4:
         TVShowConvertInternationalString(gStringVar1, show->breakingNews.playerName, show->breakingNews.language);
-        GetMapName(gStringVar2, show->breakingNews.location, 0);
+        CopyMapName(gStringVar2, show->breakingNews.location, 0);
         TVShowDone();
         break;
     case 5:
         TVShowConvertInternationalString(gStringVar1, show->breakingNews.playerName, show->breakingNews.language);
         StringCopy(gStringVar2, gSpeciesNames[show->breakingNews.lastOpponentSpecies]);
-        GetMapName(gStringVar3, show->breakingNews.location, 0);
+        CopyMapName(gStringVar3, show->breakingNews.location, 0);
         sTVShowState = 6;
         break;
     case 6:
@@ -5895,14 +5899,14 @@ static void DoTVShowBreakingNewsTV(void)
         break;
     case 8:
         TVShowConvertInternationalString(gStringVar1, show->breakingNews.playerName, show->breakingNews.language);
-        GetMapName(gStringVar2, show->breakingNews.location, 0);
+        CopyMapName(gStringVar2, show->breakingNews.location, 0);
         sTVShowState = 11;
         break;
     case 9:
     case 10:
         TVShowConvertInternationalString(gStringVar1, show->breakingNews.playerName, show->breakingNews.language);
         StringCopy(gStringVar2, gSpeciesNames[show->breakingNews.lastOpponentSpecies]);
-        GetMapName(gStringVar3, show->breakingNews.location, 0);
+        CopyMapName(gStringVar3, show->breakingNews.location, 0);
         sTVShowState = 11;
         break;
     case 11:

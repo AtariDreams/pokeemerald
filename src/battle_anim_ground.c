@@ -157,8 +157,12 @@ static void AnimBonemerangProjectile_Step(struct Sprite *sprite)
     {
         sprite->x += sprite->x2;
         sprite->y += sprite->y2;
-        sprite->y2 = 0;
+        #if !MODERN
+        sprite->x2 = sprite->y2 = 0;
+        #else
         sprite->x2 = 0;
+        sprite->y2 = 0;
+        #endif
         sprite->data[0] = 20;
         sprite->data[2] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2);
         sprite->data[4] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET);
@@ -205,7 +209,7 @@ static void AnimDirtScatter(struct Sprite *sprite)
     u8 targetXPos, targetYPos;
     s16 xOffset, yOffset;
 
-    InitSpritePosToAnimAttacker(sprite, 1);
+    InitSpritePosToAnimAttacker(sprite, TRUE);
 
     targetXPos = GetBattlerSpriteCoord2(gBattleAnimTarget, BATTLER_COORD_X_2);
     targetYPos = GetBattlerSpriteCoord2(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET);
@@ -288,6 +292,7 @@ static void AnimMudSportDirtFalling(struct Sprite *sprite)
 void AnimTask_DigDownMovement(u8 taskId)
 {
     struct Task *task = &gTasks[taskId];
+    //TODO: Should I call directly?
 
     if (gBattleAnimArgs[0] == FALSE)
         task->func = AnimTask_DigBounceMovement;
@@ -299,7 +304,6 @@ void AnimTask_DigDownMovement(u8 taskId)
 
 static void AnimTask_DigBounceMovement(u8 taskId)
 {
-    u8 y;
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -318,9 +322,9 @@ static void AnimTask_DigBounceMovement(u8 taskId)
             task->data[13] = gBattle_BG2_Y;
         }
 
-        y = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
-        task->data[14] = y - 32;
-        task->data[15] = y + 32;
+        task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
+        task->data[15] = task->data[14] + 64;
+
         if (task->data[14] < 0)
             task->data[14] = 0;
 
@@ -345,7 +349,7 @@ static void AnimTask_DigBounceMovement(u8 taskId)
         else
             gBattle_BG2_Y = task->data[13] - task->data[5];
 
-        if (task->data[5] > 63)
+        if (task->data[5] >= 64)
         {
             task->data[5] = 120 - task->data[14];
             if (task->data[11] == 1)
@@ -385,6 +389,7 @@ static void AnimTask_DigEndBounceMovementSetInvisible(u8 taskId)
 
 void AnimTask_DigUpMovement(u8 taskId)
 {
+    // TODO: should I call directly?
     struct Task *task = &gTasks[taskId];
 
     if (gBattleAnimArgs[0] == FALSE)
@@ -410,12 +415,12 @@ static void AnimTask_DigSetVisibleUnderground(u8 taskId)
         break;
     case 1:
         DestroyAnimVisualTask(taskId);
+        break;
     }
 }
 
 static void AnimTask_DigRiseUpFromHole(u8 taskId)
 {
-    u8 var0;
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -428,9 +433,8 @@ static void AnimTask_DigRiseUpFromHole(u8 taskId)
         else
             task->data[12] = gBattle_BG2_X;
 
-        var0 =  GetBattlerYCoordWithElevation(gBattleAnimAttacker);
-        task->data[14] = var0 - 32;
-        task->data[15] = var0 + 32;
+        task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
+        task->data[15] = task->data[14] + 64;
         task->data[0]++;
         break;
     case 1:
@@ -503,20 +507,32 @@ static void SetDigScanlineEffect(u8 useBG1, s16 y, s16 endY)
 // arg 5: duration
 void AnimDirtPlumeParticle(struct Sprite *sprite)
 {
-    s8 battler;
     s16 xOffset;
+    #if MODERN
+    
+    u8 battler;
+    #else
+    u16 battler;
+    #endif
 
-    if (gBattleAnimArgs[0] == 0)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
-
+    battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
+    
+    #if !MODERN
     xOffset = 24;
     if (gBattleAnimArgs[1] == 1)
     {
         xOffset *= -1;
         gBattleAnimArgs[2] *= -1;
     }
+    #else
+    if (gBattleAnimArgs[1] == 1)
+    {
+        xOffset = -24;
+        gBattleAnimArgs[2] *= -1;
+    }
+    else
+        xOffset = 24;
+    #endif
 
     sprite->x = GetBattlerSpriteCoord(battler, BATTLER_COORD_X_2) + xOffset;
     sprite->y = GetBattlerYCoordWithElevation(battler) + 30;
@@ -542,12 +558,7 @@ static void AnimDirtPlumeParticle_Step(struct Sprite *sprite)
 // arg 2: duration
 static void AnimDigDirtMound(struct Sprite *sprite)
 {
-    s8 battler;
-
-    if (gBattleAnimArgs[0] == 0)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
+    u8 battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
 
     sprite->x = GetBattlerSpriteCoord(battler, BATTLER_COORD_X) - 16 + (gBattleAnimArgs[1] * 32);
     sprite->y = GetBattlerYCoordWithElevation(battler) + 32;
@@ -574,13 +585,14 @@ static void AnimDigDirtMound(struct Sprite *sprite)
 // arg2: Length of time to shake for
 void AnimTask_HorizontalShake(u8 taskId)
 {
+    #if !MODERN
     u16 i;
+    #else
+    u8 i;
+    #endif
     struct Task *task = &gTasks[taskId];
 
-    if (gBattleAnimArgs[1] != 0)
-        task->tHorizOffset = task->tInitHorizOffset = gBattleAnimArgs[1] + 3;
-    else
-        task->tHorizOffset = task->tInitHorizOffset = (gAnimMovePower / 10) + 3;
+    task->tHorizOffset = task->tInitHorizOffset = 3 + ((gBattleAnimArgs[1])? gBattleAnimArgs[1] : (gAnimMovePower / 10));
 
     task->tMaxTime = gBattleAnimArgs[2];
     switch (gBattleAnimArgs[0])
@@ -606,12 +618,11 @@ void AnimTask_HorizontalShake(u8 taskId)
         if (task->tbattlerSpriteIds(0) == SPRITE_NONE)
         {
             DestroyAnimVisualTask(taskId);
+            return;
         }
-        else
-        {
-            task->tNumBattlers = 1;
-            task->func = AnimTask_ShakeBattlers;
-        }
+
+        task->tNumBattlers = 1;
+        task->func = AnimTask_ShakeBattlers;
         break;
     }
 }
@@ -665,7 +676,13 @@ static void AnimTask_ShakeTerrain(u8 taskId)
 
 static void AnimTask_ShakeBattlers(u8 taskId)
 {
+    #if !MODERN
     u16 i;
+    #else
+    int i; // TODO: given how data is likely unsigned, should an unsigned comparison work?
+    // Yes I know data is s16, but what about the spirit of the code?
+    // I am doing s16 because data is s16, so just in case, and it shouldn't have any behavioral effects
+    #endif
     struct Task *task = &gTasks[taskId];
 
     switch (task->tState)
@@ -707,8 +724,12 @@ static void AnimTask_ShakeBattlers(u8 taskId)
 
 static void SetBattlersXOffsetForShake(struct Task *task)
 {
+    #if !MODERN
     u16 i;
-    u16 xOffset;
+    #else
+    int i;
+    #endif
+    s16 xOffset;
 
     if ((task->tTimer & 1) == 0)
         xOffset = (task->tHorizOffset / 2) + (task->tHorizOffset & 1);
@@ -731,11 +752,19 @@ static void SetBattlersXOffsetForShake(struct Task *task)
 #undef tHorizOffset
 #undef tInitHorizOffset
 
+#if !MODERN
 void AnimTask_IsPowerOver99(u8 taskId)
 {
-    gBattleAnimArgs[15] = gAnimMovePower > 99;
+    //UB: writing out of bounds
+    gBattleAnimArgs[15] = gAnimMovePower >= 100;
     DestroyAnimVisualTask(taskId);
 }
+#else
+void AnimTask_IsPowerOver99(u8 taskId)
+{
+    DestroyAnimVisualTask(taskId);
+}
+#endif
 
 void AnimTask_PositionFissureBgOnBattler(u8 taskId)
 {

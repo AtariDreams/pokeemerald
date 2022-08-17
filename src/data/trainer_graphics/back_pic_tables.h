@@ -13,7 +13,7 @@ const struct MonCoords gTrainerBackPicCoords[] =
 // this table goes functionally unused, since none of these pics are compressed
 // and the place they would get extracted to gets overwritten later anyway
 // the casts are so they'll play nice with the strict struct definition
-#define TRAINER_BACK_SPRITE(trainerPic, sprite, size) [TRAINER_BACK_PIC_##trainerPic] = {(const u32 *)sprite, size, TRAINER_BACK_PIC_##trainerPic}
+#define TRAINER_BACK_SPRITE(trainerPic, sprite, size) [TRAINER_BACK_PIC_##trainerPic] = {sprite, size, TRAINER_BACK_PIC_##trainerPic}
 
 const struct CompressedSpriteSheet gTrainerBackPicTable[] =
 {

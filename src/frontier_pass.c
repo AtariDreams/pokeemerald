@@ -167,10 +167,10 @@ static void SpriteCB_PlayerHead(struct Sprite *);
 
 static const u16 sMaleHead_Pal[]                 = INCBIN_U16("graphics/frontier_pass/map_heads.gbapal");
 static const u16 sFemaleHead_Pal[]               = INCBIN_U16("graphics/frontier_pass/map_heads_female.gbapal");
-static const u32 sMapScreen_Gfx[]                = INCBIN_U32("graphics/frontier_pass/map_screen.4bpp.lz");
-static const u32 sCursor_Gfx[]                   = INCBIN_U32("graphics/frontier_pass/cursor.4bpp.lz");
-static const u32 sHeads_Gfx[]                    = INCBIN_U32("graphics/frontier_pass/map_heads.4bpp.lz");
-static const u32 sMapCursor_Gfx[]                = INCBIN_U32("graphics/frontier_pass/map_cursor.4bpp.lz");
+static const u8 sMapScreen_Gfx[]                = INCBIN_U8("graphics/frontier_pass/map_screen.4bpp.lz");
+static const u8 sCursor_Gfx[]                   = INCBIN_U8("graphics/frontier_pass/cursor.4bpp.lz");
+static const u8 sHeads_Gfx[]                    = INCBIN_U8("graphics/frontier_pass/map_heads.4bpp.lz");
+static const u8 sMapCursor_Gfx[]                = INCBIN_U8("graphics/frontier_pass/map_cursor.4bpp.lz");
 static const u32 sMapScreen_Tilemap[]            = INCBIN_U32("graphics/frontier_pass/map_screen.bin.lz");
 static const u32 sMapAndCard_ZoomedOut_Tilemap[] = INCBIN_U32("graphics/frontier_pass/small_map_and_card.bin.lz");
 static const u32 sCardBall_Filled_Tilemap[]      = INCBIN_U32("graphics/frontier_pass/card_ball_filled.bin"); // Unused
@@ -739,7 +739,7 @@ static bool32 InitFrontierPass(void)
         AllocateFrontierPassGfx();
         break;
     case 4:
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(1, sPassBgTemplates, ARRAY_COUNT(sPassBgTemplates));
         SetBgTilemapBuffer(1, sPassGfx->tilemapBuff1);
         SetBgTilemapBuffer(2, sPassGfx->tilemapBuff2);
@@ -768,7 +768,11 @@ static bool32 InitFrontierPass(void)
         CopyBgTilemapBufferToVram(2);
         break;
     case 8:
+        #ifndef UBFIX
         LoadPalette(gFrontierPassBg_Pal[0], 0, 0x1A0);
+        #else
+        LoadPalette(gFrontierPassBg_Pal[0], 0, 0x100);
+        #endif
         LoadPalette(gFrontierPassBg_Pal[1 + sPassData->trainerStars], 0x10, 0x20);
         LoadPalette(GetTextWindowPalette(0), 0xF0, 0x20);
         DrawFrontierPassBg();
@@ -1354,8 +1358,13 @@ static void HandleFrontierMapCursorMove(u8 direction);
 
 static void ShowFrontierMap(void (*callback)(void))
 {
+    // TODO: did the developers mean to do something but forgot?
+    // Maybe return? Maybe debug?
+    #if !MODERN
     if (sMapData != NULL)
         SetMainCallback2(callback); // This line doesn't make sense at all, since it gets overwritten later anyway.
+    #endif
+
 
     sMapData = AllocZeroed(sizeof(*sMapData));
     sMapData->callback = callback;
@@ -1368,7 +1377,9 @@ static void FreeFrontierMap(void)
 {
     ResetTasks();
     SetMainCallback2(sMapData->callback);
+    #if !MODERN
     memset(sMapData, 0, sizeof(*sMapData)); // Pointless memory clear.
+    #endif
     FREE_AND_SET_NULL(sMapData);
 }
 
@@ -1391,7 +1402,7 @@ static bool32 InitFrontierMap(void)
         ResetTempTileDataBuffers();
         break;
     case 3:
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sMapBgTemplates, ARRAY_COUNT(sMapBgTemplates));
         SetBgTilemapBuffer(0, sMapData->tilemapBuff0);
         SetBgTilemapBuffer(1, sMapData->tilemapBuff1);
@@ -1412,7 +1423,11 @@ static bool32 InitFrontierMap(void)
     case 5:
         if (FreeTempTileDataBuffersIfPossible())
             return FALSE;
+        #ifndef UBFIX
         LoadPalette(gFrontierPassBg_Pal[0], 0, 0x1A0);
+        #else
+        LoadPalette(gFrontierPassBg_Pal[0], 0, 0x100);
+        #endif
         LoadPalette(GetTextWindowPalette(0), 0xF0, 0x20);
         CopyToBgTilemapBuffer(2, sMapScreen_Tilemap, 0, 0);
         CopyBgTilemapBufferToVram(2);

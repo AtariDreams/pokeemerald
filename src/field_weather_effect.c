@@ -58,7 +58,7 @@ static const struct OamData sCloudSpriteOamData =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_BLEND,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -186,8 +186,7 @@ static void CreateCloudSprites(void)
         spriteId = CreateSprite(&sCloudSpriteTemplate, 0, 0, 0xFF);
         if (spriteId != MAX_SPRITES)
         {
-            gWeatherPtr->sprites.s1.cloudSprites[i] = &gSprites[spriteId];
-            sprite = gWeatherPtr->sprites.s1.cloudSprites[i];
+            sprite = gWeatherPtr->sprites.s1.cloudSprites[i] = &gSprites[spriteId];
             SetSpritePosToMapCoords(sCloudSpriteMapCoords[i].x + MAP_OFFSET, sCloudSpriteMapCoords[i].y + MAP_OFFSET, &sprite->x, &sprite->y);
             sprite->coordOffsetEnabled = TRUE;
         }
@@ -393,7 +392,7 @@ static const struct OamData sRainSpriteOamData =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x32),
     .x = 0,
@@ -559,10 +558,12 @@ static void StartRainSpriteFall(struct Sprite *sprite)
         sprite->tRandom = 361;
 
     rand = ISO_RANDOMIZE2(sprite->tRandom);
-    sprite->tRandom = ((rand & 0x7FFF0000) >> 16) % 600;
+    sprite->tRandom = (s16)(((rand >> 16) & 0x7FFF) % 600);
 
     numFallingFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][0];
 
+    #if !MODERN
+    // all the tileX stuff here is useless can be removed, but needed to match
     tileX = sprite->tRandom % 30;
     sprite->tPosX = tileX * 8; // Useless assignment, leftover from before fixed-point values were used
 
@@ -574,10 +575,18 @@ static void StartRainSpriteFall(struct Sprite *sprite)
 
     sprite->tPosY = tileY;
     sprite->tPosY <<= 7; // This is tileX * 8, using a fixed-point value with 4 decimal places
+    #else
+    sprite->tPosX = (Div(sprite->tRandom, 30) << 7) - sRainSpriteMovement[gWeatherPtr->isDownpour][0] * numFallingFrames;
+    sprite->tPosY = (Mod(sprite->tRandom, 30) << 7) - sRainSpriteMovement[gWeatherPtr->isDownpour][1] * numFallingFrames;
+    #endif
+
+
 
     // "Rewind" the rain sprites, from their ending position.
+    #if !MODERN
     sprite->tPosX -= sRainSpriteMovement[gWeatherPtr->isDownpour][0] * numFallingFrames;
     sprite->tPosY -= sRainSpriteMovement[gWeatherPtr->isDownpour][1] * numFallingFrames;
+    #endif
 
     StartSpriteAnim(sprite, 0);
     sprite->tState = 0;
@@ -636,15 +645,16 @@ static void WaitRainSprite(struct Sprite *sprite)
 static void InitRainSpriteMovement(struct Sprite *sprite, u16 val)
 {
     u16 numFallingFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][0];
-    u16 numAdvanceRng = val / (sRainSpriteFallingDurations[gWeatherPtr->isDownpour][1] + numFallingFrames);
-    u16 frameVal = val % (sRainSpriteFallingDurations[gWeatherPtr->isDownpour][1] + numFallingFrames);
+    u16 animFrames = sRainSpriteFallingDurations[gWeatherPtr->isDownpour][1];
+    u16 numAdvanceRng = val / (animFrames + numFallingFrames);
+    u16 frameVal = val % (animFrames + numFallingFrames);
 
-    while (--numAdvanceRng != 0xFFFF)
+    while (numAdvanceRng--)
         StartRainSpriteFall(sprite);
 
     if (frameVal < numFallingFrames)
     {
-        while (--frameVal != 0xFFFF)
+        while (frameVal--)
             UpdateRainSprite(sprite);
 
         sprite->tWaiting = 0;
@@ -839,7 +849,7 @@ static const struct OamData sSnowflakeSpriteOamData =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x8),
     .x = 0,
@@ -1272,7 +1282,7 @@ static const struct OamData sOamData_FogH =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_BLEND,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -1440,7 +1450,7 @@ bool8 FogHorizontal_Finish(void)
 
 static void FogHorizontalSpriteCallback(struct Sprite *sprite)
 {
-    sprite->y2 = (u8)gSpriteCoordOffsetY;
+    sprite->y2 = gSpriteCoordOffsetY & 0xFF;
     sprite->x = gWeatherPtr->fogHScrollPosX + 32 + sprite->tSpriteColumn * 64;
     if (sprite->x > 271)
     {
@@ -2196,7 +2206,7 @@ static void UpdateSandstormSprite(struct Sprite *sprite)
 
 static void WaitSandSwirlSpriteEntrance(struct Sprite *sprite)
 {
-    if (--sprite->tEntranceDelay == -1)
+    if (sprite->tEntranceDelay-- == 0)
         sprite->callback = UpdateSandstormSwirlSprite;
 }
 

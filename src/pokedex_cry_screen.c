@@ -40,7 +40,7 @@ struct PokedexCryScreen
     u8 cryState;
     u8 playhead;
     u8 waveformPreviousY;
-    u16 unk; // Never read
+    u16 charBase; // Only read in RS
     u8 playStartPos;
     u16 species;
     u8 cryOverrideCountdown;
@@ -226,7 +226,7 @@ static const struct SpritePalette sCryMeterNeedleSpritePalettes[] =
 bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
 {
     u8 i;
-    u8 finished = FALSE;
+    bool8 finished = FALSE;
 
     switch (gDexCryScreenState)
     {
@@ -234,17 +234,25 @@ bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
         if (!sDexCryScreen)
         {
             sDexCryScreen = AllocZeroed(sizeof(*sDexCryScreen));
-            sCryWaveformWindowTiledata = (u8*)GetWindowAttribute(windowId, WINDOW_TILE_DATA);
+            sCryWaveformWindowTiledata = (u8 *)GetWindowAttribute(windowId, WINDOW_TILE_DATA);
         }
 
-        sDexCryScreen->unk = window->unk0;
+        //useless write
+        #if !MODERN
+        sDexCryScreen->charBase = window->unk0;
+        #endif
+
         sDexCryScreen->playStartPos = window->yPos;
         sDexCryScreen->cryOverrideCountdown = 0;
         sDexCryScreen->cryRepeatDelay = 0;
         sDexCryScreen->cryState = 0;
         sDexCryScreen->waveformPreviousY = WAVEFORM_WINDOW_HEIGHT / 2;
         sDexCryScreen->playhead = 0;
+
+        #if !MODERN
         ShiftWaveformOver(windowId, -8 * window->xPos, TRUE); // Does nothing
+        #endif 
+
         for (i = 0; i < 224; i++)
             CopyToWindowPixelBuffer(windowId, sCryScreenBg_Gfx, TILE_SIZE_4BPP, i);
 
@@ -352,15 +360,15 @@ static void PlayCryScreenCry(u16 species)
 static void BufferCryWaveformSegment(void)
 {
     u8 i;
-    s8 *baseBuffer;
-    s8 *buffer;
+    const s8 *baseBuffer;
+    const s8 *buffer;
 
     if (gPcmDmaCounter < 2)
         baseBuffer = gSoundInfo.pcmBuffer;
     else
-        baseBuffer = gSoundInfo.pcmBuffer + (gSoundInfo.pcmDmaPeriod + 1 - gPcmDmaCounter) * gSoundInfo.pcmSamplesPerVBlank;
+        baseBuffer = gSoundInfo.pcmBuffer + gSoundInfo.pcmSamplesPerVBlank * (gSoundInfo.pcmDmaPeriod + 1 - gPcmDmaCounter);
 
-    buffer = baseBuffer + 0x630;
+    buffer = baseBuffer + PCM_DMA_BUF_SIZE;
     for (i = 0; i < ARRAY_COUNT(sDexCryScreen->cryWaveformBuffer); i++)
         sDexCryScreen->cryWaveformBuffer[i] = buffer[i * 2] * 2;
 }
@@ -395,36 +403,34 @@ static void DrawWaveformSegment(u8 position, u8 amplitude)
     u8 currentPointY;
     u8 nybble;
     u16 offset;
-    u16 temp;
-    u8 y;
 
-    temp = (amplitude + 127) * 256;
-    y = temp / 1152.0;
-    if (y > WAVEFORM_WINDOW_HEIGHT - 1)
-        y = WAVEFORM_WINDOW_HEIGHT - 1;
-    currentPointY = y;
+    amplitude += 127;
+    amplitude = (amplitude << 8)/1152.0;
+    if (amplitude > WAVEFORM_WINDOW_HEIGHT - 1)
+        amplitude = WAVEFORM_WINDOW_HEIGHT - 1;
+    currentPointY = amplitude;
     nybble = VERT_SLICE;
-    if (y > sDexCryScreen->waveformPreviousY)
+    if (amplitude > sDexCryScreen->waveformPreviousY)
     {
         // Current point lower than previous point, draw point and draw line up to previous
         do
         {
-            offset = sWaveformOffsets[PLAYHEAD_POS][y] + PLAY_START_POS * TILE_SIZE_4BPP;
+            offset = sWaveformOffsets[PLAYHEAD_POS][amplitude] + PLAY_START_POS * TILE_SIZE_4BPP;
             sCryWaveformWindowTiledata[offset] &= sWaveformTileDataNybbleMasks[nybble];
-            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((y / 3) - 1) & 0x0F];
-            y--;
-        } while (y > sDexCryScreen->waveformPreviousY);
+            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((amplitude / 3) - 1) & 0x0F];
+            amplitude--;
+        } while (amplitude > sDexCryScreen->waveformPreviousY);
     }
     else
     {
         // Current point higher than previous point, draw point and draw line down to previous
         do
         {
-            offset = sWaveformOffsets[PLAYHEAD_POS][y] + PLAY_START_POS * TILE_SIZE_4BPP;
+            offset = sWaveformOffsets[PLAYHEAD_POS][amplitude] + PLAY_START_POS * TILE_SIZE_4BPP;
             sCryWaveformWindowTiledata[offset] &= sWaveformTileDataNybbleMasks[nybble];
-            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((y / 3) - 1) & 0x0F];
-            y++;
-        } while (y < sDexCryScreen->waveformPreviousY);
+            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((amplitude / 3) - 1) & 0x0F];
+            amplitude++;
+        } while (amplitude < sDexCryScreen->waveformPreviousY);
     }
 
     sDexCryScreen->waveformPreviousY = currentPointY;
@@ -442,8 +448,7 @@ static void ShiftWaveformOver(u8 windowId, s16 offset, bool8 rsVertical)
 {
     if (!rsVertical)
     {
-        u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-        ChangeBgX(bg, offset << 8, BG_COORD_SET);
+        ChangeBgX(GetWindowAttribute(windowId, WINDOW_BG), offset << 8, BG_COORD_SET);
     }
 }
 
@@ -491,7 +496,6 @@ static void SpriteCB_CryMeterNeedle(struct Sprite *sprite)
     s16 y;
     struct ObjAffineSrcData affine;
     struct OamMatrix matrix;
-    u8 amplitude;
 
     gSprites[sCryMeterNeedle->spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
     gSprites[sCryMeterNeedle->spriteId].oam.affineParam = 0;
@@ -523,33 +527,34 @@ static void SpriteCB_CryMeterNeedle(struct Sprite *sprite)
         break;
     case 6:
         // To introduce some randomness, needle jumps to set pos in waveform rather than peak
-        amplitude = sDexCryScreen->cryWaveformBuffer[10];
-        SetCryMeterNeedleTarget(amplitude * 208 / 256);
+        // buffer should be s8 but is u8
+        peakAmplitude = sDexCryScreen->cryWaveformBuffer[10] * 208 / 256;
+        SetCryMeterNeedleTarget(peakAmplitude);
         break;
     }
 
-    if (sCryMeterNeedle->rotation == sCryMeterNeedle->targetRotation)
+    // Empty, needle has not reached target
+    if (sCryMeterNeedle->rotation != sCryMeterNeedle->targetRotation)
     {
-        // Empty, needle has reached target
-    }
-    else if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
-    {
-        // Rotate needle left
-        sCryMeterNeedle->rotation += sCryMeterNeedle->moveIncrement;
-        if (sCryMeterNeedle->rotation > sCryMeterNeedle->targetRotation)
-        {
-            sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
-            sCryMeterNeedle->targetRotation = 0;
-        }
-    }
-    else
-    {
-        // Rotate needle right
-        sCryMeterNeedle->rotation -= sCryMeterNeedle->moveIncrement;
         if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
         {
-            sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
-            sCryMeterNeedle->targetRotation = 0;
+            // Rotate needle left
+            sCryMeterNeedle->rotation += sCryMeterNeedle->moveIncrement;
+            if (sCryMeterNeedle->rotation > sCryMeterNeedle->targetRotation)
+            {
+                sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
+                sCryMeterNeedle->targetRotation = 0;
+            }
+        }
+        else
+        {
+            // Rotate needle right
+            sCryMeterNeedle->rotation -= sCryMeterNeedle->moveIncrement;
+            if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
+            {
+                sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
+                sCryMeterNeedle->targetRotation = 0;
+            }
         }
     }
 

@@ -146,11 +146,11 @@ static void ExitDecorationCategoriesMenu(u8 taskId);
 static void ReturnToActionsMenuFromCategories(u8 taskId);
 static void ExitTraderDecorationMenu(u8 taskId);
 static void CopyDecorationMenuItemName(u8 *dest, u16 decoration);
-static void DecorationItemsMenu_OnCursorMove(s32 itemIndex, bool8 flag, struct ListMenu *menu);
+static void DecorationItemsMenu_OnCursorMove(u32 itemIndex, bool8 flag);
 static void DecorationItemsMenu_PrintDecorationInUse(u8 windowId, u32 itemIndex, u8 y);
 static void ShowDecorationItemsWindow(u8 taskId);
 static void HandleDecorationItemsMenuInput(u8 taskId);
-static void PrintDecorationItemDescription(s32 itemIndex);
+static void PrintDecorationItemDescription(u32 itemIndex);
 static void RemoveDecorationItemsOtherWindows(void);
 static bool8 IsDecorationIndexInSecretBase(u8 idx);
 static bool8 IsDecorationIndexInPlayersRoom(u8 idx);
@@ -563,7 +563,7 @@ static void AddDecorationActionsWindow(void)
 static void InitDecorationActionsWindow(void)
 {
     sDecorationActionsCursorPos = 0;
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     AddDecorationActionsWindow();
     PrintCurMainMenuDescription();
 }
@@ -595,10 +595,6 @@ static void HandleDecorationActionsMenuInput(u8 taskId)
         s8 menuPos = Menu_GetCursorPos();
         switch (Menu_ProcessInput())
         {
-        default:
-            PlaySE(SE_SELECT);
-            sDecorationMainMenuActions[sDecorationActionsCursorPos].func.void_u8(taskId);
-            break;
         case MENU_NOTHING_CHOSEN:
             sDecorationActionsCursorPos = Menu_GetCursorPos();
             if (menuPos != sDecorationActionsCursorPos)
@@ -608,6 +604,10 @@ static void HandleDecorationActionsMenuInput(u8 taskId)
             PlaySE(SE_SELECT);
             DecorationMenuAction_Cancel(taskId);
             break;
+        default:
+            PlaySE(SE_SELECT);
+            sDecorationMainMenuActions[sDecorationActionsCursorPos].func.void_u8(taskId);
+            break;
         }
     }
 }
@@ -615,7 +615,7 @@ static void HandleDecorationActionsMenuInput(u8 taskId)
 static void PrintCurMainMenuDescription(void)
 {
     FillWindowPixelBuffer(0, PIXEL_FILL(1));
-    AddTextPrinterParameterized2(0, FONT_NORMAL, sSecretBasePCMenuItemDescriptions[sDecorationActionsCursorPos], 0, 0, 2, 1, 3);
+    AddTextPrinterParameterized2(0, FONT_NORMAL, sSecretBasePCMenuItemDescriptions[sDecorationActionsCursorPos], 0, 0, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
 }
 
 static void DecorationMenuAction_Decorate(u8 taskId)
@@ -624,13 +624,12 @@ static void DecorationMenuAction_Decorate(u8 taskId)
     {
         StringExpandPlaceholders(gStringVar4, gText_NoDecorations);
         DisplayItemMessageOnField(taskId, gStringVar4, ReturnToDecorationActionsAfterInvalidSelection);
+        return;
     }
-    else
-    {
+
         gTasks[taskId].tDecorationMenuCommand = DECOR_MENU_PLACE;
         sCurDecorationCategory = DECORCAT_DESK;
         SecretBasePC_PrepMenuForSelectingStoredDecors(taskId);
-    }
 }
 
 static void DecorationMenuAction_PutAway(u8 taskId)
@@ -639,15 +638,14 @@ static void DecorationMenuAction_PutAway(u8 taskId)
     {
         StringExpandPlaceholders(gStringVar4, gText_NoDecorationsInUse);
         DisplayItemMessageOnField(taskId, gStringVar4, ReturnToDecorationActionsAfterInvalidSelection);
+        return;
     }
-    else
-    {
-        RemoveDecorationWindow(WINDOW_MAIN_MENU);
-        ClearDialogWindowAndFrame(0, 0);
-        FadeScreen(FADE_TO_BLACK, 0);
-        gTasks[taskId].tState = 0;
-        gTasks[taskId].func = Task_ContinuePuttingAwayDecorations;
-    }
+
+    RemoveDecorationWindow(WINDOW_MAIN_MENU);
+    ClearDialogWindowAndFrame(0, FALSE);
+    FadeScreen(FADE_TO_BLACK, 0);
+    gTasks[taskId].tState = 0;
+    gTasks[taskId].func = Task_ContinuePuttingAwayDecorations;
 }
 
 static void DecorationMenuAction_Toss(u8 taskId)
@@ -656,13 +654,12 @@ static void DecorationMenuAction_Toss(u8 taskId)
     {
         StringExpandPlaceholders(gStringVar4, gText_NoDecorations);
         DisplayItemMessageOnField(taskId, gStringVar4, ReturnToDecorationActionsAfterInvalidSelection);
+        return;
     }
-    else
-    {
-        gTasks[taskId].tDecorationMenuCommand = DECOR_MENU_TOSS;
-        sCurDecorationCategory = DECORCAT_DESK;
-        SecretBasePC_PrepMenuForSelectingStoredDecors(taskId);
-    }
+
+    gTasks[taskId].tDecorationMenuCommand = DECOR_MENU_TOSS;
+    sCurDecorationCategory = DECORCAT_DESK;
+    SecretBasePC_PrepMenuForSelectingStoredDecors(taskId);
 }
 
 static void DecorationMenuAction_Cancel(u8 taskId)
@@ -670,7 +667,7 @@ static void DecorationMenuAction_Cancel(u8 taskId)
     RemoveDecorationWindow(WINDOW_MAIN_MENU);
     if (!sDecorationContext.isPlayerRoom)
     {
-        ScriptContext1_SetupScript(SecretBase_EventScript_PCCancel);
+        ScriptContext_SetupScript(SecretBase_EventScript_PCCancel);
         DestroyTask(taskId);
     }
     else
@@ -688,7 +685,7 @@ static void ReturnToDecorationActionsAfterInvalidSelection(u8 taskId)
 static void SecretBasePC_PrepMenuForSelectingStoredDecors(u8 taskId)
 {
     LoadPalette(sDecorationMenuPalette, 0xd0, 0x20);
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     RemoveDecorationWindow(WINDOW_MAIN_MENU);
     InitDecorationCategoriesWindow(taskId);
 }
@@ -715,9 +712,11 @@ static void PrintDecorationCategoryMenuItems(u8 taskId)
     s16 *data = gTasks[taskId].data;
     u8 windowId = sDecorMenuWindowIds[WINDOW_DECORATION_CATEGORIES];
     bool8 isPlayerRoom = sDecorationContext.isPlayerRoom;
-    bool8 shouldDisable = FALSE;
+    bool8 shouldDisable;
     if (isPlayerRoom == TRUE && tDecorationMenuCommand == DECOR_MENU_PLACE)
         shouldDisable = TRUE;
+    else
+        shouldDisable = FALSE;
 
     for (i = 0; i < DECORCAT_COUNT; i++)
     {
@@ -734,7 +733,7 @@ static void PrintDecorationCategoryMenuItems(u8 taskId)
 
 static void PrintDecorationCategoryMenuItem(u8 winid, u8 category, u8 x, u8 y, bool8 disabled, u8 speed)
 {
-    u8 width;
+    int width;
     u8 *str;
 
     width = x == 8 ? 104 : 96;
@@ -772,12 +771,12 @@ static void HandleDecorationCategoriesMenuInput(u8 taskId)
         s8 input = Menu_ProcessInput();
         switch (input)
         {
+        case MENU_NOTHING_CHOSEN:
+            break;
         case MENU_B_PRESSED:
         case DECORCAT_COUNT: // CANCEL
             PlaySE(SE_SELECT);
             ExitDecorationCategoriesMenu(taskId);
-            break;
-        case MENU_NOTHING_CHOSEN:
             break;
         default:
             PlaySE(SE_SELECT);
@@ -810,7 +809,7 @@ static void SelectDecorationCategory(u8 taskId)
 
 static void ReturnToDecorationCategoriesAfterInvalidSelection(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     InitDecorationCategoriesWindow(taskId);
 }
 
@@ -834,7 +833,7 @@ static void ReturnToActionsMenuFromCategories(u8 taskId)
 void ShowDecorationCategoriesWindow(u8 taskId)
 {
     LoadPalette(sDecorationMenuPalette, 0xd0, 0x20);
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     gTasks[taskId].tDecorationMenuCommand = DECOR_MENU_TRADE;
     sCurDecorationCategory = DECORCAT_DESK;
     InitDecorationCategoriesWindow(taskId);
@@ -876,7 +875,7 @@ static void PrintDecorationItemMenuItems(u8 taskId)
     u16 i;
 
     data = gTasks[taskId].data;
-    if ((sCurDecorationCategory < DECORCAT_DOLL || sCurDecorationCategory > DECORCAT_CUSHION) && sDecorationContext.isPlayerRoom == TRUE && tDecorationMenuCommand == DECOR_MENU_PLACE)
+    if (sCurDecorationCategory != DECORCAT_DOLL && sCurDecorationCategory != DECORCAT_CUSHION && sDecorationContext.isPlayerRoom == TRUE && tDecorationMenuCommand == DECOR_MENU_PLACE)
         ColorMenuItemString(gStringVar1, TRUE);
     else
         ColorMenuItemString(gStringVar1, FALSE);
@@ -890,7 +889,9 @@ static void PrintDecorationItemMenuItems(u8 taskId)
 
     StringCopy(sDecorationItemsMenu->names[i], gText_Cancel);
     sDecorationItemsMenu->items[i].name = sDecorationItemsMenu->names[i];
-    sDecorationItemsMenu->items[i].id = -2;
+
+    // TODO: check if MENU_NOTHING_CHOSEN macro is appropiate
+    sDecorationItemsMenu->items[i].id = MENU_NOTHING_CHOSEN;
     gMultiuseListMenuTemplate = sDecorationItemsListMenuTemplate;
     gMultiuseListMenuTemplate.windowId = sDecorMenuWindowIds[WINDOW_DECORATION_CATEGORIES];
     gMultiuseListMenuTemplate.totalItems = sDecorationItemsMenu->numMenuItems;
@@ -904,7 +905,7 @@ static void CopyDecorationMenuItemName(u8 *dest, u16 decoration)
     StringAppend(dest, gDecorations[decoration].name);
 }
 
-static void DecorationItemsMenu_OnCursorMove(s32 itemIndex, bool8 flag, struct ListMenu *menu)
+static void DecorationItemsMenu_OnCursorMove(u32 itemIndex, bool8 flag)
 {
     if (flag != TRUE)
         PlaySE(SE_SELECT);
@@ -914,6 +915,7 @@ static void DecorationItemsMenu_OnCursorMove(s32 itemIndex, bool8 flag, struct L
 
 static void DecorationItemsMenu_PrintDecorationInUse(u8 windowId, u32 itemIndex, u8 y)
 {
+    // todo: is (u8)itemIndex + 1, which is what GF wrote, better?
     if (itemIndex != LIST_CANCEL)
     {
         if (IsDecorationIndexInSecretBase(itemIndex + 1) == TRUE)
@@ -1012,14 +1014,14 @@ static void ShowDecorationCategorySummaryWindow(u8 category)
     PrintDecorationCategoryMenuItem(AddDecorationWindow(WINDOW_DECORATION_CATEGORY_SUMMARY), category, 0, 0, 0, 0);
 }
 
-static void PrintDecorationItemDescription(s32 itemIndex)
+static void PrintDecorationItemDescription(u32 itemIndex)
 {
     u8 windowId;
     const u8 *str;
 
     windowId = sDecorMenuWindowIds[WINDOW_DECORATION_CATEGORY_ITEMS];
     FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
-    if ((u32)itemIndex >= sNumOwnedDecorationsInCurCategory)
+    if (itemIndex >= sNumOwnedDecorationsInCurCategory)
         str = gText_GoBackPrevMenu;
     else
         str = gDecorations[gCurDecorationItems[itemIndex]].description;
@@ -1141,7 +1143,7 @@ static void Task_ShowDecorationItemsWindow(u8 taskId)
 
 static void DontTossDecoration(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     gTasks[taskId].func = Task_ShowDecorationItemsWindow;
 }
 
@@ -1149,7 +1151,7 @@ static void ReturnToDecorationItemsAfterInvalidSelection(u8 taskId)
 {
     if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
-        ClearDialogWindowAndFrame(0, 0);
+        ClearDialogWindowAndFrame(0, FALSE);
         AddDecorationWindow(WINDOW_DECORATION_CATEGORIES);
         ShowDecorationItemsWindow(taskId);
     }
@@ -1318,8 +1320,10 @@ static void DecorationItemsMenuAction_AttemptPlace(u8 taskId)
     {
         StringExpandPlaceholders(gStringVar4, gText_CantPlaceInRoom);
         DisplayItemMessageOnField(taskId, gStringVar4, ReturnToDecorationItemsAfterInvalidSelection);
+        return;
     }
-    else if (IsSelectedDecorInThePC() == TRUE)
+    
+    if (IsSelectedDecorInThePC() == TRUE)
     {
         if (HasDecorationSpace() == TRUE)
         {
@@ -1389,9 +1393,12 @@ static void ConfigureCameraObjectForPlacingDecoration(struct PlaceDecorationGrap
 
 static void SetUpPlacingDecorationPlayerAvatar(u8 taskId, struct PlaceDecorationGraphicsDataBuffer *data)
 {
-    u8 x;
-
-    x = 16 * (u8)gTasks[taskId].tDecorWidth + sDecorationMovementInfo[data->decoration->shape].cameraX - 8 * ((u8)gTasks[taskId].tDecorWidth - 1);
+    // must both be u8 to match
+    u8 x, h;
+    h = (u8)gTasks[taskId].tDecorWidth;
+    // TODO: look see if it is better to do
+// h * 16 instead of h << 4
+    x = sDecorationMovementInfo[data->decoration->shape].cameraX + (h << 4) - 8 * (h - 1);
     if (data->decoration->shape == DECORSHAPE_3x1 || data->decoration->shape == DECORSHAPE_3x3 || data->decoration->shape == DECORSHAPE_3x2)
         x -= 8;
 
@@ -1472,6 +1479,7 @@ static void AttemptCancelPlaceDecoration(u8 taskId)
     DisplayItemMessageOnField(taskId, gStringVar4, CancelDecoratingPrompt);
 }
 
+// Why not extend this out or expand this to not have the !()
 static bool8 IsSecretBaseTrainerSpot(u8 behaviorAt, u16 layerType)
 {
     if (!(MetatileBehavior_IsSecretBaseTrainerSpot(behaviorAt) == TRUE && layerType == METATILE_LAYER_TYPE_NORMAL))
@@ -1640,7 +1648,7 @@ static void PlaceDecorationPrompt(u8 taskId)
 
 static void PlaceDecoration(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     PlaceDecoration_(taskId);
     if (gDecorations[gCurDecorationItems[gCurDecorationIndex]].permission != DECORPERM_SPRITE)
     {
@@ -1650,7 +1658,7 @@ static void PlaceDecoration(u8 taskId)
     {
         sCurDecorMapX = gTasks[taskId].tCursorX - MAP_OFFSET;
         sCurDecorMapY = gTasks[taskId].tCursorY - MAP_OFFSET;
-        ScriptContext1_SetupScript(SecretBase_EventScript_SetDecoration);
+        ScriptContext_SetupScript(SecretBase_EventScript_SetDecoration);
     }
 
     gSprites[sDecor_CameraSpriteObjectIdx1].y += 2;
@@ -1706,7 +1714,7 @@ static void CancelDecoratingPrompt(u8 taskId)
 
 static void CancelDecorating(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     CancelDecorating_(taskId);
 }
 
@@ -1722,7 +1730,7 @@ static void c1_overworld_prev_quest(u8 taskId)
     switch (gTasks[taskId].tState)
     {
     case 0:
-        ScriptContext2_Enable();
+        LockPlayerFieldControls();
         if (!gPaletteFade.active)
         {
             WarpToInitialPosition(taskId);
@@ -1749,11 +1757,11 @@ static void Task_InitDecorationItemsWindow(u8 taskId)
         tState++;
         break;
     case 1:
-        ScriptContext1_SetupScript(SecretBase_EventScript_InitDecorations);
+        ScriptContext_SetupScript(SecretBase_EventScript_InitDecorations);
         tState++;
         break;
     case 2:
-        ScriptContext2_Enable();
+        LockPlayerFieldControls();
         tState++;
         break;
     case 3:
@@ -1767,7 +1775,7 @@ static void FieldCB_InitDecorationItemsWindow(void)
 {
     u8 taskId;
 
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     FadeInFromBlack();
     taskId = CreateTask(Task_InitDecorationItemsWindow, 8);
     AddDecorationItemsWindow(taskId);
@@ -1777,25 +1785,25 @@ static void FieldCB_InitDecorationItemsWindow(void)
 static bool8 ApplyCursorMovement_IsInvalid(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    if (sDecorationLastDirectionMoved == DIR_SOUTH && tCursorY - tDecorHeight - 6 < 0)
+    if (sDecorationLastDirectionMoved == DIR_SOUTH && tCursorY - tDecorHeight + 1 - MAP_OFFSET < 0)
     {
         tCursorY++;
         return FALSE;
     }
 
-    if (sDecorationLastDirectionMoved == DIR_NORTH && tCursorY - 7 >= gMapHeader.mapLayout->height)
+    if (sDecorationLastDirectionMoved == DIR_NORTH && tCursorY - MAP_OFFSET >= gMapHeader.mapLayout->height)
     {
         tCursorY--;
         return FALSE;
     }
 
-    if (sDecorationLastDirectionMoved == DIR_WEST && tCursorX - 7 < 0)
+    if (sDecorationLastDirectionMoved == DIR_WEST && tCursorX - MAP_OFFSET < 0)
     {
         tCursorX++;
         return FALSE;
     }
 
-    if (sDecorationLastDirectionMoved == DIR_EAST && tCursorX + tDecorWidth - 8 >= gMapHeader.mapLayout->width)
+    if (sDecorationLastDirectionMoved == DIR_EAST && tCursorX + tDecorWidth - 1 - MAP_OFFSET >= gMapHeader.mapLayout->width)
     {
         tCursorX--;
         return FALSE;
@@ -1807,6 +1815,7 @@ static bool8 ApplyCursorMovement_IsInvalid(u8 taskId)
 static bool8 IsHoldingDirection(void)
 {
     u16 heldKeys = JOY_HELD(DPAD_ANY);
+    // TODO: should flip this
     if (heldKeys != DPAD_UP && heldKeys != DPAD_DOWN && heldKeys != DPAD_LEFT && heldKeys != DPAD_RIGHT)
         return FALSE;
 
@@ -1891,7 +1900,7 @@ static void Task_SelectLocation(u8 taskId)
 
 static void ContinueDecorating(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 1);
+    ClearDialogWindowAndFrame(0, TRUE);
     gSprites[sDecor_CameraSpriteObjectIdx1].data[7] = 0;
     gTasks[taskId].tButton = 0;
     gTasks[taskId].func = Task_SelectLocation;
@@ -1947,7 +1956,7 @@ static void CopyTile(u8 *dest, u16 tile)
             dest[4 * i + 3] = buffer[4 * (7 - i) + 3];
         }
         break;
-    case BG_TILE_H_FLIP(BG_TILE_V_FLIP(0)) >> 10:
+    case BG_TILE_HV_FLIP(0) >> 10:
         for (i = 0; i < 32; i++)
         {
             dest[i] = (buffer[31 - i] >> 4) + ((buffer[31 - i] & 0x0F) << 4);
@@ -1958,14 +1967,15 @@ static void CopyTile(u8 *dest, u16 tile)
 
 static void SetDecorSelectionBoxTiles(struct PlaceDecorationGraphicsDataBuffer *data)
 {
-    u16 i;
+    m16 i;
     for (i = 0; i < 64; i++)
         CopyTile(&data->image[i * TILE_SIZE_4BPP], data->tiles[i]);
 }
 
 static u16 GetMetatile(u16 tile)
 {
-    return ((u16 *)gTilesetPointer_SecretBaseRedCave->metatiles)[tile] & 0xFFF;
+    // TODO: look into making metatiles const u16*
+    return (gTilesetPointer_SecretBaseRedCave->metatiles[tile]) & 0xFFF;
 }
 
 static void SetDecorSelectionMetatiles(struct PlaceDecorationGraphicsDataBuffer *data)
@@ -1985,7 +1995,7 @@ static void SetDecorSelectionBoxOamAttributes(u8 decorShape)
     sDecorSelectorOam.y = 0;
     sDecorSelectorOam.affineMode = ST_OAM_AFFINE_OFF;
     sDecorSelectorOam.objMode = ST_OAM_OBJ_NORMAL;
-    sDecorSelectorOam.mosaic = 0;
+    sDecorSelectorOam.mosaic = FALSE;
     sDecorSelectorOam.bpp = ST_OAM_4BPP;
     sDecorSelectorOam.shape = sDecorationMovementInfo[decorShape].shape;
     sDecorSelectorOam.x = 0;
@@ -2052,6 +2062,7 @@ static u8 AddDecorationIconObjectFromIconTable(u16 tilesTag, u16 paletteTag, u8 
         return MAX_SPRITES;
 
     LZDecompressWram(GetDecorationIconPicOrPalette(decor, 0), gItemIconDecompressionBuffer);
+    // TODO: inline these
     CopyItemIconPicTo4x4Buffer(gItemIconDecompressionBuffer, gItemIcon4x4Buffer);
     sheet.data = gItemIcon4x4Buffer;
     sheet.size = 0x200;
@@ -2175,8 +2186,10 @@ void PutAwayDecorationIteration(void)
     if (gSpecialVar_0x8004 == sCurDecorSelectedInRearrangement)
     {
         gSpecialVar_Result = TRUE;
+        return;
     }
-    else if (gDecorations[sDecorationContext.items[sDecorRearrangementDataBuffer[gSpecialVar_0x8004].idx]].permission == DECORPERM_SPRITE)
+    
+    if (gDecorations[sDecorationContext.items[sDecorRearrangementDataBuffer[gSpecialVar_0x8004].idx]].permission == DECORPERM_SPRITE)
     {
         gSpecialVar_0x8005 = sDecorRearrangementDataBuffer[gSpecialVar_0x8004].flagId;
         ClearDecorationContextIndex(sDecorRearrangementDataBuffer[gSpecialVar_0x8004].idx);
@@ -2211,8 +2224,8 @@ static void ClearRearrangementNonSprites(void)
     u8 i;
     u8 y;
     u8 x;
-    int posX;
-    int posY;
+    u8 posX;
+    u8 posY;
     u8 perm;
 
     for (i = 0; i < sCurDecorSelectedInRearrangement; i++)
@@ -2246,13 +2259,13 @@ static void Task_PutAwayDecoration(u8 taskId)
     case 1:
         if (!gPaletteFade.active) {
             DrawWholeMapView();
-            ScriptContext1_SetupScript(SecretBase_EventScript_PutAwayDecoration);
-            ClearDialogWindowAndFrame(0, 1);
+            ScriptContext_SetupScript(SecretBase_EventScript_PutAwayDecoration);
+            ClearDialogWindowAndFrame(0, TRUE);
             gTasks[taskId].tState = 2;
         }
         break;
     case 2:
-        ScriptContext2_Enable();
+        LockPlayerFieldControls();
         IdentifyOwnedDecorationsCurrentlyInUseInternal(taskId);
         FadeInFromBlack();
         gTasks[taskId].tState = 3;
@@ -2283,7 +2296,11 @@ static bool8 HasDecorationsInUse(u8 taskId)
 
 static void SetUpPuttingAwayDecorationPlayerAvatar(void)
 {
+    // No reason to call this. What happened is that GF assigned the result to an unused var
+    #if !MODERN
     GetPlayerFacingDirection();
+    #endif
+
     sDecor_CameraSpriteObjectIdx1 = gSprites[gFieldCamera.spriteId].data[0];
     LoadPlayerSpritePalette();
     gFieldCamera.spriteId = CreateSprite(&sPuttingAwayCursorSpriteTemplate, 120, 80, 0);
@@ -2331,7 +2348,7 @@ static void Task_ContinuePuttingAwayDecorations(u8 taskId)
 
 static void ContinuePuttingAwayDecorations(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 1);
+    ClearDialogWindowAndFrame(0, TRUE);
     gSprites[sDecor_CameraSpriteObjectIdx1].data[7] = 0;
     gSprites[sDecor_CameraSpriteObjectIdx1].invisible = FALSE;
     gSprites[sDecor_CameraSpriteObjectIdx1].callback = InitializeCameraSprite1;
@@ -2474,7 +2491,7 @@ static bool8 DecorationIsUnderCursor(u8 taskId, u8 idx, struct DecorRearrangemen
 
     if (x >= xOff && x < xOff + data->width && y > yOff - ht && y <= yOff)
     {
-        SetCameraSpritePosition(data->width - (x - xOff + 1), yOff - y);
+        SetCameraSpritePosition(data->width - 1 - (x - xOff), yOff - y);
         return TRUE;
     }
 
@@ -2547,31 +2564,44 @@ static void MarkSpriteDecorsInBoundsForRemoval(u8 left, u8 top, u8 right, u8 bot
 static void AttemptMarkDecorUnderCursorForRemoval(u8 taskId)
 {
     u8 i;
-    u8 xOff;
-    u8 yOff;
     u8 var1;
-    u32 var2;
+
 
     sCurDecorSelectedInRearrangement = 0;
-    if (AttemptMarkSpriteDecorUnderCursorForRemoval(taskId) != TRUE)
+    if (AttemptMarkSpriteDecorUnderCursorForRemoval(taskId) == TRUE)
+        return; // It is a sprite
+    // Not a sprite.
+    for (i = 0; i < sDecorationContext.size; i++)
     {
-        // Not a sprite.
-        for (i = 0; i < sDecorationContext.size; i++)
+        var1 = sDecorationContext.items[i];
+        if (var1 != DECOR_NONE)
         {
-            var1 = sDecorationContext.items[i];
-            if (var1 != DECOR_NONE)
+            SetDecorRearrangementShape(var1, &sDecorRearrangementDataBuffer[0]);
+            if (DecorationIsUnderCursor(taskId, i, &sDecorRearrangementDataBuffer[0]) == TRUE)
             {
-                SetDecorRearrangementShape(var1, &sDecorRearrangementDataBuffer[0]);
-                if (DecorationIsUnderCursor(taskId, i, &sDecorRearrangementDataBuffer[0]) == TRUE)
-                {
-                    sDecorRearrangementDataBuffer[0].idx = i;
-                    sCurDecorSelectedInRearrangement++;
-                    break;
-                }
+                sDecorRearrangementDataBuffer[0].idx = i;
+                sCurDecorSelectedInRearrangement++;
+                break;
             }
         }
-        if (sCurDecorSelectedInRearrangement != 0)
-        {
+    }
+    if (sCurDecorSelectedInRearrangement != 0)
+    {
+            u8 xOff;
+            u8 yOff;
+
+            #if !MODERN
+            u32 var2; // Should be u8 
+            #else
+            u8 var2;
+            #endif 
+
+        // OG code commented below.
+        // All that changes in the asm of the compare build is not even the instruction, but the order in which the two values of add is used
+        // var1 = sDecorationContext.pos[sDecorRearrangementDataBuffer[0].idx];
+
+        // // Remove any dolls/cushions on this decoration.
+        // MarkSpriteDecorsInBoundsForRemoval(var1 >> 4, (var1 & 0xF) - sDecorRearrangementDataBuffer[0].height + 1, (var1 >> 4) + sDecorRearrangementDataBuffer[0].width - 1, var1 & 0xF);
             xOff = sDecorationContext.pos[sDecorRearrangementDataBuffer[0].idx] >> 4;
             yOff = sDecorationContext.pos[sDecorRearrangementDataBuffer[0].idx] & 0x0F;
             var1 = yOff - sDecorRearrangementDataBuffer[0].height + 1;
@@ -2579,7 +2609,6 @@ static void AttemptMarkDecorUnderCursorForRemoval(u8 taskId)
 
             // Remove any dolls/cushions on this decoration.
             MarkSpriteDecorsInBoundsForRemoval(xOff, var1, var2, yOff);
-        }
     }
 }
 
@@ -2604,7 +2633,7 @@ static void StopPuttingAwayDecorationsPrompt(u8 taskId)
 
 static void StopPuttingAwayDecorations(u8 taskId)
 {
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     StopPuttingAwayDecorations_(taskId);
 }
 
@@ -2645,11 +2674,11 @@ static void Task_ReinitializeDecorationMenuHandler(u8 taskId)
         tState++;
         break;
     case 1:
-        ScriptContext1_SetupScript(SecretBase_EventScript_InitDecorations);
+        ScriptContext_SetupScript(SecretBase_EventScript_InitDecorations);
         tState++;
         break;
     case 2:
-        ScriptContext2_Enable();
+        LockPlayerFieldControls();
         tState++;
         break;
     case 3:
@@ -2672,8 +2701,8 @@ static void FieldCB_StopPuttingAwayDecorations(void)
 
 static void InitializeCameraSprite1(struct Sprite *sprite)
 {
-    sprite->data[0]++;
-    sprite->data[0] &= 0x1F;
+    sprite->data[0] = (sprite->data[0] + 1) & 0x1F;
+
     if (sprite->data[0] > 15)
         sprite->invisible = TRUE;
     else

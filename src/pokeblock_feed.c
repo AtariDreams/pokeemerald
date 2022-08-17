@@ -90,7 +90,7 @@ struct PokeblockFeed
     struct Sprite *monSpritePtr;
     struct Sprite savedMonSprite;
     u8 tilemapBuffer[BG_SCREEN_SIZE];
-    u8 unused1[8];
+    u8 unused1[8]; // two unused pointers
     s16 monAnimX[0x200];
     s16 monAnimY[0x200];
     u8 animRunState;
@@ -113,7 +113,7 @@ struct PokeblockFeed
     s16 monX;
     s16 monY;
     s16 loadGfxState;
-    u8 unused4;
+    s16 unused4[2];
 };
 
 static void HandleInitBackgrounds(void);
@@ -466,7 +466,7 @@ static const struct WindowTemplate sWindowTemplates[] =
 };
 
 // - 1 excludes PBLOCK_CLR_NONE
-static const u32* const sPokeblocksPals[] =
+static const u32 *const sPokeblocksPals[] =
 {
     [PBLOCK_CLR_RED - 1]       = gPokeblockRed_Pal,
     [PBLOCK_CLR_BLUE - 1]      = gPokeblockBlue_Pal,
@@ -545,7 +545,7 @@ static const struct OamData sOamData_Pokeblock =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_DOUBLE,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x8),
     .x = 0,
@@ -660,7 +660,7 @@ static bool8 LoadPokeblockFeedScene(void)
         gMain.state++;
         break;
     case 10:
-        DrawStdFrameWithCustomTileAndPalette(0, 1, 1, 14);
+        DrawStdFrameWithCustomTileAndPalette(0, TRUE, 1, 14);
         gMain.state++;
         break;
     case 11:
@@ -701,7 +701,7 @@ static void HandleInitBackgrounds(void)
 {
     ResetVramOamAndBgCntRegs();
 
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBackgroundTemplates, ARRAY_COUNT(sBackgroundTemplates));
     SetBgTilemapBuffer(1, sPokeblockFeed->tilemapBuffer);
     ResetAllBgsCoordinates();
@@ -792,7 +792,7 @@ static void HandleInitWindows(void)
 
 static void SetPokeblockSpritePal(u8 pokeblockCaseId)
 {
-    u8 colorId = GetPokeblockData(&gSaveBlock1Ptr->pokeblocks[pokeblockCaseId], PBLOCK_COLOR);
+    u8 colorId = (u8)GetPokeblockData(&gSaveBlock1Ptr->pokeblocks[pokeblockCaseId], PBLOCK_COLOR);
     sPokeblockSpritePal.data = sPokeblocksPals[colorId - 1];
     sPokeblockSpritePal.tag = TAG_POKEBLOCK;
 }
@@ -872,7 +872,7 @@ static void Task_PrintAtePokeblockMessage(u8 taskId)
         StringExpandPlaceholders(gStringVar4, gText_Var1DisdainfullyAteVar2);
 
     gTextFlags.canABSpeedUpPrint = TRUE;
-    AddTextPrinterParameterized2(0, FONT_NORMAL, gStringVar4, GetPlayerTextSpeedDelay(), NULL, 2, 1, 3);
+    AddTextPrinterParameterized2(0, FONT_NORMAL, gStringVar4, GetPlayerTextSpeedDelay(), NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
     gTasks[taskId].func = Task_WaitForAtePokeblockMessage;
 }
 
@@ -905,7 +905,7 @@ static void Task_FadeOutPokeblockFeed(u8 taskId)
 #define sAccel   data[1]
 #define sSpecies data[2]
 
-static u8 CreateMonSprite(struct Pokemon* mon)
+static u8 CreateMonSprite(struct Pokemon *mon)
 {
     u16 species = GetMonData(mon, MON_DATA_SPECIES2);
     u8 spriteId = CreateSprite(&gMultiuseSpriteTemplate, MON_X, MON_Y, 2);
@@ -937,7 +937,7 @@ static void StartMonJumpForPokeblock(u8 spriteId)
     gSprites[spriteId].callback = SpriteCB_MonJumpForPokeblock;
 }
 
-static void SpriteCB_MonJumpForPokeblock(struct Sprite* sprite)
+static void SpriteCB_MonJumpForPokeblock(struct Sprite *sprite)
 {
     sprite->x += 4;
     sprite->y += sprite->sSpeed;
@@ -982,7 +982,7 @@ static u8 CreatePokeblockSprite(void)
     return spriteId;
 }
 
-static void SpriteCB_ThrownPokeblock(struct Sprite* sprite)
+static void SpriteCB_ThrownPokeblock(struct Sprite *sprite)
 {
     sprite->x -= 4;
     sprite->y += sprite->sSpeed;
@@ -993,7 +993,7 @@ static void SpriteCB_ThrownPokeblock(struct Sprite* sprite)
 
 static void CalculateMonAnimLength(void)
 {
-    u8 animId, i;
+    m8 animId, i;
     struct PokeblockFeed *pokeblockFeed;
 
     pokeblockFeed = sPokeblockFeed;
@@ -1021,8 +1021,6 @@ static void UpdateMonAnim(void)
         pokeblockFeed->savedMonSprite = *pokeblockFeed->monSpritePtr;
         pokeblockFeed->animRunState = 10;
         break;
-    case 1 ... 9:
-        break;
     case 10:
         InitMonAnimStage();
         if (sNatureToMonPokeblockAnim[pokeblockFeed->nature][1] != AFFINE_NONE)
@@ -1034,6 +1032,7 @@ static void UpdateMonAnim(void)
             InitSpriteAffineAnim(pokeblockFeed->monSpritePtr);
         }
         pokeblockFeed->animRunState = 50;
+        // no break here?
     case 50:
         if (sNatureToMonPokeblockAnim[pokeblockFeed->nature][1] != AFFINE_NONE)
         {
@@ -1068,7 +1067,14 @@ static void UpdateMonAnim(void)
         pokeblockFeed->animId = 0;
         pokeblockFeed->animRunState = 0;
         break;
-    case 71 ... 90:
+    #if !MODERN
+    case 20:
+    case 30:
+    case 40:
+    case 80:
+    case 90:
+    #endif
+    default:
         break;
     }
 }
@@ -1076,7 +1082,7 @@ static void UpdateMonAnim(void)
 static bool8 InitMonAnimStage(void)
 {
     struct PokeblockFeed *pokeblockFeed = sPokeblockFeed;
-    u8 i;
+    m8 i;
 
     for (i = 0; i < NUM_ANIMDATA; i++)
         pokeblockFeed->animData[i] = sMonPokeblockAnims[pokeblockFeed->animId][i];
@@ -1085,22 +1091,23 @@ static bool8 InitMonAnimStage(void)
     {
         return TRUE;
     }
-    else
-    {
-        pokeblockFeed->monInitX = Sin(pokeblockFeed->animData[ANIMDATA_ROT_IDX], pokeblockFeed->animData[ANIMDATA_SIN_AMPLITUDE]);
-        pokeblockFeed->monInitY = Cos(pokeblockFeed->animData[ANIMDATA_ROT_IDX], pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE]);
-        pokeblockFeed->maxAnimStageTime = pokeblockFeed->animData[ANIMDATA_TIME];
-        pokeblockFeed->monX = pokeblockFeed->monSpritePtr->x2;
-        pokeblockFeed->monY = pokeblockFeed->monSpritePtr->y2;
 
-        // Calculate the positions to move to during the animation
-        // The time is counted down during this, so reset it afterwards
-        CalculateMonAnimMovement();
-        pokeblockFeed->animData[ANIMDATA_TIME] = pokeblockFeed->maxAnimStageTime;
-        CalculateMonAnimMovementEnd();
-        pokeblockFeed->animData[ANIMDATA_TIME] = pokeblockFeed->maxAnimStageTime; // Redundant
-        return FALSE;
-    }
+    pokeblockFeed->monInitX = Sin(pokeblockFeed->animData[ANIMDATA_ROT_IDX], pokeblockFeed->animData[ANIMDATA_SIN_AMPLITUDE]);
+    pokeblockFeed->monInitY = Cos(pokeblockFeed->animData[ANIMDATA_ROT_IDX], pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE]);
+    pokeblockFeed->maxAnimStageTime = pokeblockFeed->animData[ANIMDATA_TIME];
+    pokeblockFeed->monX = pokeblockFeed->monSpritePtr->x2;
+    pokeblockFeed->monY = pokeblockFeed->monSpritePtr->y2;
+
+    // Calculate the positions to move to during the animation
+    // The time is counted down during this, so reset it afterwards
+    CalculateMonAnimMovement();
+#if !MODERN
+    pokeblockFeed->animData[ANIMDATA_TIME] = pokeblockFeed->maxAnimStageTime;
+#endif
+    CalculateMonAnimMovementEnd();
+    // TODO: was a typo here?
+    pokeblockFeed->animData[ANIMDATA_TIME] = pokeblockFeed->maxAnimStageTime; // Redundant
+    return FALSE;
 }
 
 static bool8 DoMonAnimStep(void)
@@ -1152,13 +1159,13 @@ static void CalculateMonAnimMovement(void)
     bool8 negative = FALSE;
     s16 x = pokeblockFeed->monX - pokeblockFeed->monInitX;
     s16 y = pokeblockFeed->monY - pokeblockFeed->monInitY;
+    u16 amplitude;
+    u16 time;
+    u16 acceleration;
 
     while (1)
     {
-        u16 amplitude;
-        u16 time;
-        u16 acceleration;
-
+        
         acceleration = abs(pokeblockFeed->animData[ANIMDATA_ROT_ACCEL]);
         amplitude = acceleration + pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE];
         pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE] = amplitude;
@@ -1174,20 +1181,19 @@ static void CalculateMonAnimMovement(void)
         if (!negative)
         {
             pokeblockFeed->monAnimX[time] = Sin(pokeblockFeed->animData[ANIMDATA_ROT_IDX],
-                                                pokeblockFeed->animData[ANIMDATA_SIN_AMPLITUDE] + amplitude / 0x100) + x;
+                                                pokeblockFeed->animData[ANIMDATA_SIN_AMPLITUDE] + (amplitude >> 8)) + x;
             pokeblockFeed->monAnimY[time] = Cos(pokeblockFeed->animData[ANIMDATA_ROT_IDX],
-                                                pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE] + amplitude / 0x100) + y;
+                                                pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE] + (amplitude >> 8)) + y;
         }
         else
         {
             pokeblockFeed->monAnimX[time] = Sin(pokeblockFeed->animData[ANIMDATA_ROT_IDX],
-                                                pokeblockFeed->animData[ANIMDATA_SIN_AMPLITUDE] - amplitude / 0x100) + x;
+                                                pokeblockFeed->animData[ANIMDATA_SIN_AMPLITUDE] - (amplitude >> 8)) + x;
             pokeblockFeed->monAnimY[time] = Cos(pokeblockFeed->animData[ANIMDATA_ROT_IDX],
-                                                pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE] - amplitude / 0x100) + y;
+                                                pokeblockFeed->animData[ANIMDATA_COS_AMPLITUDE] - (amplitude >> 8)) + y;
         }
 
-        pokeblockFeed->animData[ANIMDATA_ROT_IDX] += pokeblockFeed->animData[ANIMDATA_ROT_SPEED];
-        pokeblockFeed->animData[ANIMDATA_ROT_IDX] &= 0xFF;
+        pokeblockFeed->animData[ANIMDATA_ROT_IDX] = (pokeblockFeed->animData[ANIMDATA_ROT_IDX] + pokeblockFeed->animData[ANIMDATA_ROT_SPEED]) & 0xFF;
         pokeblockFeed->animData[ANIMDATA_TIME]--;
     }
 }

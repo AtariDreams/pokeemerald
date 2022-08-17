@@ -105,7 +105,7 @@ static void LimitMenuScrollAndRow(void);
 static void SetInitialScroll(void);
 static void UpdatePokeblockList(void);
 static void CreateScrollArrows(void);
-static void MovePokeblockMenuCursor(s32, bool8, struct ListMenu *);
+static void MovePokeblockMenuCursor(u32, u8);
 static void DrawPokeblockMenuTitleText(void);
 static void DrawPokeblockMenuHighlight(u16, u16);
 static void PutPokeblockListMenuString(u8 *, u16);
@@ -237,7 +237,7 @@ static const struct OamData sOamData_PokeblockCase =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -621,7 +621,7 @@ static bool8 InitPokeblockMenu(void)
 static void HandleInitBackgrounds(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplatesForPokeblockMenu, ARRAY_COUNT(sBgTemplatesForPokeblockMenu));
     SetBgTilemapBuffer(2, sPokeblockMenu->tilemap);
     ResetAllBgsCoordinates();
@@ -747,7 +747,7 @@ static void PutPokeblockListMenuString(u8 *dst, u16 pkblId)
     StringExpandPlaceholders(txtPtr, gText_LvVar1);
 }
 
-static void MovePokeblockMenuCursor(s32 pkblId, bool8 onInit, struct ListMenu *list)
+static void MovePokeblockMenuCursor(u32 pkblId, bool8 onInit)
 {
     if (onInit != TRUE)
     {
@@ -1148,7 +1148,7 @@ static void ShowPokeblockActionsWindow(u8 taskId)
         tWindowId = WIN_ACTIONS;
 
     DestroyScrollArrows();
-    DrawStdFrameWithCustomTileAndPalette(tWindowId, 0, 1, 0xE);
+    DrawStdFrameWithCustomTileAndPalette(tWindowId, FALSE, 1, 0xE);
     PrintMenuActionTextsInUpperLeftCorner(tWindowId, sPokeblockMenu->numActions, sPokeblockMenuActions, sPokeblockMenu->pokeblockActionIds);
     InitMenuInUpperLeftCornerNormal(tWindowId, sPokeblockMenu->numActions, 0);
     PutWindowTilemap(tWindowId);

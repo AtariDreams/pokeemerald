@@ -14,8 +14,25 @@ static void AnimOverheatFlame(struct Sprite *);
 static void AnimOverheatFlame_Step(struct Sprite *);
 static void AnimTask_DragonDanceWaver_Step(u8);
 static void UpdateDragonDanceScanlineEffect(struct Task *);
+static void AnimMonMoveCircular(struct Sprite *);
+static void AnimMonMoveCircular_Step(struct Sprite *);
 
+// This was a leftover debug
+#if !MODERN
 EWRAM_DATA static u16 sUnusedOverheatData[7] = {0};
+
+// Unused
+static const struct SpriteTemplate sMonMoveCircularSpriteTemplate =
+{
+    .tileTag = 0,
+    .paletteTag = 0,
+    .oam = &gDummyOamData,
+    .anims = gDummySpriteAnimTable,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = AnimMonMoveCircular,
+};
+#endif
 
 static const union AnimCmd sAnim_OutrageOverheatFire_0[] =
 {
@@ -187,6 +204,40 @@ const struct SpriteTemplate gOverheatFlameSpriteTemplate =
     .callback = AnimOverheatFlame,
 };
 
+
+static void AnimMonMoveCircular(struct Sprite *sprite)
+{
+    sprite->invisible = TRUE;
+    sprite->data[5] = gBattlerSpriteIds[gBattleAnimAttacker];
+    sprite->data[0] = 128;
+    sprite->data[1] = 10;
+    sprite->data[2] = gBattleAnimArgs[0];
+    sprite->data[3] = gBattleAnimArgs[1];
+    sprite->callback = AnimMonMoveCircular_Step;
+
+    gSprites[sprite->data[5]].y += 8;
+}
+
+static void AnimMonMoveCircular_Step(struct Sprite *sprite)
+{
+    if (sprite->data[3])
+    {
+        sprite->data[3]--;
+        gSprites[sprite->data[5]].x2 = Sin(sprite->data[0], sprite->data[1]);
+        gSprites[sprite->data[5]].y2 = Cos(sprite->data[0], sprite->data[1]);
+        sprite->data[0] += sprite->data[2];
+        if (sprite->data[0] > 255)
+            sprite->data[0] -= 256;
+    }
+    else
+    {
+        gSprites[sprite->data[5]].x2 = 0;
+        gSprites[sprite->data[5]].y2 = 0;
+        gSprites[sprite->data[5]].y -= 8;
+        sprite->callback = DestroySpriteAndMatrix;
+    }
+}
+
 static void AnimOutrageFlame(struct Sprite *sprite)
 {
     sprite->x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2);
@@ -297,10 +348,17 @@ static void AnimDragonDanceOrb_Step(struct Sprite *sprite)
         if (++sprite->data[4] > 5)
         {
             sprite->data[4] = 0;
+            // TODO: did some weird typo bug happen here?!
+            #if !MODERN
             if (sprite->data[5] <= 15 && ++sprite->data[5] > 15)
                 sprite->data[5] = 16;
+            #else
+            // Yeah I don't get it either. This is just a simplification of above
+            if (sprite->data[5] == 15)
+                sprite->data[5] = 16;
+            #endif
         }
-        if (++sprite->data[3] > 0x3C)
+        if (++sprite->data[3] > 60)
         {
             sprite->data[3] = 0;
             sprite->data[0]++;
@@ -308,15 +366,27 @@ static void AnimDragonDanceOrb_Step(struct Sprite *sprite)
         break;
     case 1:
         sprite->data[6] = (sprite->data[6] - sprite->data[5]) & 0xFF;
-        if (sprite->data[7] <= 0x95 && (sprite->data[7] += 8) > 0x95)
+        #if !MODERN
+        if (sprite->data[7] < 0x96 && (sprite->data[7] += 8) >= 0x96)
+        #else 
+        if (sprite->data[7] < 0x96 && (sprite->data[7] += 8) > 0x96) 
+        #endif
             sprite->data[7] = 0x96;
+        
         sprite->x2 = Cos(sprite->data[6], sprite->data[7]);
         sprite->y2 = Sin(sprite->data[6], sprite->data[7]);
         if (++sprite->data[4] > 5)
         {
             sprite->data[4] = 0;
+            // TODO: did some weird typo bug happen here?!
+            #if !MODERN
             if (sprite->data[5] <= 15 && ++sprite->data[5] > 15)
                 sprite->data[5] = 16;
+            #else
+            // Yeah I don't get it either. This is just a simplification of above
+            if (sprite->data[5] == 15)
+                sprite->data[5] = 16;
+            #endif
         }
         if (++sprite->data[3] > 20)
             DestroyAnimSprite(sprite);
@@ -331,7 +401,7 @@ void AnimTask_DragonDanceWaver(u8 taskId)
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
     u16 i;
-    u8 y;
+
     if (GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 1)
     {
         scanlineParams.dmaDest = &REG_BG1HOFS;
@@ -346,9 +416,11 @@ void AnimTask_DragonDanceWaver(u8 taskId)
     scanlineParams.dmaControl = SCANLINE_EFFECT_DMACNT_16BIT;
     scanlineParams.initState = 1;
     scanlineParams.unused9 = 0;
-    y = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
-    task->data[3] = y - 32;
-    task->data[4] = y + 32;
+
+
+    task->data[3] = GetBattlerYCoordWithElevation(gBattleAnimAttacker) - 32;
+    task->data[4] = task->data[3] + 64;
+    
     if (task->data[3] < 0)
         task->data[3] = 0;
 
@@ -377,7 +449,7 @@ static void AnimTask_DragonDanceWaver_Step(u8 taskId)
         UpdateDragonDanceScanlineEffect(task);
         break;
     case 1:
-        if (++task->data[1] > 0x3C)
+        if (++task->data[1] > 60)
             task->data[0]++;
         UpdateDragonDanceScanlineEffect(task);
         break;
@@ -406,7 +478,7 @@ static void UpdateDragonDanceScanlineEffect(struct Task *task)
     u16 i;
     for (i = task->data[3]; i <= task->data[4]; i++)
     {
-        gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = ((gSineTable[sineIndex] * task->data[6]) >> 7) + task->data[2];
+        gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = task->data[2] + ((gSineTable[sineIndex] * task->data[6]) >> 7);
         sineIndex = (sineIndex + 8) & 0xFF;
     }
 
@@ -415,7 +487,9 @@ static void UpdateDragonDanceScanlineEffect(struct Task *task)
 
 static void AnimOverheatFlame(struct Sprite *sprite)
 {
+    #if !MODERN
     int i;
+    #endif
     int yAmplitude = (gBattleAnimArgs[2] * 3) / 5;
     sprite->x = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X_2);
     sprite->y = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y_PIC_OFFSET) + gBattleAnimArgs[4];
@@ -425,8 +499,10 @@ static void AnimOverheatFlame(struct Sprite *sprite)
     sprite->y += sprite->data[2] * gBattleAnimArgs[0];
     sprite->data[3] = gBattleAnimArgs[3];
     sprite->callback = AnimOverheatFlame_Step;
+    #if !MODERN
     for (i = 0; i < 7; i++)
         sUnusedOverheatData[i] = sprite->data[i];
+    #endif
 }
 
 static void AnimOverheatFlame_Step(struct Sprite *sprite)

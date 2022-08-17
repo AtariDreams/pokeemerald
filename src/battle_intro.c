@@ -11,11 +11,6 @@
 #include "trig.h"
 #include "constants/trainers.h"
 
-static EWRAM_DATA u16 sBgCnt = 0;
-
-extern const u8 gBattleAnimBgCntSet[];
-extern const u8 gBattleAnimBgCntGet[];
-
 static void BattleIntroSlide1(u8);
 static void BattleIntroSlide2(u8);
 static void BattleIntroSlide3(u8);
@@ -36,69 +31,6 @@ static const TaskFunc sBattleIntroSlideFuncs[] =
     [BATTLE_TERRAIN_PLAIN]      = BattleIntroSlide3,
 };
 
-void SetAnimBgAttribute(u8 bgId, u8 attributeId, u8 value)
-{
-    if (bgId < 4)
-    {
-        sBgCnt = GetGpuReg(gBattleAnimBgCntSet[bgId]);
-        switch (attributeId)
-        {
-        case BG_ANIM_SCREEN_SIZE:
-            ((struct BgCnt *)&sBgCnt)->screenSize = value;
-            break;
-        case BG_ANIM_AREA_OVERFLOW_MODE:
-            ((struct BgCnt *)&sBgCnt)->areaOverflowMode = value;
-            break;
-        case BG_ANIM_MOSAIC:
-            ((struct BgCnt *)&sBgCnt)->mosaic = value;
-            break;
-        case BG_ANIM_CHAR_BASE_BLOCK:
-            ((struct BgCnt *)&sBgCnt)->charBaseBlock = value;
-            break;
-        case BG_ANIM_PRIORITY:
-            ((struct BgCnt *)&sBgCnt)->priority = value;
-            break;
-        case BG_ANIM_PALETTES_MODE:
-            ((struct BgCnt *)&sBgCnt)->palettes = value;
-            break;
-        case BG_ANIM_SCREEN_BASE_BLOCK:
-            ((struct BgCnt *)&sBgCnt)->screenBaseBlock = value;
-            break;
-        }
-
-        SetGpuReg(gBattleAnimBgCntSet[bgId], sBgCnt);
-    }
-}
-
-int GetAnimBgAttribute(u8 bgId, u8 attributeId)
-{
-    u16 bgCnt;
-
-    if (bgId < 4)
-    {
-        bgCnt = GetGpuReg(gBattleAnimBgCntGet[bgId]);
-        switch (attributeId)
-        {
-        case BG_ANIM_SCREEN_SIZE:
-            return ((struct BgCnt *)&bgCnt)->screenSize;
-        case BG_ANIM_AREA_OVERFLOW_MODE:
-            return ((struct BgCnt *)&bgCnt)->areaOverflowMode;
-        case BG_ANIM_MOSAIC:
-            return ((struct BgCnt *)&bgCnt)->mosaic;
-        case BG_ANIM_CHAR_BASE_BLOCK:
-            return ((struct BgCnt *)&bgCnt)->charBaseBlock;
-        case BG_ANIM_PRIORITY:
-            return ((struct BgCnt *)&bgCnt)->priority;
-        case BG_ANIM_PALETTES_MODE:
-            return ((struct BgCnt *)&bgCnt)->palettes;
-        case BG_ANIM_SCREEN_BASE_BLOCK:
-            return ((struct BgCnt *)&bgCnt)->screenBaseBlock;
-        }
-    }
-
-    return 0;
-}
-
 #define tState data[0]
 #define tTerrain data[1]
 
@@ -118,7 +50,11 @@ void HandleIntroSlide(u8 terrain)
     {
         taskId = CreateTask(BattleIntroSlide3, 0);
     }
+    #if !MODERN
     else if ((gBattleTypeFlags & BATTLE_TYPE_KYOGRE_GROUDON) && gGameVersion != VERSION_RUBY)
+    #else
+    else if (gBattleTypeFlags & BATTLE_TYPE_KYOGRE_GROUDON)
+    #endif
     {
         terrain = BATTLE_TERRAIN_UNDERWATER;
         taskId = CreateTask(BattleIntroSlide2, 0);
@@ -153,7 +89,7 @@ static void BattleIntroSlideEnd(u8 taskId)
 
 static void BattleIntroSlide1(u8 taskId)
 {
-    int i;
+    m32 i;
 
     gBattle_BG1_X += 6;
     switch (gTasks[taskId].tState)
@@ -238,7 +174,7 @@ static void BattleIntroSlide1(u8 taskId)
 
 static void BattleIntroSlide2(u8 taskId)
 {
-    int i;
+    m32 i;
 
     switch (gTasks[taskId].tTerrain)
     {
@@ -438,12 +374,11 @@ static void BattleIntroSlide3(u8 taskId)
 
 static void BattleIntroSlideLink(u8 taskId)
 {
-    int i;
+    m32 i;
 
     if (gTasks[taskId].tState > 1 && !gTasks[taskId].data[4])
     {
-        u16 var0 = gBattle_BG1_X & 0x8000;
-        if (var0 || gBattle_BG1_X < 80)
+        if ((gBattle_BG1_X & 0x8000) || gBattle_BG1_X < 80)
         {
             gBattle_BG1_X += 3;
             gBattle_BG2_X -= 3;
@@ -583,14 +518,20 @@ static void BattleIntroSlidePartner(u8 taskId)
         break;
     }
 }
-
-void DrawBattlerOnBg(int bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+// TODO: inline some of this?
+#if MODERN
+void DrawBattlerOnBg(u8 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+#else
+void DrawBattlerOnBg(u32 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+#endif
 {
-    int i, j;
+    m32 i, j;
     u8 battler = GetBattlerAtPosition(battlerPosition);
-    int offset = tilesOffset;
+    // TODO: should this be a u16?
+    m32 offset; 
     CpuCopy16(gMonSpritesGfxPtr->sprites.ptr[battlerPosition] + BG_SCREEN_SIZE * gBattleMonForms[battler], tiles, BG_SCREEN_SIZE);
     LoadBgTiles(bgId, tiles, 0x1000, tilesOffset);
+    offset = tilesOffset;
     for (i = y; i < y + 8; i++)
     {
         for (j = x; j < x + 8; j++)
@@ -602,9 +543,11 @@ void DrawBattlerOnBg(int bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 
     LoadBgTilemap(bgId, tilemap, BG_SCREEN_SIZE, 0);
 }
 
+// Unused
+#if !MODERN
 static void DrawBattlerOnBgDMA(u8 x, u8 y, u8 battlerPosition, u8 arg3, u8 paletteId, u16 arg5, u8 arg6, u8 arg7)
 {
-    int i, j, offset;
+    m32 i, j, offset;
 
     DmaCopy16(3, gMonSpritesGfxPtr->sprites.ptr[battlerPosition] + BG_SCREEN_SIZE * arg3, (void *)BG_SCREEN_ADDR(0) + arg5, BG_SCREEN_SIZE);
     offset = (arg5 >> 5) - (arg7 << 9);
@@ -612,8 +555,10 @@ static void DrawBattlerOnBgDMA(u8 x, u8 y, u8 battlerPosition, u8 arg3, u8 palet
     {
         for (j = x; j < x + 8; j++)
         {
-            *((u16 *)(BG_VRAM) + (i * 32) + (j + (arg6 << 10))) = offset | (paletteId << 12);
+            // TODO: should this be a volatile write?
+            *((u16 *)(BG_VRAM) + (arg6 << 10) + j + (i * 32)) = offset | (paletteId << 12);
             offset++;
         }
     }
 }
+#endif

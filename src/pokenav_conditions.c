@@ -17,7 +17,7 @@
 
 struct Pokenav_ConditionMenu
 {
-    u32 monPal[CONDITION_MONS_LOADED][0x20];
+    u16 monPal[CONDITION_MONS_LOADED][0x40];
     u8 fill[0x180];
     u32 monPicGfx[CONDITION_MONS_LOADED][MON_PIC_SIZE];
     bool8 inSearchMode;
@@ -125,7 +125,7 @@ static u32 OpenMarkingsMenu(struct Pokenav_ConditionMenu *menu)
 {
     struct PokenavMonList *monListPtr;
     u8 markings;
-    u32 ret = CONDITION_FUNC_NONE, boxId, monId;
+    u8 ret = CONDITION_FUNC_NONE, boxId, monId;
 
     if (!HandleMonMarkingsMenuInput())
     {
@@ -267,6 +267,9 @@ bool32 LoadConditionGraphMenuGfx(void)
         break;
     // These were probably ternaries just like cases 7-9, but couldn't match it any other way.
     case 4:
+    // These need to be ternaries, but GF was dumb enough to not do that.
+    // 7-9 just happen to match though despite this not being the case for them
+    // TODO: make it so
         var = monListPtr->currIndex + 1;
         if (var >= monListPtr->listCount)
             var = 0;
@@ -284,6 +287,16 @@ bool32 LoadConditionGraphMenuGfx(void)
             var = 0;
         ConditionGraphDrawMonPic(var, 1);
         break;
+    #if MODERN
+    case 7:
+        CopyMonNameGenderLocation((monListPtr->currIndex > 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        break;
+    case 8:
+        GetMonConditionGraphData((monListPtr->currIndex > 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        break;
+    case 9:
+        ConditionGraphDrawMonPic((monListPtr->currIndex > 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+    #else
     case 7:
         CopyMonNameGenderLocation((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
         break;
@@ -292,6 +305,7 @@ bool32 LoadConditionGraphMenuGfx(void)
         break;
     case 9:
         ConditionGraphDrawMonPic((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+    #endif
         menu->state = 0;
         return TRUE;
     }
@@ -377,9 +391,6 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
     *(str_++) = 60;
     switch (gender)
     {
-    default:
-        *(str_++) = CHAR_SPACER; // Genderless
-        break;
     case MON_MALE:
         *(str_++) = EXT_CTRL_CODE_BEGIN;
         *(str_++) = EXT_CTRL_CODE_COLOR;
@@ -397,6 +408,9 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
         *(str_++) = EXT_CTRL_CODE_SHADOW;
         *(str_++) = TEXT_COLOR_LIGHT_GREEN;
         *(str_++) = CHAR_FEMALE;
+        break;
+    default:
+        *(str_++) = CHAR_SPACER; // Genderless
         break;
     }
 

@@ -454,7 +454,11 @@ void ClearItemSlots(struct ItemSlot *itemSlots, u8 itemCount)
 
 static s32 FindFreePCItemSlot(void)
 {
+    #if !MODERN
     s8 i;
+    #else
+    s32 i;
+    #endif
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
@@ -467,7 +471,7 @@ static s32 FindFreePCItemSlot(void)
 u8 CountUsedPCItemSlots(void)
 {
     u8 usedSlots = 0;
-    u8 i;
+    m8 i;
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
@@ -497,7 +501,11 @@ bool8 AddPCItem(u16 itemId, u16 count)
     struct ItemSlot *newItems;
 
     // Copy PC items
+    #if !MODERN
     newItems = AllocZeroed(sizeof(gSaveBlock1Ptr->pcItems));
+    #else
+    newItems=Alloc(sizeof(gSaveBlock1Ptr->pcItems));
+    #endif
     memcpy(newItems, gSaveBlock1Ptr->pcItems, sizeof(gSaveBlock1Ptr->pcItems));
 
     // Use any item slots that already contain this item
@@ -558,8 +566,8 @@ void RemovePCItem(u8 index, u16 count)
 
 void CompactPCItems(void)
 {
-    u16 i;
-    u16 j;
+    m16 i;
+    m16 j;
 
     for (i = 0; i < PC_ITEMS_COUNT - 1; i++)
     {
@@ -620,7 +628,7 @@ void CompactItemsInBagPocket(struct BagPocket *bagPocket)
 
 void SortBerriesOrTMHMs(struct BagPocket *bagPocket)
 {
-    u16 i, j;
+    m16 i, j;
 
     for (i = 0; i < bagPocket->capacity - 1; i++)
     {
@@ -638,26 +646,22 @@ void SortBerriesOrTMHMs(struct BagPocket *bagPocket)
     }
 }
 
-void MoveItemSlotInList(struct ItemSlot* itemSlots_, u32 from, u32 to_)
+void MoveItemSlotInList(struct ItemSlot* itemSlots, u32 from, u32 to)
 {
-    // dumb assignments needed to match
-    struct ItemSlot *itemSlots = itemSlots_;
-    u32 to = to_;
-
     if (from != to)
     {
-        s16 i, count;
+        s16 i;
         struct ItemSlot firstSlot = itemSlots[from];
 
         if (to > from)
         {
             to--;
-            for (i = from, count = to; i < count; i++)
+            for (i = (s16)from; i < (s16)to; i++)
                 itemSlots[i] = itemSlots[i + 1];
         }
         else
         {
-            for (i = from, count = to; i > count; i--)
+            for (i = (s16)from; i > (s16)to; i--)
                 itemSlots[i] = itemSlots[i - 1];
         }
         itemSlots[to] = firstSlot;
@@ -869,7 +873,7 @@ bool8 RemovePyramidBagItem(u16 itemId, u16 count)
     }
 }
 
-static u16 SanitizeItemId(u16 itemId)
+static u16 CONST SanitizeItemId(u16 itemId)
 {
     if (itemId >= ITEMS_COUNT)
         return ITEM_NONE;

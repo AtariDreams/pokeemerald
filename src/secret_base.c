@@ -79,7 +79,7 @@ static EWRAM_DATA struct SecretBaseRegistryMenu *sRegistryMenu = NULL;
 
 static void Task_ShowSecretBaseRegistryMenu(u8);
 static void BuildRegistryMenuItems(u8);
-static void RegistryMenu_OnCursorMove(s32, bool8, struct ListMenu *);
+static void RegistryMenu_OnCursorMove(u32, bool8);
 static void FinalizeRegistryMenu(u8);
 static void AddRegistryMenuScrollArrows(u8);
 static void HandleRegistryMenuInput(u8);
@@ -267,8 +267,8 @@ static u8 GetSecretBaseTypeInFrontOfPlayer_(void)
     s16 x, y;
     s16 behavior;
 
-    GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
-    behavior = MapGridGetMetatileBehaviorAt(x, y) & 0xFFF;
+    GetXYCoordsOneStepInFrontOfPlayer(&x, &y); // get position in front of you
+    behavior = MapGridGetMetatileBehaviorAt(x, y) & 0xFFF; // get attributes of metatile in front of you
     if (behavior == MB_SECRET_BASE_SPOT_RED_CAVE || behavior == MB_SECRET_BASE_SPOT_RED_CAVE_OPEN)
         return SECRET_BASE_RED_CAVE;
 
@@ -288,7 +288,7 @@ static u8 GetSecretBaseTypeInFrontOfPlayer_(void)
     if (behavior == MB_SECRET_BASE_SPOT_SHRUB || behavior == MB_SECRET_BASE_SPOT_SHRUB_OPEN)
         return SECRET_BASE_SHRUB;
 
-    return 0;
+    return 0; // error failsafe thing apparently
 }
 
 void GetSecretBaseTypeInFrontOfPlayer(void)
@@ -470,7 +470,7 @@ static void EnterNewlyCreatedSecretBase_StartFadeIn(void)
 {
     s16 x, y;
 
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     HideMapNamePopUpWindow();
     FindMetatileIdMapCoords(&x, &y, METATILE_SecretBase_PC);
     x += MAP_OFFSET;
@@ -508,6 +508,7 @@ void EnterNewlyCreatedSecretBase(void)
 bool8 CurMapIsSecretBase(void)
 {
     if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SECRET_BASE_RED_CAVE1)
+        // Non-UB way would be to do huge comparison with OR
      && (u8)gSaveBlock1Ptr->location.mapNum <= MAP_NUM(SECRET_BASE_SHRUB4))
         return TRUE;
     else
@@ -663,7 +664,7 @@ void SetCurSecretBaseIdFromPosition(const struct MapPosition *position, const st
           && position->x == events->bgEvents[i].x + MAP_OFFSET
           && position->y == events->bgEvents[i].y + MAP_OFFSET)
         {
-            sCurSecretBaseId = events->bgEvents[i].bgUnion.secretBaseId;
+            sCurSecretBaseId = (u8)events->bgEvents[i].bgUnion.secretBaseId;
             break;
         }
     }
@@ -673,7 +674,7 @@ void WarpIntoSecretBase(const struct MapPosition *position, const struct MapEven
 {
     SetCurSecretBaseIdFromPosition(position, events);
     TrySetCurSecretBaseIndex();
-    ScriptContext1_SetupScript(SecretBase_EventScript_Enter);
+    ScriptContext_SetupScript(SecretBase_EventScript_Enter);
 }
 
 bool8 TrySetCurSecretBase(void)
@@ -691,7 +692,7 @@ static void Task_WarpOutOfSecretBase(u8 taskId)
     switch (gTasks[taskId].data[0])
     {
     case 0:
-        ScriptContext2_Enable();
+        LockPlayerFieldControls();
         gTasks[taskId].data[0] = 1;
         break;
     case 1:
@@ -703,7 +704,7 @@ static void Task_WarpOutOfSecretBase(u8 taskId)
         WarpIntoMap();
         gFieldCallback = FieldCB_DefaultWarpExit;
         SetMainCallback2(CB2_LoadMap);
-        ScriptContext2_Disable();
+        UnlockPlayerFieldControls();
         DestroyTask(taskId);
         break;
     }
@@ -866,9 +867,10 @@ static u8 GetNumRegisteredSecretBases(void)
 {
     s16 i;
     u8 count = 0;
+    // Why the hell didn't GF do u8 i then?!
     for (i = 1; i < SECRET_BASES_COUNT; i++)
     {
-        if (IsSecretBaseRegistered(i) == TRUE)
+        if (IsSecretBaseRegistered((u8)i) == TRUE)
             count++;
     }
 
@@ -914,13 +916,13 @@ void ShowSecretBaseRegistryMenu(void)
 static void Task_ShowSecretBaseRegistryMenu(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    ScriptContext2_Enable();
+    LockPlayerFieldControls();
     tNumBases = GetNumRegisteredSecretBases();
     if (tNumBases != 0)
     {
         tSelectedRow = 0;
         tScrollOffset = 0;
-        ClearDialogWindowAndFrame(0, 0);
+        ClearDialogWindowAndFrame(0, FALSE);
         sRegistryMenu = calloc(1, sizeof(*sRegistryMenu));
         tMainWindowId = AddWindow(&sRegistryWindowTemplates[0]);
         BuildRegistryMenuItems(taskId);
@@ -967,7 +969,7 @@ static void BuildRegistryMenuItems(u8 taskId)
     gMultiuseListMenuTemplate.maxShowed = tMaxShownItems;
 }
 
-static void RegistryMenu_OnCursorMove(s32 unused, bool8 flag, struct ListMenu *menu)
+static void RegistryMenu_OnCursorMove(u32 unused, bool8 flag)
 {
     if (flag != TRUE)
         PlaySE(SE_SELECT);
@@ -976,7 +978,7 @@ static void RegistryMenu_OnCursorMove(s32 unused, bool8 flag, struct ListMenu *m
 static void FinalizeRegistryMenu(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    SetStandardWindowBorderStyle(tMainWindowId, 0);
+    SetStandardWindowBorderStyle(tMainWindowId, FALSE);
     tListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, tScrollOffset, tSelectedRow);
     AddRegistryMenuScrollArrows(taskId);
     ScheduleBgCopyTilemapToVram(0);
@@ -1002,7 +1004,7 @@ static void HandleRegistryMenuInput(u8 taskId)
         PlaySE(SE_SELECT);
         DestroyListMenuTask(tListTaskId, NULL, NULL);
         RemoveScrollIndicatorArrowPair(tArrowTaskId);
-        ClearStdWindowAndFrame(tMainWindowId, 0);
+        ClearStdWindowAndFrame(tMainWindowId, FALSE);
         ClearWindowTilemap(tMainWindowId);
         RemoveWindow(tMainWindowId);
         ScheduleBgCopyTilemapToVram(0);
@@ -1025,7 +1027,7 @@ static void ShowRegistryMenuActions(u8 taskId)
     template = sRegistryWindowTemplates[1];
     template.width = GetMaxWidthInMenuTable(sRegistryMenuActions, 2);
     tActionWindowId = AddWindow(&template);
-    SetStandardWindowBorderStyle(tActionWindowId, 0);
+    SetStandardWindowBorderStyle(tActionWindowId, FALSE);
     PrintMenuTable(tActionWindowId, ARRAY_COUNT(sRegistryMenuActions), sRegistryMenuActions);
     InitMenuInUpperLeftCornerNormal(tActionWindowId, ARRAY_COUNT(sRegistryMenuActions), 0);
     ScheduleBgCopyTilemapToVram(0);
@@ -1073,7 +1075,7 @@ static void ShowRegistryMenuDeleteYesNo(u8 taskId)
 void DeleteRegistry_Yes_Callback(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     DestroyListMenuTask(tListTaskId, &tScrollOffset, &tSelectedRow);
     gSaveBlock1Ptr->secretBases[tSelectedBaseId].registryStatus = UNREGISTERED;
     BuildRegistryMenuItems(taskId);
@@ -1090,7 +1092,7 @@ static void DeleteRegistry_Yes(u8 taskId)
 static void DeleteRegistry_No(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    ClearDialogWindowAndFrame(0, 0);
+    ClearDialogWindowAndFrame(0, FALSE);
     DestroyListMenuTask(tListTaskId, &tScrollOffset, &tSelectedRow);
     FinalizeRegistryMenu(taskId);
     gTasks[taskId].func = HandleRegistryMenuInput;
@@ -1100,7 +1102,7 @@ static void ReturnToMainRegistryMenu(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
     AddRegistryMenuScrollArrows(taskId);
-    ClearStdWindowAndFrame(tActionWindowId, 0);
+    ClearStdWindowAndFrame(tActionWindowId, FALSE);
     ClearWindowTilemap(tActionWindowId);
     RemoveWindow(tActionWindowId);
     ScheduleBgCopyTilemapToVram(0);
@@ -1110,9 +1112,9 @@ static void ReturnToMainRegistryMenu(u8 taskId)
 static void GoToSecretBasePCRegisterMenu(u8 taskId)
 {
     if (VarGet(VAR_CURRENT_SECRET_BASE) == 0)
-        ScriptContext1_SetupScript(SecretBase_EventScript_PCCancel);
+        ScriptContext_SetupScript(SecretBase_EventScript_PCCancel);
     else
-        ScriptContext1_SetupScript(SecretBase_EventScript_ShowRegisterMenu);
+        ScriptContext_SetupScript(SecretBase_EventScript_ShowRegisterMenu);
 
     DestroyTask(taskId);
 }
@@ -1217,7 +1219,7 @@ void SecretBasePerStepCallback(u8 taskId)
         // End if player hasn't moved
         PlayerGetDestCoords(&x, &y);
         if (x == tPlayerX && y == tPlayerY)
-            return;
+            break;
 
         tPlayerX = x;
         tPlayerY = y;
@@ -1282,6 +1284,8 @@ void SecretBasePerStepCallback(u8 taskId)
             PopSecretBaseBalloon(MapGridGetMetatileIdAt(x, y), x, y);
             if (sInFriendSecretBase == TRUE)
             {
+                // why is this int here?
+                // answer, because the OG code returns an int
                 switch ((int)MapGridGetMetatileIdAt(x, y))
                 {
                 case METATILE_SecretBase_RedBalloon:
@@ -1370,8 +1374,10 @@ static bool8 SecretBasesHaveSameTrainerId(struct SecretBase *secretBase1, struct
 static bool8 SecretBasesHaveSameTrainerName(struct SecretBase *sbr1, struct SecretBase *sbr2)
 {
     u8 i;
-    for (i = 0; i < PLAYER_NAME_LENGTH && (sbr1->trainerName[i] != EOS || sbr2->trainerName[i] != EOS); i++)
+    for (i = 0; i < PLAYER_NAME_LENGTH; i++)
     {
+        if (sbr1->trainerName[i] == EOS && sbr2->trainerName[i] == EOS)
+            break;
         if (sbr1->trainerName[i] != sbr2->trainerName[i])
             return FALSE;
     }
@@ -2061,6 +2067,7 @@ void CheckInteractedWithFriendsSandOrnament(void)
     s16 x, y;
 
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
+    // again with the (int)
     switch ((int)MapGridGetMetatileIdAt(x, y))
     {
         case METATILE_SecretBase_SandOrnament_Base1:

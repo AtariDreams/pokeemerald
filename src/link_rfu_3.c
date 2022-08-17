@@ -35,7 +35,7 @@ EWRAM_DATA u8 gWirelessStatusIndicatorSpriteId = 0;
 static u8 sSequenceArrayValOffset;
 
 static const u16 sWirelessLinkIconPalette[] = INCBIN_U16("graphics/link/wireless_icon.gbapal");
-static const u32 sWirelessLinkIconPic[] = INCBIN_U32("graphics/link/wireless_icon.4bpp.lz");
+static const u8 sWirelessLinkIconPic[] = INCBIN_U8("graphics/link/wireless_icon.4bpp.lz");
 
 // Most of the below two tables won't make sense with ASCII encoding.
 static const u8 sWireless_ASCIItoRSETable[256] = {
@@ -796,7 +796,7 @@ void LoadWirelessStatusIndicatorSpriteGfx(void)
 
 static u8 GetParentSignalStrength(void)
 {
-    u8 i;
+    m8 i;
     u8 flags = gRfuLinkStatus->connSlotFlag;
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
@@ -894,7 +894,7 @@ static void CopyTrainerRecord(struct TrainerNameRecord *dest, u32 trainerId, con
 
 static bool32 NameIsNotEmpty(const u8 *name)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < PLAYER_NAME_LENGTH + 1; i++)
     {
@@ -919,9 +919,9 @@ void SaveLinkTrainerNames(void)
         for (i = 0; i < GetLinkPlayerCount(); i++)
         {
             connectedTrainerRecordIndices[i] = -1;
-            for (j = 0; j < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); j++)
+            for (j = 0; j < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); j++)
             {
-                if ((u16)gLinkPlayers[i].trainerId ==  gSaveBlock1Ptr->trainerNameRecords[j].trainerId && StringCompare(gLinkPlayers[i].name, gSaveBlock1Ptr->trainerNameRecords[j].trainerName) == 0)
+                if ((gLinkPlayers[i].trainerId & 0xFFFF) ==  gSaveBlock1Ptr->trainerNameRecords[j].trainerId && StringCompare(gLinkPlayers[i].name, gSaveBlock1Ptr->trainerNameRecords[j].trainerName) == 0)
                     connectedTrainerRecordIndices[i] = j;
             }
         }
@@ -943,12 +943,12 @@ void SaveLinkTrainerNames(void)
 
         // Copy all non-empty records to the new list, in the order they appear on the old list. If the list is full,
         // the last (oldest) records will be dropped.
-        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
+        for (i = 0; i < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
         {
             if (NameIsNotEmpty(gSaveBlock1Ptr->trainerNameRecords[i].trainerName))
             {
                 CopyTrainerRecord(&newRecords[nextSpace], gSaveBlock1Ptr->trainerNameRecords[i].trainerId, gSaveBlock1Ptr->trainerNameRecords[i].trainerName);
-                if (++nextSpace >= (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords))
+                if (++nextSpace >= (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords))
                     break;
             }
         }
@@ -961,9 +961,9 @@ void SaveLinkTrainerNames(void)
 
 bool32 PlayerHasMetTrainerBefore(u16 id, u8 *name)
 {
-    s32 i;
+    m32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
     {
         if (StringCompare(gSaveBlock1Ptr->trainerNameRecords[i].trainerName, name) == 0 && gSaveBlock1Ptr->trainerNameRecords[i].trainerId == id)
             return TRUE;
@@ -976,9 +976,9 @@ bool32 PlayerHasMetTrainerBefore(u16 id, u8 *name)
 
 void WipeTrainerNameRecords(void)
 {
-    s32 i;
+    m32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
     {
         gSaveBlock1Ptr->trainerNameRecords[i].trainerId = 0;
         CpuFill16(0, gSaveBlock1Ptr->trainerNameRecords[i].trainerName, PLAYER_NAME_LENGTH + 1);

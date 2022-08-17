@@ -12,7 +12,7 @@ struct Pokenav_Menu
     u16 currMenuItem;
     u16 helpBarIndex;
     u32 menuId;
-    u32 (*callback)(struct Pokenav_Menu*);
+    u32 (*callback)(struct Pokenav_Menu *);
 };
 
 static bool32 UpdateMenuCursorPos(struct Pokenav_Menu *);
@@ -28,7 +28,7 @@ static u32 HandleCantOpenRibbonsInput(struct Pokenav_Menu *);
 static u32 HandleMainMenuInputEndTutorial(struct Pokenav_Menu *);
 static u32 HandleMainMenuInputTutorial(struct Pokenav_Menu *);
 static u32 HandleMainMenuInput(struct Pokenav_Menu *);
-static u32 (*GetMainMenuInputHandler(void))(struct Pokenav_Menu*);
+static u32 (*GetMainMenuInputHandler(void))(struct Pokenav_Menu *);
 static void SetMenuInputHandler(struct Pokenav_Menu *);
 
 // Number of entries - 1 for that menu type
@@ -186,7 +186,7 @@ static void SetMenuInputHandler(struct Pokenav_Menu *menu)
     }
 }
 
-static u32 (*GetMainMenuInputHandler(void))(struct Pokenav_Menu*)
+static u32 (*GetMainMenuInputHandler(void))(struct Pokenav_Menu *)
 {
     switch (GetPokenavMode())
     {
@@ -295,21 +295,34 @@ static u32 HandleMainMenuInputEndTutorial(struct Pokenav_Menu *menu)
 
     if (JOY_NEW(A_BUTTON))
     {
-        u32 menuItem = sMenuItems[menu->menuType][menu->cursorPos];
-        if (menuItem != POKENAV_MENUITEM_MATCH_CALL && menuItem != POKENAV_MENUITEM_SWITCH_OFF)
-        {
-            PlaySE(SE_FAILURE);
-            return POKENAV_MENU_FUNC_NONE;
-        }
-        else if (menuItem == POKENAV_MENUITEM_MATCH_CALL)
+        /* u32 menuItem = sMenuItems[menu->menuType][menu->cursorPos];
+        if (menuItem == POKENAV_MENUITEM_MATCH_CALL)
         {
             menu->helpBarIndex = HELPBAR_MC_TRAINER_LIST;
             SetMenuIdAndCB(menu, POKENAV_MATCH_CALL);
             return POKENAV_MENU_FUNC_OPEN_FEATURE;
+            
+        }
+        else if (menuItem == POKENAV_MENUITEM_SWITCH_OFF)
+        {
+            return -1;
         }
         else
         {
+            PlaySE(SE_FAILURE);
+            return POKENAV_MENU_FUNC_NONE;
+        } */
+        switch (sMenuItems[menu->menuType][menu->cursorPos])
+        {
+        case POKENAV_MENUITEM_MATCH_CALL:
+            menu->helpBarIndex = HELPBAR_MC_TRAINER_LIST;
+            SetMenuIdAndCB(menu, POKENAV_MATCH_CALL);
+            return POKENAV_MENU_FUNC_OPEN_FEATURE;
+        case POKENAV_MENUITEM_SWITCH_OFF:
             return -1;
+        default:
+            PlaySE(SE_FAILURE);
+            return POKENAV_MENU_FUNC_NONE;
         }
     }
     else if (JOY_NEW(B_BUTTON))
@@ -486,13 +499,15 @@ static bool32 UpdateMenuCursorPos(struct Pokenav_Menu *menu)
     }
 }
 
-int GetPokenavMenuType(void)
+// TODO: check if this should be int or u32 based on if others match
+u32 GetPokenavMenuType(void)
 {
     struct Pokenav_Menu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU_HANDLER);
     return menu->menuType;
 }
 
 // Position of cursor relative to number of current menu options
+// Can be negative
 int GetPokenavCursorPos(void)
 {
     struct Pokenav_Menu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU_HANDLER);
@@ -500,7 +515,7 @@ int GetPokenavCursorPos(void)
 }
 
 // ID of menu item the cursor is currently on
-int GetCurrentMenuItemId(void)
+u32 GetCurrentMenuItemId(void)
 {
     struct Pokenav_Menu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU_HANDLER);
     return menu->currMenuItem;

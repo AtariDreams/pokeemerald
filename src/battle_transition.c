@@ -46,11 +46,11 @@
 #define tWipeYDist  data[9]
 #define tWipeTemp   data[10]
 
-#define SET_TILE(ptr, posY, posX, tile) \
-{                                       \
-    u32 index = (posY) * 32 + posX;     \
-    ptr[index] = tile | (0xF0 << 8);    \
-}
+#define SET_TILE(ptr, posY, posX, tile) ptr[ ((posY) << 5) + posX] = tile | (0xF0 << 8);
+
+// TODO: migrate to this later
+#define	BG_SCRN_DATA(ch,h,v,pal) \
+		((ch)|((h)<<10)|((v)<<11)|((pal)<<12))
 
 struct TransitionData
 {
@@ -59,8 +59,8 @@ struct TransitionData
     u16 WINOUT;
     u16 WIN0H;
     u16 WIN0V;
-    u16 unused1;
-    u16 unused2;
+    u16 WIN1V; // unused
+    u16 WIN2V; // UNUSED
     u16 BLDCNT;
     u16 BLDALPHA;
     u16 BLDY;
@@ -68,6 +68,7 @@ struct TransitionData
     s16 cameraY;
     s16 BG0HOFS_Lower;
     s16 BG0HOFS_Upper;
+    // clearly extra padding here. TODO: deal with that
     s16 BG0VOFS; // used but not set
     s16 unused3;
     s16 counter;
@@ -268,7 +269,7 @@ static void InitTransitionData(void);
 static void FadeScreenBlack(void);
 static void CreateIntroTask(s16, s16, s16, s16, s16);
 static void SetCircularMask(u16 *, s16, s16, s16);
-static void SetSinWave(s16 *, s16, s16, s16, s16, s16);
+static void SetSinWave(u16 *, s16, s16, s16, s16, s16);
 static void GetBg0TilemapDst(u16 **);
 static void InitBlackWipe(s16 *, s16, s16, s16, s16, s16, s16);
 static bool8 UpdateBlackWipe(s16 *, bool8, bool8);
@@ -288,7 +289,9 @@ static bool8 MugshotTrainerPic_Slide(struct Sprite *);
 static bool8 MugshotTrainerPic_SlideSlow(struct Sprite *);
 static bool8 MugshotTrainerPic_SlideOffscreen(struct Sprite *);
 
+#if !MODERN
 static s16 sDebug_RectangularSpiralData;
+#endif
 static u8 sTestingTransitionId;
 static u8 sTestingTransitionState;
 static struct RectangularSpiralLine sRectangularSpiralLines[4];
@@ -498,10 +501,12 @@ static const TransitionStateFunc sPokeballsTrail_Funcs[] =
     PokeballsTrail_End
 };
 
+#if !MODERN
 #define NUM_POKEBALL_TRAILS 5
 static const s16 sPokeballsTrail_StartXCoords[2] = { -16, DISPLAY_WIDTH + 16 };
 static const s16 sPokeballsTrail_Delays[NUM_POKEBALL_TRAILS] = {0, 32, 64, 18, 48};
 static const s16 sPokeballsTrail_Speeds[2] = {8, -8};
+#endif
 
 static const TransitionStateFunc sClockwiseWipe_Funcs[] =
 {
@@ -579,8 +584,10 @@ static const TransitionSpriteCallback sMugshotTrainerPicFuncs[] =
 
 // One element per slide direction.
 // Sign of acceleration is opposite speed, so slide decelerates.
+#if !MODERN
 static const s16 sTrainerPicSlideSpeeds[2] = {12, -12};
 static const s16 sTrainerPicSlideAccels[2] = {-1,   1};
+#endif
 
 static const TransitionStateFunc sSlice_Funcs[] =
 {
@@ -597,9 +604,10 @@ static const TransitionStateFunc sShredSplit_Funcs[] =
     ShredSplit_End
 };
 
+#if !MODERN
 static const u8 sShredSplit_SectionYCoords[] = {39, DISPLAY_HEIGHT - 41};
 static const s16 sShredSplit_SectionMoveDirs[] = {1, -1};
-
+#endif
 static const TransitionStateFunc sBlackhole_Funcs[] =
 {
     Blackhole_Init,
@@ -615,7 +623,9 @@ static const TransitionStateFunc sBlackholePulsate_Funcs[] =
 
 // Blackhole rapidly alternates adding these values to the radius,
 // resulting in a vibrating shrink/grow effect.
+#if !MODERN
 static const s16 sBlackhole_Vibrations[] = {-6, 4};
+#endif
 
 static const TransitionStateFunc sRectangularSpiral_Funcs[] =
 {
@@ -737,8 +747,9 @@ static const TransitionStateFunc sWhiteBarsFade_Funcs[] =
 };
 
 #define NUM_WHITE_BARS 8
+#if !MODERN
 static const s16 sWhiteBarsFade_StartDelays[NUM_WHITE_BARS] = {0, 20, 15, 40, 10, 25, 35, 5};
-
+#endif
 static const TransitionStateFunc sGridSquares_Funcs[] =
 {
     GridSquares_Init,
@@ -827,7 +838,7 @@ static const struct OamData sOam_UnusedBrendanLass =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -1154,16 +1165,16 @@ static bool8 Blur_Main(struct Task *task)
     if (task->tDelay != 0)
     {
         task->tDelay--;
+        return FALSE;
     }
-    else
-    {
-        task->tDelay = 4;
-        if (++task->tCounter == 10)
-            BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
-        SetGpuReg(REG_OFFSET_MOSAIC, (task->tCounter & 15) * 17);
-        if (task->tCounter > 14)
-            task->tState++;
-    }
+
+    task->tDelay = 4;
+    if (++task->tCounter == 10)
+        BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
+    // set the high and low bits to the same bottom 8 bits
+    SetGpuReg(REG_OFFSET_MOSAIC, (task->tCounter & 15) * 17);
+    if (task->tCounter > 14)
+        task->tState++;
     return FALSE;
 }
 
@@ -1171,8 +1182,7 @@ static bool8 Blur_End(struct Task *task)
 {
     if (!gPaletteFade.active)
     {
-        u8 taskId = FindTaskIdByFunc(Task_Blur);
-        DestroyTask(taskId);
+        DestroyTask(FindTaskIdByFunc(Task_Blur));
     }
     return FALSE;
 }
@@ -1218,8 +1228,7 @@ static bool8 Swirl_End(struct Task *task)
 
     if (!gPaletteFade.active)
     {
-        u8 taskId = FindTaskIdByFunc(Task_Swirl);
-        DestroyTask(taskId);
+        DestroyTask(FindTaskIdByFunc(Task_Swirl));
     }
 
     sTransitionData->VBlank_DMA++;
@@ -1276,19 +1285,33 @@ static bool8 Shuffle_Init(struct Task *task)
 static bool8 Shuffle_End(struct Task *task)
 {
     u8 i;
+    // TODO: should these be s16?
+    #if !MODERN
     u16 amplitude, sinVal;
+    #else
+    s16 amplitude, sinVal;
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
+
     sinVal = task->tSinVal;
+
     amplitude = task->tAmplitude >> 8;
     task->tSinVal += 4224;
     task->tAmplitude += 384;
 
+    #if !MODERN
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += 4224)
     {
-        u16 sinIndex = sinVal / 256;
+        s16 sinIndex = sinVal >> 8;
         gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex, amplitude);
     }
+    #else
+    for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += 4224)
+    {
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinVal >> 8, amplitude);
+    }
+    #endif
 
     if (!gPaletteFade.active)
         DestroyTask(FindTaskIdByFunc(Task_Shuffle));
@@ -1375,7 +1398,7 @@ static void Task_Kyogre(u8 taskId)
 
 static void InitPatternWeaveTransition(struct Task *task)
 {
-    s32 i;
+    m32 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -1557,9 +1580,14 @@ static bool8 Kyogre_PaletteFlash(struct Task *task)
 {
     if (task->tTimer % 3 == 0)
     {
+        // has to be u16 to match
+        // TODO: is this better as an s16? the code in the function below this doesn't seem to care
+        #if !MODERN
         u16 offset = task->tTimer % 30;
-        offset /= 3;
-        LoadPalette(&sKyogre1_Palette[offset * 16], 0xF0, 0x20);
+        LoadPalette(&sKyogre1_Palette[offset/3 * 16], 0xF0, 0x20);
+        #else
+        LoadPalette(&sKyogre1_Palette[Div(Mod(task->tTimer, 30),3) * 16], 0xF0, 0x20);
+        #endif
     }
     if (++task->tTimer > 58)
     {
@@ -1574,8 +1602,7 @@ static bool8 Kyogre_PaletteBrighten(struct Task *task)
 {
     if (task->tTimer % 5 == 0)
     {
-        s16 offset = task->tTimer / 5;
-        LoadPalette(&sKyogre2_Palette[offset * 16], 0xF0, 0x20);
+        LoadPalette(&sKyogre2_Palette[task->tTimer / 5 * 16], 0xF0, 0x20);
     }
     if (++task->tTimer > 68)
     {
@@ -1710,16 +1737,14 @@ static bool8 PatternWeave_CircularMask(struct Task *task)
         DmaStop(0);
         FadeScreenBlack();
         DestroyTask(FindTaskIdByFunc(task->func));
+        return FALSE;
     }
-    else
+    if (!task->tVBlankSet)
     {
-        if (!task->tVBlankSet)
-        {
-            task->tVBlankSet++;
-            SetVBlankCallback(VBlankCB_CircularMask);
-        }
-        sTransitionData->VBlank_DMA++;
+        task->tVBlankSet++;
+        SetVBlankCallback(VBlankCB_CircularMask);
     }
+    sTransitionData->VBlank_DMA++;
     return FALSE;
 }
 
@@ -1785,23 +1810,50 @@ static bool8 PokeballsTrail_Init(struct Task *task)
 static bool8 PokeballsTrail_Main(struct Task *task)
 {
     s16 i;
+    #if !MODERN
     s16 side;
     s16 startX[ARRAY_COUNT(sPokeballsTrail_StartXCoords)];
     s16 delays[ARRAY_COUNT(sPokeballsTrail_Delays)];
     memcpy(startX, sPokeballsTrail_StartXCoords, sizeof(sPokeballsTrail_StartXCoords));
     memcpy(delays, sPokeballsTrail_Delays, sizeof(sPokeballsTrail_Delays));
-
+    
     // Randomly pick which side the first ball should start on.
     // The side is then flipped for each subsequent ball.
     side = Random() & 1;
     for (i = 0; i < NUM_POKEBALL_TRAILS; i++, side ^= 1)
     {
         gFieldEffectArguments[0] = startX[side];   // x
-        gFieldEffectArguments[1] = (i * 32) + 16;  // y
+        gFieldEffectArguments[1] = (i << 5) + 16;  // y
         gFieldEffectArguments[2] = side;
         gFieldEffectArguments[3] = delays[i];
         FieldEffectStart(FLDEFF_POKEBALL_TRAIL);
     }
+    #else
+
+    const s16 delays[] = { 0, 32, 64, 18, 48 };
+    bool32 side = Random() & 1;
+    for (i = 0; i < ARRAY_COUNT(delays); i++)
+    {
+        if (side)
+        {
+            gFieldEffectArguments[0] = DISPLAY_WIDTH + 16; // x
+            gFieldEffectArguments[1] = (i << 5) + 16; //y
+            gFieldEffectArguments[2] = TRUE;
+            side = FALSE;
+            gFieldEffectArguments[3] = delays[i];
+            FieldEffectStart(FLDEFF_POKEBALL_TRAIL);
+        }
+        else
+        {
+            gFieldEffectArguments[0] = -16; // x
+            gFieldEffectArguments[1] = (i << 5) + 16; // y
+            gFieldEffectArguments[2] = FALSE;
+            side = TRUE;
+            gFieldEffectArguments[3] = delays[i];
+            FieldEffectStart(FLDEFF_POKEBALL_TRAIL);
+        }
+    }
+    #endif
 
     task->tState++;
     return FALSE;
@@ -1817,7 +1869,7 @@ static bool8 PokeballsTrail_End(struct Task *task)
     return FALSE;
 }
 
-bool8 FldEff_PokeballTrail(void)
+bool32 FldEff_PokeballTrail(void)
 {
     u8 spriteId = CreateSpriteAtEnd(&sSpriteTemplate_Pokeball, gFieldEffectArguments[0], gFieldEffectArguments[1], 0);
     gSprites[spriteId].oam.priority = 0;
@@ -1832,41 +1884,49 @@ bool8 FldEff_PokeballTrail(void)
 
 static void SpriteCB_FldEffPokeballTrail(struct Sprite *sprite)
 {
+#if !MODERN
     s16 speeds[ARRAY_COUNT(sPokeballsTrail_Speeds)];
     memcpy(speeds, sPokeballsTrail_Speeds, sizeof(sPokeballsTrail_Speeds));
+#endif
 
     if (sprite->sDelay != 0)
     {
         sprite->sDelay--;
+        return;
     }
-    else
+
+    if (sprite->x >= 0 && sprite->x <= DISPLAY_WIDTH)
     {
-        if (sprite->x >= 0 && sprite->x <= DISPLAY_WIDTH)
+        // Set Pokéball position
+        s16 posX = sprite->x >> 3;
+        s16 posY = sprite->y >> 3;
+
+        // If Pokéball moved forward clear trail behind it
+        if (posX != sprite->sPrevX)
         {
-            // Set Pokéball position
-            s16 posX = sprite->x >> 3;
-            s16 posY = sprite->y >> 3;
+            u32 var;
+            u16 *ptr;
 
-            // If Pokéball moved forward clear trail behind it
-            if (posX != sprite->sPrevX)
-            {
-                u32 var;
-                u16 *ptr;
+            sprite->sPrevX = posX;
+            var = ((REG_BG0CNT >> 8) & 0x1F) << 11;
+            ptr = (u16 *)(BG_VRAM + var);
 
-                sprite->sPrevX = posX;
-                var = ((REG_BG0CNT >> 8) & 0x1F) << 11;
-                ptr = (u16 *)(BG_VRAM + var);
-
-                SET_TILE(ptr, posY - 2, posX, 1);
-                SET_TILE(ptr, posY - 1, posX, 1);
-                SET_TILE(ptr, posY - 0, posX, 1);
-                SET_TILE(ptr, posY + 1, posX, 1);
-            }
+            SET_TILE(ptr, posY - 2, posX, 1);
+            SET_TILE(ptr, posY - 1, posX, 1);
+            SET_TILE(ptr, posY - 0, posX, 1);
+            SET_TILE(ptr, posY + 1, posX, 1);
         }
-        sprite->x += speeds[sprite->sSide];
-        if (sprite->x < -15 || sprite->x > DISPLAY_WIDTH + 15)
-            FieldEffectStop(sprite, FLDEFF_POKEBALL_TRAIL);
     }
+#if !MODERN
+    sprite->x += speeds[sprite->sSide];
+#else
+    if (sprite->sSide)
+        sprite->x -= 8;
+    else
+        sprite->x += 8;
+#endif
+    if (sprite->x <= -16 || sprite->x >= DISPLAY_WIDTH + 16)
+        FieldEffectStop(sprite, FLDEFF_POKEBALL_TRAIL);
 }
 
 #undef sSide
@@ -1884,7 +1944,7 @@ static void Task_ClockwiseWipe(u8 taskId)
 
 static bool8 ClockwiseWipe_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -1928,7 +1988,11 @@ static bool8 ClockwiseWipe_TopRight(struct Task *task)
 static bool8 ClockwiseWipe_Right(struct Task *task)
 {
     s16 start, end;
+    #if !MODERN
     vu8 finished = FALSE;
+    #else
+    bool32 finished = FALSE;
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -1939,7 +2003,7 @@ static bool8 ClockwiseWipe_Right(struct Task *task)
         start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX + 1;
         if (sTransitionData->tWipeEndY >= DISPLAY_HEIGHT / 2)
             start = sTransitionData->tWipeCurrX, end = DISPLAY_WIDTH;
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = end | (start << 8);
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
         if (finished)
             break;
         finished = UpdateBlackWipe(sTransitionData->data, TRUE, TRUE);
@@ -1954,7 +2018,7 @@ static bool8 ClockwiseWipe_Right(struct Task *task)
     else
     {
         while (sTransitionData->tWipeCurrY < sTransitionData->tWipeEndY)
-            gScanlineEffectRegBuffers[0][++sTransitionData->tWipeCurrY] = end | (start << 8);
+            gScanlineEffectRegBuffers[0][++sTransitionData->tWipeCurrY] = (start << 8) | end;
     }
 
     sTransitionData->VBlank_DMA++;
@@ -1984,8 +2048,12 @@ static bool8 ClockwiseWipe_Bottom(struct Task *task)
 
 static bool8 ClockwiseWipe_Left(struct Task *task)
 {
-    s16 end, start, temp;
+    s16 end, start;
+    #if !MODERN
     vu8 finished = FALSE;
+    #else
+    bool32 finished = FALSE;
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -1993,12 +2061,18 @@ static bool8 ClockwiseWipe_Left(struct Task *task)
 
     while (1)
     {
+        #if MODERN
         end = (gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY]) & 0xFF;
         start = sTransitionData->tWipeCurrX;
+        #else
+        start = gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY];
+        end = start & 0xFF;
+        start = sTransitionData->tWipeCurrX;
+        #endif 
         if (sTransitionData->tWipeEndY <= DISPLAY_HEIGHT / 2)
             start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX;
-        temp = end | (start << 8);
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = temp;
+
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
         if (finished)
             break;
         finished = UpdateBlackWipe(sTransitionData->data, TRUE, TRUE);
@@ -2031,7 +2105,7 @@ static bool8 ClockwiseWipe_TopLeft(struct Task *task)
         start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX;
         if (sTransitionData->tWipeCurrX >= DISPLAY_WIDTH / 2)
             start = 0, end = DISPLAY_WIDTH;
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = end | (start << 8);
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
     } while (!UpdateBlackWipe(sTransitionData->data, TRUE, TRUE));
 
     sTransitionData->tWipeEndX += 16;
@@ -2079,7 +2153,7 @@ static void Task_Ripple(u8 taskId)
 
 static bool8 Ripple_Init(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2111,12 +2185,18 @@ static bool8 Ripple_Main(struct Task *task)
     if (task->tAmplitudeVal <= 0x1FFF)
         task->tAmplitudeVal += 0x180;
 
+    #if !MODERN
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += speed)
     {
         s16 sinIndex = sinVal >> 8;
-        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex & 0xffff, amplitude);
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex & 0xFF, amplitude);
     }
-
+    #else
+    for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += speed)
+    {
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinVal >> 8, amplitude);
+    }
+    #endif
     if (++task->tTimer == 81)
     {
         task->tFadeStarted++;
@@ -2164,7 +2244,7 @@ static void Task_Wave(u8 taskId)
 
 static bool8 Wave_Init(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2297,7 +2377,7 @@ static void DoMugshotTransition(u8 taskId)
 
 static bool8 Mugshot_Init(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2321,7 +2401,7 @@ static bool8 Mugshot_Init(struct Task *task)
 
 static bool8 Mugshot_SetGfx(struct Task *task)
 {
-    s16 i, j;
+    ms16 i, j;
     u16 *tilemap, *tileset;
     const u16 *mugshotsMap;
 
@@ -2349,7 +2429,6 @@ static bool8 Mugshot_ShowBanner(struct Task *task)
     u8 i, sinIndex;
     u16* toStore;
     s16 x;
-    s32 mergedValue;
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -2405,7 +2484,8 @@ static bool8 Mugshot_StartOpponentSlide(struct Task *task)
 
     sTransitionData->VBlank_DMA = FALSE;
 
-    for (i = 0, toStore = gScanlineEffectRegBuffers[0]; i < DISPLAY_HEIGHT; i++, toStore++)
+    toStore = gScanlineEffectRegBuffers[0];
+    for (i = 0; i < DISPLAY_HEIGHT; i++, toStore++)
         *toStore = DISPLAY_WIDTH;
 
     task->tState++;
@@ -2490,12 +2570,12 @@ static bool8 Mugshot_GradualWhiteFade(struct Task *task)
             // spreads outwards in both directions.
             s16 index1 = DISPLAY_HEIGHT / 2 - i;
             s16 index2 = DISPLAY_HEIGHT / 2 + i;
-            if (gScanlineEffectRegBuffers[0][index1] <= 15)
+            if (gScanlineEffectRegBuffers[0][index1] < 16)
             {
                 active = TRUE;
                 gScanlineEffectRegBuffers[0][index1]++;
             }
-            if (gScanlineEffectRegBuffers[0][index2] <= 15)
+            if (gScanlineEffectRegBuffers[0][index2] < 16)
             {
                 active = TRUE;
                 gScanlineEffectRegBuffers[0][index2]++;
@@ -2529,7 +2609,7 @@ static bool8 Mugshot_FadeToBlack(struct Task *task)
 
     task->tTimer++;
     memset(gScanlineEffectRegBuffers[0], task->tTimer, DISPLAY_HEIGHT * 2);
-    if (task->tTimer > 15)
+    if (task->tTimer >= 16)
         task->tState++;
 
     sTransitionData->VBlank_DMA++;
@@ -2627,15 +2707,31 @@ static bool8 MugshotTrainerPic_Pause(struct Sprite *sprite)
 
 static bool8 MugshotTrainerPic_Init(struct Sprite *sprite)
 {
+    #if !MODERN
     s16 speeds[ARRAY_COUNT(sTrainerPicSlideSpeeds)];
     s16 accels[ARRAY_COUNT(sTrainerPicSlideAccels)];
 
     memcpy(speeds, sTrainerPicSlideSpeeds, sizeof(sTrainerPicSlideSpeeds));
     memcpy(accels, sTrainerPicSlideAccels, sizeof(sTrainerPicSlideAccels));
+    #endif
+
 
     sprite->sState++;
+#if !MODERN
     sprite->sSlideSpeed = speeds[sprite->sSlideDir];
     sprite->sSlideAccel = accels[sprite->sSlideDir];
+#else
+    if (sprite->sSlideDir)
+    {
+        sprite->sSlideSpeed = -12;
+        sprite->sSlideAccel = 1;
+    }
+    else
+    {
+        sprite->sSlideSpeed = 12;
+        sprite->sSlideAccel = -1;
+    }
+#endif
     return TRUE;
 }
 
@@ -2644,10 +2740,18 @@ static bool8 MugshotTrainerPic_Slide(struct Sprite *sprite)
     sprite->x += sprite->sSlideSpeed;
 
     // Advance state when pic passes ~40% of screen
-    if (sprite->sSlideDir && sprite->x < DISPLAY_WIDTH - 107)
-        sprite->sState++;
-    else if (!sprite->sSlideDir && sprite->x > 103)
-        sprite->sState++;
+    if (sprite->sSlideDir)
+    {
+        if (sprite->x < DISPLAY_WIDTH - 107)
+            sprite->sState++;
+    }
+    else
+    {
+        if (sprite->x > 103)
+            sprite->sState++;
+
+    }
+
     return FALSE;
 }
 
@@ -2675,7 +2779,7 @@ static bool8 MugshotTrainerPic_SlideOffscreen(struct Sprite *sprite)
 {
     sprite->sSlideSpeed += sprite->sSlideAccel;
     sprite->x += sprite->sSlideSpeed;
-    if (sprite->x < -31 || sprite->x > DISPLAY_WIDTH + 31)
+    if (sprite->x <= -32 || sprite->x >= DISPLAY_WIDTH + 32)
         sprite->sState++;
     return FALSE;
 }
@@ -2724,7 +2828,7 @@ static void Task_Slice(u8 taskId)
 
 static bool8 Slice_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -2754,14 +2858,14 @@ static bool8 Slice_Init(struct Task *task)
 
 static bool8 Slice_Main(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     sTransitionData->VBlank_DMA = FALSE;
 
     task->tEffectX += (task->tSpeed >> 8);
     if (task->tEffectX > DISPLAY_WIDTH)
         task->tEffectX = DISPLAY_WIDTH;
-    if (task->tSpeed <= 0xFFF)
+    if (task->tSpeed < 0x1000)
         task->tSpeed += task->tAccel;
     if (task->tAccel < 128)
         task->tAccel <<= 1; // multiplying by two
@@ -2769,10 +2873,10 @@ static bool8 Slice_Main(struct Task *task)
     for (i = 0; i < DISPLAY_HEIGHT; i++)
     {
         u16 *storeLoc1 = &gScanlineEffectRegBuffers[0][i];
-        u16 *storeLoc2 = &gScanlineEffectRegBuffers[0][i + DISPLAY_HEIGHT];
+        u16 *storeLoc2 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT + i];
         
         // Alternate rows
-        if (i % 2)
+        if (i & 1)
         {
             *storeLoc1 = sTransitionData->cameraX + task->tEffectX;
             *storeLoc2 = DISPLAY_WIDTH - task->tEffectX;
@@ -2879,14 +2983,20 @@ static bool8 ShredSplit_Init(struct Task *task)
 static bool8 ShredSplit_Main(struct Task *task)
 {
     u16 i, j, k;
+    #if !MODERN
     u8 baseY[ARRAY_COUNT(sShredSplit_SectionYCoords)];
     s16 moveDirs[ARRAY_COUNT(sShredSplit_SectionMoveDirs)];
+    #else
+    const u8 baseY[] = {39, DISPLAY_HEIGHT - 41};
+    const s16 moveDirs[] = {1, -1};
+    #endif
     u8 linesFinished;
     u16 *ptr4, *ptr3, *ptr1, *ptr2;
     s16 y;
-
+    # if !MODERN
     memcpy(baseY, sShredSplit_SectionYCoords, sizeof(baseY));
     memcpy(moveDirs, sShredSplit_SectionMoveDirs, sizeof(moveDirs));
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
     linesFinished = 0;
@@ -2899,11 +3009,14 @@ static bool8 ShredSplit_Main(struct Task *task)
             for (k = 0; k < 2; k++)
             {
                 y = baseY[j] + (moveDirs[k] * -i * 2);
-                if (y >= 0 && (y != DISPLAY_HEIGHT / 2 - 1 || j != 1))
-                {
-                    ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
-                    ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
+                if (y < 0)
+                    continue;
+                if (y == DISPLAY_HEIGHT / 2 - 1 && j == 1)
+                    continue;
+
+                    ptr4 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT * 2 + y];
+                    ptr3 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT * 3 + y];
+                    ptr1 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT * 4 + y];
                     if (*ptr4 >= DISPLAY_WIDTH)
                     {
                         *ptr4 = DISPLAY_WIDTH;
@@ -2912,19 +3025,18 @@ static bool8 ShredSplit_Main(struct Task *task)
                     else
                     {
                         *ptr4 += (*ptr3 >> 8);
-                        if (*ptr1 <= 0x7F)
-                            *ptr1 *= 2;
-                        if (*ptr3 <= 0xFFF)
+                        if (*ptr1 < 0x80)
+                            *ptr1 <<= 1;
+                        if (*ptr3 < 0x1000)
                             *ptr3 += *ptr1;
                     }
                     ptr2 = &gScanlineEffectRegBuffers[0][y];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT];
+                    ptr3 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT + y];
                     *ptr2 = sTransitionData->cameraX + *ptr4;
                     *ptr3 = DISPLAY_WIDTH - *ptr4;
 
                     if (i == 0)
                         break;
-                }
             }
         }
 
@@ -2934,32 +3046,34 @@ static bool8 ShredSplit_Main(struct Task *task)
             for (k = 0; k < 2; k++)
             {
                 y = baseY[j] + 1 + (moveDirs[k] * -i * 2);
-                if (y <= DISPLAY_HEIGHT && (y != DISPLAY_HEIGHT / 2 || j != 1))
-                {
-                    ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
-                    ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
-                    if (*ptr4 >= DISPLAY_WIDTH)
-                    {
-                        *ptr4 = DISPLAY_WIDTH;
-                        linesFinished++;
-                    }
-                    else
-                    {
-                        *ptr4 += (*ptr3 >> 8);
-                        if (*ptr1 <= 0x7F)
-                            *ptr1 *= 2;
-                        if (*ptr3 <= 0xFFF)
-                            *ptr3 += *ptr1;
-                    }
-                    ptr2 = &gScanlineEffectRegBuffers[0][y];
-                    ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT];
-                    *ptr2 = sTransitionData->cameraX - *ptr4;
-                    *ptr3 = (*ptr4 << 8) | (DISPLAY_WIDTH + 1);
+                if (y > DISPLAY_HEIGHT)
+                    continue;
+                if (y == DISPLAY_HEIGHT / 2 && j == 1)
+                    continue;
 
-                    if (i == 0)
-                        break;
+                ptr4 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 2];
+                ptr3 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 3];
+                ptr1 = &gScanlineEffectRegBuffers[0][y + DISPLAY_HEIGHT * 4];
+                if (*ptr4 >= DISPLAY_WIDTH)
+                {
+                    *ptr4 = DISPLAY_WIDTH;
+                    linesFinished++;
                 }
+                else
+                {
+                    *ptr4 += (*ptr3 >> 8);
+                    if (*ptr1 < 0x80)
+                        *ptr1 <<= 1;
+                    if (*ptr3 < 0x1000)
+                        *ptr3 += *ptr1;
+                }
+                ptr2 = &gScanlineEffectRegBuffers[0][y];
+                ptr3 = &gScanlineEffectRegBuffers[0][DISPLAY_HEIGHT + y];
+                *ptr2 = sTransitionData->cameraX - *ptr4;
+                *ptr3 = (*ptr4 << 8) | (DISPLAY_WIDTH + 1);
+
+                if (i == 0)
+                    break;
             }
         }
     }
@@ -3042,7 +3156,7 @@ static void Task_BlackholePulsate(u8 taskId)
 // Init is shared by both transitions
 static bool8 Blackhole_Init(struct Task *task)
 {
-    s32 i;
+    m32 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3072,26 +3186,25 @@ static bool8 Blackhole_GrowEnd(struct Task *task)
         DmaStop(0);
         SetVBlankCallback(NULL);
         DestroyTask(FindTaskIdByFunc(task->func));
+        return FALSE;
+    }
+
+    sTransitionData->VBlank_DMA = FALSE;
+    if (task->tGrowSpeed < 1024)
+        task->tGrowSpeed += 128;
+    if (task->tRadius < DISPLAY_HEIGHT)
+        task->tRadius += task->tGrowSpeed >> 8;
+    if (task->tRadius > DISPLAY_HEIGHT)
+        task->tRadius = DISPLAY_HEIGHT;
+    SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
+    if (task->tRadius == DISPLAY_HEIGHT)
+    {
+        task->tFlag = TRUE;
+        FadeScreenBlack();
     }
     else
     {
-        sTransitionData->VBlank_DMA = FALSE;
-        if (task->tGrowSpeed < 1024)
-            task->tGrowSpeed += 128;
-        if (task->tRadius < DISPLAY_HEIGHT)
-            task->tRadius += task->tGrowSpeed >> 8;
-        if (task->tRadius > DISPLAY_HEIGHT)
-            task->tRadius = DISPLAY_HEIGHT;
-        SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
-        if (task->tRadius == DISPLAY_HEIGHT)
-        {
-            task->tFlag = TRUE;
-            FadeScreenBlack();
-        }
-        else
-        {
-            sTransitionData->VBlank_DMA++;
-        }
+        sTransitionData->VBlank_DMA++;
     }
 
     return FALSE;
@@ -3106,10 +3219,24 @@ static bool8 Blackhole_Vibrate(struct Task *task)
         task->tRadius = 48;
         task->tVibrateId = 0;
     }
+    #if !MODERN
     task->tRadius += sBlackhole_Vibrations[task->tVibrateId];
-    task->tVibrateId = (task->tVibrateId + 1) % (int)ARRAY_COUNT(sBlackhole_Vibrations);
+    task->tVibrateId = (task->tVibrateId + 1) % (m32)ARRAY_COUNT(sBlackhole_Vibrations);
+    #else
+    if (task->tVibrateId)
+    {
+        task->tRadius += 4;
+        task->tVibrateId = 0;
+    }
+    else
+    {
+        task->tRadius -= 6;
+        task->tVibrateId = 1;
+    }
+    #endif
+
     SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
-    if (task->tRadius < 9)
+    if (task->tRadius <= 8)
     {
         task->tState++;
         task->tFlag = FALSE;
@@ -3121,7 +3248,11 @@ static bool8 Blackhole_Vibrate(struct Task *task)
 
 static bool8 BlackholePulsate_Main(struct Task *task)
 {
+    #if !MODERN
     u16 index; // should be s16 I think
+    #else
+    s16 index;
+    #endif 
     s16 amplitude;
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -3143,6 +3274,7 @@ static bool8 BlackholePulsate_Main(struct Task *task)
         DestroyTask(FindTaskIdByFunc(task->func));
     }
 
+    #if !MODERN
     index = task->tSinIndex;
     if ((task->tSinIndex & 0xFF) <= 128)
     {
@@ -3155,6 +3287,20 @@ static bool8 BlackholePulsate_Main(struct Task *task)
         task->tSinIndex += 16;
     }
     task->tRadius += Sin(index & 0xFF, amplitude);
+    #else
+    index = task->tSinIndex & 0xFF;
+    if (index <= 128)
+    {
+        amplitude = task->tAmplitude;
+        task->tSinIndex += 8;
+    }
+    else
+    {
+        amplitude = task->tAmplitude - 1;
+        task->tSinIndex += 16;
+    }
+    task->tRadius += Sin(index, amplitude);
+    #endif
 
     if (task->tRadius <= 0)
         task->tRadius = 1;
@@ -3232,8 +3378,8 @@ static bool8 RectangularSpiral_Init(struct Task *task)
 static bool8 RectangularSpiral_Main(struct Task *task)
 {
     u16 *tilemap, *tileset;
-    u8 i;
-    u16 j;
+    m8 i;
+    m16 j;
     bool32 done = TRUE;
 
     GetBg0TilesDst(&tilemap, &tileset);
@@ -3289,10 +3435,12 @@ static bool16 UpdateRectangularSpiralLine(const s16 * const *moveDataTable, stru
         return FALSE;
 
     // Presumably saving data for debug.
+    #if !MODERN
     sDebug_RectangularSpiralData = moveData[0];
     sDebug_RectangularSpiralData = moveData[1];
     sDebug_RectangularSpiralData = moveData[2];
     sDebug_RectangularSpiralData = moveData[3];
+    #endif
 
     // Note that for the two lines originating at the bottom the 
     // position is inverted, so the directions are flipped.
@@ -3316,8 +3464,14 @@ static bool16 UpdateRectangularSpiralLine(const s16 * const *moveDataTable, stru
 
     // Below check is never true.
     // SPIRAL_END was already checked, and position is never >= 640
+    #if !MODERN
     if (line->position >= 640 || moveData[line->moveIdx] == SPIRAL_END)
         return FALSE;
+    #else // just in case
+    if (line->position >= 640)
+        return FALSE;
+    #endif
+
 
     if (!line->outward && moveData[line->moveIdx] == SPIRAL_REBOUND)
     {
@@ -3388,8 +3542,13 @@ static bool8 Groudon_PaletteFlash(struct Task *task)
 {
     if (task->tTimer % 3 == 0)
     {
+        // must be u16 to match
+        #if !MODERN
         u16 offset = (task->tTimer % 30) / 3;
         LoadPalette(&sGroudon1_Palette[offset * 16], 0xF0, 0x20);
+        #else
+        LoadPalette(&sGroudon1_Palette[Div(Mod(task->tTimer, 30), 3) * 16], 0xF0, 0x20);
+        #endif
     }
     if (++task->tTimer > 58)
     {
@@ -3404,8 +3563,7 @@ static bool8 Groudon_PaletteBrighten(struct Task *task)
 {
     if (task->tTimer % 5 == 0)
     {
-        s16 offset = task->tTimer / 5;
-        LoadPalette(&sGroudon2_Palette[offset * 16], 0xF0, 0x20);
+        LoadPalette(&sGroudon2_Palette[task->tTimer / 5 * 16], 0xF0, 0x20);
     }
     if (++task->tTimer > 68)
     {
@@ -3436,7 +3594,7 @@ static void Task_Rayquaza(u8 taskId)
 static bool8 Rayquaza_Init(struct Task *task)
 {
     u16 *tilemap, *tileset;
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3474,9 +3632,13 @@ static bool8 Rayquaza_PaletteFlash(struct Task *task)
 {
     if ((task->tTimer % 4) == 0)
     {
+//  must be u16 to match
+#if !MODERN
         u16 value = task->tTimer / 4;
-        const u16 *palPtr = &sRayquaza_Palette[(value + 5) * 16];
-        LoadPalette(palPtr, 0xF0, 0x20);
+        LoadPalette(&sRayquaza_Palette[(5 + value) * 16], 0xF0, 0x20);
+#else
+        LoadPalette(&sRayquaza_Palette[(5 + task->tTimer / 4) * 16], 0xF0, 0x20);
+#endif
     }
     if (++task->tTimer > 40)
     {
@@ -3522,13 +3684,16 @@ static bool8 Rayquaza_TriRing(struct Task *task)
 {
     if ((task->tTimer % 3) == 0)
     {
+        #if !MODERN
         u16 value = task->tTimer / 3;
-        const u16 *palPtr = &sRayquaza_Palette[(value + 0) * 16];
-        LoadPalette(palPtr, 0xF0, 0x20);
+        LoadPalette(&sRayquaza_Palette[value * 16], 0xF0, 0x20);
+        #else
+        LoadPalette(&sRayquaza_Palette[task->tTimer / 3 * 16], 0xF0, 0x20);
+        #endif
     }
     if (++task->tTimer >= 40)
     {
-        u16 i;
+        m16 i;
 
         sTransitionData->WININ = 0;
         sTransitionData->WINOUT = WINOUT_WIN01_ALL;
@@ -3550,18 +3715,25 @@ static bool8 Rayquaza_TriRing(struct Task *task)
 
 static void VBlankCB_Rayquaza(void)
 {
-    void *dmaSrc;
+    u16 *dmaSrc;
 
     DmaStop(0);
     VBlankCB_BattleTransition();
 
+    #if !MODERN
     if (sTransitionData->counter == 0)
         dmaSrc = gScanlineEffectRegBuffers[0];
     else if (sTransitionData->counter == 1)
         dmaSrc = gScanlineEffectRegBuffers[1];
     else
         dmaSrc = gScanlineEffectRegBuffers[0];
-
+    #else
+    if (sTransitionData->counter == 1)
+        dmaSrc = gScanlineEffectRegBuffers[1];
+    else
+        dmaSrc = gScanlineEffectRegBuffers[0];
+    #endif
+    
     DmaSet(0, dmaSrc, &REG_BG0VOFS, B_TRANS_DMA_FLAGS);
 }
 
@@ -3588,7 +3760,7 @@ static void Task_WhiteBarsFade(u8 taskId)
 
 static bool8 WhiteBarsFade_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3602,7 +3774,7 @@ static bool8 WhiteBarsFade_Init(struct Task *task)
     for (i = 0; i < DISPLAY_HEIGHT; i++)
     {
         gScanlineEffectRegBuffers[1][i] = 0;
-        gScanlineEffectRegBuffers[1][i + DISPLAY_HEIGHT] = DISPLAY_WIDTH;
+        gScanlineEffectRegBuffers[1][DISPLAY_HEIGHT + i] = DISPLAY_WIDTH;
     }
 
     EnableInterrupts(INTR_FLAG_HBLANK);
@@ -3615,10 +3787,17 @@ static bool8 WhiteBarsFade_Init(struct Task *task)
 
 static bool8 WhiteBarsFade_StartBars(struct Task *task)
 {
-    s16 i, posY;
-    s16 delays[ARRAY_COUNT(sWhiteBarsFade_StartDelays)];
+    ms16 i;
+    s16 posY;
     struct Sprite *sprite;
+
+    #if !MODERN
+    s16 delays[ARRAY_COUNT(sWhiteBarsFade_StartDelays)];
+    
     memcpy(delays, sWhiteBarsFade_StartDelays, sizeof(sWhiteBarsFade_StartDelays));
+    #else
+    s16 delays[NUM_WHITE_BARS] = { 0, 20, 15, 40, 10, 25, 35, 5 };
+    #endif
 
     for (i = 0, posY = 0; i < NUM_WHITE_BARS; i++, posY += DISPLAY_HEIGHT / NUM_WHITE_BARS)
     {
@@ -3652,8 +3831,8 @@ static bool8 WhiteBarsFade_BlendToBlack(struct Task *task)
     sTransitionData->VBlank_DMA = 0;
 
     DmaStop(0);
-    SetVBlankCallback(0);
-    SetHBlankCallback(0);
+    SetVBlankCallback(NULL);
+    SetHBlankCallback(NULL);
 
     sTransitionData->WIN0H = DISPLAY_WIDTH;
     sTransitionData->BLDY = 0;
@@ -3712,12 +3891,13 @@ static void SpriteCB_WhiteBarFade(struct Sprite *sprite)
         sprite->sDelay--;
         if (sprite->sIsMainSprite)
             sTransitionData->VBlank_DMA = 1;
+        return;
     }
     else
     {
         u16 i;
-        u16* ptr1 = &gScanlineEffectRegBuffers[0][sprite->y];
-        u16* ptr2 = &gScanlineEffectRegBuffers[0][sprite->y + DISPLAY_HEIGHT];
+        u16 *ptr1 = &gScanlineEffectRegBuffers[0][sprite->y];
+        u16 *ptr2 = &gScanlineEffectRegBuffers[0][sprite->y + DISPLAY_HEIGHT];
         for (i = 0; i < DISPLAY_HEIGHT / NUM_WHITE_BARS; i++)
         {
             ptr1[i] = sprite->sFade >> 8;
@@ -3783,14 +3963,17 @@ static bool8 GridSquares_Init(struct Task *task)
 
 static bool8 GridSquares_Main(struct Task *task)
 {
-    u16* tileset;
+    u16 *tileset;
 
     if (task->tDelay == 0)
     {
         GetBg0TilemapDst(&tileset);
         task->tDelay = 3;
         task->tShrinkStage++;
-        CpuSet(&sShrinkingBoxTileset[task->tShrinkStage * 8], tileset, 16);
+        // In pm_eme_ose, this is << 5, but << 3 matches
+        // TODO: find out why
+        CpuCopy16(&sShrinkingBoxTileset[task->tShrinkStage << 3], tileset, 32);
+    
         if (task->tShrinkStage > 13)
         {
             task->tState++;
@@ -3830,7 +4013,7 @@ static void Task_AngledWipes(u8 taskId)
 
 static bool8 AngledWipes_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3864,7 +4047,7 @@ static bool8 AngledWipes_SetWipeData(struct Task *task)
 
 static bool8 AngledWipes_DoWipe(struct Task *task)
 {
-    s16 i;
+    ms16 i;
     bool8 finished;
 
     sTransitionData->VBlank_DMA = 0;
@@ -4061,7 +4244,7 @@ static void GetBg0TilemapDst(u16 **tileset)
 {
     u16 charBase = REG_BG0CNT >> 2;
     charBase <<= 14;
-    *tileset = (u16*)(BG_VRAM + charBase);
+    *tileset = (u16 *)(BG_VRAM + charBase);
 }
 
 void GetBg0TilesDst(u16 **tilemap, u16 **tileset)
@@ -4072,8 +4255,8 @@ void GetBg0TilesDst(u16 **tilemap, u16 **tileset)
     screenBase <<= 11;
     charBase <<= 14;
 
-    *tilemap = (u16*)(BG_VRAM + screenBase);
-    *tileset = (u16*)(BG_VRAM + charBase);
+    *tilemap = (u16 *)(BG_VRAM + screenBase);
+    *tileset = (u16 *)(BG_VRAM + charBase);
 }
 
 static void FadeScreenBlack(void)
@@ -4081,9 +4264,9 @@ static void FadeScreenBlack(void)
     BlendPalettes(PALETTES_ALL, 16, RGB_BLACK);
 }
 
-static void SetSinWave(s16 *array, s16 sinAdd, s16 index, s16 indexIncrementer, s16 amplitude, s16 arrSize)
+static void SetSinWave(u16 *array, s16 sinAdd, s16 index, s16 indexIncrementer, s16 amplitude, s16 arrSize)
 {
-    u8 i;
+    m8 i;
     for (i = 0; arrSize > 0; arrSize--, i++, index += indexIncrementer)
         array[i] = sinAdd + Sin(index & 0xFF, amplitude);
 }
@@ -4324,7 +4507,7 @@ static bool8 FrontierLogoWave_SetGfx(struct Task *task)
 
 static bool8 FrontierLogoWave_InitScanline(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < DISPLAY_HEIGHT; i++)
         gScanlineEffectRegBuffers[1][i] = sTransitionData->cameraY;
@@ -4339,7 +4522,7 @@ static bool8 FrontierLogoWave_InitScanline(struct Task *task)
 
 static bool8 FrontierLogoWave_Main(struct Task *task)
 {
-    u8 i;
+    m8 i;
     u16 sinVal, amplitude, sinSpread;
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -4372,13 +4555,20 @@ static bool8 FrontierLogoWave_Main(struct Task *task)
     }
 
     // Move logo up and down and distort it
+    #if !MODERN
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += sinSpread)
     {
-        s16 index = sinVal / 256;
+        s16 index = sinVal >> 8;
         gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(index & 0xff, amplitude);
     }
+    #else
+    for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += sinSpread)
+    {
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinVal >> 8, amplitude);
+    }
+    #endif
 
-    if (++task->tTimer == 101)
+    if (task->tTimer++ == 100)
     {
         task->tStartedFade++;
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
@@ -4404,8 +4594,12 @@ static void VBlankCB_FrontierLogoWave(void)
 
 static void HBlankCB_FrontierLogoWave(void)
 {
+    #if !MODERN
     u16 var = gScanlineEffectRegBuffers[1][REG_VCOUNT];
     REG_BG0VOFS = var;
+    #else
+    REG_BG0VOFS = gScanlineEffectRegBuffers[1][REG_VCOUNT];
+    #endif
 }
 
 #undef tSinVal
@@ -4489,41 +4683,43 @@ static bool8 FrontierSquares_Draw(struct Task *task)
 
 static bool8 FrontierSquares_Shrink(struct Task *task)
 {
-    u8 i;
+    m8 i;
     u16 *tilemap, *tileset;
 
     GetBg0TilesDst(&tilemap, &tileset);
-    if (task->tShrinkDelayTimer++ >= task->tShrinkDelay)
+    if (task->tShrinkDelayTimer++ < task->tShrinkDelay)
     {
-        switch (task->tShrinkState)
-        {
-        case 0:
-            for (i = 250; i < 255; i++)
-            {
-                gPlttBufferUnfaded[i] = RGB_BLACK;
-                gPlttBufferFaded[i] = RGB_BLACK;
-            }
-            break;
-        case 1:
-            BlendPalettes(PALETTES_ALL & ~(1 << 15), 16, RGB_BLACK);
-            LZ77UnCompVram(sFrontierSquares_EmptyBg_Tileset, tileset);
-            break;
-        case 2:
-            LZ77UnCompVram(sFrontierSquares_Shrink1_Tileset, tileset);
-            break;
-        case 3:
-            LZ77UnCompVram(sFrontierSquares_Shrink2_Tileset, tileset);
-            break;
-        default:
-            FillBgTilemapBufferRect_Palette0(0, 1, 0, 0, 32, 32);
-            CopyBgTilemapBufferToVram(0);
-            task->tState++;
-            return FALSE;
-        }
-
-        task->tShrinkDelayTimer = 0;
-        task->tShrinkState++;
+        return FALSE;
     }
+
+    switch (task->tShrinkState)
+    {
+    case 0:
+        for (i = 250; i < 255; i++)
+        {
+            gPlttBufferUnfaded[i] = RGB_BLACK;
+            gPlttBufferFaded[i] = RGB_BLACK;
+        }
+        break;
+    case 1:
+        BlendPalettes(PALETTES_ALL & ~(1 << 15), 16, RGB_BLACK);
+        LZ77UnCompVram(sFrontierSquares_EmptyBg_Tileset, tileset);
+        break;
+    case 2:
+        LZ77UnCompVram(sFrontierSquares_Shrink1_Tileset, tileset);
+        break;
+    case 3:
+        LZ77UnCompVram(sFrontierSquares_Shrink2_Tileset, tileset);
+        break;
+    default:
+        FillBgTilemapBufferRect_Palette0(0, 1, 0, 0, 32, 32);
+        CopyBgTilemapBufferToVram(0);
+        task->tState++;
+        return FALSE;
+    }
+
+    task->tShrinkDelayTimer = 0;
+    task->tShrinkState++;
 
     return FALSE;
 }
@@ -4573,7 +4769,7 @@ static bool8 FrontierSquaresSpiral_Outward(struct Task *task)
     CopyBgTilemapBufferToVram(0);
 
     if (--task->tSquareNum < 0)
-        task->tState++;
+        ++task->tState;
     return FALSE;
 }
 
@@ -4712,7 +4908,7 @@ static bool8 FrontierSquaresScroll_Draw(struct Task *task)
                                   15, 0, 0);
     CopyBgTilemapBufferToVram(0);
 
-    if (++task->tSquareNum >= (int)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
+    if (++task->tSquareNum >= (m32)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
         task->tState++;
     return 0;
 }
@@ -4741,7 +4937,7 @@ static bool8 FrontierSquaresScroll_Erase(struct Task *task)
                             15);
     CopyBgTilemapBufferToVram(0);
 
-    if (++task->tSquareNum >= (int)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
+    if (++task->tSquareNum >= (m32)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
     {
         DestroyTask(FindTaskIdByFunc(Task_ScrollBg));
         task->tState++;
@@ -4762,8 +4958,10 @@ static bool8 FrontierSquaresScroll_End(struct Task *task)
     BlendPalettes(PALETTES_ALL, 16, RGB_BLACK);
 
     DestroyTask(FindTaskIdByFunc(task->func));
-    task->tState++; // Changing value of a destroyed task
 
+#ifndef UBFIX
+    task->tState++; // UB: changing value of a destroyed task
+#endif
     return FALSE;
 }
 

@@ -26,7 +26,7 @@ static u8 sInitialLoadId; // Never read
 
 const u16 gConditionGraphData_Pal[] = INCBIN_U16("graphics/pokenav/condition/graph_data.gbapal");
 const u16 gConditionText_Pal[] = INCBIN_U16("graphics/pokenav/condition/text.gbapal");
-static const u32 sConditionGraphData_Gfx[] = INCBIN_U32("graphics/pokenav/condition/graph_data.4bpp.lz");
+static const u8 sConditionGraphData_Gfx[] = INCBIN_U8("graphics/pokenav/condition/graph_data.4bpp.lz");
 static const u32 sConditionGraphData_Tilemap[] = INCBIN_U32("graphics/pokenav/condition/graph_data.bin.lz");
 static const u16 sMonMarkings_Pal[] = INCBIN_U16("graphics/pokenav/condition/mon_markings.gbapal");
 
@@ -167,7 +167,7 @@ bool32 OpenConditionGraphMenu(void)
     return TRUE;
 }
 
-void CreateConditionGraphMenuLoopedTask(s32 id)
+void CreateConditionGraphMenuLoopedTask(u32 id)
 {
     struct Pokenav_ConditionMenuGfx *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU_GFX);
     menu->loopedTaskId = CreateLoopedTask(sLoopedTaskFuncs[id], 1);
@@ -299,8 +299,8 @@ static u32 LoopedTask_OpenConditionGraphMenu(s32 state)
         if (!IsConditionMenuSearchMode())
         {
             LoadLeftHeaderGfxForIndex(POKENAV_GFX_PARTY_MENU);
-            ShowLeftHeaderGfx(POKENAV_GFX_CONDITION_MENU, TRUE, 0);
-            ShowLeftHeaderGfx(POKENAV_GFX_PARTY_MENU, TRUE, 0);
+            ShowLeftHeaderGfx(POKENAV_GFX_CONDITION_MENU, TRUE, FALSE);
+            ShowLeftHeaderGfx(POKENAV_GFX_PARTY_MENU, TRUE, FALSE);
         }
         return LT_INC_AND_PAUSE;
     case 16:
@@ -826,7 +826,7 @@ static void CreateConditionMonPic(u8 id)
         {
             menu->monPicSpriteId = spriteId;
             gSprites[menu->monPicSpriteId].callback = MonPicGfxSpriteCallback;
-            menu->monGfxPtr = (void*)VRAM + BG_VRAM_SIZE + (menu->monGfxTileStart * 32);
+            menu->monGfxPtr = (void *)VRAM + BG_VRAM_SIZE + (menu->monGfxTileStart * 32);
             menu->monPalIndex = (menu->monPalIndex * 16) + 0x100;
         }
     }
@@ -885,7 +885,7 @@ u8 GetMonMarkingsData(void)
 {
     struct Pokenav_ConditionMenuGfx *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU_GFX);
 
-    if (IsConditionMenuSearchMode() == 1)
+    if (IsConditionMenuSearchMode() == TRUE)
         return menu->marksMenu.markings;
     else
         return 0;

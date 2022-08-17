@@ -127,7 +127,10 @@ static void SetVerdanturfTentPrize(void)
 
 static void SetVerdanturfTentTrainerGfx(void)
 {
-    gTrainerBattleOpponent_A = (u32)((Random() % 255) * 5) / 64;
+    // * 20 >> 8 but that got optimized to * 5 / 64.
+    // doing one over the other without a u32 cast causes asr instead of lsr?
+    // 5u makes it work though, somehow
+    gTrainerBattleOpponent_A = (Random() % 255) * 20 >> 8;
     SetBattleFacilityTrainerGfxId(gTrainerBattleOpponent_A, 0);
 }
 
@@ -313,7 +316,6 @@ static void GenerateInitialRentalMons(void)
         monSetId = Random() % NUM_SLATEPORT_TENT_MONS;
         for (j = firstMonId; j < firstMonId + i; j++)
         {
-            u16 monId = monIds[j];
             if (monIds[j] == monSetId)
                 break;
             if (species[j] == gFacilityTrainerMons[monSetId].species)

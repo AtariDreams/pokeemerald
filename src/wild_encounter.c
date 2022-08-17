@@ -518,12 +518,20 @@ static bool8 DoWildEncounterRateTest(u32 encounterRate, bool8 ignoreAbility)
     return DoWildEncounterRateDiceRoll(encounterRate);
 }
 
+#if !MODERN
 static bool8 DoGlobalWildEncounterDiceRoll(void)
+#else
+static bool32 DoGlobalWildEncounterDiceRoll(void)
+#endif
 {
+    #if !MODERN
     if (Random() % 100 >= 60)
         return FALSE;
     else
         return TRUE;
+    #else
+    return Mod(Random(), 5) >= 3;
+    #endif
 }
 
 static bool8 AreLegendariesInSootopolisPreventingEncounters(void)
@@ -542,8 +550,10 @@ bool8 StandardWildEncounter(u16 currMetaTileBehavior, u16 previousMetaTileBehavi
     u16 headerId;
     struct Roamer *roamer;
 
+#if !MODERN
     if (sWildEncountersDisabled == TRUE)
         return FALSE;
+#endif
 
     headerId = GetCurrentMapWildMonHeaderId();
     if (headerId == HEADER_NONE)
@@ -665,7 +675,7 @@ void RockSmashWildEncounter(void)
         {
             gSpecialVar_Result = FALSE;
         }
-        else if (DoWildEncounterRateTest(wildPokemonInfo->encounterRate, 1) == TRUE
+        else if (DoWildEncounterRateTest(wildPokemonInfo->encounterRate, TRUE) == TRUE
          && TryGenerateWildMon(wildPokemonInfo, WILD_AREA_ROCKS, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE) == TRUE)
         {
             BattleSetup_StartWildBattle();
@@ -852,7 +862,7 @@ bool8 UpdateRepelCounter(void)
         VarSet(VAR_REPEL_STEP_COUNT, steps);
         if (steps == 0)
         {
-            ScriptContext1_SetupScript(EventScript_RepelWoreOff);
+            ScriptContext_SetupScript(EventScript_RepelWoreOff);
             return TRUE;
         }
     }

@@ -115,14 +115,14 @@ static u32 ExitCheckPage(s32);
 static u32 ExitMatchCall(s32);
 
 static const u16 sMatchCallUI_Pal[] = INCBIN_U16("graphics/pokenav/match_call/ui.gbapal");
-static const u32 sMatchCallUI_Gfx[] = INCBIN_U32("graphics/pokenav/match_call/ui.4bpp.lz");
+static const u8 sMatchCallUI_Gfx[] = INCBIN_U8("graphics/pokenav/match_call/ui.4bpp.lz");
 static const u32 sMatchCallUI_Tilemap[] = INCBIN_U32("graphics/pokenav/match_call/ui.bin.lz");
 static const u16 sOptionsCursor_Pal[] = INCBIN_U16("graphics/pokenav/match_call/options_cursor.gbapal");
-static const u32 sOptionsCursor_Gfx[] = INCBIN_U32("graphics/pokenav/match_call/options_cursor.4bpp.lz");
+static const u8 sOptionsCursor_Gfx[] = INCBIN_U8("graphics/pokenav/match_call/options_cursor.4bpp.lz");
 static const u16 sCallWindow_Pal[] = INCBIN_U16("graphics/pokenav/match_call/call_window.gbapal");
 static const u16 sListWindow_Pal[] = INCBIN_U16("graphics/pokenav/match_call/list_window.gbapal");
 static const u16 sPokeball_Pal[] = INCBIN_U16("graphics/pokenav/match_call/pokeball.gbapal");
-static const u32 sPokeball_Gfx[] = INCBIN_U32("graphics/pokenav/match_call/pokeball.4bpp.lz");
+static const u8 sPokeball_Gfx[] = INCBIN_U8("graphics/pokenav/match_call/pokeball.4bpp.lz");
 
 static const struct BgTemplate sMatchCallBgTemplates[3] =
 {
@@ -290,7 +290,7 @@ bool32 OpenMatchCall(void)
     return TRUE;
 }
 
-void CreateMatchCallLoopedTask(s32 index)
+void CreateMatchCallLoopedTask(u32 index)
 {
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
     gfx->loopTaskId = CreateLoopedTask(sMatchCallLoopTaskFuncs[index], 1);
@@ -379,7 +379,7 @@ static u32 LoopedTask_OpenMatchCall(s32 state)
         ShowBg(1);
         AllocMatchCallSprites();
         LoadLeftHeaderGfxForIndex(3);
-        ShowLeftHeaderGfx(POKENAV_GFX_MATCH_CALL_MENU, 1, 0);
+        ShowLeftHeaderGfx(POKENAV_GFX_MATCH_CALL_MENU, TRUE, FALSE);
         PokenavFadeScreen(POKENAV_FADE_FROM_BLACK);
         return LT_INC_AND_PAUSE;
     case 7:
@@ -402,7 +402,7 @@ static u32 MatchCallListCursorDown(s32 state)
         switch (PokenavList_MoveCursorDown())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -412,13 +412,11 @@ static u32 MatchCallListCursorDown(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
@@ -439,7 +437,7 @@ static u32 MatchCallListCursorUp(s32 state)
         switch (PokenavList_MoveCursorUp())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -449,13 +447,11 @@ static u32 MatchCallListCursorUp(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
@@ -476,7 +472,7 @@ static u32 MatchCallListPageDown(s32 state)
         switch (PokenavList_PageDown())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -486,13 +482,11 @@ static u32 MatchCallListPageDown(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
@@ -513,7 +507,7 @@ static u32 MatchCallListPageUp(s32 state)
         switch (PokenavList_PageUp())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -523,13 +517,11 @@ static u32 MatchCallListPageUp(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
@@ -562,13 +554,8 @@ static u32 SelectMatchCallEntry(s32 state)
 
 static u32 MoveMatchCallOptionsCursor(s32 state)
 {
-    struct Pokenav_MatchCallGfx *gfx;
-    u16 cursorPos;
-
     PlaySE(SE_SELECT);
-    gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
-    cursorPos = GetMatchCallOptionCursorPos();
-    UpdateCursorGfxPos(gfx, cursorPos);
+    UpdateCursorGfxPos(GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN), GetMatchCallOptionCursorPos());
     return LT_FINISH;
 }
 
@@ -746,14 +733,12 @@ static u32 ShowCheckPage(s32 state)
 
 static u32 ShowCheckPageDown(s32 state)
 {
-    int topId;
     int delta;
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
     switch (state)
     {
     case 0:
-        topId = PokenavList_GetTopIndex();
-        delta = GetIndexDeltaOfNextCheckPageDown(topId);
+        delta = GetIndexDeltaOfNextCheckPageDown(PokenavList_GetTopIndex());
         if (delta)
         {
             PlaySE(SE_SELECT);
@@ -811,14 +796,12 @@ static u32 ExitCheckPage(s32 state)
 
 static u32 ShowCheckPageUp(s32 state)
 {
-    int topId;
     int delta;
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
     switch (state)
     {
     case 0:
-        topId = PokenavList_GetTopIndex();
-        delta = GetIndexDeltaOfNextCheckPageUp(topId);
+        delta = GetIndexDeltaOfNextCheckPageUp(PokenavList_GetTopIndex());
         if (delta)
         {
             PlaySE(SE_SELECT);
@@ -931,8 +914,7 @@ enum {
 
 static void TryDrawRematchPokeballIcon(u16 windowId, u32 rematchId, u32 tileOffset)
 {
-    u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-    u16 *tilemap = GetBgTilemapBuffer(bg);
+    u16 *tilemap = GetBgTilemapBuffer(GetWindowAttribute(windowId, WINDOW_BG));
     tilemap += tileOffset * 64 + 0x1D;
     if (ShouldDrawRematchPokeballIcon(rematchId))
     {
@@ -948,8 +930,7 @@ static void TryDrawRematchPokeballIcon(u16 windowId, u32 rematchId, u32 tileOffs
 
 void ClearRematchPokeballIcon(u16 windowId, u32 tileOffset)
 {
-    u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-    u16 *tilemap = GetBgTilemapBuffer(bg);
+    u16 *tilemap = GetBgTilemapBuffer( GetWindowAttribute(windowId, WINDOW_BG));
     tilemap += tileOffset * 64 + 0x1D;
     tilemap[0] = POKEBALL_ICON_EMPTY;
     tilemap[0x20] = POKEBALL_ICON_EMPTY;
@@ -1021,10 +1002,9 @@ static void PrintMatchCallLocation(struct Pokenav_MatchCallGfx *gfx, int delta)
 {
     u8 mapName[32];
     int x;
-    int index = PokenavList_GetSelectedIndex() + delta;
-    int mapSec = GetMatchCallMapSec(index);
+    int mapSec = GetMatchCallMapSec(PokenavList_GetSelectedIndex() + delta);
     if (mapSec != MAPSEC_NONE)
-        GetMapName(mapName, mapSec, 0);
+        CopyMapName(mapName, mapSec, 0);
     else
         StringCopy(mapName, gText_Unknown);
 
@@ -1035,7 +1015,10 @@ static void PrintMatchCallLocation(struct Pokenav_MatchCallGfx *gfx, int delta)
 
 static void PrintMatchCallSelectionOptions(struct Pokenav_MatchCallGfx *gfx)
 {
+    // Apparently u32 works, but matchCallOptionId takes an int, so
     u32 i;
+
+    // The alternative is to use 2 counters for the same exact thing, but have both s32 i;
 
     FillWindowPixelBuffer(gfx->infoBoxWindowId, PIXEL_FILL(1));
     for (i = 0; i < MATCH_CALL_OPTION_COUNT; i++)
@@ -1138,10 +1121,7 @@ static bool32 WaitForTrainerIsCloseByText(struct Pokenav_MatchCallGfx *gfx)
 
 static void PrintMatchCallMessage(struct Pokenav_MatchCallGfx *gfx)
 {
-    int index = PokenavList_GetSelectedIndex();
-    const u8 *str = GetMatchCallMessageText(index, &gfx->newRematchRequest);
-    u8 speed = GetPlayerTextSpeedDelay();
-    AddTextPrinterParameterized(gfx->msgBoxWindowId, FONT_NORMAL, str, 32, 1, speed, NULL);
+    AddTextPrinterParameterized(gfx->msgBoxWindowId, FONT_NORMAL, GetMatchCallMessageText(PokenavList_GetSelectedIndex(), &gfx->newRematchRequest), 32, 1, GetPlayerTextSpeedDelay(), NULL);
 }
 
 static bool32 WaitForMatchCallMessageText(struct Pokenav_MatchCallGfx *gfx)
@@ -1170,7 +1150,7 @@ static bool32 WaitForCallMessageBoxErase(struct Pokenav_MatchCallGfx *gfx)
 static void AllocMatchCallSprites(void)
 {
     int i;
-    u8 paletteNum;
+
     struct SpriteSheet spriteSheet;
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
 
@@ -1185,8 +1165,8 @@ static void AllocMatchCallSprites(void)
     spriteSheet.size = sizeof(gfx->trainerPicGfx);
     spriteSheet.tag = GFXTAG_TRAINER_PIC;
     gfx->trainerPicGfxPtr = (u8 *)OBJ_VRAM0 + LoadSpriteSheet(&spriteSheet) * 0x20;
-    paletteNum = AllocSpritePalette(PALTAG_TRAINER_PIC);
-    gfx->trainerPicPalOffset = 0x100 + paletteNum * 0x10;
+
+    gfx->trainerPicPalOffset = 0x100 + AllocSpritePalette(PALTAG_TRAINER_PIC) * 0x10;
     gfx->trainerPicSprite = CreateTrainerPicSprite();
     gfx->trainerPicSprite->invisible = TRUE;
 }
@@ -1243,7 +1223,8 @@ static struct Sprite *CreateTrainerPicSprite(void)
 
 static void LoadCheckPageTrainerPic(struct Pokenav_MatchCallGfx *gfx)
 {
-    u16 cursor;
+    // Matches as u16, but s16 is more appropiate
+    s16 cursor;
     int trainerPic = GetMatchCallTrainerPic(PokenavList_GetSelectedIndex());
     if (trainerPic >= 0)
     {

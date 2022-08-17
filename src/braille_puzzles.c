@@ -60,9 +60,12 @@ static void DoBrailleRegisteelEffect(void);
 
 bool8 ShouldDoBrailleDigEffect(void)
 {
-    if (!FlagGet(FLAG_SYS_BRAILLE_DIG)
-     && (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SEALED_CHAMBER_OUTER_ROOM)
-     && gSaveBlock1Ptr->location.mapNum == MAP_NUM(SEALED_CHAMBER_OUTER_ROOM)))
+    // TODO: Better
+    if (FlagGet(FLAG_SYS_BRAILLE_DIG))
+        return FALSE;
+    
+    if (gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(SEALED_CHAMBER_OUTER_ROOM)
+     && gSaveBlock1Ptr->location.mapNum == MAP_NUM(SEALED_CHAMBER_OUTER_ROOM))
     {
         if (gSaveBlock1Ptr->pos.x == 10 && gSaveBlock1Ptr->pos.y == 3)
             return TRUE;
@@ -86,7 +89,7 @@ void DoBrailleDigEffect(void)
     DrawWholeMapView();
     PlaySE(SE_BANG);
     FlagSet(FLAG_SYS_BRAILLE_DIG);
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
 }
 
 bool8 CheckRelicanthWailord(void)
@@ -123,7 +126,7 @@ void DoSealedChamberShakingEffect_Long(void)
     gTasks[taskId].tVerticalPan = 2;
     gTasks[taskId].tDelay = 5;
     gTasks[taskId].tNumShakes = 50;
-    SetCameraPanningCallback(0);
+    SetCameraPanningCallback(NULL);
 }
 
 void DoSealedChamberShakingEffect_Short(void)
@@ -135,7 +138,7 @@ void DoSealedChamberShakingEffect_Short(void)
     gTasks[taskId].tVerticalPan = 3;
     gTasks[taskId].tDelay = 5;
     gTasks[taskId].tNumShakes = 2;
-    SetCameraPanningCallback(0);
+    SetCameraPanningCallback(NULL);
 }
 
 static void Task_SealedChamberShakingEffect(u8 taskId)
@@ -213,7 +216,7 @@ static void DoBrailleRegirockEffect(void)
     DrawWholeMapView();
     PlaySE(SE_BANG);
     FlagSet(FLAG_SYS_REGIROCK_PUZZLE_COMPLETED);
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
 }
 
 bool8 ShouldDoBrailleRegisteelEffect(void)
@@ -252,7 +255,7 @@ static void DoBrailleRegisteelEffect(void)
     DrawWholeMapView();
     PlaySE(SE_BANG);
     FlagSet(FLAG_SYS_REGISTEEL_PUZZLE_COMPLETED);
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
 }
 
 // theory: another commented out DoBrailleWait and Task_BrailleWait.
@@ -298,7 +301,6 @@ bool8 ShouldDoBrailleRegicePuzzle(void)
             u8 yPos = sRegicePathCoords[i][1];
             if (gSaveBlock1Ptr->pos.x == xPos && gSaveBlock1Ptr->pos.y == yPos)
             {
-                u16 varValue;
 
                 if (i < 16)
                 {
@@ -319,13 +321,12 @@ bool8 ShouldDoBrailleRegicePuzzle(void)
                     VarSet(VAR_REGICE_STEPS_3, val);
                 }
 
-                varValue = VarGet(VAR_REGICE_STEPS_1);
-                if (varValue != 0xFFFF || VarGet(VAR_REGICE_STEPS_2) != 0xFFFF || VarGet(VAR_REGICE_STEPS_3) != 0xF)
+                if (VarGet(VAR_REGICE_STEPS_1) != 0xFFFF || VarGet(VAR_REGICE_STEPS_2) != 0xFFFF || VarGet(VAR_REGICE_STEPS_3) != 0xF)
                     return FALSE;
 
                 // This final check is redundant.
                 if (gSaveBlock1Ptr->pos.x == 8 && gSaveBlock1Ptr->pos.y == 21)
-                    return TRUE;
+                    return TRUE; // Event activation in front of the door
                 else
                     return FALSE;
             }

@@ -5,7 +5,7 @@
 
 struct TrainerHillTrainer
 {
-    u8 name[HILL_TRAINER_NAME_LENGTH];
+    u8 name[TRAINER_NAME_LENGTH + 1];
     u8 facilityClass;
     bool32 unused; // Set to TRUE on JP trainers
     u16 speechBefore[EASY_CHAT_BATTLE_WORDS_COUNT];
@@ -54,12 +54,14 @@ void CopyTrainerHillTrainerText(u8 which, u16 trainerId);
 bool8 InTrainerHillChallenge(void);
 void PrintOnTrainerHillRecordsWindow(void);
 void LoadTrainerHillObjectEventTemplates(void);
+#if !MODERN
 bool32 LoadTrainerHillFloorObjectEventScripts(void);
+#endif
 void GenerateTrainerHillFloorLayout(u16 *mapArg);
 bool32 InTrainerHill(void);
 u8 GetCurrentTrainerHillMapId(void);
-const struct WarpEvent* SetWarpDestinationTrainerHill4F(void);
-const struct WarpEvent* SetWarpDestinationTrainerHillFinalFloor(u8 warpEventId);
+const struct WarpEvent* const SetWarpDestinationTrainerHill4F(void);
+const struct WarpEvent* const SetWarpDestinationTrainerHillFinalFloor(u8 warpEventId);
 u16 LocalIdToHillTrainerId(u8 localId);
 bool8 GetHillTrainerFlag(u8 objectEventId);
 void SetHillTrainerFlag(void);

@@ -12,7 +12,9 @@
 #include "sprite.h"
 #include "text.h"
 
+#if !MODERN
 EWRAM_DATA bool8 gUnusedBikeCameraAheadPanback = FALSE;
+#endif
 
 struct FieldCameraOffset
 {
@@ -40,8 +42,8 @@ static bool8 sBikeCameraPanFlag;
 static void (*sFieldCameraPanningCallback)(void);
 
 struct CameraObject gFieldCamera;
-u16 gTotalCameraPixelOffsetY;
-u16 gTotalCameraPixelOffsetX;
+s16 gTotalCameraPixelOffsetX;
+s16 gTotalCameraPixelOffsetY;
 
 static void ResetCameraOffset(struct FieldCameraOffset *cameraOffset)
 {
@@ -52,15 +54,15 @@ static void ResetCameraOffset(struct FieldCameraOffset *cameraOffset)
     cameraOffset->copyBGToVRAM = TRUE;
 }
 
-static void AddCameraTileOffset(struct FieldCameraOffset *cameraOffset, u32 xOffset, u32 yOffset)
+static void AddCameraTileOffset(struct FieldCameraOffset *cameraOffset, int xOffset, int yOffset)
 {
     cameraOffset->xTileOffset += xOffset;
     cameraOffset->xTileOffset %= 32;
     cameraOffset->yTileOffset += yOffset;
     cameraOffset->yTileOffset %= 32;
 }
-
-static void AddCameraPixelOffset(struct FieldCameraOffset *cameraOffset, u32 xOffset, u32 yOffset)
+// All this to u8s. This is irresponsible
+static void AddCameraPixelOffset(struct FieldCameraOffset *cameraOffset, int xOffset, int yOffset)
 {
     cameraOffset->xPixelOffset += xOffset;
     cameraOffset->yPixelOffset += yOffset;
@@ -71,6 +73,7 @@ void ResetFieldCamera(void)
     ResetCameraOffset(&sFieldCameraOffset);
 }
 
+//TODO: Look into offsets being s16 and this being a u32 
 void FieldUpdateBgTilemapScroll(void)
 {
     u32 r4, r5;
@@ -101,8 +104,8 @@ static void DrawWholeMapViewInternal(int x, int y, const struct MapLayout *mapLa
 {
     u8 i;
     u8 j;
-    u32 r6;
     u8 temp;
+    u16 r6;
 
     for (i = 0; i < 32; i += 2)
     {
@@ -126,11 +129,11 @@ static void RedrawMapSlicesForCameraUpdate(struct FieldCameraOffset *cameraOffse
 
     if (x > 0)
         RedrawMapSliceWest(cameraOffset, mapLayout);
-    if (x < 0)
+    M_IF (x < 0)
         RedrawMapSliceEast(cameraOffset, mapLayout);
     if (y > 0)
         RedrawMapSliceNorth(cameraOffset, mapLayout);
-    if (y < 0)
+    M_IF (y < 0)
         RedrawMapSliceSouth(cameraOffset, mapLayout);
     cameraOffset->copyBGToVRAM = TRUE;
 }
@@ -139,7 +142,7 @@ static void RedrawMapSliceNorth(struct FieldCameraOffset *cameraOffset, const st
 {
     u8 i;
     u8 temp;
-    u32 r7;
+    u16 r7;
 
     temp = cameraOffset->yTileOffset + 28;
     if (temp >= 32)
@@ -158,7 +161,7 @@ static void RedrawMapSliceSouth(struct FieldCameraOffset *cameraOffset, const st
 {
     u8 i;
     u8 temp;
-    u32 r7 = cameraOffset->yTileOffset * 32;
+    u16 r7 = cameraOffset->yTileOffset * 32;
 
     for (i = 0; i < 32; i += 2)
     {
@@ -173,7 +176,7 @@ static void RedrawMapSliceEast(struct FieldCameraOffset *cameraOffset, const str
 {
     u8 i;
     u8 temp;
-    u32 r6 = cameraOffset->xTileOffset;
+    u8 r6 = cameraOffset->xTileOffset;
 
     for (i = 0; i < 32; i += 2)
     {
@@ -205,22 +208,20 @@ void CurrentMapDrawMetatileAt(int x, int y)
 {
     int offset = MapPosToBgTilemapOffset(&sFieldCameraOffset, x, y);
 
-    if (offset >= 0)
-    {
-        DrawMetatileAt(gMapHeader.mapLayout, offset, x, y);
-        sFieldCameraOffset.copyBGToVRAM = TRUE;
-    }
+    if (offset < 0) return;
+    
+    DrawMetatileAt(gMapHeader.mapLayout, offset, x, y);
+    sFieldCameraOffset.copyBGToVRAM = TRUE;
 }
 
 void DrawDoorMetatileAt(int x, int y, u16 *tiles)
 {
     int offset = MapPosToBgTilemapOffset(&sFieldCameraOffset, x, y);
 
-    if (offset >= 0)
-    {
-        DrawMetatile(METATILE_LAYER_TYPE_COVERED, tiles, offset);
-        sFieldCameraOffset.copyBGToVRAM = TRUE;
-    }
+    if (offset < 0) return;
+    
+    DrawMetatile(METATILE_LAYER_TYPE_COVERED, tiles, offset);
+    sFieldCameraOffset.copyBGToVRAM = TRUE;
 }
 
 static void DrawMetatileAt(const struct MapLayout *mapLayout, u16 offset, int x, int y)
@@ -373,35 +374,70 @@ void CameraUpdate(void)
     curMovementOffsetX = gFieldCamera.x;
     curMovementOffsetY = gFieldCamera.y;
 
+    #if !MODERN
 
-    if (curMovementOffsetX == 0 && movementSpeedX != 0)
+    if ((curMovementOffsetX == 0 && movementSpeedX != 0))
     {
-        if (movementSpeedX > 0)
-            deltaX = 1;
-        else
-            deltaX = -1;
+        deltaX = (movementSpeedX > 0) ? 1 : -1;
     }
     if (curMovementOffsetY == 0 && movementSpeedY != 0)
     {
-        if (movementSpeedY > 0)
-            deltaY = 1;
-        else
-            deltaY = -1;
+        deltaY = (movementSpeedY > 0) ? 1 : -1;
     }
-    if (curMovementOffsetX != 0 && curMovementOffsetX == -movementSpeedX)
+
+    // Can't we just merge these with the top one?
+    if (curMovementOffsetX != 0 && curMovementOffsetX == -movementSpeedX) // sum of both is 0
     {
-        if (movementSpeedX > 0)
-            deltaX = 1;
-        else
-            deltaX = -1;
+        deltaX = (movementSpeedX > 0) ? 1 : -1;
     }
-    if (curMovementOffsetY != 0 && curMovementOffsetY == -movementSpeedY)
+    if (curMovementOffsetY != 0 && curMovementOffsetY == -movementSpeedY) // sum of both is 0
     {
-        if (movementSpeedY > 0)
-            deltaX = 1;
-        else
-            deltaX = -1;
+        // Shouldn't this be delta Y?
+        #ifndef BUGFIX
+        deltaX = (movementSpeedY > 0) ? 1 : -1;
+        #else
+        deltaY = (movementSpeedY > 0) ? 1 : -1;
+        #endif
     }
+
+    #else
+    #if 1
+    if (movementSpeedX == -curMovementOffsetX)
+    {
+        if (curMovementOffsetX != 0)
+            deltaX = (movementSpeedX > 0) ? 1 : -1;
+        
+    }
+    else if (movementSpeedX != 0)
+    {
+        if (curMovementOffsetX == 0)
+            deltaX = (movementSpeedX > 0) ? 1 : -1;
+    }
+
+    if (movementSpeedY == -curMovementOffsetY)
+    {
+        if (curMovementOffsetY != 0)
+            deltaY = (movementSpeedY > 0) ? 1 : -1;
+        
+    }
+    else if (movementSpeedY != 0)
+    {
+        if (curMovementOffsetY == 0)
+            deltaY = (movementSpeedY > 0) ? 1 : -1;
+    }
+    #else
+    if ((curMovementOffsetX == 0 && movementSpeedX != 0) || (curMovementOffsetX != 0 && curMovementOffsetX == -movementSpeedX) )
+    {
+        deltaX = (movementSpeedX > 0) ? 1 : -1;
+    }
+
+    if ((curMovementOffsetY == 0 && movementSpeedY != 0) || (curMovementOffsetY != 0 && curMovementOffsetY == -movementSpeedY))
+    {
+        deltaY = (movementSpeedY > 0) ? 1 : -1;
+    }
+    #endif
+    #endif
+
 
     gFieldCamera.x += movementSpeedX;
     gFieldCamera.x %= 16;
@@ -462,8 +498,8 @@ void UpdateCameraPanning(void)
 
 static void CameraPanningCB_PanAhead(void)
 {
+    #if !MODERN
     u8 var;
-
     if (gUnusedBikeCameraAheadPanback == FALSE)
     {
         InstallCameraPanAheadCallback();
@@ -502,4 +538,7 @@ static void CameraPanningCB_PanAhead(void)
             sVerticalCameraPan -= 2;
         }
     }
+    #else
+    InstallCameraPanAheadCallback();
+    #endif
 }

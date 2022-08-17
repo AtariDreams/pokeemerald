@@ -1,21 +1,7 @@
-TOOLCHAIN := $(DEVKITARM)
 COMPARE ?= 0
 
 ifeq (compare,$(MAKECMDGOALS))
   COMPARE := 1
-endif
-
-# don't use dkP's base_tools anymore
-# because the redefinition of $(CC) conflicts
-# with when we want to use $(CC) to preprocess files
-# thus, manually create the variables for the bin
-# files, or use arm-none-eabi binaries on the system
-# if dkP is not installed on this system
-
-ifneq (,$(TOOLCHAIN))
-ifneq ($(wildcard $(TOOLCHAIN)/bin),)
-export PATH := $(TOOLCHAIN)/bin:$(PATH)
-endif
 endif
 
 PREFIX := arm-none-eabi-
@@ -28,7 +14,6 @@ LD := $(PREFIX)ld
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
 MODERNCC := $(PREFIX)gcc
-PATH_MODERNCC := PATH=$(TOOLCHAIN)/bin:PATH $(MODERNCC)
 
 ifeq ($(OS),Windows_NT)
 EXE := .exe
@@ -96,7 +81,7 @@ DATA_ASM_BUILDDIR = $(OBJ_DIR)/$(DATA_ASM_SUBDIR)
 SONG_BUILDDIR = $(OBJ_DIR)/$(SONG_SUBDIR)
 MID_BUILDDIR = $(OBJ_DIR)/$(MID_SUBDIR)
 
-ASFLAGS := -mcpu=arm7tdmi --defsym MODERN=$(MODERN)
+ASFLAGS := -march=armv4t -mcpu=arm7tdmi --defsym MODERN=$(MODERN)
 
 ifeq ($(MODERN),0)
 CC1             := tools/agbcc/bin/agbcc$(EXE)
@@ -106,11 +91,11 @@ OBJ_DIR := $(OBJ_DIR_NAME)
 LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
-CC1              = $(shell $(PATH_MODERNCC) --print-prog-name=cc1) -quiet
-override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+CC1              = $(shell $(MODERNCC) --print-prog-name=cc1) -quiet
+override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition #-flto -ffat-lto-objects -fuse-linker-plugin
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
-LIBPATH := -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libc.a))"
+LIBPATH := -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(MODERNCC) -mthumb -print-file-name=libc.a))"
 LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libagbsyscall -lagbsyscall
 endif
 
@@ -119,7 +104,7 @@ ifneq ($(MODERN),1)
 CPPFLAGS += -I tools/agbcc/include -I tools/agbcc -nostdinc -undef
 endif
 
-LDFLAGS = -Map ../../$(MAP)
+LDFLAGS = -Map ../../$(MAP) # -flto --relax --plugin=/Users/Main/devkitPro/devkitARM/libexec/gcc/arm-none-eabi/12.1.0/liblto_plugin.so -plugin-opt=/Users/Main/devkitPro/devkitARM/libexec/gcc/arm-none-eabi/12.1.0/lto-wrapper -plugin-opt=-fresolution=%u.res
 
 SHA1 := $(shell { command -v sha1sum || command -v shasum; } 2>/dev/null) -c
 GFX := tools/gbagfx/gbagfx$(EXE)
@@ -297,7 +282,7 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O2 -mabi=aapcs -march=armv4t -mtune=arm7tdmi -mcpu=arm7tdmi -fno-toplevel-reorder -Wno-pointer-to-int-cast -fallow-store-data-races -msoft-float -masm-syntax-unified -fno-semantic-interposition #-flto -ffat-lto-objects -fuse-linker-plugin
 endif
 
 ifeq ($(DINFO),1)
@@ -403,7 +388,7 @@ $(OBJ_DIR)/sym_common.ld: sym_common.txt $(C_OBJS) $(wildcard common_syms/*.txt)
 	$(RAMSCRGEN) COMMON $< ENGLISH -c $(C_BUILDDIR),common_syms > $@
 
 $(OBJ_DIR)/sym_ewram.ld: sym_ewram.txt
-	$(RAMSCRGEN) ewram_data $< ENGLISH > $@
+	$(RAMSCRGEN) .data $< ENGLISH > $@
 
 ifeq ($(MODERN),0)
 LD_SCRIPT := ld_script.txt

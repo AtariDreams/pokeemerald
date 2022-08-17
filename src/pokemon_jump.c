@@ -2011,7 +2011,7 @@ static void UpdateJump(int multiplayerId)
         return;
 
     jumpOffsetIdx -= 4;
-    if (jumpOffsetIdx < (int)ARRAY_COUNT(sJumpOffsets[0]))
+    if (jumpOffsetIdx < (m32)ARRAY_COUNT(sJumpOffsets[0]))
         jumpOffset = sJumpOffsets[player->monJumpType][jumpOffsetIdx];
     else
         jumpOffset = 0;
@@ -2369,12 +2369,12 @@ void IsPokemonJumpSpeciesInParty(void)
 static const u16 sPokeJumpPal1[] = INCBIN_U16("graphics/pokemon_jump/pal1.gbapal");
 static const u16 sPokeJumpPal2[] = INCBIN_U16("graphics/pokemon_jump/pal2.gbapal");
 
-static const u32 sVine1_Gfx[] = INCBIN_U32("graphics/pokemon_jump/vine1.4bpp.lz");
-static const u32 sVine2_Gfx[] = INCBIN_U32("graphics/pokemon_jump/vine2.4bpp.lz");
-static const u32 sVine3_Gfx[] = INCBIN_U32("graphics/pokemon_jump/vine3.4bpp.lz");
-static const u32 sVine4_Gfx[] = INCBIN_U32("graphics/pokemon_jump/vine4.4bpp.lz");
+static const u8 sVine1_Gfx[] = INCBIN_U8("graphics/pokemon_jump/vine1.4bpp.lz");
+static const u8 sVine2_Gfx[] = INCBIN_U8("graphics/pokemon_jump/vine2.4bpp.lz");
+static const u8 sVine3_Gfx[] = INCBIN_U8("graphics/pokemon_jump/vine3.4bpp.lz");
+static const u8 sVine4_Gfx[] = INCBIN_U8("graphics/pokemon_jump/vine4.4bpp.lz");
 
-static const u32 sStar_Gfx[] = INCBIN_U32("graphics/pokemon_jump/star.4bpp.lz");
+static const u8 sStar_Gfx[] = INCBIN_U8("graphics/pokemon_jump/star.4bpp.lz");
 
 static const struct CompressedSpriteSheet sCompressedSpriteSheets[] =
 {
@@ -2431,7 +2431,7 @@ static const struct OamData sOamData_JumpMon =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -2448,7 +2448,7 @@ static const struct OamData sOamData_Vine16x32 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x32),
     .x = 0,
@@ -2465,7 +2465,7 @@ static const struct OamData sOamData_Vine32x32 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(32x32),
     .x = 0,
@@ -2482,7 +2482,7 @@ static const struct OamData sOamData_Vine32x16 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(32x16),
     .x = 0,
@@ -2636,7 +2636,7 @@ static const struct OamData sOamData_Star =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -2699,7 +2699,7 @@ static void LoadSpriteSheetsAndPalettes(struct PokemonJumpGfx *jumpGfx)
 static void ResetPokeJumpSpriteData(struct Sprite *sprite)
 {
     int i;
-    for (i = 0; i < (int)ARRAY_COUNT(sprite->data); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sprite->data); i++)
         sprite->data[i] = 0;
 }
 
@@ -3046,15 +3046,15 @@ static void InitPokeJumpGfx(struct PokemonJumpGfx *jumpGfx)
 static const u16 sInterface_Pal[] = INCBIN_U16("graphics/pokemon_jump/interface.gbapal");
 
 static const u16 sBg_Pal[] = INCBIN_U16("graphics/pokemon_jump/bg.gbapal");
-static const u32 sBg_Gfx[] = INCBIN_U32("graphics/pokemon_jump/bg.4bpp.lz");
+static const u8 sBg_Gfx[] = INCBIN_U8("graphics/pokemon_jump/bg.4bpp.lz");
 static const u32 sBg_Tilemap[] = INCBIN_U32("graphics/pokemon_jump/bg.bin.lz");
 
 static const u16 sVenusaur_Pal[] = INCBIN_U16("graphics/pokemon_jump/venusaur.gbapal");
-static const u32 sVenusaur_Gfx[] = INCBIN_U32("graphics/pokemon_jump/venusaur.4bpp.lz");
+static const u8 sVenusaur_Gfx[] = INCBIN_U8("graphics/pokemon_jump/venusaur.4bpp.lz");
 static const u32 sVenusaur_Tilemap[] = INCBIN_U32("graphics/pokemon_jump/venusaur.bin.lz");
 
 static const u16 sBonuses_Pal[] = INCBIN_U16("graphics/pokemon_jump/bonuses.gbapal");
-static const u32 sBonuses_Gfx[] = INCBIN_U32("graphics/pokemon_jump/bonuses.4bpp.lz");
+static const u8 sBonuses_Gfx[] = INCBIN_U8("graphics/pokemon_jump/bonuses.4bpp.lz");
 static const u32 sBonuses_Tilemap[] = INCBIN_U32("graphics/pokemon_jump/bonuses.bin.lz");
 
 static const struct BgTemplate sBgTemplates[] =
@@ -3177,7 +3177,7 @@ static void LoadPokeJumpGfx(void)
     switch (sPokemonJumpGfx->mainState)
     {
     case 0:
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         InitWindows(sWindowTemplates);
         ResetTempTileDataBuffers();
@@ -3765,7 +3765,7 @@ static void InitDigitPrinters(void)
         .xDelta = 8,
         .x = 108,
         .y = 6,
-        .spriteSheet = (void*) &sSpriteSheet_Digits,
+        .spriteSheet = (void *) &sSpriteSheet_Digits,
         .spritePal = &sSpritePalette_Digits,
     };
 

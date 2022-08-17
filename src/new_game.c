@@ -75,15 +75,14 @@ u32 GetTrainerId(u8 *trainerId)
 
 void CopyTrainerId(u8 *dst, u8 *src)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < TRAINER_ID_LENGTH; i++)
         dst[i] = src[i];
 }
 
 static void InitPlayerTrainerId(void)
 {
-    u32 trainerId = (Random() << 16) | GetGeneratedTrainerIdLower();
-    SetTrainerId(trainerId, gSaveBlock2Ptr->playerTrainerId);
+    SetTrainerId((Random() << 16) | GetGeneratedTrainerIdLower(), gSaveBlock2Ptr->playerTrainerId);
 }
 
 // L=A isnt set here for some reason.
@@ -99,14 +98,16 @@ static void SetDefaultOptions(void)
 
 static void ClearPokedexFlags(void)
 {
+    #if !MODERN
     gUnusedPokedexU8 = 0;
+    #endif
     memset(&gSaveBlock2Ptr->pokedex.owned, 0, sizeof(gSaveBlock2Ptr->pokedex.owned));
     memset(&gSaveBlock2Ptr->pokedex.seen, 0, sizeof(gSaveBlock2Ptr->pokedex.seen));
 }
 
 void ClearAllContestWinnerPics(void)
 {
-    s32 i;
+    m32 i;
 
     ClearContestWinnerPicsInContestHall();
 
@@ -192,7 +193,7 @@ void NewGameInitData(void)
     ResetFanClub();
     ResetLotteryCorner();
     WarpToTruck();
-    ScriptContext2_RunNewScript(EventScript_ResetAllMapFlags);
+    RunScriptImmediately(EventScript_ResetAllMapFlags);
     ResetMiniGamesRecords();
     InitUnionRoomChatRegisteredTexts();
     InitLilycoveLady();

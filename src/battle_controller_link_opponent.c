@@ -564,8 +564,12 @@ static u32 CopyLinkOpponentMonData(u8 monId, u8 *dst)
     struct BattlePokemon battleMon;
     struct MovePpInfo moveData;
     u8 nickname[20];
+    #if !MODERN
     u8 *src;
     s16 data16;
+    #else
+    u16 data16;
+    #endif
     u32 data32;
     s32 size = 0;
 
@@ -604,10 +608,15 @@ static u32 CopyLinkOpponentMonData(u8 monId, u8 *dst)
         GetMonData(&gEnemyParty[monId], MON_DATA_NICKNAME, nickname);
         StringCopy_Nickname(battleMon.nickname, nickname);
         GetMonData(&gEnemyParty[monId], MON_DATA_OT_NAME, battleMon.otName);
+        #if !MODERN
         src = (u8 *)&battleMon;
         for (size = 0; size < sizeof(battleMon); size++)
             dst[size] = src[size];
         break;
+        #else
+        memcpy(dst, &battleMon, sizeof(battleMon));
+        return sizeof(battleMon);
+        #endif
     case REQUEST_SPECIES_BATTLE:
         data16 = GetMonData(&gEnemyParty[monId], MON_DATA_SPECIES);
         dst[0] = data16;
@@ -631,6 +640,11 @@ static u32 CopyLinkOpponentMonData(u8 monId, u8 *dst)
         for (size = 0; size < sizeof(moveData); size++)
             dst[size] = src[size];
         break;
+        #else
+        memcpy(dst, &moveData, sizeof(moveData));
+        return sizeof(moveData);
+        #endif
+
     case REQUEST_MOVE1_BATTLE:
     case REQUEST_MOVE2_BATTLE:
     case REQUEST_MOVE3_BATTLE:
@@ -1466,7 +1480,7 @@ static void LinkOpponentHandlePrintString(void)
 
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
-    stringId = (u16*)(&gBattleBufferA[gActiveBattler][2]);
+    stringId = (u16 *)(&gBattleBufferA[gActiveBattler][2]);
     BufferStringBattle(*stringId);
     BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
     gBattlerControllerFuncs[gActiveBattler] = CompleteOnInactiveTextPrinter;

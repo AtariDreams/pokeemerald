@@ -11,7 +11,7 @@ To set up the repository, see [INSTALL.md](INSTALL.md).
 
 ## See also
 
-Other disassembly and/or decompilation projects:
+Other disassembly/decompilation projects:
 * [**Pokémon Red and Blue**](https://github.com/pret/pokered)
 * [**Pokémon Gold and Silver (Space World '97 demo)**](https://github.com/pret/pokegold-spaceworld)
 * [**Pokémon Yellow**](https://github.com/pret/pokeyellow)

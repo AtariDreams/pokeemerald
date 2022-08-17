@@ -106,7 +106,7 @@ static const u16 sPokenavDeviceBgPal[] = INCBIN_U16("graphics/pokenav/device_out
 static const u32 sPokenavDeviceBgTiles[] = INCBIN_U32("graphics/pokenav/device_outline.4bpp.lz");
 static const u32 sPokenavDeviceBgTilemap[] = INCBIN_U32("graphics/pokenav/device_outline_map.bin.lz");
 static const u16 sMatchCallBlueLightPal[] = INCBIN_U16("graphics/pokenav/blue_light.gbapal");
-static const u32 sMatchCallBlueLightTiles[] = INCBIN_U32("graphics/pokenav/blue_light.4bpp.lz");
+static const u8 sMatchCallBlueLightTiles[] = INCBIN_U8("graphics/pokenav/blue_light.4bpp.lz");
 
 static const struct BgTemplate sPokenavMainMenuBgTemplates[] = {
     {
@@ -363,8 +363,10 @@ static const struct ScanlineEffectParams sPokenavMainMenuScanlineEffectParams =
     0
 };
 
+// GF says it should be in pokenav menu handler, but it is only called here and works here too, so...
 static bool32 AreAnyTrainerRematchesNearby(void)
 {
+    // This should be u32, but it is not, even though GF says the parameters to the functions called are u32
     s32 i;
 
     for (i = 0; i < REMATCH_TABLE_ENTRIES; i++)
@@ -414,7 +416,7 @@ static struct Pokenav_MenuGfx * OpenPokenavMenu(void)
     return gfx;
 }
 
-void CreateMenuHandlerLoopedTask(s32 ltIdx)
+void CreateMenuHandlerLoopedTask(u32 ltIdx)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
     gfx->loopedTaskId = CreateLoopedTask(sMenuHandlerLoopTaskFuncs[ltIdx], 1);
@@ -445,6 +447,7 @@ static bool32 GetCurrentLoopedTaskActive(void)
     return IsLoopedTaskActive(gfx->loopedTaskId);
 }
 
+// Should be u32 but that doesn't match. Will look into it.
 static u32 LoopedTask_OpenMenu(s32 state)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
@@ -579,7 +582,7 @@ static u32 LoopedTask_OpenConditionMenu(s32 state)
     case 0:
         ResetBldCnt();
         StartOptionAnimations_Exit();
-        HideMainOrSubMenuLeftHeader(POKENAV_GFX_MAIN_MENU, 0);
+        HideMainOrSubMenuLeftHeader(POKENAV_GFX_MAIN_MENU, FALSE);
         PlaySE(SE_SELECT);
         return LT_INC_AND_PAUSE;
     case 1:
@@ -618,7 +621,7 @@ static u32 LoopedTask_ReturnToMainMenu(s32 state)
     case 0:
         ResetBldCnt();
         StartOptionAnimations_Exit();
-        HideMainOrSubMenuLeftHeader(POKENAV_GFX_CONDITION_MENU, 0);
+        HideMainOrSubMenuLeftHeader(POKENAV_GFX_CONDITION_MENU, FALSE);
         return LT_INC_AND_PAUSE;
     case 1:
         if (AreMenuOptionSpritesMoving())
@@ -689,7 +692,7 @@ static u32 LoopedTask_ReturnToConditionMenu(s32 state)
     case 0:
         ResetBldCnt();
         StartOptionAnimations_Exit();
-        HideMainOrSubMenuLeftHeader(POKENAV_GFX_SEARCH_MENU, 0);
+        HideMainOrSubMenuLeftHeader(POKENAV_GFX_SEARCH_MENU, FALSE);
         return LT_INC_AND_PAUSE;
     case 1:
         if (AreMenuOptionSpritesMoving())
@@ -1052,8 +1055,7 @@ static void SetOptionInvisibility(struct Sprite ** sprites, bool32 invisible)
 
 static void SpriteCB_OptionSlide(struct Sprite * sprite)
 {
-    sprite->sSlideTime--;
-    if (sprite->sSlideTime != -1)
+    if (sprite->sSlideTime-- != 0)
     {
         sprite->sSlideSpeed += sprite->sSlideAccel;
         sprite->x = sprite->sSlideSpeed >> 4;
@@ -1088,6 +1090,9 @@ static void SpriteCB_OptionZoom(struct Sprite * sprite)
         {
             sprite->sZoomSpeed += 16;
             temp = sprite->sZoomSpeed;
+            // GF wrote (32 * temp) >> 8. check to see if set 0 bit is intended
+            // above compiler did (temp << 5) >> 8, or >> (8 - 5)
+            // x is needed to match, unless we do the 32 * temp thing
             x = temp >> 3;
             x = (x - 32) / 2;
 
@@ -1221,8 +1226,9 @@ static void AddOptionDescriptionWindow(void)
 static void PrintCurrentOptionDescription(void)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
-    int menuItem = GetCurrentMenuItemId();
+    u32 menuItem = GetCurrentMenuItemId();
     const u8 * desc = sPageDescriptions[menuItem];
+    // Should be s32?
     u32 width = GetStringWidth(FONT_NORMAL, desc, -1);
     FillWindowPixelBuffer(gfx->optionDescWindowId, PIXEL_FILL(6));
     AddTextPrinterParameterized3(gfx->optionDescWindowId, FONT_NORMAL, (192 - width) / 2, 1, sOptionDescTextColors, 0, desc);
@@ -1234,6 +1240,7 @@ static void PrintNoRibbonWinners(void)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
     const u8 * s = gText_NoRibbonWinners;
+    // Should be s32
     u32 width = GetStringWidth(FONT_NORMAL, s, -1);
     FillWindowPixelBuffer(gfx->optionDescWindowId, PIXEL_FILL(6));
     AddTextPrinterParameterized3(gfx->optionDescWindowId, FONT_NORMAL, (192 - width) / 2, 1, sOptionDescTextColors2, 0, s);
@@ -1344,8 +1351,8 @@ static void InitMenuOptionGlow(void)
 static void Task_CurrentMenuOptionGlow(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
-    data[0]++;
-    if (data[0] > 0)
+
+    if (++data[0] > 0)
     {
         data[0] = 0;
         data[1] += 3;

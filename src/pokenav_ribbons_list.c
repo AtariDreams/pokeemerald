@@ -22,7 +22,7 @@ enum
 
 struct Pokenav_RibbonsMonList
 {
-    u32 (*callback)(struct Pokenav_RibbonsMonList*);
+    u32 (*callback)(struct Pokenav_RibbonsMonList *);
     u32 loopedTaskId;
     u16 winid;
     s32 boxId;
@@ -184,14 +184,14 @@ static u32 HandleRibbonsMonListInput(struct Pokenav_RibbonsMonList *list)
         return RIBBONS_MON_LIST_FUNC_PAGE_DOWN;
     if (JOY_NEW(B_BUTTON))
     {
-        list->saveMonList = 0;
+        list->saveMonList = FALSE;
         list->callback = RibbonsMonMenu_ReturnToMainMenu;
         return RIBBONS_MON_LIST_FUNC_EXIT;
     }
     if (JOY_NEW(A_BUTTON))
     {
         list->monList->currIndex = PokenavList_GetSelectedIndex();
-        list->saveMonList = 1;
+        list->saveMonList = TRUE;
         list->callback = RibbonsMonMenu_ToSummaryScreen;
         return RIBBONS_MON_LIST_FUNC_OPEN_RIBBONS_SUMMARY;
     }
@@ -256,7 +256,7 @@ static u32 BuildPartyMonRibbonList(s32 state)
     item.boxId = TOTAL_BOXES_COUNT;
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        struct Pokemon * pokemon = &gPlayerParty[i];
+        struct Pokemon *pokemon = &gPlayerParty[i];
         if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES))
             return LT_INC_AND_CONTINUE;
         if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG) && !GetMonData(pokemon, MON_DATA_SANITY_IS_BAD_EGG))
@@ -394,7 +394,7 @@ bool32 OpenRibbonsMonListFromRibbonsSummary(void)
     return TRUE;
 }
 
-void CreateRibbonsMonListLoopedTask(s32 idx)
+void CreateRibbonsMonListLoopedTask(u32 idx)
 {
     struct Pokenav_RibbonsMonMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_MON_MENU);
     menu->loopedTaskId = CreateLoopedTask(sRibbonsMonMenuLoopTaskFuncs[idx], 1);
@@ -464,7 +464,7 @@ static u32 LoopedTask_OpenRibbonsMonList(s32 state)
         if (!menu->fromSummary)
         {
             LoadLeftHeaderGfxForIndex(POKENAV_GFX_RIBBONS_MENU);
-            ShowLeftHeaderGfx(POKENAV_GFX_RIBBONS_MENU, 1, 0);
+            ShowLeftHeaderGfx(POKENAV_GFX_RIBBONS_MENU, TRUE, FALSE);
         }
         return LT_INC_AND_PAUSE;
     case 5:
@@ -707,7 +707,7 @@ static void BufferRibbonMonInfoText(struct PokenavListItem * listItem, u8 * dest
     // Mon is in party
     if (item->boxId == TOTAL_BOXES_COUNT)
     {
-        struct Pokemon * mon = &gPlayerParty[item->monId];
+        struct Pokemon *mon = &gPlayerParty[item->monId];
         gender = GetMonGender(mon);
         level = GetLevelFromMonExp(mon);
         GetMonData(mon, MON_DATA_NICKNAME, gStringVar3);

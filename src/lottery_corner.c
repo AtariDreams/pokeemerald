@@ -24,16 +24,20 @@ static u8 GetMatchingDigits(u16, u16);
 void ResetLotteryCorner(void)
 {
     u16 rand = Random();
+    u16 rand2 = Random();
 
-    SetLotteryNumber((Random() << 16) | rand);
+    SetLotteryNumber((rand2 << 16) | rand);
     VarSet(VAR_POKELOT_PRIZE_ITEM, 0);
 }
 
 void SetRandomLotteryNumber(u16 i)
 {
     u32 var = Random();
-
-    while (--i != 0xFFFF)
+    #if !MODERN
+    while (i--)
+    #else
+    for (; i; i--)
+    #endif
         var = ISO_RANDOMIZE2(var);
 
     SetLotteryNumber(var);
@@ -41,16 +45,20 @@ void SetRandomLotteryNumber(u16 i)
 
 void RetrieveLotteryNumber(void)
 {
+    #if !MODERN
     u16 lottoNumber = GetLotteryNumber();
     gSpecialVar_Result = lottoNumber;
+    #else
+    gSpecialVar_Result = GetLotteryNumber();
+    #endif
 }
 
 void PickLotteryCornerTicket(void)
 {
     u16 i;
     u16 j;
-    u32 box;
-    u32 slot;
+    u16 box;
+    u16 slot;
 
     gSpecialVar_0x8004 = 0;
     slot = 0;
@@ -126,7 +134,7 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
     {
         sWinNumberDigit = winNumber % 10;
         sOtIdDigit = otId % 10;
-
+        #if !MODERN
         if (sWinNumberDigit == sOtIdDigit)
         {
             winNumber = winNumber / 10;
@@ -135,6 +143,15 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
         }
         else
             break;
+#else
+        if (sWinNumberDigit != sOtIdDigit)
+        {
+            break;
+        }
+        winNumber /= 10;
+        otId /= 10;
+        matchingDigits++;
+#endif
     }
     return matchingDigits;
 }
@@ -143,7 +160,7 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
 void SetLotteryNumber(u32 lotteryNum)
 {
     u16 lowNum = lotteryNum >> 16;
-    u16 highNum = lotteryNum;
+    u16 highNum = lotteryNum & 0xFFFF;
 
     VarSet(VAR_POKELOT_RND1, highNum);
     VarSet(VAR_POKELOT_RND2, lowNum);

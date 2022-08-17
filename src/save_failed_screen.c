@@ -40,17 +40,17 @@ enum
 };
 
 static EWRAM_DATA u16 sSaveFailedType = {0};
-static EWRAM_DATA u16 sClockInfo[2] = {0};
-static EWRAM_DATA u8 sUnused1[12] = {0};
-static EWRAM_DATA u8 sWindowIds[2] = {0};
-static EWRAM_DATA u8 sUnused2[4] = {0};
+// Only 2 is used?
+static EWRAM_DATA u16 sClockInfo[8] = {0};
+// only 2 is used?
+static EWRAM_DATA u8 sWindowIds[4] = {0};
 
 static const struct OamData sClockOamData =
 {
     .y = DISPLAY_HEIGHT,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -134,7 +134,7 @@ static const u8 sClockFrames[8][3] =
 };
 
 static const u8 sSaveFailedClockPal[] = INCBIN_U8("graphics/misc/clock_small.gbapal");
-static const u32 sSaveFailedClockGfx[] = INCBIN_U32("graphics/misc/clock_small.4bpp.lz");
+static const u8 sSaveFailedClockGfx[] = INCBIN_U8("graphics/misc/clock_small.4bpp.lz");
 
 static void CB2_SaveFailedScreen(void);
 static void CB2_WipeSave(void);
@@ -177,8 +177,8 @@ static void CB2_SaveFailedScreen(void)
 {
     switch (gMain.state)
     {
-    case 0:
     default:
+    case 0:
         SetVBlankCallback(NULL);
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG3CNT, 0);
@@ -200,7 +200,7 @@ static void CB2_SaveFailedScreen(void)
         LZ77UnCompVram(gBirchBagTilemap, (void *)(BG_SCREEN_ADDR(14)));
         LZ77UnCompVram(gBirchGrassTilemap, (void *)(BG_SCREEN_ADDR(15)));
         LZ77UnCompVram(sSaveFailedClockGfx, (void *)(OBJ_VRAM0 + 0x20));
-        ResetBgsAndClearDma3BusyFlags(0);
+        MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         SetBgTilemapBuffer(0, (void *)&gDecompressionBuffer[0x2000]);
         CpuFill32(0, &gDecompressionBuffer[0x2000], 0x800);
@@ -358,11 +358,12 @@ static void VBlankCB_UpdateClockGraphics(void)
 
 static bool8 VerifySectorWipe(u16 sector)
 {
-    u32 *ptr = (u32 *)&gSaveDataBuffer;
-    u16 i;
+    u32 *ptr;
+    m16 i;
 
-    ReadFlash(sector, 0, (u8 *)ptr, SECTOR_SIZE);
+    ReadFlash(sector, 0, (u8 *)&gSaveDataBuffer, SECTOR_SIZE);
 
+    ptr = (u32 *)&gSaveDataBuffer;
     // 1/4 because ptr is u32
     for (i = 0; i < SECTOR_SIZE / 4; i++, ptr++)
         if (*ptr)
@@ -373,7 +374,7 @@ static bool8 VerifySectorWipe(u16 sector)
 
 static bool8 WipeSector(u16 sector)
 {
-    u16 i, j;
+    m16 i, j;
     bool8 failed = TRUE;
 
     // Attempt to wipe sector with an arbitrary attempt limit of 130
@@ -390,11 +391,16 @@ static bool8 WipeSector(u16 sector)
 
 static bool8 WipeSectors(u32 sectorBits)
 {
+    u32 mask;
     u16 i;
 
     for (i = 0; i < SECTORS_COUNT; i++)
-        if ((sectorBits & (1 << i)) && !WipeSector(i))
-            sectorBits &= ~(1 << i);
+    {
+        mask = (1 << i);
+    
+        if ((sectorBits & mask) && !WipeSector(i))
+            sectorBits &= ~mask;
+    }
 
     if (sectorBits == 0)
         return FALSE;

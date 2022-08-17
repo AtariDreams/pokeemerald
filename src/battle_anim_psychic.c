@@ -422,7 +422,9 @@ const struct SpriteTemplate gPsychoBoostOrbSpriteTemplate =
 // For the rectangular wall sprite used by Reflect, Mirror Coat, etc
 static void AnimDefensiveWall(struct Sprite *sprite)
 {
-    u8 isContest = IsContest();
+    u8 battler;
+    bool8 toBG_2;
+    bool8 isContest = IsContest();
 
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER || isContest)
     {
@@ -432,18 +434,29 @@ static void AnimDefensiveWall(struct Sprite *sprite)
 
     if (!isContest)
     {
-        u8 battlerCopy;
-        u8 battler = battlerCopy = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
-        u8 rank = GetBattlerSpriteBGPriorityRank(battler);
-        int var0 = 1;
-        u8 toBG_2 = (rank ^ var0) != 0;
+        battler = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+
+        #if !MODERN
+        if (GetBattlerSpriteBGPriorityRank(battler) == 1)
+            toBG_2 = FALSE;
+        else
+            toBG_2 = TRUE;
+
 
         if (IsBattlerSpriteVisible(battler))
             MoveBattlerSpriteToBG(battler, toBG_2, FALSE);
-
-        battler = BATTLE_PARTNER(battlerCopy);
+        
+        if (IsBattlerSpriteVisible(BATTLE_PARTNER(battler)))
+            MoveBattlerSpriteToBG(BATTLE_PARTNER(battler), toBG_2 ^ 1, FALSE);
+        #else
+        toBG_2 = GetBattlerSpriteBGPriorityRank(battler) == 2;
         if (IsBattlerSpriteVisible(battler))
-            MoveBattlerSpriteToBG(battler, toBG_2 ^ var0, FALSE);
+            MoveBattlerSpriteToBG(battler, toBG_2, FALSE);
+
+        battler = BATTLE_PARTNER(battler);
+        if (IsBattlerSpriteVisible(battler))
+            MoveBattlerSpriteToBG(battler, toBG_2 ^ 1, FALSE);
+        #endif
     }
 
     if (!isContest && IsDoubleBattle())
@@ -516,8 +529,11 @@ static void AnimDefensiveWall_Step3(struct Sprite *sprite)
     u16 color;
     u16 startOffset;
     int i;
-
-    if (++sprite->data[1] == 2)
+    #if !MODERN
+    if (sprite->data[1]++ == 1)
+    #else
+    if (sprite->data[1] == 1)
+    #endif
     {
         sprite->data[1] = 0;
         startOffset = sprite->data[0];
@@ -531,25 +547,31 @@ static void AnimDefensiveWall_Step3(struct Sprite *sprite)
         if (++sprite->data[2] == 16)
             sprite->callback = AnimDefensiveWall_Step4;
     }
+    #if MODERN
+    else sprite->data[1]++;
+    #endif
 }
 
 static void AnimDefensiveWall_Step4(struct Sprite *sprite)
 {
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(sprite->data[3], 16 - sprite->data[3]));
 
-    if (--sprite->data[3] == -1)
+    if (sprite->data[3]-- == 0)
     {
         if (!IsContest())
         {
-            u8 battlerCopy;
-            u8 battler = battlerCopy = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+            u8 battler = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
 
             if (IsBattlerSpriteVisible(battler))
                 gSprites[gBattlerSpriteIds[battler]].invisible = FALSE;
-
-            battler = BATTLE_PARTNER(battlerCopy);
+            #if MODERN
+            battler = BATTLE_PARTNER(battler);
             if (IsBattlerSpriteVisible(battler))
                 gSprites[gBattlerSpriteIds[battler]].invisible = FALSE;
+            #else
+            if (IsBattlerSpriteVisible(battler ^ 2))
+                gSprites[gBattlerSpriteIds[battler ^ 2]].invisible = FALSE;
+            #endif
         }
 
         sprite->invisible = TRUE;
@@ -561,18 +583,25 @@ static void AnimDefensiveWall_Step5(struct Sprite *sprite)
 {
     if (!IsContest())
     {
-        u8 battlerCopy;
-        u8 battler = battlerCopy = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
-        u8 rank = GetBattlerSpriteBGPriorityRank(battler);
-        int var0 = 1;
-        bool8 toBG2 = (rank ^ var0) != 0;
+        bool8 toBG2;
+        u8 battler = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+
+        #if !MODERN
+        if (GetBattlerSpriteBGPriorityRank(battler) == 1)
+        {
+            toBG2 = FALSE;
+        }
+        else
+            toBG2 = TRUE;
+        #else
+        toBG2 = (GetBattlerSpriteBGPriorityRank(battler) == 2);
+        #endif
 
         if (IsBattlerSpriteVisible(battler))
             ResetBattleAnimBg(toBG2);
 
-        battler = battlerCopy ^ 2;
-        if (IsBattlerSpriteVisible(battler))
-            ResetBattleAnimBg(toBG2 ^ var0);
+        if (IsBattlerSpriteVisible(battler ^ 2))
+            ResetBattleAnimBg(toBG2 ^ 1);
     }
 
     sprite->callback = DestroyAnimSprite;
@@ -581,12 +610,18 @@ static void AnimDefensiveWall_Step5(struct Sprite *sprite)
 // Animates the sparkle that appears during Reflect or Light Screen/Mirror Coat
 static void AnimWallSparkle(struct Sprite *sprite)
 {
+    bool8 respectMonPicOffsets;
     if (sprite->data[0] == 0)
     {
-        bool32 ignoreOffsets = gBattleAnimArgs[3];
-        bool8 respectMonPicOffsets = FALSE;
-        if (!ignoreOffsets)
+        #if !MODERN
+        if (gBattleAnimArgs[3] == 0)
             respectMonPicOffsets = TRUE;
+        else
+            respectMonPicOffsets = FALSE;
+        #else
+            respectMonPicOffsets = !gBattleAnimArgs[3];
+        #endif
+
 
         if (!IsContest() && IsDoubleBattle())
         {
@@ -683,7 +718,7 @@ static void AnimQuestionMark_Step2(struct Sprite *sprite)
         }
         break;
     case 1:
-        if (--sprite->data[1] == -1)
+        if (sprite->data[1]-- == 0)
             DestroyAnimSprite(sprite);
         break;
     }
@@ -707,8 +742,7 @@ static void AnimTask_MeditateStretchAttacker_Step(u8 taskId)
 void AnimTask_Teleport(u8 taskId)
 {
     struct Task *task = &gTasks[taskId];
-    u8 spriteId = GetAnimBattlerSpriteId(ANIM_ATTACKER);
-    task->data[0] = spriteId;
+    task->data[0] = GetAnimBattlerSpriteId(ANIM_ATTACKER);
     task->data[1] = 0;
     task->data[2] = 0;
     task->data[3] = GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER ? 4 : 8;
@@ -725,7 +759,7 @@ static void AnimTask_Teleport_Step(u8 taskId)
     {
     case 0:
         RunAffineAnimFromTaskData(task);
-        if (++task->data[2] > 19)
+        if (++task->data[2] >= 20)
             task->data[1]++;
         break;
     case 1:
@@ -818,7 +852,7 @@ static void AnimTask_ImprisonOrbs_Step(u8 taskId)
         {
             for (i = 8; i < 13; i++)
             {
-                if (task->data[i] != 64)
+                if (task->data[i] != MAX_SPRITES)
                     DestroySprite(&gSprites[task->data[i]]);
             }
 
@@ -953,13 +987,15 @@ static void AnimSkillSwapOrb(struct Sprite *sprite)
 // arg0: Stage. Stage 0 is a slight right distortion, 1 is a medium left distortion, and 2 is a severe right distortion
 void AnimTask_ExtrasensoryDistortion(u8 taskId)
 {
+    #if !MODERN
     s16 i;
-    u8 yOffset;
+    #else
+    int i;
+    #endif
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
 
-    yOffset = GetBattlerYCoordWithElevation(gBattleAnimTarget);
-    task->data[14] = yOffset - 32;
+    task->data[14] = GetBattlerYCoordWithElevation(gBattleAnimTarget) - 32;
 
     switch (gBattleAnimArgs[0])
     {
@@ -967,19 +1003,19 @@ void AnimTask_ExtrasensoryDistortion(u8 taskId)
         task->data[11] = 2;
         task->data[12] = 5;
         task->data[13] = 64;
-        task->data[15] = yOffset + 32;
+        task->data[15] = task->data[14] + 64;
         break;
     case 1:
         task->data[11] = 2;
         task->data[12] = 5;
         task->data[13] = 192;
-        task->data[15] = yOffset + 32;
+        task->data[15] = task->data[14] + 64;
         break;
     case 2:
         task->data[11] = 4;
         task->data[12] = 4;
         task->data[13] = 0;
-        task->data[15] = yOffset + 32;
+        task->data[15] = task->data[14] + 64;
         break;
     }
 
@@ -997,12 +1033,10 @@ void AnimTask_ExtrasensoryDistortion(u8 taskId)
         scanlineParams.dmaDest = &REG_BG2HOFS;
     }
 
-    i = task->data[14];
-    while (i <= task->data[14] + 64)
+    for (i = task->data[14]; i <= task->data[14] + 64; i ++)
     {
         gScanlineEffectRegBuffers[0][i] = task->data[10];
         gScanlineEffectRegBuffers[1][i] = task->data[10];
-        i++;
     }
 
     scanlineParams.dmaControl = SCANLINE_EFFECT_DMACNT_16BIT;

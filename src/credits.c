@@ -87,7 +87,7 @@ static EWRAM_DATA bool8 sUsedSpeedUp = 0; // Never read
 static EWRAM_DATA struct CreditsData *sCreditsData = {0};
 
 static const u16 sCredits_Pal[] = INCBIN_U16("graphics/credits/credits.gbapal");
-static const u32 sCreditsCopyrightEnd_Gfx[] = INCBIN_U32("graphics/credits/the_end_copyright.4bpp.lz");
+static const u8 sCreditsCopyrightEnd_Gfx[] = INCBIN_U8("graphics/credits/the_end_copyright.4bpp.lz");
 
 static void SpriteCB_CreditsMonBg(struct Sprite *);
 static void Task_WaitPaletteFade(u8);
@@ -286,7 +286,7 @@ static const struct OamData sOamData_MonBg =
     .y = DISPLAY_HEIGHT,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -362,7 +362,7 @@ static void CB2_Credits(void)
 
 static void InitCreditsBgsAndWindows(void)
 {
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBackgroundTemplates, ARRAY_COUNT(sBackgroundTemplates));
     SetBgTilemapBuffer(0, AllocZeroed(BG_SCREEN_SIZE));
     LoadPalette(sCredits_Pal, 0x80, 64);
@@ -414,7 +414,7 @@ void CB2_StartCreditsSequence(void)
 
     ResetGpuAndVram();
     SetVBlankCallback(NULL);
-    InitHeap(gHeap, HEAP_SIZE);
+    HeapInit();
     ResetPaletteFade();
     ResetTasks();
     InitCreditsBgsAndWindows();
@@ -1484,12 +1484,9 @@ static void SpriteCB_CreditsMon(struct Sprite *sprite)
     case 3:
         if (sprite->data[3] != 0)
         {
-            int data3;
-
             sprite->data[3]--;
-
-            data3 = 16 - sprite->data[3];
-            SetGpuReg(REG_OFFSET_BLDALPHA, (data3 << 8) + sprite->data[3]);
+                                            // Should be << 8, not *256
+            SetGpuReg(REG_OFFSET_BLDALPHA, ((16 - sprite->data[3]) * 256) + sprite->data[3]);
         }
         else
         {

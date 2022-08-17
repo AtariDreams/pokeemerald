@@ -381,7 +381,7 @@ struct SlotMachine
     /*0x18*/ s16 currentReel;
     /*0x1A*/ s16 reelSpeed;
     /*0x1C*/ s16 reelPixelOffsets[NUM_REELS];
-    /*0x22*/ u16 reelShockOffsets[NUM_REELS];
+    /*0x22*/ s16 reelShockOffsets[NUM_REELS];
     /*0x28*/ s16 reelPositions[NUM_REELS];
     /*0x2E*/ s16 reelExtraTurns[NUM_REELS];
     /*0x34*/ s16 winnerRows[NUM_REELS];
@@ -605,7 +605,7 @@ static bool8 IsReelTimeSmokeAnimFinished(void);
 static void DestroyReelTimeSmokeSprite(void);
 static u8 CreatePikaPowerBoltSprite(s16, s16);
 static void DestroyPikaPowerBoltSprite(u8);
-static u8 CreateDigitalDisplaySprite(u8, void (*callback)(struct Sprite*), s16, s16, s16);
+static u8 CreateDigitalDisplaySprite(u8, void (*callback)(struct Sprite *), s16, s16, s16);
 static void LoadSlotMachineGfx(void);
 static void LoadReelBackground(void);
 static void LoadMenuGfx(void);
@@ -701,7 +701,7 @@ static const u16 sQuarterSpeed_ProbabilityBoost[];
 static const u16 sSlotMatchFlags[];
 static const u16 sSlotPayouts[];
 static const u8 *const sReelBackground_Tilemap;
-static const u32 sReelTimeGfx[];
+static const u8 sReelTimeGfx[];
 static const struct SpriteSheet sSlotMachineSpriteSheets[22];
 static const struct SpritePalette sSlotMachineSpritePalettes[];
 static const u16 *const sDigitalDisplay_Pal;
@@ -1064,7 +1064,7 @@ static void CB2_SlotMachineSetup(void)
             gMain.state++;
             break;
         case 7:
-            BeginNormalPaletteFade(-1, 0, 0x10, 0, RGB_BLACK);
+            BeginNormalPaletteFade(PALETTES_ALL, 0, 0x10, 0, RGB_BLACK);
             ShowBg(0);
             ShowBg(1);
             ShowBg(2);
@@ -1116,7 +1116,7 @@ static void PlaySlotMachine_Internal(u8 machineId, MainCallback exitCallback)
 {
     struct Task *task = &gTasks[CreateTask(SlotMachineDummyTask, 0xFF)];
     task->tMachineId = machineId;
-    StoreWordInTwoHalfwords(&task->tExitCallback, (intptr_t)exitCallback);
+    StoreWordInTwoHalfwords(&task->tExitCallback, (u32)exitCallback);
 }
 
 // Extracts and assigns machineId and exit callback from task.
@@ -1124,7 +1124,7 @@ static void SlotMachine_InitFromTask(void)
 {
     struct Task *task = &gTasks[FindTaskIdByFunc(SlotMachineDummyTask)];
     sSlotMachine->machineId = task->tMachineId;
-    LoadWordFromTwoHalfwords((u16 *)&task->tExitCallback, (u32 *)&sSlotMachine->prevMainCb);
+    LoadWordFromTwoHalfwords(&task->tExitCallback, (u32 *)&sSlotMachine->prevMainCb);
 }
 
 static void SlotMachineDummyTask(u8 taskId)
@@ -1139,7 +1139,7 @@ static void SlotMachineSetup_InitBgsWindows(void)
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
     CpuFill32(0, (void *)VRAM, VRAM_SIZE);
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     InitWindows(sWindowTemplates);
     DeactivateAllTextPrinters();
@@ -1827,7 +1827,7 @@ static void ResetBiasFailure(void)
 // See sBiasSymbols for each bias's corresponding symbol.
 static u8 GetBiasSymbol(u8 machineBias)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < 8; i++)
     {
@@ -1862,7 +1862,7 @@ static u8 TrySelectBias_Special(void)
 {
     s16 whichBias;
 
-    for (whichBias = 0; whichBias < (int)ARRAY_COUNT(sBiasesSpecial); whichBias++)
+    for (whichBias = 0; whichBias < (m32)ARRAY_COUNT(sBiasesSpecial); whichBias++)
     {
         s16 rval = Random() & 0xff;
         s16 value = sBiasProbabilities_Special[whichBias][sSlotMachine->machineId];
@@ -1876,7 +1876,7 @@ static u8 TrySelectBias_Regular(void)
 {
     s16 whichBias;
 
-    for (whichBias = 0; whichBias < (int)ARRAY_COUNT(sBiasesRegular); whichBias++)
+    for (whichBias = 0; whichBias < (m32)ARRAY_COUNT(sBiasesRegular); whichBias++)
     {
         s16 rval = Random() & 0xff;
         s16 value = sBiasProbabilities_Regular[whichBias][sSlotMachine->machineId];
@@ -3222,14 +3222,14 @@ static void DarkenMatchLine(u8 matchLineId)
 // light up the match line for each bet by the player
 static void LightenBetTiles(u8 betVal)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < sMatchLinesPerBet[betVal]; i++)
         LightenMatchLine(sBetToMatchLineIds[betVal][i]);
 }
 
 static void DarkenBetTiles(u8 betVal)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < sMatchLinesPerBet[betVal]; i++)
         DarkenMatchLine(sBetToMatchLineIds[betVal][i]);
 }
@@ -3270,7 +3270,7 @@ static void FlashMatchLine(u8 matchLineId)
 // After this it does half-brightness flashes until the payout finishes
 static bool8 IsMatchLineDoneFlashingBeforePayout(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->flashMatchLineSpriteIds); i++)
     {
         struct Sprite *sprite = &gSprites[sSlotMachine->flashMatchLineSpriteIds[i]];
@@ -3283,7 +3283,7 @@ static bool8 IsMatchLineDoneFlashingBeforePayout(void)
 // When payout is finished, stop lines flashing (but not if they're in the middle of a flash)
 static bool8 TryStopMatchLinesFlashing(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->flashMatchLineSpriteIds); i++)
     {
         if (!TryStopMatchLineFlashing(sSlotMachine->flashMatchLineSpriteIds[i]))
@@ -3478,7 +3478,7 @@ static void PikaPowerBolt_ClearAll(struct Task *task)
 
 static void ResetPikaPowerBoltTask(struct Task *task)
 {
-    u8 i;
+    m8 i;
 
     for (i = 2; i < NUM_TASK_DATA; i++)
         task->data[i] = 0;
@@ -3989,7 +3989,7 @@ static void CreateDigitalDisplayTask(void)
 // For the panel on the right side of the slot screen
 static void CreateDigitalDisplayScene(u8 id)
 {
-    u8 i;
+    m8 i;
     struct Task *task;
 
     DestroyDigitalDisplayScene();
@@ -4011,7 +4011,7 @@ static void CreateDigitalDisplayScene(u8 id)
 
 static void AddDigitalDisplaySprite(u8 templateIdx, SpriteCallback callback, s16 x, s16 y, s16 spriteId)
 {
-    u8 i;
+    m8 i;
     struct Task *task = &gTasks[sSlotMachine->digDisplayTaskId];
     for (i = 4; i < NUM_TASK_DATA; i++)
     {
@@ -4043,7 +4043,7 @@ static void DestroyDigitalDisplayScene(void)
 
 static bool8 IsDigitalDisplayAnimFinished(void)
 {
-    u8 i;
+    m8 i;
     struct Task *task = &gTasks[sSlotMachine->digDisplayTaskId];
     for (i = 4; i < NUM_TASK_DATA; i++)
     {
@@ -4087,7 +4087,7 @@ static void SpriteCB_ReelSymbol(struct Sprite *sprite)
 {
     sprite->data[2] = sSlotMachine->reelPixelOffsets[sprite->data[0]] + sprite->data[1];
     sprite->data[2] %= 120;
-    sprite->y = sSlotMachine->reelShockOffsets[sprite->data[0]] + 28 + sprite->data[2];
+    sprite->y = sprite->data[2] + 28 + sSlotMachine->reelShockOffsets[sprite->data[0]];
     sprite->sheetTileStart = GetSpriteTileStartByTag(GetSymbolAtRest(sprite->data[0], sprite->data[2] / 24));
     SetSpriteSheetFrameTileNum(sprite);
 }
@@ -4123,6 +4123,7 @@ static void CreateCoinNumberSprite(s16 x, s16 y, bool8 isPayout, s16 digitMult)
 
 static void SpriteCB_CoinNumber(struct Sprite *sprite)
 {
+    // this should be s16?
     u16 tag = sSlotMachine->coins;
     if (sprite->sIsPayout)
         tag = sSlotMachine->payout;
@@ -4303,7 +4304,7 @@ static void CreateReelTimeNumberGapSprite(void)
 
 static void DestroyReelTimeMachineSprites(void)
 {
-    u8 i;
+    m8 i;
 
     DestroySprite(&gSprites[sSlotMachine->reelTimeNumberGapSpriteId]);
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimeMachineSpriteIds); i++)
@@ -4318,7 +4319,7 @@ static void DestroyReelTimeMachineSprites(void)
 
 static void DestroyReelTimeShadowSprites(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimeShadowSpriteIds); i++)
         DestroySprite(&gSprites[sSlotMachine->reelTimeShadowSpriteIds[i]]);
@@ -4387,7 +4388,7 @@ static void SetReelTimeBoltDelay(s16 delay)
 
 static void DestroyReelTimeBoltSprites(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimeBoltSpriteIds); i++)
         DestroySprite(&gSprites[sSlotMachine->reelTimeBoltSpriteIds[i]]);
@@ -4441,7 +4442,7 @@ static void SetReelTimePikachuAuraFlashDelay(s16 delay)
 
 static void DestroyReelTimePikachuAuraSprites(void)
 {
-    u8 i;
+    m8 i;
     MultiplyInvertedPaletteRGBComponents((IndexOfSpritePaletteTag(PALTAG_PIKA_AURA) << 4) + 0x103, 0, 0, 0);
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimePikachuAuraSpriteIds); i++)
         DestroySprite(&gSprites[sSlotMachine->reelTimePikachuAuraSpriteIds[i]]);
@@ -4505,7 +4506,7 @@ static void SpriteCB_ReelTimeDuck(struct Sprite *sprite)
 
 static void DestroyReelTimeDuckSprites(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimeDuckSpriteIds); i++)
     {
         DestroySprite(&gSprites[sSlotMachine->reelTimeDuckSpriteIds[i]]);
@@ -5033,7 +5034,7 @@ static void LoadSlotMachineGfx(void)
 static void LoadReelBackground(void)
 {
     u8 *dest;
-    u8 i, j;
+    m8 i, j;
 
     sReelBackgroundSpriteSheet = AllocZeroed(sizeof(struct SpriteSheet));
     sReelBackground_Gfx = AllocZeroed(0x2000); // Background is plain white
@@ -5672,7 +5673,7 @@ static const struct OamData sOam_8x8 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x8),
     .x = 0,
@@ -5689,7 +5690,7 @@ static const struct OamData sOam_8x16 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x16),
     .x = 0,
@@ -5706,7 +5707,7 @@ static const struct OamData sOam_16x16 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -5723,7 +5724,7 @@ static const struct OamData sOam_16x32 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x32),
     .x = 0,
@@ -5740,7 +5741,7 @@ static const struct OamData sOam_32x32 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(32x32),
     .x = 0,
@@ -5757,7 +5758,7 @@ static const struct OamData sOam_32x64 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(32x64),
     .x = 0,
@@ -5774,7 +5775,7 @@ static const struct OamData sOam_64x32 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x32),
     .x = 0,
@@ -5791,7 +5792,7 @@ static const struct OamData sOam_64x64 =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -7795,6 +7796,6 @@ static const struct SpritePalette sSlotMachineSpritePalettes[] =
     {}
 };
 
-static const u32 sReelTimeGfx[] = INCBIN_U32("graphics/slot_machine/reel_time_gfx.4bpp.lz"); // reel_time_machine and reel_time_pikachu
+static const u8 sReelTimeGfx[] = INCBIN_U8("graphics/slot_machine/reel_time_gfx.4bpp.lz"); // reel_time_machine and reel_time_pikachu
 static const u16 sReelTimeWindow_Tilemap[] = INCBIN_U16("graphics/slot_machine/reel_time_window.bin");
 static const u16 sEmptyTilemap[] =  {0};

@@ -27,7 +27,7 @@ static const s32 sPowersOfTen[] =
 
 u8 *StringCopy_Nickname(u8 *dest, const u8 *src)
 {
-    u8 i;
+    m8 i;
     u32 limit = POKEMON_NAME_LENGTH;
 
     for (i = 0; i < limit; i++)
@@ -44,7 +44,7 @@ u8 *StringCopy_Nickname(u8 *dest, const u8 *src)
 
 u8 *StringGet_Nickname(u8 *str)
 {
-    u8 i;
+    m8 i;
     u32 limit = POKEMON_NAME_LENGTH;
 
     for (i = 0; i < limit; i++)
@@ -55,12 +55,17 @@ u8 *StringGet_Nickname(u8 *str)
     return &str[i];
 }
 
+// It was nicer written in RS
 u8 *StringCopy_PlayerName(u8 *dest, const u8 *src)
 {
-    s32 i;
-    s32 limit = PLAYER_NAME_LENGTH;
+    m32 i;
+    #if !MODERN
+    m32 limit = PLAYER_NAME_LENGTH;
 
     for (i = 0; i < limit; i++)
+    #else
+    for (i = 0; i < PLAYER_NAME_LENGTH; i++)
+    #endif
     {
         dest[i] = src[i];
 
@@ -76,9 +81,13 @@ u8 *StringCopy(u8 *dest, const u8 *src)
 {
     while (*src != EOS)
     {
+        #if !MODERN
         *dest = *src;
         dest++;
         src++;
+        #else
+        *dest++ = *src++;
+        #endif
     }
 
     *dest = EOS;
@@ -95,7 +104,7 @@ u8 *StringAppend(u8 *dest, const u8 *src)
 
 u8 *StringCopyN(u8 *dest, const u8 *src, u8 n)
 {
-    u16 i;
+    m16 i;
 
     for (i = 0; i < n; i++)
         dest[i] = src[i];
@@ -148,17 +157,18 @@ s32 StringCompareN(const u8 *str1, const u8 *str2, u32 n)
 
     return *str1 - *str2;
 }
-
+#if !MODERN
 bool8 IsStringLengthAtLeast(const u8 *str, s32 n)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < n; i++)
-        if (str[i] && str[i] != EOS)
+        if (str[i] != CHAR_SPACE && str[i] != EOS)
             return TRUE;
 
     return FALSE;
 }
+#endif
 
 u8 *ConvertIntToDecimalStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 n)
 {
@@ -238,27 +248,12 @@ u8 *ConvertUIntToDecimalStringN(u8 *dest, u32 value, enum StringConvertMode mode
 
         if (state == WRITING_DIGITS)
         {
-            u8 *out = dest++;
-
-            if (digit <= 9)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 9) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (digit != 0 || powerOfTen == 1)
         {
-            u8 *out;
             state = WRITING_DIGITS;
-            out = dest++;
-
-            if (digit <= 9)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 9) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (state == WRITING_SPACES)
         {
@@ -287,38 +282,23 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
     if (mode == STR_CONV_MODE_RIGHT_ALIGN)
         state = WRITING_SPACES;
 
-    if (mode == STR_CONV_MODE_LEADING_ZEROS)
+// Should be else if here
+    M_IF (mode == STR_CONV_MODE_LEADING_ZEROS)
         state = WRITING_DIGITS;
 
     for (powerOfSixteen = largestPowerOfSixteen; powerOfSixteen > 0; powerOfSixteen /= 16)
     {
-        u8 c;
         u32 digit = value / powerOfSixteen;
         s32 temp = value % powerOfSixteen;
 
         if (state == WRITING_DIGITS)
         {
-            char *out = dest++;
-
-            if (digit <= 0xF)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 0xF) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (digit != 0 || powerOfSixteen == 1)
         {
-            char *out;
             state = WRITING_DIGITS;
-            out = dest++;
-
-            if (digit <= 0xF)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 0xF) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (state == WRITING_SPACES)
         {
@@ -334,18 +314,18 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
 
 u8 *StringExpandPlaceholders(u8 *dest, const u8 *src)
 {
+    u8 c;
     for (;;)
     {
-        u8 c = *src++;
-        u8 placeholderId;
-        const u8 *expandedString;
+        c = *src++;
 
         switch (c)
         {
+        case EOS:
+            *dest = EOS;
+            return dest;
         case PLACEHOLDER_BEGIN:
-            placeholderId = *src++;
-            expandedString = GetExpandedPlaceholder(placeholderId);
-            dest = StringExpandPlaceholders(dest, expandedString);
+            dest = StringExpandPlaceholders(dest, GetExpandedPlaceholder(*src++));
             break;
         case EXT_CTRL_CODE_BEGIN:
             *dest++ = c;
@@ -370,9 +350,6 @@ u8 *StringExpandPlaceholders(u8 *dest, const u8 *src)
                 *dest++ = *src++;
             }
             break;
-        case EOS:
-            *dest = EOS;
-            return dest;
         case CHAR_PROMPT_SCROLL:
         case CHAR_PROMPT_CLEAR:
         case CHAR_NEWLINE:
@@ -387,7 +364,7 @@ u8 *StringBraille(u8 *dest, const u8 *src)
     const u8 setBrailleFont[] = {
         EXT_CTRL_CODE_BEGIN,
         EXT_CTRL_CODE_FONT,
-        6,
+        FONT_BRAILLE,
         EOS
     };
     const u8 gotoLine2[] = {
@@ -545,12 +522,13 @@ u8 *StringCopyPadded(u8 *dest, const u8 *src, u8 c, u16 n)
             n--;
     }
 
-    n--;
-
-    while (n != (u16)-1)
+    #if !MODERN
+    while (n--)
+    #else
+    for (;n; n--)
+    #endif
     {
         *dest++ = c;
-        n--;
     }
 
     *dest = EOS;
@@ -564,9 +542,11 @@ u8 *StringFillWithTerminator(u8 *dest, u16 n)
 
 u8 *StringCopyN_Multibyte(u8 *dest, u8 *src, u32 n)
 {
-    u32 i;
-
-    for (i = n - 1; i != (u32)-1; i--)
+#if !MODERN
+    while (n--)
+#else
+    for (; n; n--)
+#endif
     {
         if (*src == EOS)
         {
@@ -607,21 +587,17 @@ u8 *WriteColorChangeControlCode(u8 *dest, u32 colorType, u8 color)
     switch (colorType)
     {
     case 0:
-        *dest = EXT_CTRL_CODE_COLOR;
-        dest++;
+        *dest++ = EXT_CTRL_CODE_COLOR;
         break;
     case 1:
-        *dest = EXT_CTRL_CODE_SHADOW;
-        dest++;
+        *dest++ = EXT_CTRL_CODE_SHADOW;
         break;
     case 2:
-        *dest = EXT_CTRL_CODE_HIGHLIGHT;
-        dest++;
+        *dest++ = EXT_CTRL_CODE_HIGHLIGHT;
         break;
     }
 
-    *dest = color;
-    dest++;
+    *dest++ = color;
     *dest = EOS;
     return dest;
 }
@@ -740,7 +716,11 @@ void ConvertInternationalString(u8 *s, u8 language)
 {
     if (language == LANGUAGE_JAPANESE)
     {
+        #if !MODERN
         u8 i;
+        #else
+        u16 i;
+        #endif
 
         StripExtCtrlCodes(s);
         i = StringLength(s);
@@ -748,12 +728,13 @@ void ConvertInternationalString(u8 *s, u8 language)
         s[i++] = EXT_CTRL_CODE_ENG;
         s[i++] = EOS;
 
-        i--;
-
-        while (i != (u8)-1)
+        #if !MODERN
+        while (i--)
+        #else
+        for(; i; i--)
+        #endif
         {
             s[i + 2] = s[i];
-            i--;
         }
 
         s[0] = EXT_CTRL_CODE_BEGIN;
@@ -763,8 +744,8 @@ void ConvertInternationalString(u8 *s, u8 language)
 
 void StripExtCtrlCodes(u8 *str)
 {
-    u16 srcIndex = 0;
-    u16 destIndex = 0;
+    m16 srcIndex = 0;
+    m16 destIndex = 0;
     while (str[srcIndex] != EOS)
     {
         if (str[srcIndex] == EXT_CTRL_CODE_BEGIN)

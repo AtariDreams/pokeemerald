@@ -388,7 +388,7 @@ static const struct OamData sOam_SliderHeart =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x8),
     .x = 0,
@@ -473,7 +473,7 @@ static const struct OamData sOam_NextTurn =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(32x8),
     .x = 0,
@@ -859,19 +859,19 @@ static const struct CompressedSpriteSheet sSpriteSheets_ContestantsTurnBlinkEffe
 static const struct SpritePalette sSpritePalettes_ContestantsTurnBlinkEffect[CONTESTANT_COUNT] =
 {
     {
-        .data = (u16*)(gHeap + 0x1A0A4),
+        .data = (u16 *)(gHeap + 0x1A0A4),
         .tag = TAG_BLINK_EFFECT_CONTESTANT0
     },
     {
-        .data = (u16*)(gHeap + 0x1A0C4),
+        .data = (u16 *)(gHeap + 0x1A0C4),
         .tag = TAG_BLINK_EFFECT_CONTESTANT1
     },
     {
-        .data = (u16*)(gHeap + 0x1A0E4),
+        .data = (u16 *)(gHeap + 0x1A0E4),
         .tag = TAG_BLINK_EFFECT_CONTESTANT2
     },
     {
-        .data = (u16*)(gHeap + 0x1A104),
+        .data = (u16 *)(gHeap + 0x1A104),
         .tag = TAG_BLINK_EFFECT_CONTESTANT3
     }
 };
@@ -1036,7 +1036,8 @@ void LoadContestBgAfterMoveAnim(void)
     LoadContestPalettes();
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        u32 contestantWindowId = 5 + i;
+        // has to be here for some reason. agbcc makes better code without it
+        s32 contestantWindowId = 5 + i;
 
         LoadPalette(eContestTempSave.cachedWindowPalettes[contestantWindowId], 16 * (5 + gContestantTurnOrder[i]), sizeof((eContestTempSave.cachedWindowPalettes[contestantWindowId])));
     }
@@ -1046,7 +1047,7 @@ static void InitContestInfoBgs(void)
 {
     s32 i;
 
-    ResetBgsAndClearDma3BusyFlags(0);
+    MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sContestBgTemplates, ARRAY_COUNT(sContestBgTemplates));
     SetBgAttribute(3, BG_ATTR_WRAPAROUND, 1);
     for (i = 0; i < CONTESTANT_COUNT; i++)
@@ -1084,14 +1085,14 @@ static void InitContestResources(void)
 {
     s32 i;
 
-    eContest = (struct Contest){};
+    eContest = (struct Contest){0};
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
         eContest.unk[i] = 0xFF;
     }
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        eContestantStatus[i] = (struct ContestantStatus){};
+        eContestantStatus[i] = (struct ContestantStatus){0};
     }
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
@@ -1099,9 +1100,9 @@ static void InitContestResources(void)
         eContestantStatus[i].effectStringId = CONTEST_STRING_NONE;
         eContestantStatus[i].effectStringId2 = CONTEST_STRING_NONE;
     }
-    eContestAppealResults = (struct ContestAppealMoveResults){};
-    eContestAI = (struct ContestAIInfo){};
-    *gContestResources->excitement = (struct ContestExcitement){};
+    eContestAppealResults = (struct ContestAppealMoveResults){0};
+    eContestAI = (struct ContestAIInfo){0};
+    *gContestResources->excitement = (struct ContestExcitement){0};
     memset(eContestGfxState, 0, CONTESTANT_COUNT * sizeof(struct ContestGraphicsState));
 
     if (!(gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK))
@@ -1307,7 +1308,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         gPaletteFade.bufferTransferDisabled = TRUE;
         RequestDma3Fill(0, (void *)VRAM, 0x8000, 1);
         RequestDma3Fill(0, (void *)VRAM + 0x8000, 0x8000, 1);
-        RequestDma3Fill(0, (void *)VRAM + 0x10000, 0x8000, 1);
+        RequestDma3Fill(0, (void *)OBJ_VRAM0, 0x8000, 1);
         break;
     case 1:
         LZDecompressVram(gContestInterfaceGfx, (void *)VRAM);
@@ -1324,6 +1325,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         CopyToBgTilemapBuffer(2, gContestInterfaceTilemap, 0, 0);
         CopyBgTilemapBufferToVram(2);
         // This is a bug, and copies random junk. savedJunk is never read.
+        // It probably meant to read something else? TODO: figure this out
         DmaCopy32Defvars(3, gContestResources->contestBgTilemaps[2], eContestTempSave.savedJunk, sizeof(eContestTempSave.savedJunk));
         break;
     case 5:
@@ -1355,6 +1357,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         // Unclear why judge sprite is assigned here
         // Overwritten in APPEALSTATE_SLIDE_MON_IN with the attacking contest mon
         gBattlerSpriteIds[gBattlerAttacker] = CreateJudgeSprite();
+        // Register a transparent actor instead of an enemy Pokemon
         CreateInvisibleBattleTargetSprite();
         CopyBgTilemapBufferToVram(3);
         CopyBgTilemapBufferToVram(2);
@@ -1496,7 +1499,8 @@ static void Task_DisplayAppealNumberText(u8 taskId)
 static void Task_TryShowMoveSelectScreen(u8 taskId)
 {
     // Wait for button press to show move select screen
-    if ((JOY_NEW(A_BUTTON)) || (gMain.newKeys == B_BUTTON))
+    // JOY_NEW(B_BUTTON) does not work for some reason
+    if (JOY_NEW(A_BUTTON) || (gMain.newKeys == B_BUTTON))
     {
         PlaySE(SE_SELECT);
         if (!Contest_IsMonsTurnDisabled(gContestPlayerMonIndex))
@@ -1515,7 +1519,9 @@ static void Task_TryShowMoveSelectScreen(u8 taskId)
 static void Task_ShowMoveSelectScreen(u8 taskId)
 {
     u8 i;
-    u8 moveName[32];
+    // Should this be 30 or 32?
+    // GF says 30 but that may have been a mistake?
+    u8 moveName[30];
 
     gBattle_BG0_Y = DISPLAY_HEIGHT;
     gBattle_BG2_Y = DISPLAY_HEIGHT;
@@ -1582,7 +1588,7 @@ static void Task_HandleMoveSelectInput(u8 taskId)
                 StringCopy(gDisplayedStringBattle, gText_AppealNumButItCantParticipate);
             ContestClearGeneralTextWindow();
             StringExpandPlaceholders(gStringVar4, gDisplayedStringBattle);
-            Contest_StartTextPrinter(gStringVar4, 0);
+            Contest_StartTextPrinter(gStringVar4, FALSE);
             gBattle_BG0_Y = 0;
             gBattle_BG2_Y = 0;
             gTasks[taskId].func = Task_TryShowMoveSelectScreen;
@@ -1631,10 +1637,9 @@ static void Task_SelectedMove(u8 taskId)
 {
     if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK)
     {
-        u16 move = GetChosenMove(gContestPlayerMonIndex);
         u8 taskId2;
 
-        eContestantStatus[gContestPlayerMonIndex].currMove = move;
+        eContestantStatus[gContestPlayerMonIndex].currMove = GetChosenMove(gContestPlayerMonIndex);
         taskId2 = CreateTask(Task_LinkContest_CommunicateMoveSelections, 0);
         SetTaskFuncWithFollowupFunc(taskId2, Task_LinkContest_CommunicateMoveSelections, Task_EndCommunicateMoveSelections);
         gTasks[taskId].func = TaskDummy1;
@@ -1671,8 +1676,13 @@ static void Task_HideMoveSelectScreen(u8 taskId)
     }
     Contest_SetBgCopyFlags(0);
     // This seems to be a bug; it should have just copied PLTT_BUFFER_SIZE.
+    #ifdef UBFIX
+    DmaCopy32(3, gPlttBufferFaded, eContestTempSave.cachedPlttBufferFaded, PLTT_BUFFER_SIZE);
+    LoadPalette(eContestTempSave.cachedPlttBufferUnfaded, 0, PLTT_BUFFER_SIZE);
+    #else
     DmaCopy32Defvars(3, gPlttBufferFaded, eContestTempSave.cachedPlttBufferFaded, PLTT_BUFFER_SIZE * 2);
     LoadPalette(eContestTempSave.cachedPlttBufferUnfaded, 0, PLTT_BUFFER_SIZE * 2);
+    #endif 
     gTasks[taskId].data[0] = 0;
     gTasks[taskId].data[1] = 0;
     gTasks[taskId].func = Task_HideApplauseMeterForAppealStart;
@@ -1680,15 +1690,15 @@ static void Task_HideMoveSelectScreen(u8 taskId)
 
 static void Task_HideApplauseMeterForAppealStart(u8 taskId)
 {
-    if (++gTasks[taskId].data[0] > 2)
+    if (++gTasks[taskId].data[0] < 3)
+        return;
+
+    gTasks[taskId].data[0] = 0;
+    if (++gTasks[taskId].data[1] == 2)
     {
-        gTasks[taskId].data[0] = 0;
-        if (++gTasks[taskId].data[1] == 2)
-        {
-            SlideApplauseMeterOut();
-            AnimateSliderHearts(SLIDER_HEART_ANIM_DISAPPEAR);
-            gTasks[taskId].func = Task_WaitHideApplauseMeterForAppealStart;
-        }
+        SlideApplauseMeterOut();
+        AnimateSliderHearts(SLIDER_HEART_ANIM_DISAPPEAR);
+        gTasks[taskId].func = Task_WaitHideApplauseMeterForAppealStart;
     }
 }
 
@@ -1704,22 +1714,22 @@ static void Task_WaitHideApplauseMeterForAppealStart(u8 taskId)
 
 static void Task_AppealSetup(u8 taskId)
 {
-    if (++gTasks[taskId].data[0] > 19)
-    {
-        eContest.turnNumber = 0;
-        eContest.unusedRng = gRngValue;
-        if ((gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK) && IsPlayerLinkLeader())
-        {
-            s32 i;
+    if (++gTasks[taskId].data[0] < 20)
+        return;
 
-            for (i = 0; i + gNumLinkContestPlayers < CONTESTANT_COUNT; i++)
-            {
-                eContestantStatus[gNumLinkContestPlayers + i].currMove = GetChosenMove(gNumLinkContestPlayers + i);
-            }
+    eContest.turnNumber = 0;
+    eContest.unusedRng = gRngValue;
+    if ((gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK) && IsPlayerLinkLeader())
+    {
+        s32 i;
+
+        for (i = 0; i + gNumLinkContestPlayers < CONTESTANT_COUNT; i++)
+        {
+            eContestantStatus[gNumLinkContestPlayers + i].currMove = GetChosenMove(gNumLinkContestPlayers + i);
         }
-        gTasks[taskId].tState = APPEALSTATE_START_TURN;
-        gTasks[taskId].func = Task_DoAppeals;
     }
+    gTasks[taskId].tState = APPEALSTATE_START_TURN;
+    gTasks[taskId].func = Task_DoAppeals;
 }
 
 static void Task_DoAppeals(u8 taskId)
@@ -1814,7 +1824,7 @@ static void Task_DoAppeals(u8 taskId)
             else
                 StringCopy(gStringVar2, sInvalidContestMoveNames[eContestantStatus[contestant].moveCategory]);
             StringExpandPlaceholders(gStringVar4, gText_MonAppealedWithMove);
-            Contest_StartTextPrinter(gStringVar4, 1);
+            Contest_StartTextPrinter(gStringVar4, TRUE);
             gTasks[taskId].tState = APPEALSTATE_WAIT_USED_MOVE_MSG;
         }
         return;
@@ -1869,30 +1879,28 @@ static void Task_DoAppeals(u8 taskId)
             eContestantStatus[contestant].effectStringId = CONTEST_STRING_NONE;
             gTasks[taskId].tState = APPEALSTATE_WAIT_MOVE_RESULT_MSG;
         }
-        else
+        else if (eContestantStatus[contestant].effectStringId2 != CONTEST_STRING_NONE)
         {
-            if (eContestantStatus[contestant].effectStringId2 != CONTEST_STRING_NONE)
+            for (i = 0; i < CONTESTANT_COUNT; i++)
             {
-                for (i = 0; i < CONTESTANT_COUNT; i++)
-                {
-                    if (i != contestant && eContestantStatus[i].effectStringId != CONTEST_STRING_NONE)
-                        break;
-                }
-                if (i == CONTESTANT_COUNT)
-                {
-                    PrintAppealMoveResultText(contestant, eContestantStatus[contestant].effectStringId2);
-                    eContestantStatus[contestant].effectStringId2 = CONTEST_STRING_NONE;
-                    gTasks[taskId].tState = APPEALSTATE_WAIT_MOVE_RESULT_MSG;
-                }
-                else
-                {
-                    gTasks[taskId].tState = APPEALSTATE_CHECK_TURN_ORDER_MOD;
-                }
+                if (i != contestant && eContestantStatus[i].effectStringId != CONTEST_STRING_NONE)
+                    break;
+                    // could have done whatever is in the else clause below outside of the loop here too but whatever
+            }
+            if (i == CONTESTANT_COUNT)
+            {
+                PrintAppealMoveResultText(contestant, eContestantStatus[contestant].effectStringId2);
+                eContestantStatus[contestant].effectStringId2 = CONTEST_STRING_NONE;
+                gTasks[taskId].tState = APPEALSTATE_WAIT_MOVE_RESULT_MSG;
             }
             else
             {
                 gTasks[taskId].tState = APPEALSTATE_CHECK_TURN_ORDER_MOD;
             }
+        }
+        else
+        {
+            gTasks[taskId].tState = APPEALSTATE_CHECK_TURN_ORDER_MOD;
         }
         return;
     case APPEALSTATE_WAIT_MOVE_RESULT_MSG:
@@ -1977,6 +1985,7 @@ static void Task_DoAppeals(u8 taskId)
             s32 j = 0;
 
             r3 = FALSE; // Can't get this to use local variable. Should be "needsUpdate"
+            // What did revo mean by this?!!!
             for (i = gTasks[taskId].data[1]; i < CONTESTANT_COUNT; i++)
             {
                 r3 = FALSE;
@@ -2076,7 +2085,7 @@ static void Task_DoAppeals(u8 taskId)
                 ContestClearGeneralTextWindow();
                 StringCopy(gStringVar1, gContestMons[contestant].nickname);
                 StringExpandPlaceholders(gStringVar4, gText_MonCantAppealNextTurn);
-                Contest_StartTextPrinter(gStringVar4, 1);
+                Contest_StartTextPrinter(gStringVar4, TRUE);
             }
             gTasks[taskId].tState = APPEALSTATE_WAIT_SKIP_NEXT_TURN_MSG;
         }
@@ -2118,7 +2127,7 @@ static void Task_DoAppeals(u8 taskId)
             ContestClearGeneralTextWindow();
             StringCopy(gStringVar1, gContestMons[contestant].nickname);
             StringExpandPlaceholders(gStringVar4, gText_JudgeLookedAtMonExpectantly);
-            Contest_StartTextPrinter(gStringVar4, 1);
+            Contest_StartTextPrinter(gStringVar4, TRUE);
             DoJudgeSpeechBubble(JUDGE_SYMBOL_ONE_EXCLAMATION);
             gTasks[taskId].tCounter = 0;
             gTasks[taskId].tState = APPEALSTATE_WAIT_JUDGE_COMBO;
@@ -2133,20 +2142,17 @@ static void Task_DoAppeals(u8 taskId)
         }
         return;
     case APPEALSTATE_TRY_UPDATE_HEARTS_FROM_COMBO:
-        if (!Contest_RunTextPrinters())
+        if (!Contest_RunTextPrinters() && ++gTasks[taskId].tCounter > 50)
         {
-            if (++gTasks[taskId].tCounter > 50)
+            if (!eContestantStatus[contestant].hasJudgesAttention)
             {
-                if (!eContestantStatus[contestant].hasJudgesAttention)
-                {
-                    UpdateAppealHearts(
-                        eContestantStatus[contestant].appeal,
-                        eContestantStatus[contestant].comboAppealBonus,
-                        contestant);
-                    eContestantStatus[contestant].appeal += eContestantStatus[contestant].comboAppealBonus;
-                }
-                gTasks[taskId].tState = APPEALSTATE_WAIT_HEARTS_FROM_COMBO;
+                UpdateAppealHearts(
+                    eContestantStatus[contestant].appeal,
+                    eContestantStatus[contestant].comboAppealBonus,
+                    contestant);
+                eContestantStatus[contestant].appeal += eContestantStatus[contestant].comboAppealBonus;
             }
+            gTasks[taskId].tState = APPEALSTATE_WAIT_HEARTS_FROM_COMBO;
         }
         return;
     case APPEALSTATE_WAIT_HEARTS_FROM_COMBO:
@@ -2185,6 +2191,7 @@ static void Task_DoAppeals(u8 taskId)
         }
         return;
     case APPEALSTATE_WAIT_HEARTS_FROM_REPEAT:
+        // TODO: is this needed?
         ContestDebugDoPrint();
         if (!eContestGfxState[contestant].updatingAppealHearts)
         {
@@ -2231,7 +2238,7 @@ static void Task_DoAppeals(u8 taskId)
                     StringExpandPlaceholders(gStringVar4, gText_MonsXWentOverGreat);
                 else
                     StringExpandPlaceholders(gStringVar4, gText_MonsXGotTheCrowdGoing);
-                Contest_StartTextPrinter(gStringVar4, 1);
+                Contest_StartTextPrinter(gStringVar4, TRUE);
                 gTasks[taskId].tCounter = 0;
                 gTasks[taskId].data[11] = 0;
                 if (r3 < 0)
@@ -2419,7 +2426,7 @@ static void Task_DoAppeals(u8 taskId)
             gTasks[taskId].tState = APPEALSTATE_TURN_END_DELAY;
         return;
     case APPEALSTATE_TURN_END_DELAY:
-        if (++gTasks[taskId].tCounter > 29)
+        if (++gTasks[taskId].tCounter >= 30)
         {
             gTasks[taskId].tCounter = 0;
             gTasks[taskId].tState = APPEALSTATE_START_NEXT_TURN;
@@ -2455,7 +2462,7 @@ static void SpriteCB_MonSlideIn(struct Sprite *sprite)
     }
     else
     {
-        if (++sprite->data[0] == 31)
+        if (sprite->data[0]++ == 30)
         {
             sprite->data[0] = 0;
             sprite->callback = SpriteCallbackDummy;
@@ -2753,7 +2760,7 @@ static void Task_ContestReturnToField(u8 taskId)
 
 static void FieldCB_ContestReturnToField(void)
 {
-    ScriptContext2_Disable();
+    UnlockPlayerFieldControls();
     EnableBothScriptContexts();
 }
 
@@ -2851,8 +2858,9 @@ void SetContestants(u8 contestType, u8 rank)
 {
     s32 i;
     u8 opponentsCount = 0;
-    u8 opponents[100];
-    bool8 allowPostgameContestants = FALSE;
+    // 1 for player I guess
+    u8 opponents[ARRAY_COUNT(gContestOpponents) + 1];
+    bool32 allowPostgameContestants = FALSE;
     const u8 * filter;
 
     TryPutPlayerLast();
@@ -2861,6 +2869,7 @@ void SetContestants(u8 contestType, u8 rank)
         allowPostgameContestants = TRUE;
 
     // Find all suitable opponents
+    // We dont' need this assignment at all, but it is needed to match unless you want to make the other useless loop var
     filter = gPostgameContestOpponentFilter;
     for (i = 0; i < ARRAY_COUNT(gContestOpponents); i++)
     {
@@ -2909,7 +2918,7 @@ void SetLinkAIContestants(u8 contestType, u8 rank, bool32 isPostgame)
 {
     s32 i, j;
     u8 opponentsCount = 0;
-    u8 opponents[100];
+    u8 opponents[ARRAY_COUNT(gContestOpponents) + 1];
 
     if (gNumLinkContestPlayers == CONTESTANT_COUNT)
         return;
@@ -3023,7 +3032,7 @@ static void PrintContestantTrainerName(u8 contestant)
 
 static void PrintContestantTrainerNameWithColor(u8 contestant, u8 color)
 {
-    u8 buffer[32];
+    u8 buffer[30];
     s32 offset;
 
     StringCopy(buffer, gText_Slash);
@@ -3158,8 +3167,10 @@ bool8 IsSpeciesNotUnown(u16 species)
 // tiles are actually drawn on screen.
 static void SwapMoveDescAndContestTilemaps(void)
 {
-    CpuCopy16(gContestResources->contestBgTilemaps[0], gContestResources->contestBgTilemaps[0] + 0x500, 32 * 20);
-    CpuCopy16(gContestResources->contestBgTilemaps[2], gContestResources->contestBgTilemaps[2] + 0x500, 32 * 20);
+    //TODO: have the u8 cast in the macro, not here.
+    // Do the 0x500/2 thing for now as a remedy
+    CpuCopy16(gContestResources->contestBgTilemaps[0], gContestResources->contestBgTilemaps[0] + 0x500/2, 32 * 20);
+    CpuCopy16(gContestResources->contestBgTilemaps[2], gContestResources->contestBgTilemaps[2] + 0x500/2, 32 * 20);
 }
 
 // Functionally unused
@@ -3426,7 +3437,7 @@ static void RankContestants(void)
         {
             if (arr[j - 1] < arr[j])
             {
-                u16 temp;
+                s16 temp;
                 SWAP(arr[j], arr[j - 1], temp);
             }
         }
@@ -3630,11 +3641,14 @@ static void DetermineFinalStandings(void)
 
 void SaveLinkContestResults(void)
 {
+    // Should be u16, but that doesn't match
+    s32 num;
     if ((gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK))
     {
-        gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] =
-        ((gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] + 1) > 9999) ? 9999 :
-        (gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] + 1);
+        num =  gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] + 1;
+        if (num > 9999)
+            num = 9999;
+        gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] = num;
 
     }
 }
@@ -3666,7 +3680,7 @@ static void ContestPrintLinkStandby(void)
     gBattle_BG0_Y = 0;
     gBattle_BG2_Y = 0;
     ContestClearGeneralTextWindow();
-    Contest_StartTextPrinter(gText_LinkStandby4, 0);
+    Contest_StartTextPrinter(gText_LinkStandby4, FALSE);
 }
 
 static void FillContestantWindowBgs(void)
@@ -3719,6 +3733,7 @@ static u8 UpdateAppealHearts(s16 startAppeal, s16 appealDelta, u8 contestant)
     taskId = CreateTask(Task_UpdateAppealHearts, 20);
     startHearts = GetNumHeartsFromAppealPoints(startAppeal);
     heartsDelta = GetNumHeartsFromAppealPoints(startAppeal + appealDelta) - startHearts;
+    //TODO: Do we need this?!
     GetAppealHeartTileOffset(contestant);  // unused return value
     gTasks[taskId].tNumHearts = abs(startHearts);
     gTasks[taskId].tHeartsDelta = heartsDelta;
@@ -3839,9 +3854,7 @@ static void CreateSliderHeartSprites(void)
     LoadSpriteSheet(&sSpriteSheet_SliderHeart);
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        u8 y = sSliderHeartYPositions[gContestantTurnOrder[i]];
-
-        eContestGfxState[i].sliderHeartSpriteId = CreateSprite(&sSpriteTemplate_SliderHeart, 180, y, 1);
+        eContestGfxState[i].sliderHeartSpriteId = CreateSprite(&sSpriteTemplate_SliderHeart, 180, sSliderHeartYPositions[gContestantTurnOrder[i]], 1);
     }
 }
 
@@ -4021,7 +4034,7 @@ static void Task_FlashJudgeAttentionEye(u8 taskId)
              || gTasks[taskId].data[offset + 0] == 0)
                 gTasks[taskId].data[offset + 1] ^= 1;
 
-            BlendPalette((eContest.prevTurnOrder[i] + 5) * 16 + 6, 2, gTasks[taskId].data[offset + 0], RGB(31, 31, 18));
+            BlendPalette((eContest.prevTurnOrder[i] + 5) * 16 + 6, 2, gTasks[taskId].data[offset], RGB(31, 31, 18));
         }
     }
 }
@@ -4338,7 +4351,9 @@ void SortContestants(bool8 useRanking)
                         gContestantTurnOrder[j] = gContestantTurnOrder[j - 1];
 
                     // Insert into the new spot.
+                    #if !MODERN
                     gContestantTurnOrder[v3] = i;
+                    #endif
                     break;
                 }
             }
@@ -4346,8 +4361,12 @@ void SortContestants(bool8 useRanking)
             // This is redundant.
             // Perhaps GF switched from true insertion sort to in-place insertion sort, and forgot to
             // remove this check?
+            #if !MODERN
             if (v3 == i)
                 gContestantTurnOrder[i] = i;
+            #else
+            gContestantTurnOrder[v3] = i;
+            #endif
         }
 
         // Invert gContestantTurnOrder; above, it was a list of contestant IDs. Now it's a list of turn orderings.
@@ -4372,16 +4391,14 @@ void SortContestants(bool8 useRanking)
         {
             u8 j = eContestantStatus[i].ranking;
 
-            while (1)
+            for (;; j++)
             {
-                u8 *ptr = &scratch[j];
-                if (*ptr == 0xFF)
+                if (scratch[j] == 0xFF)
                 {
-                    *ptr = i;
+                    scratch[j] = i;
                     gContestantTurnOrder[i] = j;
                     break;
                 }
-                j++;
             }
         }
 
@@ -4483,17 +4500,14 @@ static void CalculateAppealMoveImpact(u8 contestant)
             eContestantStatus[contestant].comboAppealBonus = eContestantStatus[contestant].baseAppeal * eContestantStatus[contestant].completedCombo;
             eContestantStatus[contestant].completedComboFlag = TRUE; // Redundant with completedCombo, used by AI
         }
+        else if (gContestMoves[eContestantStatus[contestant].currMove].comboStarterId != 0)
+        {
+            eContestantStatus[contestant].hasJudgesAttention = TRUE;
+            eContestantStatus[contestant].usedComboMove = TRUE;
+        }
         else
         {
-            if (gContestMoves[eContestantStatus[contestant].currMove].comboStarterId != 0)
-            {
-                eContestantStatus[contestant].hasJudgesAttention = TRUE;
-                eContestantStatus[contestant].usedComboMove = TRUE;
-            }
-            else
-            {
-                eContestantStatus[contestant].hasJudgesAttention = FALSE;
-            }
+            eContestantStatus[contestant].hasJudgesAttention = FALSE;
         }
     }
     if (eContestantStatus[contestant].repeatedMove)
@@ -4527,12 +4541,12 @@ static void CalculateAppealMoveImpact(u8 contestant)
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
         // Target can't be the attacker
-        if (i != contestant)
-        {
-            if (rnd == 0)
-                break;
-            rnd--;
-        }
+        if (i == contestant)
+            continue;
+
+        if (rnd == 0)
+            break;
+        rnd--;
     }
     eContestantStatus[contestant].contestantAnimTarget = i;
 }
@@ -4577,7 +4591,7 @@ static void PrintAppealMoveResultText(u8 contestant, u8 stringId)
         StringCopy(gStringVar3, gText_Contest_Fear);
     StringExpandPlaceholders(gStringVar4, sAppealResultTexts[stringId]);
     ContestClearGeneralTextWindow();
-    Contest_StartTextPrinter(gStringVar4, 1);
+    Contest_StartTextPrinter(gStringVar4, TRUE);
 }
 
 void MakeContestantNervous(u8 p)
@@ -4759,7 +4773,7 @@ static u8 StartApplauseOverflowAnimation(void)
 static void Task_ApplauseOverflowAnimation(u8 taskId)
 {
     // Skip every other frame.
-    if (++gTasks[taskId].data[0] == 1)
+    if (gTasks[taskId].data[0]++ == 0)
     {
         gTasks[taskId].data[0] = 0;
 
@@ -4800,7 +4814,7 @@ static void Task_SlideApplauseMeterIn(u8 taskId)
 
     gTasks[taskId].data[10] += 1664;
     sprite->x2 += gTasks[taskId].data[10] >> 8;
-    gTasks[taskId].data[10] = gTasks[taskId].data[10] & 0xFF;
+    gTasks[taskId].data[10] &= 0xFF;
     if (sprite->x2 > 0)
         sprite->x2 = 0;
     if (sprite->x2 == 0)
@@ -4830,7 +4844,7 @@ static void Task_SlideApplauseMeterOut(u8 taskId)
 
     gTasks[taskId].data[10] += 1664;
     sprite->x2 -= gTasks[taskId].data[10] >> 8;
-    gTasks[taskId].data[10] = gTasks[taskId].data[10] & 0xFF;
+    gTasks[taskId].data[10] &= 0xFF;
     if (sprite->x2 < -70)
         sprite->x2 = -70;
     if (sprite->x2 == -70)
@@ -5848,10 +5862,11 @@ static void SetConestLiveUpdateTVData(void)
     // Count how many TV comment-worthy actions the winner took
     flags = gContestResources->tv[winner].winnerFlags;
     count = 0;
-    for (i = 0; i < 8; flags >>= 1, i++)
+    for (i = 0; i < 8; i++)
     {
         if (flags & 1)
             count++;
+        flags >>= 1;
     }
 
     // Randomly choose one of these actions to comment on
@@ -5907,11 +5922,12 @@ static void SetConestLiveUpdateTVData(void)
 
     // Choose the "worst" action to comment on (flag with highest value)
     flagId = CONTESTLIVE_FLAG_NO_APPEALS;
-    for (i = 0; i < 8; flagId >>= 1, i++)
+    for (i = 0; i < 8; i++)
     {
         loserFlag = gContestResources->tv[loser].loserFlags & flagId;
         if (loserFlag)
             break;
+        flagId >>= 1;
     }
 
     ContestLiveUpdates_Init(round1Placing);
@@ -6015,7 +6031,7 @@ static u8 GetMonNicknameLanguage(u8 *nickname)
     u8 ret = GAME_LANGUAGE;
 
     if (nickname[0] == EXT_CTRL_CODE_BEGIN && nickname[1] == EXT_CTRL_CODE_JPN)
-        return GAME_LANGUAGE;
+        return ret;
 
     if (StringLength(nickname) < PLAYER_NAME_LENGTH - 1)
     {
@@ -6036,7 +6052,11 @@ static u8 GetMonNicknameLanguage(u8 *nickname)
                 || *nickname == CHAR_DBL_QUOTE_LEFT
                 || *nickname == CHAR_DBL_QUOTE_RIGHT
                 || *nickname == CHAR_SGL_QUOTE_LEFT
+#ifdef BUGFIX
+                || *nickname == CHAR_SGL_QUOTE_RIGHT)
+#else
                 || *nickname == CHAR_DBL_QUOTE_LEFT) // Most likely a typo, CHAR_SGL_QUOTE_RIGHT should be here instead.
+#endif
             {
                 nickname++;
             }

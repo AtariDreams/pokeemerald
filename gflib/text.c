@@ -243,7 +243,7 @@ static void SetFontsPointer(const struct FontInfo *fonts)
 
 void DeactivateAllTextPrinters(void)
 {
-    int printer;
+    m32 printer;
     for (printer = 0; printer < NUM_TEXT_PRINTERS; ++printer)
         sTextPrinters[printer].active = FALSE;
 }
@@ -270,8 +270,14 @@ u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 
 
 bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
+
+#if !MODERN
     int i;
     u16 j;
+#else
+    // j is only used for a loop counter that doesn't even involve it
+    u32 j;
+#endif
 
     if (!gFonts)
         return FALSE;
@@ -282,8 +288,13 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     sTempTextPrinter.delayCounter = 0;
     sTempTextPrinter.scrollDistance = 0;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
+    #if !MODERN
+    for (i = 0; i < (m32)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
         sTempTextPrinter.subStructFields[i] = 0;
+    #else
+
+    memset(&sTempTextPrinter.subStructFields, 0, sizeof(sTempTextPrinter.subStructFields));
+    #endif
 
     sTempTextPrinter.printerTemplate = *printerTemplate;
     sTempTextPrinter.callback = callback;
@@ -300,7 +311,6 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     {
         sTempTextPrinter.textSpeed = 0;
         
-        // Render all text (up to limit) at once
         for (j = 0; j < 0x400; ++j)
         {
             if (RenderFont(&sTempTextPrinter) == RENDER_FINISH)
@@ -318,27 +328,29 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 
 void RunTextPrinters(void)
 {
-    int i;
+    m32 i;
 
-    if (!gDisableTextPrinters)
+    if (gDisableTextPrinters)
     {
-        for (i = 0; i < NUM_TEXT_PRINTERS; ++i)
+        return;
+    }
+
+    for (i = 0; i < NUM_TEXT_PRINTERS; ++i)
+    {
+        if (sTextPrinters[i].active)
         {
-            if (sTextPrinters[i].active)
+            u16 renderCmd = RenderFont(&sTextPrinters[i]);
+            switch (renderCmd)
             {
-                u16 renderCmd = RenderFont(&sTextPrinters[i]);
-                switch (renderCmd)
-                {
-                case RENDER_PRINT:
-                    CopyWindowToVram(sTextPrinters[i].printerTemplate.windowId, COPYWIN_GFX);
-                case RENDER_UPDATE:
-                    if (sTextPrinters[i].callback != NULL)
-                        sTextPrinters[i].callback(&sTextPrinters[i].printerTemplate, renderCmd);
-                    break;
-                case RENDER_FINISH:
-                    sTextPrinters[i].active = FALSE;
-                    break;
-                }
+            case RENDER_PRINT:
+                CopyWindowToVram(sTextPrinters[i].printerTemplate.windowId, COPYWIN_GFX);
+            case RENDER_UPDATE:
+                if (sTextPrinters[i].callback != 0)
+                    sTextPrinters[i].callback(&sTextPrinters[i].printerTemplate, renderCmd);
+                break;
+            case RENDER_FINISH:
+                sTextPrinters[i].active = FALSE;
+                break;
             }
         }
     }
@@ -352,12 +364,11 @@ bool16 IsTextPrinterActive(u8 id)
 static u32 RenderFont(struct TextPrinter *textPrinter)
 {
     u32 ret;
-    while (TRUE)
+    do
     {
         ret = gFonts[textPrinter->printerTemplate.fontId].fontFunction(textPrinter);
-        if (ret != RENDER_REPEAT)
-            return ret;
-    }
+    } while (ret == RENDER_REPEAT);
+    return ret;
 }
 
 void GenerateFontHalfRowLookupTable(u8 fgColor, u8 bgColor, u8 shadowColor)
@@ -508,6 +519,7 @@ void GenerateFontHalfRowLookupTable(u8 fgColor, u8 bgColor, u8 shadowColor)
     temp = (shadowColor << 8) | (shadowColor << 4) | shadowColor;
     *(current++) = (bg12) | temp;
     *(current++) = (fg12) | temp;
+    // last current++ not needed
     *(current++) = (shadow12) | temp;
 }
 
@@ -550,6 +562,7 @@ void DecompressGlyphTile(const void *src_, void *dest_)
     temp = *(src++);
     *(dest++) = ((sFontHalfRowLookupTable[sFontHalfRowOffsets[temp & 0xFF]]) << 16) | (sFontHalfRowLookupTable[sFontHalfRowOffsets[temp >> 8]]);
 
+    // last 2 ++ not needed
     temp = *(src++);
     *(dest++) = ((sFontHalfRowLookupTable[sFontHalfRowOffsets[temp & 0xFF]]) << 16) | (sFontHalfRowLookupTable[sFontHalfRowOffsets[temp >> 8]]);
 }
@@ -570,6 +583,7 @@ static u8 GetLastTextColor(u8 colorType)
     }
 }
 
+#if !MODERN
 inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u32 *glyphPixels, s32 width, s32 height)
 {
     u32 xAdd, yAdd, pixelData, bits, toOrr, dummyX;
@@ -577,15 +591,17 @@ inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u3
 
     xAdd = j + width;
     yAdd = i + height;
+
     dummyX = j;
+
     for (; i < yAdd; i++)
     {
         pixelData = *glyphPixels++;
         for (j = dummyX; j < xAdd; j++)
         {
-            if ((toOrr = pixelData & 0xF))
+            if ((toOrr = pixelData & 0xF) != 0)
             {
-                dst = windowTiles + ((j / 8) * 32) + ((j % 8) / 2) + ((i / 8) * widthOffset) + ((i % 8) * 4);
+                dst = windowTiles + (j / 8) * 32 + (j % 8) / 2 + (i / 8) * widthOffset + (i % 8) * 4;
                 bits = ((j & 1) * 4);
                 *dst = (toOrr << bits) | (*dst & (0xF0 >> bits));
             }
@@ -596,31 +612,37 @@ inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u3
 
 void CopyGlyphToWindow(struct TextPrinter *textPrinter)
 {
-    struct Window *window;
-    struct WindowTemplate *template;
-    u32 *glyphPixels;
-    u32 currX, currY, widthOffset;
     s32 glyphWidth, glyphHeight;
+    
+    u32 currX, currY, widthOffset;
+    u32 *glyphPixels;
     u8 *windowTiles;
-
-    window = &gWindows[textPrinter->printerTemplate.windowId];
-    template = &window->window;
-
-    if ((glyphWidth = (template->width * 8) - textPrinter->printerTemplate.currentX) > gCurGlyph.width)
-        glyphWidth = gCurGlyph.width;
-
-    if ((glyphHeight = (template->height * 8) - textPrinter->printerTemplate.currentY) > gCurGlyph.height)
-        glyphHeight = gCurGlyph.height;
-
-    currX = textPrinter->printerTemplate.currentX;
-    currY = textPrinter->printerTemplate.currentY;
-    glyphPixels = gCurGlyph.gfxBufferTop;
-    windowTiles = window->tileData;
-    widthOffset = template->width * 32;
-
-    if (glyphWidth < 9)
     {
-        if (glyphHeight < 9)
+        struct TextPrinterTemplate *tmp;
+        struct Window *window;
+        struct WindowTemplate *template;
+
+
+        tmp = &textPrinter->printerTemplate;
+        window = &gWindows[tmp->windowId];
+        template = &window->window;
+
+        if ((glyphWidth = template->width * 8 - tmp->currentX) > gCurGlyph.width)
+            glyphWidth = gCurGlyph.width;
+
+        if ((glyphHeight = template->height * 8 - tmp->currentY) > gCurGlyph.height)
+            glyphHeight = gCurGlyph.height;
+
+        currX = tmp->currentX;
+        currY = tmp->currentY;
+        glyphPixels = gCurGlyph.gfxBufferTop;
+        windowTiles = window->tileData;
+        widthOffset = template->width * 32;
+    }
+
+    if (glyphWidth <= 8)
+    {
+        if (glyphHeight <= 8)
         {
             GLYPH_COPY(windowTiles, widthOffset, currX, currY, glyphPixels, glyphWidth, glyphHeight);
         }
@@ -632,7 +654,7 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
     }
     else
     {
-        if (glyphHeight < 9)
+        if (glyphHeight <= 8)
         {
             GLYPH_COPY(windowTiles, widthOffset, currX, currY, glyphPixels, 8, glyphHeight);
             GLYPH_COPY(windowTiles, widthOffset, currX + 8, currY, glyphPixels + 8, glyphWidth - 8, glyphHeight);
@@ -646,20 +668,130 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
         }
     }
 }
+#else
+// Copied from older matching except with the asm thing removed)
+#define GLYPH_COPY(fromY_, toY_, fromX_, toX_, unk)                                                               \
+    {                                                                                                             \
+        u32 i, j, r5, bits;                                                                                       \
+        const u32 *ptr;                                                                                           \
+        u8 *dst;                                                                                                  \
+        ptr = (const u32 *)unk;                                                                                   \
+                                                                                                                  \
+        for (i = fromY_; i < toY_; i++)                                                                           \
+        {                                                                                                         \
+            r5 = *(ptr++);                                                                                        \
+            for (j = fromX_; j < toX_; j++)                                                                       \
+            {                                                                                                     \
+                const u32 toOrr = r5 & 0xF;                                                                       \
+                if (toOrr)                                                                                        \
+                {                                                                                                 \
+                    dst = window->tileData + ((j / 8) * 32) + ((j % 8) / 2) + ((i / 8) * widthOffset) + ((i % 8) * 4); \
+                    bits = ((j & 1) << 2);                                                                        \
+                    *dst = (toOrr << bits) | ((0xF0 >> bits) & *dst);                                             \
+                }                                                                                                 \
+                r5 >>= 4;                                                                                         \
+            }                                                                                                     \
+        }                                                                                                         \
+    }
 
-void ClearTextSpan(struct TextPrinter *textPrinter, u32 width)
+void CopyGlyphToWindow(struct TextPrinter *textPrinter)
 {
     struct Window *window;
-    struct Bitmap pixels_data;
-    struct TextGlyph *glyph;
-    u8* glyphHeight;
+    //struct WindowTemplate *template;
+   // u32 *glyphPixels;
+    u32 currX, currY, widthOffset;
+    u32 glyphWidth, glyphHeight;
 
-    if (sLastTextBgColor != TEXT_COLOR_TRANSPARENT)
+    window = &gWindows[textPrinter->printerTemplate.windowId];
+
+    currX = textPrinter->printerTemplate.currentX;
+    currY = textPrinter->printerTemplate.currentY;
+    //template = &window->window;
+    glyphWidth = (window->window.width * 8) - currX;
+    if (glyphWidth > gCurGlyph.width) // Cannot do subtraction due to underflow comparison
+        glyphWidth = gCurGlyph.width;
+
+    glyphHeight = (window->window.height * 8) - currY;
+    if (glyphHeight > gCurGlyph.height) // Underflow in C won't work anyway, and is defined so it works here
+        glyphHeight = gCurGlyph.height;
+
+    // if ((glyphWidth = (window->window.width * 8) - textPrinter->printerTemplate.currentX) > gCurGlyph.width)
+    //     glyphWidth = gCurGlyph.width;
+
+    // if ((glyphHeight = (window->window.height * 8) - textPrinter->printerTemplate.currentY) > gCurGlyph.height)
+    //     glyphHeight = gCurGlyph.height;
+
+    // currX = textPrinter->printerTemplate.currentX;
+    // currY = textPrinter->printerTemplate.currentY;
+    //glyphPixels = gCurGlyph.gfxBufferTop;
+    // windowTiles = window->tileData;
+    widthOffset = window->window.width * 32;
+
+    if (glyphWidth <= 8)
+    {
+        if (glyphHeight <= 8)
+        {
+            const u32 tempX = currX + glyphWidth;
+            const u32 tempY = currY + glyphHeight;
+
+            GLYPH_COPY(currY, tempY, currX, tempX, gCurGlyph.gfxBufferTop);
+        }
+        else
+        {
+            const u32 temp = currY + 8;
+            const u32 tempX = currX + glyphWidth;
+            u32 tempY;
+            GLYPH_COPY(currY, temp, currX, tempX, gCurGlyph.gfxBufferTop);
+            tempY = currY + glyphHeight;
+            GLYPH_COPY(temp, tempY, currX, tempX, gCurGlyph.gfxBufferBottom);
+        }
+    }
+    else
+    {
+        if (glyphHeight <= 8)
+        {
+            const u32 temp = currX + 8;
+            const u32 tempY = currY + glyphHeight;
+            u32 tempX;
+            GLYPH_COPY(currY, tempY, currX, temp, gCurGlyph.gfxBufferTop);
+            tempX = currX + glyphWidth;
+            GLYPH_COPY(currY, tempY, temp, tempX, gCurGlyph.gfxBufferTop + 8);
+        }
+        else
+        { 
+            const u32 temp = currX + 8;
+            const u32 temp2 = currY + 8;
+            u32 tempX, tempY;
+            GLYPH_COPY(currY, temp2, currX, temp, gCurGlyph.gfxBufferTop);
+            tempX = currX + glyphWidth;
+            
+            
+            GLYPH_COPY(currY, temp2, temp, tempX, gCurGlyph.gfxBufferTop + 8);
+
+            tempY = currY + glyphHeight;
+            GLYPH_COPY(temp2, tempY, currX, temp, gCurGlyph.gfxBufferBottom);
+            GLYPH_COPY(temp2, tempY, temp, tempX, gCurGlyph.gfxBufferBottom + 8);
+        }
+    }
+}
+#endif 
+void ClearTextSpan(struct TextPrinter *textPrinter, s32 width)
+{
+    struct Bitmap pixels_data;
+    struct Window *window;
+    #if MODERN
+    // FillBitmapRect4Bit takes u16 
+    u16 x, y, w, h;
+    #else
+    s32 x, y, w, h;
+    #endif
+
+    if (sLastTextBgColor == TEXT_COLOR_TRANSPARENT)
     {
         window = &gWindows[textPrinter->printerTemplate.windowId];
         pixels_data.pixels = window->tileData;
-        pixels_data.width = window->window.width << 3;
-        pixels_data.height = window->window.height << 3;
+        pixels_data.width = window->window.width * 8;
+        pixels_data.height = window->window.height * 8;
 
         glyph = &gCurGlyph;
         glyphHeight = &glyph->height;
@@ -774,7 +906,7 @@ void TextPrinterInitDownArrowCounters(struct TextPrinter *textPrinter)
 {
     struct TextPrinterSubStruct *subStruct = (struct TextPrinterSubStruct *)(&textPrinter->subStructFields);
 
-    if (gTextFlags.autoScroll == 1)
+    if (gTextFlags.autoScroll)
     {
         subStruct->autoScrollDelay = 0;
     }
@@ -790,50 +922,51 @@ void TextPrinterDrawDownArrow(struct TextPrinter *textPrinter)
     struct TextPrinterSubStruct *subStruct = (struct TextPrinterSubStruct *)(&textPrinter->subStructFields);
     const u8 *arrowTiles;
 
-    if (gTextFlags.autoScroll == 0)
+    if (gTextFlags.autoScroll)
     {
-        if (subStruct->downArrowDelay != 0)
-        {
-            subStruct->downArrowDelay--;
-        }
-        else
-        {
-            FillWindowPixelRect(
-                textPrinter->printerTemplate.windowId,
-                textPrinter->printerTemplate.bgColor << 4 | textPrinter->printerTemplate.bgColor,
-                textPrinter->printerTemplate.currentX,
-                textPrinter->printerTemplate.currentY,
-                8,
-                16);
-
-            switch (gTextFlags.useAlternateDownArrow)
-            {
-            case FALSE:
-            default:
-                arrowTiles = sDownArrowTiles;
-                break;
-            case TRUE:
-                arrowTiles = sDarkDownArrowTiles;
-                break;
-            }
-
-            BlitBitmapRectToWindow(
-                textPrinter->printerTemplate.windowId,
-                arrowTiles,
-                0,
-                sDownArrowYCoords[subStruct->downArrowYPosIdx],
-                8,
-                16,
-                textPrinter->printerTemplate.currentX,
-                textPrinter->printerTemplate.currentY,
-                8,
-                16);
-            CopyWindowToVram(textPrinter->printerTemplate.windowId, COPYWIN_GFX);
-
-            subStruct->downArrowDelay = 8;
-            subStruct->downArrowYPosIdx++;
-        }
+        return;
     }
+
+    if (subStruct->downArrowDelay != 0)
+    {
+        subStruct->downArrowDelay--;
+        return;
+    }
+
+    FillWindowPixelRect(
+        textPrinter->printerTemplate.windowId,
+        textPrinter->printerTemplate.bgColor << 4 | textPrinter->printerTemplate.bgColor,
+        textPrinter->printerTemplate.currentX,
+        textPrinter->printerTemplate.currentY,
+        8,
+        16);
+
+    switch (gTextFlags.useAlternateDownArrow)
+    {
+    default:
+    case FALSE:
+        arrowTiles = sDownArrowTiles;
+        break;
+    case TRUE:
+        arrowTiles = sDarkDownArrowTiles;
+        break;
+    }
+
+    BlitBitmapRectToWindow(
+        textPrinter->printerTemplate.windowId,
+        arrowTiles,
+        0,
+        sDownArrowYCoords[subStruct->downArrowYPosIdx],
+        8,
+        16,
+        textPrinter->printerTemplate.currentX,
+        textPrinter->printerTemplate.currentY,
+        8,
+        16);
+    CopyWindowToVram(textPrinter->printerTemplate.windowId, COPYWIN_GFX);
+
+    subStruct->downArrowDelay = 8;
+    subStruct->downArrowYPosIdx++;
 }
 
 void TextPrinterClearDownArrow(struct TextPrinter *textPrinter)
@@ -907,28 +1040,27 @@ void DrawDownArrow(u8 windowId, u16 x, u16 y, u8 bgColor, bool8 drawArrow, u8 *c
     if (*counter != 0)
     {
         --*counter;
+        return;
     }
-    else
-    {
-        FillWindowPixelRect(windowId, (bgColor << 4) | bgColor, x, y, 0x8, 0x10);
-        if (drawArrow == 0)
-        {
-            switch (gTextFlags.useAlternateDownArrow)
-            {
-            case FALSE:
-            default:
-                arrowTiles = sDownArrowTiles;
-                break;
-            case TRUE:
-                arrowTiles = sDarkDownArrowTiles;
-                break;
-            }
 
-            BlitBitmapRectToWindow(windowId, arrowTiles, 0, sDownArrowYCoords[*yCoordIndex & 3], 8, 16, x, y - 2, 8, 16);
-            CopyWindowToVram(windowId, COPYWIN_GFX);
-            *counter = 8;
-            ++*yCoordIndex;
+    FillWindowPixelRect(windowId, (bgColor << 4) | bgColor, x, y, 0x8, 0x10);
+    if (drawArrow == 0)
+    {
+        switch (gTextFlags.useAlternateDownArrow)
+        {
+        default:
+        case FALSE:
+            arrowTiles = sDownArrowTiles;
+            break;
+        case TRUE:
+            arrowTiles = sDarkDownArrowTiles;
+            break;
         }
+
+        BlitBitmapRectToWindow(windowId, arrowTiles, 0, sDownArrowYCoords[*yCoordIndex & 3], 8, 16, x, y - 2, 8, 16);
+        CopyWindowToVram(windowId, COPYWIN_GFX);
+        *counter = 8;
+        ++*yCoordIndex;
     }
 }
 
@@ -966,6 +1098,8 @@ static u16 RenderText(struct TextPrinter *textPrinter)
 
         switch (currChar)
         {
+        case EOS:
+            return RENDER_FINISH;
         case CHAR_NEWLINE:
             textPrinter->printerTemplate.currentX = textPrinter->printerTemplate.x;
             textPrinter->printerTemplate.currentY += (gFonts[textPrinter->printerTemplate.fontId].maxLetterHeight + textPrinter->printerTemplate.lineSpacing);
@@ -1056,7 +1190,7 @@ static u16 RenderText(struct TextPrinter *textPrinter)
                 textPrinter->printerTemplate.currentY = textPrinter->printerTemplate.y;
                 return RENDER_REPEAT;
             case EXT_CTRL_CODE_PAUSE_MUSIC:
-                m4aMPlayStop(&gMPlayInfo_BGM);
+                MPlayStop(&gMPlayInfo_BGM);
                 return RENDER_REPEAT;
             case EXT_CTRL_CODE_RESUME_MUSIC:
                 m4aMPlayContinue(&gMPlayInfo_BGM);
@@ -1117,8 +1251,6 @@ static u16 RenderText(struct TextPrinter *textPrinter)
             gCurGlyph.width = DrawKeypadIcon(textPrinter->printerTemplate.windowId, currChar, textPrinter->printerTemplate.currentX, textPrinter->printerTemplate.currentY);
             textPrinter->printerTemplate.currentX += gCurGlyph.width + textPrinter->printerTemplate.letterSpacing;
             return RENDER_PRINT;
-        case EOS:
-            return RENDER_FINISH;
         }
 
         switch (subStruct->fontId)
@@ -1229,41 +1361,40 @@ static u32 GetStringWidthFixedWidthFont(const u8 *str, u8 fontId, u8 letterSpaci
 {
     int i;
     u8 width;
-    int temp;
-    int temp2;
+    u16 temp;
+    u16 temp2;
     u8 line;
-    int strPos;
     u8 lineWidths[8];
     const u8 *strLocal;
 
-    for (i = 0; i < (int)ARRAY_COUNT(lineWidths); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(lineWidths); i++)
         lineWidths[i] = 0;
 
     width = 0;
     line = 0;
     strLocal = str;
-    strPos = 0;
+    i = 0;
 
     do
     {
-        temp = strLocal[strPos++];
+        temp = strLocal[i++];
         switch (temp)
         {
-        case CHAR_NEWLINE:
         case EOS:
+        case CHAR_NEWLINE:
             lineWidths[line] = width;
             width = 0;
             line++;
             break;
         case EXT_CTRL_CODE_BEGIN:
-            temp2 = strLocal[strPos++];
+            temp2 = strLocal[i++];
             switch (temp2)
             {
             case EXT_CTRL_CODE_COLOR_HIGHLIGHT_SHADOW:
-                ++strPos;
+                ++i;
             case EXT_CTRL_CODE_PLAY_BGM:
             case EXT_CTRL_CODE_PLAY_SE:
-                ++strPos;
+                ++i;
             case EXT_CTRL_CODE_COLOR:
             case EXT_CTRL_CODE_HIGHLIGHT:
             case EXT_CTRL_CODE_SHADOW:
@@ -1277,7 +1408,7 @@ static u32 GetStringWidthFixedWidthFont(const u8 *str, u8 fontId, u8 letterSpaci
             case EXT_CTRL_CODE_SKIP:
             case EXT_CTRL_CODE_CLEAR_TO:
             case EXT_CTRL_CODE_MIN_LETTER_SPACING:
-                ++strPos;
+                ++i;
                 break;
             case EXT_CTRL_CODE_RESET_SIZE:
             case EXT_CTRL_CODE_PAUSE_UNTIL_PRESS:
@@ -1291,24 +1422,24 @@ static u32 GetStringWidthFixedWidthFont(const u8 *str, u8 fontId, u8 letterSpaci
             break;
         case CHAR_DYNAMIC:
         case PLACEHOLDER_BEGIN:
-            ++strPos;
+            ++i;
             break;
         case CHAR_PROMPT_SCROLL:
         case CHAR_PROMPT_CLEAR:
             break;
         case CHAR_KEYPAD_ICON:
         case CHAR_EXTRA_SYMBOL:
-            ++strPos;
+            ++i;
         default:
             ++width;
             break;
         }
     } while (temp != EOS);
 
-    for (width = 0, strPos = 0; strPos < 8; ++strPos)
+    for (width = 0, i = 0; i < 8; ++i)
     {
-        if (width < lineWidths[strPos])
-            width = lineWidths[strPos];
+        if (width < lineWidths[i])
+            width = lineWidths[i];
     }
 
     return (u8)(GetFontAttribute(fontId, FONTATTR_MAX_LETTER_WIDTH) + letterSpacing) * width;
@@ -1329,7 +1460,7 @@ static u32 (*GetFontWidthFunc(u8 fontId))(u16, bool32)
 
 s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
 {
-    bool8 isJapanese;
+    bool32 isJapanese;
     int minGlyphWidth;
     u32 (*func)(u16 fontId, bool32 isJapanese);
     int localLetterSpacing;
@@ -1352,7 +1483,7 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
 
     width = 0;
     lineWidth = 0;
-    bufferPointer = 0;
+    bufferPointer = NULL;
 
     while (*str != EOS)
     {
@@ -1386,9 +1517,7 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
                 glyphWidth = func(*bufferPointer++, isJapanese);
                 if (minGlyphWidth > 0)
                 {
-                    if (glyphWidth < minGlyphWidth)
-                        glyphWidth = minGlyphWidth;
-                    lineWidth += glyphWidth;
+                    lineWidth += minGlyphWidth > glyphWidth ? minGlyphWidth : glyphWidth;
                 }
                 else
                 {
@@ -1397,7 +1526,7 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
                         lineWidth += localLetterSpacing;
                 }
             }
-            bufferPointer = 0;
+            bufferPointer = NULL;
             break;
         case EXT_CTRL_CODE_BEGIN:
             switch (*++str)
@@ -1425,15 +1554,14 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
                     localLetterSpacing = GetFontAttribute(*str, FONTATTR_LETTER_SPACING);
                 break;
             case EXT_CTRL_CODE_CLEAR:
-                glyphWidth = *++str;
-                lineWidth += glyphWidth;
+                lineWidth += *++str;
                 break;
             case EXT_CTRL_CODE_SKIP:
                 lineWidth = *++str;
                 break;
             case EXT_CTRL_CODE_CLEAR_TO:
-                if (*++str > lineWidth)
-                    lineWidth = *str;
+                if ((glyphWidth = *(++str)) > lineWidth)
+                    lineWidth = glyphWidth;
                 break;
             case EXT_CTRL_CODE_MIN_LETTER_SPACING:
                 minGlyphWidth = *++str;
@@ -1455,15 +1583,14 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
         case CHAR_KEYPAD_ICON:
         case CHAR_EXTRA_SYMBOL:
             if (*str == CHAR_EXTRA_SYMBOL)
-                glyphWidth = func(*++str | 0x100, isJapanese);
+            // or vs and
+                glyphWidth = func(*++str + 0x100, isJapanese);
             else
                 glyphWidth = GetKeypadIconWidth(*++str);
 
             if (minGlyphWidth > 0)
             {
-                if (glyphWidth < minGlyphWidth)
-                    glyphWidth = minGlyphWidth;
-                lineWidth += glyphWidth;
+                lineWidth += minGlyphWidth > glyphWidth ? minGlyphWidth : glyphWidth;
             }
             else
             {
@@ -1479,9 +1606,7 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
             glyphWidth = func(*str, isJapanese);
             if (minGlyphWidth > 0)
             {
-                if (glyphWidth < minGlyphWidth)
-                    glyphWidth = minGlyphWidth;
-                lineWidth += glyphWidth;
+                lineWidth += minGlyphWidth > glyphWidth ? minGlyphWidth : glyphWidth;
             }
             else
             {
@@ -1499,18 +1624,21 @@ s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
     return width;
 }
 
-u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
+u8 RenderTextHandleBold(u8 *pixels, u8 fontId, const u8 *str)
 {
-    u8 shadowColor;
-    u8 *strLocal;
+    const u8 *strLocal;
     int strPos;
-    int temp;
-    int temp2;
-    u8 colorBackup[3];
+    u16 temp;
+    u16 temp2;
     u8 fgColor;
     u8 bgColor;
+    u8 shadowColor;
 
-    SaveTextColors(&colorBackup[0], &colorBackup[1], &colorBackup[2]);
+    u8 fgColorBak;
+    u8 bgColorBak;
+    u8 shadowColorBak;
+
+    SaveTextColors(&fgColorBak, &bgColorBak, &shadowColorBak);
 
     fgColor = TEXT_COLOR_WHITE;
     bgColor = TEXT_COLOR_TRANSPARENT;
@@ -1525,6 +1653,9 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
         temp = strLocal[strPos++];
         switch (temp)
         {
+        case CHAR_NEWLINE:
+        case EOS:
+            break;
         case EXT_CTRL_CODE_BEGIN:
             temp2 = strLocal[strPos++];
             switch (temp2)
@@ -1579,11 +1710,8 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
         case CHAR_EXTRA_SYMBOL:
         case PLACEHOLDER_BEGIN:
             ++strPos;
-            break;
         case CHAR_PROMPT_SCROLL:
         case CHAR_PROMPT_CLEAR:
-        case CHAR_NEWLINE:
-        case EOS:
             break;
         default:
             switch (fontId)
@@ -1604,7 +1732,7 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str)
     }
     while (temp != EOS);
 
-    RestoreTextColors(&colorBackup[0], &colorBackup[1], &colorBackup[2]);
+    RestoreTextColors(&fgColorBak, &bgColorBak, &shadowColorBak);
     return 1;
 }
 
@@ -1646,7 +1774,7 @@ void SetDefaultFontsPointer(void)
 
 u8 GetFontAttribute(u8 fontId, u8 attributeId)
 {
-    int result = 0;
+    u8 result = 0;
     switch (attributeId)
     {
         case FONTATTR_MAX_LETTER_WIDTH:
@@ -1684,7 +1812,7 @@ u8 GetMenuCursorDimensionByFont(u8 fontId, u8 whichDimension)
 
 static void DecompressGlyph_Small(u16 glyphId, bool32 isJapanese)
 {
-    const u16* glyphs;
+    const u16 *glyphs;
 
     if (isJapanese == 1)
     {
@@ -1726,7 +1854,7 @@ static u32 GetGlyphWidth_Small(u16 glyphId, bool32 isJapanese)
 
 static void DecompressGlyph_Narrow(u16 glyphId, bool32 isJapanese)
 {
-    const u16* glyphs;
+    const u16 *glyphs;
 
     if (isJapanese == TRUE)
     {
@@ -1768,7 +1896,7 @@ static u32 GetGlyphWidth_Narrow(u16 glyphId, bool32 isJapanese)
 
 static void DecompressGlyph_SmallNarrow(u16 glyphId, bool32 isJapanese)
 {
-    const u16* glyphs;
+    const u16 *glyphs;
 
     if (isJapanese == TRUE)
     {
@@ -1810,7 +1938,7 @@ static u32 GetGlyphWidth_SmallNarrow(u16 glyphId, bool32 isJapanese)
 
 static void DecompressGlyph_Short(u16 glyphId, bool32 isJapanese)
 {
-    const u16* glyphs;
+    const u16 *glyphs;
 
     if (isJapanese == TRUE)
     {
@@ -1854,7 +1982,7 @@ static u32 GetGlyphWidth_Short(u16 glyphId, bool32 isJapanese)
 
 static void DecompressGlyph_Normal(u16 glyphId, bool32 isJapanese)
 {
-    const u16* glyphs;
+    const u16 *glyphs;
 
     if (isJapanese == TRUE)
     {
@@ -1896,7 +2024,7 @@ static u32 GetGlyphWidth_Normal(u16 glyphId, bool32 isJapanese)
 
 static void DecompressGlyph_Bold(u16 glyphId)
 {
-    const u16* glyphs;
+    const u16 *glyphs;
 
     glyphs = sFontBoldJapaneseGlyphs + (0x100 * (glyphId >> 4)) + (0x8 * (glyphId & 0xF));
     DecompressGlyphTile(glyphs, gCurGlyph.gfxBufferTop);

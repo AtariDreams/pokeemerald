@@ -60,6 +60,21 @@ enum
     HEALTHBOX_SAFARI_BALLS_TEXT
 };
 
+#if !MODERN
+extern const struct CompressedSpriteSheet sSpriteSheet_SinglesPlayerHealthbox;
+
+extern const struct CompressedSpriteSheet sSpriteSheet_SinglesOpponentHealthbox;
+extern const struct CompressedSpriteSheet sSpriteSheets_DoublesPlayerHealthbox[2];
+
+extern const struct CompressedSpriteSheet sSpriteSheets_DoublesOpponentHealthbox[2];
+
+extern const struct CompressedSpriteSheet sSpriteSheet_SafariHealthbox;
+
+extern const struct CompressedSpriteSheet sSpriteSheets_HealthBar[MAX_BATTLERS_COUNT];
+
+extern const struct SpritePalette sSpritePalettes_HealthBoxHealthBar[2];
+#endif
+
 u8 CreateBattlerHealthboxSprites(u8 battler);
 u8 CreateSafariPlayerHealthboxSprites(void);
 void SetBattleBarStruct(u8 battler, u8 healthboxSpriteId, s32 maxVal, s32 currVal, s32 receivedValue);
@@ -71,7 +86,7 @@ void UpdateOamPriorityInAllHealthboxes(u8 priority);
 void InitBattlerHealthboxCoords(u8 battler);
 void UpdateHpTextInHealthbox(u8 healthboxSpriteId, s16 value, u8 maxOrCurrent);
 void SwapHpBarsWithHpText(void);
-u8 CreatePartyStatusSummarySprites(u8 battler, struct HpAndStatus *partyInfo, bool8 skipPlayer, bool8 isBattleStart);
+u8 CreatePartyStatusSummarySprites(u8 battler, const struct HpAndStatus *partyInfo, bool8 skipPlayer, bool8 isBattleStart);
 void Task_HidePartyStatusSummary(u8 taskId);
 void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elementId);
 s32 MoveBattleBar(u8 battler, u8 healthboxSpriteId, u8 whichBar, u8 unused);

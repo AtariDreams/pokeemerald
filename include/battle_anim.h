@@ -28,7 +28,7 @@ struct BattleAnimBgData
 
 struct BattleAnimBackground
 {
-    const u32 *image;
+    const u8 *image;
     const u32 *palette;
     const u32 *tilemap;
 };
@@ -49,7 +49,7 @@ extern u8 gAnimMoveTurn;
 extern u8 gBattleAnimAttacker;
 extern u8 gBattleAnimTarget;
 extern u16 gAnimBattlerSpecies[MAX_BATTLERS_COUNT];
-extern u8 gAnimCustomPanning;
+extern s8 gAnimCustomPanning;
 
 void ClearBattleAnimationVars(void);
 void DoMoveAnim(u16 move);
@@ -62,16 +62,20 @@ void MoveBattlerSpriteToBG(u8 battlerId, bool8 toBG_2, bool8 setSpriteInvisible)
 bool8 IsContest(void);
 s8 BattleAnimAdjustPanning(s8 pan);
 s8 BattleAnimAdjustPanning2(s8 pan);
-s16 KeepPanInRange(s16 panArg, int oldPan);
+s16 KeepPanInRange(s16 panArg);
 s16 CalculatePanIncrement(s16 sourcePan, s16 targetPan, s16 incrementPan);
 void RelocateBattleBgPal(u16 paletteNum, u16 *dest, u32 offset, bool8 largeScreen);
 void ResetBattleAnimBg(bool8);
 
 // battle_intro.c
 void SetAnimBgAttribute(u8 bgId, u8 attributeId, u8 value);
-void DrawBattlerOnBg(int bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset);
+#if MODERN
+void DrawBattlerOnBg(u8 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset);
+#else
+void DrawBattlerOnBg(u32 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset);
+#endif
 void HandleIntroSlide(u8 terrainId);
-int GetAnimBgAttribute(u8 bgId, u8 attributeId);
+u8 GetAnimBgAttribute(u8 bgId, u8 attributeId);
 
 // battle_anim_mons.c
 void TranslateSpriteInEllipse(struct Sprite *sprite);
@@ -106,10 +110,10 @@ void InitAnimLinearTranslation(struct Sprite *sprite);
 void AnimTranslateLinear_WithFollowup(struct Sprite *sprite);
 u8 GetBattlerSpriteBGPriority(u8 battlerId);
 void *LoadPointerFromVars(s16 bottom, s16 top);
-void StorePointerInVars(s16 *bottom, s16 *top, const void *ptr);
+void StorePointerInVars(s16 *bottom, s16 *top, void *ptr);
 void InitPrioritiesForVisibleBattlers(void);
-void GetBattleAnimBg1Data(struct BattleAnimBgData*);
-void GetBattleAnimBgData(struct BattleAnimBgData*, u32 bgId);
+void GetBattleAnimBg1Data(struct BattleAnimBgData *);
+void GetBattleAnimBgData(struct BattleAnimBgData *, u32 bgId);
 u8 GetBattlerSpriteSubpriority(u8 battlerId);
 bool8 TranslateAnimHorizontalArc(struct Sprite *sprite);
 void TranslateSpriteLinearByIdFixedPoint(struct Sprite *sprite);
@@ -125,7 +129,7 @@ s16 CloneBattlerSpriteWithBlend(u8);
 void DestroySpriteWithActiveSheet(struct Sprite*);
 u8 CreateInvisibleSpriteCopy(int, u8, int);
 void AnimLoadCompressedBgTilemapHandleContest(struct BattleAnimBgData*, const void*, bool32);
-void AnimLoadCompressedBgGfx(u32, const u32*, u32);
+void AnimLoadCompressedBgGfx(u32, const u8*, u32);
 void UpdateAnimBg3ScreenSize(bool8);
 void TranslateSpriteInGrowingCircle(struct Sprite *);
 void SetBattlerSpriteYOffsetFromYScale(u8 spriteId);
@@ -186,7 +190,7 @@ u8 GetAnimBattlerSpriteId(u8 wantedBattler);
 bool8 IsDoubleBattle(void);
 u8 GetBattleBgPaletteNum(void);
 u8 GetBattlerSpriteBGPriorityRank(u8 battlerId);
-void StoreSpriteCallbackInData6(struct Sprite *sprite, void (*spriteCallback)(struct Sprite*));
+void StoreSpriteCallbackInData6(struct Sprite *sprite, void (*spriteCallback)(struct Sprite *));
 void SetSpritePrimaryCoordsFromSecondaryCoords(struct Sprite *sprite);
 u8 GetBattlerSpriteDefault_Y(u8 battlerId);
 u8 GetSubstituteSpriteDefault_Y(u8 battlerId);
@@ -213,11 +217,15 @@ u8 LaunchBallFadeMonTask(bool8 unFadeLater, u8 spritePalNum, u32 selectedPalette
 
 // battle_anim_utility_funcs.c
 void InitStatsChangeAnimation(u8);
-void StartMonScrollingBgMask(u8 taskId, int unused, u16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u32 *gfx, const u32 *tilemap, const u32 *palette);
+#if !MODERN
+void StartMonScrollingBgMask(u8 taskId, s16 unused, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u8 *gfx, const u32 *tilemap, const u32 *palette);
+#else
+void StartMonScrollingBgMask(u8 taskId, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u8 *gfx, const u32 *tilemap, const u32 *palette);
+#endif
 
 // battle_anim_effects_1.c
-void SetSpriteNextToMonHead(u8 battler, struct Sprite* sprite);
-void AnimMoveTwisterParticle(struct Sprite* sprite);
+void SetSpriteNextToMonHead(u8 battler, struct Sprite *sprite);
+void AnimMoveTwisterParticle(struct Sprite *sprite);
 void AnimParticleBurst(struct Sprite *);
 
 // battle_anim_water.c

@@ -108,7 +108,7 @@ static void ResetPokedexAreaMapBg(void);
 static void DestroyAreaScreenSprites(void);
 
 static const u32 sAreaGlow_Pal[] = INCBIN_U32("graphics/pokedex/area_glow.gbapal");
-static const u32 sAreaGlow_Gfx[] = INCBIN_U32("graphics/pokedex/area_glow.4bpp.lz");
+static const u8 sAreaGlow_Gfx[] = INCBIN_U8("graphics/pokedex/area_glow.4bpp.lz");
 
 static const u16 sSpeciesHiddenFromAreaScreen[] = { SPECIES_WYNAUT };
 
@@ -242,15 +242,18 @@ static bool8 DrawAreaGlow(void)
 static void FindMapsWithMon(u16 species)
 {
     u16 i;
-    struct Roamer *roamer;
 
     sPokedexAreaScreen->alteringCaveCounter = 0;
     sPokedexAreaScreen->alteringCaveId = VarGet(VAR_ALTERING_CAVE_WILD_SET);
     if (sPokedexAreaScreen->alteringCaveId >= NUM_ALTERING_CAVE_TABLES)
         sPokedexAreaScreen->alteringCaveId = 0;
 
-    roamer = &gSaveBlock1Ptr->roamer;
-    if (species != roamer->species)
+    // These are CONFIRMED to do the same thing. Just one generates worse code
+    #if MODERN
+    if (species != gSaveBlock1Ptr->roamer.species)
+    #else
+    if (species != (&gSaveBlock1Ptr->roamer)->species)
+    #endif
     {
         sPokedexAreaScreen->numOverworldAreas = 0;
         sPokedexAreaScreen->numSpecialAreas = 0;
@@ -306,7 +309,11 @@ static void FindMapsWithMon(u16 species)
     {
         // This is the roamer's species, show where the roamer is currently
         sPokedexAreaScreen->numSpecialAreas = 0;
-        if (roamer->active)
+        #if MODERN
+        if (gSaveBlock1Ptr->roamer.active)
+        #else
+        if ((&gSaveBlock1Ptr->roamer)->active)
+        #endif
         {
             GetRoamerLocation(&sPokedexAreaScreen->overworldAreasWithMons[0].mapGroup, &sPokedexAreaScreen->overworldAreasWithMons[0].mapNum);
             sPokedexAreaScreen->overworldAreasWithMons[0].regionMapSectionId = Overworld_GetMapHeaderByGroupAndId(sPokedexAreaScreen->overworldAreasWithMons[0].mapGroup, sPokedexAreaScreen->overworldAreasWithMons[0].mapNum)->regionMapSectionId;
@@ -391,6 +398,7 @@ static bool8 MapHasSpecies(const struct WildPokemonHeader *info, u16 species)
         return TRUE;
 // When searching the fishing encounters, this incorrectly uses the size of the land encounters.
 // As a result it's reading out of bounds of the fishing encounters tables.
+//TODO: investigate this
 #ifdef BUGFIX
     if (MonListHasSpecies(info->fishingMonsInfo, species, FISH_WILD_COUNT))
 #else
@@ -452,6 +460,8 @@ static void BuildAreaGlowTilemap(void)
                 // since there's no harm in OR'ing 0xFFFF with anything else.
 
                 // Edges
+                // TODO: get these removed later on if the compiler can optimize a read out if it is glowFull.
+                // See if the storing back takes longer than a check and jump/worth the cost
                 if (x != 0 && sPokedexAreaScreen->areaGlowTilemap[j - 1] != GLOW_FULL)
                     sPokedexAreaScreen->areaGlowTilemap[j - 1] |= GLOW_EDGE_L;
                 if (x != AREA_SCREEN_WIDTH - 1 && sPokedexAreaScreen->areaGlowTilemap[j + 1] != GLOW_FULL)
@@ -489,6 +499,7 @@ static void BuildAreaGlowTilemap(void)
         {
             // Get rid of overlapping flags.
             // This is pointless, as sAreaGlowTilemapMapping can handle overlaps.
+            #if !MODERN
             if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_L)
                 sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TL | GLOW_CORNER_BL);
             if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_R)
@@ -497,6 +508,7 @@ static void BuildAreaGlowTilemap(void)
                 sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TR | GLOW_CORNER_TL);
             if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_B)
                 sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_BR | GLOW_CORNER_BL);
+            #endif
 
             // Assign tile id
             sPokedexAreaScreen->areaGlowTilemap[i] = sAreaGlowTilemapMapping[sPokedexAreaScreen->areaGlowTilemap[i]];
@@ -641,7 +653,14 @@ static void Task_ShowPokedexAreaScreen(u8 taskId)
         SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG0 | BLDCNT_EFFECT_BLEND | BLDCNT_TGT2_BG0 | BLDCNT_TGT2_ALL);
         StartAreaGlow();
         ShowBg(2);
+        // TODO: check this
+        // THIS CAN ONLY BE DONE as the bg =3 in the template
+        // TODO: move that logic out and decouple it
+
+        // Since this will always be 3 anyway and TryShowPokedexAreaMap will always have the same result, we can optimize that out and more later
+        #if !MODERN
         ShowBg(3); // TryShowPokedexAreaMap will have done this already
+        #endif
         SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON);
         break;
     case 11:

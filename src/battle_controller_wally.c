@@ -316,14 +316,20 @@ static void Intro_TryShinyAnimShowHealthbox(void)
 
 }
 
+// so not supposed to be shiny but it has code handling it?! Ok then...
+// TODO: look into this
 static void Intro_WaitForShinyAnimAndHealthbox(void)
 {
+    #if !MODERN
     bool32 healthboxAnimDone = FALSE;
 
     if (gSprites[gHealthboxSpriteIds[gActiveBattler]].callback == SpriteCallbackDummy)
         healthboxAnimDone = TRUE;
 
     if (healthboxAnimDone && gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].finishedShinyMonAnim
+    #else
+    if (gSprites[gHealthboxSpriteIds[gActiveBattler]].callback == SpriteCallbackDummy && gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].finishedShinyMonAnim
+    #endif
         && gBattleSpritesDataPtr->healthBoxesData[gActiveBattler ^ BIT_FLANK].finishedShinyMonAnim)
     {
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].triedShinyMonAnim = FALSE;
@@ -428,7 +434,11 @@ static void WallyHandleGetMonData(void)
     u8 monData[sizeof(struct Pokemon) * 2 + 56]; // this allows to get full data of two pokemon, trying to get more will result in overwriting data
     u32 size = 0;
     u8 monToCheck;
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     if (gBattleBufferA[gActiveBattler][2] == 0)
     {
@@ -454,7 +464,11 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
     struct MovePpInfo moveData;
     u8 nickname[20];
     u8 *src;
+    #if !MODERN
     s16 data16;
+    #else
+    u16 data16; // this is what GF did
+    #endif
     u32 data32;
     s32 size = 0;
 
@@ -499,13 +513,13 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
         break;
     case REQUEST_SPECIES_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_HELDITEM_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_HELD_ITEM);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -516,7 +530,7 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
             moveData.pp[size] = GetMonData(&gPlayerParty[monId], MON_DATA_PP1 + size);
         }
         moveData.ppBonuses = GetMonData(&gPlayerParty[monId], MON_DATA_PP_BONUSES);
-        src = (u8*)(&moveData);
+        src = (u8 *)(&moveData);
         for (size = 0; size < sizeof(moveData); size++)
             dst[size] = src[size];
         break;
@@ -525,7 +539,7 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
     case REQUEST_MOVE3_BATTLE:
     case REQUEST_MOVE4_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_MOVE1 + gBattleBufferA[gActiveBattler][1] - REQUEST_MOVE1_BATTLE);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -647,7 +661,7 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
         break;
     case REQUEST_CHECKSUM_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_CHECKSUM);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -665,43 +679,43 @@ static u32 CopyWallyMonData(u8 monId, u8 *dst)
         break;
     case REQUEST_HP_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_HP);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_MAX_HP_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_MAX_HP);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_ATK_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_ATK);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_DEF_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_DEF);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_SPEED_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPEED);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_SPATK_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPATK);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
     case REQUEST_SPDEF_BATTLE:
         data16 = GetMonData(&gPlayerParty[monId], MON_DATA_SPDEF);
-        dst[0] = data16;
+        dst[0] = data16 & 0xFF;
         dst[1] = data16 >> 8;
         size = 2;
         break;
@@ -1116,13 +1130,13 @@ static void WallyHandleMoveAnimation(void)
     if (IsMoveWithoutAnimation(move, gAnimMoveTurn)) // always returns FALSE
     {
         WallyBufferExecCompleted();
+        return;
     }
     else
     {
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState = 0;
         gBattlerControllerFuncs[gActiveBattler] = WallyDoMoveAnimation;
     }
-
 }
 
 static void WallyDoMoveAnimation(void)
@@ -1176,7 +1190,7 @@ static void WallyHandlePrintString(void)
 
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
-    stringId = (u16*)(&gBattleBufferA[gActiveBattler][2]);
+    stringId = (u16 *)(&gBattleBufferA[gActiveBattler][2]);
     BufferStringBattle(*stringId);
     BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
     gBattlerControllerFuncs[gActiveBattler] = CompleteOnInactiveTextPrinter;
@@ -1202,7 +1216,11 @@ static void HandleChooseActionAfterDma3(void)
 
 static void WallyHandleChooseAction(void)
 {
+    #if !MODERN
     s32 i;
+    #else
+    u8 i;
+    #endif
 
     gBattlerControllerFuncs[gActiveBattler] = HandleChooseActionAfterDma3;
     BattlePutTextOnWindow(gText_BattleMenu, B_WIN_ACTION_MENU);
@@ -1271,7 +1289,6 @@ static void WallyHandleHealthBarUpdate(void)
 
     LoadBattleBarGfx(0);
     hpVal = gBattleBufferA[gActiveBattler][2] | (gBattleBufferA[gActiveBattler][3] << 8);
-
     if (hpVal != INSTANT_HP_BAR_DROP)
     {
         u32 maxHP = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP);
@@ -1286,7 +1303,6 @@ static void WallyHandleHealthBarUpdate(void)
         SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], maxHP, 0, hpVal);
         UpdateHpTextInHealthbox(gHealthboxSpriteIds[gActiveBattler], 0, HP_CURRENT);
     }
-
     gBattlerControllerFuncs[gActiveBattler] = CompleteOnHealthbarDone;
 }
 
@@ -1375,14 +1391,13 @@ static void WallyHandleHitAnimation(void)
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         WallyBufferExecCompleted();
+        return;
     }
-    else
-    {
-        gDoingBattleAnim = TRUE;
-        gSprites[gBattlerSpriteIds[gActiveBattler]].data[1] = 0;
-        DoHitAnimHealthboxEffect(gActiveBattler);
-        gBattlerControllerFuncs[gActiveBattler] = DoHitAnimBlinkSpriteEffect;
-    }
+
+    gDoingBattleAnim = TRUE;
+    gSprites[gBattlerSpriteIds[gActiveBattler]].data[1] = 0;
+    DoHitAnimHealthboxEffect(gActiveBattler);
+    gBattlerControllerFuncs[gActiveBattler] = DoHitAnimBlinkSpriteEffect;
 }
 
 static void WallyHandleCantSwitch(void)
@@ -1413,11 +1428,7 @@ static void WallyHandlePlayFanfareOrBGM(void)
 
 static void WallyHandleFaintingCry(void)
 {
-    u16 species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES);
-
-    // Seems that it doesn't bother using CRY_MODE_FAINT because
-    // Wally's Pokémon during the tutorial is never intended to faint.
-    PlayCry_Normal(species, 25);
+    PlayCry_Normal(GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_SPECIES), 25);
     WallyBufferExecCompleted();
 }
 
@@ -1487,21 +1498,21 @@ static void StartSendOutAnim(u8 battlerId)
 
 static void Task_StartSendOutAnim(u8 taskId)
 {
+    u8 savedActiveBank;
     if (gTasks[taskId].data[1] < 31)
     {
         gTasks[taskId].data[1]++;
+        return;
     }
-    else
-    {
-        u8 savedActiveBank = gActiveBattler;
 
-        gActiveBattler = gTasks[taskId].data[0];
-        gBattleBufferA[gActiveBattler][1] = gBattlerPartyIndexes[gActiveBattler];
-        StartSendOutAnim(gActiveBattler);
-        gBattlerControllerFuncs[gActiveBattler] = Intro_TryShinyAnimShowHealthbox;
-        gActiveBattler = savedActiveBank;
-        DestroyTask(taskId);
-    }
+    savedActiveBank = gActiveBattler;
+
+    gActiveBattler = gTasks[taskId].data[0];
+    gBattleBufferA[gActiveBattler][1] = gBattlerPartyIndexes[gActiveBattler];
+    StartSendOutAnim(gActiveBattler);
+    gBattlerControllerFuncs[gActiveBattler] = Intro_TryShinyAnimShowHealthbox;
+    gActiveBattler = savedActiveBank;
+    DestroyTask(taskId);
 }
 
 static void WallyHandleDrawPartyStatusSummary(void)
@@ -1509,13 +1520,12 @@ static void WallyHandleDrawPartyStatusSummary(void)
     if (gBattleBufferA[gActiveBattler][1] != 0 && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
     {
         WallyBufferExecCompleted();
+        return;
     }
-    else
-    {
-        gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].partyStatusSummaryShown = 1;
-        gBattlerStatusSummaryTaskId[gActiveBattler] = CreatePartyStatusSummarySprites(gActiveBattler, (struct HpAndStatus *)&gBattleBufferA[gActiveBattler][4], gBattleBufferA[gActiveBattler][1], gBattleBufferA[gActiveBattler][2]);
-        WallyBufferExecCompleted();
-    }
+
+    gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].partyStatusSummaryShown = 1;
+    gBattlerStatusSummaryTaskId[gActiveBattler] = CreatePartyStatusSummarySprites(gActiveBattler, (struct HpAndStatus *)&gBattleBufferA[gActiveBattler][4], gBattleBufferA[gActiveBattler][1], gBattleBufferA[gActiveBattler][2]);
+    WallyBufferExecCompleted();
 }
 
 static void WallyHandleHidePartyStatusSummary(void)

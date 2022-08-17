@@ -233,7 +233,7 @@ static const struct OamData sOamData_RotatingGateLarge =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_NORMAL,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -250,7 +250,7 @@ static const struct OamData sOamData_RotatingGateRegular =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_NORMAL,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(32x32),
     .x = 0,
@@ -663,22 +663,21 @@ static void RotatingGate_RotateInDirection(u8 gateId, u32 rotationDirection)
         if (orientation)
             orientation--;
         else
-            orientation = GATE_ORIENTATION_270;
+            orientation = GATE_ORIENTATION_MAX - 1;
     }
     else
     {
         orientation++;
-        orientation = orientation % GATE_ORIENTATION_MAX;
+        orientation %= GATE_ORIENTATION_MAX;
     }
     RotatingGate_SetGateOrientation(gateId, orientation);
 }
 
 static void RotatingGate_LoadPuzzleConfig(void)
 {
-    s32 puzzleType = GetCurrentMapRotatingGatePuzzleType();
     u32 i;
 
-    switch (puzzleType)
+    switch (GetCurrentMapRotatingGatePuzzleType())
     {
     case PUZZLE_FORTREE_CITY_GYM:
         sRotatingGate_PuzzleConfig = sRotatingGate_FortreePuzzleConfig;
@@ -789,22 +788,23 @@ static void SpriteCallback_RotatingGate(struct Sprite *sprite)
 
 static void RotatingGate_HideGatesOutsideViewport(struct Sprite *sprite)
 {
-    u16 x, y;
+    s16 x, y;
     s16 x2, y2;
 
     sprite->invisible = FALSE;
     x = sprite->x + sprite->x2 + sprite->centerToCornerVecX + gSpriteCoordOffsetX;
     y = sprite->y + sprite->y2 + sprite->centerToCornerVecY + gSpriteCoordOffsetY;
 
-    x2 = x + 64; // Dimensions of the rotating gate
-    y2 = y + 64;
+    x2 = (s16)((u16)x + 64); // Dimensions of the rotating gate
+    y2 = (s16)((u16)y + 64); // why not just do + 64?????! What difference does this make?!
+    // Maybe this should be u16 like it was before?!
 
-    if ((s16)x > DISPLAY_WIDTH + 16 - 1 || x2 < -16)
+    if (x >= DISPLAY_WIDTH + 16 || x2 < -16)
     {
         sprite->invisible = TRUE;
     }
 
-    if ((s16)y > DISPLAY_HEIGHT + 16 - 1 || y2 < -16)
+    if (y >= DISPLAY_HEIGHT + 16 || y2 < -16)
     {
         sprite->invisible = TRUE;
     }
@@ -872,9 +872,14 @@ static s32 RotatingGate_CanRotate(u8 gateId, s32 rotationDirection)
         {
             u8 armIndex = 2 * ((orientation + i) % 4) + j;
 
-            if (sRotatingGate_ArmLayout[shape][2 * i + j])
+            if (sRotatingGate_ArmLayout[shape][2 * i + j] == 0)
             {
-                if (MapGridIsImpassableAt(x + armPos[armIndex].x, y + armPos[armIndex].y) == TRUE)
+            #ifdef BUGFIX
+                // Collision has a range 0-3, any value != 0 is impassable
+                if (MapGridGetCollisionAt(x + armPos[armIndex].x, y + armPos[armIndex].y))
+            #else
+                if (MapGridGetCollisionAt(x + armPos[armIndex].x, y + armPos[armIndex].y) == 1)
+            #endif
                     return FALSE;
             }
         }
@@ -885,11 +890,13 @@ static s32 RotatingGate_CanRotate(u8 gateId, s32 rotationDirection)
 
 static s32 RotatingGate_HasArm(u8 gateId, u8 armInfo)
 {
-    s32 arm = armInfo / 2;
-    s32 isLongArm = armInfo % 2;
+    // Maybe these should be ints?
+    u8 arm = armInfo / 2;
+    u8 isLongArm = armInfo % 2;
 
     s8 armOrientation = (arm - RotatingGate_GetGateOrientation(gateId) + 4) % 4;
-    s32 shape = sRotatingGate_PuzzleConfig[gateId].shape;
+    
+    u8 shape = sRotatingGate_PuzzleConfig[gateId].shape;
     return sRotatingGate_ArmLayout[shape][armOrientation * 2 + isLongArm];
 }
 
@@ -930,7 +937,7 @@ void RotatingGate_InitPuzzle(void)
     }
 }
 
-void RotatingGatePuzzleCameraUpdate(u16 deltaX, u16 deltaY)
+void RotatingGatePuzzleCameraUpdate(s16 deltaX, s16 deltaY)
 {
     if (GetCurrentMapRotatingGatePuzzleType())
     {
@@ -949,7 +956,7 @@ void RotatingGate_InitPuzzleAndGraphics(void)
     }
 }
 
-bool8 CheckForRotatingGatePuzzleCollision(u8 direction, s16 x, s16 y)
+bool32 CheckForRotatingGatePuzzleCollision(u8 direction, s16 x, s16 y)
 {
     s32 i;
 
@@ -987,7 +994,7 @@ bool8 CheckForRotatingGatePuzzleCollision(u8 direction, s16 x, s16 y)
     return FALSE;
 }
 
-bool8 CheckForRotatingGatePuzzleCollisionWithoutAnimation(u8 direction, s16 x, s16 y)
+bool32 CheckForRotatingGatePuzzleCollisionWithoutAnimation(u8 direction, s16 x, s16 y)
 {
     s32 i;
 

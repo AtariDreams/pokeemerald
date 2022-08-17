@@ -67,12 +67,12 @@ static void IncrementCeilingCrumbleFinishedCount(void);
 static void WaitCeilingCrumble(u8);
 static void FinishCeilingCrumbleTask(u8);
 static void CreateCeilingCrumbleSprites(void);
-static void SpriteCB_CeilingCrumble(struct Sprite*);
+static void SpriteCB_CeilingCrumble(struct Sprite *);
 static void DoMirageTowerDisintegration(u8);
 static void InitMirageTowerShake(u8);
 static void Task_FossilFallAndSink(u8);
 static void SpriteCB_FallingFossil(struct Sprite *);
-static void UpdateDisintegrationEffect(u8*, u16, u8, u8, u8);
+static void UpdateDisintegrationEffect(u8 *, u16, u8, u8, u8);
 
 static const u8 sBlankTile_Gfx[32] = {0};
 static const u8 sMirageTower_Gfx[] = INCBIN_U8("graphics/misc/mirage_tower.4bpp");
@@ -133,7 +133,7 @@ static const struct OamData sOamData_FallingFossil =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -167,6 +167,8 @@ const struct PulseBlendSettings gMirageTowerPulseBlendSettings = {
     .numColors = 15,
     .delay = 5,
     .numFadeCycles = -1,
+    // GF wrote 11, but this is -5
+    //TODO: bug?
     .maxBlendCoeff = 11,
     .fadeType = 1,
     .restorePaletteOnUnload = FALSE,
@@ -189,7 +191,7 @@ static const struct OamData sOamData_CeilingCrumbleSmall =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(8x8),
     .x = 0,
@@ -227,7 +229,7 @@ static const struct OamData sOamData_CeilingCrumbleLarge =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(16x16),
     .x = 0,
@@ -249,20 +251,17 @@ static const struct SpriteTemplate sSpriteTemplate_CeilingCrumbleLarge = {
     .callback = SpriteCB_CeilingCrumble
 };
 
-EWRAM_DATA static u8* sMirageTowerGfxBuffer = NULL;
-EWRAM_DATA static u8* sMirageTowerTilemapBuffer = NULL;
+EWRAM_DATA static u8 *sMirageTowerGfxBuffer = NULL;
+EWRAM_DATA static u8 *sMirageTowerTilemapBuffer = NULL;
 EWRAM_DATA static struct FallAnim_Fossil *sFallingFossil = NULL;
 EWRAM_DATA static struct FallAnim_Tower *sFallingTower = NULL;
 EWRAM_DATA static struct BgRegOffsets *sBgShakeOffsets = NULL;
 EWRAM_DATA static struct MirageTowerPulseBlend *sMirageTowerPulseBlend = NULL;
 
-// Holds data about the disintegration effect for Mirage Tower / the unchosen fossil.
-// Never read, presumably for debugging
-static u16 sDebug_DisintegrationData[8];
-
 bool8 IsMirageTowerVisible(void)
 {
-    if (!(gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(ROUTE111) && gSaveBlock1Ptr->location.mapNum == MAP_NUM(ROUTE111)))
+    // TODO: flip this
+    if (gSaveBlock1Ptr->location.mapGroup != MAP_GROUP(ROUTE111) || gSaveBlock1Ptr->location.mapNum != MAP_NUM(ROUTE111))
         return FALSE;
     return FlagGet(FLAG_MIRAGE_TOWER_VISIBLE);
 }
@@ -315,8 +314,9 @@ void ClearMirageTowerPulseBlendEffect(void)
 
 void SetMirageTowerVisibility(void)
 {
-    u16 rand;
-    bool8 visible;
+    // bool32 works better, but random returns a u16?
+    // TODO: ask others about this
+    bool16 rand;
 
     if (VarGet(VAR_MIRAGE_TOWER_STATE))
     {
@@ -324,20 +324,21 @@ void SetMirageTowerVisibility(void)
         FlagClear(FLAG_MIRAGE_TOWER_VISIBLE);
         return;
     }
+    // Why even call random here? put it in ELSE block then!
+    // & 1 makes better code
+    rand = Random() % 2;
 
-    rand = Random();
-    visible = rand & 1;
     if (FlagGet(FLAG_FORCE_MIRAGE_TOWER_VISIBLE) == TRUE)
-        visible = TRUE;
+        rand = TRUE;
 
-    if (visible)
+    if (rand)
     {
         FlagSet(FLAG_MIRAGE_TOWER_VISIBLE);
         TryStartMirageTowerPulseBlendEffect();
-        return;
+        
     }
-
-    FlagClear(FLAG_MIRAGE_TOWER_VISIBLE);
+    else 
+        FlagClear(FLAG_MIRAGE_TOWER_VISIBLE);
 }
 
 void StartPlayerDescendMirageTower(void)
@@ -428,7 +429,11 @@ void DoMirageTowerCeilingCrumble(void)
 
 static void WaitCeilingCrumble(u8 taskId)
 {
+    #if MODERN
+    s16 *data = gTasks[taskId].data;
+    #else
     u16 *data = gTasks[taskId].data;
+    #endif
     data[1]++;
     // Either wait 1000 frames, or until all 16 crumble sprites and the one screen-shake task are completed.
     if (data[1] == 1000 || data[0] == 17)
@@ -447,6 +452,7 @@ static void CreateCeilingCrumbleSprites(void)
     u8 i;
     u8 spriteId;
 
+    //16x16
     for (i = 0; i < 8; i++)
     {
         spriteId = CreateSprite(&sSpriteTemplate_CeilingCrumbleLarge, sCeilingCrumblePositions[i][0] + 120, sCeilingCrumblePositions[i][1], 8);
@@ -454,6 +460,7 @@ static void CreateCeilingCrumbleSprites(void)
         gSprites[spriteId].oam.paletteNum = 0;
         gSprites[spriteId].data[0] = i;
     }
+    // 8x8
     for (i = 0; i < 8; i++)
     {
         spriteId = CreateSprite(&sSpriteTemplate_CeilingCrumbleSmall, sCeilingCrumblePositions[i][0] + 115, sCeilingCrumblePositions[i][1] - 3, 8);
@@ -463,7 +470,7 @@ static void CreateCeilingCrumbleSprites(void)
     }
 }
 
-static void SpriteCB_CeilingCrumble(struct Sprite* sprite)
+static void SpriteCB_CeilingCrumble(struct Sprite *sprite)
 {
     sprite->data[1] += 2;
     sprite->y2 = sprite->data[1] / 2;
@@ -476,7 +483,7 @@ static void SpriteCB_CeilingCrumble(struct Sprite* sprite)
 
 static void SetInvisibleMirageTowerMetatiles(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sInvisibleMirageTowerMetatiles); i++)
         MapGridSetMetatileIdAt(sInvisibleMirageTowerMetatiles[i].x + MAP_OFFSET,
                                sInvisibleMirageTowerMetatiles[i].y + MAP_OFFSET,
@@ -523,8 +530,6 @@ static void UpdateBgShake(u8 taskId)
 
 static void InitMirageTowerShake(u8 taskId)
 {
-    u8 zero;
-
     switch (gTasks[taskId].tState)
     {
     case 0:
@@ -560,9 +565,8 @@ static void InitMirageTowerShake(u8 taskId)
         break;
     case 6:
         sBgShakeOffsets = Alloc(sizeof(*sBgShakeOffsets));
-        zero = 0;
         sBgShakeOffsets->bgHOFS = 2;
-        sBgShakeOffsets->bgVOFS = zero;
+        sBgShakeOffsets->bgVOFS = 0;
         CreateTask(UpdateBgShake, 10);
         DestroyTask(taskId);
         EnableBothScriptContexts();
@@ -584,26 +588,27 @@ static void DoMirageTowerDisintegration(u8 taskId)
         sFallingTower = AllocZeroed(OUTER_BUFFER_LENGTH * sizeof(struct FallAnim_Tower));
         break;
     case 3:
-        if (gTasks[taskId].data[3] <= (OUTER_BUFFER_LENGTH - 1))
+        if (gTasks[taskId].data[3] < OUTER_BUFFER_LENGTH)
         {
             if (gTasks[taskId].data[1] > 1)
             {
                 // Initialize disintegration pattern
                 index = gTasks[taskId].data[3];
                 sFallingTower[index].disintegrateRand = Alloc(INNER_BUFFER_LENGTH);
-                for (i = 0; i <= (INNER_BUFFER_LENGTH - 1); i++)
+                for (i = 0; i < INNER_BUFFER_LENGTH; i++)
                     sFallingTower[index].disintegrateRand[i] = i;
 
                 // Randomize disintegration pattern
-                for (i = 0; i <= (INNER_BUFFER_LENGTH - 1); i++)
+                for (i = 0; i < INNER_BUFFER_LENGTH; i++)
                 {
                     u16 rand1, rand2, temp;
                     rand1 = Random() % INNER_BUFFER_LENGTH;
                     rand2 = Random() % INNER_BUFFER_LENGTH;
                     SWAP(sFallingTower[index].disintegrateRand[rand2], sFallingTower[index].disintegrateRand[rand1], temp);
                 }
-                if (gTasks[taskId].data[3] <= (OUTER_BUFFER_LENGTH - 1))
+                if (gTasks[taskId].data[3] < OUTER_BUFFER_LENGTH)
                     gTasks[taskId].data[3]++;
+                // Reset the time until the next delete line is generated
                 gTasks[taskId].data[1] = 0;
             }
             gTasks[taskId].data[1]++;
@@ -617,7 +622,7 @@ static void DoMirageTowerDisintegration(u8 taskId)
                             (OUTER_BUFFER_LENGTH - 1 - i) * INNER_BUFFER_LENGTH + sFallingTower[i].disintegrateRand[sFallingTower[i].disintegrateIdx++],
                             0, INNER_BUFFER_LENGTH, 1);
             }
-            if (sFallingTower[i].disintegrateIdx > (INNER_BUFFER_LENGTH - 1))
+            if (sFallingTower[i].disintegrateIdx >= INNER_BUFFER_LENGTH)
             {
                 FREE_AND_SET_NULL(sFallingTower[i].disintegrateRand);
                 gTasks[taskId].data[2]++;
@@ -634,7 +639,8 @@ static void DoMirageTowerDisintegration(u8 taskId)
         bgShakeTaskId = FindTaskIdByFunc(UpdateBgShake);
         if (bgShakeTaskId != TASK_NONE)
             DestroyTask(bgShakeTaskId);
-        sBgShakeOffsets->bgVOFS = sBgShakeOffsets->bgHOFS = 0;
+        sBgShakeOffsets->bgHOFS = 0;
+        sBgShakeOffsets->bgVOFS = 0;
         SetBgShakeOffsets();
         break;
     case 5:
@@ -653,9 +659,16 @@ static void DoMirageTowerDisintegration(u8 taskId)
         ShowBg(0);
         break;
     case 8:
+#ifdef UBFIX
+        EnableBothScriptContexts();
+        DestroyTask(taskId);
+
+        return;
+#else
         DestroyTask(taskId);
         EnableBothScriptContexts();
         break;
+#endif
     }
     gTasks[taskId].tState++;
 }
@@ -735,9 +748,14 @@ static void SpriteCB_FallingFossil(struct Sprite *sprite)
     else if (sprite->y >= 96)
     {
         // Fossil has reached the ground, update disintegration animation
+        #if !MODERN
         u8 i;
         for (i = 0; i < 2; i++)
             UpdateDisintegrationEffect(sFallingFossil->frameImageTiles, sFallingFossil->disintegrateRand[sFallingFossil->disintegrateIdx++], 0, 16, 0);
+        #else
+        UpdateDisintegrationEffect(sFallingFossil->frameImageTiles, sFallingFossil->disintegrateRand[sFallingFossil->disintegrateIdx++], 0, 16, 0);
+        UpdateDisintegrationEffect(sFallingFossil->frameImageTiles, sFallingFossil->disintegrateRand[sFallingFossil->disintegrateIdx++], 0, 16, 0);
+        #endif
 
         StartSpriteAnim(sprite, 0);
     }
@@ -748,37 +766,55 @@ static void SpriteCB_FallingFossil(struct Sprite *sprite)
     }
 }
 
-static void UpdateDisintegrationEffect(u8* tiles, u16 randId, u8 c, u8 size, u8 offset)
+static void UpdateDisintegrationEffect(u8 *tiles, u16 randId, u8 c, u8 size, u8 offset)
 {
+    // Holds data about the disintegration effect for Mirage Tower / the unchosen fossil.
+    // Never read, presumably for debugging
+    #if !MODERN
+    static u16 sDebug_DisintegrationData[8];
+    #endif
     u8 heightTiles, height, widthTiles, width;
     u16 var, baseOffset;
     u8 col, row;
     u8 flag, tileMask;
 
     height = randId / size;
+    #if !MODERN
     sDebug_DisintegrationData[0] = height;
+    #endif
 
     width = randId % size;
+
+    #if !MODERN
     sDebug_DisintegrationData[1] = width;
+    #endif
 
     row = height & 7;
     col = width & 7;
+    #if !MODERN
     sDebug_DisintegrationData[2] = height & 7;
     sDebug_DisintegrationData[3] = width & 7;
+    #endif
 
     widthTiles = width / 8;
     heightTiles = height / 8;
+    #if !MODERN
     sDebug_DisintegrationData[4] = width / 8;
     sDebug_DisintegrationData[5] = height / 8;
+    #endif
 
     var = (size / 8) * (heightTiles * 64) + (widthTiles * 64);
+    #if !MODERN
     sDebug_DisintegrationData[6] = var;
+    #endif
 
     baseOffset = var + ((row * 8) + col);
     baseOffset /= 2;
+    #if !MODERN
     sDebug_DisintegrationData[7] = var + ((row * 8) + col);
+    #endif
 
     flag = ((randId % 2) ^ 1);
-    tileMask = (c << (flag << 2)) | 15 << (((flag ^ 1) << 2));
+    tileMask = (c << (flag << 2)) | (15 << (((flag ^ 1) << 2)));
     tiles[baseOffset + (offset * 32)] &= tileMask;
 }

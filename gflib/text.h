@@ -65,7 +65,7 @@ struct TextPrinterSubStruct
 
 struct TextPrinterTemplate
 {
-    const u8* currentChar;
+    const u8 *currentChar;
     u8 windowId;
     u8 fontId;
     u8 x;
@@ -86,7 +86,12 @@ struct TextPrinter
 
     void (*callback)(struct TextPrinterTemplate *, u16); // 0x10
 
+    #if !MODERN
     u8 subStructFields[7]; // always cast to struct TextPrinterSubStruct... so why bother
+    #else
+    struct TextPrinterSubStruct subStructFields;
+    #endif
+
     u8 active;
     u8 state;       // 0x1C
     u8 textSpeed;
@@ -147,7 +152,7 @@ void SaveTextColors(u8 *fgColor, u8 *bgColor, u8 *shadowColor);
 void RestoreTextColors(u8 *fgColor, u8 *bgColor, u8 *shadowColor);
 void DecompressGlyphTile(const void *src_, void *dest_);
 void CopyGlyphToWindow(struct TextPrinter *x);
-void ClearTextSpan(struct TextPrinter *textPrinter, u32 width);
+void ClearTextSpan(struct TextPrinter *textPrinter, s32 width);
 u8 GetMenuCursorDimensionByFont(u8, u8);
 
 void TextPrinterInitDownArrowCounters(struct TextPrinter *textPrinter);
@@ -158,7 +163,7 @@ bool16 TextPrinterWaitWithDownArrow(struct TextPrinter *textPrinter);
 bool16 TextPrinterWait(struct TextPrinter *textPrinter);
 void DrawDownArrow(u8 windowId, u16 x, u16 y, u8 bgColor, bool8 drawArrow, u8 *counter, u8 *yCoordIndex);
 s32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing);
-u8 RenderTextHandleBold(u8 *pixels, u8 fontId, u8 *str);
+u8 RenderTextHandleBold(u8 *pixels, u8 fontId, const u8 *str);
 u8 DrawKeypadIcon(u8 windowId, u8 keypadIconId, u16 x, u16 y);
 u8 GetKeypadIconTileOffset(u8 keypadIconId);
 u8 GetKeypadIconWidth(u8 keypadIconId);

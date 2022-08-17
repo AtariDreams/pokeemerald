@@ -131,7 +131,7 @@ struct Weather
     s16 droughtState;
     u8 droughtUnused[9];
     s8 loadDroughtPalsIndex;
-    u8 loadDroughtPalsOffset;
+    s8 loadDroughtPalsOffset;
 };
 
 // field_weather.c
@@ -158,7 +158,7 @@ bool8 LoadDroughtWeatherPalettes(void);
 void DroughtStateInit(void);
 void DroughtStateRun(void);
 void Weather_SetBlendCoeffs(u8 eva, u8 evb);
-void Weather_SetTargetBlendCoeffs(u8 eva, u8 evb, int delay);
+void Weather_SetTargetBlendCoeffs(u8 eva, u8 evb, u8 delay);
 bool8 Weather_UpdateBlend(void);
 u8 GetCurrentWeather(void);
 void SetRainStrengthFromSoundEffect(u16 soundEffect);

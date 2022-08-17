@@ -45,9 +45,9 @@ static bool8 CirclesSymmetricSpiralInSeq_End(struct Task *task);
 
 #define PALTAG_LOGO_CIRCLES 0x2E90
 
-static const u32 sLogoCenter_Gfx[] = INCBIN_U32("graphics/battle_transitions/frontier_logo_center.4bpp.lz");
+static const u8 sLogoCenter_Gfx[] = INCBIN_U8("graphics/battle_transitions/frontier_logo_center.4bpp.lz");
 static const u32 sLogoCenter_Tilemap[] = INCBIN_U32("graphics/battle_transitions/frontier_logo_center.bin");
-static const u32 sLogoCircles_Gfx[] = INCBIN_U32("graphics/battle_transitions/frontier_logo_circles.4bpp.lz");
+static const u8 sLogoCircles_Gfx[] = INCBIN_U8("graphics/battle_transitions/frontier_logo_circles.4bpp.lz");
 static const u16 sLogo_Pal[] = INCBIN_U16("graphics/battle_transitions/frontier_logo_circles.gbapal");
 
 // Unused Empty data.
@@ -58,7 +58,7 @@ static const struct OamData sOamData_LogoCircles =
     .y = 0,
     .affineMode = ST_OAM_AFFINE_OFF,
     .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = 0,
+    .mosaic = FALSE,
     .bpp = ST_OAM_4BPP,
     .shape = SPRITE_SHAPE(64x64),
     .x = 0,
@@ -271,6 +271,7 @@ static void SpriteCB_LogoCircleSlide(struct Sprite *sprite)
     if (sprite->x == sTargetX && sprite->y == sTargetY)
     {
         sprite->callback = SpriteCallbackDummy;
+        return;
     }
     else
     {
@@ -300,7 +301,8 @@ static u8 CreateSpiralingLogoCircleSprite(s16 x, s16 y, s16 angle, s16 rotateSpe
 {
     u8 spriteId = CreateSprite(&sSpriteTemplate_LogoCircles, x, y, 0);
 
-    // Target coords are set but irrelevant
+    // Target coords are set but irrelevant.
+    // We can comment them out I think. TODO
     switch (spriteAnimNum)
     {
     case 0:

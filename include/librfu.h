@@ -281,17 +281,23 @@ struct RfuPacket8
     u8 data[0x74];
 };
 
+struct RfuPacket16
+{
+    u16 data[0x3A];
+};
+
 struct RfuPacket32
 {
-    u32 command;
-    u32 data[0x1C];
+    u32 data[0x1D];
 };
 
 union RfuPacket
 {
     struct RfuPacket32 rfuPacket32;
+    struct RfuPacket16 rfuPacket16;
     struct RfuPacket8 rfuPacket8;
 };
+    
 
 struct STWIStatus
 {
@@ -407,6 +413,7 @@ struct RfuTgtData
     u16 serialNo;                              // Game serial number of parent candidate                 Game serial number of connection partner
     u8  gname[RFU_GAME_NAME_LENGTH + 2];       // Game name of parent candidate                          Game name of connection partner
     u8  uname[RFU_USER_NAME_LENGTH + 1];       // User name for parent candidate                         User name for connection partner
+    u8  padding[2];
 };
 
 struct RfuLinkStatus

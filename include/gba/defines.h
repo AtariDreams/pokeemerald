@@ -7,20 +7,36 @@
 #define FALSE 0
 
 #define IWRAM_DATA __attribute__((section("iwram_data")))
+#if MODERN
 #define EWRAM_DATA __attribute__((section("ewram_data")))
+#else
+#define EWRAM_DATA
+#endif
 #define UNUSED __attribute__((unused))
 
 #if MODERN
 #define NOINLINE __attribute__((noinline))
+#define INLINE inline
+#define PURE __attribute__ ((pure))
+#define CONST __attribute__ ((const))
+#define LIKELY(x) __builtin_expect((x),1)
+#define UNLIKELY(x) __builtin_expect((x),0)
+#define NORETURN _Noreturn
 #else
 #define NOINLINE
+#define INLINE
+#define PURE
+#define CONST
+#define NORETURN
+#define LIKELY(x) x
+#define UNLIKELY(x) x
 #endif
 
 #define ALIGNED(n) __attribute__((aligned(n)))
 
 #define SOUND_INFO_PTR (*(struct SoundInfo **)0x3007FF0)
 #define INTR_CHECK     (*(u16 *)0x3007FF8)
-#define INTR_VECTOR    (*(void **)0x3007FFC)
+#define INTR_VECTOR    (*(u32 *)0x3007FFC)
 
 #define EWRAM_START 0x02000000
 #define EWRAM_END   (EWRAM_START + 0x40000)
@@ -48,6 +64,7 @@
 
 #define BG_TILE_H_FLIP(n) (0x400 + (n))
 #define BG_TILE_V_FLIP(n) (0x800 + (n))
+#define BG_TILE_HV_FLIP(n) (0xC00 + (n))
 
 #define NUM_BACKGROUNDS 4
 

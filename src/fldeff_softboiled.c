@@ -19,13 +19,11 @@ bool8 SetUpFieldMove_SoftBoiled(void)
 {
     u16 maxHp;
     u16 hp;
-    u16 minHp;
 
     maxHp = GetMonData(&gPlayerParty[GetCursorSelectionMonId()], MON_DATA_MAX_HP);
     hp = GetMonData(&gPlayerParty[GetCursorSelectionMonId()], MON_DATA_HP);
 
-    minHp = (maxHp / 5);
-    if (hp > minHp)
+    if (hp > (maxHp / 5))
         return TRUE;
     return FALSE;
 }
