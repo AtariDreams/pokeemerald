@@ -139,7 +139,7 @@ __attribute__((naked))
 void ReadFlash_Core(u8 *src, u8 *dest, u32 size)
 {
     //clang did this
-    asm_unified("cmp     r2, #0\n\
+    asm("cmp     r2, #0\n\
         beq     .LBB0_2 \n\
 .LBB0_1: \n\
         ldrb    r3, [r0]\n\
