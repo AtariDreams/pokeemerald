@@ -70,7 +70,7 @@ static s16 GetSavedTrendIndex(struct DewfordTrend *, struct DewfordTrend *, u16)
 
 void InitDewfordTrend(void)
 {
-    u16 i;
+    m16 i;
 
     for (i = 0; i < SAVED_TRENDS_COUNT; i++)
     {
@@ -90,58 +90,60 @@ void InitDewfordTrend(void)
 void UpdateDewfordTrendPerDay(u16 days)
 {
     u16 i;
+    u32 clockRand, trendiness, newTrendiness;
 
-    if (days != 0)
+    if (days == 0)
     {
-        u32 clockRand = days * 5;
-
-        for (i = 0; i < SAVED_TRENDS_COUNT; i++)
-        {
-            u32 trendiness;
-            u32 rand = clockRand;
-            struct DewfordTrend *trend = &gSaveBlock1Ptr->dewfordTrends[i];
-
-            if (!trend->gainingTrendiness)
-            {
-                // This trend is "boring"
-                // Lose trendiness until it becomes 0
-                if (trend->trendiness >= (u16)rand)
-                {
-                    trend->trendiness -= rand;
-                    if (trend->trendiness == 0)
-                        trend->gainingTrendiness = TRUE;
-                    continue;
-                }
-                rand -= trend->trendiness;
-                trend->trendiness = 0;
-                trend->gainingTrendiness = TRUE;
-            }
-
-            trendiness = trend->trendiness + rand;
-            if ((u16)trendiness > trend->maxTrendiness)
-            {
-                // Reached limit, reset trendiness
-                u32 newTrendiness = trendiness % trend->maxTrendiness;
-                trendiness = trendiness / trend->maxTrendiness;
-
-                trend->gainingTrendiness = trendiness ^ 1;
-                if (trend->gainingTrendiness)
-                    trend->trendiness = newTrendiness;
-                else
-                    trend->trendiness = trend->maxTrendiness - newTrendiness;
-            }
-            else
-            {
-                // Increase trendiness
-                trend->trendiness = trendiness;
-
-                // Trend has reached its max, becoming "boring" and start losing trendiness
-                if (trend->trendiness == trend->maxTrendiness)
-                    trend->gainingTrendiness = FALSE;
-            }
-        }
-        SortTrends(gSaveBlock1Ptr->dewfordTrends, SAVED_TRENDS_COUNT, SORT_MODE_NORMAL);
+        return;
     }
+    
+    clockRand = 5 * days;
+
+    for (i = 0; i < SAVED_TRENDS_COUNT; i++)
+    {
+        u32 rand = clockRand;
+        struct DewfordTrend *trend = &gSaveBlock1Ptr->dewfordTrends[i];
+
+        if (!trend->gainingTrendiness)
+        {
+            // This trend is "boring"
+            // Lose trendiness until it becomes 0
+            if (trend->trendiness >= (u16)rand)
+            {
+                trend->trendiness -= rand;
+                if (trend->trendiness == 0)
+                    trend->gainingTrendiness = TRUE;
+                continue;
+            }
+            rand -= trend->trendiness;
+            trend->trendiness = 0;
+            trend->gainingTrendiness = TRUE;
+        }
+
+        trendiness = trend->trendiness + rand;
+        if ((u16)trendiness > trend->maxTrendiness)
+        {
+            // Reached limit, reset trendiness
+            u32 newTrendiness = trendiness % trend->maxTrendiness;
+            trendiness = trendiness / trend->maxTrendiness;
+
+            trend->gainingTrendiness = trendiness ^ 1;
+            if (trend->gainingTrendiness)
+                trend->trendiness = newTrendiness;
+            else
+                trend->trendiness = trend->maxTrendiness - newTrendiness;
+        }
+        else
+        {
+            // Increase trendiness
+            trend->trendiness = trendiness;
+
+            // Trend has reached its max, becoming "boring" and start losing trendiness
+            if (trend->trendiness == trend->maxTrendiness)
+                trend->gainingTrendiness = FALSE;
+        }
+    }
+    SortTrends(gSaveBlock1Ptr->dewfordTrends, SAVED_TRENDS_COUNT, SORT_MODE_NORMAL);
 }
 
 // Returns TRUE if the current trendy phrase was successfully changed to the given phrase
@@ -150,7 +152,7 @@ void UpdateDewfordTrendPerDay(u16 days)
 // phrase is always saved in gSaveBlock1Ptr->dewfordTrends
 bool8 TrySetTrendyPhrase(u16 *phrase)
 {
-    struct DewfordTrend trend = {0};
+    struct DewfordTrend trend = {};
     u16 i;
 
     if (!IsPhraseInSavedTrends(phrase))
