@@ -85,8 +85,7 @@ static void WaitForVBlank(void);
 void EnableVCountIntrAtLine150(void);
 
 #define B_START_SELECT (B_BUTTON | START_BUTTON | SELECT_BUTTON)
-
-void AgbMain()
+NORETURN void AgbMain(void)
 {
     // Modern compilers are liberal with the stack on entry to this function,
     // so RegisterRamReset may crash if it resets IWRAM.
@@ -465,7 +464,7 @@ void ClearTrainerHillVBlankCounter(void)
     gTrainerHillVBlankCounter = NULL;
 }
 
-void DoSoftReset(void)
+NORETURN void DoSoftReset(void)
 {
     REG_IME = 0;
     m4aSoundVSyncOff();

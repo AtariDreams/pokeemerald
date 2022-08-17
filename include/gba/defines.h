@@ -19,9 +19,11 @@
 #define PURE __attribute__ ((pure))
 #define LIKELY(x) __builtin_expect((x),1)
 #define UNLIKELY(x) __builtin_expect((x),0)
+#define NORETURN _Noreturn
 #else
 #define NOINLINE
 #define PURE
+#define NORETURN
 #define LIKELY(x) x
 #define UNLIKELY(x) x
 #endif
