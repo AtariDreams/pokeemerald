@@ -33,8 +33,11 @@ void ResetLotteryCorner(void)
 void SetRandomLotteryNumber(u16 i)
 {
     u32 var = Random();
-
+    #if !MODERN
     while (i--)
+    #else
+    for (; i; i--)
+    #endif
         var = ISO_RANDOMIZE2(var);
 
     SetLotteryNumber(var);
