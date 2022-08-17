@@ -468,7 +468,7 @@ void Pokenav_AllocAndLoadPalettes(const struct SpritePalette *palettes)
 
 void PokenavFillPalette(u32 palIndex, u16 fillValue)
 {
-    CpuFill16(fillValue, gPlttBufferFaded + 0x100 + (palIndex * 16), 16 * sizeof(u16));
+    CpuFill16(fillValue, gPlttBufferFaded + 0x100 + (palIndex << 4), 16 * sizeof(u16));
 }
 
 void PokenavCopyPalette(const u16 *src, const u16 *dest, int size, int a3, int a4, u16 *palette)
