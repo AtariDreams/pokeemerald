@@ -480,11 +480,11 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
                 for (i = 0; i < 16; i++)
                 {
                     // Apply gamma shift to the original color.
-                    // Should we copy data or do the casting
-                    struct RGBColor baseColor = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                    r = gammaTable[baseColor.r];
-                    g = gammaTable[baseColor.g];
-                    b = gammaTable[baseColor.b];
+                    // Should we copy data or do the casting? It matches either way
+                    struct RGBColor *baseColor = (struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+                    r = gammaTable[baseColor->r];
+                    g = gammaTable[baseColor->g];
+                    b = gammaTable[baseColor->b];
                     gPlttBufferFaded[palOffset++] = RGB2(r, g, b);
                 }
             }
@@ -504,7 +504,6 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
                 // No palette change.
                 CpuFastCopy(gPlttBufferUnfaded + palOffset, gPlttBufferFaded + palOffset, 16 * sizeof(u16));
                 palOffset += 16;
-                continue;
             }
             else
             {
@@ -536,12 +535,11 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
     u8 gBlend = color.g;
     u8 bBlend = color.b;
 
-    palOffset = startPalIndex * 16;
+    palOffset = startPalIndex << 4;
     numPalettes += startPalIndex;
     gammaIndex--;
-    curPalIndex = startPalIndex;
 
-    while (curPalIndex < numPalettes)
+    for (curPalIndex = startPalIndex; curPalIndex < numPalettes; curPalIndex++)
     {
         if (sPaletteGammaTypes[curPalIndex] == GAMMA_NONE)
         {
@@ -572,8 +570,6 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
                 gPlttBufferFaded[palOffset++] = RGB2(r, g, b);
             }
         }
-
-        curPalIndex++;
     }
 }
 
@@ -605,7 +601,9 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
         {
             for (i = 0; i < 16; i++)
             {
-                u32 offset;
+                // SHould this be u16 or u32?
+                // both match, and the compiler seems to be able to optimize it out?
+                u16 offset;
                 struct RGBColor color1;
                 struct RGBColor color2;
                 u8 r1, g1, b1;
@@ -650,10 +648,10 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
     {
         if (LightenSpritePaletteInFog(curPalIndex))
         {
-            u16 palEnd = (curPalIndex + 1) * 16;
-            u16 palOffset = curPalIndex * 16;
+            u16 palEnd = (curPalIndex + 1) << 4;
+            u16 palOffset; 
 
-            while (palOffset < palEnd)
+            for (palOffset = curPalIndex << 4; palOffset < palEnd; palOffset++)
             {
                 struct RGBColor color = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
                 u8 r = color.r;
@@ -669,7 +667,6 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
                 b += ((bBlend - b) * blendCoeff) >> 4;
 
                 gPlttBufferFaded[palOffset] = RGB2(r, g, b);
-                palOffset++;
             }
         }
         else
