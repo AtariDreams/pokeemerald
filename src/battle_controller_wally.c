@@ -1290,7 +1290,7 @@ static void WallyHandleHealthBarUpdate(void)
 
     LoadBattleBarGfx(0);
     hpVal = gBattleBufferA[gActiveBattler][2] | (gBattleBufferA[gActiveBattler][3] << 8);
-
+    // TODO: maybe the way it was before is better
     if (hpVal != INSTANT_HP_BAR_DROP)
     {
         SetBattleBarStruct(gActiveBattler, gHealthboxSpriteIds[gActiveBattler], GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_MAX_HP), GetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_HP), hpVal);
