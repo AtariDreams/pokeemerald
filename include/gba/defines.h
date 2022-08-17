@@ -16,6 +16,7 @@
 
 #if MODERN
 #define NOINLINE __attribute__((noinline))
+#define INLINE inline
 #define PURE __attribute__ ((pure))
 #define CONST __attribute__ ((const))
 #define LIKELY(x) __builtin_expect((x),1)
@@ -23,6 +24,7 @@
 #define NORETURN _Noreturn
 #else
 #define NOINLINE
+#define INLINE
 #define PURE
 #define CONST
 #define NORETURN

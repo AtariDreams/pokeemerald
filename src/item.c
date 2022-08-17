@@ -467,7 +467,7 @@ static s32 FindFreePCItemSlot(void)
 u8 CountUsedPCItemSlots(void)
 {
     u8 usedSlots = 0;
-    u8 i;
+    m8 i;
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
