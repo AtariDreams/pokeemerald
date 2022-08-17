@@ -100,7 +100,9 @@ static u16 GetNumWordsInSelectedGroup(void);
 static void SetSelectedWord(u16);
 static u16 GetSelectedWordIndex(void);
 static u16 GetWordFromSelectedGroup(u16);
+#if !MODERN
 static bool32 DummyWordCheck(u16);
+#endif
 static u16 GetWordIndexToReplace(void);
 static u16 MoveKeyboardCursor_GroupNames(u32);
 static int MoveKeyboardCursor_Alphabet(u32);
@@ -1438,7 +1440,7 @@ static void ExitEasyChatScreen(MainCallback callback)
 
 void ShowEasyChatScreen(void)
 {
-    int i;
+    m32 i;
     u16 *words;
     struct MauvilleManBard *bard;
     u8 displayedPersonType = EASY_CHAT_PERSON_DISPLAY_NONE;
@@ -2250,6 +2252,7 @@ static u16 DeleteSelectedWord(void)
 static u16 SelectNewWord(void)
 {
     u16 easyChatWord = GetWordFromSelectedGroup(GetSelectedWordIndex());
+    #if !MODERN
     if (DummyWordCheck(easyChatWord))
     {
         // Never reached. Would disallow selecting certain words
@@ -2258,6 +2261,7 @@ static u16 SelectNewWord(void)
     }
     else
     {
+        #endif
         SetSelectedWord(easyChatWord);
         if (sEasyChatScreen->type != EASY_CHAT_TYPE_BARD_SONG)
         {
@@ -2269,7 +2273,9 @@ static u16 SelectNewWord(void)
             sEasyChatScreen->inputState = INPUTSTATE_START_CONFIRM_LYRICS;
             return ECFUNC_PROMPT_CONFIRM_LYRICS;
         }
+    #if !MODERN
     }
+    #endif
 }
 
 static void SaveCurrentPhrase(void)
@@ -2858,7 +2864,7 @@ static u8 GetEachChatScreenTemplateId(u8 type)
 
 static bool32 IsCurrentPhraseEmpty(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < sEasyChatScreen->maxWords; i++)
     {
@@ -2871,7 +2877,7 @@ static bool32 IsCurrentPhraseEmpty(void)
 
 static bool32 IsCurrentPhraseFull(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < sEasyChatScreen->maxWords; i++)
     {
@@ -2884,7 +2890,7 @@ static bool32 IsCurrentPhraseFull(void)
 
 static bool32 IsQuizQuestionEmpty(void)
 {
-    int i;
+    m32 i;
     struct LilycoveLadyQuiz *quiz;
 
     if (sEasyChatScreen->type == EASY_CHAT_TYPE_QUIZ_SET_QUESTION)
@@ -2994,10 +3000,12 @@ static void ClearUnusedField(void)
     sEasyChatScreen->unused = 0;
 }
 
+#if !MODERN
 static bool32 DummyWordCheck(u16 easyChatWord)
 {
     return FALSE;
 }
+#endif
 
 static bool8 InitEasyChatScreenControl(void)
 {
@@ -4046,11 +4054,6 @@ static void PrintCurrentPhrase(void)
     bool32 isQuizQuestion;
     int i, j, k;
 
-    #if MODERN
-    // TODO: what is 17 here?
-    u8 strClear[4] = {CHAR_NEWLINE, CHAR_U_GRAVE, 17, EOS};
-    #endif
-
     currentPhrase = GetCurrentPhrase();
     numColumns = GetNumColumns();
     numRows = GetNumRows();
@@ -4063,17 +4066,17 @@ static void PrintCurrentPhrase(void)
     {
         #if MODERN
         // Size is 4.
-
-        strClear[2] = isQuizQuestion ? 6 : CHAR_U_GRAVE;
+        // TODO: what is 17 here?
+        u8 strClear[4] = _("{CLEAR 17}");
         #else
         
         memcpy(strClear, sText_Clear17, sizeof(sText_Clear17));
+        #endif
 
 
         if (isQuizQuestion)
             strClear[2] = 6;
-        #endif
-
+ 
         str = sScreenControl->phrasePrintBuffer;
         *str = EOS;
         str = StringAppend(str, strClear);
@@ -4332,10 +4335,14 @@ static void PrintWordSelectText(u8 scrollOffset, u8 numRows)
             if (easyChatWord != EC_EMPTY_WORD)
             {
                 CopyEasyChatWordPadded(sScreenControl->wordSelectPrintBuffer, easyChatWord, 0);
+                #if !MODERN
                 if (!DummyWordCheck(easyChatWord))
+                #endif
                     PrintEasyChatText(2, FONT_NORMAL, sScreenControl->wordSelectPrintBuffer, (j * 13 + 3) * 8, y, TEXT_SKIP_DRAW, NULL);
+                #if !MODERN
                 else // Never reached
                     PrintEasyChatTextWithColors(2, FONT_NORMAL, sScreenControl->wordSelectPrintBuffer, (j * 13 + 3) * 8, y, TEXT_SKIP_DRAW, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_RED, TEXT_COLOR_LIGHT_GRAY);
+                #endif
             }
         }
 
@@ -5573,7 +5580,11 @@ static void FreeEasyChatScreenWordData(void)
 
 static void SetUnlockedEasyChatGroups(void)
 {
+    #if !MODERN
     int i;
+    #else
+    u16 i;
+    #endif
 
     sWordData->numUnlockedGroups = 0;
     if (GetNationalPokedexCount(FLAG_GET_SEEN))
@@ -5645,11 +5656,11 @@ static u8 *CopyEasyChatWordPadded(u8 *dest, u16 easyChatWord, u16 totalChars)
 static void SetUnlockedWordsByAlphabet(void)
 {
     // Should all be u32
-    int i, j, k;
-    int numWords;
+    m32 i, j, k;
+    m32 numWords;
     const u16 *words;
-    int numToProcess;
-    int index;
+    m32 numToProcess;
+    m32 index;
 
     for (i = 0; i < EC_NUM_ALPHABET_GROUPS; i++)
     {
@@ -5687,10 +5698,18 @@ static void SetUnlockedWordsByAlphabet(void)
 
 static void SetSelectedWordGroup(bool32 inAlphabetMode, u16 groupId)
 {
+    #if !MODERN
     if (!inAlphabetMode)
         sWordData->numSelectedGroupWords = SetSelectedWordGroup_GroupMode(groupId);
     else
         sWordData->numSelectedGroupWords = SetSelectedWordGroup_AlphabetMode(groupId);
+    #else
+     if (inAlphabetMode)
+        sWordData->numSelectedGroupWords = SetSelectedWordGroup_AlphabetMode(groupId);
+    else
+        sWordData->numSelectedGroupWords = SetSelectedWordGroup_GroupMode(groupId);
+    #endif
+
 }
 
 static u16 GetWordFromSelectedGroup(u16 index)
@@ -5742,7 +5761,7 @@ static u16 SetSelectedWordGroup_GroupMode(u16 groupId)
 
 static u16 SetSelectedWordGroup_AlphabetMode(u16 groupId)
 {
-    u16 i;
+    m16 i;
     u16 totalWords;
 
     for (i = 0, totalWords = 0; i < sWordData->numUnlockedAlphabetWords[groupId]; i++)
