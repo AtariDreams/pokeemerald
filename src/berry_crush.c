@@ -2393,6 +2393,7 @@ static u32 Cmd_WaitPaletteFade(struct BerryCrushGame *game, u8 *args)
         {
             return 0;
         }
+        break;
     case 3:
         RunOrScheduleCommand(game->afterPalFadeCmd, SCHEDULE_CMD, NULL);
         game->cmdState = 0;
