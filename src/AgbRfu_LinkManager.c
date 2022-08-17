@@ -594,7 +594,7 @@ static void rfu_LMAN_REQ_callback(u16 reqCommandId, u16 reqResult)
 {
     u8 status;
     u8 *stwiRecvBuffer;
-    u8 i;
+    m8 i;
 
     if (lman.active != 0)
     {
@@ -1252,7 +1252,7 @@ static void rfu_LMAN_reflectCommunicationStatus(u8 bm_disconnectedSlot)
 static void rfu_LMAN_checkNICommunicateStatus(void)
 {
     u8 i;
-    u8 j;
+    m8 j;
     u8 flags;
 
     if (lman.NI_failCounter_limit)
