@@ -238,15 +238,21 @@ static void ApplyImageEffect_Blur(void)
 static void ApplyImageEffect_PersonalityColor(u8 personality)
 {
     u8 i, j;
-
+    u16* pixel;
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
-                *pixel = QuantizePixel_PersonalityColor(pixel, personality);
+            if (IS_ALPHA(*pixel))
+            {
+                continue;
+            }
+            *pixel = QuantizePixel_PersonalityColor(pixel, personality);
         }
     }
 }
@@ -282,8 +288,12 @@ static void ApplyImageEffect_BlackOutline(void)
     // Handle top row of pixels first.
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
+
         *pixel = QuantizePixel_BlackOutline(pixel, pixel + 1);
         for (i = 1, pixel++; i < gCanvasColumnEnd - 1; i++, pixel++)
         {
@@ -297,8 +307,12 @@ static void ApplyImageEffect_BlackOutline(void)
     // Handle each column from left to right.
     for (i = 0; i < gCanvasColumnEnd; i++)
     {
-        u16 *pixelRow = &gCanvasPixels[gCanvasRowStart * gCanvasWidth];
-        pixel = &pixelRow[gCanvasColumnStart + i];
+        #if MODERN
+        pixel = &gCanvasPixels[gCanvasRowStart * gCanvasWidth + gCanvasColumnStart + i];
+        #else
+        pixel = gCanvasPixels + gCanvasRowStart * gCanvasWidth + (gCanvasColumnStart + i);
+        #endif
+        
         *pixel = QuantizePixel_BlackOutline(pixel, pixel + gCanvasWidth);
         for (j = 1, pixel += gCanvasWidth; j < gCanvasRowEnd - 1; j++, pixel += gCanvasWidth)
         {
