@@ -13,29 +13,6 @@
 #include "sound.h"
 #include "constants/songs.h"
 
-struct UnkIndicatorsStruct
-{
-    u8 field_0;
-    u16 *field_4;
-    u16 field_8;
-    u16 field_A;
-    u16 field_C;
-    u16 field_E;
-    u8 field_10;
-    u8 field_11;
-    u8 field_12;
-    u8 field_13;
-    u8 field_14_0:4;
-    u8 field_14_1:4;
-    u8 field_15_0:4;
-    u8 field_15_1:4;
-    u8 field_16_0:3;
-    u8 field_16_1:3;
-    u8 field_16_2:2;
-    u8 field_17_0:6;
-    u8 field_17_1:2;
-};
-
 struct ScrollIndicatorPair
 {
     u8 field_0;
@@ -316,8 +293,8 @@ s32 DoMysteryGiftListMenu(const struct WindowTemplate *windowTemplate, const str
 {
     switch (sMysteryGiftLinkMenu.state)
     {
-    case 0:
     default:
+    case 0:
         sMysteryGiftLinkMenu.windowId = AddWindow(windowTemplate);
         switch (drawMode)
         {
@@ -339,6 +316,7 @@ s32 DoMysteryGiftListMenu(const struct WindowTemplate *windowTemplate, const str
         {
             sMysteryGiftLinkMenu.state = 2;
         }
+        // no else if?
         if (JOY_NEW(B_BUTTON))
         {
             sMysteryGiftLinkMenu.currItemId = LIST_CANCEL;
@@ -346,22 +324,15 @@ s32 DoMysteryGiftListMenu(const struct WindowTemplate *windowTemplate, const str
         }
         if (sMysteryGiftLinkMenu.state == 2)
         {
-            if (drawMode == 0)
+            switch (drawMode)
             {
+            case 0:
                 ClearWindowTilemap(sMysteryGiftLinkMenu.windowId);
-            }
-            else
-            {
-                switch (drawMode)
-                {
-                case 0: // can never be reached, because of the if statement above
-                    ClearStdWindowAndFrame(sMysteryGiftLinkMenu.windowId, FALSE);
-                    break;
-                case 2:
-                case 1:
-                    ClearStdWindowAndFrame(sMysteryGiftLinkMenu.windowId, FALSE);
-                    break;
-                }
+                break;
+            case 2:
+            case 1:
+                ClearStdWindowAndFrame(sMysteryGiftLinkMenu.windowId, FALSE);
+                break;
             }
 
             CopyWindowToVram(sMysteryGiftLinkMenu.windowId, COPYWIN_MAP);
@@ -691,18 +662,21 @@ static u8 ListMenuAddCursorObject(struct ListMenu *list, u32 cursorKind)
 
 static void ListMenuErasePrintedCursor(struct ListMenu *list, u16 selectedRow)
 {
+    #if !MODERN
     u8 cursorKind = list->template.cursorKind;
     if (cursorKind == 0)
+    #else
+    if (list->template.cursorKind == 0)
+    #endif
     {
         u8 yMultiplier = GetFontAttribute(list->template.fontId, FONTATTR_MAX_LETTER_HEIGHT) + list->template.itemVerticalPadding;
-        u8 width  = GetMenuCursorDimensionByFont(list->template.fontId, 0);
-        u8 height = GetMenuCursorDimensionByFont(list->template.fontId, 1);
+
         FillWindowPixelRect(list->template.windowId,
                             PIXEL_FILL(list->template.fillValue),
                             list->template.cursor_X,
                             selectedRow * yMultiplier + list->template.upText_Y,
-                            width,
-                            height);
+                            GetMenuCursorDimensionByFont(list->template.fontId, 0),
+                            GetMenuCursorDimensionByFont(list->template.fontId, 1));
     }
 }
 
@@ -711,7 +685,6 @@ static u8 ListMenuUpdateSelectedRowIndexAndScrollOffset(struct ListMenu *list, b
     u16 selectedRow = list->selectedRow;
     u16 scrollOffset = list->scrollOffset;
     u16 newRow;
-    u32 newScroll;
 
     if (!movingDown)
     {
@@ -722,7 +695,9 @@ static u8 ListMenuUpdateSelectedRowIndexAndScrollOffset(struct ListMenu *list, b
 
         if (scrollOffset == 0)
         {
-            while (selectedRow != 0)
+            // !=0 or > 0?
+            // It's unsigned so it doesn't matter but also consistency
+            while (selectedRow > 0)
             {
                 selectedRow--;
                 if (list->template.items[scrollOffset + selectedRow].id != LIST_HEADER)
@@ -734,20 +709,20 @@ static u8 ListMenuUpdateSelectedRowIndexAndScrollOffset(struct ListMenu *list, b
 
             return 0;
         }
-        else
-        {
-            while (selectedRow > newRow)
-            {
-                selectedRow--;
-                if (list->template.items[scrollOffset + selectedRow].id != LIST_HEADER)
-                {
-                    list->selectedRow = selectedRow;
-                    return 1;
-                }
-            }
 
-            newScroll = scrollOffset - 1;
+        while (selectedRow > newRow)
+        {
+            selectedRow--;
+            if (list->template.items[scrollOffset + selectedRow].id != LIST_HEADER)
+            {
+                list->selectedRow = selectedRow;
+                return 1;
+            }
         }
+
+        scrollOffset--;
+        list->selectedRow = newRow;
+        list->scrollOffset = scrollOffset;
     }
     else
     {
@@ -770,24 +745,22 @@ static u8 ListMenuUpdateSelectedRowIndexAndScrollOffset(struct ListMenu *list, b
 
             return 0;
         }
-        else
-        {
-            while (selectedRow < newRow)
-            {
-                selectedRow++;
-                if (list->template.items[scrollOffset + selectedRow].id != LIST_HEADER)
-                {
-                    list->selectedRow = selectedRow;
-                    return 1;
-                }
-            }
 
-            newScroll = scrollOffset + 1;
+        while (selectedRow < newRow)
+        {
+            selectedRow++;
+            if (list->template.items[scrollOffset + selectedRow].id != LIST_HEADER)
+            {
+                list->selectedRow = selectedRow;
+                return 1;
+            }
         }
+
+        scrollOffset++;
+        list->selectedRow = newRow;
+        list->scrollOffset = scrollOffset;
     }
 
-    list->selectedRow = newRow;
-    list->scrollOffset = newScroll;
     return 2;
 }
 
@@ -797,6 +770,7 @@ static void ListMenuScroll(struct ListMenu *list, u8 count, bool8 movingDown)
     {
         FillWindowPixelBuffer(list->template.windowId, PIXEL_FILL(list->template.fillValue));
         ListMenuPrintEntries(list, list->scrollOffset, 0, list->template.maxShowed);
+        return;
     }
     else
     {
@@ -804,29 +778,25 @@ static void ListMenuScroll(struct ListMenu *list, u8 count, bool8 movingDown)
 
         if (!movingDown)
         {
-            u16 y, width, height;
+            u16 y;
 
             ScrollWindow(list->template.windowId, 1, count * yMultiplier, PIXEL_FILL(list->template.fillValue));
             ListMenuPrintEntries(list, list->scrollOffset, 0, count);
 
             y = (list->template.maxShowed * yMultiplier) + list->template.upText_Y;
-            width = GetWindowAttribute(list->template.windowId, WINDOW_WIDTH) * 8;
-            height = (GetWindowAttribute(list->template.windowId, WINDOW_HEIGHT) * 8) - y;
+
             FillWindowPixelRect(list->template.windowId,
                                 PIXEL_FILL(list->template.fillValue),
-                                0, y, width, height);
+                                0, y, GetWindowAttribute(list->template.windowId, WINDOW_WIDTH) * 8, GetWindowAttribute(list->template.windowId, WINDOW_HEIGHT) * 8 - y);
         }
         else
         {
-            u16 width;
 
             ScrollWindow(list->template.windowId, 0, count * yMultiplier, PIXEL_FILL(list->template.fillValue));
             ListMenuPrintEntries(list, list->scrollOffset + (list->template.maxShowed - count), list->template.maxShowed - count, count);
-
-            width = GetWindowAttribute(list->template.windowId, WINDOW_WIDTH) * 8;
             FillWindowPixelRect(list->template.windowId,
                                 PIXEL_FILL(list->template.fillValue),
-                                0, 0, width, list->template.upText_Y);
+                                0, 0, GetWindowAttribute(list->template.windowId, WINDOW_WIDTH) * 8, list->template.upText_Y);
         }
     }
 }
@@ -855,8 +825,8 @@ static bool8 ListMenuChangeSelection(struct ListMenu *list, bool8 updateCursorAn
     {
         switch (selectionChange)
         {
-        case 0:
         default:
+        case 0:      
             return TRUE;
         case 1:
             ListMenuErasePrintedCursor(list, oldSelectedRow);
@@ -902,102 +872,107 @@ void ListMenuDefaultCursorMoveFunc(u32 itemIndex, bool8 onInit)
 // unused
 s32 ListMenuGetUnkIndicatorsStructFields(u8 taskId, u8 field)
 {
-    struct UnkIndicatorsStruct *data = (void *) gTasks[taskId].data;
+    struct ListMenuTemplate *data = (void*) gTasks[taskId].data;
 
     switch (field)
     {
     case 0:
+    // Typo happened here too
     case 1:
-        return (s32)(data->field_4);
+        return (s32)(data->moveCursorFunc);
     case 2:
-        return data->field_C;
+        return data->totalItems;
     case 3:
-        return data->field_E;
+        return data->maxShowed;
     case 4:
-        return data->field_10;
+        return data->windowId;
     case 5:
-        return data->field_11;
+        return data->header_X;
     case 6:
-        return data->field_12;
+        return data->item_X;
     case 7:
-        return data->field_13;
+        return data->cursor_X;
     case 8:
-        return data->field_14_0;
+        return data->upText_Y;
     case 9:
-        return data->field_14_1;
+        return data->cursorPal;
     case 10:
-        return data->field_15_0;
+        return data->fillValue;
     case 11:
-        return data->field_15_1;
+        return data->cursorShadowPal;
     case 12:
-        return data->field_16_0;
+        return data->lettersSpacing;
     case 13:
-        return data->field_16_1;
+        return data->itemVerticalPadding;
     case 14:
-        return data->field_16_2;
+        return data->scrollMultiple;
     case 15:
-        return data->field_17_0;
+        return data->fontId;
     case 16:
-        return data->field_17_1;
+        return data->cursorKind;
     default:
         return -1;
     }
 }
 
-void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, s32 value)
+// Value is always 1 anyway in vanilla, so see if we can remove the need for this later on.
+// Field if always 16 as well, so why bother?
+void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, u32 value)
 {
-    struct UnkIndicatorsStruct *data = (void *) &gTasks[taskId].data;
+    struct ListMenuTemplate *data = (void*) &gTasks[taskId].data;
 
     switch (field)
     {
     case 0:
+    // looks like a typo happened here and meant to assign to field_0
+    //TODO: see if this affects vanilla game
     case 1:
-        data->field_4 = (void *)(value);
+        data->moveCursorFunc = (void*)(value);
         break;
     case 2:
-        data->field_C = value;
+        data->totalItems = value;
         break;
     case 3:
-        data->field_E = value;
+        data->maxShowed = value;
         break;
     case 4:
-        data->field_10 = value;
+        data->windowId = value;
         break;
     case 5:
-        data->field_11 = value;
+        data->header_X = value;
         break;
     case 6:
-        data->field_12 = value;
+        data->item_X = value;
         break;
     case 7:
-        data->field_13 = value;
+        data->cursor_X = value;
         break;
     case 8:
-        data->field_14_0 = value;
+        data->upText_Y = value;
         break;
     case 9:
-        data->field_14_1 = value;
+        data->cursorPal = value;
         break;
     case 10:
-        data->field_15_0 = value;
+        data->fillValue = value;
         break;
     case 11:
-        data->field_15_1 = value;
+        data->cursorShadowPal = value;
         break;
     case 12:
-        data->field_16_0 = value;
+        data->lettersSpacing = value;
         break;
     case 13:
-        data->field_16_1 = value;
+        data->itemVerticalPadding = value;
         break;
     case 14:
-        data->field_16_2 = value;
+        data->scrollMultiple = value;
         break;
     case 15:
-        data->field_17_0 = value;
+        data->fontId = value;
         break;
     case 16:
-        data->field_17_1 = value;
+        data->cursorKind = value;
         break;
     }
 }
