@@ -387,7 +387,7 @@ static void SpriteCB_PressStartCopyrightBanner(struct Sprite *sprite)
     {
         sprite->data[1]++;
         // Alternate between hidden and shown every 16th frame
-        if (sprite->data[1] & 16)
+        if (sprite->data[1] & 0x10)
             sprite->invisible = FALSE;
         else
             sprite->invisible = TRUE;
@@ -431,7 +431,7 @@ static void SpriteCB_PokemonLogoShine(struct Sprite *sprite)
     {
         if (sprite->data[0]) // Flash background
         {
-            u16 backgroundColor;
+            u16 backgroundColor, poff;
 
             if (sprite->x < DISPLAY_WIDTH / 2)
             {
@@ -449,8 +449,10 @@ static void SpriteCB_PokemonLogoShine(struct Sprite *sprite)
                 if (sprite->data[1] != 0)
                     sprite->data[1]--;
             }
+            poff = sprite->data[1] & 0x1F;
 
-            backgroundColor = _RGB(sprite->data[1], sprite->data[1], sprite->data[1]);
+            // Should be RGB2 macro but that doesn't match
+            backgroundColor = RGB3(poff, poff, poff);
             if (sprite->x == DISPLAY_WIDTH / 2 + 12
                 || sprite->x == DISPLAY_WIDTH / 2 + 16
                 || sprite->x == DISPLAY_WIDTH / 2 + 20
@@ -470,6 +472,7 @@ static void SpriteCB_PokemonLogoShine(struct Sprite *sprite)
 
 static void SpriteCB_PokemonLogoShine2(struct Sprite *sprite)
 {
+    // did they mean (u16)sprite->x < DISPLAY_WIDTH + 32?
     if (sprite->x < DISPLAY_WIDTH + 32)
         sprite->x += 8;
     else
@@ -527,7 +530,8 @@ void CB2_InitTitleScreen(void)
         SetGpuReg(REG_OFFSET_BLDCNT, 0);
         SetGpuReg(REG_OFFSET_BLDALPHA, 0);
         SetGpuReg(REG_OFFSET_BLDY, 0);
-        *((u16 *)PLTT) = RGB_WHITE;
+        // Should this be volatile?
+        *((vu16 *)BG_PLTT) = RGB_WHITE;
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG2CNT, 0);
         SetGpuReg(REG_OFFSET_BG1CNT, 0);
@@ -548,7 +552,7 @@ void CB2_InitTitleScreen(void)
         // bg2
         LZ77UnCompVram(gTitleScreenPokemonLogoGfx, (void *)(BG_CHAR_ADDR(0)));
         LZ77UnCompVram(gTitleScreenPokemonLogoTilemap, (void *)(BG_SCREEN_ADDR(9)));
-        LoadPalette(gTitleScreenBgPalettes, 0, 0x1E0);
+        LoadPalette(gTitleScreenBgPalettes, 0, 0x1E0); //1E0 = sizeof(gTitleScreenBgPalettes), but that won't compile
         // bg3
         LZ77UnCompVram(sTitleScreenRayquazaGfx, (void *)(BG_CHAR_ADDR(2)));
         LZ77UnCompVram(sTitleScreenRayquazaTilemap, (void *)(BG_SCREEN_ADDR(26)));
@@ -678,7 +682,8 @@ static void Task_TitleScreenPhase1(u8 taskId)
 // Create "Press Start" and copyright banners, and slide Pokemon logo up
 static void Task_TitleScreenPhase2(u8 taskId)
 {
-    u32 yPos;
+    // Should this be unsigned? tasks is signed so maybe I should make it signed
+    s32 yPos;
 
     // Skip to next phase when A, B, Start, or Select is pressed
     if ((gMain.newKeys & A_B_START_SELECT) || gTasks[taskId].tSkipToNext)
@@ -716,8 +721,9 @@ static void Task_TitleScreenPhase2(u8 taskId)
 
     // Slide Pokemon logo up
     yPos = gTasks[taskId].data[3] * 256;
-    SetGpuReg(REG_OFFSET_BG2Y_L, yPos);
-    SetGpuReg(REG_OFFSET_BG2Y_H, yPos / 0x10000);
+    SetGpuReg(REG_OFFSET_BG2Y_L, yPos & 0xFFFF);
+    // TODO: is the & 0xFFFF0000 really needed as it's an int or can we safely ignore that
+    SetGpuReg(REG_OFFSET_BG2Y_H, (yPos &0xffff0000) >>16);
 
     gTasks[taskId].data[5] = 15;
     gTasks[taskId].data[6] = 6;
@@ -726,46 +732,50 @@ static void Task_TitleScreenPhase2(u8 taskId)
 // Show Rayquaza silhouette and process main title screen input
 static void Task_TitleScreenPhase3(u8 taskId)
 {
+    // One can just combine the 2 JOY_NEW
     if ((JOY_NEW(A_BUTTON)) || (JOY_NEW(START_BUTTON)))
     {
         FadeOutBGM(4);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_WHITEALPHA);
         SetMainCallback2(CB2_GoToMainMenu);
+        return;
     }
-    else if (JOY_HELD(CLEAR_SAVE_BUTTON_COMBO) == CLEAR_SAVE_BUTTON_COMBO)
+    if (JOY_HELD(CLEAR_SAVE_BUTTON_COMBO) == CLEAR_SAVE_BUTTON_COMBO)
     {
         SetMainCallback2(CB2_GoToClearSaveDataScreen);
+        return;
     }
-    else if (JOY_HELD(RESET_RTC_BUTTON_COMBO) == RESET_RTC_BUTTON_COMBO
+    if (JOY_HELD(RESET_RTC_BUTTON_COMBO) == RESET_RTC_BUTTON_COMBO
       && CanResetRTC() == TRUE)
     {
         FadeOutBGM(4);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
         SetMainCallback2(CB2_GoToResetRtcScreen);
+        return;
     }
-    else if (JOY_HELD(BERRY_UPDATE_BUTTON_COMBO) == BERRY_UPDATE_BUTTON_COMBO)
+    // TODO: remove this when berry update is removed from hack
+    if (JOY_HELD(BERRY_UPDATE_BUTTON_COMBO) == BERRY_UPDATE_BUTTON_COMBO)
     {
         FadeOutBGM(4);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
         SetMainCallback2(CB2_GoToBerryFixScreen);
+        return;
     }
-    else
+
+    SetGpuReg(REG_OFFSET_BG2Y_L, 0);
+    SetGpuReg(REG_OFFSET_BG2Y_H, 0);
+    gTasks[taskId].tCounter++;
+    if (gTasks[taskId].tCounter & 1)
     {
-        SetGpuReg(REG_OFFSET_BG2Y_L, 0);
-        SetGpuReg(REG_OFFSET_BG2Y_H, 0);
-        gTasks[taskId].tCounter++;
-        if (gTasks[taskId].tCounter & 1)
-        {
-            gTasks[taskId].data[4]++;
-            gBattle_BG1_Y = gTasks[taskId].data[4] / 2;
-            gBattle_BG1_X = 0;
-        }
-        UpdateLegendaryMarkingColor(gTasks[taskId].tCounter);
-        if ((gMPlayInfo_BGM.status & 0xFFFF) == 0)
-        {
-            BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_WHITEALPHA);
-            SetMainCallback2(CB2_GoToCopyrightScreen);
-        }
+        gTasks[taskId].data[4]++;
+        gBattle_BG1_Y = gTasks[taskId].data[4] / 2;
+        gBattle_BG1_X = 0;
+    }
+    UpdateLegendaryMarkingColor(gTasks[taskId].tCounter);
+    if ((gMPlayInfo_BGM.status & 0xFFFF) == 0)
+    {
+        BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_WHITEALPHA);
+        SetMainCallback2(CB2_GoToCopyrightScreen);
     }
 }
 
@@ -806,8 +816,11 @@ static void UpdateLegendaryMarkingColor(u8 frameNum)
 {
     if ((frameNum % 4) == 0) // Change color every 4th frame
     {
+        // Should these all be int? I mean they only match as those but the bitwise op to a u16 is sus
         s32 intensity = Cos(frameNum, 128) + 128;
-        s32 r = 31 - ((intensity * 32 - intensity) / 256);
+
+        
+        s32 r = 31 - ((intensity * 31) / 256);
         s32 g = 31 - (intensity * 22 / 256);
         s32 b = 12;
 
