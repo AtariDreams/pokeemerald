@@ -54,7 +54,9 @@ void CopyTrainerHillTrainerText(u8 which, u16 trainerId);
 bool8 InTrainerHillChallenge(void);
 void PrintOnTrainerHillRecordsWindow(void);
 void LoadTrainerHillObjectEventTemplates(void);
+#if !MODERN
 bool32 LoadTrainerHillFloorObjectEventScripts(void);
+#endif
 void GenerateTrainerHillFloorLayout(u16 *mapArg);
 bool32 InTrainerHill(void);
 u8 GetCurrentTrainerHillMapId(void);

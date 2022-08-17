@@ -71,8 +71,10 @@ static void TrainerHillSetMode(void);
 static void SetUpDataStruct(void);
 static void FreeDataStruct(void);
 static void TrainerHillDummy(void);
+#if !MODERN
 static void SetTimerValue(u32 *dst, u32 val);
 static u32 GetTimerValue(u32 *src);
+#endif
 static void SetTrainerHillMonLevel(struct Pokemon *mon, u8 level);
 static u16 GetPrizeItemId(void);
 
@@ -279,13 +281,17 @@ void CallTrainerHillFunction(void)
 
 void ResetTrainerHillResults(void)
 {
-    s32 i;
+    m32 i;
 
     gSaveBlock2Ptr->frontier.savedGame = 0;
     gSaveBlock2Ptr->frontier.unk_EF9 = 0;
     gSaveBlock1Ptr->trainerHill.bestTime = 0;
     for (i = 0; i < NUM_TRAINER_HILL_MODES; i++)
+        #if !MODERN
         SetTimerValue(&gSaveBlock1Ptr->trainerHillTimes[i], HILL_MAX_TIME);
+        #else
+        gSaveBlock1Ptr->trainerHillTimes[i] = HILL_MAX_TIME;
+        #endif
 }
 
 static u8 GetFloorId(void)
@@ -302,7 +308,7 @@ u8 GetTrainerHillOpponentClass(u16 trainerId)
 
 void GetTrainerHillTrainerName(u8 *dst, u16 trainerId)
 {
-    s32 i;
+    m32 i;
     u8 id = trainerId - 1;
 
     for (i = 0; i < TRAINER_NAME_LENGTH + 1; i++)
@@ -323,7 +329,7 @@ u8 GetTrainerHillTrainerFrontSpriteId(u16 trainerId)
 
 void InitTrainerHillBattleStruct(void)
 {
-    s32 i, j;
+    m32 i, j;
 
     SetUpDataStruct();
     sFloorTrainers = AllocZeroed(sizeof(*sFloorTrainers));
@@ -453,9 +459,18 @@ static void CheckFinalTime(void)
     {
         gSpecialVar_Result = 2;
     }
+    #if !MODERN
     else if (GetTimerValue(&gSaveBlock1Ptr->trainerHill.bestTime) > gSaveBlock1Ptr->trainerHill.timer)
+    #else
+    else if (gSaveBlock1Ptr->trainerHill.bestTime > gSaveBlock1Ptr->trainerHill.timer)
+    #endif
     {
+        #if !MODERN
         SetTimerValue(&gSaveBlock1Ptr->trainerHill.bestTime, gSaveBlock1Ptr->trainerHill.timer);
+        #else 
+        gSaveBlock1Ptr->trainerHill.bestTime = gSaveBlock1Ptr->trainerHill.timer;
+        #endif
+
         gSaveBlock1Ptr->trainerHillTimes[gSaveBlock1Ptr->trainerHill.mode] = gSaveBlock1Ptr->trainerHill.bestTime;
         gSpecialVar_Result = 0;
     }
@@ -491,6 +506,7 @@ static void TrainerHillGetChallengeStatus(void)
         gSaveBlock1Ptr->trainerHill.hasLost = FALSE;
         gSpecialVar_Result = TRAINER_HILL_PLAYER_STATUS_LOST;
     }
+    // TODO: investigate this
     else if (gSaveBlock1Ptr->trainerHill.maybeECardScanDuringChallenge)
     {
         // Unreachable code. Something relating to eCards?
@@ -555,9 +571,9 @@ bool8 InTrainerHillChallenge(void)
 {
     if (VarGet(VAR_TRAINER_HILL_IS_ACTIVE) == 0)
         return FALSE;
-    else if (gSaveBlock1Ptr->trainerHill.spokeToOwner)
+    if (gSaveBlock1Ptr->trainerHill.spokeToOwner)
         return FALSE;
-    else if (GetCurrentTrainerHillMapId() != 0)
+    if (GetCurrentTrainerHillMapId() != 0)
         return TRUE;
     else
         return FALSE;
@@ -596,7 +612,11 @@ void PrintOnTrainerHillRecordsWindow(void)
     {
         AddTextPrinterParameterized3(0, FONT_NORMAL, 0, y, sRecordWinColors, TEXT_SKIP_DRAW, sModeStrings[i]);
         y += 15;
+        #if !MODERN
         total = GetTimerValue(&gSaveBlock1Ptr->trainerHillTimes[i]);
+        #else 
+        total = gSaveBlock1Ptr->trainerHillTimes[i];
+        #endif
         minutes = total / (60 * 60);
         total %= (60 * 60);
         ConvertIntToDecimalStringN(gStringVar1, minutes, STR_CONV_MODE_RIGHT_ALIGN, 2);
@@ -618,6 +638,7 @@ void PrintOnTrainerHillRecordsWindow(void)
 
 // Leftover from Fire Red / Leaf Green as in these games,
 // the timer had to be xored by the encryption key in Sav2.
+#if !MODERN
 static u32 GetTimerValue(u32 *src)
 {
     return *src;
@@ -627,14 +648,16 @@ static void SetTimerValue(u32 *dst, u32 val)
 {
     *dst = val;
 }
+#endif
 
 void LoadTrainerHillObjectEventTemplates(void)
 {
     u8 i, floorId;
     struct ObjectEventTemplate *eventTemplates = gSaveBlock1Ptr->objectEventTemplates;
-
+#if !MODERN
     if (!LoadTrainerHillFloorObjectEventScripts())
         return;
+#endif
 
     SetUpDataStruct();
     for (i = 0; i < HILL_TRAINERS_PER_FLOOR; i++)
@@ -661,6 +684,7 @@ void LoadTrainerHillObjectEventTemplates(void)
     FreeDataStruct();
 }
 
+#if !MODERN
 bool32 LoadTrainerHillFloorObjectEventScripts(void)
 {
     SetUpDataStruct();
@@ -668,6 +692,7 @@ bool32 LoadTrainerHillFloorObjectEventScripts(void)
     FreeDataStruct();
     return TRUE;
 }
+#endif
 
 static u16 GetMetatileForFloor(u8 floorId, u32 x, u32 y, u32 floorWidth) // floorWidth is always 16
 {
@@ -679,7 +704,7 @@ static u16 GetMetatileForFloor(u8 floorId, u32 x, u32 y, u32 floorWidth) // floo
     metatile = sHillData->floors[floorId].map.metatileData[floorWidth * y + x] + NUM_METATILES_IN_PRIMARY;
     elevation = 3 << MAPGRID_ELEVATION_SHIFT;
 
-    return ((impassable << MAPGRID_COLLISION_SHIFT) & MAPGRID_COLLISION_MASK) | elevation | (metatile & MAPGRID_METATILE_ID_MASK);
+    return (elevation | ((impassable << MAPGRID_COLLISION_SHIFT) & MAPGRID_COLLISION_MASK)) | (metatile & MAPGRID_METATILE_ID_MASK);
 }
 
 void GenerateTrainerHillFloorLayout(u16 *mapArg)

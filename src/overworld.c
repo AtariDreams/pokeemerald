@@ -1710,10 +1710,15 @@ void CB2_ContinueSavedGame(void)
     trainerHillMapId = GetCurrentTrainerHillMapId();
     if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
         LoadBattlePyramidFloorObjectEventScripts();
+    #if !MODERN
     else if (trainerHillMapId != 0 && trainerHillMapId != TRAINER_HILL_ENTRANCE)
         LoadTrainerHillFloorObjectEventScripts();
     else
         LoadSaveblockObjEventScripts();
+    #else
+    else if (trainerHillMapId == 0 || trainerHillMapId == TRAINER_HILL_ENTRANCE)
+            LoadSaveblockObjEventScripts();
+    #endif
 
     UnfreezeObjectEvents();
     DoTimeBasedEvents();
