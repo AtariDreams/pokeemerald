@@ -676,7 +676,13 @@ static void AnimTask_ShakeTerrain(u8 taskId)
 
 static void AnimTask_ShakeBattlers(u8 taskId)
 {
+    #if !MODERN
     u16 i;
+    #else
+    s16 i; // TODO: given how data is likely unsigned, should an unsigned comparison work?
+    // Yes I know data is s16, but what about the spirit of the code?
+    // I am doing s16 because data is s16, so just in case, and it shouldn't have any behavioral effects
+    #endif
     struct Task *task = &gTasks[taskId];
 
     switch (task->tState)
@@ -718,8 +724,12 @@ static void AnimTask_ShakeBattlers(u8 taskId)
 
 static void SetBattlersXOffsetForShake(struct Task *task)
 {
+    #if !MODERN
     u16 i;
-    u16 xOffset;
+    #else
+    s16 i;
+    #endif
+    s16 xOffset;
 
     if ((task->tTimer & 1) == 0)
         xOffset = (task->tHorizOffset / 2) + (task->tHorizOffset & 1);
@@ -744,7 +754,7 @@ static void SetBattlersXOffsetForShake(struct Task *task)
 
 void AnimTask_IsPowerOver99(u8 taskId)
 {
-    gBattleAnimArgs[15] = gAnimMovePower > 99;
+    gBattleAnimArgs[15] = gAnimMovePower >= 100;
     DestroyAnimVisualTask(taskId);
 }
 
