@@ -43,7 +43,7 @@ static void SoundTask_FireBlast_Step1(u8 taskId)
 {
     s16 pan = gTasks[taskId].data[2];
     s8 panIncrement = gTasks[taskId].data[4];
-    if (++gTasks[taskId].data[11] == 111)
+    if (gTasks[taskId].data[11]++ == 110)
     {
         gTasks[taskId].data[10] = 5;
         gTasks[taskId].data[11] = 0;
@@ -51,13 +51,13 @@ static void SoundTask_FireBlast_Step1(u8 taskId)
     }
     else
     {
-        if (++gTasks[taskId].data[10] == 11)
+        if (gTasks[taskId].data[10]++ == 10)
         {
             gTasks[taskId].data[10] = 0;
             PlaySE12WithPanning(gTasks[taskId].data[0], pan);
         }
         pan += panIncrement;
-        gTasks[taskId].data[2] = KeepPanInRange(pan, panIncrement);
+        gTasks[taskId].data[2] = KeepPanInRange(pan);
     }
 }
 
@@ -105,6 +105,17 @@ void SoundTask_LoopSEAdjustPanning(u8 taskId)
 
 static void SoundTask_LoopSEAdjustPanning_Step(u8 taskId)
 {
+// Thse useless vars and definitions are needed ot match
+
+#if !MODERN
+    s16 now_pan, end_pan;
+	s8 add_pan;
+	
+	now_pan = gTasks[taskId].data[11];
+	end_pan = gTasks[taskId].data[2];
+	add_pan = gTasks[taskId].data[3];
+#endif
+
     if (gTasks[taskId].data[12]++ == gTasks[taskId].data[6])
     {
         gTasks[taskId].data[12] = 0;
@@ -118,12 +129,9 @@ static void SoundTask_LoopSEAdjustPanning_Step(u8 taskId)
 
     if (gTasks[taskId].data[10]++ == gTasks[taskId].data[5])
     {
-        u16 dPan, oldPan;
         gTasks[taskId].data[10] = 0;
-        dPan = gTasks[taskId].data[3];
-        oldPan = gTasks[taskId].data[11];
-        gTasks[taskId].data[11] = dPan + oldPan;
-        gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11], oldPan);
+        gTasks[taskId].data[11] += gTasks[taskId].data[3];
+        gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11]);
     }
 }
 
@@ -244,24 +252,23 @@ static void SoundTask_PlayDoubleCry_Step(u8 taskId)
     if (gTasks[taskId].data[9] < 2)
     {
         gTasks[taskId].data[9]++;
+        return;
     }
-    else
+
+    if (gTasks[taskId].data[0] == DOUBLE_CRY_GROWL)
     {
-        if (gTasks[taskId].data[0] == DOUBLE_CRY_GROWL)
+        if (!IsCryPlaying())
         {
-            if (!IsCryPlaying())
-            {
-                PlayCry_ByMode(species, pan, CRY_MODE_GROWL_2);
-                DestroyAnimVisualTask(taskId);
-            }
+            PlayCry_ByMode(species, pan, CRY_MODE_GROWL_2);
+            DestroyAnimVisualTask(taskId);
         }
-        else // DOUBLE_CRY_ROAR
+    }
+    else // DOUBLE_CRY_ROAR
+    {
+        if (!IsCryPlaying())
         {
-            if (!IsCryPlaying())
-            {
-                PlayCry_ByMode(species, pan, CRY_MODE_ROAR_2);
-                DestroyAnimVisualTask(taskId);
-            }
+            PlayCry_ByMode(species, pan, CRY_MODE_ROAR_2);
+            DestroyAnimVisualTask(taskId);
         }
     }
 }
@@ -271,12 +278,11 @@ void SoundTask_WaitForCry(u8 taskId)
     if (gTasks[taskId].data[9] < 2)
     {
         gTasks[taskId].data[9]++;
+        return;
     }
-    else
-    {
-        if (!IsCryPlaying())
-            DestroyAnimVisualTask(taskId);
-    }
+
+    if (!IsCryPlaying())
+        DestroyAnimVisualTask(taskId);
 }
 
 
@@ -349,19 +355,13 @@ static void SoundTask_PlayCryWithEcho_Step(u8 taskId)
 
 void SoundTask_PlaySE1WithPanning(u8 taskId)
 {
-    u16 songId = gBattleAnimArgs[0];
-    s8 pan = BattleAnimAdjustPanning(gBattleAnimArgs[1]);
-
-    PlaySE1WithPanning(songId, pan);
+    PlaySE1WithPanning(gBattleAnimArgs[0], BattleAnimAdjustPanning(gBattleAnimArgs[1]));
     DestroyAnimVisualTask(taskId);
 }
 
 void SoundTask_PlaySE2WithPanning(u8 taskId)
 {
-    u16 songId = gBattleAnimArgs[0];
-    s8 pan = BattleAnimAdjustPanning(gBattleAnimArgs[1]);
-
-    PlaySE2WithPanning(songId, pan);
+    PlaySE2WithPanning(gBattleAnimArgs[0], BattleAnimAdjustPanning(gBattleAnimArgs[1]));
     DestroyAnimVisualTask(taskId);
 }
 
@@ -371,7 +371,7 @@ void SoundTask_AdjustPanningVar(u8 taskId)
 {
     s8 targetPan = gBattleAnimArgs[1];
     s8 panIncrement = gBattleAnimArgs[2];
-    u16 r9 = gBattleAnimArgs[3];
+    s16 r9 = gBattleAnimArgs[3];
     s8 sourcePan = BattleAnimAdjustPanning(gBattleAnimArgs[0]);
 
     targetPan = BattleAnimAdjustPanning(targetPan);
@@ -384,21 +384,29 @@ void SoundTask_AdjustPanningVar(u8 taskId)
     gTasks[taskId].data[10] = 0;
     gTasks[taskId].data[11] = sourcePan;
 
+    // TODO: do we need to assign to .func?
     gTasks[taskId].func = SoundTask_AdjustPanningVar_Step;
     gTasks[taskId].func(taskId);
 }
 
 static void SoundTask_AdjustPanningVar_Step(u8 taskId)
 {
-    u16 panIncrement = gTasks[taskId].data[3];
+    // Thse useless vars and definitions are needed to match
+
+#if !MODERN
+    s16 now_pan, end_pan;
+	s8 add_pan;
+	
+	now_pan = gTasks[taskId].data[11];
+	end_pan = gTasks[taskId].data[2];
+	add_pan = gTasks[taskId].data[3];
+#endif
 
     if (gTasks[taskId].data[10]++ == gTasks[taskId].data[5])
     {
-        u16 oldPan;
         gTasks[taskId].data[10] = 0;
-        oldPan = gTasks[taskId].data[11];
-        gTasks[taskId].data[11] = panIncrement + oldPan;
-        gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11], oldPan);
+        gTasks[taskId].data[11] += gTasks[taskId].data[3];
+        gTasks[taskId].data[11] = KeepPanInRange(gTasks[taskId].data[11]);
     }
 
     gAnimCustomPanning = gTasks[taskId].data[11];
