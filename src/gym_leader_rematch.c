@@ -4,7 +4,7 @@
 #include "battle_setup.h"
 #include "gym_leader_rematch.h"
 
-static void UpdateGymLeaderRematchFromArray(const u16 *data, size_t size, u32 maxRematch);
+static void UpdateGymLeaderRematchFromArray(const u16 *data, u32 size, u32 maxRematch);
 static s32 GetRematchIndex(u32 trainerIdx);
 
 static const u16 GymLeaderRematches_AfterNewMauville[] = {
@@ -31,6 +31,7 @@ static const u16 GymLeaderRematches_BeforeNewMauville[] = {
 
 void UpdateGymLeaderRematch(void)
 {
+    // Again, off by 1
     if (FlagGet(FLAG_SYS_GAME_CLEAR) && (Random() % 100) <= 30)
     {
         if (FlagGet(FLAG_WATTSON_REMATCH_AVAILABLE))
@@ -40,7 +41,7 @@ void UpdateGymLeaderRematch(void)
     }
 }
 
-static void UpdateGymLeaderRematchFromArray(const u16 *data, size_t size, u32 maxRematch)
+static void UpdateGymLeaderRematchFromArray(const u16 *data, u32 size, u32 maxRematch)
 {
     s32 whichLeader = 0;
     s32 lowestRematchIndex = 5;
@@ -63,8 +64,7 @@ static void UpdateGymLeaderRematchFromArray(const u16 *data, size_t size, u32 ma
         {
             if (!gSaveBlock1Ptr->trainerRematches[data[i]])
             {
-                rematchIndex = GetRematchIndex(data[i]);
-                if (rematchIndex == lowestRematchIndex)
+                if (GetRematchIndex(data[i]) == lowestRematchIndex)
                     whichLeader++;
             }
         }
@@ -75,8 +75,7 @@ static void UpdateGymLeaderRematchFromArray(const u16 *data, size_t size, u32 ma
             {
                 if (!gSaveBlock1Ptr->trainerRematches[data[i]])
                 {
-                    rematchIndex = GetRematchIndex(data[i]);
-                    if (rematchIndex == lowestRematchIndex)
+                    if (GetRematchIndex(data[i]) == lowestRematchIndex)
                     {
                         if (whichLeader == 0)
                         {
@@ -91,6 +90,7 @@ static void UpdateGymLeaderRematchFromArray(const u16 *data, size_t size, u32 ma
     }
 }
 
+// Should be u32
 static s32 GetRematchIndex(u32 trainerIdx)
 {
     s32 i;
