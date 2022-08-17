@@ -28,7 +28,7 @@ struct BattleAnimBgData
 
 struct BattleAnimBackground
 {
-    const u32 *image;
+    const u8 *image;
     const u32 *palette;
     const u32 *tilemap;
 };
@@ -129,7 +129,7 @@ s16 CloneBattlerSpriteWithBlend(u8);
 void DestroySpriteWithActiveSheet(struct Sprite*);
 u8 CreateInvisibleSpriteCopy(u8, u8, u16);
 void AnimLoadCompressedBgTilemapHandleContest(struct BattleAnimBgData*, const void*, bool32);
-void AnimLoadCompressedBgGfx(u32, const u32*, u32);
+void AnimLoadCompressedBgGfx(u32, const u8*, u32);
 void UpdateAnimBg3ScreenSize(bool8);
 void TranslateSpriteInGrowingCircle(struct Sprite *);
 void SetBattlerSpriteYOffsetFromYScale(u8 spriteId);
@@ -218,9 +218,9 @@ u8 LaunchBallFadeMonTask(bool8 unFadeLater, u8 spritePalNum, u32 selectedPalette
 // battle_anim_utility_funcs.c
 void InitStatsChangeAnimation(u8);
 #if !MODERN
-void StartMonScrollingBgMask(u8 taskId, s16 unused, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u32 *gfx, const u32 *tilemap, const u32 *palette);
+void StartMonScrollingBgMask(u8 taskId, s16 unused, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u8 *gfx, const u32 *tilemap, const u32 *palette);
 #else
-void StartMonScrollingBgMask(u8 taskId, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u32 *gfx, const u32 *tilemap, const u32 *palette);
+void StartMonScrollingBgMask(u8 taskId, s16 scrollSpeed, u8 battler, bool8 includePartner, u8 numFadeSteps, u8 fadeStepDelay, u8 duration, const u8 *gfx, const u32 *tilemap, const u32 *palette);
 #endif
 
 // battle_anim_effects_1.c

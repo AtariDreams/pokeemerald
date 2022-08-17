@@ -798,7 +798,7 @@ static const u8 *const sUnionRoomTradeMessages[] =
     [UR_TRADE_MSG_CANT_TRADE_WITH_PARTNER_2 - 1]   = gText_CantTradeWithTrainer,
 };
 
-static const u32 sHeldItemGfx[] = INCBIN_U32("graphics/party_menu/hold_icons.4bpp");
+static const u8 sHeldItemGfx[] = INCBIN_U8("graphics/party_menu/hold_icons.4bpp");
 static const u16 sHeldItemPalette[] = INCBIN_U16("graphics/party_menu/hold_icons.gbapal");
 
 static const struct OamData sOamData_HeldItem =

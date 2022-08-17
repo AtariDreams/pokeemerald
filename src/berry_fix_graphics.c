@@ -3,7 +3,7 @@
 
 // Duplicate of sBerryFixGraphics in berry_fix_program.c
 static const struct {
-    const u32 *gfx;
+    const u8 *gfx;
     const u32 *tilemap;
     const u16 *pltt;
 } sBerryFixGraphics[] = {

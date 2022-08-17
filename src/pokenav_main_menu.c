@@ -31,7 +31,7 @@ struct Pokenav_MainMenu
 // Needed to match LoadLeftHeaderGfxForSubMenu.
 struct CompressedSpriteSheetNoSize
 {
-    const u32 *data;  // LZ77 compressed palette data
+    const u8 *data;  // LZ77 compressed palette data
     u32 tag;
 };
 
@@ -54,7 +54,7 @@ static void SpriteCB_SpinningPokenav(struct Sprite *);
 static u32 LoopedTask_InitPokenavMenu(s32);
 
 static const u16 sSpinningPokenav_Pal[] = INCBIN_U16("graphics/pokenav/nav_icon.gbapal");
-static const u32 sSpinningPokenav_Gfx[] = INCBIN_U32("graphics/pokenav/nav_icon.4bpp.lz");
+static const u8 sSpinningPokenav_Gfx[] = INCBIN_U8("graphics/pokenav/nav_icon.4bpp.lz");
 static const u32 sBlueLightCopy[] = INCBIN_U32("graphics/pokenav/blue_light.4bpp.lz"); // Unused copy of sMatchCallBlueLightTiles
 
 const struct BgTemplate gPokenavMainMenuBgTemplates[] =

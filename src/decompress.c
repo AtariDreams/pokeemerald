@@ -10,12 +10,12 @@ EWRAM_DATA ALIGNED(4) u8 gDecompressionBuffer[0x4000] = {0};
 static void DuplicateDeoxysTiles(void *pointer, s32 species);
 
 #if !MODERN
-void LZDecompressWram(const u32 *src, void *dest)
+void LZDecompressWram(const void *src, void *dest)
 {
     LZ77UnCompWram(src, dest);
 }
 
-void LZDecompressVram(const u32 *src, void *dest)
+void LZDecompressVram(const void *src, void *dest)
 {
     LZ77UnCompVram(src, dest);
 }
@@ -110,6 +110,7 @@ void LoadSpecialPokePic(const struct CompressedSpriteSheet *src, void *dest, s32
     DrawSpindaSpots(species, personality, dest, isFrontPic);
 }
 
+#if !MODERN
 void Unused_LZDecompressWramIndirect(const void **src, void *dest)
 {
     LZ77UnCompWram(*src, dest);
@@ -140,11 +141,11 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
                 {
                     for (i = 0; i < 16; i++)
                     {
-                        if (j % 2 == 0)
+                        if ((j & 1) == 0)
                         {
                             // Clear top half of top tile and bottom half of bottom tile when on even j
                             ((dest+i) + (k << 5))[((j >> 1) << 8)] = 0;
-                            ((bottom_off << 8) + (dest+i) + (k << 5) + 16)[((j >> 1) << 8)] = 0;
+                            ((bottom_off << 8) + (dest+i) + 0x10 + (k << 5))[((j >> 1) << 8)] = 0;
                         }
                         else
                         {
@@ -258,10 +259,10 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
         }
     }
 }
+#endif
 
-u32 GetDecompressedDataSize(const u32 *ptr)
+u32 GetDecompressedDataSize(const u8 *ptr8)
 {
-    const u8 *ptr8 = (const u8 *)ptr;
     return (ptr8[3] << 16) | (ptr8[2] << 8) | (ptr8[1]);
 }
 
@@ -270,7 +271,7 @@ bool8 LoadCompressedSpriteSheetUsingHeap(const struct CompressedSpriteSheet *src
     struct SpriteSheet dest;
     void *buffer;
 
-    buffer = AllocZeroed(*((u32 *)(&src->data[0])) >> 8);
+    buffer = AllocZeroed(*(u32*)(src->data) >> 8);
     LZ77UnCompWram(src->data, buffer);
 
     dest.data = buffer;
@@ -287,7 +288,7 @@ bool8 LoadCompressedSpritePaletteUsingHeap(const struct CompressedSpritePalette 
     struct SpritePalette dest;
     void *buffer;
 
-    buffer = AllocZeroed(*((u32 *)(&src->data[0])) >> 8);
+    buffer = AllocZeroed(*(u32*)(src->data) >> 8);
     LZ77UnCompWram(src->data, buffer);
     dest.data = buffer;
     dest.tag = src->tag;

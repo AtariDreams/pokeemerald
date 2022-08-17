@@ -701,7 +701,7 @@ static const u16 sQuarterSpeed_ProbabilityBoost[];
 static const u16 sSlotMatchFlags[];
 static const u16 sSlotPayouts[];
 static const u8 *const sReelBackground_Tilemap;
-static const u32 sReelTimeGfx[];
+static const u8 sReelTimeGfx[];
 static const struct SpriteSheet sSlotMachineSpriteSheets[22];
 static const struct SpritePalette sSlotMachineSpritePalettes[];
 static const u16 *const sDigitalDisplay_Pal;
@@ -7796,6 +7796,6 @@ static const struct SpritePalette sSlotMachineSpritePalettes[] =
     {}
 };
 
-static const u32 sReelTimeGfx[] = INCBIN_U32("graphics/slot_machine/reel_time_gfx.4bpp.lz"); // reel_time_machine and reel_time_pikachu
+static const u8 sReelTimeGfx[] = INCBIN_U8("graphics/slot_machine/reel_time_gfx.4bpp.lz"); // reel_time_machine and reel_time_pikachu
 static const u16 sReelTimeWindow_Tilemap[] = INCBIN_U16("graphics/slot_machine/reel_time_window.bin");
 static const u16 sEmptyTilemap[] =  {0};

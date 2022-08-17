@@ -106,7 +106,7 @@ static const u16 sPokenavDeviceBgPal[] = INCBIN_U16("graphics/pokenav/device_out
 static const u32 sPokenavDeviceBgTiles[] = INCBIN_U32("graphics/pokenav/device_outline.4bpp.lz");
 static const u32 sPokenavDeviceBgTilemap[] = INCBIN_U32("graphics/pokenav/device_outline_map.bin.lz");
 static const u16 sMatchCallBlueLightPal[] = INCBIN_U16("graphics/pokenav/blue_light.gbapal");
-static const u32 sMatchCallBlueLightTiles[] = INCBIN_U32("graphics/pokenav/blue_light.4bpp.lz");
+static const u8 sMatchCallBlueLightTiles[] = INCBIN_U8("graphics/pokenav/blue_light.4bpp.lz");
 
 static const struct BgTemplate sPokenavMainMenuBgTemplates[] = {
     {

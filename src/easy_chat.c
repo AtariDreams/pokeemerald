@@ -694,17 +694,17 @@ static const u16 sBerryMasterWifePhrases[][2] = {
 };
 
 static const u16 sTriangleCursor_Pal[] = INCBIN_U16("graphics/easy_chat/triangle_cursor.gbapal");
-static const u32 sTriangleCursor_Gfx[] = INCBIN_U32("graphics/easy_chat/triangle_cursor.4bpp");
-static const u32 sScrollIndicator_Gfx[] = INCBIN_U32("graphics/easy_chat/scroll_indicator.4bpp");
-static const u32 sStartSelectButtons_Gfx[] = INCBIN_U32("graphics/easy_chat/start_select_buttons.4bpp");
+static const u8 sTriangleCursor_Gfx[] = INCBIN_U8("graphics/easy_chat/triangle_cursor.4bpp");
+static const u8 sScrollIndicator_Gfx[] = INCBIN_U8("graphics/easy_chat/scroll_indicator.4bpp");
+static const u8 sStartSelectButtons_Gfx[] = INCBIN_U8("graphics/easy_chat/start_select_buttons.4bpp");
 // In Ruby/Sapphire Easy Chat screens had a black background, and when the player & interviewer were present
 // on screen the interview_frame gfx was shown behind them.
 // In Emerald all Easy Chat screens have a filled background, so these gfx go unused
 static const u16 sRSInterviewFrame_Pal[] = INCBIN_U16("graphics/easy_chat/interview_frame.gbapal");
-static const u32 sRSInterviewFrame_Gfx[] = INCBIN_U32("graphics/easy_chat/interview_frame.4bpp.lz");
+static const u8 sRSInterviewFrame_Gfx[] = INCBIN_U8("graphics/easy_chat/interview_frame.4bpp.lz");
 static const u16 sTextInputFrameOrange_Pal[] = INCBIN_U16("graphics/easy_chat/text_input_frame_orange.gbapal");
 static const u16 sTextInputFrameGreen_Pal[] = INCBIN_U16("graphics/easy_chat/text_input_frame_green.gbapal");
-static const u32 sTextInputFrame_Gfx[] = INCBIN_U32("graphics/easy_chat/text_input_frame.4bpp.lz");
+static const u8 sTextInputFrame_Gfx[] = INCBIN_U8("graphics/easy_chat/text_input_frame.4bpp.lz");
 static const u16 sTitleText_Pal[] = INCBIN_U16("graphics/easy_chat/title_text.gbapal");
 static const u16 sText_Pal[] = INCBIN_U16("graphics/easy_chat/text.gbapal");
 

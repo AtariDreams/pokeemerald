@@ -140,7 +140,7 @@ static const u8 *const sBerryProgramTexts[] = {
 };
 
 static const struct {
-    const u32 *gfx;
+    const u8 *gfx;
     const u32 *tilemap;
     const u16 *palette;
 } sBerryFixGraphics[] = {
