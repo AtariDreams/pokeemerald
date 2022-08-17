@@ -439,11 +439,13 @@ static void CheckForHiddenItemsInMapConnection(u8 taskId)
 {
     s16 playerX, playerY;
     s16 x, y;
-    s16 width = gMapHeader.mapLayout->width + MAP_OFFSET;
-    s16 height = gMapHeader.mapLayout->height + MAP_OFFSET;
 
     s16 var1 = MAP_OFFSET;
     s16 var2 = MAP_OFFSET;
+    const s16 width = gMapHeader.mapLayout->width + MAP_OFFSET;
+    const s16 height = gMapHeader.mapLayout->height + MAP_OFFSET;
+
+    
 
     PlayerGetDestCoords(&playerX, &playerY);
 
