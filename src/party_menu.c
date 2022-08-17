@@ -1570,7 +1570,7 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
         break;
     case MENU_DIR_RIGHT:
     // TODO: is this correct?
-    #ifndef BUGFIX
+    #if 1
         if (gPlayerPartyCount != 1 && *slotPtr == 0)
         {
             if (sPartyMenuInternal->lastSelectedSlot == 0)
