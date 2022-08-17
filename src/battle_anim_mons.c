@@ -111,11 +111,10 @@ u8 GetBattlerSpriteCoord(u8 battlerId, u8 coordType)
 {
     u8 retVal;
     u16 species;
-    struct BattleSpriteInfo *spriteInfo;
 
     if (IsContest() && coordType == BATTLER_COORD_Y_PIC_OFFSET && battlerId == 3)
     {
-            coordType = BATTLER_COORD_Y;
+        coordType = BATTLER_COORD_Y;
     }
 
     switch (coordType)
@@ -203,6 +202,7 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
         {
             ret = sCastformBackSpriteYCoords[gBattleMonForms[battlerId]];
         }
+        #if !MODERN
         else if (species > NUM_SPECIES)
         {
             ret = gMonBackPicCoords[0].y_offset;
@@ -211,6 +211,16 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
         {
             ret = gMonBackPicCoords[species].y_offset;
         }
+        #else
+        else if (species <= NUM_SPECIES)
+        {
+             ret = gMonBackPicCoords[species].y_offset;
+        }
+        else
+        {
+           ret = gMonBackPicCoords[0].y_offset;
+        }
+        #endif
     }
     else
     {
@@ -235,6 +245,7 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
         {
             ret = gCastformFrontSpriteCoords[gBattleMonForms[battlerId]].y_offset;
         }
+        #if !MODERN
         else if (species > NUM_SPECIES)
         {
             ret = gMonFrontPicCoords[0].y_offset;
@@ -243,6 +254,16 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
         {
             ret = gMonFrontPicCoords[species].y_offset;
         }
+        #else
+        else if (species <= NUM_SPECIES)
+        {
+             ret = gMonFrontPicCoords[species].y_offset;
+        }
+        else
+        {
+           ret = gMonFrontPicCoords[0].y_offset;
+        }
+        #endif
     }
     return ret;
 }
@@ -250,24 +271,31 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
 u8 GetBattlerElevation(u8 battlerId, u16 species)
 {
     u8 ret = 0;
-    if (GetBattlerSide(battlerId) == B_SIDE_OPPONENT)
+    if (GetBattlerSide(battlerId) == B_SIDE_OPPONENT && !IsContest())
     {
-        if (!IsContest())
-        {
-            if (species == SPECIES_CASTFORM)
-                ret = sCastformElevations[gBattleMonForms[battlerId]];
-            else if (species > NUM_SPECIES)
-                ret = gEnemyMonElevation[0];
-            else
-                ret = gEnemyMonElevation[species];
-        }
+        if (species == SPECIES_CASTFORM)
+            ret = sCastformElevations[gBattleMonForms[battlerId]];
+#if !MODERN
+        else if (species > NUM_SPECIES)
+            ret = gEnemyMonElevation[0];
+        else
+            ret = gEnemyMonElevation[species];
+#else
+        else if (species <= NUM_SPECIES)
+            ret = gEnemyMonElevation[species];
+        else
+            ret = gEnemyMonElevation[0];
+#endif
     }
     return ret;
 }
 
 u8 GetBattlerSpriteFinal_Y(u8 battlerId, u16 species, bool8 a3)
 {
-    u16 offset;
+    // TODO: should this be u16 or s16?
+    // It may be negative I guess so it could be s16.
+    // GF says s16, but u16 works too for matching
+    s16 offset;
     u8 y;
 
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER || IsContest())
@@ -279,7 +307,7 @@ u8 GetBattlerSpriteFinal_Y(u8 battlerId, u16 species, bool8 a3)
         offset = GetBattlerYDelta(battlerId, species);
         offset -= GetBattlerElevation(battlerId, species);
     }
-    y = offset + sBattlerCoords[IS_DOUBLE_BATTLE()][GetBattlerPosition(battlerId)].y;
+    y = sBattlerCoords[IS_DOUBLE_BATTLE()][GetBattlerPosition(battlerId)].y + offset;
     if (a3)
     {
         if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
