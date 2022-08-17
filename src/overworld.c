@@ -2918,8 +2918,8 @@ static void ZeroObjectEvent(struct ObjectEvent *objEvent)
 // as special gender and direction values. The types and placement
 // conflict with the usual Event Object struct, thus the definitions.
 #define linkGender(obj) obj->singleMovementActive
-// not even one can reference *byte* aligned bitfield members...
-#define linkDirection(obj) ((u8 *)obj)[offsetof(typeof(*obj), fieldEffectSpriteId) - 1] // -> rangeX
+// There is no reason why gamefreak could not even get the u8's right, or use the already used definitions, but they made a whole new struct for it, and messed up the aligment, so we have to do this now as a result
+#define linkDirection(obj) obj->directions.linkDir.movementDirection // -> rangeX
 
 static void SpawnLinkPlayerObjectEvent(u8 linkPlayerId, s16 x, s16 y, u8 gender)
 {
