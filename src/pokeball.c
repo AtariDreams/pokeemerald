@@ -1040,7 +1040,7 @@ void CreatePokeballSpriteToReleaseMon(u8 monSpriteId, u8 monPalNum, u8 x, u8 y, 
 
     gSprites[spriteId].sDelay = delay;
     gSprites[spriteId].sMonPalNum = monPalNum;
-    gSprites[spriteId].sFadePalsLo = fadePalettes;
+    gSprites[spriteId].sFadePalsLo = fadePalettes & 0xFFFF;
     gSprites[spriteId].sFadePalsHi = fadePalettes >> 16;
     gSprites[spriteId].oam.priority = oamPriority;
     gSprites[spriteId].callback = SpriteCB_PokeballReleaseMon;
@@ -1057,10 +1057,7 @@ static void SpriteCB_PokeballReleaseMon(struct Sprite *sprite)
         u8 monPalNum = sprite->sMonPalNum;
         u32 selectedPalettes = (u16)sprite->sFadePalsLo | ((u16)sprite->sFadePalsHi << 16);
 
-        if (sprite->subpriority != 0)
-            subpriority = sprite->subpriority - 1;
-        else
-            subpriority = 0;
+        subpriority = sprite->subpriority == 0 ? 0 : sprite->subpriority - 1;
 
         StartSpriteAnim(sprite, 1);
         AnimateBallOpenParticlesForPokeball(sprite->x, sprite->y - 5, sprite->oam.priority, subpriority);
@@ -1084,7 +1081,7 @@ static void SpriteCB_ReleasedMonFlyOut(struct Sprite *sprite)
     bool8 emergeAnimFinished = FALSE;
     bool8 atFinalPosition = FALSE;
     u8 monSpriteId = sprite->sMonSpriteId;
-    u16 x, y;
+    s16 x, y;
 
     if (sprite->animEnded)
         sprite->invisible = TRUE;
@@ -1160,10 +1157,7 @@ static void SpriteCB_TradePokeball(struct Sprite *sprite)
         u8 monPalNum = sprite->sMonPalNum;
         u32 selectedPalettes = (u16)sprite->sFadePalsLo | ((u16)sprite->sFadePalsHi << 16);
 
-        if (sprite->subpriority != 0)
-            subpriority = sprite->subpriority - 1;
-        else
-            subpriority = 0;
+        subpriority = sprite->subpriority == 0 ? 0 : sprite->subpriority - 1;
 
         StartSpriteAnim(sprite, 1);
         AnimateBallOpenParticlesForPokeball(sprite->x, sprite->y - 5, sprite->oam.priority, subpriority);
