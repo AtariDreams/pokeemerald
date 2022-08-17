@@ -1366,10 +1366,17 @@ static bool8 RegionMap_IsMapSecIdInNextRow(u16 y)
 {
     u16 x;
 
+    #if !MODERN
     if (y-- == 0)
     {
         return FALSE;
     }
+    #else
+    if (y == 0)
+        return FALSE;
+
+    y--;
+    #endif
     for (x = MAPCURSOR_X_MIN; x <= MAPCURSOR_X_MAX; x++)
     {
         if (GetMapSecIdAt(x, y) == sRegionMap->mapSecId)
