@@ -238,7 +238,9 @@ bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
         }
 
         //useless write
+        #if !MODERN
         sDexCryScreen->charBase = window->unk0;
+        #endif
 
         sDexCryScreen->playStartPos = window->yPos;
         sDexCryScreen->cryOverrideCountdown = 0;
@@ -246,7 +248,11 @@ bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
         sDexCryScreen->cryState = 0;
         sDexCryScreen->waveformPreviousY = WAVEFORM_WINDOW_HEIGHT / 2;
         sDexCryScreen->playhead = 0;
+
+        #if !MODERN
         ShiftWaveformOver(windowId, -8 * window->xPos, TRUE); // Does nothing
+        #endif 
+
         for (i = 0; i < 224; i++)
             CopyToWindowPixelBuffer(windowId, sCryScreenBg_Gfx, TILE_SIZE_4BPP, i);
 
@@ -360,9 +366,9 @@ static void BufferCryWaveformSegment(void)
     if (gPcmDmaCounter < 2)
         baseBuffer = gSoundInfo.pcmBuffer;
     else
-        baseBuffer = gSoundInfo.pcmBuffer + (gSoundInfo.pcmDmaPeriod + 1 - gPcmDmaCounter) * gSoundInfo.pcmSamplesPerVBlank;
+        baseBuffer = gSoundInfo.pcmBuffer + gSoundInfo.pcmSamplesPerVBlank * (gSoundInfo.pcmDmaPeriod + 1 - gPcmDmaCounter);
 
-    buffer = baseBuffer + 0x630;
+    buffer = baseBuffer + PCM_DMA_BUF_SIZE;
     for (i = 0; i < ARRAY_COUNT(sDexCryScreen->cryWaveformBuffer); i++)
         sDexCryScreen->cryWaveformBuffer[i] = buffer[i * 2] * 2;
 }
