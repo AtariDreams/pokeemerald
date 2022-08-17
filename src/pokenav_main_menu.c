@@ -416,9 +416,9 @@ static u32 LoopedTask_SlideMenuHeaderUp(s32 state)
     {
     default:
         return LT_FINISH;
-    case 1:
-        return LT_INC_AND_PAUSE;
     case 0:
+        return LT_INC_AND_PAUSE;
+    case 1:
         return LT_INC_AND_PAUSE;
     case 2:
         if (ChangeBgY(0, 384, BG_COORD_ADD) >= 0x2000u)
