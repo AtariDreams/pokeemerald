@@ -873,7 +873,7 @@ bool8 RemovePyramidBagItem(u16 itemId, u16 count)
     }
 }
 
-static u16 SanitizeItemId(u16 itemId)
+static u16 CONST SanitizeItemId(u16 itemId)
 {
     if (itemId >= ITEMS_COUNT)
         return ITEM_NONE;
