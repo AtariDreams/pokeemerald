@@ -3627,7 +3627,13 @@ static void PrintMoveDetails(u16 move)
         if (sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES)
         {
             PrintMovePowerAndAccuracy(move);
+            #if !MODERN
+            // Offsets were fixed and that is why this happened
+            //TODO: We could probably resolve this by changing the constants and repointing them
             PrintTextOnWindow(windowId, gMoveDescriptionPointers[move - 1], 6, 1, 0, 0);
+            #else
+            PrintTextOnWindow(windowId, gMoveDescriptionPointers[move], 6, 1, 0, 0);
+            #endif
         }
         else
         {

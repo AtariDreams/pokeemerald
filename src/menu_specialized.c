@@ -807,7 +807,11 @@ static void MoveRelearnerLoadBattleMoveDescription(u32 chosenMove)
     }
     AddTextPrinterParameterized(0, FONT_NORMAL, str, 0x6A, 0x29, TEXT_SKIP_DRAW, NULL);
 
+    #if !MODERN
     str = gMoveDescriptionPointers[chosenMove - 1];
+    #else
+    str = gMoveDescriptionPointers[chosenMove];
+    #endif
     AddTextPrinterParameterized(0, FONT_NARROW, str, 0, 0x41, 0, NULL);
 }
 
