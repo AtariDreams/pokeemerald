@@ -1,4 +1,4 @@
-#define GET_POINT_OFFSET_DL(bits)  (((bits) >> 0) & 1)
+#define GET_POINT_OFFSET_DL(bits)  ((bits) & 1)
 #define GET_POINT_COLOR_TYPE(bits) (((bits) >> 1) & 3)
 #define GET_POINT_DELTA(bits)      (((bits) >> 3) & 7)
 

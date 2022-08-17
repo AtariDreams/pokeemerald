@@ -312,7 +312,7 @@ static void ApplyImageEffect_BlackOutline(void)
         #else
         pixel = gCanvasPixels + gCanvasRowStart * gCanvasWidth + (gCanvasColumnStart + i);
         #endif
-        
+
         *pixel = QuantizePixel_BlackOutline(pixel, pixel + gCanvasWidth);
         for (j = 1, pixel += gCanvasWidth; j < gCanvasRowEnd - 1; j++, pixel += gCanvasWidth)
         {
@@ -327,15 +327,22 @@ static void ApplyImageEffect_BlackOutline(void)
 static void ApplyImageEffect_Invert(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
-                *pixel = QuantizePixel_Invert(pixel);
+            if (IS_ALPHA(*pixel))
+            {
+                continue;
+            }
+            *pixel = QuantizePixel_Invert(pixel);
         }
     }
 }
@@ -352,8 +359,11 @@ static void ApplyImageEffect_Shimmer(void)
     {
         for (j = 0; j < MAX_DIMENSION; j++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
-                *pixel = QuantizePixel_Invert(pixel);
+            if (IS_ALPHA(*pixel))
+            {
+                continue;
+            }
+            *pixel = QuantizePixel_Invert(pixel);
         }
     }
 
@@ -378,11 +388,12 @@ static void ApplyImageEffect_Shimmer(void)
         *pixel = RGB_ALPHA;
         for (i = 1, pixel += MAX_DIMENSION; i < MAX_DIMENSION - 1; i++, pixel += MAX_DIMENSION)
         {
-            if (!IS_ALPHA(*pixel))
+            if (IS_ALPHA(*pixel))
             {
-                *pixel = QuantizePixel_BlurHard(&prevPixel, pixel, pixel + MAX_DIMENSION);
-                prevPixel = *pixel;
+                continue;
             }
+            *pixel = QuantizePixel_BlurHard(&prevPixel, pixel, pixel + MAX_DIMENSION);
+            prevPixel = *pixel;
         }
 
         *pixel = RGB_ALPHA;
@@ -396,8 +407,11 @@ static void ApplyImageEffect_Shimmer(void)
     {
         for (j = 0; j < MAX_DIMENSION; j++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
-                *pixel = QuantizePixel_Invert(pixel);
+            if (IS_ALPHA(*pixel))
+            {
+                continue;
+            }
+            *pixel = QuantizePixel_Invert(pixel);
         }
     }
 }
@@ -405,19 +419,25 @@ static void ApplyImageEffect_Shimmer(void)
 static void ApplyImageEffect_BlurRight(void)
 {
     u8 i, j;
+    u16 prevPixel;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
-        u16 prevPixel = *pixel;
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
+        prevPixel = *pixel;
         for (i = 1, pixel++; i < gCanvasColumnEnd - 1; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
+            if (IS_ALPHA(*pixel))
             {
-                *pixel = QuantizePixel_MotionBlur(&prevPixel, pixel);
-                prevPixel = *pixel;
+                continue;
             }
+            *pixel = QuantizePixel_MotionBlur(&prevPixel, pixel);
+            prevPixel = *pixel;
         }
     }
 }
@@ -425,19 +445,25 @@ static void ApplyImageEffect_BlurRight(void)
 static void ApplyImageEffect_BlurDown(void)
 {
     u8 i, j;
+    u16 prevPixel;
+    u16 *pixel;
 
     for (i = 0; i < gCanvasColumnEnd; i++)
     {
-        u16 *pixelRow = &gCanvasPixels[gCanvasRowStart * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart + i];
-        u16 prevPixel = *pixel;
+#if MODERN
+        pixel = &gCanvasPixels[gCanvasRowStart * gCanvasWidth + gCanvasColumnStart + i];
+#else
+        pixel = gCanvasPixels + gCanvasRowStart * gCanvasWidth + (gCanvasColumnStart + i);
+#endif
+        prevPixel = *pixel;
         for (j = 1, pixel += gCanvasWidth; j < gCanvasRowEnd - 1; j++, pixel += gCanvasWidth)
         {
-            if (!IS_ALPHA(*pixel))
+            if (IS_ALPHA(*pixel))
             {
-                *pixel = QuantizePixel_MotionBlur(&prevPixel, pixel);
-                prevPixel = *pixel;
+                continue;
             }
+            *pixel = QuantizePixel_MotionBlur(&prevPixel, pixel);
+            prevPixel = *pixel;
         }
     }
 }
