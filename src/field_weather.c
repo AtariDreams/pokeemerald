@@ -658,9 +658,16 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
                 u8 g = color.g;
                 u8 b = color.b;
 
-                r += ((28 - r) * 3) >> 2;
+/*                 r += ((28 - r) * 3) >> 2;
                 g += ((31 - g) * 3) >> 2;
-                b += ((28 - b) * 3) >> 2;
+                b += ((28 - b) * 3) >> 2; */
+
+                // Todo: which is more efficient? in theory first, but second is more consistent. both match though
+                // And compile to the same thing on modern compilers
+                r += ((28 - r) * 12) >> 4;
+                g += ((31 - g) * 12) >> 4;
+                b += ((28 - b) * 12) >> 4;
+                
 
                 r += ((rBlend - r) * blendCoeff) >> 4;
                 g += ((gBlend - g) * blendCoeff) >> 4;
