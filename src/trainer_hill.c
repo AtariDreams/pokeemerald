@@ -857,14 +857,18 @@ u16 LocalIdToHillTrainerId(u8 localId)
 
 bool8 GetHillTrainerFlag(u8 objectEventId)
 {
+    #if !MODERN
     u8 bitId = GetFloorId() * HILL_TRAINERS_PER_FLOOR + (gObjectEvents[objectEventId].localId - 1);
+    #else
+    u8 bitId = GetFloorId() * HILL_TRAINERS_PER_FLOOR + gObjectEvents[objectEventId].localId - 1;
+    #endif
 
     return gSaveBlock2Ptr->frontier.trainerFlags & gBitTable[bitId];
 }
 
 void SetHillTrainerFlag(void)
 {
-    u8 i;
+    m8 i;
     u8 trainerIndexStart = GetFloorId() * HILL_TRAINERS_PER_FLOOR;
 
     for (i = 0; i < HILL_TRAINERS_PER_FLOOR; i++)
@@ -902,8 +906,8 @@ static void ShowTrainerHillPostBattleText(void)
 
 static void CreateNPCTrainerHillParty(u16 trainerId, u8 firstMonId)
 {
-    u8 trId, level;
-    s32 i, floorId, partySlot;
+    u8 trId, level, floorId;
+    m32 i, partySlot;
 
     if (trainerId == 0 || trainerId > HILL_TRAINERS_PER_FLOOR)
         return;
@@ -915,10 +919,9 @@ static void CreateNPCTrainerHillParty(u16 trainerId, u8 firstMonId)
     for (i = firstMonId, partySlot = 0; i < firstMonId + PARTY_SIZE / 2; i++, partySlot++)
     {
         u8 id = sTrainerPartySlots[trId][partySlot];
-        struct Pokemon *mon = &gEnemyParty[i];
 
-        CreateBattleTowerMon(mon, &sHillData->floors[floorId].trainers[trId].mons[id]);
-        SetTrainerHillMonLevel(mon, level);
+        CreateBattleTowerMon(&gEnemyParty[i], &sHillData->floors[floorId].trainers[trId].mons[id]);
+        SetTrainerHillMonLevel(&gEnemyParty[i], level);
     }
 
     FreeDataStruct();
@@ -947,7 +950,7 @@ u32 GetTrainerHillAIFlags(void)
 
 u8 GetTrainerEncounterMusicIdInTrainerHill(u16 trainerId)
 {
-    s32 i;
+    m32 i;
     u8 trId, facilityClass;
 
     SetUpDataStruct();
@@ -1070,7 +1073,7 @@ static u16 GetPrizeItemId(void)
 {
     u8 i;
     const u16 *prizeList;
-    s32 trainerNumSum = 0, prizeListSetId, minutes, id;
+    m32 trainerNumSum = 0, prizeListSetId, minutes, id;
 
     // First determine which set of prize lists to use. The sets of lists only differ in
     // what TMs they can offer as the "grand prize" for a time under 12 minutes.
@@ -1083,7 +1086,11 @@ static u16 GetPrizeItemId(void)
         trainerNumSum += sHillData->floors[i].trainerNum2;
     }
     prizeListSetId = trainerNumSum / 256;
+    #if !MODERN
     prizeListSetId %= (int)ARRAY_COUNT(sPrizeListSets);
+    #else
+    prizeListSetId %= ARRAY_COUNT(sPrizeListSets);
+    #endif
 
     // Now get which prize list to use from the set. See GetPrizeListId for details.
     // The below conditional will always be true, because a Trainer Hill challenge can't be entered
@@ -1115,7 +1122,11 @@ static u16 GetPrizeItemId(void)
     // As an additional note, if players were allowed to enter a Trainer Hill challenge before
     // entering the Hall of Fame, there would be 1 additional prize possibility (ITEM_MAX_ETHER)
     // as Normal / Unique modes would use sPrizeListSets[0][3] / sPrizeListSets[1][3] respectively.
+    #if !MODERN
     minutes = (signed)(gSaveBlock1Ptr->trainerHill.timer) / (60 * 60);
+    #else
+    minutes = (gSaveBlock1Ptr->trainerHill.timer) / (60 * 60);
+    #endif
     if (minutes < 12)
         id = 0; // Depends on list
     else if (minutes < 13)
