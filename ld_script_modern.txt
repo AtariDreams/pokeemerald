@@ -73,6 +73,7 @@ SECTIONS {
     .rodata :
     ALIGN(4)
     {
+        *(.rodata)
         *(.rodata.*)
     } =0
 

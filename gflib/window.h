@@ -58,7 +58,7 @@ void PutWindowRectTilemapOverridePalette(u8 windowId, u8 x, u8 y, u8 width, u8 h
 void ClearWindowTilemap(u8 windowId);
 void PutWindowRectTilemap(u8 windowId, u8 x, u8 y, u8 width, u8 height);
 void BlitBitmapToWindow(u8 windowId, const u8 *pixels, u16 x, u16 y, u16 width, u16 height);
-void BlitBitmapRectToWindow(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, int srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight);
+void BlitBitmapRectToWindow(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, u16 srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight);
 void FillWindowPixelRect(u8 windowId, u8 fillValue, u16 x, u16 y, u16 width, u16 height);
 void CopyToWindowPixelBuffer(u8 windowId, const void *src, u16 size, u16 tileOffset);
 void FillWindowPixelBuffer(u8 windowId, u8 fillValue);
@@ -69,7 +69,7 @@ u32 GetWindowAttribute(u8 windowId, u8 attributeId);
 u16 AddWindow8Bit(const struct WindowTemplate *template);
 void FillWindowPixelBuffer8Bit(u8 windowId, u8 fillValue);
 void FillWindowPixelRect8Bit(u8 windowId, u8 fillValue, u16 x, u16 y, u16 width, u16 height);
-void BlitBitmapRectToWindow4BitTo8Bit(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, int srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 paletteNum);
+void BlitBitmapRectToWindow4BitTo8Bit(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, u16 srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 paletteNum);
 void CopyWindowToVram8Bit(u8 windowId, u8 mode);
 
 extern struct Window gWindows[];
