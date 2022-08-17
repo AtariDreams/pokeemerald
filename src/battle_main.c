@@ -3137,11 +3137,17 @@ static void BattleStartClearSetData(void)
         *(i + 3 * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 0) = 0;
         #else
         gBattleStruct->lastTakenMove[i] = 0;
-        gBattleStruct->choicedMove[i] = 0;
-        gBattleStruct->changedItems[i] = 0;
         #endif
     }
     #if MODERN
+    gBattleStruct->choicedMove[0] = 0;
+    gBattleStruct->choicedMove[1] = 0;
+    gBattleStruct->choicedMove[2] = 0;
+    gBattleStruct->choicedMove[3] = 0;
+    gBattleStruct->changedItems[0] = 0;
+    gBattleStruct->changedItems[1] = 0;
+    gBattleStruct->changedItems[2] = 0;
+    gBattleStruct->changedItems[3] = 0;
     gBattleStruct->usedHeldItems[0] = 0;
     gBattleStruct->usedHeldItems[1] = 0;
     gBattleStruct->usedHeldItems[2] = 0;
