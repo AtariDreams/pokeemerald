@@ -992,6 +992,7 @@ static u32 QuitBerryCrush(MainCallback exitCallback)
         gRfu.errorState = RFU_ERROR_STATE_OCCURRED; \
     }
 
+#if !MODERN
 void StartBerryCrush(MainCallback exitCallback)
 {
     u8 playerCount = 0;
@@ -1034,6 +1035,53 @@ void StartBerryCrush(MainCallback exitCallback)
     sGame->taskId = CreateTask(MainTask, 8);
     gTextFlags.autoScroll = FALSE;
 }
+#else
+void StartBerryCrush(MainCallback exitCallback)
+{
+    u8 playerCount = 0;
+    u8 multiplayerId;
+
+    if (!gReceivedRemoteLinkPlayers || gWirelessCommType == 0)
+    {
+        // Link disconnected
+        goto error;
+    }
+
+    playerCount = GetLinkPlayerCount();
+    multiplayerId = GetMultiplayerId();
+    if (playerCount < 2 || multiplayerId >= playerCount)
+    {
+        // Too few players, or invalid id
+        goto error;
+    }
+
+    sGame = AllocZeroed(sizeof(*sGame));
+    if (!sGame)
+    {
+        // Alloc failed
+        goto error;
+    }
+
+    sGame->exitCallback = exitCallback;
+    sGame->localId = multiplayerId;
+    sGame->playerCount = playerCount;
+    SetNamesAndTextSpeed(sGame);
+    sGame->gameState = STATE_INIT;
+    sGame->nextCmd = CMD_FADE;
+    sGame->afterPalFadeCmd = CMD_READY_BEGIN;
+    SetPaletteFadeArgs(sGame->commandArgs, TRUE, PALETTES_ALL, 0, 16, 0, RGB_BLACK);
+    RunOrScheduleCommand(CMD_SHOW_GAME, 1, sGame->commandArgs);
+    SetMainCallback2(MainCB);
+    sGame->taskId = CreateTask(MainTask, 8);
+    gTextFlags.autoScroll = FALSE;
+    return;
+error:
+        SetMainCallback2(exitCallback);
+        gRfu.errorParam0 = 0;
+        gRfu.errorParam1 = 0;
+        gRfu.errorState = RFU_ERROR_STATE_OCCURRED;
+}
+#endif
 
 static void GetBerryFromBag(void)
 {
@@ -1069,16 +1117,16 @@ static void BerryCrush_InitVBlankCB(void)
 
 static void SaveResults(void)
 {
-    u32 time, presses;
+    s32 time, presses;
 
     // Calculate pressing speed ((time / 60) / presses)
     time = sGame->results.time;
-    time = Q_24_8(time);
-    time = MathUtil_Div32(time, Q_24_8(60));
+    time <<= 8;
+    time = MathUtil_Div32(time, 60 << 8);
     presses = sGame->results.totalAPresses;
-    presses = Q_24_8(presses);
+    presses <<= 8;
     presses = MathUtil_Div32(presses, time) & 0xFFFF;
-    sGame->pressingSpeed = presses;
+    sGame->pressingSpeed = (u16)presses;
 
     switch (sGame->playerCount)
     {
@@ -1117,10 +1165,8 @@ static void SaveResults(void)
     }
 
     sGame->powder = sGame->results.powder;
-    if (GiveBerryPowder(sGame->powder))
-        return;
-
-    sGame->noRoomForPowder = TRUE;
+    if (!GiveBerryPowder(sGame->powder))
+        sGame->noRoomForPowder = TRUE;
 }
 
 static void VBlankCB(void)
