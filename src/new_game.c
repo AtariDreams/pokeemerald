@@ -98,14 +98,16 @@ static void SetDefaultOptions(void)
 
 static void ClearPokedexFlags(void)
 {
+    #if !MODERN
     gUnusedPokedexU8 = 0;
+    #endif
     memset(&gSaveBlock2Ptr->pokedex.owned, 0, sizeof(gSaveBlock2Ptr->pokedex.owned));
     memset(&gSaveBlock2Ptr->pokedex.seen, 0, sizeof(gSaveBlock2Ptr->pokedex.seen));
 }
 
 void ClearAllContestWinnerPics(void)
 {
-    s32 i;
+    m32 i;
 
     ClearContestWinnerPicsInContestHall();
 
