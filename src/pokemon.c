@@ -2170,14 +2170,14 @@ void ZeroMonData(struct Pokemon *mon)
 
 void ZeroPlayerPartyMons(void)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < PARTY_SIZE; i++)
         ZeroMonData(&gPlayerParty[i]);
 }
 
 void ZeroEnemyPartyMons(void)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < PARTY_SIZE; i++)
         ZeroMonData(&gEnemyParty[i]);
 }
@@ -2212,13 +2212,11 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     // Determine original trainer ID
     if (otIdType == OT_ID_RANDOM_NO_SHINY)
     {
-        u32 shinyValue;
         do
         {
             // Choose random OT IDs until one that results in a non-shiny Pokémon
             value = Random32();
-            shinyValue = GET_SHINY_VALUE(value, personality);
-        } while (shinyValue < SHINY_ODDS);
+        } while ((GET_SHINY_VALUE(value, personality)) < SHINY_ODDS);
     }
     else if (otIdType == OT_ID_PRESET)
     {
