@@ -187,9 +187,11 @@ const struct SpriteTemplate gClawSlashSpriteTemplate =
     .callback = AnimClawSlash,
 };
 
+# if !MODERN
 void AnimTask_AttackerFadeToInvisible(u8 taskId)
 {
-    int battler;
+  
+    u8 battler;
     gTasks[taskId].data[0] = gBattleAnimArgs[0];
     battler = gBattleAnimAttacker;
     gTasks[taskId].data[1] = 16;
@@ -201,12 +203,27 @@ void AnimTask_AttackerFadeToInvisible(u8 taskId)
 
     gTasks[taskId].func = AnimTask_AttackerFadeToInvisible_Step;
 }
+#else
+void AnimTask_AttackerFadeToInvisible(u8 taskId)
+{
+    gTasks[taskId].data[0] = gBattleAnimArgs[0];
+    gTasks[taskId].data[1] = 16;
+    SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(16, 0));
+    if (GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 1)
+        SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND | BLDCNT_TGT1_BG1);
+    else
+        SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND | BLDCNT_TGT1_BG2);
+
+    gTasks[taskId].func = AnimTask_AttackerFadeToInvisible_Step;
+}
+#endif
 
 static void AnimTask_AttackerFadeToInvisible_Step(u8 taskId)
 {
     u8 blendA = gTasks[taskId].data[1] >> 8;
-    u8 blendB = gTasks[taskId].data[1];
-    if (gTasks[taskId].data[2] == (u8)gTasks[taskId].data[0])
+    u8 blendB = gTasks[taskId].data[1] & 0xFF;
+    u8 wait = gTasks[taskId].data[0]; // TODO: Should this be a u8? it is doing the & FF thing, but the OG code doesn't indicate this was the intention
+    if (gTasks[taskId].data[2] == wait)
     {
         blendA++;
         blendB--;
@@ -236,8 +253,9 @@ void AnimTask_AttackerFadeFromInvisible(u8 taskId)
 static void AnimTask_AttackerFadeFromInvisible_Step(u8 taskId)
 {
     u8 blendA = gTasks[taskId].data[1] >> 8;
-    u8 blendB = gTasks[taskId].data[1];
-    if (gTasks[taskId].data[2] == (u8)gTasks[taskId].data[0])
+    u8 blendB = gTasks[taskId].data[1] & 0xFF;
+    u8 wait = gTasks[taskId].data[0]; // TODO: Should this be a u8? it is doing the & FF thing, but the OG code doesn't indicate this was the intention
+    if (gTasks[taskId].data[2] == wait)
     {
         blendA--;
         blendB++;
@@ -278,7 +296,7 @@ static void AnimUnusedBagSteal(struct Sprite *sprite)
     InitSpriteDataForLinearTranslation(sprite);
     sprite->data[3] = -sprite->data[1];
     sprite->data[4] = -sprite->data[2];
-    sprite->data[6] = 0xFFD8;
+    sprite->data[6] = -40;
     sprite->callback = AnimUnusedBagSteal_Step;
     sprite->callback(sprite);
 }
@@ -346,15 +364,9 @@ static void AnimBite_Step2(struct Sprite *sprite)
 // Launches a tear drop away from the battler. Used by Fake Tears
 static void AnimTearDrop(struct Sprite *sprite)
 {
-    u8 battler;
-    s8 xOffset;
+    u8 battler = (gBattleAnimArgs[0] == ANIM_ATTACKER) ? gBattleAnimAttacker : gBattleAnimTarget;
+    s8 xOffset = 20;
 
-    if (gBattleAnimArgs[0] == ANIM_ATTACKER)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
-
-    xOffset = 20;
     sprite->oam.tileNum += 4;
 
     switch (gBattleAnimArgs[1])
@@ -400,9 +412,11 @@ void AnimTask_MoveAttackerMementoShadow(u8 taskId)
 {
     struct ScanlineEffectParams scanlineParams;
     struct BattleAnimBgData animBg;
-    u16 i;
+    m16 i;
+    #if !MODERN
     u8 pos;
-    int var0;
+    #endif
+    u16 var0;
     struct Task *task = &gTasks[taskId];
 
     task->data[7] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_Y) + 31;
@@ -411,10 +425,16 @@ void AnimTask_MoveAttackerMementoShadow(u8 taskId)
     task->data[4] = task->data[6];
     task->data[13] = (task->data[7] - task->data[6]) << 8;
 
+    // TODO: see which is better
+    #if !MODERN
     pos = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
     task->data[14] = pos - 32;
     task->data[15] = pos + 32;
-
+    #else
+    // done by GF
+    task->data[14] = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
+    task->data[15] = task->data[14] + 64;
+    #endif
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
         task->data[8] = -12;
     else
@@ -506,8 +526,11 @@ static void AnimTask_MoveAttackerMementoShadow_Step(u8 taskId)
         DoMementoShadowEffect(task);
         task->data[14] += 4;
         task->data[15] -= 4;
-
+        #if !MODERN
         if (task->data[14] >= task->data[15])
+        #else
+        if (task->data[14] > task->data[15])
+        #endif
             task->data[14] = task->data[15];
 
         gBattle_WIN0H = (task->data[14] << 8) | task->data[15];
@@ -527,10 +550,11 @@ static void AnimTask_MoveAttackerMementoShadow_Step(u8 taskId)
 
 void AnimTask_MoveTargetMementoShadow(u8 taskId)
 {
-    struct BattleAnimBgData animBg;
-    struct ScanlineEffectParams scanlineParams;
+    
+    #if !MODERN
     u8 x;
-    u16 i;
+    #endif
+
     struct Task *task = &gTasks[taskId];
 
     switch (task->data[0])
@@ -543,27 +567,28 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
             SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
             SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR | WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
             DestroyAnimVisualTask(taskId);
+            return;
+        }
+
+        task->data[3] = GetBattlerSpriteBGPriorityRank(gBattleAnimTarget);
+        if (task->data[3] == 1)
+        {
+            SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND | BLDCNT_TGT1_BG1);
+            gBattle_BG2_X += DISPLAY_WIDTH;
         }
         else
         {
-            task->data[3] = GetBattlerSpriteBGPriorityRank(gBattleAnimTarget);
-            if (task->data[3] == 1)
-            {
-                SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND | BLDCNT_TGT1_BG1);
-                gBattle_BG2_X += DISPLAY_WIDTH;
-            }
-            else
-            {
-                SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND | BLDCNT_TGT1_BG2);
-                gBattle_BG1_X += DISPLAY_WIDTH;
-            }
-
-            task->data[0]++;
+            SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND | BLDCNT_TGT1_BG2);
+            gBattle_BG1_X += DISPLAY_WIDTH;
         }
+
+        task->data[0]++;
+
         break;
     case 1:
         if (task->data[3] == 1)
         {
+            struct BattleAnimBgData animBg;
             GetBattleAnimBg1Data(&animBg);
             task->data[10] = gBattle_BG1_Y;
             FillPalette(RGB_BLACK, animBg.paletteId * 16, 32);
@@ -581,9 +606,14 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
         task->data[7] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y) + 31;
         task->data[6] = GetBattlerSpriteCoordAttr(gBattleAnimTarget, BATTLER_COORD_ATTR_TOP) - 7;
         task->data[13] = (task->data[7] - task->data[6]) << 8;
+        #if !MODERN
         x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
         task->data[14] = x - 4;
         task->data[15] = x + 4;
+        #else
+        task->data[14] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
+        task->data[15] = task->data[14] + 8;
+        #endif
 
         if (GetBattlerSide(gBattleAnimTarget) == B_SIDE_PLAYER)
             task->data[8] = -12;
@@ -597,6 +627,10 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
         task->data[0]++;
         break;
     case 3:
+    {
+        struct ScanlineEffectParams scanlineParams;
+        // TODO: maybe should be m16?
+        u16 i;
         if (task->data[3] == 1)
             scanlineParams.dmaDest = &REG_BG1VOFS;
         else
@@ -614,6 +648,7 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
         ScanlineEffect_SetParams(scanlineParams);
         task->data[0]++;
         break;
+    }
     case 4:
         if (task->data[3] == 1)
             SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR | WINOUT_WIN01_BG0 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
@@ -621,7 +656,7 @@ void AnimTask_MoveTargetMementoShadow(u8 taskId)
             SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR | WINOUT_WIN01_BG0 | WINOUT_WIN01_BG1 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
 
         SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
-        gBattle_WIN0H = (task->data[14] << 8) | task->data[15];
+        gBattle_WIN0H = BLDALPHA_BLEND(task->data[15], task->data[14]);
         gBattle_WIN0V = DISPLAY_HEIGHT;
 
         task->data[0] = 0;
