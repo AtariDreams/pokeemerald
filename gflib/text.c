@@ -582,27 +582,18 @@ static u8 GetLastTextColor(u8 colorType)
 #if 1
 inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u32 *glyphPixels, s32 width, s32 height)
 {
-    u32 xAdd, yAdd, pixelData, bits, toOrr;
-    
-    #if !MODERN
-    u32 dummyX;
-    #endif
+    u32 xAdd, yAdd, pixelData, bits, toOrr, dummyX;
     u8 *dst;
 
     xAdd = j + width;
     yAdd = i + height;
-    #if !MODERN
+
     dummyX = j;
-    #endif
 
     for (; i < yAdd; i++)
     {
         pixelData = *glyphPixels++;
-        #if !MODERN
         for (j = dummyX; j < xAdd; j++)
-        #else
-        for (; j < xAdd; j++)
-        #endif
         {
             if ((toOrr = pixelData & 0xF) != 0)
             {
