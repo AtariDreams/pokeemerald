@@ -4251,18 +4251,19 @@ static void InitItemBagData(struct Sprite *sprite, s16 c)
 {
     int a = (sprite->x << 8) | sprite->y;
     int b = (sprite->data[6] << 8) | sprite->data[7];
-    c <<= 8;
+    int d = c << 8;
     sprite->data[5] = a;
     sprite->data[6] = b;
-    sprite->data[7] = c;
+    sprite->data[7] = d;
 }
 
 bool8 moveAlongLinearPath(struct Sprite *sprite)
 {
-    u16 xStartPos = (u8)(sprite->data[5] >> 8);
-    u16 yStartPos = (u8)sprite->data[5];
+    s32 xStartPos = (u8)(sprite->data[5] >> 8);
+    // prevent sign extension
+    s32 yStartPos = (u8)(sprite->data[5] & 0xFF);
     s32 xEndPos = (u8)(sprite->data[6] >> 8);
-    s32 yEndPos = (u8)sprite->data[6];
+    s32 yEndPos = (u8)(sprite->data[6] & 0xFF);
     s16 totalTime = sprite->data[7] >> 8;
     s16 currentTime = sprite->data[7] & 0xFF;
     s16 yEndPos_2;
@@ -4275,12 +4276,12 @@ bool8 moveAlongLinearPath(struct Sprite *sprite)
     else if (xEndPos == 255)
         xEndPos = DISPLAY_WIDTH + 32;
 
-    yEndPos_2 = yEndPos - yStartPos;
-    r0 = xEndPos - xStartPos;
-    var1 = r0 * currentTime / totalTime;
-    vaxEndPos = yEndPos_2 * currentTime / totalTime;
-    sprite->x = var1 + xStartPos;
-    sprite->y = vaxEndPos + yStartPos;
+    yEndPos_2 = (s16)(yEndPos - yStartPos);
+    r0 = (s16)(xEndPos - xStartPos);
+    var1 = (r0 * currentTime) / totalTime;
+    vaxEndPos = (yEndPos_2 * currentTime) / totalTime;
+    sprite->x = xStartPos + var1;
+    sprite->y = yStartPos + vaxEndPos;
     if (++currentTime == totalTime)
         return TRUE;
 
@@ -4293,8 +4294,7 @@ static void AnimItemSteal_Step2(struct Sprite *sprite)
     if (sprite->data[0] == 10)
         StartSpriteAffineAnim(sprite, 1);
 
-    sprite->data[0]++;
-    if (sprite->data[0] > 50)
+    if (++sprite->data[0] > 50)
         DestroyAnimSprite(sprite);
 }
 
@@ -4329,6 +4329,8 @@ static void AnimPresent(struct Sprite *sprite)
         sprite->data[7] = targetY + 10;
         InitItemBagData(sprite, 60);
         sprite->data[3] = 1;
+        sprite->data[4] = 60;
+        sprite->callback = AnimItemSteal_Step1;
     }
     else
     {
@@ -4336,28 +4338,26 @@ static void AnimPresent(struct Sprite *sprite)
         sprite->data[7] = targetY + 10;
         InitItemBagData(sprite, 60);
         sprite->data[3] = 3;
+        sprite->data[4] = 60;
+        sprite->callback = AnimItemSteal_Step1;
     }
-
-    sprite->data[4] = 60;
-    sprite->callback = AnimItemSteal_Step1;
 }
 
 static void AnimKnockOffOpponentsItem(struct Sprite *sprite)
 {
-    int zero;
     sprite->data[0] += ((sprite->data[3] * 128) / sprite->data[4]);
-    zero = 0;
-    if (sprite->data[0] > 0x7F)
+
+    if (sprite->data[0] >= 128)
     {
         sprite->data[1]++;
-        sprite->data[0] = zero;
+        sprite->data[0] = 0;
     }
 
     sprite->y2 = Sin(sprite->data[0] + 0x80, 30 - sprite->data[1] * 8);
     if (moveAlongLinearPath(sprite))
     {
-        sprite->y2 = zero;
-        sprite->data[0] = zero;
+        sprite->y2 = 0;
+        sprite->data[0] = 0;
         DestroyAnimSprite(sprite);
     }
 }
@@ -4420,6 +4420,8 @@ static void AnimItemSteal(struct Sprite *sprite)
         sprite->data[7] = attackerY + 10;
         InitItemBagData(sprite, 60);
         sprite->data[3] = 1;
+        sprite->data[4] = 60;
+        sprite->callback = AnimItemSteal_Step3;
     }
     else
     {
@@ -4427,21 +4429,18 @@ static void AnimItemSteal(struct Sprite *sprite)
         sprite->data[7] = attackerY + 10;
         InitItemBagData(sprite, 60);
         sprite->data[3] = 3;
-    }
-
-    sprite->data[4] = 60;
-    sprite->callback = AnimItemSteal_Step3;
+        sprite->data[4] = 60;
+        sprite->callback = AnimItemSteal_Step3;
+    }  
 }
 
 static void AnimItemSteal_Step3(struct Sprite *sprite)
 {
-    int zero;
     sprite->data[0] += ((sprite->data[3] * 128) / sprite->data[4]);
-    zero = 0;
-    if (sprite->data[0] > 127)
+    if (sprite->data[0] >= 128)
     {
         sprite->data[1]++;
-        sprite->data[0] = zero;
+        sprite->data[0] = 0;
     }
 
     sprite->y2 = Sin(sprite->data[0] + 0x80, 30 - sprite->data[1] * 8);
