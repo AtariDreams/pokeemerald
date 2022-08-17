@@ -259,7 +259,7 @@ void CB2_InitOptionMenu(void)
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0x10, 0, RGB_BLACK);
         SetVBlankCallback(VBlankCB);
         SetMainCallback2(MainCB2);
-        return;
+        break;
     }
 }
 
@@ -388,10 +388,14 @@ static void HighlightOptionMenuItem(u8 index)
 static void DrawOptionMenuChoice(const u8 *text, u8 x, u8 y, u8 style)
 {
     u8 dst[16];
-    u16 i;
+    m16 i;
 
-    for (i = 0; *text != EOS && i <= 14; i++)
+    for (i = 0; *text != EOS && i < 16 - 1; i++)
+        #if !MODERN
         dst[i] = *(text++);
+        #else
+        dst[i] = text[i];
+        #endif
 
     if (style != 0)
     {
@@ -407,7 +411,7 @@ static u8 TextSpeed_ProcessInput(u8 selection)
 {
     if (JOY_NEW(DPAD_RIGHT))
     {
-        if (selection <= 1)
+        if (selection < 2)
             selection++;
         else
             selection = 0;
@@ -549,23 +553,24 @@ static u8 FrameType_ProcessInput(u8 selection)
 static void FrameType_DrawChoices(u8 selection)
 {
     u8 text[16];
-    u8 n = selection + 1;
+    
     u16 i;
+    selection++;
 
-    for (i = 0; gText_FrameTypeNumber[i] != EOS && i <= 5; i++)
+    for (i = 0; gText_FrameTypeNumber[i] != EOS && i < 7 - 1; i++)
         text[i] = gText_FrameTypeNumber[i];
 
     // Convert a number to decimal string
-    if (n / 10 != 0)
+    if (selection / 10 != 0)
     {
-        text[i] = n / 10 + CHAR_0;
+        text[i] = CHAR_0 + selection / 10;
         i++;
-        text[i] = n % 10 + CHAR_0;
+        text[i] = CHAR_0 + selection % 10;
         i++;
     }
     else
     {
-        text[i] = n % 10 + CHAR_0;
+        text[i] = CHAR_0 + selection % 10;
         i++;
         text[i] = 0x77;
         i++;
