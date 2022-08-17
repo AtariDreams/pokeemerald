@@ -312,7 +312,8 @@ static const struct UCoords16 sMarineCaveLocationCoords[MARINE_CAVE_LOCATIONS] =
 
 static const u8 sMapSecAquaHideoutOld[] =
     {
-        MAPSEC_AQUA_HIDEOUT_OLD};
+        MAPSEC_AQUA_HIDEOUT_OLD
+    };
 
 static const struct OamData sRegionMapCursorOam =
     {
@@ -1258,10 +1259,14 @@ static void InitMapBasedOnPlayerLocation(void)
             sRegionMap->mapSecId = mapHeader->regionMapSectionId;
         }
 
+        #if !MODERN
         if (IsPlayerInAquaHideout(sRegionMap->mapSecId))
             sRegionMap->playerIsInCave = TRUE;
         else
             sRegionMap->playerIsInCave = FALSE;
+        #else
+        sRegionMap->playerIsInCave = FALSE;
+        #endif
 
         mapWidth = mapHeader->mapLayout->width;
         mapHeight = mapHeader->mapLayout->height;
@@ -1302,6 +1307,7 @@ static void InitMapBasedOnPlayerLocation(void)
         break;
     case MAPSEC_ROUTE_126:
     case MAPSEC_UNDERWATER_126:
+        #if !MODERN
         x = 0;
         if (gSaveBlock1Ptr->pos.x > 32)
             x++;
@@ -1313,8 +1319,25 @@ static void InitMapBasedOnPlayerLocation(void)
             y++;
         if (gSaveBlock1Ptr->pos.y > 56)
             y++;
+        #else
+        if (gSaveBlock1Ptr->pos.x > 51)
+            x = 2;
+        else if (gSaveBlock1Ptr->pos.x > 32)
+            x = 1;
+        else
+            x = 0;
+        
+        if (gSaveBlock1Ptr->pos.y > 56)
+            y = 2;
+        else if (gSaveBlock1Ptr->pos.y > 37)
+            y = 1;
+        else
+            y = 0;
+        #endif
+
         break;
     case MAPSEC_ROUTE_121:
+        #if !MODERN
         x = 0;
         if (xOnMap > 14)
             x++;
@@ -1322,6 +1345,16 @@ static void InitMapBasedOnPlayerLocation(void)
             x++;
         if (xOnMap > 54)
             x++;
+        #else
+            if (xOnMap > 54)
+                x = 3;
+            else if (xOnMap > 28)
+                x = 2;
+            else if (xOnMap > 14)
+                x = 1;
+            else
+                x = 0;
+        #endif
         break;
     case MAPSEC_UNDERWATER_MARINE_CAVE:
         GetMarineCaveCoords(&sRegionMap->cursorPosX, &sRegionMap->cursorPosY);
@@ -1461,7 +1494,7 @@ static u16 GetTerraOrMarineCaveMapSecId(void)
 
     idx = VarGet(VAR_ABNORMAL_WEATHER_LOCATION) - 1;
 
-    if (idx < 0 || idx >= ABNORMAL_WEATHER_LOCATIONS)
+    if (idx < 0 || idx >= ARRAY_COUNT(sTerraOrMarineCaveMapSecIds))
         idx = 0;
 
     return sTerraOrMarineCaveMapSecIds[idx];
@@ -1472,11 +1505,22 @@ static void GetMarineCaveCoords(u16 *x, u16 *y)
     u16 idx;
 
     idx = VarGet(VAR_ABNORMAL_WEATHER_LOCATION);
+    #if !MODERN
     if (idx < MARINE_CAVE_LOCATIONS_START || idx > ABNORMAL_WEATHER_LOCATIONS)
     {
         idx = MARINE_CAVE_LOCATIONS_START;
     }
     idx -= MARINE_CAVE_LOCATIONS_START;
+    #else
+    if (idx < MARINE_CAVE_LOCATIONS_START || idx > ABNORMAL_WEATHER_LOCATIONS)
+    {
+        idx = 0;
+    }
+    else
+    {
+        idx -= MARINE_CAVE_LOCATIONS_START;
+    }
+    #endif
 
     *x = sMarineCaveLocationCoords[idx].x + MAPCURSOR_X_MIN;
     *y = sMarineCaveLocationCoords[idx].y + MAPCURSOR_Y_MIN;
