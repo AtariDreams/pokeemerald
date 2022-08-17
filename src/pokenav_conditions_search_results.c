@@ -715,14 +715,14 @@ static void BufferSearchMonListItem(struct PokenavMonListItem * item, u8 * dest)
     dest = GetStringClearToWidth(dest, FONT_NORMAL, gStringVar3, 60);
     switch (gender)
     {
-    default:
-        genderStr = sText_NoGenderSymbol;
-        break;
     case MON_MALE:
         genderStr = sText_MaleSymbol;
         break;
     case MON_FEMALE:
         genderStr = sText_FemaleSymbol;
+        break;
+    default:
+        genderStr = sText_NoGenderSymbol;
         break;
     }
     s = StringCopy(gStringVar1, genderStr);

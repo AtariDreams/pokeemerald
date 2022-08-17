@@ -184,14 +184,14 @@ static u32 HandleRibbonsMonListInput(struct Pokenav_RibbonsMonList *list)
         return RIBBONS_MON_LIST_FUNC_PAGE_DOWN;
     if (JOY_NEW(B_BUTTON))
     {
-        list->saveMonList = 0;
+        list->saveMonList = FALSE;
         list->callback = RibbonsMonMenu_ReturnToMainMenu;
         return RIBBONS_MON_LIST_FUNC_EXIT;
     }
     if (JOY_NEW(A_BUTTON))
     {
         list->monList->currIndex = PokenavList_GetSelectedIndex();
-        list->saveMonList = 1;
+        list->saveMonList = TRUE;
         list->callback = RibbonsMonMenu_ToSummaryScreen;
         return RIBBONS_MON_LIST_FUNC_OPEN_RIBBONS_SUMMARY;
     }
