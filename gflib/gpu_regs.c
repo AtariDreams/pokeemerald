@@ -20,7 +20,7 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < GPU_REG_BUF_SIZE; i++)
     {
@@ -50,7 +50,7 @@ void CopyBufferedValuesToGpuRegs(void)
 {
     if (!sGpuRegBufferLocked)
     {
-        s32 i;
+        m32 i;
 
         for (i = 0; i < GPU_REG_BUF_SIZE; i++)
         {
@@ -78,7 +78,7 @@ void SetGpuReg(u8 regOffset, u16 value)
         }
         else
         {
-            s32 i;
+            m32 i;
 
             sGpuRegBufferLocked = TRUE;
 
@@ -109,7 +109,7 @@ void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
         }
         else
         {
-            s32 i;
+            m32 i;
 
             sGpuRegBufferLocked = TRUE;
 
