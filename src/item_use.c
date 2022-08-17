@@ -399,8 +399,6 @@ static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, s
 #endif
 {
     s16 localX, localY;
-    s32 localOffset;
-    s32 localLength;
 
     const struct MapHeader *const mapHeader = GetMapHeaderFromConnection(connection);
 
@@ -408,28 +406,28 @@ static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, s
     {
     // same weird temp variable behavior seen in IsHiddenItemPresentAtCoords
     case CONNECTION_NORTH:
-        localOffset = connection->offset + MAP_OFFSET;
-        localX = x - localOffset;
-        localLength = mapHeader->mapLayout->height - MAP_OFFSET;
-        localY = localLength + y; // additions are reversed for some reason
+        localX = x - MAP_OFFSET - connection->offset;
+        #if !MODERN
+        localY = mapHeader->mapLayout->height + (y - MAP_OFFSET);
+        #else
+        localY = y - MAP_OFFSET + mapHeader->mapLayout->height;
+        #endif
         break;
     case CONNECTION_SOUTH:
-        localOffset = connection->offset + MAP_OFFSET;
-        localX = x - localOffset;
-        localLength = gMapHeader.mapLayout->height + MAP_OFFSET;
-        localY = y - localLength;
+        localX = x - MAP_OFFSET - connection->offset;
+        localY = y - MAP_OFFSET - gMapHeader.mapLayout->height;
         break;
     case CONNECTION_WEST:
-        localLength = mapHeader->mapLayout->width - MAP_OFFSET;
-        localX = localLength + x; // additions are reversed for some reason
-        localOffset = connection->offset + MAP_OFFSET;
-        localY = y - localOffset;
+        #if !MODERN
+        localX = mapHeader->mapLayout->width + (x - MAP_OFFSET);
+        #else
+        localX = x - MAP_OFFSET + mapHeader->mapLayout->width;
+        #endif
+        localY = y - MAP_OFFSET - connection->offset;
         break;
     case CONNECTION_EAST:
-        localLength = gMapHeader.mapLayout->width + MAP_OFFSET;
-        localX = x - localLength;
-        localOffset = connection->offset + MAP_OFFSET;
-        localY = y - localOffset;
+        localX = x - MAP_OFFSET - gMapHeader.mapLayout->width;
+        localY = y - MAP_OFFSET - connection->offset;
         break;
     default:
         return FALSE;
