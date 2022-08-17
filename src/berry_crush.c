@@ -2215,6 +2215,7 @@ static void SpriteCB_Sparkle_End(struct Sprite *sprite)
     sprite->callback = SpriteCallbackDummy;
 }
 
+#if MODERN
 #define sX         data[0]
 #define sYSpeed    data[1]
 #define sYAccel    data[2]
@@ -2226,18 +2227,34 @@ static void SpriteCB_Sparkle_End(struct Sprite *sprite)
 // The first 15 bits are the y coord to stop at.
 // The last bit is a flag for whether or not to move on the x too
 #define sBitfield  data[7]
+typedef s16* mash16;
+#else
+
+#define sX         data->sX
+#define sYSpeed    data->sYSpeed
+#define sYAccel    data->sYAccel
+#define sXSpeed    data->sXSpeed
+#define sSinIdx    data->sSinIdx
+#define sSinSpeed  data->sSinSpeed
+#define sAmplitude data->sAmplitude
+// The last element (data[7]) is a bitfield.
+// The first 15 bits are the y coord to stop at.
+// The last bit is a flag for whether or not to move on the x too
+#define sBitfield  data->sBitfield
+#endif
+
 #define MASK_TARGET_Y 0x7FFF
 #define F_MOVE_HORIZ  0x8000
 
 static void SpriteCB_Sparkle(struct Sprite *sprite)
 {
-    s16 *data = sprite->data;
+    mash16 data = (mash16)sprite->data;
 
     sYSpeed += sYAccel;
     sprite->y2 += sYSpeed >> 8;
     if (sBitfield & F_MOVE_HORIZ)
     {
-        sprite->sX += sXSpeed;
+        sX += sXSpeed;
         sSinIdx += sSinSpeed;
         sprite->x2 = Sin(sSinIdx >> 7, sAmplitude);
         if (sBitfield & F_MOVE_HORIZ && sSinIdx >> 7 >= 127)
@@ -2253,26 +2270,33 @@ static void SpriteCB_Sparkle(struct Sprite *sprite)
 
 static void SpriteCB_Sparkle_Init(struct Sprite *sprite)
 {
-    s16 *data = sprite->data;
-    s16 xMult, xDiv;
-    s32 var;
-    u32 zero = 0;
+    mash16 data = (mash16)sprite->data;
+    s16 xMult, time;
 
-    var = 640;
-    sYSpeed = var;
+    // TODO: are these assignments really needed?
+    sYSpeed = 640;
     sYAccel = 32;
     sBitfield = 168; // Setting bits in MASK_TARGET_Y
+    #if MODERN
+    xMult = sprite->x2 << 7;
+    #else
     xMult = sprite->x2 * 128;
-    xDiv = MathUtil_Div16Shift(7, (168 - sprite->y) << 7, (var + 32) >> 1);
-    sprite->sX = sprite->x << 7;
-    sXSpeed = MathUtil_Div16Shift(7, xMult, xDiv);
-    var = MathUtil_Mul16Shift(7, xDiv, 85);
-    sSinIdx = zero;
-    sSinSpeed = MathUtil_Div16Shift(7, Q_8_8(63.5), var);
+    #endif
+
+    #if !MODERN
+    time = MathUtil_Div16Shift(7, (sBitfield - sprite->y) << 7, (sYSpeed + sYAccel) >> 1);
+    #else
+    time = MathUtil_Div16Shift(7, (168 - sprite->y) << 7, (sYSpeed + 32) >> 1);
+    #endif 
+    sX = sprite->x << 7;
+    sXSpeed = MathUtil_Div16Shift(7, xMult, time);
+    time = MathUtil_Mul16Shift(7, time, 85);
+    sSinIdx = 0;
+    sSinSpeed = MathUtil_Div16Shift(7, Q_8_8(63.5), time);
     sAmplitude = sprite->x2 / 4;
     sBitfield |= F_MOVE_HORIZ;
-    sprite->y2 = zero;
-    sprite->x2 = zero;
+    sprite->y2 = 0;
+    sprite->x2 = 0;
     sprite->callback = SpriteCB_Sparkle;
     sprite->animPaused = FALSE;
     sprite->invisible = FALSE;
@@ -2356,30 +2380,26 @@ static u32 Cmd_WaitPaletteFade(struct BerryCrushGame *game, u8 *args)
     case 0:
         if (UpdatePaletteFade())
             return 0;
-        if(args[0] != 0)
-            game->cmdState++;
-        else
+        if(!args[0]) {
             game->cmdState = 3;
-        return 0;
-    case 1:
-        Rfu_SetLinkStandbyCallback();
-        game->cmdState++;
-        return 0;
-    case 2:
-        if (IsLinkTaskFinished())
-        {
-            game->cmdState++;
             return 0;
         }
-        return 0;
+        break;
+    case 1:
+        Rfu_SetLinkStandbyCallback();
+        break;
+    case 2:
+        if (!IsLinkTaskFinished())
+        {
+            return 0;
+        }
     case 3:
         RunOrScheduleCommand(game->afterPalFadeCmd, SCHEDULE_CMD, NULL);
         game->cmdState = 0;
         return 0;
-    default:
-        game->cmdState++;
-        return 0;
     }
+    game->cmdState++;
+    return 0;
 }
 
 static u32 Cmd_PrintMessage(struct BerryCrushGame *game, u8 *args)
