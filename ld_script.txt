@@ -229,9 +229,7 @@ SECTIONS {
         src/fldeff_dig.o(.text);
         src/pokeblock.o(.text);
         src/fldeff_flash.o(.text);
-        src/time_events.o(.text);
-        src/birch_pc.o(.text);
-        src/field_specials.o(.text);
+        src/scr_util.o(.text);
         src/battle_records.o(.text);
         src/pokedex_area_screen.o(.text);
         src/evolution_scene.o(.text);
@@ -598,8 +596,7 @@ SECTIONS {
         src/wallclock.o(.rodata);
         src/pokeblock.o(.rodata);
         src/fldeff_flash.o(.rodata);
-        src/time_events.o(.rodata);
-        src/field_specials.o(.rodata);
+        src/scr_util.o(.rodata);
         src/battle_records.o(.rodata);
         src/pokedex_area_screen.o(.rodata);
         src/evolution_scene.o(.rodata);

@@ -1,4 +1,16 @@
 #include "global.h"
+#include "time_events.h"
+#include "credits.h"
+#include "load_save.h"
+#include "script_pokemon_util.h"
+#include "constants/heal_locations.h"
+#include "pokedex.h"
+#include "hall_of_fame.h"
+#include "main.h"
+#include "palette.h"
+#include "script.h"
+#include "script_menu.h"
+#include "constants/rgb.h"
 #include "malloc.h"
 #include "battle.h"
 #include "battle_tower.h"
@@ -34,8 +46,6 @@
 #include "rayquaza_scene.h"
 #include "region_map.h"
 #include "rtc.h"
-#include "script.h"
-#include "script_menu.h"
 #include "sound.h"
 #include "starter_choose.h"
 #include "string_util.h"
@@ -64,26 +74,6 @@
 #include "constants/battle_frontier.h"
 #include "constants/weather.h"
 #include "constants/metatile_labels.h"
-#include "palette.h"
-
-EWRAM_DATA bool8 gBikeCyclingChallenge = FALSE;
-EWRAM_DATA u8 gBikeCollisions = 0;
-static EWRAM_DATA u32 sBikeCyclingTimer = 0;
-static EWRAM_DATA u8 sSlidingDoorNextFrameCounter = 0;
-static EWRAM_DATA u8 sSlidingDoorFrame = 0;
-static EWRAM_DATA u8 sTutorMoveAndElevatorWindowId = 0;
-static EWRAM_DATA u16 sLilycoveDeptStore_NeverRead = 0;
-static EWRAM_DATA u16 sLilycoveDeptStore_DefaultFloorChoice = 0;
-static EWRAM_DATA struct ListMenuItem *sScrollableMultichoice_ListMenuItem = NULL;
-static EWRAM_DATA u16 sScrollableMultichoice_ScrollOffset = 0;
-static EWRAM_DATA u16 sFrontierExchangeCorner_NeverRead = 0;
-static EWRAM_DATA u8 sScrollableMultichoice_ItemSpriteId = 0;
-static EWRAM_DATA u8 sBattlePointsWindowId = 0;
-static EWRAM_DATA u8 sFrontierExchangeCorner_ItemIconWindowId = 0;
-static EWRAM_DATA u8 sPCBoxToSendMon = 0;
-static EWRAM_DATA u32 sBattleTowerMultiBattleTypeFlags = 0;
-
-struct ListMenuTemplate gScrollableMultichoice_ListMenuTemplate;
 
 void TryLoseFansFromPlayTime(void);
 void SetPlayerGotFirstFans(void);
@@ -128,6 +118,329 @@ static u8 DidPlayerGetFirstFans(void);
 static void SetInitialFansOfPlayer(void);
 static u16 PlayerGainRandomTrainerFan(void);
 static void BufferFanClubTrainerName_(struct LinkBattleRecords *, u8, u8);
+
+EWRAM_DATA bool8 gBikeCyclingChallenge = FALSE;
+EWRAM_DATA u8 gBikeCollisions = 0;
+static EWRAM_DATA u32 sBikeCyclingTimer = 0;
+static EWRAM_DATA u8 sSlidingDoorNextFrameCounter = 0;
+static EWRAM_DATA u8 sSlidingDoorFrame = 0;
+static EWRAM_DATA u8 sTutorMoveAndElevatorWindowId = 0;
+static EWRAM_DATA u16 sLilycoveDeptStore_NeverRead = 0;
+static EWRAM_DATA u16 sLilycoveDeptStore_DefaultFloorChoice = 0;
+static EWRAM_DATA struct ListMenuItem *sScrollableMultichoice_ListMenuItem = NULL;
+static EWRAM_DATA u16 sScrollableMultichoice_ScrollOffset = 0;
+static EWRAM_DATA u16 sFrontierExchangeCorner_NeverRead = 0;
+static EWRAM_DATA u8 sScrollableMultichoice_ItemSpriteId = 0;
+static EWRAM_DATA u8 sBattlePointsWindowId = 0;
+static EWRAM_DATA u8 sFrontierExchangeCorner_ItemIconWindowId = 0;
+static EWRAM_DATA u8 sPCBoxToSendMon = 0;
+static EWRAM_DATA u32 sBattleTowerMultiBattleTypeFlags = 0;
+
+struct ListMenuTemplate gScrollableMultichoice_ListMenuTemplate;
+
+u8 GameClear(void)
+{
+    int i;
+    bool32 ribbonGet;
+    struct RibbonCounter {
+        u8 partyIndex;
+        u8 count;
+    } ribbonCounts[6];
+
+    HealPlayerParty();
+
+    if (FlagGet(FLAG_SYS_GAME_CLEAR) == TRUE)
+    {
+        gHasHallOfFameRecords = TRUE;
+    }
+    else
+    {
+        gHasHallOfFameRecords = FALSE;
+        FlagSet(FLAG_SYS_GAME_CLEAR);
+    }
+
+    if (GetGameStat(GAME_STAT_FIRST_HOF_PLAY_TIME) == 0)
+        SetGameStat(GAME_STAT_FIRST_HOF_PLAY_TIME, (gSaveBlock2Ptr->playTimeHours << 16) | (gSaveBlock2Ptr->playTimeMinutes << 8) | gSaveBlock2Ptr->playTimeSeconds);
+
+    SetContinueGameWarpStatus();
+
+    if (gSaveBlock2Ptr->playerGender == MALE)
+        SetContinueGameWarpToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F);
+    else
+        SetContinueGameWarpToHealLocation(HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE_2F);
+
+    ribbonGet = FALSE;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+
+        ribbonCounts[i].partyIndex = i;
+        ribbonCounts[i].count = 0;
+
+        if (GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES)
+         && !GetMonData(mon, MON_DATA_SANITY_IS_EGG)
+         && !GetMonData(mon, MON_DATA_CHAMPION_RIBBON))
+        {
+            u8 val[1] = {TRUE};
+            SetMonData(mon, MON_DATA_CHAMPION_RIBBON, val);
+            ribbonCounts[i].count = GetRibbonCount(mon);
+            ribbonGet = TRUE;
+        }
+    }
+
+    if (ribbonGet == TRUE)
+    {
+        IncrementGameStat(GAME_STAT_RECEIVED_RIBBONS);
+        FlagSet(FLAG_SYS_RIBBON_GET);
+
+        for (i = 1; i < 6; i++)
+        {
+            if (ribbonCounts[i].count > ribbonCounts[0].count)
+            {
+                struct RibbonCounter prevBest = ribbonCounts[0];
+                ribbonCounts[0] = ribbonCounts[i];
+                ribbonCounts[i] = prevBest;
+            }
+        }
+
+        if (ribbonCounts[0].count > NUM_CUTIES_RIBBONS)
+        {
+            TryPutSpotTheCutiesOnAir(&gPlayerParty[ribbonCounts[0].partyIndex], MON_DATA_CHAMPION_RIBBON);
+        }
+    }
+
+    SetMainCallback2(CB2_DoHallOfFameScreen);
+    return 0;
+}
+
+bool8 SetCB2WhiteOut(void)
+{
+    SetMainCallback2(CB2_WhiteOut);
+    return FALSE;
+}
+
+static u32 GetMirageRnd(void)
+{
+    u16 hi = VarGet(VAR_MIRAGE_RND_H);
+    u16 lo = VarGet(VAR_MIRAGE_RND_L);
+    return (hi << 16) | lo;
+}
+
+static void SetMirageRnd(u32 rnd)
+{
+    VarSet(VAR_MIRAGE_RND_H, rnd >> 16);
+    VarSet(VAR_MIRAGE_RND_L, rnd);
+}
+
+// unused
+void InitMirageRnd(void)
+{
+    SetMirageRnd((Random() << 16) | Random());
+}
+
+void UpdateMirageRnd(u16 days)
+{
+    u32 rnd = GetMirageRnd();
+    while (days)
+    {
+        rnd = ISO_RANDOMIZE2(rnd);
+        days--;
+    }
+    SetMirageRnd(rnd);
+}
+
+bool8 IsMirageIslandPresent(void)
+{
+    u16 rnd = GetMirageRnd() >> 16;
+    int i;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) && (GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY) & 0xFFFF) == rnd)
+            return TRUE;
+
+    return FALSE;
+}
+
+void UpdateShoalTideFlag(void)
+{
+    static const u8 tide[] =
+    {
+        1, // 00
+        1, // 01
+        1, // 02
+        0, // 03
+        0, // 04
+        0, // 05
+        0, // 06
+        0, // 07
+        0, // 08
+        1, // 09
+        1, // 10
+        1, // 11
+        1, // 12
+        1, // 13
+        1, // 14
+        0, // 15
+        0, // 16
+        0, // 17
+        0, // 18
+        0, // 19
+        0, // 20
+        1, // 21
+        1, // 22
+        1, // 23
+    };
+
+    if (IsMapTypeOutdoors(GetLastUsedWarpMapType()))
+    {
+        RtcCalcLocalTime();
+        if (tide[gLocalTime.hours])
+            FlagSet(FLAG_SYS_SHOAL_TIDE);
+        else
+            FlagClear(FLAG_SYS_SHOAL_TIDE);
+    }
+}
+
+static void Task_WaitWeather(u8 taskId)
+{
+    if (IsWeatherChangeComplete())
+    {
+        ScriptContext_Enable();
+        DestroyTask(taskId);
+    }
+}
+
+void WaitWeather(void)
+{
+    CreateTask(Task_WaitWeather, 80);
+}
+
+void InitBirchState(void)
+{
+    *GetVarPointer(VAR_BIRCH_STATE) = 0;
+}
+
+void UpdateBirchState(u16 days)
+{
+    u16 *state = GetVarPointer(VAR_BIRCH_STATE);
+    *state += days;
+    *state %= 7;
+}
+
+bool16 ScriptGetPokedexInfo(void)
+{
+    if (gSpecialVar_0x8004 == 0) // is national dex not present?
+    {
+        gSpecialVar_0x8005 = GetHoennPokedexCount(FLAG_GET_SEEN);
+        gSpecialVar_0x8006 = GetHoennPokedexCount(FLAG_GET_CAUGHT);
+    }
+    else
+    {
+        gSpecialVar_0x8005 = GetNationalPokedexCount(FLAG_GET_SEEN);
+        gSpecialVar_0x8006 = GetNationalPokedexCount(FLAG_GET_CAUGHT);
+    }
+
+    return IsNationalPokedexEnabled();
+}
+
+// This shows your Hoenn Pokedex rating and not your National Dex.
+const u8 *GetPokedexRatingText(u16 count)
+{
+    if (count < 10)
+        return gBirchDexRatingText_LessThan10;
+    if (count < 20)
+        return gBirchDexRatingText_LessThan20;
+    if (count < 30)
+        return gBirchDexRatingText_LessThan30;
+    if (count < 40)
+        return gBirchDexRatingText_LessThan40;
+    if (count < 50)
+        return gBirchDexRatingText_LessThan50;
+    if (count < 60)
+        return gBirchDexRatingText_LessThan60;
+    if (count < 70)
+        return gBirchDexRatingText_LessThan70;
+    if (count < 80)
+        return gBirchDexRatingText_LessThan80;
+    if (count < 90)
+        return gBirchDexRatingText_LessThan90;
+    if (count < 100)
+        return gBirchDexRatingText_LessThan100;
+    if (count < 110)
+        return gBirchDexRatingText_LessThan110;
+    if (count < 120)
+        return gBirchDexRatingText_LessThan120;
+    if (count < 130)
+        return gBirchDexRatingText_LessThan130;
+    if (count < 140)
+        return gBirchDexRatingText_LessThan140;
+    if (count < 150)
+        return gBirchDexRatingText_LessThan150;
+    if (count < 160)
+        return gBirchDexRatingText_LessThan160;
+    if (count < 170)
+        return gBirchDexRatingText_LessThan170;
+    if (count < 180)
+        return gBirchDexRatingText_LessThan180;
+    if (count < 190)
+        return gBirchDexRatingText_LessThan190;
+    if (count < 200)
+        return gBirchDexRatingText_LessThan200;
+    if (count == 200)
+    {
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_JIRACHI), FLAG_GET_CAUGHT)
+         || GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_DEOXYS), FLAG_GET_CAUGHT)) // Jirachi or Deoxys is not counted towards the dex completion. If either of these flags are enabled, it means the actual count is less than 200.
+            return gBirchDexRatingText_LessThan200;
+        return gBirchDexRatingText_DexCompleted;
+    }
+    if (count == HOENN_DEX_COUNT - 1)
+    {
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_JIRACHI), FLAG_GET_CAUGHT)
+         && GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_DEOXYS), FLAG_GET_CAUGHT)) // If both of these flags are enabled, it means the actual count is less than 200.
+            return gBirchDexRatingText_LessThan200;
+        return gBirchDexRatingText_DexCompleted;
+    }
+    if (count == HOENN_DEX_COUNT)
+        return gBirchDexRatingText_DexCompleted;
+    return gBirchDexRatingText_LessThan10;
+}
+
+void ShowPokedexRatingMessage(void)
+{
+    ShowFieldMessage(GetPokedexRatingText(gSpecialVar_0x8004));
+}
+
+static void ReshowPCMenuAfterHallOfFamePC(void);
+static void Task_WaitForPaletteFade(u8);
+
+void AccessHallOfFamePC(void)
+{
+    SetMainCallback2(CB2_DoHallOfFamePC);
+    LockPlayerFieldControls();
+}
+
+void ReturnFromHallOfFamePC(void)
+{
+    SetMainCallback2(CB2_ReturnToField);
+    gFieldCallback = ReshowPCMenuAfterHallOfFamePC;
+}
+
+static void ReshowPCMenuAfterHallOfFamePC(void)
+{
+    LockPlayerFieldControls();
+    Overworld_PlaySpecialMapMusic();
+    ScriptMenu_CreatePCMultichoice();
+    ScriptMenu_DisplayPCStartupPrompt();
+    BeginNormalPaletteFade(PALETTES_ALL, 0, 0x10, 0, RGB_BLACK);
+    CreateTask(Task_WaitForPaletteFade, 10);
+}
+
+static void Task_WaitForPaletteFade(u8 taskId)
+{
+    if (!gPaletteFade.active)
+        DestroyTask(taskId);
+}
 
 void Special_ShowDiploma(void)
 {
