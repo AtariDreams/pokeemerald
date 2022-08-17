@@ -271,6 +271,7 @@ static void SpriteCB_LogoCircleSlide(struct Sprite *sprite)
     if (sprite->x == sTargetX && sprite->y == sTargetY)
     {
         sprite->callback = SpriteCallbackDummy;
+        return;
     }
     else
     {
@@ -300,7 +301,8 @@ static u8 CreateSpiralingLogoCircleSprite(s16 x, s16 y, s16 angle, s16 rotateSpe
 {
     u8 spriteId = CreateSprite(&sSpriteTemplate_LogoCircles, x, y, 0);
 
-    // Target coords are set but irrelevant
+    // Target coords are set but irrelevant.
+    // We can comment them out I think. TODO
     switch (spriteAnimNum)
     {
     case 0:
