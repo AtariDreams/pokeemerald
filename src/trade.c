@@ -963,6 +963,8 @@ static void SetTradePartyMonsVisible(void)
 }
 
 // why not just use memcpy?
+
+#if !MODERN
 static void Trade_Memcpy(void *dataDest, const void *dataSrc, u32 count)
 {
     u8 *dest = dataDest;
@@ -974,11 +976,14 @@ static void Trade_Memcpy(void *dataDest, const void *dataSrc, u32 count)
         dest[i] = src[i];
     }
 }
+#else
+#define Trade_Memcpy memcpy
+#endif
 
 static bool8 BufferTradeParties(void)
 {
     u8 id = GetMultiplayerId();
-    int i;
+    m32 i;
     struct Pokemon *mon;
 
     switch (sTradeMenuData->bufferPartyState)
@@ -1133,7 +1138,11 @@ static void DrawIsThisTradeOkay(void)
 }
 
 // mpId is unused
+#if !MODERN
 static void UpdateLinkTradeFlags(u8 mpId, u8 status)
+#else
+static void UpdateLinkTradeFlags(u8 status)
+#endif
 {
     if (status & 1)
     {
@@ -1309,7 +1318,12 @@ static void CB1_SendOrReactToLinkTradeData(void)
     if ((status = _GetBlockReceivedStatus()))
     {
         if (mpId == 0)
+        #if !MODERN
             UpdateLinkTradeFlags(mpId, status);
+        #else
+            UpdateLinkTradeFlags(status);
+        #endif
+        
         else
             ReactToLinkTradeData(mpId, status);
     }

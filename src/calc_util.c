@@ -833,7 +833,8 @@ u16 CalcCRC16WithTable(const u8 *data, u32 length)
     return ~crc;
 }
 
-u32 CalcByteArraySum(const u8 *data, u32 length)
+#if !MODERN
+u32 CalcByteArraySum(const u8* data, u32 length)
 {
     u32 sum, i;
 
@@ -842,6 +843,18 @@ u32 CalcByteArraySum(const u8 *data, u32 length)
         sum += data[i];
     return sum;
 }
+#else
+u32 CalcByteArraySum(const void* data, u32 length)
+{
+    const u8* data2 = (const u8*)data;
+    u32 sum = 0;
+    for (; length; length--)
+    {
+        sum += *data2++;
+    }
+    return sum;
+}
+#endif
 
 // TODO: find a better location or file for this function
 void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor)
