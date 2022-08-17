@@ -7,7 +7,7 @@ s16 MathUtil_Mul16(s16 x, s16 y)
     result = x;
     result *= y;
     result /= 256;
-    return result;
+    return (s16)result;
 }
 
 s16 MathUtil_Mul16Shift(u8 s, s16 x, s16 y)
@@ -17,7 +17,7 @@ s16 MathUtil_Mul16Shift(u8 s, s16 x, s16 y)
     result = x;
     result *= y;
     result /= (1 << s);
-    return result;
+    return (s16)result;
 }
 
 s32 MathUtil_Mul32(s32 x, s32 y)
@@ -27,7 +27,7 @@ s32 MathUtil_Mul32(s32 x, s32 y)
     result = x;
     result *= y;
     result /= 256;
-    return result;
+    return (s32)result;
 }
 
 s16 MathUtil_Div16(s16 x, s16 y)
@@ -36,6 +36,7 @@ s16 MathUtil_Div16(s16 x, s16 y)
     {
         return 0;
     }
+    //Integer promotion
     return (x << 8) / y;
 }
 
@@ -45,6 +46,8 @@ s16 MathUtil_Div16Shift(u8 s, s16 x, s16 y)
     {
         return 0;
     }
+    //Integer promotion.
+    // Also x * (1 << s) = x << s
     return (x << s) / y;
 }
 
@@ -60,7 +63,8 @@ s32 MathUtil_Div32(s32 x, s32 y)
     _x *= 256;
     return _x / y;
 }
-
+// why not just have 0x10000 as a constant?
+// answer: original code assigned x as 0x10000 and then divided against y, assigned that back to x, and then return
 s16 MathUtil_Inv16(s16 y)
 {
     s32 x;
