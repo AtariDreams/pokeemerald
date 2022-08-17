@@ -1213,12 +1213,24 @@ static void Script_ApprenticeOpenBagMenu(void)
 
 static void TrySetApprenticeHeldItem(void)
 {
-    u8 i, j;
-    u8 count;
+    m8 i, j;
+    m8 count;
 
+    #if !MODERN
     if (PLAYER_APPRENTICE.questionsAnswered < NUM_WHICH_MON_QUESTIONS)
+    #else
+    count = PLAYER_APPRENTICE.questionsAnswered;
+    if (count < NUM_WHICH_MON_QUESTIONS)
+    #endif
         return;
 
+    #if MODERN
+    count -= NUM_WHICH_MON_QUESTIONS
+    if (count > APPRENTICE_MAX_QUESTIONS)
+        count = APPRENTICE_MAX_QUESTIONS;
+    #endif
+
+    #if !MODERN
     count = 0;
     for (j = 0; j < APPRENTICE_MAX_QUESTIONS; j++)
     {
@@ -1226,9 +1238,20 @@ static void TrySetApprenticeHeldItem(void)
             break;
         count++;
     }
+    #else
+    for (j = 0; j < APPRENTICE_MAX_QUESTIONS; j++)
+    {
+        if (PLAYER_APPRENTICE.questions[j].questionId == QUESTION_ID_WIN_SPEECH)
+            break;
+    }
+    #endif
 
     // Make sure the item hasn't already been suggested in previous questions
+    #if !MODERN
     for (i = 0; i < count; i++)
+    #else
+    for (i = 0; i < j; i++)
+    #endif
     {
         if (i >= CURRENT_QUESTION_NUM)
             break;
@@ -1257,7 +1280,7 @@ static void ShiftSavedApprentices(void)
 
     if (gSaveBlock2Ptr->apprentices[0].playerName[0] == EOS)
         return;
-
+        
     for (i = 0; i < APPRENTICE_COUNT - 1; i++)
     {
         if (gSaveBlock2Ptr->apprentices[i + 1].playerName[0] == EOS)
@@ -1292,8 +1315,11 @@ static void SaveApprentice(void)
     gSaveBlock2Ptr->apprentices[0].lvlMode = PLAYER_APPRENTICE.lvlMode;
 
     // Count questions asked until the final (win speech) question was reached
-    for (i = 0; i < APPRENTICE_MAX_QUESTIONS && (PLAYER_APPRENTICE.questions[i].questionId != QUESTION_ID_WIN_SPEECH); i++)
-        ;
+    for (i = 0; i < APPRENTICE_MAX_QUESTIONS; i++)
+    {
+        if (PLAYER_APPRENTICE.questions[i].questionId == QUESTION_ID_WIN_SPEECH)
+            break;
+    }
 
     gSaveBlock2Ptr->apprentices[0].numQuestions = i;
     if (gSaveBlock2Ptr->apprentices[0].number < 255)
@@ -1311,50 +1337,100 @@ static void SaveApprentice(void)
 // Never called, APPRENTICE_FUNC_SET_GFX_SAVED is unused
 static void SetSavedApprenticeTrainerGfxId(void)
 {
-    u8 i;
-    u8 objectEventGfxId;
-    u8 class = gApprentices[gSaveBlock2Ptr->apprentices[0].id].facilityClass;
+    m8 i;
+    #if !MODERN
+    u16 objectEventGfxId;
+    #endif
+    m8 class = gApprentices[gSaveBlock2Ptr->apprentices[0].id].facilityClass;
 
-    for (i = 0; i < ARRAY_COUNT(gTowerMaleFacilityClasses) && gTowerMaleFacilityClasses[i] != class; i++)
-        ;
+    for (i = 0; i < ARRAY_COUNT(gTowerMaleFacilityClasses); i++)
+    {
+        if (gTowerMaleFacilityClasses[i] == class)
+        {
+            #if !MODERN
+            break;
+            #else
+            VarSet(VAR_OBJ_GFX_ID_0, gTowerMaleTrainerGfxIds[i]);
+            return;
+            #endif
+        }
+    }
+    #if !MODERN
     if (i != ARRAY_COUNT(gTowerMaleFacilityClasses))
     {
         objectEventGfxId = gTowerMaleTrainerGfxIds[i];
         VarSet(VAR_OBJ_GFX_ID_0, objectEventGfxId);
         return;
     }
+    #endif
 
-    for (i = 0; i < ARRAY_COUNT(gTowerFemaleFacilityClasses) && gTowerFemaleFacilityClasses[i] != class; i++)
-        ;
+    for (i = 0; i < ARRAY_COUNT(gTowerFemaleFacilityClasses); i++)
+    {
+        if (gTowerFemaleFacilityClasses[i] == class)
+        {
+            #if !MODERN
+            break;
+            #else
+            VarSet(VAR_OBJ_GFX_ID_0, gTowerFemaleTrainerGfxIds[i])
+            #endif
+        }
+    }
+    #if !MODERN
     if (i != ARRAY_COUNT(gTowerFemaleFacilityClasses))
     {
         objectEventGfxId = gTowerFemaleTrainerGfxIds[i];
         VarSet(VAR_OBJ_GFX_ID_0, objectEventGfxId);
     }
+    #endif
 }
 
 static void SetPlayerApprenticeTrainerGfxId(void)
 {
-    u8 i;
-    u8 objectEventGfxId;
-    u8 class = gApprentices[PLAYER_APPRENTICE.id].facilityClass;
+    m8 i;
+    #if !MODERN
+    u16 objectEventGfxId;
+    #endif
+    m8 class = gApprentices[PLAYER_APPRENTICE.id].facilityClass;
 
-    for (i = 0; i < ARRAY_COUNT(gTowerMaleFacilityClasses) && gTowerMaleFacilityClasses[i] != class; i++)
-        ;
+    for (i = 0; i < ARRAY_COUNT(gTowerMaleFacilityClasses); i++)
+    {
+        if (gTowerMaleFacilityClasses[i] == class)
+        {
+            #if !MODERN
+            break;
+            #else
+            VarSet(VAR_OBJ_GFX_ID_0, gTowerMaleTrainerGfxIds[i]);
+            return;
+            #endif
+        }
+    }
+    #if !MODERN
     if (i != ARRAY_COUNT(gTowerMaleFacilityClasses))
     {
         objectEventGfxId = gTowerMaleTrainerGfxIds[i];
         VarSet(VAR_OBJ_GFX_ID_0, objectEventGfxId);
         return;
     }
+    #endif
 
-    for (i = 0; i < ARRAY_COUNT(gTowerFemaleFacilityClasses) && gTowerFemaleFacilityClasses[i] != class; i++)
-        ;
+    for (i = 0; i < ARRAY_COUNT(gTowerFemaleFacilityClasses); i++)
+    {
+        if (gTowerFemaleFacilityClasses[i] == class)
+        {
+            #if !MODERN
+            break;
+            #else
+            VarSet(VAR_OBJ_GFX_ID_0, gTowerFemaleTrainerGfxIds[i])
+            #endif
+        }
+    }
+    #if !MODERN
     if (i != ARRAY_COUNT(gTowerFemaleFacilityClasses))
     {
         objectEventGfxId = gTowerFemaleTrainerGfxIds[i];
         VarSet(VAR_OBJ_GFX_ID_0, objectEventGfxId);
     }
+    #endif
 }
 
 // Both of the below functions may have been dummied / used for debug
@@ -1402,7 +1478,11 @@ static void Task_ExecuteFuncAfterButtonPress(u8 taskId)
 {
     if (JOY_NEW(A_BUTTON) || JOY_NEW(B_BUTTON))
     {
-        gApprenticeFunc = (void *)(u32)(((u16)gTasks[taskId].data[0] | (gTasks[taskId].data[1] << 16)));
+        #if !MODERN
+        gApprenticeFunc = (void*)(u32)(((u16)gTasks[taskId].data[0] | (gTasks[taskId].data[1] << 16)));
+        #else
+        gApprenticeFunc = (void*)(u32)(((u16)gTasks[taskId].data[0] | ((u16)gTasks[taskId].data[1] << 16)));
+        #endif
         gApprenticeFunc();
         DestroyTask(taskId);
     }
@@ -1411,8 +1491,8 @@ static void Task_ExecuteFuncAfterButtonPress(u8 taskId)
 static void ExecuteFuncAfterButtonPress(void (*func)(void))
 {
     u8 taskId = CreateTask(Task_ExecuteFuncAfterButtonPress, 1);
-    gTasks[taskId].data[0] = (u32)(func);
-    gTasks[taskId].data[1] = (u32)(func) >> 16;
+    gTasks[taskId].data[0] = (s16)((u32)(func) & 0xFFFF);
+    gTasks[taskId].data[1] = (s16)((u32)(func) >> 16);
 }
 
 // Unused
