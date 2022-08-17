@@ -2423,12 +2423,18 @@ void RunUnionRoom(void)
     ResetHostRfuGameData();
     CreateTask(Task_RunUnionRoom, 10);
 
+    #if MODERN
+    sWirelessLinkMain.uRoom = AllocZeroed(sizeof(*sWirelessLinkMain.uRoom));
+    sURoom = sWirelessLinkMain.uRoom;
+    uroom = sWirelessLinkMain.uRoom;
+    #else
     // dumb line needed to match
     sWirelessLinkMain.uRoom = sWirelessLinkMain.uRoom;
 
     uroom = AllocZeroed(sizeof(*sWirelessLinkMain.uRoom));
     sWirelessLinkMain.uRoom = uroom;
     sURoom = uroom;
+    #endif
 
     uroom->state = UR_STATE_INIT;
     uroom->textState = 0;
@@ -2574,12 +2580,14 @@ static void Task_RunUnionRoom(u8 taskId)
                 StringCopy(gStringVar1, gSaveBlock2Ptr->playerName);
                 uroom->state = UR_STATE_INTERACT_WITH_ATTENDANT;
                 gSpecialVar_Result = 0;
+                return;
             }
             else if (gSpecialVar_Result == UR_INTERACT_START_MENU)
             {
                 UpdateGameData_SetActivity(ACTIVITY_PLYRTALK | IN_UNION_ROOM, 0, TRUE);
                 uroom->state = UR_STATE_WAIT_FOR_START_MENU;
                 gSpecialVar_Result = 0;
+                return;
             }
             else // UR_INTERACT_PLAYER_# (1-8)
             {
@@ -2587,46 +2595,47 @@ static void Task_RunUnionRoom(u8 taskId)
                 taskData[1] = gSpecialVar_Result - 1;
                 uroom->state = UR_STATE_INTERACT_WITH_PLAYER;
                 gSpecialVar_Result = 0;
+                return;
             }
         }
-        else if (ArePlayerFieldControlsLocked() != TRUE)
-        {
-            if (JOY_NEW(A_BUTTON))
-            {
-                if (TryInteractWithUnionRoomMember(uroom->playerList, &taskData[0], &taskData[1], uroom->spriteIds))
-                {
-                    PlaySE(SE_SELECT);
-                    StartScriptInteraction();
-                    uroom->state = UR_STATE_INTERACT_WITH_PLAYER;
-                    break;
-                }
-                else if (IsPlayerFacingTradingBoard())
-                {
-                    UpdateGameData_SetActivity(ACTIVITY_PLYRTALK | IN_UNION_ROOM, 0, TRUE);
-                    PlaySE(SE_PC_LOGIN);
-                    StartScriptInteraction();
-                    StringCopy(gStringVar1, gSaveBlock2Ptr->playerName);
-                    uroom->state = UR_STATE_CHECK_TRADING_BOARD;
-                    break;
-                }
-            }
+        if (ArePlayerFieldControlsLocked() == TRUE)
+            return;
 
-            switch (HandlePlayerListUpdate())
+        if (JOY_NEW(A_BUTTON))
+        {
+            if (TryInteractWithUnionRoomMember(uroom->playerList, &taskData[0], &taskData[1], uroom->spriteIds))
             {
-            case PLIST_NEW_PLAYER:
-                PlaySE(SE_PC_LOGIN);
-            case PLIST_RECENT_UPDATE:
-                ScheduleUnionRoomPlayerRefresh(uroom);
-                break;
-            case PLIST_CONTACTED:
-                uroom->state = UR_STATE_PLAYER_CONTACTED_YOU;
+                PlaySE(SE_SELECT);
                 StartScriptInteraction();
-                SetTradeBoardRegisteredMonInfo(TYPE_NORMAL, SPECIES_NONE, 0);
-                UpdateGameData_SetActivity(ACTIVITY_NPCTALK | IN_UNION_ROOM, GetActivePartnersInfo(uroom), FALSE);
-                break;
+                uroom->state = UR_STATE_INTERACT_WITH_PLAYER;
+                return;
             }
-            HandleUnionRoomPlayerRefresh(uroom);
+            else if (IsPlayerFacingTradingBoard())
+            {
+                UpdateGameData_SetActivity(ACTIVITY_PLYRTALK | IN_UNION_ROOM, 0, TRUE);
+                PlaySE(SE_PC_LOGIN);
+                StartScriptInteraction();
+                StringCopy(gStringVar1, gSaveBlock2Ptr->playerName);
+                uroom->state = UR_STATE_CHECK_TRADING_BOARD;
+                return;
+            }
         }
+
+        switch (HandlePlayerListUpdate())
+        {
+        case PLIST_NEW_PLAYER:
+            PlaySE(SE_PC_LOGIN);
+        case PLIST_RECENT_UPDATE:
+            ScheduleUnionRoomPlayerRefresh(uroom);
+            break;
+        case PLIST_CONTACTED:
+            uroom->state = UR_STATE_PLAYER_CONTACTED_YOU;
+            StartScriptInteraction();
+            SetTradeBoardRegisteredMonInfo(TYPE_NORMAL, SPECIES_NONE, 0);
+            UpdateGameData_SetActivity(ACTIVITY_NPCTALK | IN_UNION_ROOM, GetActivePartnersInfo(uroom), FALSE);
+            break;
+        }
+        HandleUnionRoomPlayerRefresh(uroom);
         break;
     case UR_STATE_WAIT_FOR_START_MENU:
         if (!FuncIsActiveTask(Task_ShowStartMenu))
@@ -2713,33 +2722,32 @@ static void Task_RunUnionRoom(u8 taskId)
             if (!gReceivedRemoteLinkPlayers)
             {
                 uroom->state = UR_STATE_TRAINER_APPEARS_BUSY;
+                return;
+            }
+
+            uroom->partnerYesNoResponse = 0;
+            playerGender = GetUnionRoomPlayerGender(taskData[1], uroom->playerList);
+            if (input == -2 || input == IN_UNION_ROOM)
+            {
+                uroom->playerSendBuffer[0] = IN_UNION_ROOM;
+                Rfu_SendPacket(uroom->playerSendBuffer);
+                StringCopy(gStringVar4, sIfYouWantToDoSomethingTexts[gLinkPlayers[0].gender]);
+                uroom->state = UR_STATE_REQUEST_DECLINED;
             }
             else
             {
-                uroom->partnerYesNoResponse = 0;
-                playerGender = GetUnionRoomPlayerGender(taskData[1], uroom->playerList);
-                if (input == -2 || input == IN_UNION_ROOM)
+                gPlayerCurrActivity = input;
+                // Why is input a u32??? I know it matches that wat but does it need to be this way
+                sPlayerActivityGroupSize = (u32)input >> 8; // Extract capacity from sInviteToActivityMenuItems
+                if (gPlayerCurrActivity == (ACTIVITY_BATTLE_SINGLE | IN_UNION_ROOM) && !HasAtLeastTwoMonsOfLevel30OrLower())
                 {
-                    uroom->playerSendBuffer[0] = IN_UNION_ROOM;
-                    Rfu_SendPacket(uroom->playerSendBuffer);
-                    StringCopy(gStringVar4, sIfYouWantToDoSomethingTexts[gLinkPlayers[0].gender]);
-                    uroom->state = UR_STATE_REQUEST_DECLINED;
+                    ScheduleFieldMessageWithFollowupState(UR_STATE_DO_SOMETHING_PROMPT, sText_NeedTwoMonsOfLevel30OrLower1);
+                    break;
                 }
-                else
-                {
-                    gPlayerCurrActivity = input;
-                    sPlayerActivityGroupSize = (u32)input >> 8; // Extract capacity from sInviteToActivityMenuItems
-                    if (gPlayerCurrActivity == (ACTIVITY_BATTLE_SINGLE | IN_UNION_ROOM) && !HasAtLeastTwoMonsOfLevel30OrLower())
-                    {
-                        ScheduleFieldMessageWithFollowupState(UR_STATE_DO_SOMETHING_PROMPT, sText_NeedTwoMonsOfLevel30OrLower1);
-                    }
-                    else
-                    {
-                        uroom->playerSendBuffer[0] = gPlayerCurrActivity | IN_UNION_ROOM;
-                        Rfu_SendPacket(uroom->playerSendBuffer);
-                        uroom->state = UR_STATE_SEND_ACTIVITY_REQUEST;
-                    }
-                }
+
+                uroom->playerSendBuffer[0] = gPlayerCurrActivity | IN_UNION_ROOM;
+                Rfu_SendPacket(uroom->playerSendBuffer);
+                uroom->state = UR_STATE_SEND_ACTIVITY_REQUEST;
             }
         }
         break;
@@ -2773,6 +2781,7 @@ static void Task_RunUnionRoom(u8 taskId)
         {
             StringCopy(gStringVar4, sText_TrainerBattleBusy); // Redundant, will be copied again in next state
             uroom->state = UR_STATE_TRAINER_APPEARS_BUSY;
+            return;
         }
         else
         {
