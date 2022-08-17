@@ -9,10 +9,10 @@ SECTIONS {
     ewram (NOLOAD) :
     ALIGN(4)
     {
-        gHeap = .;
+        gflib/malloc.o(ewram_data)
         . = 0x1C000;
 
-        gDecompressionBuffer = .;
+        src/decompress.o(ewram_data)
         . = 0x20000;
 
         gflib/*.o(ewram_data);
