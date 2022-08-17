@@ -50,7 +50,11 @@ void HandleIntroSlide(u8 terrain)
     {
         taskId = CreateTask(BattleIntroSlide3, 0);
     }
+    #if !MODERN
     else if ((gBattleTypeFlags & BATTLE_TYPE_KYOGRE_GROUDON) && gGameVersion != VERSION_RUBY)
+    #else
+    else if (gBattleTypeFlags & BATTLE_TYPE_KYOGRE_GROUDON)
+    #endif
     {
         terrain = BATTLE_TERRAIN_UNDERWATER;
         taskId = CreateTask(BattleIntroSlide2, 0);
@@ -85,7 +89,7 @@ static void BattleIntroSlideEnd(u8 taskId)
 
 static void BattleIntroSlide1(u8 taskId)
 {
-    int i;
+    m32 i;
 
     gBattle_BG1_X += 6;
     switch (gTasks[taskId].tState)
@@ -170,7 +174,7 @@ static void BattleIntroSlide1(u8 taskId)
 
 static void BattleIntroSlide2(u8 taskId)
 {
-    int i;
+    m32 i;
 
     switch (gTasks[taskId].tTerrain)
     {
@@ -370,12 +374,11 @@ static void BattleIntroSlide3(u8 taskId)
 
 static void BattleIntroSlideLink(u8 taskId)
 {
-    int i;
+    m32 i;
 
     if (gTasks[taskId].tState > 1 && !gTasks[taskId].data[4])
     {
-        u16 var0 = gBattle_BG1_X & 0x8000;
-        if (var0 || gBattle_BG1_X < 80)
+        if ((gBattle_BG1_X & 0x8000) || gBattle_BG1_X < 80)
         {
             gBattle_BG1_X += 3;
             gBattle_BG2_X -= 3;
@@ -516,7 +519,7 @@ static void BattleIntroSlidePartner(u8 taskId)
     }
 }
 
-void DrawBattlerOnBg(int bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+void DrawBattlerOnBg(u32 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
 {
     int i, j;
     u8 battler = GetBattlerAtPosition(battlerPosition);
