@@ -914,8 +914,7 @@ enum {
 
 static void TryDrawRematchPokeballIcon(u16 windowId, u32 rematchId, u32 tileOffset)
 {
-    u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-    u16 *tilemap = GetBgTilemapBuffer(bg);
+    u16 *tilemap = GetBgTilemapBuffer(GetWindowAttribute(windowId, WINDOW_BG));
     tilemap += tileOffset * 64 + 0x1D;
     if (ShouldDrawRematchPokeballIcon(rematchId))
     {
@@ -931,8 +930,7 @@ static void TryDrawRematchPokeballIcon(u16 windowId, u32 rematchId, u32 tileOffs
 
 void ClearRematchPokeballIcon(u16 windowId, u32 tileOffset)
 {
-    u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-    u16 *tilemap = GetBgTilemapBuffer(bg);
+    u16 *tilemap = GetBgTilemapBuffer( GetWindowAttribute(windowId, WINDOW_BG));
     tilemap += tileOffset * 64 + 0x1D;
     tilemap[0] = POKEBALL_ICON_EMPTY;
     tilemap[0x20] = POKEBALL_ICON_EMPTY;
@@ -1004,8 +1002,7 @@ static void PrintMatchCallLocation(struct Pokenav_MatchCallGfx *gfx, int delta)
 {
     u8 mapName[32];
     int x;
-    int index = PokenavList_GetSelectedIndex() + delta;
-    int mapSec = GetMatchCallMapSec(index);
+    int mapSec = GetMatchCallMapSec(PokenavList_GetSelectedIndex() + delta);
     if (mapSec != MAPSEC_NONE)
         CopyMapName(mapName, mapSec, 0);
     else
@@ -1018,7 +1015,10 @@ static void PrintMatchCallLocation(struct Pokenav_MatchCallGfx *gfx, int delta)
 
 static void PrintMatchCallSelectionOptions(struct Pokenav_MatchCallGfx *gfx)
 {
+    // Apparently u32 works, but matchCallOptionId takes an int, so
     u32 i;
+
+    // The alternative is to use 2 counters for the same exact thing, but have both s32 i;
 
     FillWindowPixelBuffer(gfx->infoBoxWindowId, PIXEL_FILL(1));
     for (i = 0; i < MATCH_CALL_OPTION_COUNT; i++)
@@ -1121,10 +1121,7 @@ static bool32 WaitForTrainerIsCloseByText(struct Pokenav_MatchCallGfx *gfx)
 
 static void PrintMatchCallMessage(struct Pokenav_MatchCallGfx *gfx)
 {
-    int index = PokenavList_GetSelectedIndex();
-    const u8 *str = GetMatchCallMessageText(index, &gfx->newRematchRequest);
-    u8 speed = GetPlayerTextSpeedDelay();
-    AddTextPrinterParameterized(gfx->msgBoxWindowId, FONT_NORMAL, str, 32, 1, speed, NULL);
+    AddTextPrinterParameterized(gfx->msgBoxWindowId, FONT_NORMAL, GetMatchCallMessageText(PokenavList_GetSelectedIndex(), &gfx->newRematchRequest), 32, 1, GetPlayerTextSpeedDelay(), NULL);
 }
 
 static bool32 WaitForMatchCallMessageText(struct Pokenav_MatchCallGfx *gfx)
@@ -1153,7 +1150,7 @@ static bool32 WaitForCallMessageBoxErase(struct Pokenav_MatchCallGfx *gfx)
 static void AllocMatchCallSprites(void)
 {
     int i;
-    u8 paletteNum;
+
     struct SpriteSheet spriteSheet;
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
 
@@ -1168,8 +1165,8 @@ static void AllocMatchCallSprites(void)
     spriteSheet.size = sizeof(gfx->trainerPicGfx);
     spriteSheet.tag = GFXTAG_TRAINER_PIC;
     gfx->trainerPicGfxPtr = (u8 *)OBJ_VRAM0 + LoadSpriteSheet(&spriteSheet) * 0x20;
-    paletteNum = AllocSpritePalette(PALTAG_TRAINER_PIC);
-    gfx->trainerPicPalOffset = 0x100 + paletteNum * 0x10;
+
+    gfx->trainerPicPalOffset = 0x100 + AllocSpritePalette(PALTAG_TRAINER_PIC) * 0x10;
     gfx->trainerPicSprite = CreateTrainerPicSprite();
     gfx->trainerPicSprite->invisible = TRUE;
 }
@@ -1226,7 +1223,8 @@ static struct Sprite *CreateTrainerPicSprite(void)
 
 static void LoadCheckPageTrainerPic(struct Pokenav_MatchCallGfx *gfx)
 {
-    u16 cursor;
+    // Matches as u16, but s16 is more appropiate
+    s16 cursor;
     int trainerPic = GetMatchCallTrainerPic(PokenavList_GetSelectedIndex());
     if (trainerPic >= 0)
     {
