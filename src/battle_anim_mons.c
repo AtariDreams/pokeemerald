@@ -355,12 +355,19 @@ u8 GetBattlerSpriteDefault_Y(u8 battlerId)
 
 u8 GetSubstituteSpriteDefault_Y(u8 battlerId)
 {
-    u16 y;
+    #if MODERN
+    if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
+        return GetBattlerSpriteCoord(battlerId, BATTLER_COORD_Y) + 16;
+    else
+        return GetBattlerSpriteCoord(battlerId, BATTLER_COORD_Y) + 17;
+    #else
+    s16 y;
     if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
         y = GetBattlerSpriteCoord(battlerId, BATTLER_COORD_Y) + 16;
     else
         y = GetBattlerSpriteCoord(battlerId, BATTLER_COORD_Y) + 17;
     return y;
+    #endif
 }
 
 u8 GetBattlerYCoordWithElevation(u8 battlerId)
@@ -374,19 +381,17 @@ u8 GetBattlerYCoordWithElevation(u8 battlerId)
     {
         if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
         {
-            spriteInfo = gBattleSpritesDataPtr->battlerData;
-            if (!spriteInfo[battlerId].transformSpecies)
+            if (!gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies)
                 species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerId]], MON_DATA_SPECIES);
             else
-                species = spriteInfo[battlerId].transformSpecies;
+                species = gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies;
         }
         else
         {
-            spriteInfo = gBattleSpritesDataPtr->battlerData;
-            if (!spriteInfo[battlerId].transformSpecies)
+            if (!gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies)
                 species = GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_SPECIES);
             else
-                species = spriteInfo[battlerId].transformSpecies;
+                species = gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies;
         }
         if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
             y -= GetBattlerElevation(battlerId, species);
