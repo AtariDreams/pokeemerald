@@ -2164,7 +2164,7 @@ void LinkVSync(void)
                 gLink.lag = LAG_SLAVE;
             }
             // no else if? really?
-            if (gLink.state == LINK_STATE_HANDSHAKE)
+            M_IF (gLink.state == LINK_STATE_HANDSHAKE)
             {
                 gLink.playerCount = 0;
                 gLink.link_field_F = FALSE;
