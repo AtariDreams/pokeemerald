@@ -1485,16 +1485,20 @@ void BtlController_EmitBattleAnimation(u8 bufferId, u8 animationId, u16 argument
 }
 
 // mode is a LINK_STANDBY_* constant
+// TODO: come back to this after battle merge
 void BtlController_EmitLinkStandbyMsg(u8 bufferId, u8 mode, bool32 record)
 {
     bool8 record_ = record;
     sBattleBuffersTransferData[0] = CONTROLLER_LINKSTANDBYMSG;
     sBattleBuffersTransferData[1] = mode;
 
-    if (record_)
+    if (record_) {
         sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = RecordedBattle_BufferNewBattlerData(&sBattleBuffersTransferData[4]);
-    else
-        sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = 0;
+    }
+    else {
+        sBattleBuffersTransferData[2] = 0;
+        sBattleBuffersTransferData[3] = 0;
+    }
 
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sBattleBuffersTransferData[2] + 4);
 }
