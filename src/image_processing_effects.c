@@ -123,47 +123,54 @@ void ApplyImageProcessingEffects(struct ImageProcessingContext *context)
 
 static void ApplyImageEffect_RedChannelGrayscale(u8 delta)
 {
-    u8 i, j;
+    u8 i, j, grayValue;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
-            {
-                // Gets the grayscale value, based on the pixel's red channel.
-                // Also adds a delta to skew lighter or darker.
-                u8 grayValue = (*pixel & RGB_RED);
-                grayValue += delta;
-                if (grayValue > 31)
-                    grayValue = 31;
+            if (IS_ALPHA(*pixel)) continue;
+            // Gets the grayscale value, based on the pixel's red channel.
+            // Also adds a delta to skew lighter or darker.
+            grayValue = (*pixel & RGB_RED);
+            grayValue += delta;
+            if (grayValue > RGB_RED)
+                grayValue = RGB_RED;
 
-                *pixel = RGB2(grayValue, grayValue, grayValue);
-            }
+            *pixel = RGB2(grayValue, grayValue, grayValue);
         }
     }
 }
 
 static void ApplyImageEffect_RedChannelGrayscaleHighlight(u8 highlight)
 {
-    u8 i, j;
+    u8 i, j, grayValue;
+    u16*pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
+            if (IS_ALPHA(*pixel))
             {
-                u8 grayValue = (*pixel & RGB_RED);
-                if (grayValue > 31 - highlight)
-                    grayValue = 31 - (highlight >> 1);
-
-                *pixel = RGB2(grayValue, grayValue, grayValue);
+                continue;
             }
+            grayValue = (*pixel & RGB_RED);
+            if (grayValue > RGB_RED - highlight)
+                grayValue = RGB_RED - (highlight / 2);
+
+            *pixel = RGB2(grayValue, grayValue, grayValue);
         }
     }
 }
@@ -178,15 +185,22 @@ static void ApplyImageEffect_Pointillism(void)
 static void ApplyImageEffect_Grayscale(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
+
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
             if (!IS_ALPHA(*pixel))
+            {
                 *pixel = ConvertColorToGrayscale(pixel);
+            }
         }
     }
 }
