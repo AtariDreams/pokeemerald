@@ -59,9 +59,10 @@ struct GFRomHeader
     u32 frontierStatusOffset2;
     u32 externalEventFlagsOffset;
     u32 externalEventDataOffset;
-    u32 unk18;
+    u32 unk18; // a struct for some test stuff not needed
+    // TODO: document this later
     const struct BaseStats * baseStats;
-    const u8 (* abilityNames)[];
+    const u8 (* abilityNames)[13];
     const u8 * const * abilityDescriptions;
     const struct Item * items;
     const struct BattleMove * moves;
