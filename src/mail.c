@@ -50,7 +50,7 @@ struct MailGraphics
     const u16 *palette;
     const u8 *tiles;
     const u8 *tileMap;
-    u32 unused;
+    u32 unused; // Going to be charSize
     u16 textColor;
     u16 textShadow;
 };

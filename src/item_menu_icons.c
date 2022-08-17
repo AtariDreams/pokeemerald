@@ -586,9 +586,9 @@ void UpdateItemMenuSwapLinePos(u8 y)
     UpdateSwapLineSpritesPos(&gBagMenu->spriteIds[ITEMMENUSPRITE_SWAP_LINE], ITEMMENU_SWAP_LINE_LENGTH | SWAP_LINE_HAS_MARGIN, 120, (y + 1) * 16);
 }
 
-static void ArrangeBerryGfx(void *src, void *dest)
+static void ArrangeBerryGfx(const void *src, void *dest)
 {
-    u8 i, j;
+    m8 i, j;
 
     memset(dest, 0, 0x800);
 
