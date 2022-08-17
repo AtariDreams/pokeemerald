@@ -12,8 +12,10 @@
 
 #if MODERN
 #define NOINLINE __attribute__((noinline))
+#define PURE __attribute__ ((pure))
 #else
 #define NOINLINE
+#define PURE
 #endif
 
 #define ALIGNED(n) __attribute__((aligned(n)))

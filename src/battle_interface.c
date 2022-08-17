@@ -739,7 +739,7 @@ static const struct WindowTemplate sHealthboxWindowTemplate = {
     .baseBlock = 0
 };
 
-static s32 DummiedOutFunction(s16 unused1, s16 unused2, s32 unused3)
+static PURE s32 DummiedOutFunction(s16 unused1, s16 unused2, s32 unused3)
 {
     return 9;
 }
