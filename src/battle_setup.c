@@ -555,9 +555,11 @@ void StartGroudonKyogreBattle(void)
     gBattleTypeFlags = BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_KYOGRE_GROUDON;
 
     // Why is this check here if this is never true? Sadly it must be here to match. TODO: revisit this sometime
+    #if !MODERN
     if (gGameVersion == VERSION_RUBY)
         CreateBattleStartTask(B_TRANSITION_ANGLED_WIPES, MUS_VS_KYOGRE_GROUDON); // GROUDON
     else
+    #endif
         CreateBattleStartTask(B_TRANSITION_RIPPLE, MUS_VS_KYOGRE_GROUDON); // KYOGRE
 
     IncrementGameStat(GAME_STAT_TOTAL_BATTLES);
