@@ -113,7 +113,7 @@ u16 ListMenuGetYCoordForPrintingArrowCursor(u8 listTaskId);
 void ListMenuOverrideSetColors(u8 cursorPal, u8 fillValue, u8 cursorShadowPal);
 void ListMenuDefaultCursorMoveFunc(u32 itemIndex, u8 onInit);
 s32 ListMenuGetUnkIndicatorsStructFields(u8 taskId, u8 field);
-void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, s32 value);
+void ListMenuSetUnkIndicatorsStructField(u8 taskId, u8 field, u32 value);
 u8 AddScrollIndicatorArrowPair(const struct ScrollArrowsTemplate *arrowInfo, u16 *scrollOffset);
 u8 AddScrollIndicatorArrowPairParameterized(u32 arrowType, u32 commonPos, u32 firstPos, u32 secondPos, u32 fullyDownThreshold, u32 tileTag, u32 palTag, u16 *currItemPtr);
 void RemoveScrollIndicatorArrowPair(u8 taskId);
