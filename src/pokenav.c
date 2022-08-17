@@ -237,7 +237,11 @@ bool32 IsLoopedTaskActive(u32 taskId)
 
 bool32 FuncIsActiveLoopedTask(LoopedTask func)
 {
+    #if !MODERN
     int i;
+    #else
+    u32 i;
+    #endif
     for (i = 0; i < NUM_TASKS; i++)
     {
         if (gTasks[i].isActive
