@@ -1799,7 +1799,11 @@ static u8 GetTextEntryPosition(void)
 
 static u8 GetPreviousTextCaretPosition(void)
 {
+    #if !MODERN
     s8 i;
+    #else
+    u8 i;
+    #endif
     // todo: see if we can make i u8
     for (i = sNamingScreen->template->maxChars - 1; i > 0; i--)
     {
@@ -1855,7 +1859,7 @@ static void BufferCharacter(u8 ch)
 
 static void SaveInputText(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < sNamingScreen->template->maxChars; i++)
     {
@@ -1904,7 +1908,9 @@ static void DrawTextEntry(void)
 {
     u8 i;
     u8 temp[2];
+    #if !MODERN
     u16 extraWidth;
+    #endif
     u8 maxChars = sNamingScreen->template->maxChars;
     u16 x = sNamingScreen->inputCharBaseXPos - 0x40;
 
@@ -1914,9 +1920,13 @@ static void DrawTextEntry(void)
     {
         temp[0] = sNamingScreen->textBuffer[i];
         temp[1] = gText_ExpandedPlaceholder_Empty[0];
+        #if !MODERN
         extraWidth = (IsWideLetter(temp[0]) == TRUE) ? 2 : 0;
 
         AddTextPrinterParameterized(sNamingScreen->windows[WIN_TEXT_ENTRY], FONT_NORMAL, temp, i * 8 + x + extraWidth, 1, TEXT_SKIP_DRAW, NULL);
+        #else
+        AddTextPrinterParameterized(sNamingScreen->windows[WIN_TEXT_ENTRY], FONT_NORMAL, temp, i * 8 + x, 1, TEXT_SKIP_DRAW, NULL);
+        #endif
     }
 
     TryDrawGenderIcon();
@@ -2052,6 +2062,7 @@ static void NamingScreen_ShowBgs(void)
 }
 
 // Always false (presumably for non-latin languages)
+#if !MODERN
 static bool8 IsWideLetter(u8 character)
 {
     u8 i;
@@ -2086,6 +2097,7 @@ static void Debug_NamingScreenNickname(void)
 {
     DoNamingScreen(NAMING_SCREEN_NICKNAME, gSaveBlock2Ptr->playerName, gSaveBlock2Ptr->playerGender, 0, 0, CB2_ReturnToFieldWithOpenMenu);
 }
+#endif
 
 //--------------------------------------------------
 // Forward-declared variables
@@ -2572,5 +2584,3 @@ static const struct SpritePalette sSpritePalettes[] =
     {gNamingScreenMenu_Pal[4], PALTAG_OK_BUTTON},
     {}
 };
-
-
