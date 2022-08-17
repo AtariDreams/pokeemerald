@@ -496,7 +496,6 @@ static void SpriteCB_CryMeterNeedle(struct Sprite *sprite)
     s16 y;
     struct ObjAffineSrcData affine;
     struct OamMatrix matrix;
-    u8 amplitude;
 
     gSprites[sCryMeterNeedle->spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
     gSprites[sCryMeterNeedle->spriteId].oam.affineParam = 0;
@@ -528,33 +527,34 @@ static void SpriteCB_CryMeterNeedle(struct Sprite *sprite)
         break;
     case 6:
         // To introduce some randomness, needle jumps to set pos in waveform rather than peak
-        amplitude = sDexCryScreen->cryWaveformBuffer[10];
-        SetCryMeterNeedleTarget(amplitude * 208 / 256);
+        // buffer should be s8 but is u8
+        peakAmplitude = sDexCryScreen->cryWaveformBuffer[10] * 208 / 256;
+        SetCryMeterNeedleTarget(peakAmplitude);
         break;
     }
 
-    if (sCryMeterNeedle->rotation == sCryMeterNeedle->targetRotation)
+    // Empty, needle has not reached target
+    if (sCryMeterNeedle->rotation != sCryMeterNeedle->targetRotation)
     {
-        // Empty, needle has reached target
-    }
-    else if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
-    {
-        // Rotate needle left
-        sCryMeterNeedle->rotation += sCryMeterNeedle->moveIncrement;
-        if (sCryMeterNeedle->rotation > sCryMeterNeedle->targetRotation)
-        {
-            sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
-            sCryMeterNeedle->targetRotation = 0;
-        }
-    }
-    else
-    {
-        // Rotate needle right
-        sCryMeterNeedle->rotation -= sCryMeterNeedle->moveIncrement;
         if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
         {
-            sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
-            sCryMeterNeedle->targetRotation = 0;
+            // Rotate needle left
+            sCryMeterNeedle->rotation += sCryMeterNeedle->moveIncrement;
+            if (sCryMeterNeedle->rotation > sCryMeterNeedle->targetRotation)
+            {
+                sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
+                sCryMeterNeedle->targetRotation = 0;
+            }
+        }
+        else
+        {
+            // Rotate needle right
+            sCryMeterNeedle->rotation -= sCryMeterNeedle->moveIncrement;
+            if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
+            {
+                sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
+                sCryMeterNeedle->targetRotation = 0;
+            }
         }
     }
 
