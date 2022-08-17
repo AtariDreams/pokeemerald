@@ -6660,7 +6660,7 @@ static void AnimWavyMusicNotes_Step(struct Sprite* sprite)
     u8 index;
 
     sprite->sMoveTimer++;
-    yDelta = (sprite->sMoveTimer * 5) % 256;
+    trigIdx = (sprite->sMoveTimer * 5) % 256;
     sprite->sX += sprite->sVelocX;
     sprite->sY += sprite->sVelocY;
     sprite->x = sprite->sX >> 4;
