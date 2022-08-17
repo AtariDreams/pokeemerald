@@ -43,10 +43,10 @@ void InitScriptContext(struct ScriptContext *ctx, void *cmdTable, void *cmdTable
     ctx->cmdTable = cmdTable;
     ctx->cmdTableEnd = cmdTableEnd;
 
-    for (i = 0; i < (int)ARRAY_COUNT(ctx->data); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(ctx->data); i++)
         ctx->data[i] = 0;
 
-    for (i = 0; i < (int)ARRAY_COUNT(ctx->stack); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(ctx->stack); i++)
         ctx->stack[i] = NULL;
 }
 
@@ -128,7 +128,7 @@ bool8 RunScriptCommand(struct ScriptContext *ctx)
 
 static bool8 ScriptPush(struct ScriptContext *ctx, const u8 *ptr)
 {
-    if (ctx->stackDepth + 1 >= (int)ARRAY_COUNT(ctx->stack))
+    if (ctx->stackDepth + 1 >= (m32)ARRAY_COUNT(ctx->stack))
     {
         return TRUE;
     }

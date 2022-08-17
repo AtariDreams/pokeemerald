@@ -406,7 +406,7 @@ static void InitContestResultsDisplay(void)
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_1D_MAP);
     MResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
-    for (i = 0; i < (int)ARRAY_COUNT(sContestResults->tilemapBuffers); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sContestResults->tilemapBuffers); i++)
         SetBgTilemapBuffer(i, sContestResults->tilemapBuffers[i]);
 
     InitWindows(sWindowTemplates);
@@ -1195,10 +1195,10 @@ static s32 DrawResultsTextWindow(const u8 *text, u8 spriteId)
         sprite = &gSprites[spriteId];
         spriteTilePtrs[0] = (u8 *)(sprite->oam.tileNum * 32 + OBJ_VRAM0);
 
-        for (i = 1; i < (int)ARRAY_COUNT(spriteTilePtrs); i++)
-            spriteTilePtrs[i] = (void *)(gSprites[sprite->data[i - 1]].oam.tileNum * 32 + OBJ_VRAM0);
+        for (i = 1; i < (m32)ARRAY_COUNT(spriteTilePtrs); i++)
+            spriteTilePtrs[i] = (void*)(gSprites[sprite->data[i - 1]].oam.tileNum * 32 + OBJ_VRAM0);
 
-        for (i = 0; i < (int)ARRAY_COUNT(spriteTilePtrs); i++)
+        for (i = 0; i < (m32)ARRAY_COUNT(spriteTilePtrs); i++)
             CpuFill32(0, spriteTilePtrs[i], 0x400);
 
         dst = spriteTilePtrs[0];
@@ -1235,13 +1235,13 @@ static void CreateResultsTextWindowSprites(void)
     u8 spriteIds[ARRAY_COUNT(sSpriteSheets_ResultsTextWindow)];
 
     template = sSpriteTemplate_ResultsTextWindow;
-    for (i = 0; i < (int)ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
         LoadSpriteSheet(&sSpriteSheets_ResultsTextWindow[i]);
 
     LoadSpritePalette(&sSpritePalette_ResultsTextWindow);
 
     // Create sprites for the two window types, each made up of 4 sprites
-    for (i = 0; i < (int)ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
     {
         spriteIds[i] = CreateSprite(&template, TEXT_BOX_X, TEXT_BOX_Y, 10);
         template.tileTag++;

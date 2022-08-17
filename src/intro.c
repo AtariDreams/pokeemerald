@@ -2833,7 +2833,7 @@ static void Task_BlendLogoOut(u8 taskId)
         gTasks[taskId].tState++;
         break;
     case 1:
-        if (gTasks[taskId].data[1] < (int)ARRAY_COUNT(gTitleScreenAlphaBlend) - 2)
+        if (gTasks[taskId].data[1] < (m32)ARRAY_COUNT(gTitleScreenAlphaBlend) - 2)
         {
             u8 tmp;
 

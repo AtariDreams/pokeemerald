@@ -2979,7 +2979,7 @@ static bool32 DidPlayerInputMysteryGiftPhrase(void)
 static u16 DidPlayerInputABerryMasterWifePhrase(void)
 {
     int i;
-    for (i = 0; i < (int)ARRAY_COUNT(sBerryMasterWifePhrases); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sBerryMasterWifePhrases); i++)
     {
         if (!IsPhraseDifferentThanPlayerInput(sBerryMasterWifePhrases[i], ARRAY_COUNT(*sBerryMasterWifePhrases)))
             return i + 1;
@@ -5066,7 +5066,7 @@ static void AddMainScreenButtonWindow(void)
     template.baseBlock = 0x34;
     windowId = AddWindow(&template);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
-    for (i = 0; i < (int)ARRAY_COUNT(sFooterTextOptions[0]); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sFooterTextOptions[0]); i++)
     {
         const u8 *str = sFooterTextOptions[footerIndex][i];
         if (str)

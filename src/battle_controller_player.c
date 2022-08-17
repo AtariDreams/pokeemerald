@@ -2868,7 +2868,7 @@ static void PlayerHandleChooseItem(void)
     gBattlerInMenuId = gActiveBattler;
 
 #if !MODERN
-    for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
 #else
     for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
 #endif
@@ -2879,7 +2879,7 @@ static void PlayerHandleChoosePokemon(void)
 {
     m32 i;
     #if !MODERN
-    for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
     #else
     for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
     #endif

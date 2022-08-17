@@ -345,7 +345,7 @@ static void InitTradeMenu(void)
 
         DeactivateAllTextPrinters();
 
-        for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuWindowTemplates) - 1; i++)
+        for (i = 0; i < (m32)ARRAY_COUNT(sTradeMenuWindowTemplates) - 1; i++)
         {
             ClearWindowTilemap(i);
             FillWindowPixelBuffer(i, PIXEL_FILL(0));
@@ -2095,7 +2095,7 @@ static void QueueAction(u16 delay, u8 actionId)
 {
     int i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuData->queuedActions); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sTradeMenuData->queuedActions); i++)
     {
         if (!sTradeMenuData->queuedActions[i].queued)
         {
@@ -2112,7 +2112,7 @@ static u32 GetNumQueuedActions(void)
     u32 numActions = 0;
     int i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuData->queuedActions); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sTradeMenuData->queuedActions); i++)
     {
         numActions += sTradeMenuData->queuedActions[i].queued;
     }
@@ -2124,7 +2124,7 @@ static void DoQueuedActions(void)
 {
     int i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuData->queuedActions); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sTradeMenuData->queuedActions); i++)
     {
         if (sTradeMenuData->queuedActions[i].queued)
         {
@@ -2327,7 +2327,7 @@ static void SaveTradeGiftRibbons(void)
 {
     int i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTradeMenuData->giftRibbons); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sTradeMenuData->giftRibbons); i++)
     {
         if (gSaveBlock1Ptr->giftRibbons[i] == 0 && sTradeMenuData->giftRibbons[i] != 0)
         {

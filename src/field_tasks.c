@@ -872,7 +872,7 @@ static const u16 sMuddySlopeMetatiles[] = {
 };
 
 #define SLOPE_ANIM_TIME 32
-#define SLOPE_ANIM_STEP_TIME (SLOPE_ANIM_TIME / (int)ARRAY_COUNT(sMuddySlopeMetatiles))
+#define SLOPE_ANIM_STEP_TIME (SLOPE_ANIM_TIME / (m32)ARRAY_COUNT(sMuddySlopeMetatiles))
 
 static void SetMuddySlopeMetatile(s16 *data, s16 x, s16 y)
 {

@@ -1832,7 +1832,7 @@ void ResetFrontierTrainerIds(void)
 {
     s32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2Ptr->frontier.trainerIds); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(gSaveBlock2Ptr->frontier.trainerIds); i++)
         gSaveBlock2Ptr->frontier.trainerIds[i] = 0xFFFF;
 }
 
