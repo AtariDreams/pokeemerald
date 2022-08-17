@@ -519,7 +519,11 @@ static void BattleIntroSlidePartner(u8 taskId)
     }
 }
 // TODO: inline some of this?
+#if MODERN
+void DrawBattlerOnBg(u8 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+#else
 void DrawBattlerOnBg(u32 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+#endif
 {
     m32 i, j;
     u8 battler = GetBattlerAtPosition(battlerPosition);
