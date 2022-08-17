@@ -1044,7 +1044,7 @@ void MauvilleGymDeactivatePuzzle(void)
 {
     int x, y;
     // should have been u32 for y;
-    for (y = 0; y < (int)ARRAY_COUNT(sMauvilleGymSwitchCoords); y++)
+    for (y = 0; y < (m32)ARRAY_COUNT(sMauvilleGymSwitchCoords); y++)
     {
         MapGridSetMetatileIdAt(sMauvilleGymSwitchCoords[y].x, sMauvilleGymSwitchCoords[y].y, METATILE_MauvilleGym_PressedSwitch);
     }

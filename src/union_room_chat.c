@@ -2169,7 +2169,7 @@ static void ResetDisplaySubtasks(void)
     if (!sDisplay)
         return;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sDisplay->subtasks); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sDisplay->subtasks); i++)
     {
         sDisplay->subtasks[i].callback = Display_Dummy;
         sDisplay->subtasks[i].active = FALSE;
@@ -2184,7 +2184,7 @@ static void RunDisplaySubtasks(void)
     if (!sDisplay)
         return;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sDisplay->subtasks); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sDisplay->subtasks); i++)
     {
         sDisplay->subtasks[i].active =
             sDisplay->subtasks[i].callback(&sDisplay->subtasks[i].state);

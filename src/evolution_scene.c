@@ -1513,7 +1513,7 @@ static void Task_UpdateBgPalette(u8 taskId)
         }
     }
 
-    if (tControlStage == (int)ARRAY_COUNT(sBgAnim_PaletteControl[0]))
+    if (tControlStage == (m32)ARRAY_COUNT(sBgAnim_PaletteControl[0]))
         DestroyTask(taskId);
 }
 
@@ -1584,7 +1584,7 @@ static void InitMovingBgPalette(u16 *palette)
 {
     s32 i, j;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sBgAnim_PalIndexes); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sBgAnim_PalIndexes); i++)
     {
         for (j = 0; j < 16; j++)
         {

@@ -289,7 +289,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     sTempTextPrinter.scrollDistance = 0;
 
     #if !MODERN
-    for (i = 0; i < (int)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
         sTempTextPrinter.subStructFields[i] = 0;
     #else
 
@@ -1364,7 +1364,7 @@ static u32 GetStringWidthFixedWidthFont(const u8 *str, u8 fontId, u8 letterSpaci
     u8 lineWidths[8];
     const u8 *strLocal;
 
-    for (i = 0; i < (int)ARRAY_COUNT(lineWidths); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(lineWidths); i++)
         lineWidths[i] = 0;
 
     width = 0;

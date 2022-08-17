@@ -1127,7 +1127,7 @@ bool32 MatchCall_HasRematchId(u32 idx)
 {
     int i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sMatchCallHeaders); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sMatchCallHeaders); i++)
     {
         u32 id = MatchCall_GetRematchTableIdx(i);
         if (id != REMATCH_TABLE_ENTRIES && id == idx)

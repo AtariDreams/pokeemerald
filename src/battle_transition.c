@@ -3214,7 +3214,7 @@ static bool8 Blackhole_Vibrate(struct Task *task)
     }
     #if !MODERN
     task->tRadius += sBlackhole_Vibrations[task->tVibrateId];
-    task->tVibrateId = (task->tVibrateId + 1) % (int)ARRAY_COUNT(sBlackhole_Vibrations);
+    task->tVibrateId = (task->tVibrateId + 1) % (m32)ARRAY_COUNT(sBlackhole_Vibrations);
     #else
     if (task->tVibrateId)
     {
@@ -4882,7 +4882,7 @@ static bool8 FrontierSquaresScroll_Draw(struct Task *task)
                                   15, 0, 0);
     CopyBgTilemapBufferToVram(0);
 
-    if (++task->tSquareNum >= (int)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
+    if (++task->tSquareNum >= (m32)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
         task->tState++;
     return 0;
 }
@@ -4911,7 +4911,7 @@ static bool8 FrontierSquaresScroll_Erase(struct Task *task)
                             15);
     CopyBgTilemapBufferToVram(0);
 
-    if (++task->tSquareNum >= (int)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
+    if (++task->tSquareNum >= (m32)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
     {
         DestroyTask(FindTaskIdByFunc(Task_ScrollBg));
         task->tState++;
