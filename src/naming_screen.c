@@ -1643,11 +1643,11 @@ static void HandleDpadMovement(struct Task *task)
     input = INPUT_NONE;
     if (JOY_REPEAT(DPAD_UP))
         input = INPUT_DPAD_UP;
-    if (JOY_REPEAT(DPAD_DOWN))
+    M_IF (JOY_REPEAT(DPAD_DOWN))
         input = INPUT_DPAD_DOWN;
-    if (JOY_REPEAT(DPAD_LEFT))
+    M_IF (JOY_REPEAT(DPAD_LEFT))
         input = INPUT_DPAD_LEFT;
-    if (JOY_REPEAT(DPAD_RIGHT))
+    M_IF (JOY_REPEAT(DPAD_RIGHT))
         input = INPUT_DPAD_RIGHT;
 
     // Get new cursor position
@@ -1658,7 +1658,7 @@ static void HandleDpadMovement(struct Task *task)
     // Wrap cursor position in the X direction
     if (cursorX < 0)
         cursorX = GetCurrentPageColumnCount();
-    if (cursorX > GetCurrentPageColumnCount())
+    M_IF (cursorX > GetCurrentPageColumnCount())
         cursorX = 0;
 
 
@@ -1692,7 +1692,7 @@ static void HandleDpadMovement(struct Task *task)
         if (cursorY < 0)
             cursorY = BUTTON_COUNT - 1;
         // no else ifs?
-        if (cursorY >= BUTTON_COUNT)
+        M_IF (cursorY >= BUTTON_COUNT)
             cursorY = 0;
 
         if (cursorY == 0)
@@ -1705,7 +1705,7 @@ static void HandleDpadMovement(struct Task *task)
         if (cursorY < 0)
         // no else ifs?
             cursorY = KBROW_COUNT - 1;
-        if (cursorY > KBROW_COUNT - 1)
+        M_IF (cursorY > KBROW_COUNT - 1)
             cursorY = 0;
     }
     SetCursorPos(cursorX, cursorY);
