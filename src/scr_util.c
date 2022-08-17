@@ -606,7 +606,7 @@ bool32 CountSSTidalStep(u16 delta)
 
 // TODO: look into s8 vs u8 pointers
 
-u8 GetSSTidalLocation(s8 *mapGroup, s8 *mapNum, s16 *x, s16 *y)
+u8 GetSSTidalLocation(u8 *mapGroup, u8 *mapNum, s16 *x, s16 *y)
 {
     u16 *varCruiseStepCount = GetVarPointer(VAR_CRUISE_STEP_COUNT);
     switch (*GetVarPointer(VAR_SS_TIDAL_STATE))
@@ -1737,10 +1737,12 @@ u8 TryUpdateRusturfTunnelState(void)
     return FALSE;
 }
 
+#if !MODERN
 void SetShoalItemFlag(u16 unused)
 {
     FlagSet(FLAG_SYS_SHOAL_ITEM);
 }
+#endif
 
 void PutZigzagoonInPlayerParty(void)
 {

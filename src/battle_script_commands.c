@@ -7409,11 +7409,11 @@ static void Cmd_forcerandomswitch(void)
 
 static void Cmd_tryconversiontypechange(void) // randomly changes user's type to one of its moves' type
 {
-    u8 validMoves = 0;
-    u8 moveChecked;
+    m8 validMoves;
+    m8 moveChecked;
     u8 moveType;
 
-    for (validMoves == 0; validMoves < MAX_MON_MOVES; validMoves++)
+    for (validMoves = 0; validMoves < MAX_MON_MOVES; validMoves++)
     {
         if (gBattleMons[gBattlerAttacker].moves[validMoves] == MOVE_NONE)
             break;
