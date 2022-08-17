@@ -2681,9 +2681,15 @@ static void PlayerHandleChoosePokemon(void)
     {
         gBattleControllerData[gActiveBattler] = CreateTask(TaskDummy, 0xFF);
         gTasks[gBattleControllerData[gActiveBattler]].data[0] = gBattleBufferA[gActiveBattler][1] & 0xF;
+        #if !MODERN
         *(&gBattleStruct->battlerPreventingSwitchout) = gBattleBufferA[gActiveBattler][1] >> 4;
         *(&gBattleStruct->prevSelectedPartySlot) = gBattleBufferA[gActiveBattler][2];
         *(&gBattleStruct->abilityPreventingSwitchout) = gBattleBufferA[gActiveBattler][3];
+        #else
+        gBattleStruct->battlerPreventingSwitchout = gBattleBufferA[gActiveBattler][1] >> 4;
+        gBattleStruct->prevSelectedPartySlot = gBattleBufferA[gActiveBattler][2];
+        gBattleStruct->abilityPreventingSwitchout = gBattleBufferA[gActiveBattler][3];
+        #endif
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
         gBattlerControllerFuncs[gActiveBattler] = OpenPartyMenuToChooseMon;
         gBattlerInMenuId = gActiveBattler;
@@ -2705,8 +2711,10 @@ static void PlayerHandleHealthBarUpdate(void)
     hpVal = gBattleBufferA[gActiveBattler][2] | (gBattleBufferA[gActiveBattler][3] << 8);
 
     // gPlayerPartyLostHP used by Battle Dome, but never read
+    # if !MODERN
     if (hpVal > 0)
         gPlayerPartyLostHP += hpVal;
+    #endif
 
     if (hpVal != INSTANT_HP_BAR_DROP)
     {
