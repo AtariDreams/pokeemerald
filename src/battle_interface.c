@@ -1957,8 +1957,6 @@ static void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon)
     if ((species == SPECIES_NIDORAN_F || species == SPECIES_NIDORAN_M) && StringCompare(nickname, gSpeciesNames[species]) == 0)
         gender = 100;
 
-    // AddTextPrinterAndCreateWindowOnHealthbox's arguments are the same in all 3 cases.
-    // It's possible they may have been different in early development phases.
     switch (gender)
     {
     case MON_MALE:
