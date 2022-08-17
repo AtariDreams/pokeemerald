@@ -34,8 +34,9 @@ static void IntrDummy(void);
 const u8 gGameVersion = GAME_VERSION;
 
 const u8 gGameLanguage = GAME_LANGUAGE; // English
-
+#if !MODERN
 const char BuildDateTime[] = "2005 02 21 11:10";
+#endif
 
 const IntrFunc gIntrTableTemplate[] =
 {
@@ -55,7 +56,7 @@ const IntrFunc gIntrTableTemplate[] =
     IntrDummy,  // Game Pak interrupt
 };
 
-#define INTR_COUNT ((int)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
+#define INTR_COUNT ((m32)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
 
 #if !MODERN
 static u16 sUnusedVar; // Never read
@@ -129,8 +130,12 @@ NORETURN void AgbMain(void)
         ReadKeys();
 
         if (gSoftResetDisabled == FALSE
+        #if 1
          && (gMain.heldKeysRaw & A_BUTTON)
          && (gMain.heldKeysRaw & B_START_SELECT) == B_START_SELECT)
+        #else
+        && (gMain.heldKeysRaw == A_BUTTON | B_START_SELECT))
+        #endif
         {
             rfu_REQ_stopMode();
             rfu_waitREQComplete();

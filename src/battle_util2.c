@@ -107,7 +107,7 @@ void SwitchPartyOrderInGameMulti(u8 battlerId, u8 arg1)
 {
     if (GetBattlerSide(battlerId) != B_SIDE_OPPONENT)
     {
-        s32 i;
+        m32 i;
         for (i = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
             gBattlePartyCurrentOrder[i] = *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders));
 
