@@ -182,8 +182,14 @@ u8 GameClear(void)
          && !GetMonData(mon, MON_DATA_SANITY_IS_EGG)
          && !GetMonData(mon, MON_DATA_CHAMPION_RIBBON))
         {
+            #if MODERN
+            u8 val = TRUE;
+            SetMonData(mon, MON_DATA_CHAMPION_RIBBON, &val);
+            #else
             u8 val[1] = {TRUE};
             SetMonData(mon, MON_DATA_CHAMPION_RIBBON, val);
+            #endif
+
             ribbonCounts[i].count = GetRibbonCount(mon);
             ribbonGet = TRUE;
         }
