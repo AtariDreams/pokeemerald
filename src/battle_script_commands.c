@@ -3777,6 +3777,16 @@ static void Cmd_orbyte(void)
     gBattlescriptCurrInstr += 6;
 }
 
+#if MODERN
+// TODO: look into why this fails?
+static void Cmd_orhalfword(void)
+{
+    u16 *memHword = T2_READ_PTR(gBattlescriptCurrInstr + 1);
+
+    *memHword |= T2_READ_16(gBattlescriptCurrInstr + 5);
+    gBattlescriptCurrInstr += 7;
+}
+#else
 static void Cmd_orhalfword(void)
 {
     u16 *memHword = T2_READ_PTR(gBattlescriptCurrInstr + 1);
@@ -3785,13 +3795,13 @@ static void Cmd_orhalfword(void)
     *memHword |= val;
     gBattlescriptCurrInstr += 7;
 }
+#endif
 
 static void Cmd_orword(void)
 {
     u32 *memWord = T2_READ_PTR(gBattlescriptCurrInstr + 1);
-    u32 val = T2_READ_32(gBattlescriptCurrInstr + 5);
 
-    *memWord |= val;
+    *memWord |= T2_READ_32(gBattlescriptCurrInstr + 5);
     gBattlescriptCurrInstr += 9;
 }
 
@@ -3802,6 +3812,15 @@ static void Cmd_bicbyte(void)
     gBattlescriptCurrInstr += 6;
 }
 
+#if MODERN
+static void Cmd_bichalfword(void)
+{
+    u16 *memHword = T2_READ_PTR(gBattlescriptCurrInstr + 1);
+
+    *memHword &= ~(T2_READ_16(gBattlescriptCurrInstr + 5));
+    gBattlescriptCurrInstr += 7;
+}
+#else
 static void Cmd_bichalfword(void)
 {
     u16 *memHword = T2_READ_PTR(gBattlescriptCurrInstr + 1);
@@ -3810,13 +3829,13 @@ static void Cmd_bichalfword(void)
     *memHword &= ~val;
     gBattlescriptCurrInstr += 7;
 }
+#endif
 
 static void Cmd_bicword(void)
 {
     u32 *memWord = T2_READ_PTR(gBattlescriptCurrInstr + 1);
-    u32 val = T2_READ_32(gBattlescriptCurrInstr + 5);
 
-    *memWord &= ~val;
+    *memWord &= ~(T2_READ_32(gBattlescriptCurrInstr + 5));
     gBattlescriptCurrInstr += 9;
 }
 
@@ -3907,7 +3926,11 @@ static void Cmd_jumpifabilitypresent(void)
 
 static void Cmd_endselectionscript(void)
 {
+    #if !MODERN
     *(gBattlerAttacker + gBattleStruct->selectionScriptFinished) = TRUE;
+    #else
+    gBattleStruct->selectionScriptFinished[gBattlerAttacker] = TRUE;
+    #endif
 }
 
 static void Cmd_playanimation(void)
