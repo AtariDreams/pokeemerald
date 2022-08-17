@@ -980,13 +980,11 @@ bool32 IsEnigmaBerryValid(void)
 const struct Berry *GetBerryInfo(u8 berry)
 {
     if (berry == ITEM_TO_BERRY(ITEM_ENIGMA_BERRY) && IsEnigmaBerryValid())
-        return (struct Berry *)(&gSaveBlock1Ptr->enigmaBerry.berry);
-    else
-    {
-        if (berry == BERRY_NONE || berry > ITEM_TO_BERRY(LAST_BERRY_INDEX))
-            berry = ITEM_TO_BERRY(FIRST_BERRY_INDEX);
-        return &gBerries[berry - 1];
-    }
+        return (const struct Berry*)(&gSaveBlock1Ptr->enigmaBerry.berry);
+
+    if (berry > ITEM_TO_BERRY(LAST_BERRY_INDEX) || berry == BERRY_NONE)
+        berry = ITEM_TO_BERRY(FIRST_BERRY_INDEX);
+    return &gBerries[berry - 1];
 }
 
 struct BerryTree *GetBerryTreeInfo(u8 id)
@@ -1037,7 +1035,7 @@ bool8 TryToWaterBerryTree(void)
 
 void ClearBerryTrees(void)
 {
-    int i;
+    m32 i;
 
     for (i = 0; i < BERRY_TREES_COUNT; i++)
         gSaveBlock1Ptr->berryTrees[i] = gBlankBerryTree;
@@ -1076,6 +1074,7 @@ static bool32 BerryTreeGrow(struct BerryTree *tree)
 void BerryTreeTimeUpdate(s32 minutes)
 {
     int i;
+    s32 time;
     struct BerryTree *tree;
 
     for (i = 0; i < BERRY_TREES_COUNT; i++)
@@ -1087,25 +1086,24 @@ void BerryTreeTimeUpdate(s32 minutes)
             if (minutes >= GetStageDurationByBerryType(tree->berry) * 71)
             {
                 *tree = gBlankBerryTree;
+                continue;
             }
-            else
-            {
-                s32 time = minutes;
 
-                while (time != 0)
+            time = minutes;
+
+            while (time != 0)
+            {
+                if (tree->minutesUntilNextStage > time)
                 {
-                    if (tree->minutesUntilNextStage > time)
-                    {
-                        tree->minutesUntilNextStage -= time;
-                        break;
-                    }
-                    time -= tree->minutesUntilNextStage;
-                    tree->minutesUntilNextStage = GetStageDurationByBerryType(tree->berry);
-                    if (!BerryTreeGrow(tree))
-                        break;
-                    if (tree->stage == BERRY_STAGE_BERRIES)
-                        tree->minutesUntilNextStage *= 4;
+                    tree->minutesUntilNextStage -= time;
+                    break;
                 }
+                time -= tree->minutesUntilNextStage;
+                tree->minutesUntilNextStage = GetStageDurationByBerryType(tree->berry);
+                if (!BerryTreeGrow(tree))
+                    break;
+                if (tree->stage == BERRY_STAGE_BERRIES)
+                    tree->minutesUntilNextStage *= 4;
             }
         }
     }
@@ -1148,9 +1146,7 @@ u8 GetStageByBerryTreeId(u8 id)
 
 u8 ItemIdToBerryType(u16 item)
 {
-    u16 berry = item - FIRST_BERRY_INDEX;
-
-    if (berry > LAST_BERRY_INDEX - FIRST_BERRY_INDEX)
+    if (item < FIRST_BERRY_INDEX || item > LAST_BERRY_INDEX)
         return ITEM_TO_BERRY(FIRST_BERRY_INDEX);
     else
         return ITEM_TO_BERRY(item);
@@ -1158,12 +1154,10 @@ u8 ItemIdToBerryType(u16 item)
 
 static u16 BerryTypeToItemId(u16 berry)
 {
-    u16 item = berry - 1;
-
-    if (item > LAST_BERRY_INDEX - FIRST_BERRY_INDEX)
+    if (berry == 0 || berry > LAST_BERRY_INDEX - (FIRST_BERRY_INDEX - 1))
         return FIRST_BERRY_INDEX;
     else
-        return berry + FIRST_BERRY_INDEX - 1;
+        return berry + (FIRST_BERRY_INDEX - 1);
 }
 
 void GetBerryNameByBerryType(u8 berry, u8 *string)
