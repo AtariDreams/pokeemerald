@@ -152,7 +152,11 @@ static void Task_Truck2(u8 taskId)
 static void Task_Truck3(u8 taskId)
 {
    s16 *data = gTasks[taskId].data;
+   #if !MODERN
    s16 cameraXpan, cameraYpan;
+   #else
+   s16 cameraXpan;
+   #endif
 
    tTimerHorizontal++;
 
@@ -165,24 +169,23 @@ static void Task_Truck3(u8 taskId)
    if (tMoveStep == ARRAY_COUNT(sTruckCamera_HorizontalTable))
    {
        DestroyTask(taskId);
+       return;
    }
-   else
-   {
+
 #if !MODERN
-       cameraXpan = sTruckCamera_HorizontalTable[tMoveStep];
-       cameraYpan = 0;
-       SetCameraPanning(cameraXpan, cameraYpan);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + cameraYpan);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + cameraYpan);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + cameraYpan);
+   cameraXpan = sTruckCamera_HorizontalTable[tMoveStep];
+   cameraYpan = 0;
+   SetCameraPanning(cameraXpan, cameraYpan);
+   SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + cameraYpan);
+   SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + cameraYpan);
+   SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + cameraYpan);
 #else
-       cameraXpan = sTruckCamera_HorizontalTable[tMoveStep];
-       SetCameraPanning(cameraXpan, 0);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET);
+   cameraXpan = sTruckCamera_HorizontalTable[tMoveStep];
+   SetCameraPanning(cameraXpan, cameraYpan);
+   SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET);
+   SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET);
+   SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET);
 #endif
-   }
 }
 
 #undef tTimerHorizontal
