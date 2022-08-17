@@ -392,7 +392,11 @@ static bool8 IsHiddenItemPresentAtCoords(const struct MapEvents *events, s16 x, 
     return FALSE;
 }
 
+#if !MODERN
 static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, int x, int y)
+#else
+static bool8 IsHiddenItemPresentInConnection(struct MapConnection *connection, s16 x, s16 y)
+#endif
 {
     s16 localX, localY;
     s32 localOffset;
