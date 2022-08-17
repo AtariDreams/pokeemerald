@@ -1673,18 +1673,14 @@ static void AppendTextToMessage(void)
         return;
 
     str = GetEndOfMessagePtr();
-    while (--strLength != -1 && sChat->bufferCursorPos < MAX_MESSAGE_LENGTH)
+    while (strLength-- && sChat->bufferCursorPos < MAX_MESSAGE_LENGTH)
     {
         if (*charsStr == CHAR_EXTRA_SYMBOL)
         {
-            *str = *charsStr;
-            charsStr++;
-            str++;
+            *str++ = *charsStr++;;
         }
 
-        *str = *charsStr;
-        charsStr++;
-        str++;
+        *str++ = *charsStr++;
 
         sChat->bufferCursorPos++;
     }
@@ -1712,9 +1708,12 @@ static void SwitchCaseOfLastMessageCharacter(void)
     str = GetLastCharOfMessagePtr();
     if (*str != CHAR_EXTRA_SYMBOL)
     {
+        // was this optimized out?
+        // if (*str < ARRAY_COUNT(sCaseToggleTable)) {
         character = sCaseToggleTable[*str];
-        if (character)
+        if (character != CHAR_SPACE)
             *str = character;
+     //}
     }
 }
 
@@ -1844,22 +1843,20 @@ static void PrepareSendBuffer_Disband(u8 *buffer)
 static bool32 ProcessReceivedChatMessage(u8 *dest, u8 *recvMessage)
 {
     u8 *tempStr;
-    u8 cmd = *recvMessage;
-    u8 *name = recvMessage + 1;
-    recvMessage = name;
+    u8 cmd = *recvMessage++;
+    u8 *name = recvMessage;
+
     recvMessage += PLAYER_NAME_LENGTH + 1;
 
     switch (cmd)
     {
     case CHAT_MESSAGE_JOIN:
-        if (sChat->multiplayerId != name[PLAYER_NAME_LENGTH + 1])
-        {
-            DynamicPlaceholderTextUtil_Reset();
-            DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, name);
-            DynamicPlaceholderTextUtil_ExpandPlaceholders(dest, gText_F700JoinedChat);
-            return TRUE;
-        }
-        break;
+        if (sChat->multiplayerId == *recvMessage)
+            break;
+        DynamicPlaceholderTextUtil_Reset();
+        DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, name);
+        DynamicPlaceholderTextUtil_ExpandPlaceholders(dest, gText_F700JoinedChat);
+        return TRUE;
     case CHAT_MESSAGE_CHAT:
         tempStr = StringCopy(dest, name);
         *(tempStr++) = EXT_CTRL_CODE_BEGIN;
@@ -1901,10 +1898,9 @@ static u8 *GetMessageEntryBuffer(void)
     return sChat->messageEntryBuffer;
 }
 
-static int GetLengthOfMessageEntry(void)
+static u32 GetLengthOfMessageEntry(void)
 {
-    u8 *str = GetMessageEntryBuffer();
-    return StringLength_Multibyte(str);
+    return StringLength_Multibyte(GetMessageEntryBuffer());
 }
 
 static void GetBufferSelectionRegion(u32 *x, u32 *width)
@@ -1965,8 +1961,8 @@ static u8 GetReceivedPlayerIndex(void)
 {
     return sChat->receivedPlayerIndex;
 }
-
-static int GetTextEntryCursorPosition(void)
+// Should be u8
+static u32 GetTextEntryCursorPosition(void)
 {
     return sChat->bufferCursorPos;
 }
@@ -3278,7 +3274,7 @@ static void UpdateRButtonLabel(void)
     }
     else
     {
-        int anim = GetShouldShowCaseToggleIcon();
+        u32 anim = GetShouldShowCaseToggleIcon();
         if (anim == 3)
         {
             sSprites->rButtonLabel->invisible = TRUE;
