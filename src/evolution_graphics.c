@@ -260,7 +260,11 @@ static void CreateSparkle_Spray(u8 id)
     u8 spriteId = CreateSprite(&sEvoSparkleSpriteTemplate, DISPLAY_WIDTH / 2, 56, 0);
     if (spriteId != MAX_SPRITES)
     {
+        #if !MODERN
         gSprites[spriteId].sSpeed = 3 - (Random() % 7);
+        #else
+        gSprites[spriteId].sSpeed = 3 - Mod(Random(), 7);
+        #endif
         gSprites[spriteId].sAmplitude = 48 + (Random() & 0x3F);
         gSprites[spriteId].sTimer = 0;
         gSprites[spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;

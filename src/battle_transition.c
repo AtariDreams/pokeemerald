@@ -1582,8 +1582,12 @@ static bool8 Kyogre_PaletteFlash(struct Task *task)
     {
         // has to be u16 to match
         // TODO: is this better as an s16? the code in the function below this doesn't seem to care
+        #if !MODERN
         u16 offset = task->tTimer % 30;
         LoadPalette(&sKyogre1_Palette[offset/3 * 16], 0xF0, 0x20);
+        #else
+        LoadPalette(&sKyogre1_Palette[Div(Mod(task->tTimer, 30),3) * 16], 0xF0, 0x20);
+        #endif
     }
     if (++task->tTimer > 58)
     {
@@ -3540,8 +3544,12 @@ static bool8 Groudon_PaletteFlash(struct Task *task)
     if (task->tTimer % 3 == 0)
     {
         // must be u16 to match
+        #if !MODERN
         u16 offset = (task->tTimer % 30) / 3;
         LoadPalette(&sGroudon1_Palette[offset * 16], 0xF0, 0x20);
+        #else
+        LoadPalette(&sGroudon1_Palette[Div(Mod(task->tTimer, 30), 3) * 16], 0xF0, 0x20);
+        #endif
     }
     if (++task->tTimer > 58)
     {

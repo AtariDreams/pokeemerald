@@ -114,7 +114,9 @@ static EWRAM_DATA u8 sPokeBallRotation = 0;
 static EWRAM_DATA struct PokedexListItem *sPokedexListItem = NULL;
 
 // This is written to, but never read.
+#if !MODERN
 u8 gUnusedPokedexU8;
+#endif
 void (*gPokedexVBlankCB)(void);
 
 struct SearchOptionText
@@ -1528,7 +1530,9 @@ void ResetPokedex(void)
 
     sLastSelectedPokemon = 0;
     sPokeBallRotation = POKEBALL_ROTATION_TOP;
+    #if !MODERN
     gUnusedPokedexU8 = 0;
+    #endif
     gSaveBlock2Ptr->pokedex.mode = DEX_MODE_HOENN;
     gSaveBlock2Ptr->pokedex.order = 0;
     gSaveBlock2Ptr->pokedex.nationalMagic = 0;

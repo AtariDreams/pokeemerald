@@ -562,7 +562,11 @@ static void FortreeBridgePerStepCallback(u8 taskId)
         tBounceTime--;
         prevX = tOldBridgeX;
         prevY = tOldBridgeY;
+        #if !MODERN
         switch (tBounceTime % 7)
+        #else
+        switch (Mod(tBounceTime, 7))
+        #endif
         {
         case 0:
             CurrentMapDrawMetatileAt(prevX, prevY);
@@ -577,8 +581,11 @@ static void FortreeBridgePerStepCallback(u8 taskId)
             TryRaiseFortreeBridge(prevX, prevY);
         case 5:
         case 6:
+        #if !MODERN
         case 7: // Not possible with % 7
+        #endif
             break;
+
         }
         if (tBounceTime == 0)
             tState = 1;

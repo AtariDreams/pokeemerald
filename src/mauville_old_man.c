@@ -350,7 +350,11 @@ static void InitGiddyTaleList(void)
         {
             // Pick a random word id, then advance through the word
             // groups until the group where that id landed.
+            #if !MODERN
             s16 randWord = Random() % totalWords;
+            #else
+            s16 randWord = Mod(Random(),totalWords);
+            #endif
             for (var = 0; i < ARRAY_COUNT(wordGroupsAndCount); var++)
                 if ((randWord -= wordGroupsAndCount[var][1]) <= 0)
                     break;
