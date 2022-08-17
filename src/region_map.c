@@ -669,31 +669,51 @@ u8 DoRegionMapInputCallback(void)
 
 static u8 ProcessRegionMapInput_Full(void)
 {
-    u8 input;
+    bool8 input = MAP_INPUT_NONE;
 
-    input = MAP_INPUT_NONE;
     sRegionMap->cursorDeltaX = 0;
     sRegionMap->cursorDeltaY = 0;
-    if (JOY_HELD(DPAD_UP) && sRegionMap->cursorPosY > MAPCURSOR_Y_MIN)
+
+#if MODERN
+    if (JOY_NEW(A_BUTTON))
     {
-        sRegionMap->cursorDeltaY = -1;
-        input = MAP_INPUT_MOVE_START;
+        return MAP_INPUT_A_BUTTON;
     }
-    if (JOY_HELD(DPAD_DOWN) && sRegionMap->cursorPosY < MAPCURSOR_Y_MAX)
+    if (JOY_NEW(B_BUTTON))
     {
-        sRegionMap->cursorDeltaY = +1;
-        input = MAP_INPUT_MOVE_START;
+        return MAP_INPUT_B_BUTTON;
     }
-    if (JOY_HELD(DPAD_LEFT) && sRegionMap->cursorPosX > MAPCURSOR_X_MIN)
+#endif
+
+    if (JOY_HELD(DPAD_UP))
     {
-        sRegionMap->cursorDeltaX = -1;
-        input = MAP_INPUT_MOVE_START;
+        if (sRegionMap->cursorPosY > MAPCURSOR_Y_MIN) {
+            sRegionMap->cursorDeltaY = -1;
+            input = MAP_INPUT_MOVE_START;
+        }
     }
-    if (JOY_HELD(DPAD_RIGHT) && sRegionMap->cursorPosX < MAPCURSOR_X_MAX)
+    if (JOY_HELD(DPAD_DOWN))
     {
-        sRegionMap->cursorDeltaX = +1;
-        input = MAP_INPUT_MOVE_START;
+        if (sRegionMap->cursorPosY < MAPCURSOR_Y_MAX) {
+            sRegionMap->cursorDeltaY = 1;
+            input = MAP_INPUT_MOVE_START;
+        }
     }
+    if (JOY_HELD(DPAD_LEFT))
+    {
+        if (sRegionMap->cursorPosX > MAPCURSOR_X_MIN) {
+            sRegionMap->cursorDeltaX = -1;
+            input = MAP_INPUT_MOVE_START;
+        }
+    }
+    if (JOY_HELD(DPAD_RIGHT))
+    {
+        if (sRegionMap->cursorPosX < MAPCURSOR_X_MAX) {
+            sRegionMap->cursorDeltaX = 1;
+            input = MAP_INPUT_MOVE_START;
+        }
+    }
+    #if !MODERN
     if (JOY_NEW(A_BUTTON))
     {
         input = MAP_INPUT_A_BUTTON;
@@ -703,11 +723,22 @@ static u8 ProcessRegionMapInput_Full(void)
         input = MAP_INPUT_B_BUTTON;
     }
     if (input == MAP_INPUT_MOVE_START)
+    #else
+    if (input)
+    #endif
     {
         sRegionMap->cursorMovementFrameCounter = 4;
         sRegionMap->inputCallback = MoveRegionMapCursor_Full;
+
+#if MODERN
+        return MAP_INPUT_MOVE_START;
+#endif
     }
+#if !MODERN
     return input;
+#else
+    return MAP_INPUT_NONE;
+#endif
 }
 
 static u8 MoveRegionMapCursor_Full(void)
@@ -717,19 +748,36 @@ static u8 MoveRegionMapCursor_Full(void)
     if (sRegionMap->cursorMovementFrameCounter != 0)
         return MAP_INPUT_MOVE_CONT;
 
+    #if !MODERN
     if (sRegionMap->cursorDeltaX > 0)
+    #else
+    if (sRegionMap->cursorDeltaX == 1)
+    #endif
     {
         sRegionMap->cursorPosX++;
     }
+    #if !MODERN
     if (sRegionMap->cursorDeltaX < 0)
+    #else
+    else if (sRegionMap->cursorDeltaX == -1)
+    #endif
     {
         sRegionMap->cursorPosX--;
     }
+
+    #if !MODERN
     if (sRegionMap->cursorDeltaY > 0)
+    #else
+    if (sRegionMap->cursorDeltaY == 1)
+    #endif
     {
         sRegionMap->cursorPosY++;
     }
+    #if !MODERN
     if (sRegionMap->cursorDeltaY < 0)
+    #else
+    else if (sRegionMap->cursorDeltaY == -1)
+    #endif
     {
         sRegionMap->cursorPosY--;
     }
@@ -748,45 +796,81 @@ static u8 MoveRegionMapCursor_Full(void)
 
 static u8 ProcessRegionMapInput_Zoomed(void)
 {
-    u8 input;
-
-    input = MAP_INPUT_NONE;
+    bool8 input = MAP_INPUT_NONE;
     sRegionMap->zoomedCursorDeltaX = 0;
     sRegionMap->zoomedCursorDeltaY = 0;
-    if (JOY_HELD(DPAD_UP) && sRegionMap->scrollY > -0x34)
+
+    #if MODERN
+    if (JOY_NEW(A_BUTTON))
     {
-        sRegionMap->zoomedCursorDeltaY = -1;
-        input = MAP_INPUT_MOVE_START;
+        return MAP_INPUT_A_BUTTON;
     }
-    if (JOY_HELD(DPAD_DOWN) && sRegionMap->scrollY < 0x3c)
+    if (JOY_NEW(B_BUTTON))
     {
-        sRegionMap->zoomedCursorDeltaY = +1;
-        input = MAP_INPUT_MOVE_START;
+        return MAP_INPUT_B_BUTTON;
     }
-    if (JOY_HELD(DPAD_LEFT) && sRegionMap->scrollX > -0x2c)
+    #endif
+
+    if (JOY_HELD(DPAD_UP))
     {
-        sRegionMap->zoomedCursorDeltaX = -1;
-        input = MAP_INPUT_MOVE_START;
+        if (sRegionMap->scrollY > ZOOM_U_LIMIT)
+        {
+            sRegionMap->zoomedCursorDeltaY = -1;
+            input = MAP_INPUT_MOVE_START;
+        }
     }
-    if (JOY_HELD(DPAD_RIGHT) && sRegionMap->scrollX < 0xac)
+    M_IF (JOY_HELD(DPAD_DOWN))
     {
-        sRegionMap->zoomedCursorDeltaX = +1;
-        input = MAP_INPUT_MOVE_START;
+        if (sRegionMap->scrollY < ZOOM_D_LIMIT) {
+            sRegionMap->zoomedCursorDeltaY = +1;
+            input = MAP_INPUT_MOVE_START;
+        }
     }
+    
+    if (JOY_HELD(DPAD_LEFT))
+    {
+        if (sRegionMap->scrollX > ZOOM_L_LIMIT)
+        {
+            sRegionMap->zoomedCursorDeltaX = -1;
+            input = MAP_INPUT_MOVE_START;
+        }
+    }
+    M_IF (JOY_HELD(DPAD_RIGHT))
+    {
+        if (sRegionMap->scrollX < ZOOM_R_LIMIT)
+        {
+            sRegionMap->zoomedCursorDeltaX = +1;
+            input = MAP_INPUT_MOVE_START;
+        }
+    }
+
+    #if !MODERN
     if (JOY_NEW(A_BUTTON))
     {
         input = MAP_INPUT_A_BUTTON;
     }
+
     if (JOY_NEW(B_BUTTON))
     {
         input = MAP_INPUT_B_BUTTON;
     }
+
     if (input == MAP_INPUT_MOVE_START)
+    #else
+    if (input)
+    #endif
     {
         sRegionMap->inputCallback = MoveRegionMapCursor_Zoomed;
         sRegionMap->zoomedCursorMovementFrameCounter = 0;
+        #if MODERN
+        return MAP_INPUT_MOVE_START;
+        #endif
     }
+    #if !MODERN
     return input;
+    #else
+    return MAP_INPUT_NONE;
+    #endif
 }
 
 static u8 MoveRegionMapCursor_Zoomed(void)
