@@ -92,8 +92,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(shell $(MODERNCC) --print-prog-name=cc1) -quiet
-override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races
---fno-toplevel-reorder -Wno-pointer-to-int-cast
+override CFLAGS += -mthumb -mthumb-interwork -O2 -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -fgcse-sm -fgcse-las -fgcse-after-reload -fsched-pressure -fipa-pta -fsplit-paths -fallow-store-data-races -fno-toplevel-reorder -Wno-pointer-to-int-cast
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
