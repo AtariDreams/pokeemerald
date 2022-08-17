@@ -401,7 +401,9 @@ void AnimTask_DragonDanceWaver(u8 taskId)
     struct ScanlineEffectParams scanlineParams;
     struct Task *task = &gTasks[taskId];
     u16 i;
+    #if !MODERN
     u8 y;
+    #endif
     if (GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 1)
     {
         scanlineParams.dmaDest = &REG_BG1HOFS;
@@ -417,7 +419,8 @@ void AnimTask_DragonDanceWaver(u8 taskId)
     scanlineParams.initState = 1;
     scanlineParams.unused9 = 0;
 
-    #if 1
+    // TODO: see which is better
+    #if !MODERN
     y = GetBattlerYCoordWithElevation(gBattleAnimAttacker);
     task->data[3] = y - 32;
     task->data[4] = y + 32;
