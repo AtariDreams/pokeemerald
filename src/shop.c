@@ -1180,7 +1180,8 @@ static void RecordItemPurchase(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
-    m16 i;
+    // gcc makes better code when this is u16 for some reason
+    u16 i;
 
     for (i = 0; i < ARRAY_COUNT(gMartPurchaseHistory); i++)
     {
