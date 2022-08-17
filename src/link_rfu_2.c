@@ -729,19 +729,27 @@ static void ReadAllPlayerRecvCmds(void)
 
     for (i = 0; i < MAX_RFU_PLAYERS; i++)
     {
+#if !MODERN
         struct RfuManager *rfu = &gRfu;
         for (j = 0; j < CMD_LENGTH - 1; j++)
         {
             rfu->recvCmds[i][j][1] = gRecvCmds[i][j] >> 8;
             rfu->recvCmds[i][j][0] = gRecvCmds[i][j];
         }
+#else
+        for (j = 0; j < CMD_LENGTH - 1; j++)
+        {
+            gRfu.recvCmds[i][j][1] = gRecvCmds[i][j] >> 8;
+            gRfu.recvCmds[i][j][0] = gRecvCmds[i][j] & 0xFF;
+        }
+#endif
     }
     CpuFill16(0, gRecvCmds, sizeof gRecvCmds);
 }
 
 static void MoveSendCmdToRecv(void)
 {
-    s32 i;
+    m32 i;
     for (i = 0; i < CMD_LENGTH - 1; i++)
         gRecvCmds[0][i] = gSendCmd[i];
 
@@ -753,7 +761,7 @@ static void UpdateBackupQueue(void)
 {
     if (gRfu.linkRecovered)
     {
-        bool8 backupEmpty = RfuBackupQueue_Dequeue(&gRfu.backupQueue, gRfu.childSendBuffer);
+        bool32 backupEmpty = RfuBackupQueue_Dequeue(&gRfu.backupQueue, gRfu.childSendBuffer);
 
         if (gRfu.backupQueue.count == 0)
             gRfu.linkRecovered = FALSE;
@@ -770,8 +778,8 @@ static void UpdateBackupQueue(void)
 
 bool32 IsRfuRecvQueueEmpty(void)
 {
-    s32 i;
-    s32 j;
+    m32 i;
+    m32 j;
 
     if (!gRfuLinkStatus->sendSlotUNIFlag)
         return FALSE;
@@ -836,7 +844,6 @@ static bool32 RfuMain2_Parent(void)
     u16 flags;
     u8 r0;
     u16 j;
-    bool8 failed;
 
     if (gRfu.state >= RFUSTATE_FINALIZED && gRfu.runParentMain2 == TRUE)
     {
@@ -891,7 +898,7 @@ static bool32 RfuMain2_Parent(void)
                 rfu_clearSlot(TYPE_UNI_SEND | TYPE_UNI_RECV, gRfu.parentSendSlot);
                 for (i = 0; i < RFU_CHILD_MAX; i++)
                 {
-                    if ((gRfu.nextChildBits >> i) & 1)
+                    if (gRfu.nextChildBits & (1 << i))
                         rfu_setRecvBuffer(TYPE_UNI, i, gRfu.childRecvBuffer[i], sizeof(gRfu.childRecvBuffer[0]));
                 }
                 SetLinkPlayerIdsFromSlots(gRfu.parentSlots, gRfu.parentSlots | gRfu.nextChildBits);
@@ -906,17 +913,19 @@ static bool32 RfuMain2_Parent(void)
         else
         {
             gRfu.parentMain2Failed = TRUE;
+            #if !MODERN
             gRfu.runParentMain2 = FALSE;
+            #endif
         }
         gRfu.runParentMain2 = FALSE;
     }
-    failed = gRfu.parentMain2Failed;
-    return gRfuLinkStatus->sendSlotUNIFlag ? failed & 1 : FALSE;
+
+    return (gRfu.parentMain2Failed & (gRfuLinkStatus->sendSlotUNIFlag != 0));
 }
 
 static void ChildBuildSendCmd(u16 *sendCmd, u8 *dst)
 {
-    s32 i;
+    m32 i;
 
     if (sendCmd[0])
     {
@@ -937,8 +946,8 @@ static void ChildBuildSendCmd(u16 *sendCmd, u8 *dst)
 
 static bool32 RfuMain1_Child(void)
 {
-    u8 i;
-    u8 j;
+    m8 i;
+    m8 j;
     u8 recv[MAX_RFU_PLAYERS * (2 * (CMD_LENGTH - 1))];
     u8 send[2 * (CMD_LENGTH - 1)];
     u8 status;
@@ -993,15 +1002,15 @@ static void HandleSendFailure(u8 unused, u32 flags)
             sResendBlock16[0] = RFUCMD_SEND_BLOCK | i;
             for (j = 0; j < CMD_LENGTH - 1; j++)
             {
-                temp = j * 2;
+                temp = j << 1;
                 sResendBlock16[j + 1] = (payload[(COMM_SLOT_LENGTH - 2) * i + temp + 1] << 8)
                                        | payload[(COMM_SLOT_LENGTH - 2) * i + temp + 0];
             }
             for (j = 0; j < CMD_LENGTH - 1; j++)
             {
-                temp = j * 2;
+                temp = j << 1;
                 sResendBlock8[temp + 1] = sResendBlock16[j] >> 8;
-                sResendBlock8[temp + 0] = sResendBlock16[j];
+                sResendBlock8[temp + 0] = sResendBlock16[j] & 0xFF;
             }
             RfuSendQueue_Enqueue(&gRfu.sendQueue, sResendBlock8);
             gRfu.sendBlock.failedFlags |= (1 << i);
@@ -1026,7 +1035,7 @@ void Rfu_ResetBlockReceivedFlag(u8 linkPlayerId)
 
 static u8 LoadLinkPlayerIds(const u8 *ids)
 {
-    u8 i;
+    m8 i;
     if (gRfu.parentChild == MODE_PARENT)
         return FALSE;
     for (i = 0; i < RFU_CHILD_MAX; i++)
@@ -1191,7 +1200,7 @@ static void RfuHandleReceiveCommand(u8 unused)
 
 static bool8 AreAllPlayersReadyToReceive(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_RFU_PLAYERS; i++)
     {
@@ -1203,7 +1212,7 @@ static bool8 AreAllPlayersReadyToReceive(void)
 
 static bool8 AreAllPlayersFinishedReceiving(void)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < gRfu.playerCount; i++)
     {
@@ -1227,7 +1236,7 @@ static void ResetSendDataManager(struct RfuBlockSend *data)
 u8 Rfu_GetBlockReceivedStatus(void)
 {
     u8 flags = 0;
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_RFU_PLAYERS; i++)
     {
@@ -1296,10 +1305,9 @@ void Rfu_SendPacket(void *data)
 bool32 Rfu_InitBlockSend(const u8 *src, size_t size)
 {
     bool8 r4;
-    if (gRfu.callback != NULL)
+    if (gRfu.callback != NULL || gSendCmd[0] != 0)
         return FALSE;
-    if (gSendCmd[0] != 0)
-        return FALSE;
+
     if (gRfu.sendBlock.sending)
     {
         sRfuDebug.blockSendTime++;
@@ -1344,11 +1352,14 @@ static void HandleBlockSend(void)
 
 static void SendNextBlock(void)
 {
-    s32 i;
+    m32 i, e;
     const u8 *src = gRfu.sendBlock.payload;
     gSendCmd[0] = RFUCMD_SEND_BLOCK | gRfu.sendBlock.next;
     for (i = 0; i < CMD_LENGTH - 1; i++)
-        gSendCmd[i + 1] = (src[(i << 1) + gRfu.sendBlock.next * 12 + 1] << 8) | src[(i << 1) + gRfu.sendBlock.next * 12 + 0];
+    {
+        e = i << 1;
+        gSendCmd[i + 1] = (src[e + gRfu.sendBlock.next * 12 + 1] << 8) | src[e + gRfu.sendBlock.next * 12 + 0];
+    }
     gRfu.sendBlock.next++;
     if (gRfu.sendBlock.count <= gRfu.sendBlock.next)
     {
@@ -1361,13 +1372,16 @@ static void SendLastBlock(void)
 {
     const u8 *src = gRfu.sendBlock.payload;
     u8 mpId = GetMultiplayerId();
-    s32 i;
+    m32 i, e;
     if (gRfu.parentChild == MODE_CHILD)
     {
         gSendCmd[0] = RFUCMD_SEND_BLOCK | (gRfu.sendBlock.count - 1);
         for (i = 0; i < CMD_LENGTH - 1; i++)
-            gSendCmd[i + 1] = (src[(i << 1) + (gRfu.sendBlock.count - 1) * 12 + 1] << 8) | src[(i << 1) + (gRfu.sendBlock.count - 1) * 12 + 0];
-        if ((u8)gRecvCmds[mpId][0] == gRfu.sendBlock.count - 1)
+        {
+            e = i << 1;
+             gSendCmd[i + 1] = (src[e + (gRfu.sendBlock.count - 1) * 12 + 1] << 8) | src[e + (gRfu.sendBlock.count - 1) * 12 + 0];
+        }
+        if ((gRecvCmds[mpId][0] & 0xFF) == gRfu.sendBlock.count - 1)
         {
             if (gRfu.recvBlock[mpId].receivedFlags != sAllBlocksReceived[gRfu.recvBlock[mpId].count])
             {
@@ -1432,9 +1446,9 @@ void LinkRfu_FatalError(void)
 // RFU equivalent of LinkCB_WaitCloseLink
 static void WaitAllReadyToCloseLink(void)
 {
-    s32 i;
-    u8 playerCount = gRfu.playerCount;
-    s32 count = 0;
+    m32 i;
+    u32 playerCount = gRfu.playerCount;
+    u32 count = 0;
 
     // Wait for all players to be ready
     for (i = 0; i < MAX_RFU_PLAYERS; i++)
@@ -1485,8 +1499,8 @@ void Rfu_SetCloseLinkCallback(void)
 
 static void SendReadyExitStandbyUntilAllReady(void)
 {
-    u8 playerCount;
-    u8 i;
+    m8 playerCount;
+    m8 i;
 
     if (GetMultiplayerId() != 0)
     {
@@ -1524,8 +1538,8 @@ static void LinkLeaderReadyToExitStandby(void)
 // RFU equivalent of LinkCB_Standby and LinkCB_StandbyForAll
 static void Rfu_LinkStandby(void)
 {
-    u8 i;
-    u8 playerCount;
+    m8 i;
+    u32 playerCount;
 
     if (GetMultiplayerId() != 0)
     {
@@ -1567,6 +1581,7 @@ void Rfu_SetLinkStandbyCallback(void)
 
 bool32 IsRfuSerialNumberValid(u32 serialNo)
 {
+    #if !MODERN
     s32 i;
     for (i = 0; sAcceptedSerialNos[i] != serialNo; i++)
     {
@@ -1574,6 +1589,15 @@ bool32 IsRfuSerialNumberValid(u32 serialNo)
             return FALSE;
     }
     return TRUE;
+    #else
+    u32 i;
+    for (i = 0; sAcceptedSerialNos[i] == RFU_SERIAL_END; i++)
+    {
+        if (sAcceptedSerialNos[i] == serialNo)
+            return TRUE;
+    }
+    return FALSE;
+    #endif
 }
 
 u8 Rfu_SetLinkRecovery(bool32 enable)
@@ -1606,7 +1630,7 @@ bool8 IsLinkRfuTaskFinished(void)
 {
     if (gRfu.status == RFU_STATUS_CONNECTION_ERROR)
         return FALSE;
-    return gRfu.callback ? FALSE : TRUE;
+    return gRfu.callback == NULL;
 }
 
 static void CallRfuFunc(void)
@@ -1615,10 +1639,10 @@ static void CallRfuFunc(void)
         gRfu.callback();
 }
 
-static bool8 CheckForLeavingGroupMembers(void)
+static bool32 CheckForLeavingGroupMembers(void)
 {
-    s32 i;
-    bool8 memberLeft = FALSE;
+    m32 i;
+    bool32 memberLeft = FALSE;
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
         if (gRfu.partnerSendStatuses[i] < RFU_STATUS_JOIN_GROUP_OK
