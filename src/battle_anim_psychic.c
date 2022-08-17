@@ -583,18 +583,25 @@ static void AnimDefensiveWall_Step5(struct Sprite *sprite)
 {
     if (!IsContest())
     {
-        u8 battlerCopy;
-        u8 battler = battlerCopy = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
-        u8 rank = GetBattlerSpriteBGPriorityRank(battler);
-        int var0 = 1;
-        bool8 toBG2 = (rank ^ var0) != 0;
+        bool8 toBG2;
+        u8 battler = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+
+        #if !MODERN
+        if (GetBattlerSpriteBGPriorityRank(battler) == 1)
+        {
+            toBG2 = FALSE;
+        }
+        else
+            toBG2 = TRUE;
+        #else
+        toBG2 = (GetBattlerSpriteBGPriorityRank(battler) == 2);
+        #endif
 
         if (IsBattlerSpriteVisible(battler))
             ResetBattleAnimBg(toBG2);
 
-        battler = battlerCopy ^ 2;
-        if (IsBattlerSpriteVisible(battler))
-            ResetBattleAnimBg(toBG2 ^ var0);
+        if (IsBattlerSpriteVisible(battler ^ 2))
+            ResetBattleAnimBg(toBG2 ^ 1);
     }
 
     sprite->callback = DestroyAnimSprite;
@@ -603,12 +610,13 @@ static void AnimDefensiveWall_Step5(struct Sprite *sprite)
 // Animates the sparkle that appears during Reflect or Light Screen/Mirror Coat
 static void AnimWallSparkle(struct Sprite *sprite)
 {
+    bool8 respectMonPicOffsets;
     if (sprite->data[0] == 0)
     {
-        bool32 ignoreOffsets = gBattleAnimArgs[3];
-        bool8 respectMonPicOffsets = FALSE;
-        if (!ignoreOffsets)
+        if (gBattleAnimArgs[3] == 0)
             respectMonPicOffsets = TRUE;
+        else
+            respectMonPicOffsets = FALSE;
 
         if (!IsContest() && IsDoubleBattle())
         {
