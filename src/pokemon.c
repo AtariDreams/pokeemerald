@@ -2307,7 +2307,7 @@ void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level,
 {
     u32 personality;
 
-    if ((u8)(unownLetter - 1) < NUM_UNOWN_FORMS)
+    if (unownLetter !=0 && unownLetter <= NUM_UNOWN_FORMS)
     {
         u16 actualLetter;
 
@@ -2343,8 +2343,14 @@ void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
     {
         otId = Random32();
         personality = Random32();
+
     }
+    #ifndef BUGFIX
     while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE);
+    #else
+    // Prevents wally from getting a shiny pokemon
+    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE && (GET_SHINY_VALUE(value, personality)) >= SHINY_ODDS));
+    #endif
     CreateMon(mon, species, level, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
 }
 
