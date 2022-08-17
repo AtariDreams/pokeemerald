@@ -956,7 +956,7 @@ static void AnimWhirlwindLine(struct Sprite * sprite)
     #if !MODERN
     sprite->x2 += (sprite->data[1] >> 8) * gBattleAnimArgs[4];
     #else
-    sprite->x2 = += 12 * gBattleAnimArgs[4];
+    sprite->x2 += 12 * gBattleAnimArgs[4];
     #endif
     sprite->data[0] = gBattleAnimArgs[4];
     sprite->data[7] = gBattleAnimArgs[3];
