@@ -1025,7 +1025,7 @@ static void Chat_Join(void)
 
 static void Chat_HandleInput(void)
 {
-    bool8 updateMsgActive, cursorBlinkActive;
+    bool32 updateMsgActive, cursorBlinkActive;
 
     switch (sChat->funcState)
     {
@@ -1080,6 +1080,8 @@ static void Chat_HandleInput(void)
         break;
     case 1:
         updateMsgActive = IsDisplaySubtaskActive(0);
+        // Should we call these functions or can we get away with avoiding it in an and statement?
+        // TODO: look into this
         cursorBlinkActive = IsDisplaySubtaskActive(1);
         if (!updateMsgActive && !cursorBlinkActive)
             sChat->funcState = 0;
