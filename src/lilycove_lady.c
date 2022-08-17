@@ -357,7 +357,7 @@ u8 GetQuizLadyState(void)
 
 u8 GetQuizAuthor(void)
 {
-    s32 i, j;
+    m32 i, j;
     u8 authorNameId;
     struct LilycoveLadyQuiz *quiz = &gSaveBlock1Ptr->lilycoveLady.quiz;
 
@@ -546,7 +546,7 @@ void QuizLadyTakePrizeForCustomQuiz(void)
 
 void QuizLadyRecordCustomQuizData(void)
 {
-    u8 i;
+    m8 i;
 
     sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
     sQuizLadyPtr->prize = gSpecialVar_ItemId;
