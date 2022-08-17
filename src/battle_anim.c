@@ -517,7 +517,7 @@ static void Cmd_end(void)
         }
     }
 
-    if (!continuousAnim) // May have been used for debug?
+    if (!continuousAnim) // May have been used for debug? Not needed check
     {
         m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 256);
         if (!IsContest())
@@ -676,6 +676,7 @@ void MoveBattlerSpriteToBG(u8 battlerId, bool8 toBG_2, bool8 setSpriteInvisible)
     {
         u8 battlerPosition;
 
+        // Was this supposed to be like this? OG code says CON_DEBUG, meaning they may have forgotten to turn this off
         if (IsContest() == TRUE)
         {
             RequestDma3Fill(0, (void *)(BG_SCREEN_ADDR(16)), 0x2000, 1);
@@ -765,13 +766,15 @@ static void FlipBattlerBgTiles(void)
             for (j = 0; j < 4; j++)
             {
                 u16 temp;
-                SWAP(ptr[j + i * 32], ptr[7 - j + i * 32], temp);
+                u32 ypos;
+                ypos = i * 32;
+                SWAP(ptr[j + ypos], ptr[(7 - j) + ypos], temp);
             }
         }
         for (i = 0; i < 8; i++)
         {
             for (j = 0; j < 8; j++)
-                ptr[j + i * 32] ^= 0x400;
+                ptr[j + i * 32] ^= 0x400; //hflip?
         }
     }
 }
@@ -780,6 +783,7 @@ void RelocateBattleBgPal(u16 paletteNum, u16 *dest, u32 offset, bool8 largeScree
 {
     s32 i, j;
     s32 size;
+    u16* temp;
 
     if (!largeScreen)
         size = 32;
@@ -789,7 +793,11 @@ void RelocateBattleBgPal(u16 paletteNum, u16 *dest, u32 offset, bool8 largeScree
     for (i = 0; i < size; i++)
     {
         for (j = 0; j < 32; j++)
-            dest[j + i * 32] = ((dest[j + i * 32] & 0xFFF) | paletteNum) + offset;
+        {
+            temp = &dest[i * 32 + j];
+            //temp++ would have been better, or better yet, a 3D array. it makes better code!
+            *temp = ((*temp & 0xFFF) | paletteNum) + offset;
+        }
     }
 }
 
@@ -832,21 +840,13 @@ static void Task_UpdateMonBg(u8 taskId)
         gBattle_BG1_X = x + gTasks[taskId].t2_BgX;
         gBattle_BG1_Y = y + gTasks[taskId].t2_BgY;
 
-        src = &gPlttBufferFaded[0x100 + battlerId * 16];
-        dst = &gPlttBufferFaded[0x100 + animBg.paletteId * 16 - 256];
-        CpuCopy32(src, dst, 32);
+        CpuCopy32(&gPlttBufferFaded[0x100 + battlerId * 16], &gPlttBufferFaded[animBg.paletteId * 16], 32);
     }
     else
     {
-        u16 *src;
-        u16 *dst;
-
         gBattle_BG2_X = x + gTasks[taskId].t2_BgX;
         gBattle_BG2_Y = y + gTasks[taskId].t2_BgY;
-
-        src = &gPlttBufferFaded[0x100 + battlerId * 16];
-        dst = &gPlttBufferFaded[0x100 - 112];
-        CpuCopy32(src, dst, 32);
+        CpuCopy32(&gPlttBufferFaded[0x100 + battlerId * 16], &gPlttBufferFaded[0x100 - 112], 32);
     }
 }
 
