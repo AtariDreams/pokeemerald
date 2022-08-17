@@ -143,6 +143,7 @@
 
 #define DmaClearLarge32(dmaNum, dest, size, block) DmaClearLarge(dmaNum, dest, size, block, 32)
 
+#if !MODERN
 #define DmaCopyDefvars(dmaNum, src, dest, size, bit) \
 {                                                    \
     const void *_src = src;                          \
@@ -150,26 +151,37 @@
     u32 _size = size;                                \
     DmaCopy##bit(dmaNum, _src, _dest, _size);        \
 }
+#else
+#define DmaCopyDefvars(dmaNum, src, dest, size, bit) DmaCopy##bit(dmaNum, src, dest, size)
+#endif
 
 #define DmaCopy16Defvars(dmaNum, src, dest, size) DmaCopyDefvars(dmaNum, src, dest, size, 16)
 #define DmaCopy32Defvars(dmaNum, src, dest, size) DmaCopyDefvars(dmaNum, src, dest, size, 32)
 
+#if !MODERN
 #define DmaFillDefvars(dmaNum, value, dest, size, bit) \
 {                                                      \
     void *_dest = dest;                                \
     u32 _size = size;                                  \
     DmaFill##bit(dmaNum, value, _dest, _size);         \
 }
+#else
+#define DmaFillDefvars(dmaNum, value, dest, size, bit) DmaFill##bit(dmaNum, value, dest, size)
+#endif
 
 #define DmaFill16Defvars(dmaNum, value, dest, size) DmaFillDefvars(dmaNum, value, dest, size, 16)
 #define DmaFill32Defvars(dmaNum, value, dest, size) DmaFillDefvars(dmaNum, value, dest, size, 32)
 
+#if !MODERN
 #define DmaClearDefvars(dmaNum, dest, size, bit) \
 {                                                \
     void *_dest = dest;                          \
     u32 _size = size;                            \
     DmaClear##bit(dmaNum, _dest, _size);         \
 }
+#else
+#define DmaClearDefvars(dmaNum, dest, size, bit) DmaClear##bit(dmaNum, dest, size)
+#endif
 
 #define DmaClear16Defvars(dmaNum, dest, size) DmaClearDefvars(dmaNum, dest, size, 16)
 #define DmaClear32Defvars(dmaNum, dest, size) DmaClearDefvars(dmaNum, dest, size, 32)

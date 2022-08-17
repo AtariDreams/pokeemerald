@@ -9,6 +9,7 @@ EWRAM_DATA ALIGNED(4) u8 gDecompressionBuffer[0x4000] = {0};
 
 static void DuplicateDeoxysTiles(void *pointer, s32 species);
 
+#if !MODERN
 void LZDecompressWram(const u32 *src, void *dest)
 {
     LZ77UnCompWram(src, dest);
@@ -18,6 +19,7 @@ void LZDecompressVram(const u32 *src, void *dest)
 {
     LZ77UnCompVram(src, dest);
 }
+#endif
 
 u16 LoadCompressedSpriteSheet(const struct CompressedSpriteSheet *src)
 {
