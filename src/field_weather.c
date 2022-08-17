@@ -26,13 +26,6 @@ enum
     GAMMA_ALT,
 };
 
-struct RGBColor
-{
-    u16 r:5;
-    u16 g:5;
-    u16 b:5;
-};
-
 struct WeatherPaletteData
 {
     u16 gammaShiftColors[8][0x1000]; // 0x1000 is the number of bytes that make up all palettes.
@@ -481,10 +474,17 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
                 {
                     // Apply gamma shift to the original color.
                     // Should we copy data or do the casting? It matches either way
-                    struct RGBColor *baseColor = (struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+                    #if !MODERN
+                    struct PlttData *baseColor = (struct PlttData *)&gPlttBufferUnfaded[palOffset];
                     r = gammaTable[baseColor->r];
                     g = gammaTable[baseColor->g];
                     b = gammaTable[baseColor->b];
+                    #else
+                    u16 colorTime = gPlttBufferUnfaded[palOffset];
+                    r = gammaTable[GET_R(colorTime)];
+                    g = gammaTable[GET_G(colorTime)];
+                    b = gammaTable[GET_B(colorTime)];
+                    #endif
                     gPlttBufferFaded[palOffset++] = RGB2(r, g, b);
                 }
             }
@@ -530,10 +530,16 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
     u16 palOffset;
     u16 curPalIndex;
     u16 i;
-    struct RGBColor color = *(struct RGBColor *)&blendColor;
+    #if !MODERN
+    struct PlttData color = *(struct PlttData *)&blendColor;
     u8 rBlend = color.r;
     u8 gBlend = color.g;
     u8 bBlend = color.b;
+    #else
+    u8 rBlend = GET_R(blendColor);
+    u8 gBlend = GET_G(blendColor);
+    u8 bBlend = GET_B(blendColor);
+    #endif
 
     palOffset = startPalIndex << 4;
     numPalettes += startPalIndex;
@@ -558,11 +564,17 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
 
             for (i = 0; i < 16; i++)
             {
-                struct RGBColor baseColor = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+#if !MODERN
+                struct PlttData baseColor = *(struct PlttData *)&gPlttBufferUnfaded[palOffset];
                 u8 r = gammaTable[baseColor.r];
                 u8 g = gammaTable[baseColor.g];
                 u8 b = gammaTable[baseColor.b];
-
+#else
+                u16 colorTime = gPlttBufferUnfaded[palOffset];
+                u8 r = gammaTable[GET_R(colorTime)];
+                u8 g = gammaTable[GET_G(colorTime)];
+                u8 b = gammaTable[GET_B(colorTime)];
+#endif
                 // Apply gamma shift and target blend color to the original color.
                 r += ((rBlend - r) * blendCoeff) >> 4;
                 g += ((gBlend - g) * blendCoeff) >> 4;
@@ -577,7 +589,9 @@ static void ApplyGammaShiftWithBlend(u8 startPalIndex, u8 numPalettes, s8 gammaI
 // Especially if we use unions? but then can they be in a register? Doesn't matter anyway since we are doing pointer stuff
 static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 blendColor)
 {
-    struct RGBColor *color;
+    #if !MODERN
+    struct PlttData *color;
+    #endif
     u8 rBlend;
     u8 gBlend;
     u8 bBlend;
@@ -586,10 +600,16 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
     u16 i;
 
     gammaIndex = -gammaIndex - 1;
-    color = (struct RGBColor *)&blendColor;
+    #if !MODERN
+    color = (struct PlttData *)&blendColor;
     rBlend = color->r;
     gBlend = color->g;
     bBlend = color->b;
+    #else
+    rBlend = GET_R(blendColor);
+    gBlend = GET_G(blendColor);
+    bBlend = GET_B(blendColor);
+    #endif
     palOffset = 0;
     for (curPalIndex = 0; curPalIndex < 32; curPalIndex++)
     {
@@ -612,18 +632,32 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
                 // Would love to reassign pointers to color but that doesn't match.
 
                 //Also these have to be struct assignments to match, rather than use pointers...
-                struct RGBColor color2, color3;
+                #if !MODERN
+                struct PlttData color2, color3;
 
-                color2 = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+                color2 = *(struct PlttData *)&gPlttBufferUnfaded[palOffset];
                 r1 = color2.r;
                 g1 = color2.g;
                 b1 = color2.b;
-
+                #else
+                u16 color2 = gPlttBufferUnfaded[palOffset];
+                r1 = GET_R(color2);
+                g1 = GET_G(color2);
+                b1 = GET_B(color2);
+                #endif
                 offset = ((b1 & 0x1E) << 7) | ((g1 & 0x1E) << 3) | ((r1 & 0x1E) >> 1);
-                color3 = *(struct RGBColor *)&sDroughtWeatherColors[gammaIndex][offset];
+
+                #if !MODERN
+                color3 = *(struct PlttData *)&sDroughtWeatherColors[gammaIndex][offset];
                 r1 = color3.r;
                 g1 = color3.g;
                 b1 = color3.b;
+                #else
+                color2 = sDroughtWeatherColors[gammaIndex][offset];
+                r1 = GET_R(color2);
+                g1 = GET_G(color2);
+                b1 = GET_B(color2);
+                #endif
 
                 r1 += ((rBlend - r1) * blendCoeff) >> 4;
                 g1 += ((gBlend - g1) * blendCoeff) >> 4;
@@ -637,17 +671,25 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
 
 static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
 {
-    struct RGBColor *color;
+    #if !MODERN
+    struct PlttData *color;
+    #endif
     u8 rBlend;
     u8 gBlend;
     u8 bBlend;
     u16 curPalIndex;
 
     BlendPalette(0, 256, blendCoeff, blendColor);
-    color = (struct RGBColor *)&blendColor;
+    #if !MODERN
+    color = (struct PlttData *)&blendColor;
     rBlend = color->r;
     gBlend = color->g;
     bBlend = color->b;
+    #else
+    rBlend = GET_R(blendColor);
+    gBlend = GET_G(blendColor);
+    bBlend = GET_B(blendColor);
+    #endif
 
     for (curPalIndex = 16; curPalIndex < 32; curPalIndex++)
     {
@@ -659,10 +701,17 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
             for (palOffset = curPalIndex << 4; palOffset < palEnd; palOffset++)
             {
                 u8 r, g, b;
-                color = (struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+                #if !MODERN
+                color = (struct PlttData *)&gPlttBufferUnfaded[palOffset];
                 r = color->r;
                 g = color->g;
                 b = color->b;
+                #else
+                u16 color = gPlttBufferUnfaded[palOffset];
+                r = GET_R(color);
+                g = GET_G(color);
+                b = GET_B(color);
+                #endif
 
 /*                 r += ((28 - r) * 3) >> 2;
                 g += ((31 - g) * 3) >> 2;
@@ -701,7 +750,7 @@ static void MarkFogSpritePalToLighten(u8 paletteIndex)
 
 static bool8 LightenSpritePaletteInFog(u8 paletteIndex)
 {
-    u16 i;
+    m16 i;
 
     for (i = 0; i < gWeatherPtr->lightenedFogSpritePalsCount; i++)
     {

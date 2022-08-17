@@ -15,6 +15,7 @@
 #include "trig.h"
 #include "util.h"
 #include "constants/battle_anim.h"
+#include "constants/rgb.h"
 
 #define IS_DOUBLE_BATTLE() ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
 
@@ -1472,8 +1473,12 @@ u16 ArcTan2Neg(s16 x, s16 y)
 void SetGrayscaleOrOriginalPalette(u16 paletteNum, bool8 restoreOriginalColor)
 {
     m32 i;
+    #if !MODERN
     struct PlttData *originalColor;
     struct PlttData *destColor;
+    #else
+    u16 originalColor;
+    #endif
     u16 average;
 
     paletteNum *= 16;
@@ -1482,6 +1487,7 @@ void SetGrayscaleOrOriginalPalette(u16 paletteNum, bool8 restoreOriginalColor)
     {
         for (i = 0; i < 16; i++)
         {
+            #if !MODERN
             originalColor = (struct PlttData *)&gPlttBufferUnfaded[paletteNum + i];
             average = originalColor->r + originalColor->g + originalColor->b;
             average /= 3;
@@ -1490,6 +1496,11 @@ void SetGrayscaleOrOriginalPalette(u16 paletteNum, bool8 restoreOriginalColor)
             destColor->r = average;
             destColor->g = average;
             destColor->b = average;
+            #else
+            originalColor = gPlttBufferUnfaded[paletteNum + i];
+            average = Div(GET_R(originalColor) + GET_B(originalColor) + GET_G(originalColor), 3);
+            gPlttBufferFaded[paletteNum + i] = RGB2(average, average, average);
+            #endif
         }
     }
     else
