@@ -269,7 +269,7 @@ static void InitTransitionData(void);
 static void FadeScreenBlack(void);
 static void CreateIntroTask(s16, s16, s16, s16, s16);
 static void SetCircularMask(u16 *, s16, s16, s16);
-static void SetSinWave(s16 *, s16, s16, s16, s16, s16);
+static void SetSinWave(u16 *, s16, s16, s16, s16, s16);
 static void GetBg0TilemapDst(u16 **);
 static void InitBlackWipe(s16 *, s16, s16, s16, s16, s16, s16);
 static bool8 UpdateBlackWipe(s16 *, bool8, bool8);
@@ -747,8 +747,9 @@ static const TransitionStateFunc sWhiteBarsFade_Funcs[] =
 };
 
 #define NUM_WHITE_BARS 8
+#if !MODERN
 static const s16 sWhiteBarsFade_StartDelays[NUM_WHITE_BARS] = {0, 20, 15, 40, 10, 25, 35, 5};
-
+#endif
 static const TransitionStateFunc sGridSquares_Funcs[] =
 {
     GridSquares_Init,
@@ -1821,7 +1822,7 @@ static bool8 PokeballsTrail_Main(struct Task *task)
     }
     #else
 
-    s16 delays[] = { 0, 32, 64, 18, 48 };
+    const s16 delays[] = { 0, 32, 64, 18, 48 };
     bool32 side = Random() & 1;
     for (i = 0; i < ARRAY_COUNT(delays); i++)
     {
@@ -1979,7 +1980,11 @@ static bool8 ClockwiseWipe_TopRight(struct Task *task)
 static bool8 ClockwiseWipe_Right(struct Task *task)
 {
     s16 start, end;
+    #if !MODERN
     vu8 finished = FALSE;
+    #else
+    bool32 finished = FALSE;
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -2036,7 +2041,11 @@ static bool8 ClockwiseWipe_Bottom(struct Task *task)
 static bool8 ClockwiseWipe_Left(struct Task *task)
 {
     s16 end, start;
+    #if !MODERN
     vu8 finished = FALSE;
+    #else
+    bool32 finished = FALSE;
+    #endif
 
     sTransitionData->VBlank_DMA = FALSE;
 
@@ -2701,7 +2710,7 @@ static bool8 MugshotTrainerPic_Init(struct Sprite *sprite)
 
 
     sprite->sState++;
-    #if !MODERN
+#if !MODERN
     sprite->sSlideSpeed = speeds[sprite->sSlideDir];
     sprite->sSlideAccel = accels[sprite->sSlideDir];
 #else
@@ -2970,6 +2979,9 @@ static bool8 ShredSplit_Main(struct Task *task)
     #if !MODERN
     u8 baseY[ARRAY_COUNT(sShredSplit_SectionYCoords)];
     s16 moveDirs[ARRAY_COUNT(sShredSplit_SectionMoveDirs)];
+    #else
+    const u8 baseY[] = {39, DISPLAY_HEIGHT - 41};
+    const s16 moveDirs[] = {1, -1};
     #endif
     u8 linesFinished;
     u16 *ptr4, *ptr3, *ptr1, *ptr2;
@@ -3167,7 +3179,7 @@ static bool8 Blackhole_GrowEnd(struct Task *task)
         DmaStop(0);
         SetVBlankCallback(NULL);
         DestroyTask(FindTaskIdByFunc(task->func));
-        return FALSE
+        return FALSE;
     }
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -3523,6 +3535,7 @@ static bool8 Groudon_PaletteFlash(struct Task *task)
 {
     if (task->tTimer % 3 == 0)
     {
+        // must be u16 to match
         u16 offset = (task->tTimer % 30) / 3;
         LoadPalette(&sGroudon1_Palette[offset * 16], 0xF0, 0x20);
     }
@@ -3539,8 +3552,7 @@ static bool8 Groudon_PaletteBrighten(struct Task *task)
 {
     if (task->tTimer % 5 == 0)
     {
-        s16 offset = task->tTimer / 5;
-        LoadPalette(&sGroudon2_Palette[offset * 16], 0xF0, 0x20);
+        LoadPalette(&sGroudon2_Palette[task->tTimer / 5 * 16], 0xF0, 0x20);
     }
     if (++task->tTimer > 68)
     {
@@ -3571,7 +3583,7 @@ static void Task_Rayquaza(u8 taskId)
 static bool8 Rayquaza_Init(struct Task *task)
 {
     u16 *tilemap, *tileset;
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3609,9 +3621,9 @@ static bool8 Rayquaza_PaletteFlash(struct Task *task)
 {
     if ((task->tTimer % 4) == 0)
     {
+        //  must be u16 to match
         u16 value = task->tTimer / 4;
-        const u16 *palPtr = &sRayquaza_Palette[(value + 5) * 16];
-        LoadPalette(palPtr, 0xF0, 0x20);
+        LoadPalette(&sRayquaza_Palette[(5 + value) * 16], 0xF0, 0x20);
     }
     if (++task->tTimer > 40)
     {
@@ -3658,12 +3670,11 @@ static bool8 Rayquaza_TriRing(struct Task *task)
     if ((task->tTimer % 3) == 0)
     {
         u16 value = task->tTimer / 3;
-        const u16 *palPtr = &sRayquaza_Palette[(value + 0) * 16];
-        LoadPalette(palPtr, 0xF0, 0x20);
+        LoadPalette(&sRayquaza_Palette[value * 16], 0xF0, 0x20);
     }
     if (++task->tTimer >= 40)
     {
-        u16 i;
+        m16 i;
 
         sTransitionData->WININ = 0;
         sTransitionData->WINOUT = WINOUT_WIN01_ALL;
@@ -3685,7 +3696,7 @@ static bool8 Rayquaza_TriRing(struct Task *task)
 
 static void VBlankCB_Rayquaza(void)
 {
-    void *dmaSrc;
+    u16 *dmaSrc;
 
     DmaStop(0);
     VBlankCB_BattleTransition();
@@ -3737,7 +3748,7 @@ static bool8 WhiteBarsFade_Init(struct Task *task)
     for (i = 0; i < DISPLAY_HEIGHT; i++)
     {
         gScanlineEffectRegBuffers[1][i] = 0;
-        gScanlineEffectRegBuffers[1][i + DISPLAY_HEIGHT] = DISPLAY_WIDTH;
+        gScanlineEffectRegBuffers[1][DISPLAY_HEIGHT + i] = DISPLAY_WIDTH;
     }
 
     EnableInterrupts(INTR_FLAG_HBLANK);
@@ -3750,10 +3761,17 @@ static bool8 WhiteBarsFade_Init(struct Task *task)
 
 static bool8 WhiteBarsFade_StartBars(struct Task *task)
 {
-    s16 i, posY;
-    s16 delays[ARRAY_COUNT(sWhiteBarsFade_StartDelays)];
+    ms16 i;
+    s16 posY;
     struct Sprite *sprite;
+
+    #if !MODERN
+    s16 delays[ARRAY_COUNT(sWhiteBarsFade_StartDelays)];
+    
     memcpy(delays, sWhiteBarsFade_StartDelays, sizeof(sWhiteBarsFade_StartDelays));
+    #else
+    s16 delays[NUM_WHITE_BARS] = { 0, 20, 15, 40, 10, 25, 35, 5 };
+    #endif
 
     for (i = 0, posY = 0; i < NUM_WHITE_BARS; i++, posY += DISPLAY_HEIGHT / NUM_WHITE_BARS)
     {
@@ -3847,6 +3865,7 @@ static void SpriteCB_WhiteBarFade(struct Sprite *sprite)
         sprite->sDelay--;
         if (sprite->sIsMainSprite)
             sTransitionData->VBlank_DMA = 1;
+        return;
     }
     else
     {
@@ -3925,7 +3944,10 @@ static bool8 GridSquares_Main(struct Task *task)
         GetBg0TilemapDst(&tileset);
         task->tDelay = 3;
         task->tShrinkStage++;
-        CpuSet(&sShrinkingBoxTileset[task->tShrinkStage * 8], tileset, 16);
+        // In pm_eme_ose, this is << 5, but << 3 matches
+        // TODO: find out why
+        CpuCopy16(&sShrinkingBoxTileset[task->tShrinkStage << 3], tileset, 32);
+    
         if (task->tShrinkStage > 13)
         {
             task->tState++;
@@ -3965,7 +3987,7 @@ static void Task_AngledWipes(u8 taskId)
 
 static bool8 AngledWipes_Init(struct Task *task)
 {
-    u16 i;
+    m16 i;
 
     InitTransitionData();
     ScanlineEffect_Clear();
@@ -3999,7 +4021,7 @@ static bool8 AngledWipes_SetWipeData(struct Task *task)
 
 static bool8 AngledWipes_DoWipe(struct Task *task)
 {
-    s16 i;
+    ms16 i;
     bool8 finished;
 
     sTransitionData->VBlank_DMA = 0;
@@ -4216,9 +4238,9 @@ static void FadeScreenBlack(void)
     BlendPalettes(PALETTES_ALL, 16, RGB_BLACK);
 }
 
-static void SetSinWave(s16 *array, s16 sinAdd, s16 index, s16 indexIncrementer, s16 amplitude, s16 arrSize)
+static void SetSinWave(u16 *array, s16 sinAdd, s16 index, s16 indexIncrementer, s16 amplitude, s16 arrSize)
 {
-    u8 i;
+    m8 i;
     for (i = 0; arrSize > 0; arrSize--, i++, index += indexIncrementer)
         array[i] = sinAdd + Sin(index & 0xFF, amplitude);
 }
@@ -4474,7 +4496,7 @@ static bool8 FrontierLogoWave_InitScanline(struct Task *task)
 
 static bool8 FrontierLogoWave_Main(struct Task *task)
 {
-    u8 i;
+    m8 i;
     u16 sinVal, amplitude, sinSpread;
 
     sTransitionData->VBlank_DMA = FALSE;
@@ -4507,13 +4529,20 @@ static bool8 FrontierLogoWave_Main(struct Task *task)
     }
 
     // Move logo up and down and distort it
+    #if !MODERN
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += sinSpread)
     {
-        s16 index = sinVal / 256;
+        s16 index = sinVal >> 8;
         gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(index & 0xff, amplitude);
     }
+    #else
+    for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += sinSpread)
+    {
+        gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinVal >> 8, amplitude);
+    }
+    #endif
 
-    if (++task->tTimer == 101)
+    if (task->tTimer++ == 100)
     {
         task->tStartedFade++;
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
@@ -4539,8 +4568,12 @@ static void VBlankCB_FrontierLogoWave(void)
 
 static void HBlankCB_FrontierLogoWave(void)
 {
+    #if !MODERN
     u16 var = gScanlineEffectRegBuffers[1][REG_VCOUNT];
     REG_BG0VOFS = var;
+    #else
+    REG_BG0VOFS = gScanlineEffectRegBuffers[1][REG_VCOUNT];
+    #endif
 }
 
 #undef tSinVal
@@ -4624,41 +4657,43 @@ static bool8 FrontierSquares_Draw(struct Task *task)
 
 static bool8 FrontierSquares_Shrink(struct Task *task)
 {
-    u8 i;
+    m8 i;
     u16 *tilemap, *tileset;
 
     GetBg0TilesDst(&tilemap, &tileset);
-    if (task->tShrinkDelayTimer++ >= task->tShrinkDelay)
+    if (task->tShrinkDelayTimer++ < task->tShrinkDelay)
     {
-        switch (task->tShrinkState)
-        {
-        case 0:
-            for (i = 250; i < 255; i++)
-            {
-                gPlttBufferUnfaded[i] = RGB_BLACK;
-                gPlttBufferFaded[i] = RGB_BLACK;
-            }
-            break;
-        case 1:
-            BlendPalettes(PALETTES_ALL & ~(1 << 15), 16, RGB_BLACK);
-            LZ77UnCompVram(sFrontierSquares_EmptyBg_Tileset, tileset);
-            break;
-        case 2:
-            LZ77UnCompVram(sFrontierSquares_Shrink1_Tileset, tileset);
-            break;
-        case 3:
-            LZ77UnCompVram(sFrontierSquares_Shrink2_Tileset, tileset);
-            break;
-        default:
-            FillBgTilemapBufferRect_Palette0(0, 1, 0, 0, 32, 32);
-            CopyBgTilemapBufferToVram(0);
-            task->tState++;
-            return FALSE;
-        }
-
-        task->tShrinkDelayTimer = 0;
-        task->tShrinkState++;
+        return FALSE;
     }
+
+    switch (task->tShrinkState)
+    {
+    case 0:
+        for (i = 250; i < 255; i++)
+        {
+            gPlttBufferUnfaded[i] = RGB_BLACK;
+            gPlttBufferFaded[i] = RGB_BLACK;
+        }
+        break;
+    case 1:
+        BlendPalettes(PALETTES_ALL & ~(1 << 15), 16, RGB_BLACK);
+        LZ77UnCompVram(sFrontierSquares_EmptyBg_Tileset, tileset);
+        break;
+    case 2:
+        LZ77UnCompVram(sFrontierSquares_Shrink1_Tileset, tileset);
+        break;
+    case 3:
+        LZ77UnCompVram(sFrontierSquares_Shrink2_Tileset, tileset);
+        break;
+    default:
+        FillBgTilemapBufferRect_Palette0(0, 1, 0, 0, 32, 32);
+        CopyBgTilemapBufferToVram(0);
+        task->tState++;
+        return FALSE;
+    }
+
+    task->tShrinkDelayTimer = 0;
+    task->tShrinkState++;
 
     return FALSE;
 }
@@ -4708,7 +4743,7 @@ static bool8 FrontierSquaresSpiral_Outward(struct Task *task)
     CopyBgTilemapBufferToVram(0);
 
     if (--task->tSquareNum < 0)
-        task->tState++;
+        ++task->tState;
     return FALSE;
 }
 
