@@ -572,7 +572,7 @@ static void FrameType_DrawChoices(u8 selection)
     {
         text[i] = CHAR_0 + selection % 10;
         i++;
-        text[i] = 0x77;
+        text[i] = CHAR_SPACER;
         i++;
     }
 
@@ -586,7 +586,7 @@ static u8 ButtonMode_ProcessInput(u8 selection)
 {
     if (JOY_NEW(DPAD_RIGHT))
     {
-        if (selection <= 1)
+        if (selection < 2)
             selection++;
         else
             selection = 0;
@@ -621,8 +621,7 @@ static void ButtonMode_DrawChoices(u8 selection)
     widthLR = GetStringWidth(FONT_NORMAL, gText_ButtonTypeLR, 0);
     widthLA = GetStringWidth(FONT_NORMAL, gText_ButtonTypeLEqualsA, 0);
 
-    widthLR -= 94;
-    xLR = (widthNormal - widthLR - widthLA) / 2 + 104;
+    xLR = (94 + widthNormal - widthLR - widthLA) / 2 + 104;
     DrawOptionMenuChoice(gText_ButtonTypeLR, xLR, YPOS_BUTTONMODE, styles[1]);
 
     DrawOptionMenuChoice(gText_ButtonTypeLEqualsA, GetStringRightAlignXOffset(FONT_NORMAL, gText_ButtonTypeLEqualsA, 198), YPOS_BUTTONMODE, styles[2]);
