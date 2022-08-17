@@ -49,7 +49,7 @@ extern u8 gAnimMoveTurn;
 extern u8 gBattleAnimAttacker;
 extern u8 gBattleAnimTarget;
 extern u16 gAnimBattlerSpecies[MAX_BATTLERS_COUNT];
-extern u8 gAnimCustomPanning;
+extern s8 gAnimCustomPanning;
 
 void ClearBattleAnimationVars(void);
 void DoMoveAnim(u16 move);
