@@ -4123,6 +4123,7 @@ static void CreateCoinNumberSprite(s16 x, s16 y, bool8 isPayout, s16 digitMult)
 
 static void SpriteCB_CoinNumber(struct Sprite *sprite)
 {
+    // this should be s16?
     u16 tag = sSlotMachine->coins;
     if (sprite->sIsPayout)
         tag = sSlotMachine->payout;
