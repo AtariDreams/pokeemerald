@@ -290,7 +290,7 @@ bool32 OpenMatchCall(void)
     return TRUE;
 }
 
-void CreateMatchCallLoopedTask(s32 index)
+void CreateMatchCallLoopedTask(u32 index)
 {
     struct Pokenav_MatchCallGfx *gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_OPEN);
     gfx->loopTaskId = CreateLoopedTask(sMatchCallLoopTaskFuncs[index], 1);

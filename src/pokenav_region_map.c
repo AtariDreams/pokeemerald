@@ -253,7 +253,7 @@ bool32 OpenPokenavRegionMap(void)
     return TRUE;
 }
 
-void CreateRegionMapLoopedTask(s32 index)
+void CreateRegionMapLoopedTask(u32 index)
 {
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
     state->loopTaskId = CreateLoopedTask(sRegionMapLoopTaskFuncs[index], 1);
