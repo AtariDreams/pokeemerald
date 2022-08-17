@@ -128,7 +128,7 @@ void SetUnlockedPokedexFlags(void)
 {
     gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_GAMECUBE);
     gSaveBlock2Ptr->gcnLinkFlags |= (1 << 0); // tradeflag for nat dex?
-#if BUGFIX || MODERN
+#if MODERN
     gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_RUBY);
     gSaveBlock2Ptr->gcnLinkFlags |= (1 << VERSION_SAPPHIRE);
 #else
