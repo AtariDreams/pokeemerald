@@ -42,9 +42,9 @@ u8 gSelectedObjectEvent;
 
 static void GetPlayerPosition(struct MapPosition *);
 static void GetInFrontOfPlayerPosition(struct MapPosition *);
-static u16 GetPlayerCurMetatileBehavior(int);
-static bool8 TryStartInteractionScript(struct MapPosition *, u16, u8);
-static const u8 *GetInteractionScript(struct MapPosition *, u8, u8);
+static u16 GetPlayerCurMetatileBehavior(void);
+static bool8 TryStartInteractionScript(struct MapPosition*, u16, u8);
+static const u8 *GetInteractionScript(struct MapPosition*, u8, u8);
 static const u8 *GetInteractedObjectEventScript(struct MapPosition *, u8, u8);
 static const u8 *GetInteractedBackgroundEventScript(struct MapPosition *, u8, u8);
 static const u8 *GetInteractedMetatileScript(struct MapPosition *, u8, u8);
@@ -83,19 +83,20 @@ void FieldClearPlayerInput(struct FieldInput *input)
     input->input_field_1_1 = FALSE;
     input->input_field_1_2 = FALSE;
     input->input_field_1_3 = FALSE;
-    input->dpadDirection = 0;
+    input->dpadDirection = DIR_NONE;
 }
 
 void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
 {
     u8 tileTransitionState = gPlayerAvatar.tileTransitionState;
     u8 runningState = gPlayerAvatar.runningState;
-    bool8 forcedMove = MetatileBehavior_IsForcedMovementTile(GetPlayerCurMetatileBehavior(runningState));
+    bool8 forcedMove = MetatileBehavior_IsForcedMovementTile(GetPlayerCurMetatileBehavior());
 
     if ((tileTransitionState == T_TILE_CENTER && forcedMove == FALSE) || tileTransitionState == T_NOT_MOVING)
     {
         if (GetPlayerSpeed() != PLAYER_SPEED_FASTEST)
         {
+            // Should all be else ifs
             if (newKeys & START_BUTTON)
                 input->pressedStartButton = TRUE;
             if (newKeys & SELECT_BUTTON)
@@ -113,6 +114,13 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
         }
     }
 
+    // if (forcedMove == FALSE && tileTransitionState == T_TILE_CENTER)
+    // {
+    //     if (runningState == MOVING)
+    //         input->tookStep = TRUE;
+    //     input->checkStandardWildEncounter = TRUE;
+    // }
+    
     if (forcedMove == FALSE)
     {
         if (tileTransitionState == T_TILE_CENTER && runningState == MOVING)
@@ -120,6 +128,7 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
         if (forcedMove == FALSE && tileTransitionState == T_TILE_CENTER)
             input->checkStandardWildEncounter = TRUE;
     }
+
 
     if (heldKeys & DPAD_UP)
         input->dpadDirection = DIR_NORTH;
@@ -203,13 +212,13 @@ static void GetInFrontOfPlayerPosition(struct MapPosition *position)
 
     GetXYCoordsOneStepInFrontOfPlayer(&position->x, &position->y);
     PlayerGetDestCoords(&x, &y);
-    if (MapGridGetElevationAt(x, y) != 0)
-        position->elevation = PlayerGetElevation();
-    else
+    if (MapGridGetElevationAt(x, y) == 0)
         position->elevation = 0;
+    else
+        position->elevation = PlayerGetElevation();
 }
 
-static u16 GetPlayerCurMetatileBehavior(int runningState)
+static u16 GetPlayerCurMetatileBehavior(void)
 {
     s16 x, y;
 
@@ -324,8 +333,8 @@ static const u8 *GetInteractedBackgroundEventScript(struct MapPosition *position
 
     switch (bgEvent->kind)
     {
-    case BG_EVENT_PLAYER_FACING_ANY:
     default:
+    case BG_EVENT_PLAYER_FACING_ANY:
         return bgEvent->bgUnion.script;
     case BG_EVENT_PLAYER_FACING_NORTH:
         if (direction != DIR_NORTH)
@@ -366,8 +375,6 @@ static const u8 *GetInteractedBackgroundEventScript(struct MapPosition *position
 
 static const u8 *GetInteractedMetatileScript(struct MapPosition *position, u8 metatileBehavior, u8 direction)
 {
-    s8 elevation;
-
     if (MetatileBehavior_IsPlayerFacingTVScreen(metatileBehavior, direction) == TRUE)
         return EventScript_TV;
     if (MetatileBehavior_IsPC(metatileBehavior) == TRUE)
@@ -409,8 +416,7 @@ static const u8 *GetInteractedMetatileScript(struct MapPosition *position, u8 me
     if (MetatileBehavior_IsTrainerHillTimer(metatileBehavior) == TRUE)
         return EventScript_TrainerHillTimer;
 
-    elevation = position->elevation;
-    if (elevation == MapGridGetElevationAt(position->x, position->y))
+    if (position->elevation == MapGridGetElevationAt(position->x, position->y))
     {
         if (MetatileBehavior_IsSecretBasePC(metatileBehavior) == TRUE)
             return SecretBase_EventScript_PC;
@@ -993,11 +999,11 @@ const u8 *GetObjectEventScriptPointerPlayerFacing(void)
     return GetInteractedObjectEventScript(&position, MapGridGetMetatileBehaviorAt(position.x, position.y), direction);
 }
 
-int SetCableClubWarp(void)
+u8 SetCableClubWarp(void)
 {
     struct MapPosition position;
 
-    GetPlayerMovementDirection();  //unnecessary
+    GetPlayerMovementDirection();  //unnecessary. For assigning to a variable unused
     GetPlayerPosition(&position);
     MapGridGetMetatileBehaviorAt(position.x, position.y);  //unnecessary
     SetupWarp(&gMapHeader, GetWarpEventAtMapPosition(&gMapHeader, &position), &position);
