@@ -2163,6 +2163,7 @@ void UpdateObjectEventCoordsForCameraUpdate(void)
     }
 }
 
+// TODO: make s16
 u8 GetObjectEventIdByPosition(u16 x, u16 y, u8 elevation)
 {
     u8 i;
