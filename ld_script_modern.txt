@@ -15,7 +15,8 @@ SECTIONS {
         gDecompressionBuffer = .;
         . = 0x20000;
 
-        *(ewram_data);
+        gflib/*.o(ewram_data);
+        src/*.o(ewram_data);
         . = 0x40000;
     }
 
