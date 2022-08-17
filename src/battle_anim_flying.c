@@ -379,25 +379,48 @@ void AnimTask_AnimateGustTornadoPalette(u8 taskId)
 
 static void AnimTask_AnimateGustTornadoPalette_Step(u8 taskId)
 {
-    u8 data2;
     u16 temp;
-    int i, base;
-
+    m32 i;
+    #if !MODERN
     if (gTasks[taskId].data[10]++ == gTasks[taskId].data[1])
     {
+        int base;
+        u8 data2;
+
         gTasks[taskId].data[10] = 0;
         data2 = gTasks[taskId].data[2];
         temp = gPlttBufferFaded[16 * data2 + 0x108];
         i = 7;
         base = data2 * 16;
 
-        for(i = 7; i > 0; i--)
+        
+        for(; i > 0; i--)
         {
             gPlttBufferFaded[base + 0x101 + i] = gPlttBufferFaded[base + 0x100 + i];
         }
 
         gPlttBufferFaded[base + 0x101] = temp;
     }
+    #else
+    if (gTasks[taskId].data[10] == gTasks[taskId].data[1])
+    {
+        u32 j;
+        gTasks[taskId].data[10] = 0;
+        j = ((u8)gTasks[taskId].data[2]) * 16;
+        
+        temp = gPlttBufferFaded[j + 0x108];
+
+        for(i = 7; i > 0; i--)
+        {
+            gPlttBufferFaded[j + 0x101 + i] = gPlttBufferFaded[j + 0x100 + i];
+        }
+
+        gPlttBufferFaded[j + 0x101] = temp;
+        
+    }
+    else
+        gTasks[taskId].data[10]++;
+    #endif
 
     if (--gTasks[taskId].data[0] == 0)
         DestroyAnimVisualTask(taskId);
@@ -457,8 +480,8 @@ static void AnimAirWaveCrescent(struct Sprite *sprite)
         SetAverageBattlerPositions(gBattleAnimTarget, TRUE, &sprite->data[2], &sprite->data[4]);
     }
 
-    sprite->data[2] = sprite->data[2] + gBattleAnimArgs[2];
-    sprite->data[4] = sprite->data[4] + gBattleAnimArgs[3];
+    sprite->data[2] += gBattleAnimArgs[2];
+    sprite->data[4] += gBattleAnimArgs[3];
     sprite->callback = StartAnimLinearTranslation;
 
     StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
