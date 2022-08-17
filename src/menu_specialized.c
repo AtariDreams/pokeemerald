@@ -906,7 +906,6 @@ s32 GetBoxOrPartyMonData(u16 boxId, u16 monId, s32 request, u8 *dst)
 static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
 {
     u16 box, mon, species, level, gender;
-    struct BoxPokemon *boxMon;
     u8 *str;
 
     box = boxId;
@@ -928,7 +927,7 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
     }
     else
     {
-        boxMon = GetBoxedMonPtr(box, mon);
+        struct BoxPokemon *boxMon = GetBoxedMonPtr(box, mon);
         gender = GetBoxMonGender(boxMon);
         level = GetLevelFromBoxMonExp(boxMon);
     }
@@ -945,9 +944,6 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
 
     switch (gender)
     {
-    default:
-        *(str++) = CHAR_SPACE;
-        break;
     case MON_MALE:
         *(str++) = EXT_CTRL_CODE_BEGIN;
         *(str++) = EXT_CTRL_CODE_COLOR;
@@ -966,6 +962,9 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
         *(str++) = TEXT_COLOR_LIGHT_GREEN;
         *(str++) = CHAR_FEMALE;
         break;
+     default:
+        *(str++) = CHAR_SPACE;
+        break;
     }
 
     *(str++) = EXT_CTRL_CODE_BEGIN;
@@ -978,8 +977,8 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
     *(str++) = CHAR_LV_2;
     str = ConvertIntToDecimalStringN(str, level, STR_CONV_MODE_LEFT_ALIGN, 3);
     *(str++) = CHAR_SPACE;
+    
     *str = EOS;
-
     return str;
 }
 
