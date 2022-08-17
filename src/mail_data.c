@@ -180,7 +180,7 @@ void ClearMailItemId(u8 mailId)
 
 u8 TakeMailFromMonAndSave(struct Pokemon *mon)
 {
-    m8 i;
+    u8 i;
     u8 newHeldItem[2];
     u8 newMailId;
 
