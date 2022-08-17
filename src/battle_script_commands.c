@@ -3441,7 +3441,7 @@ static void Cmd_getexp(void)
 static void Cmd_checkteamslost(void)
 {
     u16 HP_count = 0;
-    s32 i;
+    m32 i;
 
     if (gBattleControllerExecFlags)
         return;
@@ -3468,7 +3468,10 @@ static void Cmd_checkteamslost(void)
     }
     if (HP_count == 0)
         gBattleOutcome |= B_OUTCOME_LOST;
-    HP_count = 0;
+    #if MODERN
+        else
+    #endif
+        HP_count = 0;
 
     // Get total HP for the enemy's party to determine if the player has won
     for (i = 0; i < PARTY_SIZE; i++)
@@ -3486,8 +3489,8 @@ static void Cmd_checkteamslost(void)
     // In non-multi battles, jump to pointer if 1 spot is missing on both sides
     if (gBattleOutcome == 0 && (gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)))
     {
-        s32 emptyPlayerSpots = 0;
-        s32 emptyOpponentSpots;
+        m32 emptyPlayerSpots = 0;
+        m32 emptyOpponentSpots;
 
         for (i = 0; i < gBattlersCount; i += 2)
         {
@@ -3677,10 +3680,10 @@ static void Cmd_jumpifarrayequal(void)
 {
     const u8 *mem1 = T2_READ_PTR(gBattlescriptCurrInstr + 1);
     const u8 *mem2 = T2_READ_PTR(gBattlescriptCurrInstr + 5);
-    u32 size = gBattlescriptCurrInstr[9];
+    m8 size = gBattlescriptCurrInstr[9];
     const u8 *jumpPtr = T2_READ_PTR(gBattlescriptCurrInstr + 10);
 
-    u8 i;
+    m8 i;
     for (i = 0; i < size; i++)
     {
         if (*mem1 != *mem2)
