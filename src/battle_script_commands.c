@@ -6667,7 +6667,7 @@ static void Cmd_trymirrormove(void)
     {
         if (i != gBattlerAttacker)
         {
-            move = *(i * 2 + gBattlerAttacker * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 0) | (*(i * 2 + gBattlerAttacker * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 1) << 8);
+            move = *((u8 *)(gBattleStruct->lastTakenMoveFrom) + i * 2 + 0 + gBattlerAttacker * 8)| (*((u8 *)(gBattleStruct->lastTakenMoveFrom) + i * 2 + 1 + gBattlerAttacker * 8) << 8);
 
             if (move != MOVE_NONE && move != MOVE_UNAVAILABLE)
             {
