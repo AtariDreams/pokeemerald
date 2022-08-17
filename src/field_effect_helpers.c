@@ -1092,7 +1092,7 @@ static void SynchroniseSurfAnim(struct ObjectEvent *playerObj, struct Sprite *sp
     };
 
     if (!GetSurfBlob_DontSyncAnim(sprite))
-        StartSpriteAnimIfDifferent(sprite, surfBlobDirectionAnims[playerObj->movementDirection]);
+        StartSpriteAnimIfDifferent(sprite, surfBlobDirectionAnims[playerObj->directions.regDir.movementDirection]);
 }
 
 void SynchroniseSurfPosition(struct ObjectEvent *playerObj, struct Sprite *sprite)

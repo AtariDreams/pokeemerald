@@ -307,8 +307,8 @@ static u8 GetTrainerApproachDistance(struct ObjectEvent *trainerObj)
     PlayerGetDestCoords(&x, &y);
     if (trainerObj->trainerType == TRAINER_TYPE_NORMAL)  // can only see in one direction
     {
-        approachDistance = sDirectionalApproachDistanceFuncs[trainerObj->facingDirection - 1](trainerObj, trainerObj->trainerRange_berryTreeId, x, y);
-        return CheckPathBetweenTrainerAndPlayer(trainerObj, approachDistance, trainerObj->facingDirection);
+        approachDistance = sDirectionalApproachDistanceFuncs[trainerObj->directions.regDir.facingDirection - 1](trainerObj, trainerObj->trainerRange_berryTreeId, x, y);
+        return CheckPathBetweenTrainerAndPlayer(trainerObj, approachDistance, trainerObj->directions.regDir.facingDirection);
     }
     else // TRAINER_TYPE_SEE_ALL_DIRECTIONS, TRAINER_TYPE_BURIED
     {
@@ -389,15 +389,15 @@ static u8 CheckPathBetweenTrainerAndPlayer(struct ObjectEvent *trainerObj, u8 ap
             return 0;
     }
 
-    rangeX = trainerObj->rangeX;
-    rangeY = trainerObj->rangeY;
-    trainerObj->rangeX = 0;
-    trainerObj->rangeY = 0;
+    rangeX = trainerObj->directions.regDir.rangeX;
+    rangeY = trainerObj->directions.regDir.rangeY;
+    trainerObj->directions.regDir.rangeX = 0;
+    trainerObj->directions.regDir.rangeY = 0;
 
     collision = GetCollisionAtCoords(trainerObj, x, y, direction);
 
-    trainerObj->rangeX = rangeX;
-    trainerObj->rangeY = rangeY;
+    trainerObj->directions.regDir.rangeX = rangeX;
+    trainerObj->directions.regDir.rangeY = rangeY;
     if (collision == COLLISION_OBJECT_EVENT)
         return approachDistance;
 
@@ -462,7 +462,7 @@ static bool8 TrainerExclamationMark(u8 taskId, struct Task *task, struct ObjectE
 
     ObjectEventGetLocalIdAndMap(trainerObj, &gFieldEffectArguments[0], &gFieldEffectArguments[1], &gFieldEffectArguments[2]);
     FieldEffectStart(FLDEFF_EXCLAMATION_MARK_ICON);
-    direction = GetFaceDirectionMovementAction(trainerObj->facingDirection);
+    direction = GetFaceDirectionMovementAction(trainerObj->directions.regDir.facingDirection);
     ObjectEventSetHeldMovement(trainerObj, direction);
     task->tFuncId++; // TRSEE_EXCLAMATION_WAIT
     return TRUE;
@@ -493,7 +493,7 @@ static bool8 TrainerMoveToPlayer(u8 taskId, struct Task *task, struct ObjectEven
     {
         if (task->tTrainerRange)
         {
-            ObjectEventSetHeldMovement(trainerObj, GetWalkNormalMovementAction(trainerObj->facingDirection));
+            ObjectEventSetHeldMovement(trainerObj, GetWalkNormalMovementAction(trainerObj->directions.regDir.facingDirection));
             task->tTrainerRange--;
         }
         else
@@ -514,8 +514,8 @@ static bool8 PlayerFaceApproachingTrainer(u8 taskId, struct Task *task, struct O
         return FALSE;
 
     // Set trainer's movement type so they stop and remain facing that direction
-    SetTrainerMovementType(trainerObj, GetTrainerFacingDirectionMovementType(trainerObj->facingDirection));
-    TryOverrideTemplateCoordsForObjectEvent(trainerObj, GetTrainerFacingDirectionMovementType(trainerObj->facingDirection));
+    SetTrainerMovementType(trainerObj, GetTrainerFacingDirectionMovementType(trainerObj->directions.regDir.facingDirection));
+    TryOverrideTemplateCoordsForObjectEvent(trainerObj, GetTrainerFacingDirectionMovementType(trainerObj->directions.regDir.facingDirection));
     OverrideTemplateCoordsForObjectEvent(trainerObj);
 
     playerObj = &gObjectEvents[gPlayerAvatar.objectEventId];
@@ -523,7 +523,7 @@ static bool8 PlayerFaceApproachingTrainer(u8 taskId, struct Task *task, struct O
         return FALSE;
 
     CancelPlayerForcedMovement();
-    ObjectEventSetHeldMovement(&gObjectEvents[gPlayerAvatar.objectEventId], GetFaceDirectionMovementAction(GetOppositeDirection(trainerObj->facingDirection)));
+    ObjectEventSetHeldMovement(&gObjectEvents[gPlayerAvatar.objectEventId], GetFaceDirectionMovementAction(GetOppositeDirection(trainerObj->directions.regDir.facingDirection)));
     task->tFuncId++; // TRSEE_PLAYER_FACE_WAIT
     return FALSE;
 }
@@ -600,7 +600,7 @@ static bool8 JumpInPlaceBuriedTrainer(u8 taskId, struct Task *task, struct Objec
         sprite = &gSprites[trainerObj->spriteId];
         sprite->oam.priority = 2;
         ObjectEventClearHeldMovementIfFinished(trainerObj);
-        ObjectEventSetHeldMovement(trainerObj, GetJumpInPlaceMovementAction(trainerObj->facingDirection));
+        ObjectEventSetHeldMovement(trainerObj, GetJumpInPlaceMovementAction(trainerObj->directions.regDir.facingDirection));
         task->tFuncId++;
     }
 
@@ -636,8 +636,8 @@ static void Task_SetBuriedTrainerMovement(u8 taskId)
     sTrainerSeeFuncList2[task->tFuncId](taskId, task, objEvent);
     if (task->tFuncId == ((int)ARRAY_COUNT(sTrainerSeeFuncList2) - 1) && !FieldEffectActiveListContains(FLDEFF_ASH_PUFF))
     {
-        SetTrainerMovementType(objEvent, GetTrainerFacingDirectionMovementType(objEvent->facingDirection));
-        TryOverrideTemplateCoordsForObjectEvent(objEvent, GetTrainerFacingDirectionMovementType(objEvent->facingDirection));
+        SetTrainerMovementType(objEvent, GetTrainerFacingDirectionMovementType(objEvent->directions.regDir.facingDirection));
+        TryOverrideTemplateCoordsForObjectEvent(objEvent, GetTrainerFacingDirectionMovementType(objEvent->directions.regDir.facingDirection));
         DestroyTask(taskId);
     }
     else
@@ -798,14 +798,14 @@ void PlayerFaceTrainerAfterBattle(void)
     if (gTrainerApproachedPlayer == TRUE)
     {
         objEvent = &gObjectEvents[gApproachingTrainers[gWhichTrainerToFaceAfterBattle].objectEventId];
-        gPostBattleMovementScript[0] = GetFaceDirectionMovementAction(GetOppositeDirection(objEvent->facingDirection));
+        gPostBattleMovementScript[0] = GetFaceDirectionMovementAction(GetOppositeDirection(objEvent->directions.regDir.facingDirection));
         gPostBattleMovementScript[1] = MOVEMENT_ACTION_STEP_END;
         ScriptMovement_StartObjectMovementScript(OBJ_EVENT_ID_PLAYER, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, gPostBattleMovementScript);
     }
     else
     {
         objEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
-        gPostBattleMovementScript[0] = GetFaceDirectionMovementAction(objEvent->facingDirection);
+        gPostBattleMovementScript[0] = GetFaceDirectionMovementAction(objEvent->directions.regDir.facingDirection);
         gPostBattleMovementScript[1] = MOVEMENT_ACTION_STEP_END;
         ScriptMovement_StartObjectMovementScript(OBJ_EVENT_ID_PLAYER, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, gPostBattleMovementScript);
     }

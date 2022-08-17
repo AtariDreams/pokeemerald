@@ -360,7 +360,7 @@ static bool8 TryInterruptObjectEventSpecialAnim(struct ObjectEvent *playerObjEve
                 return TRUE;
             }
 
-            if (playerObjEvent->movementDirection != direction)
+            if (playerObjEvent->directions.regDir.movementDirection != direction)
             {
                 ObjectEventClearHeldMovement(playerObjEvent);
                 return FALSE;
@@ -431,7 +431,7 @@ static bool8 ForcedMovement_None(void)
 
         playerObjEvent->facingDirectionLocked = FALSE;
         playerObjEvent->enableAnim = TRUE;
-        SetObjectEventDirection(playerObjEvent, playerObjEvent->facingDirection);
+        SetObjectEventDirection(playerObjEvent, playerObjEvent->directions.regDir.facingDirection);
         gPlayerAvatar.flags &= ~PLAYER_AVATAR_FLAG_FORCED_MOVE;
     }
     return FALSE;
@@ -472,7 +472,7 @@ static bool8 DoForcedMovementInCurrentDirection(void (*moveFunc)(u8))
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     playerObjEvent->disableAnim = TRUE;
-    return DoForcedMovement(playerObjEvent->movementDirection, moveFunc);
+    return DoForcedMovement(playerObjEvent->directions.regDir.movementDirection, moveFunc);
 }
 
 static bool8 ForcedMovement_Slip(void)
@@ -565,7 +565,7 @@ static bool8 ForcedMovement_MuddySlope(void)
 {
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
-    if (playerObjEvent->movementDirection != DIR_NORTH || GetPlayerSpeed() < PLAYER_SPEED_FASTEST)
+    if (playerObjEvent->directions.regDir.movementDirection != DIR_NORTH || GetPlayerSpeed() < PLAYER_SPEED_FASTEST)
     {
         Bike_UpdateBikeCounterSpeed(0);
         playerObjEvent->facingDirectionLocked = TRUE;
@@ -828,14 +828,14 @@ static void PlayerAvatarTransition_Dummy(struct ObjectEvent *objEvent)
 static void PlayerAvatarTransition_Normal(struct ObjectEvent *objEvent)
 {
     ObjectEventSetGraphicsId(objEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_NORMAL));
-    ObjectEventTurn(objEvent, objEvent->movementDirection);
+    ObjectEventTurn(objEvent, objEvent->directions.regDir.movementDirection);
     SetPlayerAvatarStateMask(PLAYER_AVATAR_FLAG_ON_FOOT);
 }
 
 static void PlayerAvatarTransition_MachBike(struct ObjectEvent *objEvent)
 {
     ObjectEventSetGraphicsId(objEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_MACH_BIKE));
-    ObjectEventTurn(objEvent, objEvent->movementDirection);
+    ObjectEventTurn(objEvent, objEvent->directions.regDir.movementDirection);
     SetPlayerAvatarStateMask(PLAYER_AVATAR_FLAG_MACH_BIKE);
     BikeClearState(0, 0);
 }
@@ -843,7 +843,7 @@ static void PlayerAvatarTransition_MachBike(struct ObjectEvent *objEvent)
 static void PlayerAvatarTransition_AcroBike(struct ObjectEvent *objEvent)
 {
     ObjectEventSetGraphicsId(objEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_ACRO_BIKE));
-    ObjectEventTurn(objEvent, objEvent->movementDirection);
+    ObjectEventTurn(objEvent, objEvent->directions.regDir.movementDirection);
     SetPlayerAvatarStateMask(PLAYER_AVATAR_FLAG_ACRO_BIKE);
     BikeClearState(0, 0);
     Bike_HandleBumpySlopeJump();
@@ -854,7 +854,7 @@ static void PlayerAvatarTransition_Surfing(struct ObjectEvent *objEvent)
     u8 spriteId;
 
     ObjectEventSetGraphicsId(objEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_SURFING));
-    ObjectEventTurn(objEvent, objEvent->movementDirection);
+    ObjectEventTurn(objEvent, objEvent->directions.regDir.movementDirection);
     SetPlayerAvatarStateMask(PLAYER_AVATAR_FLAG_SURFING);
     gFieldEffectArguments[0] = objEvent->currentCoords.x;
     gFieldEffectArguments[1] = objEvent->currentCoords.y;
@@ -867,7 +867,7 @@ static void PlayerAvatarTransition_Surfing(struct ObjectEvent *objEvent)
 static void PlayerAvatarTransition_Underwater(struct ObjectEvent *objEvent)
 {
     ObjectEventSetGraphicsId(objEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_UNDERWATER));
-    ObjectEventTurn(objEvent, objEvent->movementDirection);
+    ObjectEventTurn(objEvent, objEvent->directions.regDir.movementDirection);
     SetPlayerAvatarStateMask(PLAYER_AVATAR_FLAG_UNDERWATER);
     objEvent->fieldEffectSpriteId = StartUnderwaterSurfBlobBobbing(objEvent->spriteId);
 }
@@ -1020,7 +1020,7 @@ void PlayerFreeze(void)
     if (gPlayerAvatar.tileTransitionState == T_TILE_CENTER || gPlayerAvatar.tileTransitionState == T_NOT_MOVING)
     {
         if (IsPlayerNotUsingAcroBikeOnBumpySlope())
-            PlayerForceSetHeldMovement(GetFaceDirectionMovementAction(gObjectEvents[gPlayerAvatar.objectEventId].facingDirection));
+            PlayerForceSetHeldMovement(GetFaceDirectionMovementAction(gObjectEvents[gPlayerAvatar.objectEventId].directions.regDir.facingDirection));
     }
 }
 
@@ -1160,12 +1160,12 @@ u8 player_get_pos_including_state_based_drift(s16 *x, s16 *y)
 
 u8 GetPlayerFacingDirection(void)
 {
-    return gObjectEvents[gPlayerAvatar.objectEventId].facingDirection;
+    return gObjectEvents[gPlayerAvatar.objectEventId].directions.regDir.facingDirection;
 }
 
 u8 GetPlayerMovementDirection(void)
 {
-    return gObjectEvents[gPlayerAvatar.objectEventId].movementDirection;
+    return gObjectEvents[gPlayerAvatar.objectEventId].directions.regDir.movementDirection;
 }
 
 u8 PlayerGetElevation(void)
@@ -1204,7 +1204,7 @@ void StopPlayerAvatar(void)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     npc_clear_strange_bits(playerObjEvent);
-    SetObjectEventDirection(playerObjEvent, playerObjEvent->facingDirection);
+    SetObjectEventDirection(playerObjEvent, playerObjEvent->directions.regDir.facingDirection);
     if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_MACH_BIKE | PLAYER_AVATAR_FLAG_ACRO_BIKE))
     {
         Bike_HandleBumpySlopeJump();
@@ -1304,8 +1304,8 @@ bool8 IsPlayerFacingSurfableFishableWater(void)
     s16 x = playerObjEvent->currentCoords.x;
     s16 y = playerObjEvent->currentCoords.y;
 
-    MoveCoords(playerObjEvent->facingDirection, &x, &y);
-    if (GetCollisionAtCoords(playerObjEvent, x, y, playerObjEvent->facingDirection) == COLLISION_ELEVATION_MISMATCH
+    MoveCoords(playerObjEvent->directions.regDir.facingDirection, &x, &y);
+    if (GetCollisionAtCoords(playerObjEvent, x, y, playerObjEvent->directions.regDir.facingDirection) == COLLISION_ELEVATION_MISMATCH
      && PlayerGetElevation() == 3
      && MetatileBehavior_IsSurfableFishableWater(MapGridGetMetatileBehaviorAt(x, y)))
         return TRUE;
@@ -1430,7 +1430,7 @@ static void HideShowWarpArrow(struct ObjectEvent *objectEvent)
 
     for (x = 0, direction = DIR_SOUTH; x < 4; x++, direction++)
     {
-        if (sArrowWarpMetatileBehaviorChecks2[x](metatileBehavior) && direction == objectEvent->movementDirection)
+        if (sArrowWarpMetatileBehaviorChecks2[x](metatileBehavior) && direction == objectEvent->directions.regDir.movementDirection)
         {
             // Show warp arrow if applicable
             x = objectEvent->currentCoords.x;
@@ -1538,7 +1538,7 @@ static u8 PlayerAvatar_DoSecretBaseMatJump(struct Task *task, struct ObjectEvent
     if (ObjectEventClearHeldMovementIfFinished(objectEvent))
     {
         PlaySE(SE_LEDGE);
-        ObjectEventSetHeldMovement(objectEvent, GetJumpInPlaceMovementAction(objectEvent->facingDirection));
+        ObjectEventSetHeldMovement(objectEvent, GetJumpInPlaceMovementAction(objectEvent->directions.regDir.facingDirection));
         task->data[1]++;
         if (task->data[1] > 1)
         {
@@ -1568,7 +1568,7 @@ static void PlayerAvatar_DoSecretBaseMatSpin(u8 taskId)
 static bool8 PlayerAvatar_SecretBaseMatSpinStep0(struct Task *task, struct ObjectEvent *objectEvent)
 {
     task->data[0]++;
-    task->data[1] = objectEvent->movementDirection;
+    task->data[1] = objectEvent->directions.regDir.movementDirection;
     gPlayerAvatar.preventStep = TRUE;
     LockPlayerFieldControls();
     PlaySE(SE_WARP_IN);
@@ -1583,7 +1583,7 @@ static bool8 PlayerAvatar_SecretBaseMatSpinStep1(struct Task *task, struct Objec
     {
         u8 direction;
 
-        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(direction = directions[objectEvent->movementDirection - 1]));
+        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(direction = directions[objectEvent->directions.regDir.movementDirection - 1]));
         if (direction == (u8)task->data[1])
             task->data[2]++;
         task->data[0]++;
@@ -1659,7 +1659,7 @@ static void Task_WaitStopSurfing(u8 taskId)
     if (ObjectEventClearHeldMovementIfFinished(playerObjEvent))
     {
         ObjectEventSetGraphicsId(playerObjEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_NORMAL));
-        ObjectEventSetHeldMovement(playerObjEvent, GetFaceDirectionMovementAction(playerObjEvent->facingDirection));
+        ObjectEventSetHeldMovement(playerObjEvent, GetFaceDirectionMovementAction(playerObjEvent->directions.regDir.facingDirection));
         gPlayerAvatar.preventStep = FALSE;
         UnlockPlayerFieldControls();
         DestroySprite(&gSprites[playerObjEvent->fieldEffectSpriteId]);
@@ -1746,7 +1746,7 @@ static bool8 Fishing_GetRodOut(struct Task *task)
     playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
     ObjectEventClearHeldMovementIfActive(playerObjEvent);
     playerObjEvent->enableAnim = TRUE;
-    SetPlayerAvatarFishing(playerObjEvent->facingDirection);
+    SetPlayerAvatarFishing(playerObjEvent->directions.regDir.facingDirection);
     task->tStep++;
     return FALSE;
 }
@@ -1931,7 +1931,7 @@ static bool8 Fishing_StartEncounter(struct Task *task)
             struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
             ObjectEventSetGraphicsId(playerObjEvent, task->tPlayerGfxId);
-            ObjectEventTurn(playerObjEvent, playerObjEvent->movementDirection);
+            ObjectEventTurn(playerObjEvent, playerObjEvent->directions.regDir.movementDirection);
             if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_SURFING)
                 SetSurfBlob_PlayerOffset(gObjectEvents[gPlayerAvatar.objectEventId].fieldEffectSpriteId, FALSE, 0);
             gSprites[gPlayerAvatar.spriteId].x2 = 0;
@@ -1988,7 +1988,7 @@ static bool8 Fishing_PutRodAway(struct Task *task)
         struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
         ObjectEventSetGraphicsId(playerObjEvent, task->tPlayerGfxId);
-        ObjectEventTurn(playerObjEvent, playerObjEvent->movementDirection);
+        ObjectEventTurn(playerObjEvent, playerObjEvent->directions.regDir.movementDirection);
         if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_SURFING)
             SetSurfBlob_PlayerOffset(gObjectEvents[gPlayerAvatar.objectEventId].fieldEffectSpriteId, FALSE, 0);
         gSprites[gPlayerAvatar.spriteId].x2 = 0;
@@ -2088,7 +2088,7 @@ static void Task_DoPlayerSpinExit(u8 taskId)
             if (!ObjectEventClearHeldMovementIfFinished(object))
                 return;
 
-            SetSpinStartFacingDir(object->facingDirection);
+            SetSpinStartFacingDir(object->directions.regDir.facingDirection);
             tSpinDelayTimer = 0;
             tSpeed = 1;
             tCurY = (u16)(sprite->y + sprite->y2) << 4;
@@ -2207,12 +2207,12 @@ static void Task_DoPlayerSpinEntrance(u8 taskId)
 static u8 TrySpinPlayerForWarp(struct ObjectEvent *object, s16 *delayTimer)
 {
     if (*delayTimer < 8 && ++(*delayTimer) < 8)
-        return object->facingDirection;
+        return object->directions.regDir.facingDirection;
 
     if (!ObjectEventCheckHeldMovementStatus(object))
-        return object->facingDirection;
+        return object->directions.regDir.facingDirection;
 
-    ObjectEventForceSetHeldMovement(object, GetFaceDirectionMovementAction(sSpinDirections[object->facingDirection]));
+    ObjectEventForceSetHeldMovement(object, GetFaceDirectionMovementAction(sSpinDirections[object->directions.regDir.facingDirection]));
     *delayTimer = 0;
-    return sSpinDirections[object->facingDirection];
+    return sSpinDirections[object->directions.regDir.facingDirection];
 }

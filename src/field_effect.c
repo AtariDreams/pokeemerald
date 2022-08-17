@@ -2166,7 +2166,7 @@ static bool8 LavaridgeGym1FWarpEffect_AshPuff(struct Task *task, struct ObjectEv
         } else
         {
             task->data[1]++;
-            ObjectEventSetHeldMovement(objectEvent, GetWalkInPlaceFasterMovementAction(objectEvent->facingDirection));
+            ObjectEventSetHeldMovement(objectEvent, GetWalkInPlaceFasterMovementAction(objectEvent->directions.regDir.facingDirection));
             PlaySE(SE_LAVARIDGE_FALL_WARP);
         }
     }
@@ -2272,7 +2272,7 @@ static void EscapeRopeWarpOutEffect_Spin(struct Task *task)
     }
     else if (task->tSpinDelay == 0 || (--task->tSpinDelay) == 0)
     {
-        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(spinDirections[objectEvent->facingDirection]));
+        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(spinDirections[objectEvent->directions.regDir.facingDirection]));
         if (task->tNumTurns < 12)
             task->tNumTurns++;
         task->tSpinDelay = 8 >> (task->tNumTurns >> 2);
@@ -2327,7 +2327,7 @@ static void EscapeRopeWarpInEffect_Spin(struct Task *task)
             DestroyTask(FindTaskIdByFunc(Task_EscapeRopeWarpIn));
             return;
         }
-        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(spinDirections[objectEvent->facingDirection]));
+        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(spinDirections[objectEvent->directions.regDir.facingDirection]));
         if (task->tNumTurns < 32)
             task->tNumTurns++;
         task->tSpinDelay = task->tNumTurns >> 2;
@@ -2375,11 +2375,11 @@ static void TeleportWarpOutFieldEffect_SpinGround(struct Task *task)
     struct ObjectEvent *objectEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
     if (task->data[1] == 0 || (--task->data[1]) == 0)
     {
-        ObjectEventTurn(objectEvent, spinDirections[objectEvent->facingDirection]);
+        ObjectEventTurn(objectEvent, spinDirections[objectEvent->directions.regDir.facingDirection]);
         task->data[1] = 8;
         task->data[2]++;
     }
-    if (task->data[2] > 7 && task->data[15] == objectEvent->facingDirection)
+    if (task->data[2] > 7 && task->data[15] == objectEvent->directions.regDir.facingDirection)
     {
         task->tState++;
         task->data[1] = 4;
@@ -2397,7 +2397,7 @@ static void TeleportWarpOutFieldEffect_SpinExit(struct Task *task)
     if ((--task->data[1]) <= 0)
     {
         task->data[1] = 4;
-        ObjectEventTurn(objectEvent, spinDirections[objectEvent->facingDirection]);
+        ObjectEventTurn(objectEvent, spinDirections[objectEvent->directions.regDir.facingDirection]);
     }
     sprite->y -= task->data[3];
     task->data[4] += task->data[3];
@@ -2508,7 +2508,7 @@ static void TeleportWarpInFieldEffect_SpinEnter(struct Task *task)
     if ((--task->data[2]) == 0)
     {
         task->data[2] = 4;
-        ObjectEventTurn(objectEvent, spinDirections[objectEvent->facingDirection]);
+        ObjectEventTurn(objectEvent, spinDirections[objectEvent->directions.regDir.facingDirection]);
     }
     if (sprite->y2 >= 0)
     {
@@ -2525,9 +2525,9 @@ static void TeleportWarpInFieldEffect_SpinGround(struct Task *task)
     struct ObjectEvent *objectEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
     if ((--task->data[1]) == 0)
     {
-        ObjectEventTurn(objectEvent, spinDirections[objectEvent->facingDirection]);
+        ObjectEventTurn(objectEvent, spinDirections[objectEvent->directions.regDir.facingDirection]);
         task->data[1] = 8;
-        if ((++task->data[2]) > 4 && task->data[14] == objectEvent->facingDirection)
+        if ((++task->data[2]) > 4 && task->data[14] == objectEvent->directions.regDir.facingDirection)
         {
             UnlockPlayerFieldControls();
             CameraObjectReset1();
@@ -3001,7 +3001,7 @@ static void SurfFieldEffect_Init(struct Task *task)
     gPlayerAvatar.preventStep = TRUE;
     SetPlayerAvatarStateMask(PLAYER_AVATAR_FLAG_SURFING);
     PlayerGetDestCoords(&task->tDestX, &task->tDestY);
-    MoveCoords(gObjectEvents[gPlayerAvatar.objectEventId].movementDirection, &task->tDestX, &task->tDestY);
+    MoveCoords(gObjectEvents[gPlayerAvatar.objectEventId].directions.regDir.movementDirection, &task->tDestX, &task->tDestY);
     task->tState++;
 }
 
@@ -3035,7 +3035,7 @@ static void SurfFieldEffect_JumpOnSurfBlob(struct Task *task)
         objectEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
         ObjectEventSetGraphicsId(objectEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_SURFING));
         ObjectEventClearHeldMovementIfFinished(objectEvent);
-        ObjectEventSetHeldMovement(objectEvent, GetJumpSpecialMovementAction(objectEvent->movementDirection));
+        ObjectEventSetHeldMovement(objectEvent, GetJumpSpecialMovementAction(objectEvent->directions.regDir.movementDirection));
         gFieldEffectArguments[0] = task->tDestX;
         gFieldEffectArguments[1] = task->tDestY;
         gFieldEffectArguments[2] = gPlayerAvatar.objectEventId;
@@ -3052,7 +3052,7 @@ static void SurfFieldEffect_End(struct Task *task)
     {
         gPlayerAvatar.preventStep = FALSE;
         gPlayerAvatar.flags &= ~PLAYER_AVATAR_FLAG_CONTROLLABLE;
-        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(objectEvent->movementDirection));
+        ObjectEventSetHeldMovement(objectEvent, GetFaceDirectionMovementAction(objectEvent->directions.regDir.movementDirection));
         SetSurfBlob_BobState(objectEvent->fieldEffectSpriteId, BOB_PLAYER_AND_MON);
         UnfreezeObjectEvents();
         UnlockPlayerFieldControls();

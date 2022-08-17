@@ -204,10 +204,23 @@ struct ObjectEvent
     /*0x0C*/ struct Coords16 initialCoords;
     /*0x10*/ struct Coords16 currentCoords;
     /*0x14*/ struct Coords16 previousCoords;
-    /*0x18*/ u16 facingDirection:4; // current direction?
-             u16 movementDirection:4;
-             u16 rangeX:4;
-             u16 rangeY:4;
+             // No reason why Gamefreak could have just used a normal struct access but they did this shit instead with another struct, so this workaround has to be used instead
+             union __attribute__((packed))
+             {
+                 struct __attribute__((packed))
+                 {
+                     u16 facingDirection : 4; // current direction?
+                     u16 movementDirection : 4;
+                     u16 rangeX : 4;
+                     u16 rangeY : 4;
+                 } regDir;
+                 struct __attribute__((packed))
+                 {
+                    u8 facingDirection; //unused.
+                    u8 movementDirection;
+                 } linkDir; 
+             }directions;
+
     /*0x1A*/ u8 fieldEffectSpriteId;
     /*0x1B*/ u8 warpArrowSpriteId;
     /*0x1C*/ u8 movementActionId;
