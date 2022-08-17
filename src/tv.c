@@ -3463,7 +3463,7 @@ void ReceiveTvShowsData(void *src, u32 size, u8 playersLinkId)
         rmBuffer = rmBuffer2;
         for (i = 0; i < GetLinkPlayerCount(); i++)
         {
-            version = (u8)gLinkPlayers[i].version;
+            version = (u8)(gLinkPlayers[i].version & 0xFF);
             if (version == VERSION_RUBY || version == VERSION_SAPPHIRE)
                 TranslateRubyShows((*rmBuffer)[i]);
             else if (version == VERSION_EMERALD && gLinkPlayers[i].language == LANGUAGE_JAPANESE)
