@@ -63,7 +63,7 @@ static void BuyMenuBuildListMenuTemplate(void);
 static void BuyMenuInitBgs(void);
 static void BuyMenuInitWindows(void);
 static void BuyMenuDecompressBgGraphics(void);
-static void BuyMenuSetListEntry(struct ListMenuItem *, u16, u8 *);
+static void BuyMenuSetListEntry(struct ListMenuItem*, const u16, u8*);
 static void BuyMenuAddItemIcon(u16, u8);
 static void BuyMenuRemoveItemIcon(u16, u8);
 static void BuyMenuPrint(u8 windowId, const u8 *text, u8 x, u8 y, s8 speed, u8 colorSet);
@@ -512,7 +512,7 @@ static void BuyMenuBuildListMenuTemplate(void)
     sShopData->itemsShowed = gMultiuseListMenuTemplate.maxShowed;
 }
 
-static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, u16 item, u8 *name)
+static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, const u16 item, u8 *name)
 {
     if (sMartInfo.martType == MART_TYPE_NORMAL)
         CopyItemName(item, name);
@@ -520,7 +520,7 @@ static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, u16 item, u8 *nam
         StringCopy(name, gDecorations[item].name);
 
     menuItem->name = name;
-    menuItem->id = item;
+    menuItem->id = (u32)item;
 }
 
 static void BuyMenuPrintItemDescriptionAndShowItemIcon(u32 item, bool8 onInit)
@@ -530,11 +530,11 @@ static void BuyMenuPrintItemDescriptionAndShowItemIcon(u32 item, bool8 onInit)
         PlaySE(SE_SELECT);
 
     if (item != LIST_CANCEL)
-        BuyMenuAddItemIcon(item, sShopData->iconSlot);
+        BuyMenuAddItemIcon((u16)item, sShopData->iconSlot);
     else
         BuyMenuAddItemIcon(-1, sShopData->iconSlot);
 
-    BuyMenuRemoveItemIcon(item, sShopData->iconSlot ^ 1);
+    BuyMenuRemoveItemIcon((u16)item, sShopData->iconSlot ^ 1);
     sShopData->iconSlot ^= 1;
     if (item != LIST_CANCEL)
     {
@@ -554,7 +554,7 @@ static void BuyMenuPrintItemDescriptionAndShowItemIcon(u32 item, bool8 onInit)
 
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
 {
-    u8 x;
+    s32 x;
 
     if (itemId != LIST_CANCEL)
     {
@@ -759,33 +759,33 @@ static void BuyMenuDrawMapBg(void)
 
 static void BuyMenuDrawMapMetatile(s16 x, s16 y, const u16 *src, u8 metatileLayerType)
 {
-    u16 offset1 = x * 2;
-    u16 offset2 = y * 64;
+    x <<= 1;
+    y <<= 6;
 
     switch (metatileLayerType)
     {
     case METATILE_LAYER_TYPE_NORMAL:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 4);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], x, y, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], x, y, src + 4);
         break;
     case METATILE_LAYER_TYPE_COVERED:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src + 4);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], x, y, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], x, y, src + 4);
         break;
     case METATILE_LAYER_TYPE_SPLIT:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 4);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], x, y, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], x, y, src + 4);
         break;
     }
 }
 
-static void BuyMenuDrawMapMetatileLayer(u16 *dest, s16 offset1, s16 offset2, const u16 *src)
+static void BuyMenuDrawMapMetatileLayer(u16 *dest, s16 x, s16 y, const u16 *src)
 {
     // This function draws a whole 2x2 metatile.
-    dest[offset1 + offset2] = src[0]; // top left
-    dest[offset1 + offset2 + 1] = src[1]; // top right
-    dest[offset1 + offset2 + 32] = src[2]; // bottom left
-    dest[offset1 + offset2 + 33] = src[3]; // bottom right
+    dest[x + y] = src[0]; // top left
+    dest[x + y + 1] = src[1]; // top right
+    dest[x + y + 32] = src[2]; // bottom left
+    dest[x + y + 33] = src[3]; // bottom right
 }
 
 static void BuyMenuCollectObjectEventData(void)
@@ -850,8 +850,8 @@ static void BuyMenuDrawObjectEvents(void)
         spriteId = CreateObjectGraphicsSprite(
             gObjectEvents[sShopData->viewportObjects[i][OBJ_EVENT_ID]].graphicsId,
             SpriteCallbackDummy,
-            (u16)sShopData->viewportObjects[i][X_COORD] * 16 + 8,
-            (u16)sShopData->viewportObjects[i][Y_COORD] * 16 + 48 - graphicsInfo->height / 2,
+            (sShopData->viewportObjects[i][X_COORD] << 4) + 8,
+            (sShopData->viewportObjects[i][Y_COORD] << 4) + 48 - graphicsInfo->height / 2,
             2);
 
         if (BuyMenuCheckIfObjectEventOverlapsMenuBg(sShopData->viewportObjects[i]) == TRUE)
@@ -878,6 +878,8 @@ static bool8 BuyMenuCheckIfObjectEventOverlapsMenuBg(s16 *object)
 
 static void BuyMenuCopyMenuBgToBg1TilemapBuffer(void)
 {
+    // why is i an s16?!!!!!!!!
+    // GF wrote it that way but why???
     s16 i;
     u16 *dest = sShopData->tilemapBuffers[1];
     const u16 *src = sShopData->tilemapBuffers[0];
