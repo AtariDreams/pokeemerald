@@ -2766,7 +2766,7 @@ static int GetTypeEffectivenessPoints(int move, int targetSpecies, int mode)
         {
             typePower = 8;
         #ifdef BUGFIX
-            return;
+            return typePower;
         #endif
         }
     }
