@@ -190,7 +190,11 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
             }
             unownSpecies = GET_UNOWN_LETTER(personality);
             if (!unownSpecies)
+#if !MODERN
                 unownSpecies = species;
+#else
+                unownSpecies = SPECIES_UNOWN;
+#endif
             else
                 unownSpecies += SPECIES_UNOWN_B - 1;
             ret = gMonBackPicCoords[unownSpecies].y_offset;
@@ -218,7 +222,11 @@ u8 GetBattlerYDelta(u8 battlerId, u16 species)
                 personality = gTransformedPersonalities[battlerId];
             unownSpecies = GET_UNOWN_LETTER(personality);
             if (!unownSpecies)
+            #if !MODERN
                 unownSpecies = species;
+            #else
+                unownSpecies = SPECIES_UNOWN;
+            #endif
             else
                 unownSpecies += SPECIES_UNOWN_B - 1;
             ret = gMonFrontPicCoords[unownSpecies].y_offset;
