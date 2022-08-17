@@ -40,10 +40,10 @@ enum
 };
 
 static EWRAM_DATA u16 sSaveFailedType = {0};
-static EWRAM_DATA u16 sClockInfo[2] = {0};
-static EWRAM_DATA u8 sUnused1[12] = {0};
-static EWRAM_DATA u8 sWindowIds[2] = {0};
-static EWRAM_DATA u8 sUnused2[4] = {0};
+// Only 2 is used?
+static EWRAM_DATA u16 sClockInfo[8] = {0};
+// only 2 is used?
+static EWRAM_DATA u8 sWindowIds[4] = {0};
 
 static const struct OamData sClockOamData =
 {
@@ -177,8 +177,8 @@ static void CB2_SaveFailedScreen(void)
 {
     switch (gMain.state)
     {
-    case 0:
     default:
+    case 0:
         SetVBlankCallback(NULL);
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG3CNT, 0);
@@ -358,11 +358,12 @@ static void VBlankCB_UpdateClockGraphics(void)
 
 static bool8 VerifySectorWipe(u16 sector)
 {
-    u32 *ptr = (u32 *)&gSaveDataBuffer;
-    u16 i;
+    u32 *ptr;
+    m16 i;
 
-    ReadFlash(sector, 0, (u8 *)ptr, SECTOR_SIZE);
+    ReadFlash(sector, 0, (u8 *)&gSaveDataBuffer, SECTOR_SIZE);
 
+    ptr = (u32 *)&gSaveDataBuffer;
     // 1/4 because ptr is u32
     for (i = 0; i < SECTOR_SIZE / 4; i++, ptr++)
         if (*ptr)
@@ -373,7 +374,7 @@ static bool8 VerifySectorWipe(u16 sector)
 
 static bool8 WipeSector(u16 sector)
 {
-    u16 i, j;
+    m16 i, j;
     bool8 failed = TRUE;
 
     // Attempt to wipe sector with an arbitrary attempt limit of 130
@@ -390,11 +391,16 @@ static bool8 WipeSector(u16 sector)
 
 static bool8 WipeSectors(u32 sectorBits)
 {
+    u32 mask;
     u16 i;
 
     for (i = 0; i < SECTORS_COUNT; i++)
-        if ((sectorBits & (1 << i)) && !WipeSector(i))
-            sectorBits &= ~(1 << i);
+    {
+        mask = (1 << i);
+    
+        if ((sectorBits & mask) && !WipeSector(i))
+            sectorBits &= ~mask;
+    }
 
     if (sectorBits == 0)
         return FALSE;
