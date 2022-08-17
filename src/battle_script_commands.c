@@ -5175,17 +5175,15 @@ static void Cmd_switchhandleorder(void)
         // This if statement matches what GF did, but what is above makes it more obvious what this is doing
         if ((gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_MULTI)) == (BATTLE_TYPE_LINK | BATTLE_TYPE_MULTI))
         {
-            u8 *temp = &gBattleStruct->battlerPartyOrders[gActiveBattler * 3];
             //*temp &= 0xF; // Not needed since it will be ORRED anyway with something that will have its lower bits set to 0 anyway
-            temp[0] |= (gBattleBufferB[gActiveBattler][2] & 0xF0);
+            gBattleStruct->battlerPartyOrders[gActiveBattler][0] |= (gBattleBufferB[gActiveBattler][2] & 0xF0);
 
-            temp[1] = gBattleBufferB[gActiveBattler][3];
+            gBattleStruct->battlerPartyOrders[gActiveBattler][1] = gBattleBufferB[gActiveBattler][3];
 
-            temp = &gBattleStruct->battlerPartyOrders[(gActiveBattler ^ BIT_FLANK) * 3];
-            temp[0] &= 0xF0;
+            gBattleStruct->battlerPartyOrders[gActiveBattler ^ BIT_FLANK][0] &= 0xF0;
             // since temp is u8, no need for the & 0xF0 before shift
-            temp[0] |= gBattleBufferB[gActiveBattler][2] >> 4;
-            temp[2] = gBattleBufferB[gActiveBattler][3];
+            gBattleStruct->battlerPartyOrders[gActiveBattler ^ BIT_FLANK][0] |= gBattleBufferB[gActiveBattler][2] >> 4;
+            gBattleStruct->battlerPartyOrders[gActiveBattler ^ BIT_FLANK][2] = gBattleBufferB[gActiveBattler][3];
         }
 #endif
         else if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
