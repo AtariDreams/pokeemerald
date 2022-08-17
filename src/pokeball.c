@@ -15,6 +15,7 @@
 #include "data.h"
 #include "constants/songs.h"
 
+// TODO: Merge with smokescreen on the cheat branch
 static void Task_DoPokeballSendOutAnim(u8 taskId);
 static void SpriteCB_PlayerMonSendOut_1(struct Sprite *sprite);
 static void SpriteCB_PlayerMonSendOut_2(struct Sprite *sprite);
@@ -332,6 +333,8 @@ const struct SpriteTemplate gBallSpriteTemplates[POKEBALL_COUNT] =
 #define tBattler         data[3]
 #define tOpponentBattler data[4]
 
+//Pan is always 0. Why not just inline it or better, get rid of the work usage thing
+// Because it is not even USED in the other functions.
 u8 DoPokeballSendOutAnimation(s16 pan, u8 kindOfThrow)
 {
     u8 taskId;
@@ -340,7 +343,7 @@ u8 DoPokeballSendOutAnimation(s16 pan, u8 kindOfThrow)
     gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].ballAnimActive = TRUE;
 
     taskId = CreateTask(Task_DoPokeballSendOutAnim, 5);
-    gTasks[taskId].tPan = pan;
+    gTasks[taskId].tPan = pan; // Wasteful assign
     gTasks[taskId].tThrowId = kindOfThrow;
     gTasks[taskId].tBattler = gActiveBattler;
 
@@ -356,13 +359,15 @@ static void Task_DoPokeballSendOutAnim(u8 taskId)
     u16 itemId, ballId;
     u8 ballSpriteId;
     bool8 notSendOut = FALSE;
+    // u16 ballNo;
 
     if (gTasks[taskId].tFrames == 0)
     {
         gTasks[taskId].tFrames++;
         return;
     }
-
+    // Unused gTasks[taskId].data[1] load was here, but the compiler removed it since itemNo isn't used at all. Let's not add it back either
+    // ballno = gTasks[taskId].data[1];
     throwCaseId = gTasks[taskId].tThrowId;
     battlerId = gTasks[taskId].tBattler;
 
@@ -520,6 +525,8 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
         {
             sprite->data[4] -= 10;
             sprite->data[3] += 0x101;
+
+            // why  not put the r5 = TRUE in the default branch?
             if (sprite->data[3] >> 8 == 4)
                 r5 = TRUE;
             switch (sprite->data[3] >> 8)
@@ -569,8 +576,7 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
 
 static void SpriteCB_BallThrow_StartShakes(struct Sprite *sprite)
 {
-    sprite->data[3]++;
-    if (sprite->data[3] == 31)
+    if (sprite->data[3]++ == 30)
     {
         sprite->data[3] = 0;
         sprite->affineAnimPaused = TRUE;
@@ -596,8 +602,7 @@ static void SpriteCB_BallThrow_Shake(struct Sprite *sprite)
         }
         break;
     case 1:
-        sprite->data[5]++;
-        if (sprite->data[5] == 1)
+        if (sprite->data[5]++ == 0)
         {
             sprite->data[5] = 0;
             sprite->data[4] = -sprite->data[4];
@@ -619,24 +624,20 @@ static void SpriteCB_BallThrow_Shake(struct Sprite *sprite)
         {
             sprite->callback = SpriteCB_ReleaseMonFromBall;
         }
+        else if (sprite->data[7] == 4 && sprite->data[3] >> 8 == 3)
+        {
+            sprite->callback = SpriteCB_BallThrow_StartCaptureMon;
+            sprite->affineAnimPaused = TRUE;
+        }
         else
         {
-            if (sprite->data[7] == 4 && sprite->data[3] >> 8 == 3)
-            {
-                sprite->callback = SpriteCB_BallThrow_StartCaptureMon;
-                sprite->affineAnimPaused = TRUE;
-            }
-            else
-            {
-                sprite->data[3]++;
-                sprite->affineAnimPaused = TRUE;
-            }
+            sprite->data[3]++;
+            sprite->affineAnimPaused = TRUE;
         }
         break;
     case 4:
     default:
-        sprite->data[5]++;
-        if (sprite->data[5] == 31)
+        if (sprite->data[5]++ == 30)
         {
             sprite->data[5] = 0;
             sprite->data[3] &= 0xFF00;
