@@ -2194,6 +2194,7 @@ static void MainMenu_FormatSavegameBadges(void)
 {
     u8 str[0x20];
     u8 badgeCount = 0;
+    // i should be u16. asm just gets reordered as a result but that doesn't match
     u32 i;
 
     for (i = FLAG_BADGE01_GET; i < FLAG_BADGE01_GET + NUM_BADGES; i++)
@@ -2218,6 +2219,11 @@ static void DrawMainMenuWindowBorder(const struct WindowTemplate *template, u16 
     u16 r9 = 1 + baseTileNum;
     u16 r10 = 2 + baseTileNum;
     u16 sp18 = 3 + baseTileNum;
+    // baseTileNum + 4 was in the og code but that wasn't used so it wwas optimized out.
+    // Maybe it was forgotten or not needed?
+    // TODO: look into this
+
+    // TODO: maybe you can alleviate register pressure and make better code by removing these vars and just passing the result of the the calcs directly
     u16 spC = 5 + baseTileNum;
     u16 sp10 = 6 + baseTileNum;
     u16 sp14 = 7 + baseTileNum;
@@ -2227,6 +2233,7 @@ static void DrawMainMenuWindowBorder(const struct WindowTemplate *template, u16 
     FillBgTilemapBufferRect(template->bg, r9, template->tilemapLeft, template->tilemapTop - 1, template->width, 1, 2);
     FillBgTilemapBufferRect(template->bg, r10, template->tilemapLeft + template->width, template->tilemapTop - 1, 1, 1, 2);
     FillBgTilemapBufferRect(template->bg, sp18, template->tilemapLeft - 1, template->tilemapTop, 1, template->height, 2);
+    // TODO: does something go here?
     FillBgTilemapBufferRect(template->bg, spC, template->tilemapLeft + template->width, template->tilemapTop, 1, template->height, 2);
     FillBgTilemapBufferRect(template->bg, sp10, template->tilemapLeft - 1, template->tilemapTop + template->height, 1, 1, 2);
     FillBgTilemapBufferRect(template->bg, sp14, template->tilemapLeft, template->tilemapTop + template->height, template->width, 1, 2);
