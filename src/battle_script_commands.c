@@ -4839,7 +4839,7 @@ static void Cmd_openpartyscreen(void)
                     flags |= 1;
                 }
             }
-            if (gBitTable[2] & hitmarkerFaintBits && !(gBitTable[0] & hitmarkerFaintBits))
+            if ((hitmarkerFaintBits & gBitTable[2]) && !(hitmarkerFaintBits & gBitTable[0]))
             {
                 gActiveBattler = 2;
                 if (HasNoMonsToSwitch(gActiveBattler, PARTY_SIZE, PARTY_SIZE))
