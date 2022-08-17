@@ -437,12 +437,13 @@ void CB2_DoHallOfFameScreenDontSaveData(void)
 static void Task_Hof_InitMonData(u8 taskId)
 {
     u16 i, j;
+    u8 nick[POKEMON_NAME_LENGTH + 1];
 
     gTasks[taskId].tMonNumber = 0; // valid pokes
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        u8 nick[POKEMON_NAME_LENGTH + 2];
+        
         if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES))
         {
             sHofMonPtr->mon[i].species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES2);
