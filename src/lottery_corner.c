@@ -42,16 +42,20 @@ void SetRandomLotteryNumber(u16 i)
 
 void RetrieveLotteryNumber(void)
 {
+    #if !MODERN
     u16 lottoNumber = GetLotteryNumber();
     gSpecialVar_Result = lottoNumber;
+    #else
+    gSpecialVar_Result = GetLotteryNumber();
+    #endif
 }
 
 void PickLotteryCornerTicket(void)
 {
     u16 i;
     u16 j;
-    u32 box;
-    u32 slot;
+    u16 box;
+    u16 slot;
 
     gSpecialVar_0x8004 = 0;
     slot = 0;
@@ -127,7 +131,7 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
     {
         sWinNumberDigit = winNumber % 10;
         sOtIdDigit = otId % 10;
-
+        #if !MODERN
         if (sWinNumberDigit == sOtIdDigit)
         {
             winNumber = winNumber / 10;
@@ -136,6 +140,15 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
         }
         else
             break;
+#else
+        if (sWinNumberDigit != sOtIdDigit)
+        {
+            break;
+        }
+        winNumber /= 10;
+        otId /= 10;
+        matchingDigits++;
+#endif
     }
     return matchingDigits;
 }
