@@ -258,10 +258,6 @@ EWRAM_DATA static struct FallAnim_Tower *sFallingTower = NULL;
 EWRAM_DATA static struct BgRegOffsets *sBgShakeOffsets = NULL;
 EWRAM_DATA static struct MirageTowerPulseBlend *sMirageTowerPulseBlend = NULL;
 
-// Holds data about the disintegration effect for Mirage Tower / the unchosen fossil.
-// Never read, presumably for debugging
-static u16 sDebug_DisintegrationData[8];
-
 bool8 IsMirageTowerVisible(void)
 {
     // TODO: flip this
@@ -433,7 +429,11 @@ void DoMirageTowerCeilingCrumble(void)
 
 static void WaitCeilingCrumble(u8 taskId)
 {
+    #if MODERN
+    s16 *data = gTasks[taskId].data;
+    #else
     u16 *data = gTasks[taskId].data;
+    #endif
     data[1]++;
     // Either wait 1000 frames, or until all 16 crumble sprites and the one screen-shake task are completed.
     if (data[1] == 1000 || data[0] == 17)
@@ -483,7 +483,7 @@ static void SpriteCB_CeilingCrumble(struct Sprite *sprite)
 
 static void SetInvisibleMirageTowerMetatiles(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sInvisibleMirageTowerMetatiles); i++)
         MapGridSetMetatileIdAt(sInvisibleMirageTowerMetatiles[i].x + MAP_OFFSET,
                                sInvisibleMirageTowerMetatiles[i].y + MAP_OFFSET,
@@ -748,9 +748,14 @@ static void SpriteCB_FallingFossil(struct Sprite *sprite)
     else if (sprite->y >= 96)
     {
         // Fossil has reached the ground, update disintegration animation
+        #if !MODERN
         u8 i;
         for (i = 0; i < 2; i++)
             UpdateDisintegrationEffect(sFallingFossil->frameImageTiles, sFallingFossil->disintegrateRand[sFallingFossil->disintegrateIdx++], 0, 16, 0);
+        #else
+        UpdateDisintegrationEffect(sFallingFossil->frameImageTiles, sFallingFossil->disintegrateRand[sFallingFossil->disintegrateIdx++], 0, 16, 0);
+        UpdateDisintegrationEffect(sFallingFossil->frameImageTiles, sFallingFossil->disintegrateRand[sFallingFossil->disintegrateIdx++], 0, 16, 0);
+        #endif
 
         StartSpriteAnim(sprite, 0);
     }
@@ -763,33 +768,51 @@ static void SpriteCB_FallingFossil(struct Sprite *sprite)
 
 static void UpdateDisintegrationEffect(u8 *tiles, u16 randId, u8 c, u8 size, u8 offset)
 {
+    // Holds data about the disintegration effect for Mirage Tower / the unchosen fossil.
+    // Never read, presumably for debugging
+    #if !MODERN
+    static u16 sDebug_DisintegrationData[8];
+    #endif
     u8 heightTiles, height, widthTiles, width;
     u16 var, baseOffset;
     u8 col, row;
     u8 flag, tileMask;
 
     height = randId / size;
+    #if !MODERN
     sDebug_DisintegrationData[0] = height;
+    #endif
 
     width = randId % size;
+
+    #if !MODERN
     sDebug_DisintegrationData[1] = width;
+    #endif
 
     row = height & 7;
     col = width & 7;
+    #if !MODERN
     sDebug_DisintegrationData[2] = height & 7;
     sDebug_DisintegrationData[3] = width & 7;
+    #endif
 
     widthTiles = width / 8;
     heightTiles = height / 8;
+    #if !MODERN
     sDebug_DisintegrationData[4] = width / 8;
     sDebug_DisintegrationData[5] = height / 8;
+    #endif
 
     var = (size / 8) * (heightTiles * 64) + (widthTiles * 64);
+    #if !MODERN
     sDebug_DisintegrationData[6] = var;
+    #endif
 
     baseOffset = var + ((row * 8) + col);
     baseOffset /= 2;
+    #if !MODERN
     sDebug_DisintegrationData[7] = var + ((row * 8) + col);
+    #endif
 
     flag = ((randId % 2) ^ 1);
     tileMask = (c << (flag << 2)) | (15 << (((flag ^ 1) << 2)));

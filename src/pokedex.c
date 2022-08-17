@@ -5114,15 +5114,25 @@ static void Task_SearchCompleteWaitForInput(u8 taskId)
 static void Task_SelectSearchMenuItem(u8 taskId)
 {
     u8 menuItem;
+    #if !MODERN
     u16 *cursorPos;
     u16 *scrollOffset;
+    #else
+    s16 *cursorPos;
+    #endif
 
     DrawOrEraseSearchParameterBox(FALSE);
     menuItem = gTasks[taskId].tMenuItem;
+    #if !MODERN
     cursorPos = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataCursorPos];
     scrollOffset = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
     gTasks[taskId].tCursorPos = *cursorPos;
     gTasks[taskId].tScrollOffset = *scrollOffset;
+    #else
+    *cursorPos = gTasks[taskId].data[sSearchOptions[menuItem].taskDataCursorPos];
+    gTasks[taskId].tCursorPos = *cursorPos;
+    gTasks[taskId].tScrollOffset = gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+    #endif
     PrintSearchParameterText(taskId);
     PrintSelectorArrow(*cursorPos);
     gTasks[taskId].func = Task_HandleSearchParameterInput;
@@ -5453,10 +5463,15 @@ static void DrawOrEraseSearchParameterBox(bool8 erase)
 static void PrintSearchParameterText(u8 taskId)
 {
     const struct SearchOptionText *texts = sSearchOptions[gTasks[taskId].tMenuItem].texts;
+    #if !MODERN
     const u16 *cursorPos = &gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataCursorPos];
     const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataScrollOffset];
-    u16 i;
-    u16 j;
+    #else
+    const s16 *cursorPos = &gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataCursorPos];
+    const s16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataScrollOffset];
+    #endif
+    m16 i;
+    m16 j;
 
     ClearSearchParameterBoxText();
 
@@ -5540,10 +5555,17 @@ static void SetDefaultSearchModeAndOrder(u8 taskId)
 static bool8 SearchParamCantScrollUp(u8 taskId)
 {
     u8 menuItem = gTasks[taskId].tMenuItem;
+    #if !MODERN
     const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+    #else
+    s16 scrollOffset = gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+    #endif
     u16 lastOption = sSearchOptions[menuItem].numOptions - 1;
-
+    #if !MODERN
     if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS && *scrollOffset != 0)
+    #else
+    if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS && scrollOffset != 0)
+    #endif
         return FALSE;
     else
         return TRUE;

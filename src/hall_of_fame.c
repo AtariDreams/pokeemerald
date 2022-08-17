@@ -1492,7 +1492,12 @@ static void Task_DoDomeConfetti(u8 taskId)
     #if !MODERN
     u32 id = 0;
     #endif
+
+    #if !MODERN
     u16 *data = gTasks[taskId].data;
+    #else
+    s16 *data = gTasks[taskId].data;
+    #endif
 
     switch (tState)
     {
