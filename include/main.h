@@ -69,7 +69,9 @@ void ClearTrainerHillVBlankCounter(void);
 NORETURN void DoSoftReset(void);
 void ClearPokemonCrySongs(void);
 void RestoreSerialTimer3IntrHandlers(void);
+#if !MODERN
 void StartTimer1(void);
+#endif
 void SeedRngAndSetTrainerId(void);
 u16 GetGeneratedTrainerIdLower(void);
 
