@@ -163,7 +163,7 @@ SoundMainRAM_ChanLoop:
 	adds r1, TOTAL_SCANLINES
 _081DCF54:
 	cmp r1, r0
-	blo _081DCF60
+	bcc _081DCF60
 	b _081DD24A
 
 	.pool
