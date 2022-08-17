@@ -82,7 +82,7 @@ struct ObjectEventTemplate
 
 struct WarpEvent
 {
-    s16 x, y;
+    u16 x, y;
     u8 elevation;
     u8 warpId;
     u8 mapNum;
@@ -91,10 +91,10 @@ struct WarpEvent
 
 struct CoordEvent
 {
-    s16 x, y;
+    u16 x, y;
     u8 elevation;
     u16 trigger;
-    u16 index;
+    u8 index;
     u8 *script;
 };
 
