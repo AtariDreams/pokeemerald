@@ -398,6 +398,7 @@ static bool8 MapHasSpecies(const struct WildPokemonHeader *info, u16 species)
         return TRUE;
 // When searching the fishing encounters, this incorrectly uses the size of the land encounters.
 // As a result it's reading out of bounds of the fishing encounters tables.
+//TODO: investigate this
 #ifdef BUGFIX
     if (MonListHasSpecies(info->fishingMonsInfo, species, FISH_WILD_COUNT))
 #else
@@ -459,6 +460,8 @@ static void BuildAreaGlowTilemap(void)
                 // since there's no harm in OR'ing 0xFFFF with anything else.
 
                 // Edges
+                // TODO: get these removed later on if the compiler can optimize a read out if it is glowFull.
+                // See if the storing back takes longer than a check and jump/worth the cost
                 if (x != 0 && sPokedexAreaScreen->areaGlowTilemap[j - 1] != GLOW_FULL)
                     sPokedexAreaScreen->areaGlowTilemap[j - 1] |= GLOW_EDGE_L;
                 if (x != AREA_SCREEN_WIDTH - 1 && sPokedexAreaScreen->areaGlowTilemap[j + 1] != GLOW_FULL)
@@ -496,6 +499,7 @@ static void BuildAreaGlowTilemap(void)
         {
             // Get rid of overlapping flags.
             // This is pointless, as sAreaGlowTilemapMapping can handle overlaps.
+            #if !MODERN
             if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_L)
                 sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TL | GLOW_CORNER_BL);
             if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_R)
@@ -504,6 +508,7 @@ static void BuildAreaGlowTilemap(void)
                 sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_TR | GLOW_CORNER_TL);
             if (sPokedexAreaScreen->areaGlowTilemap[i] & GLOW_EDGE_B)
                 sPokedexAreaScreen->areaGlowTilemap[i] &= ~(GLOW_CORNER_BR | GLOW_CORNER_BL);
+            #endif
 
             // Assign tile id
             sPokedexAreaScreen->areaGlowTilemap[i] = sAreaGlowTilemapMapping[sPokedexAreaScreen->areaGlowTilemap[i]];
@@ -648,6 +653,7 @@ static void Task_ShowPokedexAreaScreen(u8 taskId)
         SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG0 | BLDCNT_EFFECT_BLEND | BLDCNT_TGT2_BG0 | BLDCNT_TGT2_ALL);
         StartAreaGlow();
         ShowBg(2);
+        // TODO: check this
         ShowBg(3); // TryShowPokedexAreaMap will have done this already
         SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON);
         break;
