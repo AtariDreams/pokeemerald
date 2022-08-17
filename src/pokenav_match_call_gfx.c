@@ -402,7 +402,7 @@ static u32 MatchCallListCursorDown(s32 state)
         switch (PokenavList_MoveCursorDown())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -412,7 +412,6 @@ static u32 MatchCallListCursorDown(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
@@ -438,7 +437,7 @@ static u32 MatchCallListCursorUp(s32 state)
         switch (PokenavList_MoveCursorUp())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -448,13 +447,11 @@ static u32 MatchCallListCursorUp(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
@@ -475,7 +472,7 @@ static u32 MatchCallListPageDown(s32 state)
         switch (PokenavList_PageDown())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -485,13 +482,11 @@ static u32 MatchCallListPageDown(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
@@ -512,7 +507,7 @@ static u32 MatchCallListPageUp(s32 state)
         switch (PokenavList_PageUp())
         {
         case 0:
-            break;
+            return LT_FINISH;
         case 1:
             PlaySE(SE_SELECT);
             return LT_SET_STATE(2);
@@ -522,13 +517,11 @@ static u32 MatchCallListPageUp(s32 state)
         default:
             return LT_INC_AND_PAUSE;
         }
-        break;
     case 1:
         if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
-        PrintMatchCallLocation(gfx, 0);
-        return LT_INC_AND_PAUSE;
+        // fall through
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
