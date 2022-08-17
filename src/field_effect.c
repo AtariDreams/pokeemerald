@@ -3685,7 +3685,7 @@ static void Task_DestroyDeoxysRock(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
     InstallCameraPanAheadCallback();
-    SetCameraPanningCallback(0);
+    SetCameraPanningCallback(NULL);
     sDestroyDeoxysRockEffectFuncs[tState](data, taskId);
 }
 

@@ -3652,8 +3652,8 @@ static bool8 WhiteBarsFade_BlendToBlack(struct Task *task)
     sTransitionData->VBlank_DMA = 0;
 
     DmaStop(0);
-    SetVBlankCallback(0);
-    SetHBlankCallback(0);
+    SetVBlankCallback(NULL);
+    SetHBlankCallback(NULL);
 
     sTransitionData->WIN0H = DISPLAY_WIDTH;
     sTransitionData->BLDY = 0;
