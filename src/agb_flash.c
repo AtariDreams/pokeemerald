@@ -121,14 +121,14 @@ u8 ReadFlash1(u8 *addr)
 void SetReadFlash1(u16 *dest)
 {
     u16 *src;
-    u16 i;
+    m16 i;
 
     PollFlashStatus = (u8 (*)(u8 *))((u8 *)dest + 1);
 
     src = (u16 *)ReadFlash1;
     src = (u16 *)((u32)src ^ 1);
 
-    for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>1;i>0;i--)
+    for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>1;i!=0;i--)
 		*dest++=*src++;
 }
 
@@ -241,12 +241,9 @@ bool32 VerifyFlashSector(u16 sectorNum, u8 *src)
     funcSrc = (u16 *)((u32)funcSrc ^ 1);
     funcDest = verifyFlashSector_Core_Buffer;
 
-    i = ((u32)VerifyFlashSector - (u32)VerifyFlashSector_Core) >> 1;
-
-    while (i != 0)
+    for(i=((u32)VerifyFlashSector-(u32)VerifyFlashSector_Core)>>1;i>0;i--)
     {
         *funcDest++ = *funcSrc++;
-        i--;
     }
 
     verifyFlashSector_Core = (u32 (*)(u8 *, u8 *, u32))((u8 *)verifyFlashSector_Core_Buffer + 1);
@@ -265,7 +262,7 @@ bool32 VerifyFlashSector(u16 sectorNum, u8 *src)
 #if !MODERN
 u32 VerifyFlashSectorNBytes(u16 sectorNum, u8 *src, u32 n)
 {
-    u16 i;
+    m16 i;
     u16 verifyFlashSector_Core_Buffer[0x80];
     u16 *funcSrc;
     u16 *funcDest;
@@ -284,12 +281,9 @@ u32 VerifyFlashSectorNBytes(u16 sectorNum, u8 *src, u32 n)
     funcSrc = (u16 *)((u32)funcSrc ^ 1);
     funcDest = verifyFlashSector_Core_Buffer;
 
-    i = ((u32)VerifyFlashSector - (u32)VerifyFlashSector_Core) >> 1;
-
-    while (i != 0)
+    for(i=((u32)VerifyFlashSector-(u32)VerifyFlashSector_Core)>>1;i!=0;i--)
     {
         *funcDest++ = *funcSrc++;
-        i--;
     }
 
     verifyFlashSector_Core = (u32 (*)(u8 *, u8 *, u32))((u8 *)verifyFlashSector_Core_Buffer + 1);
@@ -302,7 +296,7 @@ u32 VerifyFlashSectorNBytes(u16 sectorNum, u8 *src, u32 n)
 
 u32 ProgramFlashSectorAndVerify(u16 sectorNum, u8 *src)
 {
-    u8 i;
+    m8 i;
     u32 result;
 
     for (i = 0; i < 3; i++)
@@ -322,7 +316,7 @@ u32 ProgramFlashSectorAndVerify(u16 sectorNum, u8 *src)
 #if !MODERN
 u32 ProgramFlashSectorAndVerifyNBytes(u16 sectorNum, u8 *src, u32 n)
 {
-    u8 i;
+    m8 i;
     u32 result;
 
     for (i = 0; i < 3; i++)
