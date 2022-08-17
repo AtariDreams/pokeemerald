@@ -137,6 +137,7 @@ static u32 CB2_HandleMatchCallOptionsInput(struct Pokenav_MatchCallMenu *state)
         state->optionCursorPos--;
         return POKENAV_MC_FUNC_MOVE_OPTIONS_CURSOR;
     }
+    // Should we separate the joy_new and the state option pos and then do else if?
 
     if (JOY_NEW(DPAD_DOWN) && state->optionCursorPos < state->maxOptionId)
     {
@@ -266,7 +267,7 @@ bool32 IsRematchEntryRegistered(int rematchIndex)
     return FALSE;
 }
 
-int IsMatchCallListInitFinished(void)
+bool32 IsMatchCallListInitFinished(void)
 {
     struct Pokenav_MatchCallMenu *state = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_MAIN);
     return state->initFinished;
@@ -331,7 +332,7 @@ bool32 ShouldDrawRematchPokeballIcon(int index)
 
 int GetMatchCallTrainerPic(int index)
 {
-    int headerId;
+    u32 headerId;
     struct Pokenav_MatchCallMenu *state = GetSubstructPtr(POKENAV_SUBSTRUCT_MATCH_CALL_MAIN);
     if (!state->matchCallEntries[index].isSpecialTrainer)
     {
@@ -407,8 +408,8 @@ void BufferMatchCallNameAndDesc(struct PokenavMatchCallEntry *matchCallEntry, u8
     {
         int index = GetTrainerIdxByRematchIdx(matchCallEntry->headerId);
         const struct Trainer *trainer = &gTrainers[index];
-        int class = trainer->trainerClass;
-        className = gTrainerClassNames[class];
+
+        className = gTrainerClassNames[trainer->trainerClass];
         trainerName = trainer->trainerName;
     }
     else

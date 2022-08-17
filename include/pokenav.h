@@ -407,7 +407,7 @@ void ResetBldCnt_(void);
 bool32 PokenavCallback_Init_MatchCall(void);
 u32 GetMatchCallCallback(void);
 void FreeMatchCallSubstruct1(void);
-int IsMatchCallListInitFinished(void);
+bool32 IsMatchCallListInitFinished(void);
 int GetNumberRegistered(void);
 struct PokenavMatchCallEntry *GetMatchCallList(void);
 u16 GetMatchCallMapSec(int);
