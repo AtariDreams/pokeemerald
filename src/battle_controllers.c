@@ -115,7 +115,8 @@ void InitBattleControllers(void)
     for (i = 0; i < sizeof(gBattleStruct->tv); i++)
         *((u8*)(&gBattleStruct->tv) + i) = 0;
     #else
-    memset(&gBattleStruct->tvMovePoints, 0, sizeof(gBattleStruct->tvMovePoints) + sizeof(gBattleStruct->tv));
+    memset(&gBattleStruct->tvMovePoints, 0, sizeof(gBattleStruct->tvMovePoints));
+    memset (&gBattleStruct->tv, 0, sizeof(gBattleStruct->tv));
     #endif
 }
 
