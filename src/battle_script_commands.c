@@ -5907,18 +5907,18 @@ static void Cmd_adjustsetdamage(void)
 
 static void Cmd_removeitem(void)
 {
-    #if !MODERN
+#if !MODERN
     u16 *usedHeldItem;
-    #endif
+#endif
 
     gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
 
-    #if !MODERN
+#if !MODERN
     usedHeldItem = &gBattleStruct->usedHeldItems[gActiveBattler];
     *usedHeldItem = gBattleMons[gActiveBattler].item;
-    #else
+#else
     gBattleStruct->usedHeldItems[gActiveBattler] = gBattleMons[gActiveBattler].item;
-    #endif
+#endif
     gBattleMons[gActiveBattler].item = ITEM_NONE;
 
     BtlController_EmitSetMonData(BUFFER_A, REQUEST_HELDITEM_BATTLE, 0, sizeof(gBattleMons[gActiveBattler].item), &gBattleMons[gActiveBattler].item);
@@ -6088,12 +6088,12 @@ static void DrawLevelUpBannerText(void)
     u8 monGender;
     struct TextPrinterTemplate printerTemplate;
     u8 *txtPtr;
-    // Both MODERN and not match on their own, but MODERN causes a nonmatch in an unrelated function
-    #if MODERN
+// Both MODERN and not match on their own, but MODERN causes a nonmatch in an unrelated function
+#if MODERN
     u8 *var;
-    #else
+#else
     u32 var;
-    #endif
+#endif
 
     monLevel = GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_LEVEL);
     monGender = GetMonGender(&gPlayerParty[gBattleStruct->expGetterMonId]);
@@ -6119,16 +6119,16 @@ static void DrawLevelUpBannerText(void)
     *(txtPtr)++ = CHAR_EXTRA_SYMBOL;
     *(txtPtr)++ = CHAR_LV_2;
 
-    #if !MODERN
+#if !MODERN
     var = (u32)(txtPtr);
     txtPtr = ConvertIntToDecimalStringN(txtPtr, monLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
     var = (u32)(txtPtr)-var;
     txtPtr = StringFill(txtPtr, CHAR_SPACER, 4 - var);
-    #else
+#else
     var = txtPtr;
     txtPtr = ConvertIntToDecimalStringN(txtPtr, monLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
     txtPtr = StringFill(txtPtr, CHAR_SPACER, 4 - (txtPtr - var));
-    #endif
+#endif
 
     if (monGender != MON_GENDERLESS)
     {
@@ -6159,7 +6159,7 @@ static bool8 SlideOutLevelUpBanner(void)
     if (gBattle_BG2_X == LEVEL_UP_BANNER_START)
         return FALSE;
 
-    #if !MODERN
+#if !MODERN
     if (gBattle_BG2_X - 16 < LEVEL_UP_BANNER_START)
         gBattle_BG2_X = LEVEL_UP_BANNER_START;
     else
@@ -6172,7 +6172,7 @@ static bool8 SlideOutLevelUpBanner(void)
         gBattle_BG2_X = LEVEL_UP_BANNER_START;
         return TRUE;
     }
-    
+
     gBattle_BG2_X -= 16;
 
     return FALSE;
@@ -6843,11 +6843,11 @@ static void Cmd_nop(void)
 
 bool8 UproarWakeUpCheck(u8 battlerId)
 {
-    #if !MODERN
+#if !MODERN
     s32 i;
-    #else
+#else
     u8 i;
-    #endif
+#endif
 
     for (i = 0; i < gBattlersCount; i++)
     {
@@ -7023,7 +7023,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
             }
             return STAT_CHANGE_DIDNT_WORK;
         }
-    if (gCurrentMove != MOVE_CURSE && notProtectAffected != TRUE && JumpIfMoveAffectedByProtect(0))
+        if (gCurrentMove != MOVE_CURSE && notProtectAffected != TRUE && JumpIfMoveAffectedByProtect(0))
         {
             gBattlescriptCurrInstr = BattleScript_ButItFailed;
             return STAT_CHANGE_DIDNT_WORK;
@@ -7125,16 +7125,16 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
     gBattleMons[gActiveBattler].statStages[statId] += statValue;
     if (gBattleMons[gActiveBattler].statStages[statId] < MIN_STAT_STAGE)
         gBattleMons[gActiveBattler].statStages[statId] = MIN_STAT_STAGE;
-    M_IF (gBattleMons[gActiveBattler].statStages[statId] > MAX_STAT_STAGE)
+    M_IF(gBattleMons[gActiveBattler].statStages[statId] > MAX_STAT_STAGE)
         gBattleMons[gActiveBattler].statStages[statId] = MAX_STAT_STAGE;
 
-    #if !MODERN
+#if !MODERN
     if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && flags & STAT_CHANGE_ALLOW_PTR)
         gMoveResultFlags |= MOVE_RESULT_MISSED;
 
     if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && !(flags & STAT_CHANGE_ALLOW_PTR))
         return STAT_CHANGE_DIDNT_WORK;
-    #else
+#else
     if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE)
     {
         if (!(flags & STAT_CHANGE_ALLOW_PTR))
@@ -7142,7 +7142,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
 
         gMoveResultFlags |= MOVE_RESULT_MISSED;
     }
-    #endif
+#endif
 
     return STAT_CHANGE_WORKED;
 }
@@ -7213,6 +7213,7 @@ static void Cmd_initmultihitstring(void)
 
 static bool8 TryDoForceSwitchOut(void)
 {
+#if !MODERN
     if (gBattleMons[gBattlerAttacker].level >= gBattleMons[gBattlerTarget].level)
     {
         *(gBattleStruct->battlerPartyIndexes + gBattlerTarget) = gBattlerPartyIndexes[gBattlerTarget];
@@ -7228,22 +7229,31 @@ static bool8 TryDoForceSwitchOut(void)
         *(gBattleStruct->battlerPartyIndexes + gBattlerTarget) = gBattlerPartyIndexes[gBattlerTarget];
     }
 
+#else
+    if ((gBattleMons[gBattlerAttacker].level < gBattleMons[gBattlerTarget].level) && (((Random() & 0xFF) * (gBattleMons[gBattlerAttacker].level + gBattleMons[gBattlerTarget].level) >> 8) < (gBattleMons[gBattlerTarget].level / 4)))
+    {
+        gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+        return FALSE;
+    }
+    gBattleStruct->battlerPartyIndexes[gBattlerTarget] = gBattlerPartyIndexes[gBattlerTarget];
+#endif
+
     gBattlescriptCurrInstr = BattleScript_SuccessForceOut;
     return TRUE;
 }
 
 static void Cmd_forcerandomswitch(void)
 {
-    s32 i;
-    s32 battler1PartyId = 0;
-    s32 battler2PartyId = 0;
+    m32 i;
+    m32 battler1PartyId = 0;
+    m32 battler2PartyId = 0;
 
-    s32 firstMonId;
-    s32 lastMonId = 0; // + 1
-    s32 monsCount;
+    m32 firstMonId;
+    m32 lastMonId = 0; // + 1
+    m32 monsCount;
     struct Pokemon *party = NULL;
-    s32 validMons = 0;
-    s32 minNeeded;
+    m32 validMons = 0;
+    m32 minNeeded;
 
     if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER))
     {
@@ -7348,6 +7358,7 @@ static void Cmd_forcerandomswitch(void)
         {
             if (TryDoForceSwitchOut())
             {
+                #if !MODERN
                 do
                 {
                     do
@@ -7356,8 +7367,19 @@ static void Cmd_forcerandomswitch(void)
                         i += firstMonId;
                     } while (i == battler2PartyId || i == battler1PartyId);
                 } while (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(&party[i], MON_DATA_IS_EGG) == TRUE || GetMonData(&party[i], MON_DATA_HP) == 0); // should be one while loop, but that doesn't match.
+                #else
+                do
+                {
+                    i = Random() % monsCount + firstMonId;
+
+                } while ((i == battler2PartyId || i == battler1PartyId) && (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(&party[i], MON_DATA_IS_EGG) == TRUE || GetMonData(&party[i], MON_DATA_HP) == 0));
+                #endif
             }
+            #if !MODERN
             *(gBattleStruct->monToSwitchIntoId + gBattlerTarget) = i;
+            #else
+            gBattleStruct->monToSwitchIntoId[gBattlerTarget] = i;
+            #endif
 
             if (!IsMultiBattle())
                 SwitchPartyOrder(gBattlerTarget);
