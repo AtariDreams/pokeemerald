@@ -839,6 +839,7 @@ u32 CalcByteArraySum(const u8 *data, u32 length)
     return sum;
 }
 
+// TODO: find a better location or file for this function
 void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor)
 {
     u16 i;
