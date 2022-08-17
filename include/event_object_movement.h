@@ -99,7 +99,7 @@ void TrySpawnObjectEvents(s16, s16);
 u8 CreateObjectGraphicsSprite(u16, void (*)(struct Sprite *), s16 x, s16 y, u8 subpriority);
 u8 TrySpawnObjectEvent(u8, u8, u8);
 u8 SpawnSpecialObjectEventParameterized(u8 graphicsId, u8 movementBehavior, u8 localId, s16 x, s16 y, u8 elevation);
-u8 SpawnSpecialObjectEvent(struct ObjectEventTemplate *);
+u8 SpawnSpecialObjectEvent(const struct ObjectEventTemplate *);
 void SetSpritePosToMapCoords(s16, s16, s16 *, s16 *);
 void CameraObjectReset1(void);
 void ObjectEventSetGraphicsId(struct ObjectEvent *, u8 graphicsId);
@@ -120,19 +120,32 @@ void InitObjectEventPalettes(u8 palSlot);
 void UpdateObjectEventCurrentMovement(struct ObjectEvent *, struct Sprite *, bool8(struct ObjectEvent *, struct Sprite *));
 u8 ObjectEventFaceOppositeDirection(struct ObjectEvent *, u8);
 u8 GetOppositeDirection(u8);
-u8 GetWalkInPlaceFasterMovementAction(u32);
-u8 GetWalkInPlaceFastMovementAction(u32);
-u8 GetWalkInPlaceNormalMovementAction(u32);
-u8 GetWalkInPlaceSlowMovementAction(u32);
+
+#if !MODERN
 u8 GetCollisionAtCoords(struct ObjectEvent *, s16, s16, u32);
+#else
+u8 GetCollisionAtCoords(struct ObjectEvent *, s16, s16, u8);
+#endif
+
 void MoveCoords(u8, s16 *, s16 *);
 bool8 ObjectEventIsHeldMovementActive(struct ObjectEvent *);
 u8 ObjectEventClearHeldMovementIfFinished(struct ObjectEvent *);
+#if !MODERN
 u8 GetObjectEventIdByPosition(u16 x, u16 y, u8 elevation);
+#else
+u8 GetObjectEventIdByPosition(s16 x, s16 y, u8 elevation);
+#endif
 void SetTrainerMovementType(struct ObjectEvent *objectEvent, u8 movementType);
 u8 GetTrainerFacingDirectionMovementType(u8 direction);
 const u8 *GetObjectEventScriptPointerByObjectEventId(u8 objectEventId);
 u8 GetCollisionFlagsAtCoords(struct ObjectEvent *objectEvent, s16 x, s16 y, u8 direction);
+#if !MODERN
+u8 GetSlideMovementAction(u32);
+u8 GetJumpInPlaceMovementAction(u32);
+u8 GetJumpMovementAction(u32);
+u8 GetJump2MovementAction(u32);
+u8 GetWalkSlowMovementAction(u32);
+u8 GetJumpMovementAction(u32);
 u8 GetFaceDirectionMovementAction(u32);
 u8 GetWalkNormalMovementAction(u32);
 u8 GetWalkFastMovementAction(u32);
@@ -151,6 +164,42 @@ u8 GetAcroWheelieInPlaceDirectionMovementAction(u32);
 u8 GetAcroPopWheelieMoveDirectionMovementAction(u32);
 u8 GetAcroWheelieMoveDirectionMovementAction(u32);
 u8 GetAcroEndWheelieMoveDirectionMovementAction(u32);
+u8 GetJumpSpecialMovementAction(u32);
+u8 GetWalkInPlaceFasterMovementAction(u32);
+u8 GetWalkInPlaceFastMovementAction(u32);
+u8 GetWalkInPlaceNormalMovementAction(u32);
+u8 GetWalkInPlaceSlowMovementAction(u32);
+#else
+u8 GetSlideMovementAction(u8);
+u8 GetJumpInPlaceMovementAction(u8);
+u8 GetJumpMovementAction(u8);
+u8 GetJump2MovementAction(u8);
+u8 GetWalkSlowMovementAction(u8);
+u8 GetJumpMovementAction(u8);
+u8 GetFaceDirectionMovementAction(u8);
+u8 GetWalkNormalMovementAction(u8);
+u8 GetWalkFastMovementAction(u8);
+u8 GetRideWaterCurrentMovementAction(u8);
+u8 GetWalkFasterMovementAction(u8);
+u8 GetPlayerRunMovementAction(u8);
+u8 GetJumpInPlaceMovementAction(u8);
+u8 GetAcroWheelieFaceDirectionMovementAction(u8);
+u8 GetAcroPopWheelieFaceDirectionMovementAction(u8);
+u8 GetAcroEndWheelieFaceDirectionMovementAction(u8);
+u8 GetAcroWheelieHopFaceDirectionMovementAction(u8);
+u8 GetAcroWheelieHopDirectionMovementAction(u8);
+u8 GetAcroWheelieJumpDirectionMovementAction(u8);
+u8 GetJumpInPlaceTurnAroundMovementAction(u8);
+u8 GetAcroWheelieInPlaceDirectionMovementAction(u8);
+u8 GetAcroPopWheelieMoveDirectionMovementAction(u8);
+u8 GetAcroWheelieMoveDirectionMovementAction(u8);
+u8 GetAcroEndWheelieMoveDirectionMovementAction(u8);
+u8 GetJumpSpecialMovementAction(u8);
+u8 GetWalkInPlaceFasterMovementAction(u8);
+u8 GetWalkInPlaceFastMovementAction(u8);
+u8 GetWalkInPlaceNormalMovementAction(u8);
+u8 GetWalkInPlaceSlowMovementAction(u8);
+#endif
 u8 GetFishingDirectionAnimNum(u8 direction);
 u8 GetAcroWheelieDirectionAnimNum(u8 direction);
 u8 GetFishingBiteDirectionAnimNum(u8 direction);
@@ -163,11 +212,14 @@ u8 ObjectEventGetHeldMovementActionId(struct ObjectEvent *objectEvent);
 void TryOverrideTemplateCoordsForObjectEvent(const struct ObjectEvent *objectEvent, u8 movementType);
 void OverrideTemplateCoordsForObjectEvent(const struct ObjectEvent *objectEvent);
 void ShiftStillObjectEventCoords(struct ObjectEvent *objEvent);
+#if !MODERN
 void ObjectEventMoveDestCoords(struct ObjectEvent *objEvent, u32 direction, s16 *x, s16 *y);
+#else
+void ObjectEventMoveDestCoords(struct ObjectEvent *objEvent, u8 direction, s16 *x, s16 *y);
+#endif
 u8 AddCameraObject(u8 linkedSpriteId);
 void UpdateObjectEventsForCameraUpdate(s16 x, s16 y);
-u8 GetWalkSlowMovementAction(u32);
-u8 GetJumpMovementAction(u32);
+
 u8 ElevationToPriority(u8);
 void ObjectEventUpdateElevation(struct ObjectEvent *objEvent);
 void SetObjectSubpriorityByElevation(u8, struct Sprite *, u8);
@@ -249,10 +301,7 @@ void MovementType_JogInPlace(struct Sprite *);
 void MovementType_RunInPlace(struct Sprite *);
 void MovementType_Invisible(struct Sprite *);
 void MovementType_WalkSlowlyInPlace(struct Sprite *);
-u8 GetSlideMovementAction(u32);
-u8 GetJumpInPlaceMovementAction(u32);
-u8 GetJumpMovementAction(u32);
-u8 GetJump2MovementAction(u32);
+
 u8 CreateCopySpriteAt(struct Sprite *sprite, s16 x, s16 y, u8 subpriority);
 
 u8 MovementType_WanderAround_Step0(struct ObjectEvent *, struct Sprite *);
