@@ -904,7 +904,7 @@ static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, size
             // Both daycare slots can hold an item, choose which one to use.
             // If either one is the only one to have associated mail, use that one.
             // If both do or don't have associated mail, choose one randomly.
-            u32 itemId1, itemId2;
+            u8 itemId1, itemId2;
             idxs[j][MULTIPLAYER_ID] = i;
             itemId1 = GetDaycareMailItemId(&mixMail->mail[0]);
             itemId2 = GetDaycareMailItemId(&mixMail->mail[1]);
@@ -1171,7 +1171,8 @@ static void ReceiveApprenticeData(struct Apprentice *records, size_t recordSize,
     s32 i, numApprentices, apprenticeId;
     struct Apprentice *mixApprentice;
     u32 mixIndices[MAX_LINK_PLAYERS];
-    u32 apprenticeSaveId;
+    // Maybe this should be unsigned but it involves i so maybe it should be signed
+    s32 apprenticeSaveId;
 
     ShufflePlayerIndices(mixIndices);
     mixApprentice = (void *)records + (recordSize * mixIndices[multiplayerId]);
