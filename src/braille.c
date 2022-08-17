@@ -6,14 +6,13 @@
 
 // This file handles the braille font.
 // For printing braille messages, see ScrCmd_braillemessage
-#if !MODERN
+
 ALIGNED(4)
 static const u8 sScrollDistances[] = {
     [OPTIONS_TEXT_SPEED_SLOW] = 1,
     [OPTIONS_TEXT_SPEED_MID] = 2,
     [OPTIONS_TEXT_SPEED_FAST] = 4,
 };
-#endif
 static const u16 sFont_Braille[] = INCBIN_U16("graphics/fonts/braille.fwjpnfont");
 
 static void DecompressGlyph_Braille(u16);
@@ -27,11 +26,6 @@ u16 FontFunc_Braille(struct TextPrinter *textPrinter)
     #else
     u16 char_;
     struct TextPrinterSubStruct *subStruct = &textPrinter->subStructFields;
-    const u8 sScrollDistances[] = {
-    [OPTIONS_TEXT_SPEED_SLOW] = 1,
-    [OPTIONS_TEXT_SPEED_MID] = 2,
-    [OPTIONS_TEXT_SPEED_FAST] = 4,
-    };
     #endif
 
     switch (textPrinter->state)
