@@ -1,10 +1,18 @@
 #include "global.h"
 #include "battle_anim.h"
+#include "contest.h"
+#include "gpu_regs.h"
+#include "graphics.h"
+#include "malloc.h"
 #include "palette.h"
 #include "random.h"
+#include "sound.h"
+#include "sprite.h"
 #include "task.h"
 #include "trig.h"
+#include "util.h"
 #include "constants/rgb.h"
+#include "constants/songs.h"
 
 static void AnimConfusionDuck(struct Sprite *);
 static void AnimSimplePaletteBlend(struct Sprite *);
@@ -34,6 +42,30 @@ static void AnimTask_BlendColorCycleByTagLoop(u8);
 static void AnimTask_FlashAnimTagWithColor_Step1(u8);
 static void AnimTask_FlashAnimTagWithColor_Step2(u8);
 static void AnimTask_ShakeBattleTerrain_Step(u8);
+static void StartBlendAnimSpriteColor(u8, u32);
+static void AnimTask_BlendSpriteColor_Step2(u8);
+static void AnimTask_HardwarePaletteFade_Step(u8);
+static void AnimTask_TraceMonBlended_Step(u8);
+static void AnimMonTrace(struct Sprite*);
+static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8);
+static void StatsChangeAnimation_Step1(u8);
+static void StatsChangeAnimation_Step2(u8);
+static void StatsChangeAnimation_Step3(u8);
+static void AnimTask_Flash_Step(u8);
+static void SetPalettesToColor(u32, u16);
+static void AnimTask_UpdateSlidingBg(u8);
+static void UpdateMonScrollingBgMask(u8);
+static void AnimTask_WaitAndRestoreVisibility(u8);
+
+struct AnimStatsChangeData
+{
+    u8 battler1;
+    u8 battler2;
+    u8 higherPriority;
+    //u8 dummy; //TODO: keep or can we safely remove?
+    s16 data[8];
+    u16 species;
+};
 
 static const union AnimCmd sAnim_ConfusionDuck_0[] =
 {
@@ -252,6 +284,7 @@ const struct SpriteTemplate gPersistHitSplatSpriteTemplate =
     .affineAnims = sAffineAnims_HitSplat,
     .callback = AnimHitSplatPersistent,
 };
+
 
 // Moves a spinning duck around the mon's head.
 // arg 0: initial x pixel offset
@@ -1037,52 +1070,7 @@ static void AnimFlashingHitSplat_Step(struct Sprite *sprite)
         DestroyAnimSprite(sprite);
 }
 
-#include "global.h"
-#include "battle_anim.h"
-#include "contest.h"
-#include "gpu_regs.h"
-#include "graphics.h"
-#include "malloc.h"
-#include "palette.h"
-#include "sound.h"
-#include "sprite.h"
-#include "task.h"
-#include "util.h"
-#include "constants/rgb.h"
-#include "constants/songs.h"
-
-struct AnimStatsChangeData
-{
-    u8 battler1;
-    u8 battler2;
-    u8 higherPriority;
-    s16 data[8];
-    u16 species;
-};
-
-static EWRAM_DATA struct AnimStatsChangeData *sAnimStatsChangeData = {0};
-
-static void StartBlendAnimSpriteColor(u8, u32);
-static void AnimTask_BlendSpriteColor_Step2(u8);
-static void AnimTask_HardwarePaletteFade_Step(u8);
-static void AnimTask_TraceMonBlended_Step(u8);
-static void AnimMonTrace(struct Sprite*);
-static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8);
-static void StatsChangeAnimation_Step1(u8);
-static void StatsChangeAnimation_Step2(u8);
-static void StatsChangeAnimation_Step3(u8);
-static void AnimTask_Flash_Step(u8);
-static void SetPalettesToColor(u32, u16);
-static void AnimTask_UpdateSlidingBg(u8);
-static void UpdateMonScrollingBgMask(u8);
-static void AnimTask_WaitAndRestoreVisibility(u8);
-
-static const u16 sCurseLinesPalette[] = { RGB_WHITE };
-
-// These belong in battle_intro.c, but putting them there causes 2 bytes of alignment padding
-// between the two .rodata segments. Perhaps battle_intro.c actually belongs in this file, too.
-const u8 gBattleAnimBgCntSet[] = {REG_OFFSET_BG0CNT, REG_OFFSET_BG1CNT, REG_OFFSET_BG2CNT, REG_OFFSET_BG3CNT};
-const u8 gBattleAnimBgCntGet[] = {REG_OFFSET_BG0CNT, REG_OFFSET_BG1CNT, REG_OFFSET_BG2CNT, REG_OFFSET_BG3CNT};
+// START
 
 void AnimTask_BlendBattleAnimPal(u8 taskId)
 {
@@ -1310,6 +1298,7 @@ static void AnimMonTrace(struct Sprite *sprite)
     }
 }
 
+const u16 sCurseLinesPalette = RGB_WHITE;
 // Only used by Curse for non-Ghost mons
 void AnimTask_DrawFallingWhiteLinesOnAttacker(u8 taskId)
 {
@@ -1372,7 +1361,7 @@ void AnimTask_DrawFallingWhiteLinesOnAttacker(u8 taskId)
     GetBattleAnimBg1Data(&animBgData);
     AnimLoadCompressedBgTilemapHandleContest(&animBgData, gBattleAnimMaskTilemap_Curse, FALSE);
     AnimLoadCompressedBgGfx(animBgData.bgId, gBattleAnimMaskImage_Curse, animBgData.tilesOffset);
-    LoadPalette(sCurseLinesPalette, animBgData.paletteId * 16 + 1, 2);
+    LoadPalette(&sCurseLinesPalette, animBgData.paletteId * 16 + 1, 2);
 
     gBattle_BG1_X = -gSprites[spriteId].x + 32;
     gBattle_BG1_Y = -gSprites[spriteId].y + 32;
@@ -1427,6 +1416,7 @@ static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8 taskId)
     }
 }
 
+static EWRAM_DATA struct AnimStatsChangeData *sAnimStatsChangeData = NULL;
 void InitStatsChangeAnimation(u8 taskId)
 {
     u8 i;
@@ -2098,6 +2088,9 @@ static void AnimTask_WaitAndRestoreVisibility(u8 taskId)
         DestroyTask(taskId);
     }
 }
+static const u8 gBattleAnimBgCntSet[] = {REG_OFFSET_BG0CNT, REG_OFFSET_BG1CNT, REG_OFFSET_BG2CNT, REG_OFFSET_BG3CNT};
+// literally just a copy
+static const u8 gBattleAnimBgCntGet[] = {REG_OFFSET_BG0CNT, REG_OFFSET_BG1CNT, REG_OFFSET_BG2CNT, REG_OFFSET_BG3CNT};
 
 void SetAnimBgAttribute(u8 bgId, u8 attributeId, u8 value)
 {
