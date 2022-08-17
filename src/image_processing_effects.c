@@ -254,15 +254,22 @@ static void ApplyImageEffect_PersonalityColor(u8 personality)
 static void ApplyImageEffect_BlackAndWhite(void)
 {
     u8 i, j;
+    u16 *pixel;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
-        u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart];
+        #if MODERN
+        pixel = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart];
+        #else
+        pixel = gCanvasPixels + (gCanvasRowStart + j) * gCanvasWidth + gCanvasColumnStart;
+        #endif
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
-                *pixel = QuantizePixel_BlackAndWhite(pixel);
+            if (IS_ALPHA(*pixel))
+            {
+                continue;
+            }
+            *pixel = QuantizePixel_BlackAndWhite(pixel);
         }
     }
 }
