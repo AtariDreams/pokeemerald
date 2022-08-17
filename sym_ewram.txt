@@ -1,7 +1,7 @@
 	.include "src/main.o"
 	.include "gflib/window.o"
 	.include "gflib/text.o"
-	.include "sprite.o"
+	.include "src/sprite.o"
 	.include "string_util.o"
 	.include "src/link.o"
 	.include "src/AgbRfu_LinkManager.o"
