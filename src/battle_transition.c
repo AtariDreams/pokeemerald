@@ -1828,7 +1828,7 @@ static bool8 PokeballsTrail_Main(struct Task *task)
     {
         if (side)
         {
-            gFieldEffectArguments[0] = -16; // x
+            gFieldEffectArguments[0] = DISPLAY_WIDTH + 16; // x
             gFieldEffectArguments[1] = (i << 5) + 16; //y
             gFieldEffectArguments[2] = TRUE;
             side = FALSE;
@@ -1837,7 +1837,7 @@ static bool8 PokeballsTrail_Main(struct Task *task)
         }
         else
         {
-            gFieldEffectArguments[0] = DISPLAY_WIDTH + 16; // x
+            gFieldEffectArguments[0] = -16; // x
             gFieldEffectArguments[1] = (i << 5) + 16; // y
             gFieldEffectArguments[2] = FALSE;
             side = TRUE;
