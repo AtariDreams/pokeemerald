@@ -410,8 +410,13 @@ void DoNamingScreen(u8 templateNum, u8 *destBuffer, u16 monSpecies, u16 monGende
 
     // Use the time to determine the main character as a random number seed
     // Or you can just inline instead of a call, or have this be it's own function for naming the char but whatever
+    
     if (templateNum == NAMING_SCREEN_PLAYER)
+        #if !MODERN
         StartTimer1();
+        #else
+        REG_TM1CNT_H = 0x80;
+        #endif
 
     SetMainCallback2(CB2_LoadNamingScreen);
 }

@@ -213,10 +213,12 @@ void SetMainCallback2(MainCallback callback)
     gMain.state = 0;
 }
 
+#if !MODERN
 void StartTimer1(void)
 {
     REG_TM1CNT_H = 0x80;
 }
+#endif
 
 void SeedRngAndSetTrainerId(void)
 {
