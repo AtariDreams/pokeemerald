@@ -42,7 +42,7 @@ static bool32 SharesTileWithAnyActive(u32 id);
 static bool32 SharesPalWithAnyActive(u32 id);
 
 // ewram
-static EWRAM_DATA struct DigitPrinterAlloc *sOamWork = {0};
+static EWRAM_DATA struct DigitPrinterAlloc *sOamWork = NULL;
 
 // const rom data
 static const u8 sTilesPerImage[4][4] =
@@ -224,8 +224,8 @@ void DigitObjUtil_PrintNumOn(u32 id, s32 num)
 
     switch (sOamWork->array[id].strConvMode)
     {
-    case 0:
     default:
+    case 0:
         DrawNumObjsLeadingZeros(&sOamWork->array[id], num, sign);
         break;
     case 1:
@@ -327,11 +327,9 @@ static void DrawNumObjsMinusInBack(struct DigitPrinter *objWork, s32 num, bool32
         }
     }
 
-    while (nsprites < objWork->oamCount)
+    for (; nsprites < objWork->oamCount; nsprites++)
     {
-        gMain.oamBuffer[oamId].affineMode = ST_OAM_AFFINE_ERASE;
-        oamId++;
-        nsprites++;
+        gMain.oamBuffer[oamId++].affineMode = ST_OAM_AFFINE_ERASE;
     }
 
     if (sign)
@@ -391,7 +389,7 @@ void DigitObjUtil_HideOrShow(u32 id, bool32 hide)
 static u8 GetFirstOamId(u8 oamCount)
 {
     u32 i;
-    u16 firstOamId = 64;
+    u16 firstOamId = MAX_SPRITES;
 
     for (i = 0; i < sOamWork->count; i++)
     {
