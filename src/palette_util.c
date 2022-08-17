@@ -438,7 +438,7 @@ void FillTilemapRect(u16 *dest, u16 value, u8 left, u8 top, u8 width, u8 height)
     u8 i;
     u8 j;
     i = 0;
-    dest = &dest[top * 32 + left];
+    dest += top * 32 + left;
     for (; i < height; i++)
     {
         _dest = dest + i * 32;
@@ -447,14 +447,14 @@ void FillTilemapRect(u16 *dest, u16 value, u8 left, u8 top, u8 width, u8 height)
     }
 }
 
-void SetTilemapRect(u16 *dest, u16 *src, u8 left, u8 top, u8 width, u8 height)
+void SetTilemapRect(u16 *dest, const u16 *src, u8 left, u8 top, u8 width, u8 height)
 {
     u16 *_dest;
-    u16 *_src = src;
+    const u16 *_src = src;
     u8 i;
     u8 j;
     i = 0;
-    dest = &dest[top * 32 + left];
+    dest += top * 32 + left;
     for (; i < height; i++)
     {
         _dest = dest + i * 32;
