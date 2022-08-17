@@ -1165,15 +1165,15 @@ static u16 QuantizePixel_Standard(u16 *pixel)
     // Clamp channels to [6, 30].
     if (red < 6)
         red = 6;
-    if (red > 30)
+    M_IF (red > 30)
         red = 30;
     if (green < 6)
         green = 6;
-    if (green > 30)
+    M_IF (green > 30)
         green = 30;
     if (blue < 6)
         blue = 6;
-    if (blue > 30)
+    M_IF (blue > 30)
         blue = 30;
 
     return RGB2(red, green, blue);
@@ -1185,9 +1185,16 @@ static u16 QuantizePixel_PrimaryColors(u16 *color)
     u16 green = GET_G(*color);
     u16 blue =  GET_B(*color);
 
+    // TODO: was the < 11 a typo?
+    // it was supposed to be <= 11?
+    #if !MODERN
     if (red < 12 && green < 11 && blue < 11)
+    #else
+    if (red < 12 && green < 12 && blue < 12)
+    #endif
         return 1;
 
+    #if !MODERN
     if (red > 19 && green > 19 && blue > 19)
         return 2;
 
@@ -1208,6 +1215,90 @@ static u16 QuantizePixel_PrimaryColors(u16 *color)
                 return 8;
         }
     }
+
+        if (green > 19 && blue > 19)
+    {
+        if (red > 14)
+            return 2;
+        else
+            return 9;
+    }
+
+    if (red > 19)
+    {
+        if (green > 11)
+        {
+            if (blue > 11)
+            {
+                if (green < blue)
+                    return 8;
+                else
+                    return 7;
+            }
+            else
+            {
+                return 10;
+            }
+        }
+        else if (blue > 11)
+        {
+            return 13;
+        }
+        else
+        {
+            return 4;
+        }
+    }
+
+    if (green > 19)
+    {
+        if (red > 11)
+        {
+            if (blue > 11)
+            {
+                if (red < blue)
+                    return 9;
+                else
+                    return 7;
+            }
+            else
+            {
+                return 11;
+            }
+        }
+        else
+        {
+            if (blue > 11)
+                return 14;
+            else
+                return 5;
+        }
+    }
+
+    if (blue > 19)
+    {
+        if (red > 11)
+        {
+            if (green > 11)
+            {
+                if (red < green)
+                    return 9;
+                else
+                    return 8;
+            }
+        }
+        else if (green > 11)
+        {
+            return 12;
+        }
+
+        if (blue > 11)
+            return 15;
+        else
+            return 6;
+    }
+
+
 
     if (green > 19 && blue > 19)
     {
@@ -1290,6 +1381,87 @@ static u16 QuantizePixel_PrimaryColors(u16 *color)
         else
             return 6;
     }
+
+    #else
+    // We know red > 19
+    if (red > 19)
+    {
+        if (green > 19)
+        {
+            // if  blue > 19 return 2
+            if (blue > 14)
+                return 2; 
+            return 7;
+        }
+        if (blue > 19)
+        {
+            if (green > 14)
+                return 2;
+            return 8;
+        }
+        // Part 2
+        if (green > 11)
+        {
+            if (blue > 11)
+            {
+                if (green < blue)
+                    return 8;
+                return 7;
+            }
+            return 10;
+        }
+        if (blue > 11)
+        {
+            return 13;
+        }
+        return 4;
+    }
+
+   if (green > 19)
+    {
+        if (blue > 19)
+        {
+            if (red > 14)
+                return 2;
+            return 9;
+        }
+        if (red > 11)
+        {
+            if (blue > 11)
+            {
+                if (red < blue)
+                    return 9;
+                return 7;
+            }
+            return 11;
+        }
+        else
+        {
+            if (blue > 11)
+                return 14;
+            return 5;
+        }
+    }
+
+    if (blue > 19)
+    {
+        if (green > 11)
+        {
+            if (red > 11)
+            {
+                if (red < green)
+                    return 9;
+                else
+                    return 8;
+            }
+            return 12;
+        }
+
+        // always true
+
+        return 15;
+    }
+    #endif
 
     return 3;
 }
