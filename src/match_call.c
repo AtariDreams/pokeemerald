@@ -101,7 +101,7 @@ struct MatchCallState
 struct MatchCallTrainerTextInfo
 {
     u16 trainerId;
-    u16 unused;
+    u8 unused;
     u16 battleTopicTextIds[3];
     u16 generalTextId;
     u8 battleFrontierRecordStreakTextIndex;
@@ -133,24 +133,33 @@ static EWRAM_DATA struct BattleFrontierStreakInfo sBattleFrontierStreakInfo = {0
 static u32 GetCurrentTotalMinutes(struct Time *);
 static u32 GetNumRegisteredNPCs(void);
 static u32 GetActiveMatchCallTrainerId(u32);
-static int GetTrainerMatchCallId(int);
-static u16 GetRematchTrainerLocation(int);
-static bool32 TrainerIsEligibleForRematch(int);
+static m32 GetTrainerMatchCallId(u32);
+static u16 GetRematchTrainerLocation(u32);
+static bool32 TrainerIsEligibleForRematch(u32);
 static void StartMatchCall(void);
 static void ExecuteMatchCall(u8);
 static void DrawMatchCallTextBoxBorder_Internal(u32, u32, u32);
 static void Task_SpinPokenavIcon(u8);
-static void InitMatchCallTextPrinter(int, const u8 *);
-static bool32 RunMatchCallTextPrinter(int);
-static const struct MatchCallText *GetSameRouteMatchCallText(int, u8 *);
-static const struct MatchCallText *GetDifferentRouteMatchCallText(int, u8 *);
-static const struct MatchCallText *GetBattleMatchCallText(int, u8 *);
-static const struct MatchCallText *GetGeneralMatchCallText(int, u8 *);
-static bool32 ShouldTrainerRequestBattle(int);
-static void BuildMatchCallString(int, const struct MatchCallText *, u8 *);
+#if !MODERN
+static void InitMatchCallTextPrinter(u32, const u8 *);
+#else
+static void InitMatchCallTextPrinter(u8, const u8 *);
+#endif
+
+#if !MODERN
+static bool32 RunMatchCallTextPrinter(u32);
+#else
+static bool32 RunMatchCallTextPrinter(u8);
+#endif
+static const struct MatchCallText *GetSameRouteMatchCallText(u32, u8 *);
+static const struct MatchCallText *GetDifferentRouteMatchCallText(u32, u8 *);
+static const struct MatchCallText *GetBattleMatchCallText(u32, u8 *);
+static const struct MatchCallText *GetGeneralMatchCallText(u32, u8 *);
+static bool32 ShouldTrainerRequestBattle(u32);
+static void BuildMatchCallString(u32, const struct MatchCallText *, u8 *);
 static u16 GetFrontierStreakInfo(u16, u32 *);
-static void PopulateMatchCallStringVars(int, const s8 *);
-static void PopulateMatchCallStringVar(int, int, u8 *);
+static void PopulateMatchCallStringVars(u32, const s8 *);
+static void PopulateMatchCallStringVar(u32, int, u8 *);
 static bool32 MatchCall_LoadGfx(u8);
 static bool32 MatchCall_DrawWindow(u8);
 static bool32 MatchCall_ReadyIntro(u8);
@@ -159,12 +168,12 @@ static bool32 MatchCall_PrintIntro(u8);
 static bool32 MatchCall_PrintMessage(u8);
 static bool32 MatchCall_SlideWindowOut(u8);
 static bool32 MatchCall_EndCall(u8);
-static void PopulateTrainerName(int, u8 *);
-static void PopulateMapName(int, u8 *);
-static void PopulateSpeciesFromTrainerLocation(int, u8 *);
-static void PopulateSpeciesFromTrainerParty(int, u8 *);
-static void PopulateBattleFrontierFacilityName(int, u8 *);
-static void PopulateBattleFrontierStreak(int, u8 *);
+static void PopulateTrainerName(u32, u8 *);
+static void PopulateMapName(u32, u8 *);
+static void PopulateSpeciesFromTrainerLocation(u32, u8 *);
+static void PopulateSpeciesFromTrainerParty(u32, u8 *);
+static void PopulateBattleFrontierFacilityName(u32, u8 *);
+static void PopulateBattleFrontierStreak(u32, u8 *);
 
 #define TEXT_ID(topic, id) (((topic) << 8) | ((id) & 0xFF))
 
@@ -1040,10 +1049,10 @@ static u32 GetCurrentTotalMinutes(struct Time *time)
 
 static bool32 UpdateMatchCallMinutesCounter(void)
 {
-    int curMinutes;
+    u32 curMinutes;
     RtcCalcLocalTime();
     curMinutes = GetCurrentTotalMinutes(&gLocalTime);
-    if (sMatchCallState.minutes > curMinutes || curMinutes - sMatchCallState.minutes > 9)
+    if (sMatchCallState.minutes > curMinutes || curMinutes - sMatchCallState.minutes >= 10)
     {
         sMatchCallState.minutes = curMinutes;
         return TRUE;
@@ -1054,14 +1063,15 @@ static bool32 UpdateMatchCallMinutesCounter(void)
 
 static bool32 CheckMatchCallChance(void)
 {
-    int callChance = 1;
+    m32 callChance = 1;
     if (!GetMonData(&gPlayerParty[0], MON_DATA_SANITY_IS_EGG) && GetMonAbility(&gPlayerParty[0]) == ABILITY_LIGHTNING_ROD)
         callChance = 2;
 
     if (Random() % 10 < callChance * 3)
         return TRUE;
-    else
-        return FALSE;
+
+    // Debug stuff here
+    return FALSE;
 }
 
 static bool32 MapAllowsMatchCall(void)
@@ -1223,7 +1233,8 @@ static void ExecuteMatchCall(u8 taskId)
     {
         tState++;
         data[1] = 0; // Never read
-        if ((u16)tState > 7)
+        // TODO: is this REALLY true?
+        if (tState >= ARRAY_COUNT(sMatchCallTaskFuncs))
             DestroyTask(taskId);
     }
 }
@@ -1360,15 +1371,13 @@ static bool32 MatchCall_SlideWindowOut(u8 taskId)
 
 static bool32 MatchCall_EndCall(u8 taskId)
 {
-    u8 playerObjectId;
     if (!IsDma3ManagerBusyWithBgCopy() && !IsSEPlaying())
     {
         ChangeBgY(0, 0, BG_COORD_SET);
         if (!sMatchCallState.triggeredFromScript)
         {
             LoadMessageBoxAndBorderGfx();
-            playerObjectId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
-            ObjectEventClearHeldMovementIfFinished(&gObjectEvents[playerObjectId]);
+            ObjectEventClearHeldMovementIfFinished(&gObjectEvents[GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0)]);
             ScriptMovement_UnfreezeObjectEvents();
             UnfreezeObjectEvents();
             UnlockPlayerFieldControls();
@@ -1382,27 +1391,34 @@ static bool32 MatchCall_EndCall(u8 taskId)
 
 static void DrawMatchCallTextBoxBorder_Internal(u32 windowId, u32 tileOffset, u32 paletteId)
 {
-    int bg, x, y, width, height;
-    int tileNum;
+    u32 bg, x, y, width, height;
 
+    // Todo: make these U8?
+
+    // Actually we should move these to their own getters and setters
     bg = GetWindowAttribute(windowId, WINDOW_BG);
     x = GetWindowAttribute(windowId, WINDOW_TILEMAP_LEFT);
     y = GetWindowAttribute(windowId, WINDOW_TILEMAP_TOP);
     width = GetWindowAttribute(windowId, WINDOW_WIDTH);
     height = GetWindowAttribute(windowId, WINDOW_HEIGHT);
-    tileNum = tileOffset + GetBgAttribute(bg, BG_ATTR_BASETILE);
 
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 0), x - 1, y - 1, 1, 1);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 1), x, y - 1, width, 1);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 2), x + width, y - 1, 1, 1);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 3), x - 1, y, 1, height);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 4), x + width, y, 1, height);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 5), x - 1, y + height, 1, 1);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 6), x, y + height, width, 1);
-    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 7), x + width, y + height, 1, 1);
+    tileOffset += GetBgAttribute(bg, BG_ATTR_BASETILE);
+
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 0), x - 1, y - 1, 1, 1);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 1), x, y - 1, width, 1);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 2), x + width, y - 1, 1, 1);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 3), x - 1, y, 1, height);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 4), x + width, y, 1, height);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 5), x - 1, y + height, 1, 1);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 6), x, y + height, width, 1);
+    FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileOffset + 7), x + width, y + height, 1, 1);
 }
 
-static void InitMatchCallTextPrinter(int windowId, const u8 *str)
+#if !MODERN
+static void InitMatchCallTextPrinter(u32 windowId, const u8 *str)
+#else
+static void InitMatchCallTextPrinter(u8 windowId, const u8 *str)
+#endif
 {
     struct TextPrinterTemplate printerTemplate;
     printerTemplate.currentChar = str;
@@ -1423,7 +1439,8 @@ static void InitMatchCallTextPrinter(int windowId, const u8 *str)
     AddTextPrinter(&printerTemplate, GetPlayerTextSpeedDelay(), NULL);
 }
 
-static bool32 RunMatchCallTextPrinter(int windowId)
+#if !MODERN
+static bool32 RunMatchCallTextPrinter(u32 windowId)
 {
     if (JOY_HELD(A_BUTTON))
         gTextFlags.canABSpeedUpPrint = TRUE;
@@ -1433,6 +1450,18 @@ static bool32 RunMatchCallTextPrinter(int windowId)
     RunTextPrinters();
     return IsTextPrinterActive(windowId);
 }
+#else
+static bool32 RunMatchCallTextPrinter(u8 windowId)
+{
+    if (JOY_HELD(A_BUTTON))
+        gTextFlags.canABSpeedUpPrint = TRUE;
+    else
+        gTextFlags.canABSpeedUpPrint = FALSE;
+
+    RunTextPrinters();
+    return IsTextPrinterActive(windowId);
+}
+#endif
 
 #define tTimer     data[0]
 #define tSpinStage data[1]
@@ -1444,7 +1473,7 @@ static void Task_SpinPokenavIcon(u8 taskId)
     if (++tTimer > 8)
     {
         tTimer = 0;
-        if (++tSpinStage > 7)
+        if (++tSpinStage >= 8)
             tSpinStage = 0;
 
         tTileNum = (tSpinStage * 16) + TILE_POKENAV_ICON;
@@ -1457,12 +1486,12 @@ static void Task_SpinPokenavIcon(u8 taskId)
 #undef tSpinStage
 #undef tTileNum
 
-static bool32 TrainerIsEligibleForRematch(int matchCallId)
+static bool32 TrainerIsEligibleForRematch(u32 matchCallId)
 {
-    return gSaveBlock1Ptr->trainerRematches[matchCallId] > 0;
+    return gSaveBlock1Ptr->trainerRematches[matchCallId] != 0;
 }
 
-static u16 GetRematchTrainerLocation(int matchCallId)
+static u16 GetRematchTrainerLocation(u32 matchCallId)
 {
     const struct MapHeader *mapHeader = Overworld_GetMapHeaderByGroupAndId(gRematchTable[matchCallId].mapGroup, gRematchTable[matchCallId].mapNum);
     return mapHeader->regionMapSectionId;
@@ -1541,9 +1570,15 @@ bool32 SelectMatchCallMessage(int trainerId, u8 *str)
     return newRematchRequest;
 }
 
-static int GetTrainerMatchCallId(int trainerId)
+// So a typo happened here supposed to be 
+#if !MODERN
+static m32 GetTrainerMatchCallId(u32 trainerId)
 {
     int i = 0;
+    // NOTICE the i < is missing.
+    //luckily this happens to work because there is no end
+    // TODO: should we add it back in case.
+    // for (i = 0; ARRAY_COUNT; i++)
     while (1)
     {
         if (sMatchCallTrainers[i].trainerId == trainerId)
@@ -1552,42 +1587,115 @@ static int GetTrainerMatchCallId(int trainerId)
             i++;
     }
 }
+#else
+static m32 GetTrainerMatchCallId(u32 trainerId)
+{
+    m32 i = 0;
+    while (1)
+    {
+        if (sMatchCallTrainers[i].trainerId == trainerId)
+            return i;
+        else
+            i++;
+    }
+}
+#endif
 
-static const struct MatchCallText *GetSameRouteMatchCallText(int matchCallId, u8 *str)
+#if !MODERN
+static const struct MatchCallText *GetSameRouteMatchCallText(u32 matchCallId, u8 *str)
+{
+    int textId = sMatchCallTrainers[matchCallId].sameRouteMatchCallTextId;
+    //int mask = 0xFF;
+    int topic = ((textId >> 8) & 0xFF) - 1;
+    int id = (textId & 0xFF) - 1;
+
+    //ASSERT(topic < 2);
+	//ASSERT(id < 14);
+    return &sMatchCallBattleRequestTopics[topic][id];
+}
+#else
+static const struct MatchCallText *GetSameRouteMatchCallText(u32 matchCallId, u8 *str)
 {
     u16 textId = sMatchCallTrainers[matchCallId].sameRouteMatchCallTextId;
-    int mask = 0xFF;
+    //int mask = 0xFF;
+    // what if this underflows?
+    // should these be u8?
+    // we can get away with not doing that, right?
+    
+    //u8 topic = (textId >> 8) - 1;
+    //u8 id = (textId & 0xFF) - 1;
+
     u32 topic = (textId >> 8) - 1;
-    u32 id = (textId & mask) - 1;
+    u32 id = (textId & 0xFF) - 1;
+
+    //ASSERT(topic < 2);
+	//ASSERT(id < 14);
     return &sMatchCallBattleRequestTopics[topic][id];
 }
+#endif
 
-static const struct MatchCallText *GetDifferentRouteMatchCallText(int matchCallId, u8 *str)
+#if !MODERN
+static const struct MatchCallText *GetDifferentRouteMatchCallText(u32 matchCallId, u8 *str)
+{
+    int textId = sMatchCallTrainers[matchCallId].differentRouteMatchCallTextId;
+    //int mask = 0xFF;
+    int topic = ((textId >> 8) & 0xFF) - 1;
+    int id = (textId & 0xFF) - 1;
+
+    //ASSERT(topic < 2);
+	//ASSERT(id < 14);
+    return &sMatchCallBattleRequestTopics[topic][id];
+}
+#else
+static const struct MatchCallText *GetDifferentRouteMatchCallText(u32 matchCallId, u8 *str)
 {
     u16 textId = sMatchCallTrainers[matchCallId].differentRouteMatchCallTextId;
-    int mask = 0xFF;
+    //int mask = 0xFF;
+    // what if this underflows?
+    // should these be u8?
+    // we can get away with not doing that, right?
+    
+    //u8 topic = (textId >> 8) - 1;
+    //u8 id = (textId & 0xFF) - 1;
+
     u32 topic = (textId >> 8) - 1;
-    u32 id = (textId & mask) - 1;
+    u32 id = (textId & 0xFF) - 1;
+
+    //ASSERT(topic < 2);
+	//ASSERT(id < 14);
     return &sMatchCallBattleRequestTopics[topic][id];
 }
+#endif
 
-static const struct MatchCallText *GetBattleMatchCallText(int matchCallId, u8 *str)
+#if !MODERN
+static const struct MatchCallText *GetBattleMatchCallText(u32 matchCallId, u8 *str)
 {
-    int mask;
-    u32 textId, topic, id;
+    int textId, topic, id;
 
     topic = Random() % 3;
     textId = sMatchCallTrainers[matchCallId].battleTopicTextIds[topic];
     if (!textId)
         SpriteCallbackDummy(NULL); // leftover debugging ???
 
-    mask = 0xFF;
-    topic = (textId >> 8) - 1;
-    id = (textId & mask) - 1;
+    topic = ((textId >> 8) & 0xFF) - 1;
+    id = (textId & 0xFF) - 1;
     return &sMatchCallBattleTopics[topic][id];
 }
+#else
+static const struct MatchCallText *GetBattleMatchCallText(u32 matchCallId, u8 *str)
+{
+    u16 textId;
+    u32 topic, id;
 
-static const struct MatchCallText *GetGeneralMatchCallText(int matchCallId, u8 *str)
+    textId = sMatchCallTrainers[matchCallId].battleTopicTextIds[Random() % 3];
+
+    topic = (textId >> 8) - 1;
+    id = (textId & 0xFF) - 1;
+    return &sMatchCallBattleTopics[topic][id];
+}
+#endif
+
+static const struct MatchCallText *GetGeneralMatchCallText(u32 matchCallId, u8 *str)
 {
     #if !MODERN
     int i;
@@ -1637,7 +1745,7 @@ static const struct MatchCallText *GetGeneralMatchCallText(int matchCallId, u8 *
     return &sMatchCallGeneralTopics[topic][id];
 }
 
-static void BuildMatchCallString(int matchCallId, const struct MatchCallText *matchCallText, u8 *str)
+static void BuildMatchCallString(u32 matchCallId, const struct MatchCallText *matchCallText, u8 *str)
 {
     PopulateMatchCallStringVars(matchCallId, matchCallText->stringVarFuncIds);
     StringExpandPlaceholders(str, matchCallText->text);
@@ -1645,17 +1753,19 @@ static void BuildMatchCallString(int matchCallId, const struct MatchCallText *ma
 
 static u8 *const sMatchCallTextStringVars[] = { gStringVar1, gStringVar2, gStringVar3 };
 
-static void PopulateMatchCallStringVars(int matchCallId, const s8 *stringVarFuncIds)
+static void PopulateMatchCallStringVars(u32 matchCallId, const s8 *stringVarFuncIds)
 {
-    int i;
+    m32 i;
     for (i = 0; i < NUM_STRVARS_IN_MSG; i++)
     {
-        if (stringVarFuncIds[i] >= 0)
-            PopulateMatchCallStringVar(matchCallId, stringVarFuncIds[i], sMatchCallTextStringVars[i]);
+        if (stringVarFuncIds[i] < 0) continue;
+
+        // keep it int for now, just in case?
+        PopulateMatchCallStringVar(matchCallId, stringVarFuncIds[i], sMatchCallTextStringVars[i]);
     }
 }
 
-static void (*const sPopulateMatchCallStringVarFuncs[])(int, u8 *) =
+static void (*const sPopulateMatchCallStringVarFuncs[])(u32, u8 *) =
 {
     [STR_TRAINER_NAME]     = PopulateTrainerName,
     [STR_MAP_NAME]         = PopulateMapName,
@@ -1665,7 +1775,7 @@ static void (*const sPopulateMatchCallStringVarFuncs[])(int, u8 *) =
     [STR_FRONTIER_STREAK]  = PopulateBattleFrontierStreak,
 };
 
-static void PopulateMatchCallStringVar(int matchCallId, int funcId, u8 *destStr)
+static void PopulateMatchCallStringVar(u32 matchCallId, int funcId, u8 *destStr)
 {
     sPopulateMatchCallStringVarFuncs[funcId](matchCallId, destStr);
 }
@@ -1680,10 +1790,10 @@ static const struct MultiTrainerMatchCallText sMultiTrainerMatchCallTexts[] =
     { .trainerId = TRAINER_ANNA_AND_MEG_1, .text = gText_Anna },
 };
 
-static void PopulateTrainerName(int matchCallId, u8 *destStr)
+static void PopulateTrainerName(u32 matchCallId, u8 *destStr)
 {
     u32 i;
-    u16 trainerId = sMatchCallTrainers[matchCallId].trainerId;
+    u32 trainerId = sMatchCallTrainers[matchCallId].trainerId;
     for (i = 0; i < ARRAY_COUNT(sMultiTrainerMatchCallTexts); i++)
     {
         if (sMultiTrainerMatchCallTexts[i].trainerId == trainerId)
@@ -1696,11 +1806,12 @@ static void PopulateTrainerName(int matchCallId, u8 *destStr)
     StringCopy(destStr, gTrainers[trainerId].trainerName);
 }
 
-static void PopulateMapName(int matchCallId, u8 *destStr)
+static void PopulateMapName(u32 matchCallId, u8 *destStr)
 {
     CopyMapName(destStr, GetRematchTrainerLocation(matchCallId), 0);
 }
 
+#if !MODERN
 static u8 GetLandEncounterSlot(void)
 {
     int rand = Random() % 100;
@@ -1744,54 +1855,92 @@ static u8 GetWaterEncounterSlot(void)
     else
         return 4;
 }
+#else
+static u8 GetLandEncounterSlot(void)
+{
+    u32 rand = Random() % 100;
+    if (rand < 20)
+        return 0;
+    if (rand < 40)
+        return 1;
+    if (rand < 50)
+        return 2;
+    if (rand < 60)
+        return 3;
+    if (rand < 70)
+        return 4;
+    if (rand < 80)
+        return 5;
+    if (rand < 85)
+        return 6;
+    if (rand < 90)
+        return 7;
+    if (rand < 94)
+        return 8;
+    if (rand < 98)
+        return 9;
+    if (rand < 99)
+        return 10;
+    return 11;
+}
 
-static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
+static u8 GetWaterEncounterSlot(void)
+{
+    u32 rand = Random() % 100;
+    if (rand < 60)
+        return 0;
+    if (rand < 90)
+        return 1;
+    if (rand < 95)
+        return 2;
+    if (rand < 99)
+        return 3;
+    return 4;
+}
+#endif
+
+// HERE
+static void PopulateSpeciesFromTrainerLocation(u32 matchCallId, u8 *destStr)
 {
     u16 species[2];
-    int numSpecies;
+    m32 numSpecies;
     u8 slot;
-    int i = 0;
+    m32 i;
 
-    if (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED)) // ??? This check is nonsense.
+    for (i = 0;gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED); i++)
     {
-        while (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED))
+        if (gWildMonHeaders[i].mapGroup == gRematchTable[matchCallId].mapGroup && gWildMonHeaders[i].mapNum == gRematchTable[matchCallId].mapNum)
+            break;
+    }
+    // TODO: are goto's better here for expensive checks
+    if (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED))
+    {
+        numSpecies = 0;
+        if (gWildMonHeaders[i].landMonsInfo)
         {
-            if (gWildMonHeaders[i].mapGroup == gRematchTable[matchCallId].mapGroup
-             && gWildMonHeaders[i].mapNum == gRematchTable[matchCallId].mapNum)
-                break;
-
-            i++;
+            slot = GetLandEncounterSlot();
+            species[numSpecies] = gWildMonHeaders[i].landMonsInfo->wildPokemon[slot].species;
+            numSpecies++;
         }
 
-        if (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED))
+        if (gWildMonHeaders[i].waterMonsInfo)
         {
-            numSpecies = 0;
-            if (gWildMonHeaders[i].landMonsInfo)
-            {
-                slot = GetLandEncounterSlot();
-                species[numSpecies] = gWildMonHeaders[i].landMonsInfo->wildPokemon[slot].species;
-                numSpecies++;
-            }
+            slot = GetWaterEncounterSlot();
+            species[numSpecies] = gWildMonHeaders[i].waterMonsInfo->wildPokemon[slot].species;
+            numSpecies++;
+        }
 
-            if (gWildMonHeaders[i].waterMonsInfo)
-            {
-                slot = GetWaterEncounterSlot();
-                species[numSpecies] = gWildMonHeaders[i].waterMonsInfo->wildPokemon[slot].species;
-                numSpecies++;
-            }
-
-            if (numSpecies)
-            {
-                StringCopy(destStr, gSpeciesNames[species[Random() % numSpecies]]);
-                return;
-            }
+        if (numSpecies)
+        {
+            StringCopy(destStr, gSpeciesNames[species[Random() % numSpecies]]);
+            return;
         }
     }
 
     destStr[0] = EOS;
 }
 
-static void PopulateSpeciesFromTrainerParty(int matchCallId, u8 *destStr)
+static void PopulateSpeciesFromTrainerParty(u32 matchCallId, u8 *destStr)
 {
     u16 trainerId;
     union TrainerMonPtr party;
@@ -1804,8 +1953,9 @@ static void PopulateSpeciesFromTrainerParty(int matchCallId, u8 *destStr)
 
     switch (gTrainers[trainerId].partyFlags)
     {
-    case 0:
     default:
+    case 0:
+
         speciesName = gSpeciesNames[party.NoItemDefaultMoves[monId].species];
         break;
     case F_TRAINER_PARTY_CUSTOM_MOVESET:
@@ -1833,13 +1983,14 @@ static const u8 *const sBattleFrontierFacilityNames[NUM_FRONTIER_FACILITIES] =
     [FRONTIER_FACILITY_PYRAMID] = gText_BattlePyramid,
 };
 
-static void PopulateBattleFrontierFacilityName(int matchCallId, u8 *destStr)
+static void PopulateBattleFrontierFacilityName(u32 matchCallId, u8 *destStr)
 {
     StringCopy(destStr, sBattleFrontierFacilityNames[sBattleFrontierStreakInfo.facilityId]);
 }
 
-static void PopulateBattleFrontierStreak(int matchCallId, u8 *destStr)
+static void PopulateBattleFrontierStreak(u32 matchCallId, u8 *destStr)
 {
+    #if !MODERN
     int i = 0;
     int streak = sBattleFrontierStreakInfo.streak;
     while (streak != 0)
@@ -1847,6 +1998,15 @@ static void PopulateBattleFrontierStreak(int matchCallId, u8 *destStr)
         streak /= 10;
         i++;
     }
+    #else
+    u8 i = 0;
+    u16 streak = sBattleFrontierStreakInfo.streak;
+    while (streak != 0)
+    {
+        streak /= 10;
+        i++;
+    }
+    #endif
 
     ConvertIntToDecimalStringN(destStr, sBattleFrontierStreakInfo.streak, STR_CONV_MODE_LEFT_ALIGN, i);
 }
@@ -1863,11 +2023,11 @@ static const u16 sBadgeFlags[NUM_BADGES] =
     FLAG_BADGE08_GET,
 };
 
-static int GetNumOwnedBadges(void)
+static m32 GetNumOwnedBadges(void)
 {
-    u32 i;
+    m32 i;
 
-    for (i = 0; i < NUM_BADGES; i++)
+    for (i = 0; i < ARRAY_COUNT(sBadgeFlags); i++)
     {
         if (!FlagGet(sBadgeFlags[i]))
             break;
@@ -1877,7 +2037,8 @@ static int GetNumOwnedBadges(void)
 }
 
 // Whether or not a trainer calling the player from a different route should request a battle
-static bool32 ShouldTrainerRequestBattle(int matchCallId)
+#if !MODERN
+static bool32 ShouldTrainerRequestBattle(u32 matchCallId)
 {
     int dayCount;
     int otId;
@@ -1904,11 +2065,40 @@ static bool32 ShouldTrainerRequestBattle(int matchCallId)
 
     return FALSE;
 }
+#else
+static bool32 ShouldTrainerRequestBattle(u32 matchCallId)
+{
+    u32 dayCount;
+    u16 otId;
+    u16 dewfordRand;
+    u32 numRematchTrainersFought;
+    u32 max, rand;
+
+    if (GetNumOwnedBadges() < 5)
+        return FALSE;
+
+    dayCount = RtcGetLocalDayCount();
+    otId = GetTrainerId(gSaveBlock2Ptr->playerTrainerId) & 0xFFFF;
+
+    dewfordRand = gSaveBlock1Ptr->dewfordTrends[0].rand;
+    numRematchTrainersFought = GetNumRematchTrainersFought();
+    max = (numRematchTrainersFought * 13) / 10;
+    rand = (((dayCount ^ dewfordRand) + (GetGameStat(GAME_STAT_TRAINER_BATTLES) ^ dewfordRand)) ^ otId) % max;
+ 
+    if (rand < numRematchTrainersFought)
+    {
+        if (GetNthRematchTrainerFought(rand) == matchCallId)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+#endif
 
 static u16 GetFrontierStreakInfo(u16 facilityId, u32 *topicTextId)
 {
-    int i;
-    int j;
+    m32 i;
+    m32 j;
     u16 streak = 0;
 
     switch (facilityId)
@@ -2067,14 +2257,14 @@ static const u8 *const sBirchDexRatingTexts[] =
 
 void BufferPokedexRatingForMatchCall(u8 *destStr)
 {
-    int numSeen, numCaught;
+    u32 numSeen, numCaught;
     u8 *str;
     u8 dexRatingLevel;
 
     u8 *buffer = Alloc(sizeof(gStringVar4));
     if (!buffer)
     {
-        destStr[0] = EOS;
+        *destStr = EOS;
         return;
     }
 
@@ -2105,8 +2295,7 @@ void BufferPokedexRatingForMatchCall(u8 *destStr)
 
 void LoadMatchCallWindowGfx(u32 windowId, u32 destOffset, u32 paletteId)
 {
-    u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-    LoadBgTiles(bg, sMatchCallWindow_Gfx, 0x100, destOffset);
+    LoadBgTiles(GetWindowAttribute(windowId, WINDOW_BG), sMatchCallWindow_Gfx, 0x100, destOffset);
     LoadPalette(sMatchCallWindow_Pal, paletteId << 4, sizeof(sMatchCallWindow_Pal));
 }
 
