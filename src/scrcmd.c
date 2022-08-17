@@ -69,9 +69,11 @@ extern const u8 *gStdScripts_End[];
 
 static void CloseBrailleWindow(void);
 
+#if !MODERN
 // This is defined in here so the optimizer can't see its value when compiling
 // script.c.
 void * const gNullScriptPtr = NULL;
+#endif
 
 static const u8 sScriptConditionTable[6][3] =
 {

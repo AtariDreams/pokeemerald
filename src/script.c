@@ -29,8 +29,9 @@ static bool8 sLockFieldControls;
 
 extern ScrCmdFunc gScriptCmdTable[];
 extern ScrCmdFunc gScriptCmdTableEnd[];
+#if !MODERN
 extern void *gNullScriptPtr;
-
+#endif
 void InitScriptContext(struct ScriptContext *ctx, void *cmdTable, void *cmdTableEnd)
 {
     s32 i;
@@ -99,12 +100,13 @@ bool8 RunScriptCommand(struct ScriptContext *ctx)
                 ctx->mode = SCRIPT_MODE_STOPPED;
                 return FALSE;
             }
-
+#if !MODERN
             if (ctx->scriptPtr == gNullScriptPtr)
             {
                 while (1)
                     asm("svc 2"); // HALT
             }
+#endif
 
             cmdCode = *(ctx->scriptPtr);
             ctx->scriptPtr++;
