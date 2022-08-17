@@ -414,7 +414,7 @@ static void _InitContestMonPixels(u8 *spriteGfx, u16 *palette, u16 (*destPixels)
     }
 }
 
-#define VRAM_PICTURE_DATA(x, y) (((u16 *)(BG_SCREEN_ADDR(12)))[(y) * 32 + (x)])
+#define VRAM_PICTURE_DATA(x, y) (((vu16 *)(BG_SCREEN_ADDR(12)))[(y) * 32 + (x)])
 
 static void LoadContestPaintingFrame(u8 contestWinnerId, bool8 isForArtist)
 {
