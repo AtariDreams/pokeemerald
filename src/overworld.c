@@ -157,7 +157,7 @@ static void LoadCableClubPlayer(s32, s32, struct CableClubPlayer *);
 static bool32 IsCableClubPlayerUnfrozen(struct CableClubPlayer *);
 static bool32 CanCableClubPlayerPressStart(struct CableClubPlayer *);
 static const u8 *TryGetTileEventScript(struct CableClubPlayer *);
-static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *);
+static bool32 PlayerIsAtSouthExit(const struct CableClubPlayer *);
 static const u8 *TryInteractWithPlayer(struct CableClubPlayer *);
 static u16 KeyInterCB_DeferToRecvQueue(u32);
 static u16 KeyInterCB_DeferToSendQueue(u32);
@@ -2310,7 +2310,7 @@ static bool32 IsAnyPlayerInLinkState(u16 state)
     return FALSE;
 }
 
-static void HandleLinkPlayerKeyInput(u32 playerId, u16 key, struct CableClubPlayer *trainer, u16 *forceFacing)
+static void HandleLinkPlayerKeyInput(s32 playerId, u16 key, const struct CableClubPlayer *trainer, u16 *forceFacing)
 {
     const u8 *script;
 
@@ -2423,6 +2423,8 @@ static void HandleLinkPlayerKeyInput(u32 playerId, u16 key, struct CableClubPlay
 static void UpdateAllLinkPlayers(u16 *keys, s32 selfId)
 {
     struct CableClubPlayer trainer;
+
+    // Why not make it u32 or u8
     s32 i;
 
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
@@ -2719,7 +2721,7 @@ static const u8 *TryGetTileEventScript(struct CableClubPlayer *player)
     return GetCoordEventScriptAtMapPosition(&player->pos);
 }
 
-static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *player)
+static bool32 PlayerIsAtSouthExit(const struct CableClubPlayer *player)
 {
     if ((player->movementMode == MOVEMENT_MODE_SCRIPTED || player->movementMode == MOVEMENT_MODE_FREE)
         && MetatileBehavior_IsSouthArrowWarp(player->metatileBehavior)
