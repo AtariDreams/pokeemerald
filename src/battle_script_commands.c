@@ -7407,12 +7407,10 @@ static void Cmd_tryconversiontypechange(void)
     u8 moveChecked;
     u8 moveType;
 
-    while (validMoves < MAX_MON_MOVES)
+    for (validMoves == 0; validMoves < MAX_MON_MOVES; validMoves++)
     {
         if (gBattleMons[gBattlerAttacker].moves[validMoves] == MOVE_NONE)
             break;
-
-        validMoves++;
     }
 
     for (moveChecked = 0; moveChecked < validMoves; moveChecked++)
@@ -7440,8 +7438,11 @@ static void Cmd_tryconversiontypechange(void)
     {
         do
         {
-            while ((moveChecked = Random() & (MAX_MON_MOVES - 1)) >= validMoves)
-                ;
+            do
+            {
+                moveChecked = Random() & (MAX_MON_MOVES - 1);
+            }
+            while (moveChecked >= validMoves);
 
             moveType = gBattleMoves[gBattleMons[gBattlerAttacker].moves[moveChecked]].type;
 
