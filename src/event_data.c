@@ -195,7 +195,7 @@ bool8 VarSet(u16 id, u16 value)
 
 u8 VarGetObjectEventGraphicsId(u8 id)
 {
-    return VarGet(VAR_OBJ_GFX_ID_0 + id);
+    return (u8)VarGet(VAR_OBJ_GFX_ID_0 + id);
 }
 
 u8 *GetFlagPointer(u16 id)
@@ -228,11 +228,11 @@ bool8 FlagGet(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
 
-    if (!ptr)
-        return FALSE;
+    if (ptr)
+    {
+        if (*ptr & (1 << (id & 7)))
+            return TRUE;
+    }
 
-    if (!(((*ptr) >> (id & 7)) & 1))
-        return FALSE;
-
-    return TRUE;
+    return FALSE;
 }
