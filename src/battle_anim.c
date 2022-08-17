@@ -834,9 +834,6 @@ static void Task_UpdateMonBg(u8 taskId)
 
     if (!gTasks[taskId].t2_InBg2)
     {
-        u16 *src;
-        u16 *dst;
-
         gBattle_BG1_X = x + gTasks[taskId].t2_BgX;
         gBattle_BG1_Y = y + gTasks[taskId].t2_BgY;
 
@@ -898,8 +895,9 @@ static void Cmd_clearmonbg(void)
 
 static void Task_ClearMonBg(u8 taskId)
 {
-    gTasks[taskId].data[1]++;
-    if (gTasks[taskId].data[1] != 1)
+
+    if (gTasks[taskId].data[1]++ == 0)
+        return;
     {
         u8 to_BG2;
         u8 position = GetBattlerPosition(gTasks[taskId].data[2]);
@@ -1006,8 +1004,8 @@ static void Cmd_clearmonbg_static(void)
 
 static void Task_ClearMonBgStatic(u8 taskId)
 {
-    gTasks[taskId].data[1]++;
-    if (gTasks[taskId].data[1] != 1)
+    if (gTasks[taskId].data[1]++ == 0)
+        return;
     {
         bool8 toBG_2;
         u8 battlerId = gTasks[taskId].data[2];
