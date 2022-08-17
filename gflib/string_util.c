@@ -154,7 +154,7 @@ bool8 IsStringLengthAtLeast(const u8 *str, s32 n)
     u8 i;
 
     for (i = 0; i < n; i++)
-        if (str[i] && str[i] != EOS)
+        if (str[i] != CHAR_SPACE && str[i] != EOS)
             return TRUE;
 
     return FALSE;
@@ -238,27 +238,12 @@ u8 *ConvertUIntToDecimalStringN(u8 *dest, u32 value, enum StringConvertMode mode
 
         if (state == WRITING_DIGITS)
         {
-            u8 *out = dest++;
-
-            if (digit <= 9)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 9) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (digit != 0 || powerOfTen == 1)
         {
-            u8 *out;
             state = WRITING_DIGITS;
-            out = dest++;
-
-            if (digit <= 9)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 9) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (state == WRITING_SPACES)
         {
@@ -287,6 +272,7 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
     if (mode == STR_CONV_MODE_RIGHT_ALIGN)
         state = WRITING_SPACES;
 
+// Should be else if here
     if (mode == STR_CONV_MODE_LEADING_ZEROS)
         state = WRITING_DIGITS;
 
@@ -298,27 +284,12 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
 
         if (state == WRITING_DIGITS)
         {
-            char *out = dest++;
-
-            if (digit <= 0xF)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 0xF) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (digit != 0 || powerOfSixteen == 1)
         {
-            char *out;
             state = WRITING_DIGITS;
-            out = dest++;
-
-            if (digit <= 0xF)
-                c = sDigits[digit];
-            else
-                c = CHAR_QUESTION_MARK;
-
-            *out = c;
+            *dest++ = (digit <= 0xF) ? sDigits[digit] : CHAR_QUESTION_MARK;
         }
         else if (state == WRITING_SPACES)
         {
@@ -334,18 +305,18 @@ u8 *ConvertIntToHexStringN(u8 *dest, s32 value, enum StringConvertMode mode, u8 
 
 u8 *StringExpandPlaceholders(u8 *dest, const u8 *src)
 {
+    u8 c;
     for (;;)
     {
-        u8 c = *src++;
-        u8 placeholderId;
-        const u8 *expandedString;
+        c = *src++;
 
         switch (c)
         {
+        case EOS:
+            *dest = EOS;
+            return dest;
         case PLACEHOLDER_BEGIN:
-            placeholderId = *src++;
-            expandedString = GetExpandedPlaceholder(placeholderId);
-            dest = StringExpandPlaceholders(dest, expandedString);
+            dest = StringExpandPlaceholders(dest, GetExpandedPlaceholder(*src++));
             break;
         case EXT_CTRL_CODE_BEGIN:
             *dest++ = c;
@@ -370,9 +341,6 @@ u8 *StringExpandPlaceholders(u8 *dest, const u8 *src)
                 *dest++ = *src++;
             }
             break;
-        case EOS:
-            *dest = EOS;
-            return dest;
         case CHAR_PROMPT_SCROLL:
         case CHAR_PROMPT_CLEAR:
         case CHAR_NEWLINE:
@@ -545,12 +513,9 @@ u8 *StringCopyPadded(u8 *dest, const u8 *src, u8 c, u16 n)
             n--;
     }
 
-    n--;
-
-    while (n != (u16)-1)
+    while (n--)
     {
         *dest++ = c;
-        n--;
     }
 
     *dest = EOS;
@@ -564,9 +529,7 @@ u8 *StringFillWithTerminator(u8 *dest, u16 n)
 
 u8 *StringCopyN_Multibyte(u8 *dest, u8 *src, u32 n)
 {
-    u32 i;
-
-    for (i = n - 1; i != (u32)-1; i--)
+    while (n--)
     {
         if (*src == EOS)
         {
@@ -607,21 +570,17 @@ u8 *WriteColorChangeControlCode(u8 *dest, u32 colorType, u8 color)
     switch (colorType)
     {
     case 0:
-        *dest = EXT_CTRL_CODE_COLOR;
-        dest++;
+        *dest++ = EXT_CTRL_CODE_COLOR;
         break;
     case 1:
-        *dest = EXT_CTRL_CODE_SHADOW;
-        dest++;
+        *dest++ = EXT_CTRL_CODE_SHADOW;
         break;
     case 2:
-        *dest = EXT_CTRL_CODE_HIGHLIGHT;
-        dest++;
+        *dest++ = EXT_CTRL_CODE_HIGHLIGHT;
         break;
     }
 
-    *dest = color;
-    dest++;
+    *dest++ = color;
     *dest = EOS;
     return dest;
 }
@@ -748,12 +707,9 @@ void ConvertInternationalString(u8 *s, u8 language)
         s[i++] = EXT_CTRL_CODE_ENG;
         s[i++] = EOS;
 
-        i--;
-
-        while (i != (u8)-1)
+        while (i--)
         {
             s[i + 2] = s[i];
-            i--;
         }
 
         s[0] = EXT_CTRL_CODE_BEGIN;
