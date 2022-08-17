@@ -17,9 +17,13 @@
 #if MODERN
 #define NOINLINE __attribute__((noinline))
 #define PURE __attribute__ ((pure))
+#define LIKELY __builtin_expect((x),1)
+#define UNLIKELY __builtin_expect((x),0)
 #else
 #define NOINLINE
 #define PURE
+#define LIKELY
+#define UNLIKELY
 #endif
 
 #define ALIGNED(n) __attribute__((aligned(n)))
