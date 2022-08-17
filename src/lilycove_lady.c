@@ -34,7 +34,7 @@ static EWRAM_DATA struct LilycoveLadyFavor *sFavorLadyPtr = NULL;
 static EWRAM_DATA struct LilycoveLadyQuiz *sQuizLadyPtr = NULL;
 static EWRAM_DATA struct LilycoveLadyContest *sContestLadyPtr = NULL;
 
-extern EWRAM_DATA u16 gSpecialVar_ItemId;
+extern u16 gSpecialVar_ItemId;
 
 u8 GetLilycoveLadyId(void)
 {

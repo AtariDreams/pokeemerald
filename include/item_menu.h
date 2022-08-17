@@ -83,7 +83,7 @@ struct BagMenu
 };
 
 extern struct BagMenu *gBagMenu;
-extern u16 gSpecialVar_ItemId;
+extern EWRAM_DATA u16 gSpecialVar_ItemId;
 
 void CB2_GoToItemDepositMenu(void);
 void FavorLadyOpenBagMenu(void);
