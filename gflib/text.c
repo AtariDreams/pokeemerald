@@ -271,7 +271,12 @@ u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 
 bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
     int i;
+#if !MODERN
     u16 j;
+#else
+    // j is only used for a loop counter that doesn't even involve it
+    u32 j;
+#endif
 
     if (!gFonts)
         return FALSE;
@@ -301,6 +306,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
         sTempTextPrinter.textSpeed = 0;
         
         // Render all text (up to limit) at once
+        // TODO: u16 is not needed here
         for (j = 0; j < 0x400; ++j)
         {
             if (RenderFont(&sTempTextPrinter) == RENDER_FINISH)
@@ -320,25 +326,27 @@ void RunTextPrinters(void)
 {
     int i;
 
-    if (!gDisableTextPrinters)
+    if (gDisableTextPrinters)
     {
-        for (i = 0; i < NUM_TEXT_PRINTERS; ++i)
+        return;
+    }
+
+    for (i = 0; i < NUM_TEXT_PRINTERS; ++i)
+    {
+        if (sTextPrinters[i].active)
         {
-            if (sTextPrinters[i].active)
+            u16 renderCmd = RenderFont(&sTextPrinters[i]);
+            switch (renderCmd)
             {
-                u16 renderCmd = RenderFont(&sTextPrinters[i]);
-                switch (renderCmd)
-                {
-                case RENDER_PRINT:
-                    CopyWindowToVram(sTextPrinters[i].printerTemplate.windowId, COPYWIN_GFX);
-                case RENDER_UPDATE:
-                    if (sTextPrinters[i].callback != NULL)
-                        sTextPrinters[i].callback(&sTextPrinters[i].printerTemplate, renderCmd);
-                    break;
-                case RENDER_FINISH:
-                    sTextPrinters[i].active = FALSE;
-                    break;
-                }
+            case RENDER_PRINT:
+                CopyWindowToVram(sTextPrinters[i].printerTemplate.windowId, COPYWIN_GFX);
+            case RENDER_UPDATE:
+                if (sTextPrinters[i].callback != 0)
+                    sTextPrinters[i].callback(&sTextPrinters[i].printerTemplate, renderCmd);
+                break;
+            case RENDER_FINISH:
+                sTextPrinters[i].active = FALSE;
+                break;
             }
         }
     }
@@ -507,6 +515,7 @@ void GenerateFontHalfRowLookupTable(u8 fgColor, u8 bgColor, u8 shadowColor)
     temp = (shadowColor << 8) | (shadowColor << 4) | shadowColor;
     *(current++) = (bg12) | temp;
     *(current++) = (fg12) | temp;
+    // last current++ not needed
     *(current++) = (shadow12) | temp;
 }
 
@@ -549,6 +558,7 @@ void DecompressGlyphTile(const void *src_, void *dest_)
     temp = *(src++);
     *(dest++) = ((sFontHalfRowLookupTable[sFontHalfRowOffsets[temp & 0xFF]]) << 16) | (sFontHalfRowLookupTable[sFontHalfRowOffsets[temp >> 8]]);
 
+    // last 2 ++ not needed
     temp = *(src++);
     *(dest++) = ((sFontHalfRowLookupTable[sFontHalfRowOffsets[temp & 0xFF]]) << 16) | (sFontHalfRowLookupTable[sFontHalfRowOffsets[temp >> 8]]);
 }
