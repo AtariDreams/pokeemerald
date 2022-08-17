@@ -153,16 +153,16 @@ struct NamingScreenTemplate
 
 struct NamingScreenData
 {
-    u8 tilemapBuffer1[0x800];
-    u8 tilemapBuffer2[0x800];
-    u8 tilemapBuffer3[0x800];
+    u16 tilemapBuffer1[32 * 32];
+    u16 tilemapBuffer2[32 * 32];
+    u16 tilemapBuffer3[32 * 32];
     u8 textBuffer[16];
     u8 tileBuffer[0x600];
     u8 state;
     u8 windows[WIN_COUNT];
-    u16 inputCharBaseXPos;
-    u16 bg1vOffset;
-    u16 bg2vOffset;
+    s16 inputCharBaseXPos;
+    s16 bg1vOffset;
+    s16 bg2vOffset;
     u16 bg1Priority;
     u16 bg2Priority;
     u8 bgToReveal;
@@ -398,21 +398,22 @@ void DoNamingScreen(u8 templateNum, u8 *destBuffer, u16 monSpecies, u16 monGende
     if (!sNamingScreen)
     {
         SetMainCallback2(returnCallback);
+        return;
     }
-    else
-    {
-        sNamingScreen->templateNum = templateNum;
-        sNamingScreen->monSpecies = monSpecies;
-        sNamingScreen->monGender = monGender;
-        sNamingScreen->monPersonality = monPersonality;
-        sNamingScreen->destBuffer = destBuffer;
-        sNamingScreen->returnCallback = returnCallback;
 
-        if (templateNum == NAMING_SCREEN_PLAYER)
-            StartTimer1();
+    sNamingScreen->templateNum = templateNum;
+    sNamingScreen->monSpecies = monSpecies;
+    sNamingScreen->monGender = monGender;
+    sNamingScreen->monPersonality = monPersonality;
+    sNamingScreen->destBuffer = destBuffer;
+    sNamingScreen->returnCallback = returnCallback;
 
-        SetMainCallback2(CB2_LoadNamingScreen);
-    }
+    // Use the time to determine the main character as a random number seed
+    // Or you can just inline instead of a call, or have this be it's own function for naming the char but whatever
+    if (templateNum == NAMING_SCREEN_PLAYER)
+        StartTimer1();
+
+    SetMainCallback2(CB2_LoadNamingScreen);
 }
 
 static void CB2_LoadNamingScreen(void)
@@ -772,14 +773,9 @@ static bool8 MainState_WaitPageSwap(void)
         sNamingScreen->currentPage %= KBPAGE_COUNT;
 
         if (onLastColumn)
-        {
             cursorX = GetCurrentPageColumnCount();
-        }
-        else
-        {
-            if (cursorX >= GetCurrentPageColumnCount())
-                cursorX = GetCurrentPageColumnCount() - 1;
-        }
+        else if (cursorX >= GetCurrentPageColumnCount())
+            cursorX = GetCurrentPageColumnCount() - 1;
 
         SetCursorPos(cursorX, cursorY);
         DrawKeyboardPageOnDeck();
@@ -840,7 +836,7 @@ static bool8 PageSwapAnimState_Init(struct Task *task)
 
 static bool8 PageSwapAnimState_1(struct Task *task)
 {
-    u16 *const vOffsets[] =
+    s16 *const vOffsets[] =
     {
         &sNamingScreen->bg2vOffset,
         &sNamingScreen->bg1vOffset
@@ -851,7 +847,7 @@ static bool8 PageSwapAnimState_1(struct Task *task)
     *vOffsets[sNamingScreen->bgToHide] = Sin((task->tFrameCount + 128) & 0xFF, 40);
     if (task->tFrameCount >= 64)
     {
-        u8 temp = sNamingScreen->bg1Priority;  //Why u8 and not u16?
+        u8 temp = sNamingScreen->bg1Priority;  //Why u8 and not s16?
 
         sNamingScreen->bg1Priority = sNamingScreen->bg2Priority;
         sNamingScreen->bg2Priority = temp;
@@ -862,7 +858,7 @@ static bool8 PageSwapAnimState_1(struct Task *task)
 
 static bool8 PageSwapAnimState_2(struct Task *task)
 {
-    u16 *const vOffsets[] =
+    s16 *const vOffsets[] =
     {
         &sNamingScreen->bg2vOffset,
         &sNamingScreen->bg1vOffset
@@ -873,7 +869,7 @@ static bool8 PageSwapAnimState_2(struct Task *task)
     *vOffsets[sNamingScreen->bgToHide] = Sin((task->tFrameCount + 128) & 0xFF, 40);
     if (task->tFrameCount >= 128)
     {
-        u8 temp = sNamingScreen->bgToReveal;
+        u8 temp = sNamingScreen->bgToReveal; // Why u8 and not s16?
 
         sNamingScreen->bgToReveal = sNamingScreen->bgToHide;
         sNamingScreen->bgToHide = temp;
@@ -1049,8 +1045,8 @@ static void SpriteCB_Cursor(struct Sprite *sprite)
 
     if (sprite->sFlashing)
     {
-        s8 gb = sprite->sColor;
-        s8 r = sprite->sColor >> 1;
+        u8 gb = sprite->sColor;
+        u8 r = sprite->sColor >> 1;
         u16 index = IndexOfSpritePaletteTag(PALTAG_CURSOR) * 16 + 0x0101;
 
         MultiplyInvertedPaletteRGBComponents(index, r, gb, gb);
@@ -1067,6 +1063,7 @@ static void SpriteCB_InputArrow(struct Sprite *sprite)
     if (sprite->sDelay == 0 || --sprite->sDelay == 0)
     {
         sprite->sDelay = 8;
+        // Should be % ARRAY_COUNT, but that doesn't match, and ironically this makes worse code on agbcc
         sprite->sXPosId = (sprite->sXPosId + 1) & (ARRAY_COUNT(x) - 1);
     }
     sprite->x2 = x[sprite->sXPosId];
@@ -1097,6 +1094,11 @@ static void SpriteCB_Underscore(struct Sprite *sprite)
         sprite->sDelay++;
         if (sprite->sDelay > 8)
         {
+            // Should be % ARRAY_COUNT, but that doesn't match, and ironically this makes worse code on agbcc
+            // NOTE: this actually has different behavior so be careful;  & array_count - 1 takes a signed while % takes an unsigned?
+            // Was this intentional?
+            // But this only happens here, not in the other example above
+            // TODO: Investigate
             sprite->sYPosId = (sprite->sYPosId + 1) & (ARRAY_COUNT(y) - 1);
             sprite->sDelay = 0;
         }
@@ -1136,7 +1138,7 @@ static void SetCursorPos(s16 x, s16 y)
     else
         cursorSprite->x = 0;
 
-    cursorSprite->y = y * 16 + 88;
+    cursorSprite->y = (y << 4) + 88;
     cursorSprite->sPrevX = cursorSprite->sX;
     cursorSprite->sPrevY = cursorSprite->sY;
     cursorSprite->sX = x;
@@ -1221,6 +1223,7 @@ static bool8 PageSwapSprite_SlideOn(struct Sprite *);
 
 static void CreatePageSwapButtonSprites(void)
 {
+    // These could be one var, but that only matches if we do a dumb pointer variable thing and I do not want to do that
     u8 frameSpriteId;
     u8 textSpriteId;
     u8 buttonSpriteId;
@@ -1283,7 +1286,7 @@ static bool8 PageSwapSprite_SlideOff(struct Sprite *sprite)
     struct Sprite *button = &gSprites[sprite->sButtonSpriteId];
 
     text->y2++;
-    if (text->y2 > 7)
+    if (text->y2 >= 8)
     {
         sprite->sState++;
         text->y2 = -4;
@@ -1457,20 +1460,18 @@ static bool8 HandleKeyboardEvent(void)
     {
         return SwapKeyboardPage();
     }
-    else if (input == INPUT_B_BUTTON)
+    if (input == INPUT_B_BUTTON)
     {
         DeleteTextCharacter();
         return FALSE;
     }
-    else if (input == INPUT_START)
+    if (input == INPUT_START)
     {
         MoveCursorToOKButton();
         return FALSE;
     }
-    else
-    {
-        return sKeyboardKeyHandlers[keyRole](input);
-    }
+
+    return sKeyboardKeyHandlers[keyRole](input);
 }
 
 static bool8 KeyboardKeyHandler_Character(u8 input)
@@ -1516,8 +1517,8 @@ static bool8 KeyboardKeyHandler_OK(u8 input)
         sNamingScreen->state = STATE_PRESSED_OK;
         return TRUE;
     }
-    else
-        return FALSE;
+    
+    return FALSE;
 }
 
 static bool8 SwapKeyboardPage(void)
@@ -1558,7 +1559,7 @@ static u8 GetInputEvent(void)
 {
     u8 taskId = FindTaskIdByFunc(Task_HandleInput);
 
-    return gTasks[taskId].tKeyboardEvent;
+    return (u8)gTasks[taskId].tKeyboardEvent;
 }
 
 static void SetInputState(u8 state)
@@ -1679,6 +1680,7 @@ static void HandleDpadMovement(struct Task *task)
         // so wrap Y accordingly
         if (cursorY < 0)
             cursorY = BUTTON_COUNT - 1;
+        // no else ifs?
         if (cursorY >= BUTTON_COUNT)
             cursorY = 0;
 
@@ -1690,6 +1692,7 @@ static void HandleDpadMovement(struct Task *task)
     else
     {
         if (cursorY < 0)
+        // no else ifs?
             cursorY = KBROW_COUNT - 1;
         if (cursorY > KBROW_COUNT - 1)
             cursorY = 0;
@@ -1710,6 +1713,7 @@ static void DrawNormalTextEntryBox(void)
 
 static void DrawMonTextEntryBox(void)
 {
+    // 32 or 48?
     u8 buffer[32];
 
     StringCopy(buffer, gSpeciesNames[sNamingScreen->monSpecies]);
@@ -1796,7 +1800,7 @@ static u8 GetTextEntryPosition(void)
 static u8 GetPreviousTextCaretPosition(void)
 {
     s8 i;
-
+    // todo: see if we can make i u8
     for (i = sNamingScreen->template->maxChars - 1; i > 0; i--)
     {
         if (sNamingScreen->textBuffer[i] != EOS)
@@ -1836,6 +1840,7 @@ static bool8 AddTextCharacter(void)
     CopyBgTilemapBufferToVram(3);
     PlaySE(SE_SELECT);
 
+    // TODO: flip this if
     if (GetPreviousTextCaretPosition() != sNamingScreen->template->maxChars - 1)
         return FALSE;
     else
@@ -1924,7 +1929,7 @@ struct TextColor   // Needed because of alignment
     u8 colors[3][4];
 };
 
-static const struct TextColor sTextColorStruct =
+static const struct TextColor ALIGNED(4) sTextColorStruct =
 {
     {
         {TEXT_DYNAMIC_COLOR_4, TEXT_COLOR_WHITE, TEXT_COLOR_DARK_GRAY},
@@ -1973,6 +1978,7 @@ static void DrawKeyboardPageOnDeck(void)
     u8 bg;
     u8 bg_;
     u8 windowId;
+    // TODO: name bg priority mask constant for 3
     u8 bg1Priority = GetGpuReg(REG_OFFSET_BG1CNT) & 3;
     u8 bg2Priority = GetGpuReg(REG_OFFSET_BG2CNT) & 3;
 
@@ -2053,12 +2059,14 @@ static bool8 IsWideLetter(u8 character)
     for (i = 0; sText_AlphabetUpperLower[i] != EOS; i++)
     {
         if (character == sText_AlphabetUpperLower[i])
-            return FALSE;
+            return FALSE; //localization just turned this from true to false instead of dummying this out or removing the call
+            //TODO: Remove this function
     }
     return FALSE;
 }
 
 // Debug? Unused, and arguments aren't sensible for non-player screens.
+// TODO: remove these functions meant for debug
 static void Debug_NamingScreenPlayer(void)
 {
     DoNamingScreen(NAMING_SCREEN_PLAYER, gSaveBlock2Ptr->playerName, gSaveBlock2Ptr->playerGender, 0, 0, CB2_ReturnToFieldWithOpenMenu);
