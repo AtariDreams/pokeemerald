@@ -854,6 +854,7 @@ void AnimTask_MementoHandleBg(u8 taskId)
     DestroyAnimVisualTask(taskId);
 }
 
+// TODO: should everything below be its own file since this is steel?
 // Animates a deep slash from a claw. Used by Metal Claw, Dragon Claw, and Crush Claw
 static void AnimClawSlash(struct Sprite *sprite)
 {
@@ -953,11 +954,10 @@ static void AnimTask_MetallicShine_Step(u8 taskId)
     {
         gTasks[taskId].data[10] = 0;
         gBattle_BG1_X += 128;
-        gTasks[taskId].data[11]++;
-        if (gTasks[taskId].data[11] == 2)
+        if (++gTasks[taskId].data[11] == 2)
         {
             spriteId = GetAnimBattlerSpriteId(ANIM_ATTACKER);
-            paletteNum = 16 + gSprites[spriteId].oam.paletteNum;
+            paletteNum = gSprites[spriteId].oam.paletteNum + 16;
             if (gTasks[taskId].data[1] == 0)
                 SetGrayscaleOrOriginalPalette(paletteNum, TRUE);
 
