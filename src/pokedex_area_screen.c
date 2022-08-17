@@ -248,6 +248,7 @@ static void FindMapsWithMon(u16 species)
     if (sPokedexAreaScreen->alteringCaveId >= NUM_ALTERING_CAVE_TABLES)
         sPokedexAreaScreen->alteringCaveId = 0;
 
+    // These are CONFIRMED to do the same thing. Just one generates worse code
     #if MODERN
     if (species != gSaveBlock1Ptr->roamer.species)
     #else
