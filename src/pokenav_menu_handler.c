@@ -295,21 +295,34 @@ static u32 HandleMainMenuInputEndTutorial(struct Pokenav_Menu *menu)
 
     if (JOY_NEW(A_BUTTON))
     {
-        u32 menuItem = sMenuItems[menu->menuType][menu->cursorPos];
-        if (menuItem != POKENAV_MENUITEM_MATCH_CALL && menuItem != POKENAV_MENUITEM_SWITCH_OFF)
-        {
-            PlaySE(SE_FAILURE);
-            return POKENAV_MENU_FUNC_NONE;
-        }
-        else if (menuItem == POKENAV_MENUITEM_MATCH_CALL)
+        /* u32 menuItem = sMenuItems[menu->menuType][menu->cursorPos];
+        if (menuItem == POKENAV_MENUITEM_MATCH_CALL)
         {
             menu->helpBarIndex = HELPBAR_MC_TRAINER_LIST;
             SetMenuIdAndCB(menu, POKENAV_MATCH_CALL);
             return POKENAV_MENU_FUNC_OPEN_FEATURE;
+            
+        }
+        else if (menuItem == POKENAV_MENUITEM_SWITCH_OFF)
+        {
+            return -1;
         }
         else
         {
+            PlaySE(SE_FAILURE);
+            return POKENAV_MENU_FUNC_NONE;
+        } */
+        switch (sMenuItems[menu->menuType][menu->cursorPos])
+        {
+        case POKENAV_MENUITEM_MATCH_CALL:
+            menu->helpBarIndex = HELPBAR_MC_TRAINER_LIST;
+            SetMenuIdAndCB(menu, POKENAV_MATCH_CALL);
+            return POKENAV_MENU_FUNC_OPEN_FEATURE;
+        case POKENAV_MENUITEM_SWITCH_OFF:
             return -1;
+        default:
+            PlaySE(SE_FAILURE);
+            return POKENAV_MENU_FUNC_NONE;
         }
     }
     else if (JOY_NEW(B_BUTTON))
