@@ -915,8 +915,6 @@ void HandleSpeciesGfxDataChange(u8 battlerAtk, u8 battlerDef, bool8 castform)
     }
     else
     {
-        const void *src;
-        void *dst;
         u16 targetSpecies;
 
         if (IsContest())
@@ -962,9 +960,7 @@ void HandleSpeciesGfxDataChange(u8 battlerAtk, u8 battlerDef, bool8 castform)
             }
         }
 
-        src = gMonSpritesGfxPtr->sprites.ptr[position];
-        dst = (void *)(OBJ_VRAM0 + gSprites[gBattlerSpriteIds[battlerAtk]].oam.tileNum * 32);
-        DmaCopy32(3, src, dst, MON_PIC_SIZE);
+        DmaCopy32Defvars(3, gMonSpritesGfxPtr->sprites.ptr[position], (void *)(OBJ_VRAM0 + gSprites[gBattlerSpriteIds[battlerAtk]].oam.tileNum * 32), MON_PIC_SIZE);
         paletteOffset = 0x100 + battlerAtk * 16;
         lzPaletteData = GetMonSpritePalFromSpeciesAndPersonality(targetSpecies, otId, personalityValue);
         LZDecompressWram(lzPaletteData, gDecompressionBuffer);
@@ -993,7 +989,9 @@ void HandleSpeciesGfxDataChange(u8 battlerAtk, u8 battlerDef, bool8 castform)
 
 void BattleLoadSubstituteOrMonSpriteGfx(u8 battlerId, bool8 loadMonSprite)
 {
-    s32 i, position, palOffset;
+    u8 position;
+    u16 palOffset;
+    m32 i;
 
     if (!loadMonSprite)
     {
@@ -1017,15 +1015,12 @@ void BattleLoadSubstituteOrMonSpriteGfx(u8 battlerId, bool8 loadMonSprite)
         palOffset = (battlerId * 16) + 0x100;
         LoadCompressedPalette(gSubstituteDollPal, palOffset, 32);
     }
-    else
+    else if (!IsContest())
     {
-        if (!IsContest())
-        {
-            if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
-                BattleLoadOpponentMonSpriteGfx(&gEnemyParty[gBattlerPartyIndexes[battlerId]], battlerId);
-            else
-                BattleLoadPlayerMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[battlerId]], battlerId);
-        }
+        if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
+            BattleLoadOpponentMonSpriteGfx(&gEnemyParty[gBattlerPartyIndexes[battlerId]], battlerId);
+        else
+            BattleLoadPlayerMonSpriteGfx(&gPlayerParty[gBattlerPartyIndexes[battlerId]], battlerId);
     }
 }
 
@@ -1043,7 +1038,7 @@ void LoadBattleMonGfxAndAnimate(u8 battlerId, bool8 loadMonSprite, u8 spriteId)
 void TrySetBehindSubstituteSpriteBit(u8 battlerId, u16 move)
 {
     if (move == MOVE_SUBSTITUTE)
-        gBattleSpritesDataPtr->battlerData[battlerId].behindSubstitute = 1;
+        gBattleSpritesDataPtr->battlerData[battlerId].behindSubstitute = TRUE;
 }
 
 void ClearBehindSubstituteBit(u8 battlerId)
@@ -1068,16 +1063,25 @@ void HandleLowHpMusicChange(struct Pokemon *mon, u8 battlerId)
     else
     {
         gBattleSpritesDataPtr->battlerData[battlerId].lowHpSong = 0;
+        #if !MODERN
         if (!IsDoubleBattle())
         {
             m4aSongNumStop(SE_LOW_HEALTH);
-            return;
         }
-        if (IsDoubleBattle() && !gBattleSpritesDataPtr->battlerData[battlerId ^ BIT_FLANK].lowHpSong)
+        else if (IsDoubleBattle() && !gBattleSpritesDataPtr->battlerData[battlerId ^ BIT_FLANK].lowHpSong)
         {
             m4aSongNumStop(SE_LOW_HEALTH);
-            return;
         }
+        #else
+        if (!IsDoubleBattle())
+        {
+            m4aSongNumStop(SE_LOW_HEALTH);
+        }
+        else if (!gBattleSpritesDataPtr->battlerData[battlerId ^ BIT_FLANK].lowHpSong)
+        {
+            m4aSongNumStop(SE_LOW_HEALTH);
+        }
+        #endif
     }
 }
 
@@ -1118,22 +1122,24 @@ void HandleBattleLowHpMusicChange(void)
 
 void SetBattlerSpriteAffineMode(u8 affineMode)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < gBattlersCount; i++)
     {
-        if (IsBattlerSpritePresent(i))
+        if (!IsBattlerSpritePresent(i))
         {
-            gSprites[gBattlerSpriteIds[i]].oam.affineMode = affineMode;
-            if (affineMode == ST_OAM_AFFINE_OFF)
-            {
-                gBattleSpritesDataPtr->healthBoxesData[i].matrixNum = gSprites[gBattlerSpriteIds[i]].oam.matrixNum;
-                gSprites[gBattlerSpriteIds[i]].oam.matrixNum = 0;
-            }
-            else
-            {
-                gSprites[gBattlerSpriteIds[i]].oam.matrixNum = gBattleSpritesDataPtr->healthBoxesData[i].matrixNum;
-            }
+            continue;
+        }
+
+        gSprites[gBattlerSpriteIds[i]].oam.affineMode = affineMode;
+        if (affineMode == ST_OAM_AFFINE_OFF)
+        {
+            gBattleSpritesDataPtr->healthBoxesData[i].matrixNum = gSprites[gBattlerSpriteIds[i]].oam.matrixNum;
+            gSprites[gBattlerSpriteIds[i]].oam.matrixNum = 0;
+        }
+        else
+        {
+            gSprites[gBattlerSpriteIds[i]].oam.matrixNum = gBattleSpritesDataPtr->healthBoxesData[i].matrixNum;
         }
     }
 }
@@ -1181,7 +1187,7 @@ void SpriteCB_EnemyShadow(struct Sprite *shadowSprite)
              && gEnemyMonElevation[gBattleSpritesDataPtr->battlerData[battlerId].transformSpecies] == 0)
         invisible = TRUE;
 
-    if (gBattleSpritesDataPtr->battlerData[battlerId].behindSubstitute)
+    M_IF (gBattleSpritesDataPtr->battlerData[battlerId].behindSubstitute)
         invisible = TRUE;
 
     shadowSprite->x = battlerSprite->x;
@@ -1217,11 +1223,12 @@ void HideBattlerShadowSprite(u8 battlerId)
 }
 
 // Color the background tiles surrounding the action selection and move windows
+//TODO: see if you can revert to how it was prior in pret
 void FillAroundBattleWindows(void)
 {
-    u16 *vramPtr = (u16 *)(VRAM + 0x240);
-    s32 i;
-    s32 j;
+    u16 *vramPtr = (u16*)(VRAM + 0x240);
+    m32 i;
+    m32 j;
 
     for (i = 0; i < 9; i++)
     {
@@ -1250,7 +1257,11 @@ void ClearTemporarySpeciesSpriteData(u8 battlerId, bool8 dontClearSubstitute)
 
 void AllocateMonSpritesGfx(void)
 {
-    u8 i = 0, j;
+    m8 i, j;
+
+    #if !MODERN
+    i = 0;
+    #endif
 
     gMonSpritesGfxPtr = NULL;
     gMonSpritesGfxPtr = AllocZeroed(sizeof(*gMonSpritesGfxPtr));
