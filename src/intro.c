@@ -171,7 +171,7 @@ extern const struct SpriteTemplate gAncientPowerRockSpriteTemplate[];
 
 static EWRAM_DATA u16 sIntroCharacterGender = 0;
 static EWRAM_DATA u16 sUnusedVar = 0;
-static EWRAM_DATA u16 sFlygonYOffset = 0;
+static EWRAM_DATA s16 sFlygonYOffset = 0;
 
 u32 gIntroFrameCounter;
 struct GcmbStruct gMultibootProgramStruct;
@@ -1041,8 +1041,11 @@ static void MainCB2_Intro(void)
     BuildOamBuffer();
     UpdatePaletteFade();
     if (gMain.newKeys && !gPaletteFade.active)
+    {
         SetMainCallback2(MainCB2_EndIntro);
-    else if (gIntroFrameCounter != -1)
+        return;
+    }
+    if (gIntroFrameCounter != -1)
         gIntroFrameCounter++;
 }
 
@@ -1073,6 +1076,7 @@ static u8 SetUpCopyrightScreen(void)
         SetGpuReg(REG_OFFSET_BLDCNT, 0);
         SetGpuReg(REG_OFFSET_BLDALPHA, 0);
         SetGpuReg(REG_OFFSET_BLDY, 0);
+        //TODO: Is this needed?
         *(u16 *)PLTT = RGB_WHITE;
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG0HOFS, 0);
@@ -1094,6 +1098,7 @@ static u8 SetUpCopyrightScreen(void)
                                    | BGCNT_TXT256x256);
         EnableInterrupts(INTR_FLAG_VBLANK);
         SetVBlankCallback(VBlankCB_Intro);
+        // they forgot to do the setgpureg here
         REG_DISPCNT = DISPCNT_MODE_0 | DISPCNT_OBJ_1D_MAP | DISPCNT_BG0_ON;
         SetSerialCallback(SerialCB_CopyrightScreen);
         GameCubeMultiBoot_Init(&gMultibootProgramStruct);
@@ -1225,25 +1230,25 @@ static void Task_Scene1_WaterDrops(u8 taskId)
     if (gIntroFrameCounter == TIMER_BIG_DROP_START)
         gSprites[gTasks[taskId].sBigDropSpriteId].sState = 1;
 
-    if (gIntroFrameCounter == TIMER_LOGO_APPEAR)
+    M_IF (gIntroFrameCounter == TIMER_LOGO_APPEAR)
         CreateTask(Task_BlendLogoIn, 0);
 
-    if (gIntroFrameCounter == TIMER_BIG_DROP_FALLS)
+    M_IF (gIntroFrameCounter == TIMER_BIG_DROP_FALLS)
         gSprites[gTasks[taskId].sBigDropSpriteId].sState = 2;
 
-    if (gIntroFrameCounter == TIMER_LOGO_BLEND_OUT)
+    M_IF (gIntroFrameCounter == TIMER_LOGO_BLEND_OUT)
         CreateTask(Task_BlendLogoOut, 0);
 
-    if (gIntroFrameCounter == TIMER_SMALL_DROP_1)
+    M_IF (gIntroFrameCounter == TIMER_SMALL_DROP_1)
         CreateWaterDrop(48, 0, 0x400, 5, 0x70, TRUE);
 
-    if (gIntroFrameCounter == TIMER_SMALL_DROP_2)
+    M_IF (gIntroFrameCounter == TIMER_SMALL_DROP_2)
         CreateWaterDrop(200, 60, 0x400, 9, 0x80, TRUE);
 
-    if (gIntroFrameCounter == TIMER_SPARKLES)
+    M_IF (gIntroFrameCounter == TIMER_SPARKLES)
         CreateTask(Task_CreateSparkles, 0);
 
-    if (gIntroFrameCounter > TIMER_SPARKLES)
+    M_IF (gIntroFrameCounter > TIMER_SPARKLES)
     {
         gTasks[taskId].tBg2PosHi = 80;
         gTasks[taskId].tBg2PosLo = 0;
@@ -1305,24 +1310,38 @@ static void Task_Scene1_PanUp(u8 taskId)
         s32 offset;
 
         // Slide bg 2 downward
+        #if !MODERN
         offset = (gTasks[taskId].tBg2PosHi << 16) + (u16)gTasks[taskId].tBg2PosLo;
+        #else
+        offset = (gTasks[taskId].tBg2PosHi << 16) | (u16)gTasks[taskId].tBg2PosLo;
+        #endif
+
         offset -= 0x6000;
         gTasks[taskId].tBg2PosHi = offset >> 16;
-        gTasks[taskId].tBg2PosLo = offset;
+        gTasks[taskId].tBg2PosLo = offset & 0xFFFF;
         SetGpuReg(REG_OFFSET_BG2VOFS, gTasks[taskId].tBg2PosHi);
 
         // Slide bg 1 downward
+        #if !MODERN
         offset = (gTasks[taskId].tBg1PosHi << 16) + (u16)gTasks[taskId].tBg1PosLo;
+        #else
+        offset = (gTasks[taskId].tBg1PosHi << 16) | (u16)gTasks[taskId].tBg1PosLo;
+        #endif
         offset -= 0x8000;
         gTasks[taskId].tBg1PosHi = offset >> 16;
-        gTasks[taskId].tBg1PosLo = offset;
+        gTasks[taskId].tBg1PosLo = offset & 0xFFFF;
         SetGpuReg(REG_OFFSET_BG1VOFS, gTasks[taskId].tBg1PosHi);
 
         // Slide bg 3 downward
+        #if !MODERN
         offset = (gTasks[taskId].tBg3PosHi << 16) + (u16)gTasks[taskId].tBg3PosLo;
+        #else
+        offset = (gTasks[taskId].tBg2PosHi << 16) | (u16)gTasks[taskId].tBg3PosLo;
+        #endif
+
         offset -= 0xC000;
         gTasks[taskId].tBg3PosHi = offset >> 16;
-        gTasks[taskId].tBg3PosLo = offset;
+        gTasks[taskId].tBg3PosLo = offset & 0xFFFF;
         SetGpuReg(REG_OFFSET_BG0VOFS, gTasks[taskId].tBg3PosHi);
 
         if (gIntroFrameCounter == TIMER_FLYGON_SILHOUETTE_APPEAR)
@@ -1400,7 +1419,12 @@ static void Task_Scene2_CreateSprites(u8 taskId)
     gSprites[spriteId].anims = sAnims_PlayerBicycle;
     gTasks[taskId].tPlayerSpriteId = spriteId;
     CreateSprite(&sSpriteTemplate_Volbeat, DISPLAY_WIDTH + 32, 80, 4);
+#if !MODERN
     spriteId = CreateIntroFlygonSprite(-64, 60);
+#else
+    spriteId = CreateIntroFlygonSprite_Unused(-64, 60);
+#endif
+
     gSprites[spriteId].callback = SpriteCB_Flygon;
     gTasks[taskId].tFlygonSpriteId = spriteId;
 
@@ -1414,24 +1438,29 @@ static void Task_Scene2_CreateSprites(u8 taskId)
 
 static void Task_Scene2_BikeRide(u8 taskId)
 {
-    u16 offset;
-
     if (gIntroFrameCounter == TIMER_TORCHIC_EXIT)
     {
         // Stop the moving scenery/backgrounds, for when the camera fixes on Torchic
         gIntroCredits_MovingSceneryState = INTROCRED_SCENERY_FROZEN;
         DestroyTask(gTasks[taskId].tBgAnimTaskId);
+#if MODERN
+        return;
+#endif
     }
-
     if (gIntroFrameCounter > TIMER_END_SCENE_2)
     {
         // Fade out to next scene
         BeginNormalPaletteFade(PALETTES_ALL, 8, 0, 16, RGB_WHITEALPHA);
         gTasks[taskId].func = Task_Scene2_End;
+#if MODERN
+        return;
+#endif
     }
 
     // Check for updates to player/flygon sprites
     // These states are for SpriteCB_PlayerOnBicycle and SpriteCB_Flygon respectively
+
+#if !MODERN
     if (gIntroFrameCounter == TIMER_PLAYER_DRIFT_BACK)
         gSprites[gTasks[taskId].tPlayerSpriteId].sState = 1;
     if (gIntroFrameCounter == TIMER_PLAYER_MOVE_FORWARD)
@@ -1444,10 +1473,33 @@ static void Task_Scene2_BikeRide(u8 taskId)
         gSprites[gTasks[taskId].tPlayerSpriteId].sState = 3;
     if (gIntroFrameCounter == TIMER_PLAYER_EXIT)
         gSprites[gTasks[taskId].tPlayerSpriteId].sState = 4;
+#else
+    switch (gIntroFrameCounter)
+    {
+    case TIMER_PLAYER_DRIFT_BACK:
+        gSprites[gTasks[taskId].tPlayerSpriteId].sState = 1;
+        break;
+    case TIMER_PLAYER_MOVE_FORWARD:
+        gSprites[gTasks[taskId].tPlayerSpriteId].sState = 0;
+        break;
+    case TIMER_FLYGON_ENTER:
+        gSprites[gTasks[taskId].tPlayerSpriteId].sState = 1;
+        break;
+    case TIMER_PLAYER_MOVE_BACKWARD:
+        gSprites[gTasks[taskId].tPlayerSpriteId].sState = 2;
+        break;
+    case TIMER_PLAYER_HOLD_POSITION:
+        gSprites[gTasks[taskId].tPlayerSpriteId].sState = 3;
+        break;
+    case TIMER_PLAYER_EXIT:
+        gSprites[gTasks[taskId].tPlayerSpriteId].sState = 4;
+        break;
+    }
+#endif
 
     // Handle flygon's y movement
-    offset = Sin(gTasks[taskId].tFlygonTimer >> 2 & 0x7F, 48);
-    sFlygonYOffset = offset;
+    sFlygonYOffset = Sin((gTasks[taskId].tFlygonTimer >> 2) & 0x7F, 48);
+
     if (gTasks[taskId].tFlygonTimer < 512)
         gTasks[taskId].tFlygonTimer++;
 
@@ -1827,7 +1879,11 @@ static void Task_Scene3_NarrowWindow(u8 taskId)
     if (gTasks[taskId].tWinPos != NARROW_HEIGHT)
     {
         gTasks[taskId].tWinPos += 4;
-        SetGpuReg(REG_OFFSET_WIN0V, (gTasks[taskId].tWinPos * 256) - (gTasks[taskId].tWinPos - DISPLAY_HEIGHT));
+        #if !MODERN
+        SetGpuReg(REG_OFFSET_WIN0V, (gTasks[taskId].tWinPos * 256) + (DISPLAY_HEIGHT - gTasks[taskId].tWinPos));
+        #else
+        SetGpuReg(REG_OFFSET_WIN0V, (gTasks[taskId].tWinPos * 256) + DISPLAY_HEIGHT - gTasks[taskId].tWinPos);
+        #endif
     }
     else
     {
@@ -1866,7 +1922,7 @@ static void Task_Scene3_Groudon(u8 taskId)
     s16 *data = gTasks[taskId].data;
 
     tTimer++;
-    if ((u16)(tState - 1) < 7 && tTimer % 2 == 0)
+    if (tState < 8 && tState > 0 && tTimer % 2 == 0)
         tYShake ^= 3;
     PanFadeAndZoomScreen(tScreenX, tScreenY + tYShake, tZoom, 0);
     switch (tState)
@@ -1983,10 +2039,14 @@ static void Task_Scene3_Groudon(u8 taskId)
 
 static void CreateGroudonRockSprites(u8 taskId)
 {
+    #if !MODERN
     int i;
+    #else
+    s16 i;
+    #endif
     u8 spriteId;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sGroudonRockData); i++)
+    for (i = 0; i < (m32)ARRAY_COUNT(sGroudonRockData); i++)
     {
         spriteId = CreateSprite(gAncientPowerRockSpriteTemplate, sGroudonRockData[i][0], DISPLAY_HEIGHT, i);
         gSprites[spriteId].callback = SpriteCB_GroudonRocks;
@@ -2229,7 +2289,11 @@ static void Task_Scene3_Kyogre(u8 taskId)
 // Creates bubbles at positions spread across Kyogre's body
 static void CreateKyogreBubbleSprites_Body(u8 taskId)
 {
+    #if !MODERN
     int i;
+    #else
+    u8 i;
+    #endif
     u8 spriteId;
 
     for (i = 0; i < NUM_BUBBLES_IN_SET; i++)
@@ -2248,7 +2312,11 @@ static void CreateKyogreBubbleSprites_Body(u8 taskId)
 // Creates bubbles at positions around Kyogre's fins, for when it's moving them
 static void CreateKyogreBubbleSprites_Fins(void)
 {
+    #if !MODERN
     int i;
+    #else
+    u8 i;
+    #endif
     u8 spriteId;
 
     for (i = 0; i < NUM_BUBBLES_IN_SET; i++)
@@ -2306,7 +2374,7 @@ static void SpriteCB_KyogreBubbles(struct Sprite *sprite)
         else
             sprite->y += 3;
 
-        if ((u16)(sprite->y - 20) > DISPLAY_HEIGHT - 20)
+        if (sprite->y < 20 || sprite->y > DISPLAY_HEIGHT)
             DestroySprite(sprite);
         break;
     }
@@ -2710,8 +2778,8 @@ static void Task_BlendLogoIn(u8 taskId)
 {
     switch (gTasks[taskId].tState)
     {
-    case 0:
     default:
+    case 0:
         SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_EFFECT_BLEND
                                    | BLDCNT_TGT2_BG0
                                    | BLDCNT_TGT2_BG1
@@ -2753,8 +2821,8 @@ static void Task_BlendLogoOut(u8 taskId)
 {
     switch (gTasks[taskId].tState)
     {
-    case 0:
     default:
+    case 0:
         SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_EFFECT_BLEND
                                    | BLDCNT_TGT2_BG0
                                    | BLDCNT_TGT2_BG1
@@ -2816,9 +2884,9 @@ void PanFadeAndZoomScreen(u16 screenX, u16 screenY, u16 zoom, u16 alpha)
     SetGpuReg(REG_OFFSET_BG2PB, dest.pb);
     SetGpuReg(REG_OFFSET_BG2PC, dest.pc);
     SetGpuReg(REG_OFFSET_BG2PD, dest.pd);
-    SetGpuReg(REG_OFFSET_BG2X_L, dest.dx);
+    SetGpuReg(REG_OFFSET_BG2X_L, dest.dx & 0xFFFF);
     SetGpuReg(REG_OFFSET_BG2X_H, dest.dx >> 16);
-    SetGpuReg(REG_OFFSET_BG2Y_L, dest.dy);
+    SetGpuReg(REG_OFFSET_BG2Y_L, dest.dy & 0xFFFF);
     SetGpuReg(REG_OFFSET_BG2Y_H, dest.dy >> 16);
 }
 
@@ -2831,17 +2899,16 @@ static void SpriteCB_WaterDrop_Ripple(struct Sprite *sprite)
         if (sprite->data[3] != 0)
         {
             sprite->data[3]--;
+            return;
         }
-        else
-        {
-            sprite->invisible = FALSE;
-            SetOamMatrix(sprite->data[1], sprite->data[2], 0, 0, sprite->data[2]);
-            sprite->data[2] = (sprite->data[2] * 95) / 100;
-            palNum = (sprite->data[2] - 192) / 128 + 9;
-            if (palNum > 15)
-                palNum = 15;
-            sprite->oam.paletteNum = palNum;
-        }
+
+        sprite->invisible = FALSE;
+        SetOamMatrix(sprite->data[1], sprite->data[2], 0, 0, sprite->data[2]);
+        sprite->data[2] = (sprite->data[2] * 95) / 100;
+        palNum = (sprite->data[2] - 192) / 128 + 9;
+        if (palNum > 15)
+            palNum = 15;
+        sprite->oam.paletteNum = palNum;
     }
     else
     {
@@ -2863,14 +2930,13 @@ static void SpriteCB_WaterDropHalf(struct Sprite *sprite)
         sprite->oam.shape = SPRITE_SHAPE(64x32);
         sprite->oam.size = SPRITE_SIZE(64x32);
         CalcCenterToCornerVec(sprite, SPRITE_SHAPE(64x32), SPRITE_SIZE(64x32), ST_OAM_AFFINE_ERASE);
+        return;
     }
-    else
-    {
-        sprite->x2 = gSprites[sprite->data[7]].x2;
-        sprite->y2 = gSprites[sprite->data[7]].y2;
-        sprite->x = gSprites[sprite->data[7]].x;
-        sprite->y = gSprites[sprite->data[7]].y;
-    }
+
+    sprite->x2 = gSprites[sprite->data[7]].x2;
+    sprite->y2 = gSprites[sprite->data[7]].y2;
+    sprite->x = gSprites[sprite->data[7]].x;
+    sprite->y = gSprites[sprite->data[7]].y;
 }
 
 static void SpriteCB_WaterDrop(struct Sprite *sprite)
@@ -2890,9 +2956,11 @@ static void SpriteCB_WaterDrop_Slide(struct Sprite *sprite)
         sprite->x2 = -4;
         sprite->data[4] = 128;
         sprite->callback = SpriteCB_WaterDrop_ReachLeafEnd;
+        return;
     }
     else
     {
+        s16 temp;
         u16 data2;
         u16 data3;
         u16 data4;
@@ -2904,7 +2972,6 @@ static void SpriteCB_WaterDrop_Slide(struct Sprite *sprite)
         s16 var2;
         s16 var3;
         s16 var4;
-        s16 temp;
 
         data4 = sprite->data[4];
         sin1 = gSineTable[(u8)data4];
@@ -2936,7 +3003,7 @@ static void SpriteCB_WaterDrop_ReachLeafEnd(struct Sprite *sprite)
     SetOamMatrix(sprite->data[1] + 2, sprite->data[6] + 64, 0, 0, sprite->data[6] + 64);
     if (sprite->data[4] != 64)
     {
-        u16 sinIdx;
+        s16 sinIdx;
         sprite->data[4] -= 8;
         sinIdx = sprite->data[4];
         sprite->x2 = gSineTable[(u8)(sinIdx + 64)] / 64;
@@ -3347,8 +3414,8 @@ static void SpriteCB_FlygonSilhouette(struct Sprite *sprite)
 
     switch (sprite->sState)
     {
-    case 0:
     default:
+    case 0:
         sprite->oam.affineMode = ST_OAM_AFFINE_DOUBLE;
         sprite->oam.matrixNum = 1;
         CalcCenterToCornerVec(sprite, SPRITE_SHAPE(64x32), SPRITE_SIZE(64x32), ST_OAM_AFFINE_DOUBLE);
@@ -3389,8 +3456,8 @@ static void SpriteCB_RayquazaOrb(struct Sprite *sprite)
     u16 foo;
     switch (sprite->sState)
     {
-    case 0:
     default:
+    case 0:
         sprite->invisible = FALSE;
         sprite->oam.affineMode = ST_OAM_AFFINE_DOUBLE;
         sprite->oam.matrixNum = 18;
