@@ -26,7 +26,8 @@
     sSpriteTileAllocBitmap[(n) >> 3] &= ~(1 << ((n) & 7)); \
 }
 
-#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1 << ((n) & 7)))
+#define SPRITE_TILE_IS_ALLOCATED(n) ((sSpriteTileAllocBitmap[(n) / 8] >> ((n) % 8)) & 1)
+// #define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1 << ((n) & 7)))
 
 struct SpriteCopyRequest
 {
@@ -411,8 +412,12 @@ void SortSprites(void)
             }
         }
 
-        while (j > 0
-            && ((sprite1Priority > sprite2Priority)
+#ifdef UBFIX
+        while (
+#else
+        while (j > 0 &&
+#endif
+            ((sprite1Priority > sprite2Priority)
              || (sprite1Priority == sprite2Priority && sprite1Y < sprite2Y)))
         {
             u8 temp = sSpriteOrder[j];
@@ -1202,7 +1207,8 @@ void SetSpriteMatrixAnchor(struct Sprite *sprite, s16 x, s16 y)
     sprite->anchored = TRUE;
 }
 
-static s32 GetAnchorCoord(s32 a0, s32 a1, s32 coord)
+//coord ought to be s32
+static s32 GetAnchorCoord(s32 a0, s32 a1, u32 coord)
 {
     s32 subResult, var1;
 
@@ -1211,7 +1217,7 @@ static s32 GetAnchorCoord(s32 a0, s32 a1, s32 coord)
         var1 = -(subResult) >> 9;
     else
         var1 = -(subResult >> 9);
-    return coord - ((u32)(coord * a1) / (u32)(a0) + var1);
+    return coord - (((coord * a1) / a0) + var1);
 }
 
 static void UpdateSpriteMatrixAnchorPos(struct Sprite *sprite, s32 x, s32 y)
