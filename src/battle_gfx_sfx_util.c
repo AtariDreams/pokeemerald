@@ -127,16 +127,14 @@ u16 ChooseMoveAndTargetInBattlePalace(void)
 
     // If battler is < 50% HP and not asleep, use second set of move group likelihoods
     // otherwise use first set
-    i = (gBattleStruct->palaceFlags & gBitTable[gActiveBattler]) ? 2 : 0;
-    minGroupNum = i;
-
-    maxGroupNum = i + 2; // + 2 because there are two percentages per set of likelihoods
+    minGroupNum = (gBattleStruct->palaceFlags & gBitTable[gActiveBattler]) ? 2 : 0;
 
     // Each nature has a different percent chance to select a move from one of 3 move groups
     // If percent is less than 1st check, use move from "Attack" group
     // If percent is less than 2nd check, use move from "Defense" group
     // Otherwise use move from "Support" group
-    for (; i < maxGroupNum; i++)
+    // + 2 because there are two percentages per set of likelihoods
+    for (i = minGroupNum, maxGroupNum = minGroupNum + 2; i < maxGroupNum; i++)
     {
         if (gBattlePalaceNatureToMoveGroupLikelihood[GetNatureFromPersonality(gBattleMons[gActiveBattler].personality)][i] > percent)
             break;
@@ -148,7 +146,8 @@ u16 ChooseMoveAndTargetInBattlePalace(void)
         selectedGroup = i - minGroupNum;
 
     // Flag moves that match selected group, to be passed to AI
-    for (selectedMoves = 0, i = 0; i < MAX_MON_MOVES; i++)
+    selectedMoves = 0;
+    for (i = 0; i < MAX_MON_MOVES; i++)
     {
         if (moveInfo->moves[i] == MOVE_NONE)
             break;
@@ -202,7 +201,7 @@ u16 ChooseMoveAndTargetInBattlePalace(void)
                 do
                 {
                     i = Random() % MAX_MON_MOVES;
-                    if (!(gBitTable[i] & unusableMovesBits))
+                    if (!(unusableMovesBits & gBitTable[i]))
                         chosenMoveId = i;
                 } while (chosenMoveId == -1);
             }
@@ -219,7 +218,7 @@ u16 ChooseMoveAndTargetInBattlePalace(void)
                 do
                 {
                     i = Random() % MAX_MON_MOVES;
-                    if (!(gBitTable[i] & unusableMovesBits) && validMoveGroup == GetBattlePalaceMoveGroup(moveInfo->moves[i]))
+                    if (!(unusableMovesBits & gBitTable[i]) && validMoveGroup == GetBattlePalaceMoveGroup(moveInfo->moves[i]))
                         chosenMoveId = i;
                 } while (chosenMoveId == -1);
             }
