@@ -93,7 +93,7 @@
 	.include "src/battle_ai_script_commands.o"
 	.include "src/fldeff_misc.o"
 	.include "src/pokeblock.o"
-	.include "src/field_specials.o"
+	.include "src/scr_util.o"
 	.include "src/battle_records.o"
 	.include "src/pokedex_area_screen.o"
 	.include "src/evolution_scene.o"
