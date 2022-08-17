@@ -17,12 +17,16 @@ struct Dma3Request
 
 static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
-static vbool8 sDma3ManagerLocked;
+// Apparently a bug happens if this is not bool, but it may be a compiler bug?
+
+// Let's find out
+// TODO: Solve the compiler bug
+static bool8 sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
-    int i;
+    m32 i;
 
     sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
@@ -160,15 +164,18 @@ s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode)
 
 s16 CheckForSpaceForDma3Request(s16 index)
 {
+    #if !MODERN
     int i = 0;
+    #else
+    u32 i;
+    #endif
 
     if (index == -1)  // check if all requests are free
     {
-        while (i < MAX_DMA_REQUESTS)
+        for (i = 0; i < MAX_DMA_REQUESTS; i++)
         {
             if (sDma3Requests[i].size != 0)
                 return -1;
-            i++;
         }
         return 0;
     }
