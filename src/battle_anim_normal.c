@@ -1402,7 +1402,7 @@ static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8 taskId)
             sprite = &gSprites[gTasks[taskId].data[0]];
             DestroySprite(sprite);
             #else
-            DestroySprite(&gSprites[gTasks[taskId].data[0]);
+            DestroySprite(&gSprites[gTasks[taskId].data[0]]);
             #endif
 
             GetBattleAnimBg1Data(&animBgData);
