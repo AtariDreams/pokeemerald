@@ -857,8 +857,7 @@ u16 LocalIdToHillTrainerId(u8 localId)
 
 bool8 GetHillTrainerFlag(u8 objectEventId)
 {
-    u32 trainerIndexStart = GetFloorId() * HILL_TRAINERS_PER_FLOOR;
-    u8 bitId = gObjectEvents[objectEventId].localId - 1 + trainerIndexStart;
+    u8 bitId = GetFloorId() * HILL_TRAINERS_PER_FLOOR + (gObjectEvents[objectEventId].localId - 1);
 
     return gSaveBlock2Ptr->frontier.trainerFlags & gBitTable[bitId];
 }
