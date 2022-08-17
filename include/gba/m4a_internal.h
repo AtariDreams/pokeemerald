@@ -203,9 +203,9 @@ struct SoundInfo
     u8 gap[3];
     
     //These 3 should be u32 but something is not matching
-    s32 pcmSamplesPerVBlank;
-    s32 pcmFreq;
-    s32 divFreq;
+    m32 pcmSamplesPerVBlank;
+    m32 pcmFreq;
+    m32 divFreq;
     struct CgbChannel *cgbChans;
     MPlayMainFunc MPlayMainHead;
     struct MusicPlayerInfo *musicPlayerHead;
@@ -421,7 +421,7 @@ void RealClearChain(void *x);
 
 void MPlayContinue(struct MusicPlayerInfo *mplayInfo);
 void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader);
-void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo);
+void MPlayStop(struct MusicPlayerInfo *mplayInfo);
 void FadeOutBody(struct MusicPlayerInfo *mplayInfo);
 void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track);
 void MPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed);

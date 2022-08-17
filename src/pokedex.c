@@ -3531,7 +3531,7 @@ static void Task_LoadCryScreen(u8 taskId)
     default:
         if (!gPaletteFade.active)
         {
-            m4aMPlayStop(&gMPlayInfo_BGM);
+            MPlayStop(&gMPlayInfo_BGM);
             sPokedexView->currentPage = PAGE_CRY;
             gPokedexVBlankCB = gMain.vblankCallback;
             SetVBlankCallback(NULL);
