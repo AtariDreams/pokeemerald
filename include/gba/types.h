@@ -16,10 +16,12 @@ typedef int64_t  s64;
 typedef u8 m8;
 typedef u16 m16;
 typedef int m32;
+typedef s16 ms16;
 #else
 typedef u32 m8;
 typedef u32 m16;
 typedef u32 m32;
+typedef u32 ms16;
 #endif
 
 typedef volatile u8   vu8;
