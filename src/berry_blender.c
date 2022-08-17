@@ -2608,7 +2608,7 @@ static void CB2_EndBlenderGame(void)
                 sBerryBlender->gameEndState = 5;
 
             sBerryBlender->mainState = 0;
-            m4aMPlayStop(&gMPlayInfo_SE2);
+            MPlayStop(&gMPlayInfo_SE2);
         }
         UpdateHitPitch();
         break;
