@@ -125,6 +125,7 @@ bool32 IsWonderNewsSameAsSaved(const u8 *news)
         if (savedNews[i] != news[i])
             return FALSE;
     }
+    return TRUE;
     #else
     if (!ValidateSavedWonderNews())
         return FALSE;

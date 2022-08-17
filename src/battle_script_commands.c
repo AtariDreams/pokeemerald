@@ -3163,7 +3163,7 @@ static void Cmd_jumpiftype(void)
 static void Cmd_getexp(void)
 {
     u16 item;
-    s32 i; // also used as stringId
+    m32 i; // also used as stringId
     u8 holdEffect;
     s32 sentIn;
     s32 viaExpShare = 0;
@@ -3217,7 +3217,11 @@ static void Cmd_getexp(void)
             if (*exp == 0)
                 *exp = 1;
 
+            #if !MODERN
             gExpShareExp = calculatedExp / 2 / viaExpShare;
+            #else
+            gExpShareExp = Div(calculatedExp / 2, viaExpShare);
+            #endif
             if (gExpShareExp == 0)
                 gExpShareExp = 1;
         }
