@@ -230,7 +230,7 @@ static u32 GetMirageRnd(void)
 static void SetMirageRnd(u32 rnd)
 {
     VarSet(VAR_MIRAGE_RND_H, rnd >> 16);
-    VarSet(VAR_MIRAGE_RND_L, rnd);
+    VarSet(VAR_MIRAGE_RND_L, rnd & 0xFFFF);
 }
 
 // unused
@@ -1617,44 +1617,70 @@ u16 GetSlotMachineId(void)
 
 bool8 FoundAbandonedShipRoom1Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_1_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
-        return FALSE;
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_1_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    //     return FALSE;
 
+    // return TRUE;
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_1_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
+        return FALSE;
     return TRUE;
 }
 
 bool8 FoundAbandonedShipRoom2Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_2_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
-        return FALSE;
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_2_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    //     return FALSE;
 
+    // return TRUE;
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_2_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
+        return FALSE;
     return TRUE;
 }
 
 bool8 FoundAbandonedShipRoom4Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_4_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
-        return FALSE;
+    // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_4_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    //     return FALSE;
 
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_4_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
+        return FALSE;
     return TRUE;
 }
 
 bool8 FoundAbandonedShipRoom6Key(void)
 {
-    u16 *specVar = &gSpecialVar_0x8004;
-    u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_6_KEY;
-    *specVar = flag;
-    if (!FlagGet(flag))
+     // u16 *specVar = &gSpecialVar_0x8004;
+    // u16 flag = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_6_KEY;
+    // *specVar = flag;
+    // if (!FlagGet(flag))
+    // return FALSE;
+
+    // Yeah this dumb thing is needed to match.
+    gSpecialVar_0x8004 = FLAG_HIDDEN_ITEM_ABANDONED_SHIP_RM_6_KEY - 500;
+    gSpecialVar_0x8004 += 500;
+    if (!FlagGet(gSpecialVar_0x8004))
         return FALSE;
+    
 
     return TRUE;
 }
