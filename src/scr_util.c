@@ -469,7 +469,7 @@ void Special_BeginCyclingRoadChallenge(void)
     sBikeCyclingTimer = gMain.vblankCounter1;
 }
 
-u16 GetPlayerAvatarBike(void)
+u8 GetPlayerAvatarBike(void)
 {
     if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_ACRO_BIKE))
         return 1;
@@ -546,7 +546,8 @@ static void RecordCyclingRoadResults(u32 numFrames, u8 numBikeCollisions)
 
     if (framesRecord > numFrames || framesRecord == 0)
     {
-        VarSet(VAR_CYCLING_ROAD_RECORD_TIME_L, numFrames);
+        // & 0xFFFF is not needed but just in case
+        VarSet(VAR_CYCLING_ROAD_RECORD_TIME_L, numFrames & 0xFFFF);
         VarSet(VAR_CYCLING_ROAD_RECORD_TIME_H, numFrames >> 16);
         VarSet(VAR_CYCLING_ROAD_RECORD_COLLISIONS, numBikeCollisions);
     }
@@ -561,7 +562,7 @@ u16 GetRecordedCyclingRoadResults(void)
     if (framesRecord == 0)
         return FALSE;
 
-    DetermineCyclingRoadResults(framesRecord, VarGet(VAR_CYCLING_ROAD_RECORD_COLLISIONS));
+    DetermineCyclingRoadResults(framesRecord, (u8)VarGet(VAR_CYCLING_ROAD_RECORD_COLLISIONS));
     return TRUE;
 }
 
@@ -596,6 +597,8 @@ bool32 CountSSTidalStep(u16 delta)
 
     return TRUE;
 }
+
+// TODO: look into s8 vs u8 pointers
 
 u8 GetSSTidalLocation(s8 *mapGroup, s8 *mapNum, s16 *x, s16 *y)
 {
@@ -664,12 +667,13 @@ bool32 ShouldDoWallyCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_WALLY_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
             break;
         default:
             return FALSE;
         }
+
+        if (++(*GetVarPointer(VAR_WALLY_CALL_STEP_COUNTER)) < 250)
+            return FALSE;
     }
     else
     {
@@ -689,12 +693,12 @@ bool32 ShouldDoScottFortreeCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_SCOTT_FORTREE_CALL_STEP_COUNTER)) < 10)
-                return FALSE;
             break;
         default:
             return FALSE;
         }
+        if (++(*GetVarPointer(VAR_SCOTT_FORTREE_CALL_STEP_COUNTER)) < 10)
+            return FALSE;
     }
     else
     {
@@ -739,12 +743,14 @@ bool32 ShouldDoRoxanneCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_ROXANNE_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
+
             break;
         default:
             return FALSE;
         }
+
+        if (++(*GetVarPointer(VAR_ROXANNE_CALL_STEP_COUNTER)) < 250)
+            return FALSE;
     }
     else
     {
@@ -764,12 +770,12 @@ bool32 ShouldDoRivalRayquazaCall(void)
         case MAP_TYPE_CITY:
         case MAP_TYPE_ROUTE:
         case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_RIVAL_RAYQUAZA_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
             break;
         default:
             return FALSE;
         }
+        if (++(*GetVarPointer(VAR_RIVAL_RAYQUAZA_CALL_STEP_COUNTER)) < 250)
+            return FALSE;
     }
     else
     {
@@ -845,7 +851,7 @@ void SpawnLinkPartnerObjectEvent(void)
     {
         if (myLinkPlayerNumber != i)
         {
-            switch ((u8)gLinkPlayers[i].version)
+            switch (gLinkPlayers[i].version & 0xFF)
             {
             case VERSION_RUBY:
             case VERSION_SAPPHIRE:
@@ -1030,12 +1036,11 @@ void MauvilleGymSetDefaultBarriers(void)
 // Presses all switches and deactivates all beams.
 void MauvilleGymDeactivatePuzzle(void)
 {
-    int i, x, y;
-    const struct UCoords8 *switchCoords = sMauvilleGymSwitchCoords;
-    for (i = ARRAY_COUNT(sMauvilleGymSwitchCoords) - 1; i >= 0; i--)
+    int x, y;
+    // should have been u32 for y;
+    for (y = 0; y < (int)ARRAY_COUNT(sMauvilleGymSwitchCoords); y++)
     {
-        MapGridSetMetatileIdAt(switchCoords->x, switchCoords->y, METATILE_MauvilleGym_PressedSwitch);
-        switchCoords++;
+        MapGridSetMetatileIdAt(sMauvilleGymSwitchCoords[y].x, sMauvilleGymSwitchCoords[y].y, METATILE_MauvilleGym_PressedSwitch);
     }
     for (y = 5 + MAP_OFFSET; y < 17 + MAP_OFFSET; y++)
     {
@@ -1070,10 +1075,12 @@ void MauvilleGymDeactivatePuzzle(void)
             case METATILE_MauvilleGym_GreenBeamV1_On:
                 MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_PoleBottom_On | MAPGRID_COLLISION_MASK);
                 break;
+            case METATILE_MauvilleGym_GreenBeamV2_On:
+                MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_FloorTile);
+                break;
             case METATILE_MauvilleGym_RedBeamV1_On:
                 MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_PoleBottom_Off | MAPGRID_COLLISION_MASK);
                 break;
-            case METATILE_MauvilleGym_GreenBeamV2_On:
             case METATILE_MauvilleGym_RedBeamV2_On:
                 MapGridSetMetatileIdAt(x, y, METATILE_MauvilleGym_FloorTile);
                 break;
