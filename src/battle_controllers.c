@@ -1340,8 +1340,12 @@ void BtlController_EmitCmd32(u8 bufferId, u16 size, void *data)
     m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_32;
-    sBattleBuffersTransferData[1] = size;
+    sBattleBuffersTransferData[1] = size & 0xFF;
+    #if !MODERN
     sBattleBuffersTransferData[2] = (size & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[2] = (size) >> 8;
+    #endif
     for (i = 0; i < size; i++)
         sBattleBuffersTransferData[3 + i] = *(u8 *)(data++);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 3);
@@ -1375,7 +1379,11 @@ void BtlController_EmitOneReturnValue(u8 bufferId, u16 ret)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_ONERETURNVALUE;
     sBattleBuffersTransferData[1] = ret & 0xFF;
+    #if !MODERN
     sBattleBuffersTransferData[2] = (ret & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[2] = (ret) >> 8;
+    #endif
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
@@ -1384,7 +1392,11 @@ void BtlController_EmitOneReturnValue_Duplicate(u8 bufferId, u16 ret)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_ONERETURNVALUE_DUPLICATE;
     sBattleBuffersTransferData[1] = ret & 0xFF;
+        #if !MODERN
     sBattleBuffersTransferData[2] = (ret & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[2] = (ret) >> 8;
+    #endif
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
@@ -1529,7 +1541,11 @@ void BtlController_EmitBattleAnimation(u8 bufferId, u8 animationId, u16 argument
     sBattleBuffersTransferData[0] = CONTROLLER_BATTLEANIMATION;
     sBattleBuffersTransferData[1] = animationId;
     sBattleBuffersTransferData[2] = argument;
+    #if !MODERN
     sBattleBuffersTransferData[3] = (argument & 0xFF00) >> 8;
+    #else
+    sBattleBuffersTransferData[3] = (argument) >> 8;
+    #endif
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
