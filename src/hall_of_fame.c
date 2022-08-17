@@ -57,9 +57,9 @@ STATIC_ASSERT(sizeof(struct HallofFameTeam) * HALL_OF_FAME_MAX_TEAMS <= SECTOR_D
 struct HofGfx
 {
     u16 state;
-    u8 field_2[16];
-    u8 tilemap1[0x1000];
-    u8 tilemap2[0x1000];
+    u8 field_2[16]; //unused
+    u16 tilemap1[0x800];
+    u16 tilemap2[0x800];
 };
 
 static EWRAM_DATA u32 sHofFadePalettes = 0;
