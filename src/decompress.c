@@ -261,10 +261,27 @@ static void StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u8 *src_
 }
 #endif
 
+#if !MODERN
+// TODO: this should probably be inlined
 u32 GetDecompressedDataSize(const u8 *ptr8)
 {
-    return (ptr8[3] << 16) | (ptr8[2] << 8) | (ptr8[1]);
+    return (u32)(ptr8[3] << 16) | (ptr8[2] << 8) | (ptr8[1]);
 }
+#else
+NAKED
+u32 GetDecompressedDataSize(const u8 *ptr8)
+{
+    // clang made this
+    asm_unified("ldrb	r1, [r0, #3]\n\
+	lsls	r1, r1, #16\n\
+	ldrb	r2, [r0, #2]\n\
+	lsls	r2, r2, #8\n\
+	adds	r1, r2, r1\n\
+	ldrb	r0, [r0, #1]\n\
+	adds	r0, r1, r0\n\
+	bx	lr");
+}
+#endif
 
 bool8 LoadCompressedSpriteSheetUsingHeap(const struct CompressedSpriteSheet *src)
 {

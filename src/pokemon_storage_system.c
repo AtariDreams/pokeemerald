@@ -409,9 +409,9 @@ struct PokemonStorageSystemData
     struct UnkUtil unkUtil;
     struct UnkUtilData unkUtilData[8];
     u16 partyMenuTilemapBuffer[0x108];
-    u16 partyMenuUnused1; // Never read
+    u16 partyMenuUnused1; // Never read. The code that did read this was commented out
     u16 partyMenuY;
-    u8 partyMenuUnused2; // Unused
+    s8 partyMenuUnused2; // Unused
     u8 partyMenuMoveTimer;
     u8 showPartyMenuState;
     bool8 closeBoxFlashing;
@@ -424,13 +424,13 @@ struct PokemonStorageSystemData
     u8 wallpaperOffset;
     u8 scrollUnused1; // Never read
     u8 scrollToBoxIdUnused; // Never read
-    u16 scrollUnused2; // Never read
+    s16 scrollUnused2; // Never read
     s16 scrollDirectionUnused; // Never read.
-    u16 scrollUnused3; // Never read
-    u16 scrollUnused4; // Never read
-    u16 scrollUnused5; // Never read
-    u16 scrollUnused6; // Never read
-    u8 filler1[22];
+    s16 scrollUnused3; // Never read
+    s16 scrollUnused4; // Never read
+    s16 scrollUnused5; // Never read
+    s16 scrollUnused6; // Never read
+    u8 filler1[22]; // unused probably for HOF
     u8 boxTitleTiles[1024];
     u8 boxTitleCycleId;
     u8 wallpaperLoadState; // Written to, but never read.
