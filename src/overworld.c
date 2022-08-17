@@ -2201,7 +2201,7 @@ static void SetCameraToTrackGuestPlayer_2(void)
 
 static void OffsetCameraFocusByLinkPlayerId(void)
 {
-    u16 x, y;
+    s16 x, y;
     GetCameraFocusCoords(&x, &y);
 
     // This is a hack of some kind; it's undone in SpawnLinkPlayers, which is called
@@ -2211,8 +2211,12 @@ static void OffsetCameraFocusByLinkPlayerId(void)
 
 static void SpawnLinkPlayers(void)
 {
+    #if !MODERN
     u16 i;
-    u16 x, y;
+    #else
+    u8 i;
+    #endif
+    s16 x, y;
 
     GetCameraFocusCoords(&x, &y);
     x -= gLocalLinkPlayerId;

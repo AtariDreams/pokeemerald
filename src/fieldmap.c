@@ -29,7 +29,9 @@ EWRAM_DATA static u16 sBackupMapData[MAX_MAP_DATA_SIZE] = {0};
 EWRAM_DATA struct MapHeader gMapHeader = {0};
 EWRAM_DATA struct Camera gCamera = {0};
 EWRAM_DATA static struct ConnectionFlags sMapConnectionFlags = {0};
+#if !MODERN
 EWRAM_DATA static u32 sFiller = 0; // without this, the next file won't align properly
+#endif
 
 struct BackupMapLayout gBackupMapLayout;
 
@@ -48,13 +50,17 @@ static struct MapConnection *GetIncomingConnection(u8 direction, int x, int y);
 static bool8 IsPosInIncomingConnectingMap(u8 direction, int x, int y, struct MapConnection *connection);
 static bool8 IsCoordInIncomingConnectingMap(int coord, int srcMax, int destMax, int offset);
 
+#if !MODERN
 #define GetBorderBlockAt(x, y)( gMapHeader.mapLayout->border[ ( (x + 1) & 1) + ( ( (y + 1) & 1)<<1 ) ]  | MAPGRID_COLLISION_MASK)
+#else
+#define GetBorderBlockAt(x, y)( gMapHeader.mapLayout->border[ ( (x + 1) & 1) | ( ( (y + 1) & 1)<<1 ) ]  | MAPGRID_COLLISION_MASK)
+#endif
 
 #define AreCoordsWithinMapGridBounds(x, y) (x >= 0 && x < gBackupMapLayout.width && y >= 0 && y < gBackupMapLayout.height)
 
 #define GetMapGridBlockAt(x, y) (AreCoordsWithinMapGridBounds(x, y) ? gBackupMapLayout.map[x + gBackupMapLayout.width * y] : GetBorderBlockAt(x, y))
 
-struct MapHeader const *const GetMapHeaderFromConnection(struct MapConnection *connection)
+const struct MapHeader *const GetMapHeaderFromConnection(struct MapConnection *connection)
 {
     return Overworld_GetMapHeaderByGroupAndId(connection->mapGroup, connection->mapNum);
 }
@@ -362,7 +368,11 @@ u8 MapGridGetCollisionAt(int x, int y)
     return (block & MAPGRID_COLLISION_MASK) >> MAPGRID_COLLISION_SHIFT;
 }
 
-u32 MapGridGetMetatileIdAt(int x, int y)
+#if !MODERN
+int MapGridGetMetatileIdAt(int x, int y)
+#else
+u16 MapGridGetMetatileIdAt(int x, int y)
+#endif
 {
     u16 block = GetMapGridBlockAt(x, y);
 
@@ -372,7 +382,11 @@ u32 MapGridGetMetatileIdAt(int x, int y)
     return block & MAPGRID_METATILE_ID_MASK;
 }
 
-u32 MapGridGetMetatileBehaviorAt(int x, int y)
+#if !MODERN
+int MapGridGetMetatileBehaviorAt(int x, int y)
+#else
+u16 MapGridGetMetatileBehaviorAt(int x, int y)
+#endif
 {
     u16 metatile = MapGridGetMetatileIdAt(x, y);
     return GetMetatileAttributesById(metatile) & METATILE_ATTR_BEHAVIOR_MASK;
@@ -437,26 +451,31 @@ void SaveMapView(void)
 
 static bool32 SavedMapViewIsEmpty(void)
 {
-    u16 i;
+    m16 i;
     // Should it be a u16? Does it matter in bitwise?
     // I mean we should probably return anyway not sure why it has to be time constant
-    u32 marker = 0;
+    
 
 #ifndef UBFIX
+    u32 marker = 0;
     // BUG: This loop extends past the bounds of the mapView array. Its size is only 0x100.
     for (i = 0; i < sizeof(gSaveBlock1Ptr->mapView); i++)
         marker |= gSaveBlock1Ptr->mapView[i];
 #else
     // UBFIX: Only iterate over 0x100
     for (i = 0; i < ARRAY_COUNT(gSaveBlock1Ptr->mapView); i++)
-        marker |= gSaveBlock1Ptr->mapView[i];
+        if (gSaveBlock1Ptr->mapView[i])
+            return FALSE;
 #endif
 
-
+#ifndef UBFIX
     if (marker == 0)
         return TRUE;
     else
         return FALSE;
+#else
+    return TRUE;
+#endif
 }
 
 static void ClearSavedMapView(void)
@@ -471,37 +490,43 @@ static void LoadSavedMapView(void)
     int x, y;
     u16 *mapView;
     int width;
+#if !MODERN
     mapView = gSaveBlock1Ptr->mapView;
-    if (!SavedMapViewIsEmpty())
-    {
-        width = gBackupMapLayout.width;
-        x = gSaveBlock1Ptr->pos.x;
-        y = gSaveBlock1Ptr->pos.y;
-        for (i = y; i < y + MAP_OFFSET_H; i++)
-        {
-            if (i == y && i != 0)
-                yMode = 0;
-            else if (i == y + MAP_OFFSET_H - 1 && i != gMapHeader.mapLayout->height - 1)
-                yMode = 1;
-            else
-                yMode = 0xFF;
+#endif
+    if (SavedMapViewIsEmpty())
+        return;
 
-            for (j = x; j < x + MAP_OFFSET_W; j++)
-            {
-                if (!SkipCopyingMetatileFromSavedMap(&sBackupMapData[j + width * i], width, yMode))
-                    sBackupMapData[j + width * i] = *mapView;
-                mapView++;
-            }
-        }
+#if MODERN
+    mapView = gSaveBlock1Ptr->mapView;
+#endif
+
+    width = gBackupMapLayout.width;
+    x = gSaveBlock1Ptr->pos.x;
+    y = gSaveBlock1Ptr->pos.y;
+    for (i = y; i < y + MAP_OFFSET_H; i++)
+    {
+        if (i == y && i != 0)
+            yMode = 0;
+        else if (i == y + MAP_OFFSET_H - 1 && i != gMapHeader.mapLayout->height - 1)
+            yMode = 1;
+        else
+            yMode = 0xFF;
+
         for (j = x; j < x + MAP_OFFSET_W; j++)
         {
-            if (y != 0)
-                FixLongGrassMetatilesWindowTop(j, y - 1);
-            if (i < gMapHeader.mapLayout->height - 1)
-                FixLongGrassMetatilesWindowBottom(j, y + MAP_OFFSET_H - 1);
+            if (!SkipCopyingMetatileFromSavedMap(&sBackupMapData[j + width * i], width, yMode))
+                sBackupMapData[j + width * i] = *mapView;
+            mapView++;
         }
-        ClearSavedMapView();
     }
+    for (j = x; j < x + MAP_OFFSET_W; j++)
+    {
+        if (y != 0)
+            FixLongGrassMetatilesWindowTop(j, y - 1);
+        if (i < gMapHeader.mapLayout->height - 1)
+            FixLongGrassMetatilesWindowBottom(j, y + MAP_OFFSET_H - 1);
+    }
+    ClearSavedMapView();
 }
 
 static void MoveMapViewToBackup(u8 direction)
@@ -779,32 +804,41 @@ struct MapConnection *GetConnectionAtCoords(s16 x, s16 y)
 
 // Why is this u16
 // TODO: make s16
+#if !MODERN
 void SetCameraFocusCoords(u16 x, u16 y)
 {
     gSaveBlock1Ptr->pos.x = x - MAP_OFFSET;
     gSaveBlock1Ptr->pos.y = y - MAP_OFFSET;
 }
+#else
+void SetCameraFocusCoords(s16 x, s16 y)
+{
+    gSaveBlock1Ptr->pos.x = x - MAP_OFFSET;
+    gSaveBlock1Ptr->pos.y = y - MAP_OFFSET;
+}
+#endif
 // why is this u16
 // TODO: make s16
-void GetCameraFocusCoords(u16 *x, u16 *y)
+
+void GetCameraFocusCoords(s16 *x, s16 *y)
 {
     *x = gSaveBlock1Ptr->pos.x + MAP_OFFSET;
     *y = gSaveBlock1Ptr->pos.y + MAP_OFFSET;
 }
-
 // Unused
+#if !MODERN
 static void SetCameraCoords(u16 x, u16 y)
 {
     gSaveBlock1Ptr->pos.x = x;
     gSaveBlock1Ptr->pos.y = y;
 }
 
-void GetCameraCoords(u16 *x, u16 *y)
+void GetCameraCoords(s16 *x, s16 *y)
 {
     *x = gSaveBlock1Ptr->pos.x;
     *y = gSaveBlock1Ptr->pos.y;
 }
-
+#endif
 void MapGridSetMetatileImpassabilityAt(int x, int y, bool32 impassable)
 {
     if (AreCoordsWithinMapGridBounds(x, y))

@@ -1151,11 +1151,11 @@ static void ItemStorage_CreateListMenu(u8 taskId)
     data = gTasks[taskId].data;
     for (i = 0; i <= ITEMPC_WIN_LIST_END; i++)
         ItemStorage_AddWindow(i);
-    text = gText_TossItem;
-    if (!tInTossMenu == 0)
-        text = gText_WithdrawItem;
-    else
+
+    if (tInTossMenu)
         text = gText_TossItem;
+    else
+        text = gText_WithdrawItem;
     x = GetStringCenterAlignXOffset(FONT_NORMAL, text, 104);
     AddTextPrinterParameterized(sItemStorageMenu->windowIds[ITEMPC_WIN_TITLE], FONT_NORMAL, text, x, 1, 0, NULL);
     CopyWindowToVram(sItemStorageMenu->windowIds[ITEMPC_WIN_ICON], COPYWIN_GFX);

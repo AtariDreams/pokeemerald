@@ -21,21 +21,34 @@
 
 extern struct BackupMapLayout gBackupMapLayout;
 
-u32 MapGridGetMetatileIdAt(int, int);
-u32 MapGridGetMetatileBehaviorAt(int, int);
+#if MODERN
+u16 MapGridGetMetatileIdAt(int, int);
+u16 MapGridGetMetatileBehaviorAt(int, int);
+#else
+int MapGridGetMetatileIdAt(int, int);
+int MapGridGetMetatileBehaviorAt(int, int);
+#endif
 void MapGridSetMetatileIdAt(int, int, u16);
 void MapGridSetMetatileEntryAt(int, int, u16);
-void GetCameraCoords(u16 *, u16 *);
+
+#if !MODERN
+void GetCameraCoords(s16*, s16*);
+#endif
+
 u8 MapGridGetCollisionAt(int, int);
 int GetMapBorderIdAt(int x, int y);
 bool32 CanCameraMoveInDirection(int direction);
 u16 GetMetatileAttributesById(u16 metatileId);
-void GetCameraFocusCoords(u16 *x, u16 *y);
+void GetCameraFocusCoords(s16 *x, s16 *y);
 u8 MapGridGetMetatileLayerTypeAt(int x, int y);
 u8 MapGridGetElevationAt(int x, int y);
 bool8 CameraMove(int deltaX, int deltaY);
 void SaveMapView(void);
+#if MODERN
+void SetCameraFocusCoords(s16 x, s16 y);
+#else
 void SetCameraFocusCoords(u16 x, u16 y);
+#endif
 void InitMap(void);
 void InitMapFromSavedGame(void);
 void InitTrainerHillMap(void);
@@ -46,7 +59,7 @@ void LoadSecondaryTilesetPalette(struct MapLayout const *mapLayout);
 void CopySecondaryTilesetToVramUsingHeap(struct MapLayout const *mapLayout);
 void CopyPrimaryTilesetToVram(const struct MapLayout *);
 void CopySecondaryTilesetToVram(const struct MapLayout *);
-struct MapHeader const *const GetMapHeaderFromConnection(struct MapConnection *connection);
+const struct MapHeader *const GetMapHeaderFromConnection(struct MapConnection *connection);
 struct MapConnection *GetConnectionAtCoords(s16 x, s16 y);
 void MapGridSetMetatileImpassabilityAt(int x, int y, bool32 impassable);
 
