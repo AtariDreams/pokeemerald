@@ -601,7 +601,7 @@ static void ApplyDroughtGammaShiftWithBlend(s8 gammaIndex, u8 blendCoeff, u16 bl
         {
             for (i = 0; i < 16; i++)
             {
-                // SHould this be u16 or u32?
+                // Should this be u16 or u32?
                 // both match, and the compiler seems to be able to optimize it out?
                 u16 offset;
                 struct RGBColor color1;
@@ -729,7 +729,7 @@ void ApplyWeatherGammaShiftIfIdle_Gradual(u8 gammaIndex, u8 gammaTargetIndex, u8
 
 void FadeScreen(u8 mode, s8 delay)
 {
-    u32 fadeColor;
+    u16 fadeColor;
     bool8 fadeOut;
     bool8 useWeatherPal;
 
@@ -812,13 +812,13 @@ void UpdateSpritePaletteWithWeather(u8 spritePaletteIndex)
         {
             if (gWeatherPtr->currWeather == WEATHER_FOG_HORIZONTAL)
                 MarkFogSpritePalToLighten(paletteIndex);
-            paletteIndex *= 16;
+            paletteIndex <<= 4;
             for (i = 0; i < 16; i++)
                 gPlttBufferFaded[paletteIndex + i] = gWeatherPtr->fadeDestColor;
         }
         break;
     case WEATHER_PAL_STATE_SCREEN_FADING_OUT:
-        paletteIndex *= 16;
+        paletteIndex <<= 4;
         CpuFastCopy(gPlttBufferFaded + paletteIndex, gPlttBufferUnfaded + paletteIndex, 32);
         BlendPalette(paletteIndex, 16, gPaletteFade.y, gPaletteFade.blendColor);
         break;
@@ -831,7 +831,8 @@ void UpdateSpritePaletteWithWeather(u8 spritePaletteIndex)
         }
         else
         {
-            paletteIndex *= 16;
+            // Inline this maybe?
+            paletteIndex <<= 4;
             BlendPalette(paletteIndex, 16, 12, RGB(28, 31, 28));
         }
         break;
