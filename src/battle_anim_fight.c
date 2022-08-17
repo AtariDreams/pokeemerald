@@ -469,10 +469,7 @@ static void AnimFistOrFootRandomPos(struct Sprite *sprite)
     s16 xMod, yMod;
     s16 x, y;
 
-    if (gBattleAnimArgs[0] == 0)
-        battler = gBattleAnimAttacker;
-    else
-        battler = gBattleAnimTarget;
+    battler = (gBattleAnimArgs[0] == 0) ? gBattleAnimAttacker : gBattleAnimTarget;
 
     if (gBattleAnimArgs[2] < 0)
         gBattleAnimArgs[2] = Random2() % 5;
@@ -493,7 +490,7 @@ static void AnimFistOrFootRandomPos(struct Sprite *sprite)
         y *= -1;
 
     if ((gBattlerPositions[battler] & BIT_SIDE) == B_SIDE_PLAYER)
-        y += 0xFFF0;
+        y -= 16;
 
     sprite->x += x;
     sprite->y += y;
@@ -556,8 +553,7 @@ static void AnimCrossChopHand_Step(struct Sprite *sprite)
         sprite->data[0] = 8;
         sprite->x += sprite->x2;
         sprite->y += sprite->y2;
-        sprite->y2 = 0;
-        sprite->x2 = 0;
+        sprite->x2 = sprite->y2 = 0;
 
         sprite->callback = StartAnimLinearTranslation;
         StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
@@ -643,7 +639,11 @@ static void AnimStompFoot(struct Sprite *sprite)
 
 static void AnimStompFoot_Step(struct Sprite *sprite)
 {
-    if (--sprite->data[0] == -1)
+    #if !MODERN
+    if (sprite->data[0]-- == 0)
+    #else
+    if (sprite->data[0] == 0)
+    #endif
     {
         sprite->data[0] = 6;
         sprite->data[2] = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2);
@@ -652,6 +652,10 @@ static void AnimStompFoot_Step(struct Sprite *sprite)
         sprite->callback = StartAnimLinearTranslation;
         StoreSpriteCallbackInData6(sprite, AnimStompFoot_End);
     }
+    #if MODERN
+    else 
+        sprite->data[0]--;
+    #endif
 }
 
 static void AnimStompFoot_End(struct Sprite *sprite)
@@ -670,6 +674,7 @@ static void AnimDizzyPunchDuck(struct Sprite *sprite)
         sprite->data[1] = gBattleAnimArgs[2];
         sprite->data[2] = gBattleAnimArgs[3];
         sprite->data[0]++;
+        return;
     }
     else
     {
@@ -679,7 +684,11 @@ static void AnimDizzyPunchDuck(struct Sprite *sprite)
         sprite->data[3] = (sprite->data[3] + 3) & 0xFF;
 
         if (sprite->data[3] > 100)
+#if !MODERN
             sprite->invisible = sprite->data[3] % 2;
+#else
+            sprite->invisible = sprite->data[3] & 1;
+#endif
 
         if (sprite->data[3] > 120)
             DestroyAnimSprite(sprite);
@@ -858,10 +867,12 @@ static void AnimSuperpowerRock_Step1(struct Sprite *sprite)
 
         var0 = (void *)(((intptr_t)var0) >> 8);
         sprite->y = (intptr_t)var0;
-        if (sprite->y < -8)
+        if (sprite->y < -8) {
             DestroyAnimSprite(sprite);
-        else
-            sprite->data[0]--;
+            return;
+        }
+        
+        sprite->data[0]--;
     }
     else
     {

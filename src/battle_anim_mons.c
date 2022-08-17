@@ -33,8 +33,6 @@ static void AnimTask_BlendMonInAndOut_Step(u8 taskId);
 static bool8 ShouldRotScaleSpeciesBeFlipped(void);
 static void CreateBattlerTrace(struct Task *task, u8 taskId);
 
-EWRAM_DATA static union AffineAnimCmd *sAnimTaskAffineAnim = NULL;
-
 static const struct UCoords8 sBattlerCoords[][MAX_BATTLERS_COUNT] =
 {
     { // Single battle
@@ -1807,7 +1805,9 @@ void PrepareAffineAnimInTaskData(struct Task *task, u8 spriteId, const union Aff
 
 bool8 RunAffineAnimFromTaskData(struct Task *task)
 {
-    sAnimTaskAffineAnim = &((union AffineAnimCmd *)LoadPointerFromVars(task->data[13], task->data[14]))[task->data[7]];
+    EWRAM_DATA static const union AffineAnimCmd *sAnimTaskAffineAnim = NULL;
+
+    sAnimTaskAffineAnim = &((const union AffineAnimCmd *)LoadPointerFromVars(task->data[13], task->data[14]))[task->data[7]];
     switch (sAnimTaskAffineAnim->type)
     {
     default:
