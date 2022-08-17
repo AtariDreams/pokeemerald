@@ -40,8 +40,8 @@ static void LoadLeftHeaderGfxForSubMenu(u32);
 static void LoadLeftHeaderGfxForMenu(u32);
 static void HideLeftHeaderSubmenuSprites(bool32);
 static void HideLeftHeaderSprites(bool32);
-static void ShowLeftHeaderSprites(u32, bool32);
-static void ShowLeftHeaderSubmenuSprites(u32, bool32);
+static void ShowLeftHeaderSprites(s32, bool32);
+static void ShowLeftHeaderSubmenuSprites(s32, bool32);
 static void MoveLeftHeader(struct Sprite *, s32, s32, s32);
 static void SpriteCB_MoveLeftHeader(struct Sprite *);
 static void InitPokenavMainMenuResources(void);
@@ -604,6 +604,7 @@ static void CleanupPokenavMainMenuResources(void)
 static void SpriteCB_SpinningPokenav(struct Sprite *sprite)
 {
     // If the background starts scrolling, follow it.
+    // -(GetBgY(0) >> 8)
     sprite->y2 = (GetBgY(0) / 256u) * -1;
 }
 
@@ -698,7 +699,7 @@ static void LoadLeftHeaderGfxForSubMenu(u32 menuGfxId)
 {
     u32 size, tag;
 
-    if (menuGfxId >= POKENAV_GFX_MENUS_END - POKENAV_GFX_SUBMENUS_START)
+    if (menuGfxId >= POKENAV_GFX_MENUS_END - POKENAV_GFX_SUBMENUS_START) //Array count sPokenavSubMenuLeftHeaderSpriteSheets
         return;
 
     tag = sPokenavSubMenuLeftHeaderSpriteSheets[menuGfxId].tag;
@@ -710,7 +711,7 @@ static void LoadLeftHeaderGfxForSubMenu(u32 menuGfxId)
 
 void ShowLeftHeaderGfx(u32 menuGfxId, bool32 isMain, bool32 isOnRightSide)
 {
-    u32 tileTop;
+    s32 tileTop;
 
     if (!isMain)
         tileTop = 0x30;
@@ -753,7 +754,8 @@ bool32 AreLeftHeaderSpritesMoving(void)
         return TRUE;
 }
 
-static void ShowLeftHeaderSprites(u32 startY, bool32 isOnRightSide)
+// Shouldn't startY be s16 then?
+static void ShowLeftHeaderSprites(s32 startY, bool32 isOnRightSide)
 {
     s32 start, end, i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
@@ -770,7 +772,8 @@ static void ShowLeftHeaderSprites(u32 startY, bool32 isOnRightSide)
     }
 }
 
-static void ShowLeftHeaderSubmenuSprites(u32 startY, bool32 isOnRightSide)
+// s16 Y should be
+static void ShowLeftHeaderSubmenuSprites(s32 startY, bool32 isOnRightSide)
 {
     s32 start, end, i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
