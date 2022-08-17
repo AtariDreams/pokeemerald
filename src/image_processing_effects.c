@@ -121,6 +121,8 @@ void ApplyImageProcessingEffects(struct ImageProcessingContext *context)
     }
 }
 
+// Where is the 64 coming from????!!!!
+// Is it checking memory twice?
 static void ApplyImageEffect_RedChannelGrayscale(u8 delta)
 {
     u8 i, j, grayValue;
@@ -197,10 +199,11 @@ static void ApplyImageEffect_Grayscale(void)
 
         for (i = 0; i < gCanvasColumnEnd; i++, pixel++)
         {
-            if (!IS_ALPHA(*pixel))
+            if (IS_ALPHA(*pixel))
             {
-                *pixel = ConvertColorToGrayscale(pixel);
+                continue;
             }
+            *pixel = ConvertColorToGrayscale(pixel);
         }
     }
 }
@@ -208,25 +211,26 @@ static void ApplyImageEffect_Grayscale(void)
 static void ApplyImageEffect_Blur(void)
 {
     u8 i, j;
+    u16 prevPixel;
+    u16 *pixel;
 
     for (i = 0; i < gCanvasColumnEnd; i++)
     {
-        u16 *pixelRow = &gCanvasPixels[gCanvasRowStart * gCanvasWidth];
-        u16 *pixel = &pixelRow[gCanvasColumnStart + i];
-        u16 prevPixel = *pixel;
+#if MODERN
+        pixel = &gCanvasPixels[gCanvasRowStart * gCanvasWidth + gCanvasColumnStart + i];
+#else
+        pixel = gCanvasPixels + gCanvasRowStart * gCanvasWidth + (gCanvasColumnStart + i);
+#endif
+        prevPixel = *pixel;
 
-        j = 1;
-        pixel += gCanvasWidth;
-        while (j < gCanvasRowEnd - 1)
+        for (j = 1, pixel += gCanvasWidth; j < gCanvasRowEnd - 1; j++, pixel += gCanvasWidth)
         {
-            if (!IS_ALPHA(*pixel))
+            if (IS_ALPHA(*pixel))
             {
-                *pixel = QuantizePixel_Blur(&prevPixel, pixel, pixel + gCanvasWidth);
-                prevPixel = *pixel;
+                continue;
             }
-
-            j++;
-            pixel += gCanvasWidth;
+            *pixel = QuantizePixel_Blur(&prevPixel, pixel, pixel + gCanvasWidth);
+            prevPixel = *pixel;
         }
     }
 }
