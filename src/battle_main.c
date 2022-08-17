@@ -4927,11 +4927,15 @@ void SpecialStatusesClear(void)
 {
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
+        #if !MODERN
         s32 i;
         u8 *dataPtr = (u8 *)(&gSpecialStatuses[gActiveBattler]);
 
         for (i = 0; i < sizeof(struct SpecialStatus); i++)
             dataPtr[i] = 0;
+        #else
+        memset(&gSpecialStatuses[gActiveBattler], 0, sizeof(struct SpecialStatus));
+        #endif
     }
 }
 
@@ -5254,6 +5258,9 @@ static void ReturnFromBattleToOverworld(void)
         RandomlyGivePartyPokerus(gPlayerParty);
         PartySpreadPokerus(gPlayerParty);
     }
+
+    if (gBattleTypeFlags & BATTLE_TYPE_LINK && gReceivedRemoteLinkPlayers != 0)
+        return;
     #else
     if (!(gBattleTypeFlags & BATTLE_TYPE_LINK))
     {
