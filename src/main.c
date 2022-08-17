@@ -297,7 +297,7 @@ void InitIntrHandlers(void)
 
     DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
 
-    INTR_VECTOR = IntrMain_Buffer;
+    INTR_VECTOR = (void *volatile)IntrMain_Buffer;
 
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
@@ -359,9 +359,11 @@ static void VBlankIntr(void)
     m4aSoundMain();
     TryReceiveLinkBattleData();
 
+    // This check was added for the recorder to work
     if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
         Random();
 
+    //Check to see if communication was interrupted
     UpdateWirelessStatusIndicatorSprite();
 
     INTR_CHECK |= INTR_FLAG_VBLANK;
@@ -370,7 +372,7 @@ static void VBlankIntr(void)
 
 void InitFlashTimer(void)
 {
-    SetFlashTimerIntr(2, gIntrTable + 0x7);
+    SetFlashTimerIntr(2, &gIntrTable[7]);
 }
 
 static void HBlankIntr(void)
