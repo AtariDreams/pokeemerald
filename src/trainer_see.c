@@ -211,7 +211,7 @@ bool8 CheckForTrainersWantingBattle(void)
         if (numTrainers == 0)
             continue;
 
-        if (gNoOfApproachingTrainers > 1)
+        if (gNoOfApproachingTrainers >= 2)
             break;
         if (GetMonsStateToDoubles_2() != 0) // one trainer found and cant have a double battle
             break;
@@ -750,6 +750,7 @@ static void SpriteCB_TrainerIcons(struct Sprite *sprite)
      || sprite->animEnded)
     {
         FieldEffectStop(sprite, sprite->sFldEffId);
+        return;
     }
     else
     {
