@@ -2869,6 +2869,7 @@ void SetContestants(u8 contestType, u8 rank)
         allowPostgameContestants = TRUE;
 
     // Find all suitable opponents
+    // We dont' need this assignment at all, but it is needed to match unless you want to make the other useless loop var
     filter = gPostgameContestOpponentFilter;
     for (i = 0; i < ARRAY_COUNT(gContestOpponents); i++)
     {
@@ -2917,7 +2918,7 @@ void SetLinkAIContestants(u8 contestType, u8 rank, bool32 isPostgame)
 {
     s32 i, j;
     u8 opponentsCount = 0;
-    u8 opponents[100];
+    u8 opponents[ARRAY_COUNT(gContestOpponents) + 1];
 
     if (gNumLinkContestPlayers == CONTESTANT_COUNT)
         return;
@@ -3031,7 +3032,7 @@ static void PrintContestantTrainerName(u8 contestant)
 
 static void PrintContestantTrainerNameWithColor(u8 contestant, u8 color)
 {
-    u8 buffer[32];
+    u8 buffer[30];
     s32 offset;
 
     StringCopy(buffer, gText_Slash);
@@ -3434,7 +3435,7 @@ static void RankContestants(void)
         {
             if (arr[j - 1] < arr[j])
             {
-                u16 temp;
+                s16 temp;
                 SWAP(arr[j], arr[j - 1], temp);
             }
         }
@@ -3638,11 +3639,14 @@ static void DetermineFinalStandings(void)
 
 void SaveLinkContestResults(void)
 {
+    // Should be u16, but that doesn't match
+    s32 num;
     if ((gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK))
     {
-        gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] =
-        ((gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] + 1) > 9999) ? 9999 :
-        (gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] + 1);
+        num =  gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] + 1;
+        if (num > 9999)
+            num = 9999;
+        gSaveBlock2Ptr->contestLinkResults[gSpecialVar_ContestCategory][gContestFinalStandings[gContestPlayerMonIndex]] = num;
 
     }
 }
@@ -3727,6 +3731,7 @@ static u8 UpdateAppealHearts(s16 startAppeal, s16 appealDelta, u8 contestant)
     taskId = CreateTask(Task_UpdateAppealHearts, 20);
     startHearts = GetNumHeartsFromAppealPoints(startAppeal);
     heartsDelta = GetNumHeartsFromAppealPoints(startAppeal + appealDelta) - startHearts;
+    //TODO: Do we need this?!
     GetAppealHeartTileOffset(contestant);  // unused return value
     gTasks[taskId].tNumHearts = abs(startHearts);
     gTasks[taskId].tHeartsDelta = heartsDelta;
@@ -3847,9 +3852,7 @@ static void CreateSliderHeartSprites(void)
     LoadSpriteSheet(&sSpriteSheet_SliderHeart);
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        u8 y = sSliderHeartYPositions[gContestantTurnOrder[i]];
-
-        eContestGfxState[i].sliderHeartSpriteId = CreateSprite(&sSpriteTemplate_SliderHeart, 180, y, 1);
+        eContestGfxState[i].sliderHeartSpriteId = CreateSprite(&sSpriteTemplate_SliderHeart, 180, sSliderHeartYPositions[gContestantTurnOrder[i]], 1);
     }
 }
 
@@ -4029,7 +4032,7 @@ static void Task_FlashJudgeAttentionEye(u8 taskId)
              || gTasks[taskId].data[offset + 0] == 0)
                 gTasks[taskId].data[offset + 1] ^= 1;
 
-            BlendPalette((eContest.prevTurnOrder[i] + 5) * 16 + 6, 2, gTasks[taskId].data[offset + 0], RGB(31, 31, 18));
+            BlendPalette((eContest.prevTurnOrder[i] + 5) * 16 + 6, 2, gTasks[taskId].data[offset], RGB(31, 31, 18));
         }
     }
 }
@@ -4380,16 +4383,14 @@ void SortContestants(bool8 useRanking)
         {
             u8 j = eContestantStatus[i].ranking;
 
-            while (1)
+            for (;; j++)
             {
-                u8 *ptr = &scratch[j];
-                if (*ptr == 0xFF)
+                if (scratch[j] == 0xFF)
                 {
-                    *ptr = i;
+                    scratch[j] = i;
                     gContestantTurnOrder[i] = j;
                     break;
                 }
-                j++;
             }
         }
 
@@ -4491,17 +4492,14 @@ static void CalculateAppealMoveImpact(u8 contestant)
             eContestantStatus[contestant].comboAppealBonus = eContestantStatus[contestant].baseAppeal * eContestantStatus[contestant].completedCombo;
             eContestantStatus[contestant].completedComboFlag = TRUE; // Redundant with completedCombo, used by AI
         }
+        else if (gContestMoves[eContestantStatus[contestant].currMove].comboStarterId != 0)
+        {
+            eContestantStatus[contestant].hasJudgesAttention = TRUE;
+            eContestantStatus[contestant].usedComboMove = TRUE;
+        }
         else
         {
-            if (gContestMoves[eContestantStatus[contestant].currMove].comboStarterId != 0)
-            {
-                eContestantStatus[contestant].hasJudgesAttention = TRUE;
-                eContestantStatus[contestant].usedComboMove = TRUE;
-            }
-            else
-            {
-                eContestantStatus[contestant].hasJudgesAttention = FALSE;
-            }
+            eContestantStatus[contestant].hasJudgesAttention = FALSE;
         }
     }
     if (eContestantStatus[contestant].repeatedMove)
@@ -4535,12 +4533,12 @@ static void CalculateAppealMoveImpact(u8 contestant)
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
         // Target can't be the attacker
-        if (i != contestant)
-        {
-            if (rnd == 0)
-                break;
-            rnd--;
-        }
+        if (i == contestant)
+            continue;
+
+        if (rnd == 0)
+            break;
+        rnd--;
     }
     eContestantStatus[contestant].contestantAnimTarget = i;
 }
@@ -4767,7 +4765,7 @@ static u8 StartApplauseOverflowAnimation(void)
 static void Task_ApplauseOverflowAnimation(u8 taskId)
 {
     // Skip every other frame.
-    if (++gTasks[taskId].data[0] == 1)
+    if (gTasks[taskId].data[0]++ == 0)
     {
         gTasks[taskId].data[0] = 0;
 
@@ -4808,7 +4806,7 @@ static void Task_SlideApplauseMeterIn(u8 taskId)
 
     gTasks[taskId].data[10] += 1664;
     sprite->x2 += gTasks[taskId].data[10] >> 8;
-    gTasks[taskId].data[10] = gTasks[taskId].data[10] & 0xFF;
+    gTasks[taskId].data[10] &= 0xFF;
     if (sprite->x2 > 0)
         sprite->x2 = 0;
     if (sprite->x2 == 0)
@@ -4838,7 +4836,7 @@ static void Task_SlideApplauseMeterOut(u8 taskId)
 
     gTasks[taskId].data[10] += 1664;
     sprite->x2 -= gTasks[taskId].data[10] >> 8;
-    gTasks[taskId].data[10] = gTasks[taskId].data[10] & 0xFF;
+    gTasks[taskId].data[10] &= 0xFF;
     if (sprite->x2 < -70)
         sprite->x2 = -70;
     if (sprite->x2 == -70)
@@ -5856,10 +5854,11 @@ static void SetConestLiveUpdateTVData(void)
     // Count how many TV comment-worthy actions the winner took
     flags = gContestResources->tv[winner].winnerFlags;
     count = 0;
-    for (i = 0; i < 8; flags >>= 1, i++)
+    for (i = 0; i < 8; i++)
     {
         if (flags & 1)
             count++;
+        flags >>= 1;
     }
 
     // Randomly choose one of these actions to comment on
@@ -5915,11 +5914,12 @@ static void SetConestLiveUpdateTVData(void)
 
     // Choose the "worst" action to comment on (flag with highest value)
     flagId = CONTESTLIVE_FLAG_NO_APPEALS;
-    for (i = 0; i < 8; flagId >>= 1, i++)
+    for (i = 0; i < 8; i++)
     {
         loserFlag = gContestResources->tv[loser].loserFlags & flagId;
         if (loserFlag)
             break;
+        flagId >>= 1
     }
 
     ContestLiveUpdates_Init(round1Placing);
@@ -6023,7 +6023,7 @@ static u8 GetMonNicknameLanguage(u8 *nickname)
     u8 ret = GAME_LANGUAGE;
 
     if (nickname[0] == EXT_CTRL_CODE_BEGIN && nickname[1] == EXT_CTRL_CODE_JPN)
-        return GAME_LANGUAGE;
+        return ret;
 
     if (StringLength(nickname) < PLAYER_NAME_LENGTH - 1)
     {
