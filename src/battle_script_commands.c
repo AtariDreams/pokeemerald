@@ -2432,8 +2432,10 @@ void SetMoveEffect(bool8 primary, u8 certain)
                     break;
 
                 // It's redundant, because at this point we know the status1 value is 0.
+                #if !MODERN
                 gBattleMons[gEffectBattler].status1 &= ~STATUS1_TOXIC_POISON;
                 gBattleMons[gEffectBattler].status1 &= ~STATUS1_POISON;
+                #endif
                 statusChanged = TRUE;
                 break;
             }
