@@ -299,7 +299,7 @@ void STWI_send_CP_StartREQ(u16 unk1)
     if (!STWI_init(ID_CP_START_REQ))
     {
         gSTWIStatus->reqLength = 1;
-        gSTWIStatus->txPacket->rfuPacket32.data[0] = unk1;
+        gSTWIStatus->txPacket->rfuPacket32.data[1] = unk1;
         STWI_start_Command();
     }
 }
@@ -330,7 +330,7 @@ void STWI_send_DataTxREQ(const void *in, u8 size)
         if (size & (sizeof(u32) - 1))
             reqLength += 1;
         gSTWIStatus->reqLength = reqLength;
-        CpuCopy32(in, gSTWIStatus->txPacket->rfuPacket32.data, gSTWIStatus->reqLength * sizeof(u32));
+        CpuCopy32(in, &gSTWIStatus->txPacket->rfuPacket32.data[1], gSTWIStatus->reqLength * sizeof(u32));
         STWI_start_Command();
     }
 }
@@ -343,7 +343,7 @@ void STWI_send_DataTxAndChangeREQ(const void *in, u8 size)
         if (size & (sizeof(u32) - 1))
             reqLength += 1;
         gSTWIStatus->reqLength = reqLength;
-        CpuCopy32(in, gSTWIStatus->txPacket->rfuPacket32.data, gSTWIStatus->reqLength * sizeof(u32));
+        CpuCopy32(in, &gSTWIStatus->txPacket->rfuPacket32.data[1], gSTWIStatus->reqLength * sizeof(u32));
         STWI_start_Command();
     }
 }
@@ -421,7 +421,7 @@ void STWI_send_DisconnectREQ(u8 unk)
     if (!STWI_init(ID_DISCONNECT_REQ))
     {
         gSTWIStatus->reqLength = 1;
-        gSTWIStatus->txPacket->rfuPacket32.data[0] = unk;
+        gSTWIStatus->txPacket->rfuPacket32.data[1] = unk;
         STWI_start_Command();
     }
 }
@@ -431,7 +431,7 @@ void STWI_send_TestModeREQ(u8 unk0, u8 unk1)
     if (!STWI_init(ID_TEST_MODE_REQ))
     {
         gSTWIStatus->reqLength = 1;
-        gSTWIStatus->txPacket->rfuPacket32.data[0] = unk0 | (unk1 << 8);
+        gSTWIStatus->txPacket->rfuPacket32.data[1] = unk0 | (unk1 << 8);
         STWI_start_Command();
     }
 }
@@ -445,7 +445,7 @@ void STWI_send_CPR_StartREQ(u16 unk0, u16 unk1, u8 unk2)
     {
         gSTWIStatus->reqLength = 2;
         arg1 = unk1 | (unk0 << 16);
-        packetData = gSTWIStatus->txPacket->rfuPacket32.data;
+        packetData = &gSTWIStatus->txPacket->rfuPacket32.data[1];
         packetData[0] = arg1;
         packetData[1] = unk2;
         STWI_start_Command();
@@ -593,11 +593,15 @@ static u16 STWI_init(u8 request)
 static s32 STWI_start_Command(void)
 {
     u16 imeTemp;
-
+    
     // equivalent to gSTWIStatus->txPacket->rfuPacket32.command,
     // but the cast here is required to avoid register issue
+    #if MODERN
+    REG_SIODATA32 = gSTWIStatus->txPacket->rfuPacket32.data[0] = 0x99660000 | (gSTWIStatus->reqLength << 8) | gSTWIStatus->reqActiveCommand;
+    #else
     *(u32 *)gSTWIStatus->txPacket->rfuPacket8.data = 0x99660000 | (gSTWIStatus->reqLength << 8) | gSTWIStatus->reqActiveCommand;
-    REG_SIODATA32 = gSTWIStatus->txPacket->rfuPacket32.command;
+    REG_SIODATA32 = gSTWIStatus->txPacket->rfuPacket32.data[0];
+    #endif
     gSTWIStatus->state = 0; // master send req
     gSTWIStatus->reqNext = 1;
     imeTemp = REG_IME;
