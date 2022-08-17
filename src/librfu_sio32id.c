@@ -35,7 +35,7 @@ s32 AgbRFU_checkID(u8 maxTries)
     Sio32IDInit();
     regTMCNTL = &REG_TMCNT_L(gSTWIStatus->timerSelect);
     maxTries *= 8;
-    while (--maxTries != 0xFF)
+    while (maxTries--)
     {
         id = Sio32IDMain();
         if (id != 0)
