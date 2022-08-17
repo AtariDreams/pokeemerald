@@ -382,7 +382,7 @@ static void AnimParticleInVortex_Step(struct Sprite *sprite)
     sprite->x2 = Sin(sprite->data[5], sprite->data[3]);
     sprite->data[5] = (sprite->data[5] + sprite->data[2]) & 0xFF;
 
-    if (--sprite->data[0] == -1)
+    if (sprite->data[0]-- == 0)
     {
         DestroyAnimSprite(sprite);
     }
@@ -390,7 +390,7 @@ static void AnimParticleInVortex_Step(struct Sprite *sprite)
 
 void AnimTask_LoadSandstormBackground(u8 taskId)
 {
-    int var0;
+    u8 var0;
     struct BattleAnimBgData animBg;
 
     var0 = 0;
@@ -446,24 +446,44 @@ static void AnimTask_LoadSandstormBackground_Step(u8 taskId)
         }
         break;
     case 1:
-        if (++gTasks[taskId].data[11] == 101)
+        #if !MODERN
+        if (gTasks[taskId].data[11]++ == 100)
         {
             gTasks[taskId].data[11] = 7;
             gTasks[taskId].data[12]++;
         }
+        #else
+        if (gTasks[taskId].data[11] == 100)
+        {
+            gTasks[taskId].data[11] = 7;
+            gTasks[taskId].data[12]++;
+        }
+        else
+            gTasks[taskId].data[11]++;
+        #endif
         break;
     case 2:
-        if (++gTasks[taskId].data[10] == 4)
+        #if MODERN
+        if (gTasks[taskId].data[10] == 3)
+        #else
+        if (gTasks[taskId].data[10]++ == 3)
+        #endif
         {
             gTasks[taskId].data[10] = 0;
             gTasks[taskId].data[11]--;
             SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(gTasks[taskId].data[11], 16 - gTasks[taskId].data[11]));
+            // TODO: was this a typo?
             if (gTasks[taskId].data[11] == 0)
             {
                 gTasks[taskId].data[12]++;
+                #if !MODERN
                 gTasks[taskId].data[11] = 0;
+                #endif
             }
         }
+        #if MODERN
+        else gTasks[taskId].data[10]++;
+        #endif
         break;
     case 3:
         GetBattleAnimBg1Data(&animBg);
@@ -528,9 +548,12 @@ static void AnimFlyingSandCrescent(struct Sprite *sprite)
                 sprite->callback = DestroyAnimSprite;
             }
         }
-        else if (sprite->x + sprite->x2 < -32)
+        else
         {
-            sprite->callback = DestroyAnimSprite;
+            if (sprite->x + sprite->x2 < -32)
+            {
+                sprite->callback = DestroyAnimSprite;
+            }
         }
     }
 }
@@ -558,7 +581,7 @@ void AnimTask_Rollout(u8 taskId)
 {
     u16 var0, var1, var2, var3;
     u8 rolloutCounter;
-    int var5;
+
     s16 pan1, pan2;
     struct Task *task;
 
@@ -579,20 +602,16 @@ void AnimTask_Rollout(u8 taskId)
         task->data[8] = 48 - (rolloutCounter * 8);
 
     task->data[0] = 0;
+
     task->data[11] = 0;
     task->data[9] = 0;
     task->data[12] = 1;
+    task->data[10] = (task->data[8] / 8) - 1;
 
-    var5 = task->data[8];
-    if (var5 < 0)
-        var5 += 7;
-
-    task->data[10] = (var5 >> 3) - 1;
-
-    task->data[2] = var0 * 8;
-    task->data[3] = var1 * 8;
-    task->data[4] = ((var2 - var0) * 8) / task->data[8];
-    task->data[5] = ((var3 - var1) * 8) / task->data[8];
+    task->data[2] = var0 << 3;
+    task->data[3] = var1 << 3;
+    task->data[4] = ((var2 - var0) << 3) / task->data[8];
+    task->data[5] = ((var3 - var1) << 3) / task->data[8];
     task->data[6] = 0;
     task->data[7] = 0;
 
@@ -675,9 +694,8 @@ static void AnimTask_Rollout_Step(u8 taskId)
 static void CreateRolloutDirtSprite(struct Task *task)
 {
     const struct SpriteTemplate *spriteTemplate;
-    int tileOffset;
     u16 x, y;
-    u8 spriteId;
+    u8 spriteId, tileOffset;
 
     switch (task->data[1])
     {
@@ -710,7 +728,7 @@ static void CreateRolloutDirtSprite(struct Task *task)
     if (spriteId != MAX_SPRITES)
     {
         gSprites[spriteId].data[0] = 18;
-        gSprites[spriteId].data[2] = ((task->data[12] * 20) + x) + (task->data[1] * 3);
+        gSprites[spriteId].data[2] = x + (task->data[12] * 20) + (task->data[1] * 3);
         gSprites[spriteId].data[4] = y;
         gSprites[spriteId].data[5] = -16 - (task->data[1] * 2);
         gSprites[spriteId].oam.tileNum += tileOffset;
@@ -737,9 +755,9 @@ static void AnimRolloutParticle(struct Sprite *sprite)
 static u8 GetRolloutCounter(void)
 {
     u8 retVal = gAnimDisableStructPtr->rolloutTimerStartValue - gAnimDisableStructPtr->rolloutTimer;
-    u8 var0 = retVal - 1;
-    if (var0 > 4)
-        retVal = 1;
+    if(retVal < 1 || retVal > 5){
+		retVal = 1;
+	}
 
     return retVal;
 }
@@ -815,12 +833,21 @@ static void AnimRockScatter_Step(struct Sprite *sprite)
 
 void AnimTask_GetSeismicTossDamageLevel(u8 taskId)
 {
+    #if !MODERN
     if (gAnimMoveDmg < 33)
         gBattleAnimArgs[ARG_RET_ID] = 0;
     if ((u32)gAnimMoveDmg - 33 < 33)
         gBattleAnimArgs[ARG_RET_ID] = 1;
     if (gAnimMoveDmg > 65)
         gBattleAnimArgs[ARG_RET_ID] = 2;
+    #else
+    if (gAnimMoveDmg < 33)
+        gBattleAnimArgs[ARG_RET_ID] = 0;
+    else if (gAnimMoveDmg < 66)
+        gBattleAnimArgs[ARG_RET_ID] = 1;
+    else
+        gBattleAnimArgs[ARG_RET_ID] = 2;
+    #endif
 
     DestroyAnimVisualTask(taskId);
 }
