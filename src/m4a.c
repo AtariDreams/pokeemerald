@@ -29,7 +29,7 @@ u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
     if (key > 178)
     {
         key = 178;
-        fineAdjustShifted = 255 << 24;
+        fineAdjustShifted = 0xFF000000;
     }
 
     val1 = gScaleTable[key];
@@ -724,44 +724,45 @@ void FadeOutBody(struct MusicPlayerInfo *mplayInfo)
 
 void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
+    u32 vw, vc;
+    s32 pw;
     if (track->flags & MPT_FLG_VOLSET)
     {
-        u32 x;
-        s32 y;
-
-        x = (u32)(track->vol * track->volX) >> 5;
+        vw = ((u32)track->vol * track->volX) >> 5;
 
         if (track->modT == 1)
-            x = (x * (u32)(track->modM + 128)) >> 7;
+            vw = (vw * (u32)(track->modM + 128)) >> 7;
+            //vw += (vw * track->modM) >> 7;
+           // vw *= (track->modM >> 7) + 1;
 
-        y = 2 * track->pan + track->panX;
+        pw = (s32)(track->pan << 1) + track->panX;
 
         if (track->modT == 2)
-            y += track->modM;
+            pw += (s32)track->modM;
 
-        if (y < -128)
-            y = -128;
-        else if (y > 127)
-            y = 127;
+        if (pw < -128)
+            pw = -128;
+        else if (pw > 127)
+            pw = 127;
 
-        track->volMR = (u32)((y + 128) * x) >> 8;
-        track->volML = (u32)((127 - y) * x) >> 8;
+        vc = (u8)((vw * (u32)(pw + 128)) >> 8);
+
+        track->volMR = vc;
+
+        vc = (u8)((vw * (u32)(127 - pw)) >> 8);
+
+        track->volML = vc;
     }
 
     if (track->flags & MPT_FLG_PITSET)
     {
-        s32 bend = track->bend * track->bendRange;
-        s32 x = (track->tune + bend)
-              * 4
-              + (track->keyShift << 8)
-              + (track->keyShiftX << 8)
-              + track->pitX;
+        pw = (((s32)track->bend * track->bendRange) << 2) + ((s32)track->tune << 2) + ((s32)track->keyShift << 8) + ((s32)track->keyShiftX << 8) + (u32)track->pitX;
 
         if (track->modT == 0)
-            x += 16 * track->modM;
+            pw += ((s32)track->modM << 4);
 
-        track->keyM = x >> 8;
-        track->pitM = x;
+        track->keyM = pw >> 8;
+        track->pitM = (u8)pw;
     }
 
     track->flags &= ~(MPT_FLG_PITSET | MPT_FLG_VOLSET);
@@ -991,65 +992,61 @@ void CgbSound(void)
         /* 2. calculate envelope volume */
         if (channels->statusFlags & SOUND_CHANNEL_SF_START)
         {
-            if (!(channels->statusFlags & SOUND_CHANNEL_SF_STOP))
+            if (channels->statusFlags & SOUND_CHANNEL_SF_STOP)
+                goto oscillator_off;
+            channels->statusFlags = SOUND_CHANNEL_SF_ENV_ATTACK;
+            channels->modify = CGB_CHANNEL_MO_PIT | CGB_CHANNEL_MO_VOL;
+            CgbModVol(channels);
+            switch (ch)
             {
-                channels->statusFlags = SOUND_CHANNEL_SF_ENV_ATTACK;
-                channels->modify = CGB_CHANNEL_MO_PIT | CGB_CHANNEL_MO_VOL;
-                CgbModVol(channels);
-                switch (ch)
+            case 1:
+                *nrx0ptr = channels->sweep;
+                // fallthrough
+            case 2:
+                *nrx1ptr = ((u32)channels->wavePointer << 6) + channels->length;
+                goto init_env_step_time_dir;
+            case 3:
+                if (channels->wavePointer != channels->currentPointer)
                 {
-                case 1:
-                    *nrx0ptr = channels->sweep;
-                    // fallthrough
-                case 2:
-                    *nrx1ptr = ((u32)channels->wavePointer << 6) + channels->length;
-                    goto init_env_step_time_dir;
-                case 3:
-                    if (channels->wavePointer != channels->currentPointer)
-                    {
-                        *nrx0ptr = 0x40;
-                        REG_WAVE_RAM0 = channels->wavePointer[0];
-                        REG_WAVE_RAM1 = channels->wavePointer[1];
-                        REG_WAVE_RAM2 = channels->wavePointer[2];
-                        REG_WAVE_RAM3 = channels->wavePointer[3];
-                        channels->currentPointer = channels->wavePointer;
-                    }
-                    *nrx0ptr = 0;
-                    *nrx1ptr = channels->length;
-                    if (channels->length)
-                        channels->n4 = 0xC0;
-                    else
-                        channels->n4 = 0x80;
-                    break;
-                default:
-                    *nrx1ptr = channels->length;
-                    *nrx3ptr = (u32)channels->wavePointer << 3;
-                init_env_step_time_dir:
-                    envelopeStepTimeAndDir = channels->attack + CGB_NRx2_ENV_DIR_INC;
-                    if (channels->length)
-                        channels->n4 = 0x40;
-                    else
-                        channels->n4 = 0x00;
-                    break;
+                    *nrx0ptr = 0x40;
+                    REG_WAVE_RAM0 = channels->wavePointer[0];
+                    REG_WAVE_RAM1 = channels->wavePointer[1];
+                    REG_WAVE_RAM2 = channels->wavePointer[2];
+                    REG_WAVE_RAM3 = channels->wavePointer[3];
+                    channels->currentPointer = channels->wavePointer;
                 }
-                channels->envelopeCounter = channels->attack;
-                if ((s8)(channels->envelopeCounter & mask))
-                {
-                    channels->envelopeVolume = 0;
-                    goto envelope_step_complete;
-                }
+                *nrx0ptr = 0;
+                *nrx1ptr = channels->length;
+                if (channels->length)
+                    channels->n4 = 0xC0;
                 else
-                {
-                    // skip attack phase if attack is instantaneous (=0)
-                    goto envelope_decay_start;
-                }
+                    channels->n4 = 0x80;
+                break;
+            default:
+                *nrx1ptr = channels->length;
+                *nrx3ptr = (u32)channels->wavePointer << 3;
+            init_env_step_time_dir:
+                envelopeStepTimeAndDir = channels->attack + CGB_NRx2_ENV_DIR_INC;
+                if (channels->length)
+                    channels->n4 = 0x40;
+                else
+                    channels->n4 = 0x00;
+                break;
+            }
+            channels->envelopeCounter = channels->attack;
+            if (channels->envelopeCounter & mask)
+            {
+                channels->envelopeVolume = 0;
+                goto envelope_step_complete;
             }
             else
             {
-                goto oscillator_off;
+                // skip attack phase if attack is instantaneous (=0)
+                goto envelope_decay_start;
             }
         }
-        else if (channels->statusFlags & SOUND_CHANNEL_SF_IEC)
+
+        if (channels->statusFlags & SOUND_CHANNEL_SF_IEC)
         {
             channels->pseudoEchoLength--;
             if ((s8)(channels->pseudoEchoLength & mask) <= 0)
@@ -1065,7 +1062,7 @@ void CgbSound(void)
         {
             channels->statusFlags &= ~SOUND_CHANNEL_SF_ENV;
             channels->envelopeCounter = channels->release;
-            if ((s8)(channels->release & mask))
+            if (channels->envelopeCounter & mask)
             {
                 channels->modify |= CGB_CHANNEL_MO_VOL;
                 if (ch != 3)
