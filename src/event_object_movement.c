@@ -1174,7 +1174,9 @@ static void CreateReflectionEffectSprites(void)
 {
     u8 spriteId;
     const struct SpriteTemplate *reflectionDistortion = gFieldEffectObjectTemplatePointers[FLDEFFOBJ_REFLECTION_DISTORTION];
+
     spriteId = CreateSpriteAtEnd(reflectionDistortion, 0, 0, 31);
+
     gSprites[spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
     InitSpriteAffineAnim(&gSprites[spriteId]);
     StartSpriteAffineAnim(&gSprites[spriteId], 0);
@@ -1225,6 +1227,7 @@ u8 GetObjectEventIdByXY(s16 x, s16 y)
             break;
     }
 
+    // Should be return OBJECT_EVENTS_COUNT
     return i;
 }
 
@@ -1283,7 +1286,7 @@ static u8 InitObjectEventStateFromTemplate(struct ObjectEventTemplate *template,
     objectEvent->rangeX = template->movementRangeX;
     objectEvent->rangeY = template->movementRangeY;
     objectEvent->trainerType = template->trainerType;
-    objectEvent->mapNum = mapNum;
+    objectEvent->mapNum = mapNum; // Redundant, but needed to match
     objectEvent->trainerRange_berryTreeId = template->trainerRange_berryTreeId;
     objectEvent->previousMovementDirection = gInitialMovementTypeFacingDirections[template->movementType];
     SetObjectEventDirection(objectEvent, objectEvent->previousMovementDirection);
@@ -1330,7 +1333,7 @@ static bool8 GetAvailableObjectEventId(u16 localId, u8 mapNum, u8 mapGroup, u8 *
 // If no slots are available, or if the object is already
 // loaded, returns TRUE.
 {
-    u8 i = 0;
+    u8 i;
 
     for (i = 0; i < OBJECT_EVENTS_COUNT && gObjectEvents[i].active; i++)
     {
@@ -1416,6 +1419,7 @@ static u8 TrySetupObjectEventSprite(struct ObjectEventTemplate *objectEventTempl
     if (objectEvent->movementType == MOVEMENT_TYPE_INVISIBLE)
         objectEvent->invisible = TRUE;
 
+    // *(u16)& thing unneccessary since paletteTag is u16. This is a leftover from when the fields were const
     *(u16 *)&spriteTemplate->paletteTag = TAG_NONE;
     spriteId = CreateSprite(spriteTemplate, 0, 0, 0);
     if (spriteId == MAX_SPRITES)
