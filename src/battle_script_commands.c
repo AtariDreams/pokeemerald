@@ -3761,9 +3761,9 @@ static void Cmd_copyarraywithindex(void)
     u8 *dest = T2_READ_PTR(gBattlescriptCurrInstr + 1);
     const u8 *src = T2_READ_PTR(gBattlescriptCurrInstr + 5);
     const u8 *index = T2_READ_PTR(gBattlescriptCurrInstr + 9);
-    s32 size = gBattlescriptCurrInstr[13];
+    m8 size = gBattlescriptCurrInstr[13];
 
-    s32 i;
+    m32 i;
     for (i = 0; i < size; i++)
         dest[i] = src[i + *index];
 
