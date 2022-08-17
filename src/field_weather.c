@@ -658,10 +658,11 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
 
             for (palOffset = curPalIndex << 4; palOffset < palEnd; palOffset++)
             {
-                struct RGBColor color = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                u8 r = color.r;
-                u8 g = color.g;
-                u8 b = color.b;
+                u8 r, g, b;
+                color = (struct RGBColor *)&gPlttBufferUnfaded[palOffset];
+                r = color->r;
+                g = color->g;
+                b = color->b;
 
 /*                 r += ((28 - r) * 3) >> 2;
                 g += ((31 - g) * 3) >> 2;
@@ -683,7 +684,8 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
         }
         else
         {
-            BlendPalette(curPalIndex * 16, 16, blendCoeff, blendColor);
+            // not assigned back to itself here, but it is in oter functions. huh
+            BlendPalette(curPalIndex << 4, 16, blendCoeff, blendColor);
         }
     }
 }
