@@ -21,7 +21,7 @@ static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 // Let's find out
 // TODO: Solve the compiler bug
-static bool8 sDma3ManagerLocked;
+static vbool8 sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
@@ -43,7 +43,7 @@ void ClearDma3Requests(void)
 
 void ProcessDma3Requests(void)
 {
-    u16 bytesTransferred;
+    m16 bytesTransferred;
 
     if (sDma3ManagerLocked)
         return;
