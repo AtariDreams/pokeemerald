@@ -499,13 +499,15 @@ static bool32 UpdateMenuCursorPos(struct Pokenav_Menu *menu)
     }
 }
 
-int GetPokenavMenuType(void)
+// TODO: check if this should be int or u32 based on if others match
+u32 GetPokenavMenuType(void)
 {
     struct Pokenav_Menu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU_HANDLER);
     return menu->menuType;
 }
 
 // Position of cursor relative to number of current menu options
+// Can be negative
 int GetPokenavCursorPos(void)
 {
     struct Pokenav_Menu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU_HANDLER);
@@ -513,7 +515,7 @@ int GetPokenavCursorPos(void)
 }
 
 // ID of menu item the cursor is currently on
-int GetCurrentMenuItemId(void)
+u32 GetCurrentMenuItemId(void)
 {
     struct Pokenav_Menu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU_HANDLER);
     return menu->currMenuItem;
