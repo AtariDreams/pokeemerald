@@ -287,6 +287,16 @@ bool32 LoadConditionGraphMenuGfx(void)
             var = 0;
         ConditionGraphDrawMonPic(var, 1);
         break;
+    #if MODERN
+    case 7:
+        CopyMonNameGenderLocation((monListPtr->currIndex > 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        break;
+    case 8:
+        GetMonConditionGraphData((monListPtr->currIndex > 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        break;
+    case 9:
+        ConditionGraphDrawMonPic((monListPtr->currIndex > 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+    #else
     case 7:
         CopyMonNameGenderLocation((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
         break;
@@ -295,6 +305,7 @@ bool32 LoadConditionGraphMenuGfx(void)
         break;
     case 9:
         ConditionGraphDrawMonPic((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+    #endif
         menu->state = 0;
         return TRUE;
     }
