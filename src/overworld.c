@@ -482,6 +482,7 @@ void LoadObjEventTemplatesFromHeader(void)
 
 void LoadSaveblockObjEventScripts(void)
 {
+    // TODO: Make const
     struct ObjectEventTemplate *mapHeaderObjTemplates = gMapHeader.events->objectEvents;
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1Ptr->objectEventTemplates;
     s32 i;
@@ -497,11 +498,10 @@ void SetObjEventTemplateCoords(u8 localId, s16 x, s16 y)
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
     {
-        struct ObjectEventTemplate *objectEventTemplate = &savObjTemplates[i];
-        if (objectEventTemplate->localId == localId)
+        if (savObjTemplates[i].localId == localId)
         {
-            objectEventTemplate->x = x;
-            objectEventTemplate->y = y;
+            savObjTemplates[i].x = x;
+            savObjTemplates[i].y = y;
             return;
         }
     }
@@ -514,10 +514,9 @@ void SetObjEventTemplateMovementType(u8 localId, u8 movementType)
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1Ptr->objectEventTemplates;
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
     {
-        struct ObjectEventTemplate *objectEventTemplate = &savObjTemplates[i];
-        if (objectEventTemplate->localId == localId)
+        if (savObjTemplates[i].localId == localId)
         {
-            objectEventTemplate->movementType = movementType;
+            savObjTemplates[i].movementType = movementType;
             return;
         }
     }
@@ -579,12 +578,12 @@ static bool32 IsDummyWarp(struct WarpData *warp)
         return TRUE;
 }
 
-struct MapHeader const *const Overworld_GetMapHeaderByGroupAndId(u16 mapGroup, u16 mapNum)
+const struct MapHeader *const Overworld_GetMapHeaderByGroupAndId(u16 mapGroup, u16 mapNum)
 {
     return gMapGroups[mapGroup][mapNum];
 }
 
-struct MapHeader const *const GetDestinationWarpMapHeader(void)
+const struct MapHeader *const GetDestinationWarpMapHeader(void)
 {
     return Overworld_GetMapHeaderByGroupAndId(sWarpDestination.mapGroup, sWarpDestination.mapNum);
 }
@@ -822,9 +821,10 @@ void LoadMapFromCameraTransition(u8 mapGroup, u8 mapNum)
     ResetFieldTasksArgs();
     RunOnResumeMapScript();
 
-    if (gMapHeader.regionMapSectionId != MAPSEC_BATTLE_FRONTIER
-     || gMapHeader.regionMapSectionId != sLastMapSectionId)
-        ShowMapNamePopup();
+    if (gMapHeader.regionMapSectionId == MAPSEC_BATTLE_FRONTIER
+     && gMapHeader.regionMapSectionId == sLastMapSectionId)
+        return;
+    ShowMapNamePopup();
 }
 
 static void LoadMapFromWarp(bool32 a1)
@@ -899,7 +899,7 @@ void StoreInitialPlayerAvatarState(void)
         sInitialPlayerAvatarState.transitionFlags = PLAYER_AVATAR_FLAG_ON_FOOT;
 }
 
-static struct InitialPlayerAvatarState *GetInitialPlayerAvatarState(void)
+static const struct InitialPlayerAvatarState *GetInitialPlayerAvatarState(void)
 {
     struct InitialPlayerAvatarState playerStruct;
     u8 mapType = GetCurrentMapType();
@@ -915,18 +915,20 @@ static u8 GetAdjustedInitialTransitionFlags(struct InitialPlayerAvatarState *pla
 {
     if (mapType != MAP_TYPE_INDOOR && FlagGet(FLAG_SYS_CRUISE_MODE))
         return PLAYER_AVATAR_FLAG_ON_FOOT;
-    else if (mapType == MAP_TYPE_UNDERWATER)
+    if (mapType == MAP_TYPE_UNDERWATER)
         return PLAYER_AVATAR_FLAG_UNDERWATER;
-    else if (MetatileBehavior_IsSurfableWaterOrUnderwater(metatileBehavior) == TRUE)
+    if (MetatileBehavior_IsSurfableWaterOrUnderwater(metatileBehavior) == TRUE)
         return PLAYER_AVATAR_FLAG_SURFING;
-    else if (Overworld_IsBikingAllowed() != TRUE)
-        return PLAYER_AVATAR_FLAG_ON_FOOT;
-    else if (playerStruct->transitionFlags == PLAYER_AVATAR_FLAG_MACH_BIKE)
-        return PLAYER_AVATAR_FLAG_MACH_BIKE;
-    else if (playerStruct->transitionFlags != PLAYER_AVATAR_FLAG_ACRO_BIKE)
-        return PLAYER_AVATAR_FLAG_ON_FOOT;
-    else
-        return PLAYER_AVATAR_FLAG_ACRO_BIKE;
+    
+    if (Overworld_IsBikingAllowed() == TRUE)
+    {
+        if (playerStruct->transitionFlags == PLAYER_AVATAR_FLAG_MACH_BIKE)
+            return PLAYER_AVATAR_FLAG_MACH_BIKE;
+
+        if (playerStruct->transitionFlags == PLAYER_AVATAR_FLAG_ACRO_BIKE)
+            return PLAYER_AVATAR_FLAG_ACRO_BIKE;
+    }
+    return PLAYER_AVATAR_FLAG_ON_FOOT;
 }
 
 static u8 GetAdjustedInitialDirection(struct InitialPlayerAvatarState *playerStruct, u8 transitionFlags, u16 metatileBehavior, u8 mapType)
@@ -951,7 +953,7 @@ static u8 GetAdjustedInitialDirection(struct InitialPlayerAvatarState *playerStr
     else if (MetatileBehavior_IsLadder(metatileBehavior) == TRUE)
         return playerStruct->direction;
     else
-        return DIR_SOUTH;
+        return DIR_SOUTH; /* default */
 }
 
 static u16 GetCenterScreenMetatileBehavior(void)
@@ -971,6 +973,8 @@ bool32 Overworld_IsBikingAllowed(void)
 // Flash level of 1 is the largest flash radius
 // Flash level of 7 is the smallest flash radius
 // Flash level of 8 is fully black
+
+//Todo: make gMaxFlashBrightness a constant, not a const int
 void SetDefaultFlashLevel(void)
 {
     if (!gMapHeader.cave)
@@ -999,7 +1003,7 @@ void SetCurrentMapLayout(u16 mapLayoutId)
     gMapHeader.mapLayout = GetMapLayout();
 }
 
-void SetObjectEventLoadFlag(u8 flag)
+void SetObjectEventLoadFlag(const u8 flag)
 {
     sObjectEventLoadFlag = flag;
 }
@@ -1082,7 +1086,7 @@ static bool16 IsInflitratedSpaceCenter(struct WarpData *warp)
     return FALSE;
 }
 
-u16 GetLocationMusic(struct WarpData *warp)
+static u16 GetLocationMusic(struct WarpData *warp)
 {
     if (NoMusicInSotopolisWithLegendaries(warp) == TRUE)
         return MUS_NONE;
@@ -1096,7 +1100,7 @@ u16 GetLocationMusic(struct WarpData *warp)
         return Overworld_GetMapHeaderByGroupAndId(warp->mapGroup, warp->mapNum)->music;
 }
 
-u16 GetCurrLocationDefaultMusic(void)
+static u16 GetCurrLocationDefaultMusic(void)
 {
     u16 music;
 
@@ -1120,7 +1124,7 @@ u16 GetCurrLocationDefaultMusic(void)
     }
 }
 
-u16 GetWarpDestinationMusic(void)
+static u16 GetWarpDestinationMusic(void)
 {
     u16 music = GetLocationMusic(&sWarpDestination);
     if (music != MUS_ROUTE118)
@@ -1207,10 +1211,9 @@ void Overworld_ChangeMusicTo(u16 newMusic)
         FadeOutAndPlayNewMapMusic(newMusic, 8);
 }
 
-u8 GetMapMusicFadeoutSpeed(void)
+static u8 GetMapMusicFadeoutSpeed(void)
 {
-    const struct MapHeader *mapHeader = GetDestinationWarpMapHeader();
-    if (IsMapTypeIndoors(mapHeader->mapType) == TRUE)
+    if (IsMapTypeIndoors(GetDestinationWarpMapHeader()->mapType) == TRUE)
         return 2;
     else
         return 4;
@@ -1260,7 +1263,7 @@ static void PlayAmbientCry(void)
     PlayCry_NormalNoDucking(sAmbientCrySpecies, pan, volume, CRY_PRIORITY_AMBIENT);
 }
 
-void UpdateAmbientCry(s16 *state, u16 *delayCounter)
+void UpdateAmbientCry(s16 *state, s16 *delayCounter)
 {
     u8 i, monsCount, divBy;
 
@@ -2153,7 +2156,7 @@ static void InitObjectEventsLink(void)
 static void InitObjectEventsLocal(void)
 {
     s16 x, y;
-    struct InitialPlayerAvatarState *player;
+    const struct InitialPlayerAvatarState *player;
 
     gTotalCameraPixelOffsetX = 0;
     gTotalCameraPixelOffsetY = 0;
