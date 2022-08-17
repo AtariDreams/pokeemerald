@@ -1123,7 +1123,6 @@ static void WallyHandleMoveAnimation(void)
     gWeatherMoveAnim = gBattleBufferA[gActiveBattler][12] | (gBattleBufferA[gActiveBattler][13] << 8);
     gAnimDisableStructPtr = (struct DisableStruct *)&gBattleBufferA[gActiveBattler][16];
     gTransformedPersonalities[gActiveBattler] = gAnimDisableStructPtr->transformedMonPersonality;
-    #if !MODERN
     if (IsMoveWithoutAnimation(move, gAnimMoveTurn)) // always returns FALSE
     {
         WallyBufferExecCompleted();
@@ -1131,13 +1130,9 @@ static void WallyHandleMoveAnimation(void)
     }
     else
     {
-    #endif
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState = 0;
         gBattlerControllerFuncs[gActiveBattler] = WallyDoMoveAnimation;
-    #if !MODERN
     }
-    #endif
-
 }
 
 static void WallyDoMoveAnimation(void)
