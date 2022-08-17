@@ -16,7 +16,7 @@
 	.include "src/rtc.o"
 	.include "src/main_menu.o"
 	.include "src/digit_obj_util.o"
-	.include "src/egg_hatch.o"
+	.include "src/daycare.o"
 	.include "src/berry_blender.o"
 	.include "src/play_time.o"
 	.include "src/overworld.o"
