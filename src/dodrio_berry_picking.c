@@ -4327,7 +4327,7 @@ static void CreateCloudSprites(void)
 
 static void ResetCloudPos(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < NUM_CLOUDS; i++)
     {
         struct Sprite *sprite = &gSprites[*sCloudSpriteIds[i]];
@@ -4349,7 +4349,7 @@ static void StartCloudMovement(void)
 
 static void FreeCloudSprites(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < NUM_CLOUDS; i++)
     {
         struct Sprite *sprite = &gSprites[*sCloudSpriteIds[i]];
@@ -4562,7 +4562,7 @@ struct
 
 static void SetGfxFuncById(u8 funcId)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < ARRAY_COUNT(sGfxFuncs); i++)
     {
         if (sGfxFuncs[i].id == funcId)

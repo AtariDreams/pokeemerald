@@ -1156,7 +1156,7 @@ static void ClearObjectEvent(struct ObjectEvent *objectEvent)
 
 static void ClearAllObjectEvents(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
         ClearObjectEvent(&gObjectEvents[i]);
@@ -1191,7 +1191,7 @@ static void CreateReflectionEffectSprites(void)
 
 u8 GetFirstInactiveObjectEventId(void)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
     {
         if (!gObjectEvents[i].active)
@@ -1303,7 +1303,7 @@ static u8 InitObjectEventStateFromTemplate(struct ObjectEventTemplate *template,
 
 u8 Unref_TryInitLocalObjectEvent(u8 localId)
 {
-    u8 i;
+    m8 i;
     u8 objectEventCount;
     struct ObjectEventTemplate *template;
 
@@ -1377,7 +1377,7 @@ static void RemoveObjectEventInternal(struct ObjectEvent *objectEvent)
 
 void RemoveAllObjectEventsExceptPlayer(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
     {
@@ -1998,6 +1998,7 @@ static void LoadObjectEventPalette(u16 paletteTag)
 }
 
 // Unused
+#if !MODERN
 static void LoadObjectEventPaletteSet(u16 *paletteTags)
 {
     u8 i;
@@ -2005,6 +2006,7 @@ static void LoadObjectEventPaletteSet(u16 *paletteTags)
     for (i = 0; paletteTags[i] != OBJ_EVENT_PAL_TAG_NONE; i++)
         LoadObjectEventPalette(paletteTags[i]);
 }
+#endif
 
 static u8 LoadSpritePaletteIfTagExists(const struct SpritePalette *spritePalette)
 {

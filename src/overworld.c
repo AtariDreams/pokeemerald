@@ -3154,7 +3154,7 @@ static u8 FlipVerticalAndClearForced(u8 newFacing, u8 oldFacing)
 
 static u8 LinkPlayerGetCollision(u8 selfObjEventId, u8 direction, s16 x, s16 y)
 {
-    u8 i;
+    m8 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
     {
         if (i != selfObjEventId)
