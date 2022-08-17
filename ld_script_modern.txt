@@ -10,10 +10,7 @@ SECTIONS {
     ALIGN(4)
     {
         gflib/malloc.o(ewram_data)
-        . = 0x1C000;
-
         src/decompress.o(ewram_data)
-        . = 0x20000;
 
         *(ewram_data);
         . = 0x40000;
