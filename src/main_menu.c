@@ -599,7 +599,7 @@ static u32 InitMainMenu(bool8 returningFromOptionsMenu)
     SetGpuReg(REG_OFFSET_BLDALPHA, 0);
     SetGpuReg(REG_OFFSET_BLDY, 0);
 
-    EnableInterrupts(1);
+    EnableInterrupts(INTR_FLAG_VBLANK);
     SetVBlankCallback(VBlankCB_MainMenu);
     SetMainCallback2(CB2_MainMenu);
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_WIN0_ON | DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
@@ -621,75 +621,80 @@ static u32 InitMainMenu(bool8 returningFromOptionsMenu)
 
 static void Task_MainMenuCheckSaveFile(u8 taskId)
 {
+    // Should do assignment after check
     s16 *data = gTasks[taskId].data;
 
-    if (!gPaletteFade.active)
+    if (gPaletteFade.active)
     {
-        SetGpuReg(REG_OFFSET_WIN0H, 0);
-        SetGpuReg(REG_OFFSET_WIN0V, 0);
-        SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG0 | WININ_WIN0_OBJ);
-        SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
-        SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_EFFECT_DARKEN | BLDCNT_TGT1_BG0);
-        SetGpuReg(REG_OFFSET_BLDALPHA, 0);
-        SetGpuReg(REG_OFFSET_BLDY, 7);
-
-        if (IsWirelessAdapterConnected())
-            tWirelessAdapterConnected = TRUE;
-        switch (gSaveFileStatus)
-        {
-            case SAVE_STATUS_OK:
-                tMenuType = HAS_SAVED_GAME;
-                if (IsMysteryGiftEnabled())
-                    tMenuType++;
-                gTasks[taskId].func = Task_MainMenuCheckBattery;
-                break;
-            case SAVE_STATUS_CORRUPT:
-                CreateMainMenuErrorWindow(gText_SaveFileErased);
-                tMenuType = HAS_NO_SAVED_GAME;
-                gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
-                break;
-            case SAVE_STATUS_ERROR:
-                CreateMainMenuErrorWindow(gText_SaveFileCorrupted);
-                gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
-                tMenuType = HAS_SAVED_GAME;
-                if (IsMysteryGiftEnabled() == TRUE)
-                    tMenuType++;
-                break;
-            case SAVE_STATUS_EMPTY:
-            default:
-                tMenuType = HAS_NO_SAVED_GAME;
-                gTasks[taskId].func = Task_MainMenuCheckBattery;
-                break;
-            case SAVE_STATUS_NO_FLASH:
-                CreateMainMenuErrorWindow(gJPText_No1MSubCircuit);
-                gTasks[taskId].tMenuType = HAS_NO_SAVED_GAME;
-                gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
-                break;
-        }
-        if (sCurrItemAndOptionMenuCheck & OPTION_MENU_FLAG)   // are we returning from the options menu?
-        {
-            switch (tMenuType)  // if so, highlight the OPTIONS item
-            {
-                case HAS_NO_SAVED_GAME:
-                case HAS_SAVED_GAME:
-                    sCurrItemAndOptionMenuCheck = tMenuType + 1;
-                    break;
-                case HAS_MYSTERY_GIFT:
-                    sCurrItemAndOptionMenuCheck = 3;
-                    break;
-                case HAS_MYSTERY_EVENTS:
-                    sCurrItemAndOptionMenuCheck = 4;
-                    break;
-            }
-        }
-        sCurrItemAndOptionMenuCheck &= ~OPTION_MENU_FLAG;  // turn off the "returning from options menu" flag
-        tCurrItem = sCurrItemAndOptionMenuCheck;
-        tItemCount = tMenuType + 2;
+        return;
     }
+    SetGpuReg(REG_OFFSET_WIN0H, 0);
+    SetGpuReg(REG_OFFSET_WIN0V, 0);
+    SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG0 | WININ_WIN0_OBJ);
+    SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
+    SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_EFFECT_DARKEN | BLDCNT_TGT1_BG0);
+    SetGpuReg(REG_OFFSET_BLDALPHA, 0);
+    SetGpuReg(REG_OFFSET_BLDY, 7);
+
+    if (IsWirelessAdapterConnected())
+        tWirelessAdapterConnected = TRUE;
+    switch (gSaveFileStatus)
+    {
+    case SAVE_STATUS_OK:
+        tMenuType = HAS_SAVED_GAME;
+        if (IsMysteryGiftEnabled())
+            tMenuType++;
+        gTasks[taskId].func = Task_MainMenuCheckBattery;
+        break;
+    case SAVE_STATUS_CORRUPT:
+        CreateMainMenuErrorWindow(gText_SaveFileErased);
+        tMenuType = HAS_NO_SAVED_GAME;
+        gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
+        break;
+    case SAVE_STATUS_ERROR:
+        CreateMainMenuErrorWindow(gText_SaveFileCorrupted);
+        gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
+        tMenuType = HAS_SAVED_GAME;
+        if (IsMysteryGiftEnabled() == TRUE)
+            tMenuType++;
+        break;
+    default:
+    case SAVE_STATUS_EMPTY:
+        tMenuType = HAS_NO_SAVED_GAME;
+        gTasks[taskId].func = Task_MainMenuCheckBattery;
+        break;
+    case SAVE_STATUS_NO_FLASH:
+        CreateMainMenuErrorWindow(gJPText_No1MSubCircuit);
+        gTasks[taskId].tMenuType = HAS_NO_SAVED_GAME;
+        gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
+        break;
+    }
+    if (sCurrItemAndOptionMenuCheck & OPTION_MENU_FLAG) // are we returning from the options menu?
+    {
+        switch (tMenuType) // if so, highlight the OPTIONS item
+        {
+        case HAS_NO_SAVED_GAME:
+        case HAS_SAVED_GAME:
+            sCurrItemAndOptionMenuCheck = tMenuType + 1;
+            break;
+        case HAS_MYSTERY_GIFT:
+            sCurrItemAndOptionMenuCheck = 3;
+            break;
+        case HAS_MYSTERY_EVENTS:
+            sCurrItemAndOptionMenuCheck = 4;
+            break;
+        default:
+            break;
+        }
+    }
+    sCurrItemAndOptionMenuCheck &= ~OPTION_MENU_FLAG; // turn off the "returning from options menu" flag
+    tCurrItem = sCurrItemAndOptionMenuCheck;
+    tItemCount = tMenuType + 2;
 }
 
 static void Task_WaitForSaveFileErrorWindow(u8 taskId)
 {
+    // TODO: name constants for each type of window thing
     RunTextPrinters();
     if (!IsTextPrinterActive(7) && (JOY_NEW(A_BUTTON)))
     {
@@ -725,6 +730,7 @@ static void Task_MainMenuCheckBattery(u8 taskId)
 
 static void Task_WaitForBatteryDryErrorWindow(u8 taskId)
 {
+    // TODO: name constants for each type of window thing
     RunTextPrinters();
     if (!IsTextPrinterActive(7) && (JOY_NEW(A_BUTTON)))
     {
@@ -776,8 +782,8 @@ static void Task_DisplayMainMenu(u8 taskId)
 
         switch (gTasks[taskId].tMenuType)
         {
-            case HAS_NO_SAVED_GAME:
             default:
+            case HAS_NO_SAVED_GAME:
                 FillWindowPixelBuffer(0, PIXEL_FILL(0xA));
                 FillWindowPixelBuffer(1, PIXEL_FILL(0xA));
                 AddTextPrinterParameterized3(0, FONT_NORMAL, 0, 1, sTextColor_Headers, TEXT_SKIP_DRAW, gText_MainMenuNewGame);
@@ -888,16 +894,20 @@ static bool8 HandleMainMenuInput(u8 taskId)
         IsWirelessAdapterConnected();   // why bother calling this here? debug? Task_HandleMainMenuAPressed will check too
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
         gTasks[taskId].func = Task_HandleMainMenuAPressed;
+        return FALSE;
     }
-    else if (JOY_NEW(B_BUTTON))
+    if (JOY_NEW(B_BUTTON))
     {
         PlaySE(SE_SELECT);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_WHITEALPHA);
         SetGpuReg(REG_OFFSET_WIN0H, WIN_RANGE(0, DISPLAY_WIDTH));
         SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE(0, DISPLAY_HEIGHT));
         gTasks[taskId].func = Task_HandleMainMenuBPressed;
+        return FALSE;
     }
-    else if ((JOY_NEW(DPAD_UP)) && tCurrItem > 0)
+    
+    // TODO: Maybe make it so that if joy_new is true but not the other it just returns false
+    if ((JOY_NEW(DPAD_UP)) && tCurrItem > 0)
     {
         if (tMenuType == HAS_MYSTERY_EVENTS && tIsScrolled == TRUE && tCurrItem == 1)
         {
@@ -909,7 +919,7 @@ static bool8 HandleMainMenuInput(u8 taskId)
         sCurrItemAndOptionMenuCheck = tCurrItem;
         return TRUE;
     }
-    else if ((JOY_NEW(DPAD_DOWN)) && tCurrItem < tItemCount - 1)
+    if ((JOY_NEW(DPAD_DOWN)) && tCurrItem < tItemCount - 1)
     {
         if (tMenuType == HAS_MYSTERY_EVENTS && tCurrItem == 3 && tIsScrolled == FALSE)
         {
@@ -935,172 +945,182 @@ static void Task_HandleMainMenuAPressed(u8 taskId)
     bool8 wirelessAdapterConnected;
     u8 action;
 
-    if (!gPaletteFade.active)
+    if (gPaletteFade.active)
+        return;
+
+    if (gTasks[taskId].tMenuType == HAS_MYSTERY_EVENTS)
+        RemoveScrollIndicatorArrowPair(gTasks[taskId].tScrollArrowTaskId);
+    ClearStdWindowAndFrame(0, TRUE);
+    ClearStdWindowAndFrame(1, TRUE);
+    ClearStdWindowAndFrame(2, TRUE);
+    ClearStdWindowAndFrame(3, TRUE);
+    ClearStdWindowAndFrame(4, TRUE);
+    ClearStdWindowAndFrame(5, TRUE);
+    ClearStdWindowAndFrame(6, TRUE);
+    ClearStdWindowAndFrame(7, TRUE);
+    wirelessAdapterConnected = IsWirelessAdapterConnected();
+    switch (gTasks[taskId].tMenuType)
     {
-        if (gTasks[taskId].tMenuType == HAS_MYSTERY_EVENTS)
-            RemoveScrollIndicatorArrowPair(gTasks[taskId].tScrollArrowTaskId);
-        ClearStdWindowAndFrame(0, TRUE);
-        ClearStdWindowAndFrame(1, TRUE);
-        ClearStdWindowAndFrame(2, TRUE);
-        ClearStdWindowAndFrame(3, TRUE);
-        ClearStdWindowAndFrame(4, TRUE);
-        ClearStdWindowAndFrame(5, TRUE);
-        ClearStdWindowAndFrame(6, TRUE);
-        ClearStdWindowAndFrame(7, TRUE);
-        wirelessAdapterConnected = IsWirelessAdapterConnected();
-        switch (gTasks[taskId].tMenuType)
+    default:
+    case HAS_NO_SAVED_GAME:
+        switch (gTasks[taskId].tCurrItem)
         {
-            case HAS_NO_SAVED_GAME:
-            default:
-                switch (gTasks[taskId].tCurrItem)
-                {
-                    case 0:
-                    default:
-                        action = ACTION_NEW_GAME;
-                        break;
-                    case 1:
-                        action = ACTION_OPTION;
-                        break;
-                }
-                break;
-            case HAS_SAVED_GAME:
-                switch (gTasks[taskId].tCurrItem)
-                {
-                    case 0:
-                    default:
-                        action = ACTION_CONTINUE;
-                        break;
-                    case 1:
-                        action = ACTION_NEW_GAME;
-                        break;
-                    case 2:
-                        action = ACTION_OPTION;
-                        break;
-                }
-                break;
-            case HAS_MYSTERY_GIFT:
-                switch (gTasks[taskId].tCurrItem)
-                {
-                    case 0:
-                    default:
-                        action = ACTION_CONTINUE;
-                        break;
-                    case 1:
-                        action = ACTION_NEW_GAME;
-                        break;
-                    case 2:
-                        action = ACTION_MYSTERY_GIFT;
-                        if (!wirelessAdapterConnected)
-                        {
-                            action = ACTION_INVALID;
-                            gTasks[taskId].tMenuType = HAS_NO_SAVED_GAME;
-                        }
-                        break;
-                    case 3:
-                        action = ACTION_OPTION;
-                        break;
-                }
-                break;
-            case HAS_MYSTERY_EVENTS:
-                switch (gTasks[taskId].tCurrItem)
-                {
-                    case 0:
-                    default:
-                        action = ACTION_CONTINUE;
-                        break;
-                    case 1:
-                        action = ACTION_NEW_GAME;
-                        break;
-                    case 2:
-                        if (gTasks[taskId].tWirelessAdapterConnected)
-                        {
-                            action = ACTION_MYSTERY_GIFT;
-                            if (!wirelessAdapterConnected)
-                            {
-                                action = ACTION_INVALID;
-                                gTasks[taskId].tMenuType = HAS_NO_SAVED_GAME;
-                            }
-                        }
-                        else if (wirelessAdapterConnected)
-                        {
-                            action = ACTION_INVALID;
-                            gTasks[taskId].tMenuType = HAS_SAVED_GAME;
-                        }
-                        else
-                        {
-                            action = ACTION_EREADER;
-                        }
-                        break;
-                    case 3:
-                        if (wirelessAdapterConnected)
-                        {
-                            action = ACTION_INVALID;
-                            gTasks[taskId].tMenuType = HAS_MYSTERY_GIFT;
-                        }
-                        else
-                        {
-                            action = ACTION_MYSTERY_EVENTS;
-                        }
-                        break;
-                    case 4:
-                        action = ACTION_OPTION;
-                        break;
-                }
-                break;
+        default:
+        case 0:
+            action = ACTION_NEW_GAME;
+            break;
+        case 1:
+            action = ACTION_OPTION;
+            break;
         }
-        ChangeBgY(0, 0, BG_COORD_SET);
-        ChangeBgY(1, 0, BG_COORD_SET);
-        switch (action)
+        break;
+    case HAS_SAVED_GAME:
+        switch (gTasks[taskId].tCurrItem)
         {
-            case ACTION_NEW_GAME:
-            default:
-                gPlttBufferUnfaded[0] = RGB_BLACK;
-                gPlttBufferFaded[0] = RGB_BLACK;
-                gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
-                break;
-            case ACTION_CONTINUE:
-                gPlttBufferUnfaded[0] = RGB_BLACK;
-                gPlttBufferFaded[0] = RGB_BLACK;
-                SetMainCallback2(CB2_ContinueSavedGame);
-                DestroyTask(taskId);
-                break;
-            case ACTION_OPTION:
-                gMain.savedCallback = CB2_ReinitMainMenu;
-                SetMainCallback2(CB2_InitOptionMenu);
-                DestroyTask(taskId);
-                break;
-            case ACTION_MYSTERY_GIFT:
-                SetMainCallback2(CB2_InitMysteryGift);
-                DestroyTask(taskId);
-                break;
-            case ACTION_MYSTERY_EVENTS:
-                SetMainCallback2(CB2_InitMysteryEventMenu);
-                DestroyTask(taskId);
-                break;
-            case ACTION_EREADER:
-                SetMainCallback2(CB2_InitEReader);
-                DestroyTask(taskId);
-                break;
-            case ACTION_INVALID:
-                gTasks[taskId].tCurrItem = 0;
-                gTasks[taskId].func = Task_DisplayMainMenuInvalidActionError;
-                gPlttBufferUnfaded[0xF1] = RGB_WHITE;
-                gPlttBufferFaded[0xF1] = RGB_WHITE;
-                SetGpuReg(REG_OFFSET_BG2HOFS, 0);
-                SetGpuReg(REG_OFFSET_BG2VOFS, 0);
-                SetGpuReg(REG_OFFSET_BG1HOFS, 0);
-                SetGpuReg(REG_OFFSET_BG1VOFS, 0);
-                SetGpuReg(REG_OFFSET_BG0HOFS, 0);
-                SetGpuReg(REG_OFFSET_BG0VOFS, 0);
-                BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
-                return;
+        default:
+        case 0:
+            action = ACTION_CONTINUE;
+            break;
+        case 1:
+            action = ACTION_NEW_GAME;
+            break;
+        case 2:
+            action = ACTION_OPTION;
+            break;
         }
-        FreeAllWindowBuffers();
-        if (action != ACTION_OPTION)
-            sCurrItemAndOptionMenuCheck = 0;
-        else
-            sCurrItemAndOptionMenuCheck |= OPTION_MENU_FLAG;  // entering the options menu
+        break;
+    case HAS_MYSTERY_GIFT:
+        switch (gTasks[taskId].tCurrItem)
+        {
+        default:
+        case 0:
+            action = ACTION_CONTINUE;
+            break;
+        case 1:
+            action = ACTION_NEW_GAME;
+            break;
+        case 2:
+            if (wirelessAdapterConnected)
+            {
+                action = ACTION_MYSTERY_GIFT;
+            }
+            else
+            {
+                action = ACTION_INVALID;
+                gTasks[taskId].tMenuType = HAS_NO_SAVED_GAME;
+            }
+            break;
+        case 3:
+            action = ACTION_OPTION;
+            break;
+        }
+        break;
+    case HAS_MYSTERY_EVENTS:
+        switch (gTasks[taskId].tCurrItem)
+        {
+        default:
+        case 0:
+            action = ACTION_CONTINUE;
+            break;
+        case 1:
+            action = ACTION_NEW_GAME;
+            break;
+        case 2:
+            if (gTasks[taskId].tWirelessAdapterConnected)
+            {
+                if (wirelessAdapterConnected)
+                {
+                    action = ACTION_MYSTERY_GIFT;
+                    
+                }
+                else
+                {
+                    action = ACTION_INVALID;
+                    gTasks[taskId].tMenuType = HAS_NO_SAVED_GAME;
+                }
+            }
+            else
+            {
+                if (wirelessAdapterConnected)
+                {
+                    action = ACTION_INVALID;
+                    gTasks[taskId].tMenuType = HAS_SAVED_GAME;
+                }
+                else
+                {
+                    action = ACTION_EREADER;
+                }
+            }
+            break;
+        case 3:
+            if (wirelessAdapterConnected)
+            {
+                action = ACTION_INVALID;
+                gTasks[taskId].tMenuType = HAS_MYSTERY_GIFT;
+            }
+            else
+            {
+                action = ACTION_MYSTERY_EVENTS;
+            }
+            break;
+        case 4:
+            action = ACTION_OPTION;
+            break;
+        }
+        break;
     }
+    ChangeBgY(0, 0, BG_COORD_SET);
+    ChangeBgY(1, 0, BG_COORD_SET);
+    switch (action)
+    {
+    default:
+    case ACTION_NEW_GAME:
+        gPlttBufferUnfaded[0] = RGB_BLACK;
+        gPlttBufferFaded[0] = RGB_BLACK;
+        gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
+        break;
+    case ACTION_CONTINUE:
+        gPlttBufferUnfaded[0] = RGB_BLACK;
+        gPlttBufferFaded[0] = RGB_BLACK;
+        SetMainCallback2(CB2_ContinueSavedGame);
+        DestroyTask(taskId);
+        break;
+    case ACTION_OPTION:
+        gMain.savedCallback = CB2_ReinitMainMenu;
+        SetMainCallback2(CB2_InitOptionMenu);
+        DestroyTask(taskId);
+        break;
+    case ACTION_MYSTERY_GIFT:
+        SetMainCallback2(CB2_InitMysteryGift);
+        DestroyTask(taskId);
+        break;
+    case ACTION_MYSTERY_EVENTS:
+        SetMainCallback2(CB2_InitMysteryEventMenu);
+        DestroyTask(taskId);
+        break;
+    case ACTION_EREADER:
+        SetMainCallback2(CB2_InitEReader);
+        DestroyTask(taskId);
+        break;
+    case ACTION_INVALID:
+        gTasks[taskId].tCurrItem = 0;
+        gTasks[taskId].func = Task_DisplayMainMenuInvalidActionError;
+        gPlttBufferUnfaded[0xF1] = RGB_WHITE;
+        gPlttBufferFaded[0xF1] = RGB_WHITE;
+        SetGpuReg(REG_OFFSET_BG2HOFS, 0);
+        SetGpuReg(REG_OFFSET_BG2VOFS, 0);
+        SetGpuReg(REG_OFFSET_BG1HOFS, 0);
+        SetGpuReg(REG_OFFSET_BG1VOFS, 0);
+        SetGpuReg(REG_OFFSET_BG0HOFS, 0);
+        SetGpuReg(REG_OFFSET_BG0VOFS, 0);
+        BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
+        return;
+    }
+    FreeAllWindowBuffers();
+    if (action != ACTION_OPTION)
+        sCurrItemAndOptionMenuCheck = 0;
+    else
+        sCurrItemAndOptionMenuCheck |= OPTION_MENU_FLAG; // entering the options menu
 }
 
 static void Task_HandleMainMenuBPressed(u8 taskId)
@@ -1170,12 +1190,12 @@ static void HighlightSelectedMainMenuItem(u8 menuType, u8 selectedMenuItem, s16 
 
     switch (menuType)
     {
-        case HAS_NO_SAVED_GAME:
         default:
+        case HAS_NO_SAVED_GAME:
             switch (selectedMenuItem)
             {
-                case 0:
                 default:
+                case 0:
                     SetGpuReg(REG_OFFSET_WIN0V, MENU_WIN_VCOORDS(0));
                     break;
                 case 1:
@@ -1186,8 +1206,8 @@ static void HighlightSelectedMainMenuItem(u8 menuType, u8 selectedMenuItem, s16 
         case HAS_SAVED_GAME:
             switch (selectedMenuItem)
             {
-                case 0:
                 default:
+                case 0:
                     SetGpuReg(REG_OFFSET_WIN0V, MENU_WIN_VCOORDS(2));
                     break;
                 case 1:
@@ -1201,8 +1221,8 @@ static void HighlightSelectedMainMenuItem(u8 menuType, u8 selectedMenuItem, s16 
         case HAS_MYSTERY_GIFT:
             switch (selectedMenuItem)
             {
-                case 0:
                 default:
+                case 0:
                     SetGpuReg(REG_OFFSET_WIN0V, MENU_WIN_VCOORDS(2));
                     break;
                 case 1:
@@ -1219,8 +1239,8 @@ static void HighlightSelectedMainMenuItem(u8 menuType, u8 selectedMenuItem, s16 
         case HAS_MYSTERY_EVENTS:
             switch (selectedMenuItem)
             {
-                case 0:
                 default:
+                case 0:
                     SetGpuReg(REG_OFFSET_WIN0V, MENU_WIN_VCOORDS(2));
                     break;
                 case 1:
@@ -1299,44 +1319,42 @@ static void Task_NewGameBirchSpeech_WaitToShowBirch(u8 taskId)
     if (gTasks[taskId].tTimer)
     {
         gTasks[taskId].tTimer--;
+        return;
     }
-    else
-    {
-        spriteId = gTasks[taskId].tBirchSpriteId;
-        gSprites[spriteId].x = 136;
-        gSprites[spriteId].y = 60;
-        gSprites[spriteId].invisible = FALSE;
-        gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
-        NewGameBirchSpeech_StartFadeInTarget1OutTarget2(taskId, 10);
-        NewGameBirchSpeech_StartFadePlatformOut(taskId, 20);
-        gTasks[taskId].tTimer = 80;
-        gTasks[taskId].func = Task_NewGameBirchSpeech_WaitForSpriteFadeInWelcome;
-    }
+
+    spriteId = gTasks[taskId].tBirchSpriteId;
+    gSprites[spriteId].x = 136;
+    gSprites[spriteId].y = 60;
+    gSprites[spriteId].invisible = FALSE;
+    gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
+    NewGameBirchSpeech_StartFadeInTarget1OutTarget2(taskId, 10);
+    NewGameBirchSpeech_StartFadePlatformOut(taskId, 20);
+    gTasks[taskId].tTimer = 80;
+    gTasks[taskId].func = Task_NewGameBirchSpeech_WaitForSpriteFadeInWelcome;
 }
 
 static void Task_NewGameBirchSpeech_WaitForSpriteFadeInWelcome(u8 taskId)
 {
-    if (gTasks[taskId].tIsDoneFadingSprites)
+    if (!gTasks[taskId].tIsDoneFadingSprites)
+        return;
+
+    gSprites[gTasks[taskId].tBirchSpriteId].oam.objMode = ST_OAM_OBJ_NORMAL;
+    if (gTasks[taskId].tTimer)
     {
-        gSprites[gTasks[taskId].tBirchSpriteId].oam.objMode = ST_OAM_OBJ_NORMAL;
-        if (gTasks[taskId].tTimer)
-        {
-            gTasks[taskId].tTimer--;
-        }
-        else
-        {
-            InitWindows(sNewGameBirchSpeechTextWindows);
-            LoadMainMenuWindowFrameTiles(0, 0xF3);
-            LoadMessageBoxGfx(0, 0xFC, 0xF0);
-            NewGameBirchSpeech_ShowDialogueWindow(0, 1);
-            PutWindowTilemap(0);
-            CopyWindowToVram(0, COPYWIN_GFX);
-            NewGameBirchSpeech_ClearWindow(0);
-            StringExpandPlaceholders(gStringVar4, gText_Birch_Welcome);
-            AddTextPrinterForMessage(TRUE);
-            gTasks[taskId].func = Task_NewGameBirchSpeech_ThisIsAPokemon;
-        }
+        gTasks[taskId].tTimer--;
+        return;
     }
+
+    InitWindows(sNewGameBirchSpeechTextWindows);
+    LoadMainMenuWindowFrameTiles(0, 0xF3);
+    LoadMessageBoxGfx(0, 0xFC, 0xF0);
+    NewGameBirchSpeech_ShowDialogueWindow(0, 1);
+    PutWindowTilemap(0);
+    CopyWindowToVram(0, COPYWIN_GFX);
+    NewGameBirchSpeech_ClearWindow(0);
+    StringExpandPlaceholders(gStringVar4, gText_Birch_Welcome);
+    AddTextPrinterForMessage(TRUE);
+    gTasks[taskId].func = Task_NewGameBirchSpeech_ThisIsAPokemon;
 }
 
 static void Task_NewGameBirchSpeech_ThisIsAPokemon(u8 taskId)
@@ -1389,12 +1407,14 @@ static void Task_NewGameBirchSpeechSub_WaitForLotad(u8 taskId)
             sprite->oam.affineMode = ST_OAM_AFFINE_OFF;
             break;
         case 1:
-            if (gTasks[sBirchSpeechMainTaskId].tTimer >= 96)
+            if (gTasks[sBirchSpeechMainTaskId].tTimer < 96)
             {
-                DestroyTask(taskId);
-                if (gTasks[sBirchSpeechMainTaskId].tTimer < 0x4000)
-                    gTasks[sBirchSpeechMainTaskId].tTimer++;
+                return;
             }
+
+            DestroyTask(taskId);
+            if (gTasks[sBirchSpeechMainTaskId].tTimer < 0x4000)
+                gTasks[sBirchSpeechMainTaskId].tTimer++;
             return;
     }
     tState++;
@@ -1434,16 +1454,20 @@ static void Task_NewGameBirchSpeech_SlidePlatformAway(u8 taskId)
     {
         gTasks[taskId].tBG1HOFS -= 2;
         SetGpuReg(REG_OFFSET_BG1HOFS, gTasks[taskId].tBG1HOFS);
+        return;
     }
-    else
-    {
-        gTasks[taskId].tBG1HOFS = -60;
-        gTasks[taskId].func = Task_NewGameBirchSpeech_StartPlayerFadeIn;
-    }
+    // This assignment is completely unnessecary given the situation above
+    //TODO: see if this is typo
+    #if !MODERN
+    gTasks[taskId].tBG1HOFS = -60;
+    #endif
+
+    gTasks[taskId].func = Task_NewGameBirchSpeech_StartPlayerFadeIn;
 }
 
 static void Task_NewGameBirchSpeech_StartPlayerFadeIn(u8 taskId)
 {
+    u8 spriteId;
     if (gTasks[taskId].tIsDoneFadingSprites)
     {
         gSprites[gTasks[taskId].tBirchSpriteId].invisible = TRUE;
@@ -1451,21 +1475,20 @@ static void Task_NewGameBirchSpeech_StartPlayerFadeIn(u8 taskId)
         if (gTasks[taskId].tTimer)
         {
             gTasks[taskId].tTimer--;
+            return;
         }
-        else
-        {
-            u8 spriteId = gTasks[taskId].tBrendanSpriteId;
 
-            gSprites[spriteId].x = 180;
-            gSprites[spriteId].y = 60;
-            gSprites[spriteId].invisible = FALSE;
-            gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
-            gTasks[taskId].tPlayerSpriteId = spriteId;
-            gTasks[taskId].tPlayerGender = MALE;
-            NewGameBirchSpeech_StartFadeInTarget1OutTarget2(taskId, 2);
-            NewGameBirchSpeech_StartFadePlatformOut(taskId, 1);
-            gTasks[taskId].func = Task_NewGameBirchSpeech_WaitForPlayerFadeIn;
-        }
+        spriteId = gTasks[taskId].tBrendanSpriteId;
+
+        gSprites[spriteId].x = 180;
+        gSprites[spriteId].y = 60;
+        gSprites[spriteId].invisible = FALSE;
+        gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
+        gTasks[taskId].tPlayerSpriteId = spriteId;
+        gTasks[taskId].tPlayerGender = MALE;
+        NewGameBirchSpeech_StartFadeInTarget1OutTarget2(taskId, 2);
+        NewGameBirchSpeech_StartFadePlatformOut(taskId, 1);
+        gTasks[taskId].func = Task_NewGameBirchSpeech_WaitForPlayerFadeIn;
     }
 }
 
@@ -1504,13 +1527,13 @@ static void Task_NewGameBirchSpeech_ChooseGender(u8 taskId)
     {
         case MALE:
             PlaySE(SE_SELECT);
-            gSaveBlock2Ptr->playerGender = gender;
+            gSaveBlock2Ptr->playerGender = MALE;
             NewGameBirchSpeech_ClearGenderWindow(1, 1);
             gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
             break;
         case FEMALE:
             PlaySE(SE_SELECT);
-            gSaveBlock2Ptr->playerGender = gender;
+            gSaveBlock2Ptr->playerGender = FEMALE;
             NewGameBirchSpeech_ClearGenderWindow(1, 1);
             gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
             break;
