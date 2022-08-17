@@ -846,10 +846,11 @@ u32 CalcByteArraySum(const u8 *data, u32 length)
 // TODO: find a better location or file for this function
 void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor)
 {
-    u16 i;
+    m16 i;
     for (i = 0; i < numEntries; i++)
     {
-        u16 index = i + palOffset;
+        m16 index = i + palOffset;
+        #if !MODERN
         struct PlttData *data1 = (struct PlttData *)&gPlttBufferUnfaded[index];
         s8 r = data1->r;
         s8 g = data1->g;
@@ -858,5 +859,15 @@ void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor)
         gPlttBufferFaded[index] = RGB(r + (((data2->r - r) * coeff) >> 4),
                                       g + (((data2->g - g) * coeff) >> 4),
                                       b + (((data2->b - b) * coeff) >> 4));
+        #else
+        u16 data1 = gPlttBufferUnfaded[index];
+        u8 r = GET_R(data1);
+        u8 g = GET_G(data1);
+        u8 b = GET_B(data1);
+
+        gPlttBufferFaded[index] = RGB(r + (((GET_R(blendColor) - r) * coeff) >> 4),
+                                      g + (((GET_G(blendColor) - g) * coeff) >> 4),
+                                      b + (((GET_B(blendColor) - b) * coeff) >> 4));
+        #endif
     }
 }
