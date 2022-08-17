@@ -1400,7 +1400,12 @@ static bool8 GenerateHailParticle(u8 hailStructId, u8 affineAnimNum, u8 taskId, 
     bool8 possibleBool = FALSE;
     s8 unk = sHailCoordData[hailStructId].unk3;
 
-    if (unk != 2)
+    if (unk == 2)
+    {
+        battlerX = (sHailCoordData[hailStructId].x);
+        battlerY = (sHailCoordData[hailStructId].y);
+    }
+    else
     {
         id = GetBattlerAtPosition(sHailCoordData[hailStructId].bPosition);
         if (IsBattlerSpriteVisible(id))
@@ -1426,34 +1431,26 @@ static bool8 GenerateHailParticle(u8 hailStructId, u8 affineAnimNum, u8 taskId, 
             battlerY = sHailCoordData[hailStructId].y;
         }
     }
-    else
-    {
-        battlerX = sHailCoordData[hailStructId].x;
-        battlerY = sHailCoordData[hailStructId].y;
-    }
+
     spriteX = battlerX - ((battlerY + 8) / 2);
     id = CreateSprite(&gHailParticleSpriteTemplate, spriteX, -8, 18);
     if (id == MAX_SPRITES)
     {
         return FALSE;
     }
-    else
-    {
-        StartSpriteAffineAnim(&gSprites[id], affineAnimNum);
-        gSprites[id].data[0] = possibleBool;
-        gSprites[id].data[3] = battlerX;
-        gSprites[id].data[4] = battlerY;
-        gSprites[id].data[5] = affineAnimNum;
-        gSprites[id].data[6] = taskId;
-        gSprites[id].data[7] = c;
-        return TRUE;
-    }
+
+    StartSpriteAffineAnim(&gSprites[id], affineAnimNum);
+    gSprites[id].data[0] = possibleBool;
+    gSprites[id].data[3] = battlerX;
+    gSprites[id].data[4] = battlerY;
+    gSprites[id].data[5] = affineAnimNum;
+    gSprites[id].data[6] = taskId;
+    gSprites[id].data[7] = c;
+    return TRUE;
 }
 
 static void AnimHailBegin(struct Sprite *sprite)
 {
-    u8 spriteId;
-
     sprite->x += 4;
     sprite->y += 8;
 
@@ -1462,11 +1459,11 @@ static void AnimHailBegin(struct Sprite *sprite)
 
     if (sprite->data[0] == 1 && sprite->data[5] == 0)
     {
-        spriteId = CreateSprite(&gIceCrystalHitLargeSpriteTemplate,
+        // TODO: maybe put sprite->data as a register and keep that there as its own variable instead of hoping the compiler would notice?
+        sprite->data[0] = CreateSprite(&gIceCrystalHitLargeSpriteTemplate,
                                 sprite->data[3], sprite->data[4], sprite->subpriority);
 
-        sprite->data[0] = spriteId;
-        if (spriteId != 64)
+        if (sprite->data[0] != MAX_SPRITES)
         {
             gSprites[sprite->data[0]].callback = AnimHailContinue;
             gSprites[sprite->data[0]].data[6] = sprite->data[6];
@@ -1528,12 +1525,13 @@ static void InitIceBallAnim(struct Sprite *sprite)
 // Throws the ball of ice in Ice Ball.
 static void AnimThrowIceBall(struct Sprite *sprite)
 {
-    if (!TranslateAnimHorizontalArc(sprite))
-        return;
+    if (TranslateAnimHorizontalArc(sprite))
+    {
 
-    StartSpriteAnim(sprite, 1);
-    sprite->callback = RunStoredCallbackWhenAnimEnds;
-    StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
+        StartSpriteAnim(sprite, 1);
+        sprite->callback = RunStoredCallbackWhenAnimEnds;
+        StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
+    }
 }
 
 // Initializes the particles that scatter at the end of the Ice Ball animation.
@@ -1568,12 +1566,13 @@ static void AnimIceBallParticle(struct Sprite *sprite)
 
     sprite->y2 = sprite->data[4] >> 8;
 
-    if (++sprite->data[0] == 21)
+    if (sprite->data[0]++ == 20)
         DestroyAnimSprite(sprite);
 }
 
 void AnimTask_GetIceBallCounter(u8 taskId)
 {
+    // TODO: should this be a u16?
     u8 arg = gBattleAnimArgs[0];
 
     gBattleAnimArgs[arg] = gAnimDisableStructPtr->rolloutTimerStartValue - gAnimDisableStructPtr->rolloutTimer - 1;
