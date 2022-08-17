@@ -674,8 +674,8 @@ static void Task_PlayCryWhenReleasedFromBall(u8 taskId)
 
     switch (gTasks[taskId].tCryTaskState)
     {
-    case 0:
     default:
+    case 0:
         if (gSprites[monSpriteId].affineAnimEnded)
             gTasks[taskId].tCryTaskState = wantedCry + 1;
         break;
@@ -694,21 +694,20 @@ static void Task_PlayCryWhenReleasedFromBall(u8 taskId)
         gTasks[taskId].tCryTaskState = 20;
         break;
     case 20:
-        if (gTasks[taskId].tCryTaskFrames == 0)
-        {
-            // Play first doubles cry
-            if (ShouldPlayNormalMonCry(mon) == TRUE)
-                PlayCry_ReleaseDouble(species, pan, CRY_MODE_DOUBLES);
-            else
-                PlayCry_ReleaseDouble(species, pan, CRY_MODE_WEAK_DOUBLES);
-
-            gBattleSpritesDataPtr->healthBoxesData[battlerId].waitForCry = FALSE;
-            DestroyTask(taskId);
-        }
-        else
+        if (gTasks[taskId].tCryTaskFrames != 0)
         {
             gTasks[taskId].tCryTaskFrames--;
+            break;
         }
+
+        // Play first doubles cry
+        if (ShouldPlayNormalMonCry(mon) == TRUE)
+            PlayCry_ReleaseDouble(species, pan, CRY_MODE_DOUBLES);
+        else
+            PlayCry_ReleaseDouble(species, pan, CRY_MODE_WEAK_DOUBLES);
+
+        gBattleSpritesDataPtr->healthBoxesData[battlerId].waitForCry = FALSE;
+        DestroyTask(taskId);
         break;
     case 3:
         gTasks[taskId].tCryTaskFrames = 6;
@@ -751,6 +750,7 @@ static void Task_PlayCryWhenReleasedFromBall(u8 taskId)
 static void SpriteCB_ReleaseMonFromBall(struct Sprite *sprite)
 {
     u8 battlerId = sprite->sBattler;
+    // Should be u8
     u32 ballId;
 
     StartSpriteAnim(sprite, 1);
@@ -764,7 +764,7 @@ static void SpriteCB_ReleaseMonFromBall(struct Sprite *sprite)
         struct Pokemon *mon;
         u16 species;
         s8 pan;
-        u16 wantedCryCase;
+        s16 wantedCryCase;
         u8 taskId;
 
         if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
@@ -785,7 +785,7 @@ static void SpriteCB_ReleaseMonFromBall(struct Sprite *sprite)
             if (gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_LINK)
             {
                 if (IsBGMPlaying())
-                    MPlayStop(&gMPlayInfo_BGM);
+                    m4aMPlayStop(&gMPlayInfo_BGM);
             }
             else
             {
@@ -809,7 +809,7 @@ static void SpriteCB_ReleaseMonFromBall(struct Sprite *sprite)
         gTasks[taskId].tCryTaskBattler = battlerId;
         gTasks[taskId].tCryTaskMonSpriteId = gBattlerSpriteIds[sprite->sBattler];
         gTasks[taskId].tCryTaskMonPtr1 = (u32)(mon) >> 16;
-        gTasks[taskId].tCryTaskMonPtr2 = (u32)(mon);
+        gTasks[taskId].tCryTaskMonPtr2 = (u32)(mon) & 0xFFFF; // TODO: Is it really neccesary, as in not UB, because agbcc doesn't require it
         gTasks[taskId].tCryTaskState = 0;
     }
 
@@ -956,25 +956,21 @@ static void SpriteCB_PlayerMonSendOut_2(struct Sprite *sprite)
             sprite->data[2] = ((sprite->data[2] * 3) & ~1) | r7;
         }
     }
-    else
+    else if (TranslateAnimHorizontalArc(sprite))
     {
-        if (TranslateAnimHorizontalArc(sprite))
-        {
-            sprite->x += sprite->x2;
-            sprite->y += sprite->y2;
-            sprite->y2 = 0;
-            sprite->x2 = 0;
-            sprite->sBattler = sprite->oam.affineParam & 0xFF;
-            sprite->data[0] = 0;
+        sprite->x += sprite->x2;
+        sprite->y += sprite->y2;
+        sprite->y2 = 0;
+        sprite->x2 = 0;
+        sprite->sBattler = sprite->oam.affineParam & 0xFF;
+        sprite->data[0] = 0;
 
-            if (IsDoubleBattle() && gBattleSpritesDataPtr->animationData->introAnimActive
-             && sprite->sBattler == GetBattlerAtPosition(B_POSITION_PLAYER_RIGHT))
-                sprite->callback = SpriteCB_ReleaseMon2FromBall;
-            else
-                sprite->callback = SpriteCB_ReleaseMonFromBall;
+        if (IsDoubleBattle() && gBattleSpritesDataPtr->animationData->introAnimActive && sprite->sBattler == GetBattlerAtPosition(B_POSITION_PLAYER_RIGHT))
+            sprite->callback = SpriteCB_ReleaseMon2FromBall;
+        else
+            sprite->callback = SpriteCB_ReleaseMonFromBall;
 
-            StartSpriteAffineAnim(sprite, 0);
-        }
+        StartSpriteAffineAnim(sprite, 0);
     }
 }
 
@@ -989,8 +985,7 @@ static void SpriteCB_ReleaseMon2FromBall(struct Sprite *sprite)
 
 static void SpriteCB_OpponentMonSendOut(struct Sprite *sprite)
 {
-    sprite->data[0]++;
-    if (sprite->data[0] > 15)
+    if (++sprite->data[0] > 15)
     {
         sprite->data[0] = 0;
         if (IsDoubleBattle() && gBattleSpritesDataPtr->animationData->introAnimActive
