@@ -784,7 +784,7 @@ static void SpriteCB_ReleaseMonFromBall(struct Sprite *sprite)
             if (gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_LINK)
             {
                 if (IsBGMPlaying())
-                    m4aMPlayStop(&gMPlayInfo_BGM);
+                    MPlayStop(&gMPlayInfo_BGM);
             }
             else
             {
