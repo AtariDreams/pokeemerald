@@ -4847,7 +4847,7 @@ static void Task_LearnedMove(u8 taskId)
     if (gPartyMenu.learnMoveState == 0)
     {
         AdjustFriendship(mon, FRIENDSHIP_EVENT_LEARN_TMHM);
-        if (item < ITEM_HM01_CUT)
+        if (gSpecialVar_ItemId < ITEM_HM01_CUT)
             RemoveBagItem(gSpecialVar_ItemId, 1);
     }
     GetMonNickname(mon, gStringVar1);
