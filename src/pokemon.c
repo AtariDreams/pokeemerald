@@ -2634,7 +2634,7 @@ void ConvertPokemonToBattleTowerPokemon(struct Pokemon *mon, struct BattleTowerP
 
 void CreateEventLegalMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
 {
-    #if !MODERN
+    #if 1 // just in case
     bool32 isEventLegal = TRUE;
     #else
     bool8 isEventLegal = TRUE;
@@ -2833,35 +2833,40 @@ static u16 CalculateBoxMonChecksum(struct BoxPokemon *boxMon)
 
     return checksum;
 }
-
-#define CALC_STAT(base, iv, ev, statIndex, field)               \
-{                                                               \
-    u8 baseStat = gBaseStats[species].base;                     \
-    s32 n = (((2 * baseStat + iv + ev / 4) * level) / 100) + 5; \
-    u8 nature = GetNature(mon);                                 \
-    n = ModifyStatByNature(nature, n, statIndex);               \
-    SetMonData(mon, field, &n);                                 \
-}
-
+#if 1 // just to be safe?
+#define CALC_STAT(base, iv, ev, statIndex, field)                               \
+    {                                                                           \
+        m32 n = (2 * gBaseStats[species].base + iv + ev / 4) * level / 100 + 5; \
+        n = ModifyStatByNature(GetNature(mon), n, statIndex);                   \
+        SetMonData(mon, field, &n);                                             \
+    }
+#else
+#define CALC_STAT(base, iv, ev, statIndex, field)                               \
+    {                                                                           \
+        u16 n = (2 * gBaseStats[species].base + iv + ev / 4) * level / 100 + 5; \
+        n = ModifyStatByNature(GetNature(mon), n, statIndex);                   \
+        SetMonData(mon, field, &n);                                             \
+    }
+#endif
 void CalculateMonStats(struct Pokemon *mon)
 {
-    s32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
-    s32 currentHP = GetMonData(mon, MON_DATA_HP, NULL);
-    s32 hpIV = GetMonData(mon, MON_DATA_HP_IV, NULL);
-    s32 hpEV = GetMonData(mon, MON_DATA_HP_EV, NULL);
-    s32 attackIV = GetMonData(mon, MON_DATA_ATK_IV, NULL);
-    s32 attackEV = GetMonData(mon, MON_DATA_ATK_EV, NULL);
-    s32 defenseIV = GetMonData(mon, MON_DATA_DEF_IV, NULL);
-    s32 defenseEV = GetMonData(mon, MON_DATA_DEF_EV, NULL);
-    s32 speedIV = GetMonData(mon, MON_DATA_SPEED_IV, NULL);
-    s32 speedEV = GetMonData(mon, MON_DATA_SPEED_EV, NULL);
-    s32 spAttackIV = GetMonData(mon, MON_DATA_SPATK_IV, NULL);
-    s32 spAttackEV = GetMonData(mon, MON_DATA_SPATK_EV, NULL);
-    s32 spDefenseIV = GetMonData(mon, MON_DATA_SPDEF_IV, NULL);
-    s32 spDefenseEV = GetMonData(mon, MON_DATA_SPDEF_EV, NULL);
-    u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
-    s32 level = GetLevelFromMonExp(mon);
-    s32 newMaxHP;
+    m32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
+    m32 currentHP = GetMonData(mon, MON_DATA_HP, NULL);
+    m32 hpIV = GetMonData(mon, MON_DATA_HP_IV, NULL);
+    m32 hpEV = GetMonData(mon, MON_DATA_HP_EV, NULL);
+    m32 attackIV = GetMonData(mon, MON_DATA_ATK_IV, NULL);
+    m32 attackEV = GetMonData(mon, MON_DATA_ATK_EV, NULL);
+    m32 defenseIV = GetMonData(mon, MON_DATA_DEF_IV, NULL);
+    m32 defenseEV = GetMonData(mon, MON_DATA_DEF_EV, NULL);
+    m32 speedIV = GetMonData(mon, MON_DATA_SPEED_IV, NULL);
+    m32 speedEV = GetMonData(mon, MON_DATA_SPEED_EV, NULL);
+    m32 spAttackIV = GetMonData(mon, MON_DATA_SPATK_IV, NULL);
+    m32 spAttackEV = GetMonData(mon, MON_DATA_SPATK_EV, NULL);
+    m32 spDefenseIV = GetMonData(mon, MON_DATA_SPDEF_IV, NULL);
+    m32 spDefenseEV = GetMonData(mon, MON_DATA_SPDEF_EV, NULL);
+    m16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
+    m32 level = GetLevelFromMonExp(mon);
+    m32 newMaxHP;
 
     SetMonData(mon, MON_DATA_LEVEL, &level);
 
@@ -2871,12 +2876,19 @@ void CalculateMonStats(struct Pokemon *mon)
     }
     else
     {
-        newMaxHP = (((2 * gBaseStats[species].baseHP + hpIV + hpEV / 4) * level) / 100) + level + 10;
+        newMaxHP = (2 * gBaseStats[species].baseHP + hpIV + hpEV / 4) * level / 100 + level + 10;
     }
 
+    #if !MODERN
     gBattleScripting.levelUpHP = newMaxHP - oldMaxHP;
     if (gBattleScripting.levelUpHP == 0)
         gBattleScripting.levelUpHP = 1;
+    #else
+    if (newMaxHP > oldMaxHP)
+        gBattleScripting.levelUpHP = newMaxHP - oldMaxHP;
+    else
+        gBattleScripting.levelUpHP = 1;
+    #endif
 
     SetMonData(mon, MON_DATA_MAX_HP, &newMaxHP);
 
@@ -2888,25 +2900,41 @@ void CalculateMonStats(struct Pokemon *mon)
 
     if (species == SPECIES_SHEDINJA)
     {
-        if (currentHP != 0 || oldMaxHP == 0)
-            currentHP = 1;
-        else
+        if (currentHP == 0 && oldMaxHP != 0)
             return;
+        currentHP = 1;
     }
     else
     {
+        #if !MODERN
+        // TODO: any typos 
         if (currentHP == 0 && oldMaxHP == 0)
             currentHP = newMaxHP;
         else if (currentHP != 0) {
             // BUG: currentHP is unintentionally able to become <= 0 after the instruction below. This causes the pomeg berry glitch.
             currentHP += newMaxHP - oldMaxHP;
-            #ifdef BUGFIX
+#ifdef BUGFIX
             if (currentHP <= 0)
                 currentHP = 1;
             #endif
         }
         else
             return;
+        #else
+
+        if (currentHP == 0)
+        {
+            if (oldMaxHP != 0)
+                return;
+            currentHP = newMaxHP;
+        }
+        else if (newMaxHP > oldMaxHP)
+            currentHP += newMaxHP - oldMaxHP;
+        else if (currentHP > oldMaxHP - newMaxHP)
+            currentHP -= oldMaxHP - newMaxHP;
+        else
+            currentHP = 1;
+#endif
     }
 
     SetMonData(mon, MON_DATA_HP, &currentHP);
@@ -2928,7 +2956,7 @@ u8 GetLevelFromMonExp(struct Pokemon *mon)
 {
     u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
     u32 exp = GetMonData(mon, MON_DATA_EXP, NULL);
-    s32 level = 1;
+    m32 level = 1;
 
     while (level <= MAX_LEVEL && gExperienceTables[gBaseStats[species].growthRate][level] <= exp)
         level++;
@@ -2940,7 +2968,7 @@ u8 GetLevelFromBoxMonExp(struct BoxPokemon *boxMon)
 {
     u16 species = GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL);
     u32 exp = GetBoxMonData(boxMon, MON_DATA_EXP, NULL);
-    s32 level = 1;
+    m32 level = 1;
 
     while (level <= MAX_LEVEL && gExperienceTables[gBaseStats[species].growthRate][level] <= exp)
         level++;
@@ -2973,7 +3001,7 @@ static u16 GiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move)
 
 u16 GiveMoveToBattleMon(struct BattlePokemon *mon, u16 move)
 {
-    s32 i;
+    m32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
@@ -3008,8 +3036,8 @@ void GiveMonInitialMoveset(struct Pokemon *mon)
 void GiveBoxMonInitialMoveset(struct BoxPokemon *boxMon)
 {
     u16 species = GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL);
-    s32 level = GetLevelFromBoxMonExp(boxMon);
-    s32 i;
+    m8 level = GetLevelFromBoxMonExp(boxMon);
+    m32 i;
 
     for (i = 0; gLevelUpLearnsets[species][i] != LEVEL_UP_END; i++)
     {
