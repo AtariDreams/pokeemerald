@@ -1843,6 +1843,7 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
         }
         // Hm...
         {
+            // This won't match if it isn't an array so
             u8 *state = &gBattleStruct->wishPerishSongState;
             *state = 2;
             gBattleStruct->wishPerishSongBattlerId = 0;
