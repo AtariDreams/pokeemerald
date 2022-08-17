@@ -189,6 +189,50 @@ static void MoveBattleBarGraphically(u8, u8);
 static u8 CalcBarFilledPixels(s32, s32, s32, s32 *, u8 *, u8);
 static void Debug_TestHealthBar_Helper(struct TestingBar *, s32 *, u16 *);
 
+// const rom data
+#if !MODERN // needed to match
+const struct CompressedSpriteSheet sSpriteSheet_SinglesPlayerHealthbox =
+{
+    gHealthboxSinglesPlayerGfx, 0x1000, TAG_HEALTHBOX_PLAYER1_TILE
+};
+
+const struct CompressedSpriteSheet sSpriteSheet_SinglesOpponentHealthbox =
+{
+    gHealthboxSinglesOpponentGfx, 0x1000, TAG_HEALTHBOX_OPPONENT1_TILE
+};
+
+const struct CompressedSpriteSheet sSpriteSheets_DoublesPlayerHealthbox[2] =
+{
+    {gHealthboxDoublesPlayerGfx, 0x800, TAG_HEALTHBOX_PLAYER1_TILE},
+    {gHealthboxDoublesPlayerGfx, 0x800, TAG_HEALTHBOX_PLAYER2_TILE}
+};
+
+const struct CompressedSpriteSheet sSpriteSheets_DoublesOpponentHealthbox[2] =
+{
+    {gHealthboxDoublesOpponentGfx, 0x800, TAG_HEALTHBOX_OPPONENT1_TILE},
+    {gHealthboxDoublesOpponentGfx, 0x800, TAG_HEALTHBOX_OPPONENT2_TILE}
+};
+
+const struct CompressedSpriteSheet sSpriteSheet_SafariHealthbox =
+{
+    gHealthboxSafariGfx, 0x1000, TAG_HEALTHBOX_SAFARI_TILE
+};
+
+const struct CompressedSpriteSheet sSpriteSheets_HealthBar[MAX_BATTLERS_COUNT] =
+{
+    {gBlankGfxCompressed, 0x0100, TAG_HEALTHBAR_PLAYER1_TILE},
+    {gBlankGfxCompressed, 0x0120, TAG_HEALTHBAR_OPPONENT1_TILE},
+    {gBlankGfxCompressed, 0x0100, TAG_HEALTHBAR_PLAYER2_TILE},
+    {gBlankGfxCompressed, 0x0120, TAG_HEALTHBAR_OPPONENT2_TILE}
+};
+
+const struct SpritePalette sSpritePalettes_HealthBoxHealthBar[2] =
+{
+    {gBattleInterface_BallStatusBarPal, TAG_HEALTHBOX_PAL},
+    {gBattleInterface_BallDisplayPal, TAG_HEALTHBAR_PAL}
+};
+#endif
+
 static const struct OamData sOamData_64x32 =
 {
     .y = 0,
@@ -609,7 +653,7 @@ static const struct SubspriteTable sStatusSummaryBar_SubspriteTable_Exit[] =
 // unused unknown image
 static const u8 sUnusedStatusSummary[] = INCBIN_U8("graphics/battle_interface/unused_status_summary.4bpp");
 
-static const struct CompressedSpriteSheet sStatusSummaryBarSpriteSheet =
+const struct CompressedSpriteSheet sStatusSummaryBarSpriteSheet =
 {
     gBattleInterface_BallStatusBarGfx, 0x200, TAG_STATUS_SUMMARY_BAR_TILE
 };

@@ -63,6 +63,21 @@ enum
     HEALTHBOX_SAFARI_BALLS_TEXT
 };
 
+#if !MODERN
+extern const struct CompressedSpriteSheet sSpriteSheet_SinglesPlayerHealthbox;
+
+extern const struct CompressedSpriteSheet sSpriteSheet_SinglesOpponentHealthbox;
+extern const struct CompressedSpriteSheet sSpriteSheets_DoublesPlayerHealthbox[2];
+
+extern const struct CompressedSpriteSheet sSpriteSheets_DoublesOpponentHealthbox[2];
+
+extern const struct CompressedSpriteSheet sSpriteSheet_SafariHealthbox;
+
+extern const struct CompressedSpriteSheet sSpriteSheets_HealthBar[MAX_BATTLERS_COUNT];
+
+extern const struct SpritePalette sSpritePalettes_HealthBoxHealthBar[2];
+#endif
+
 u8 CreateBattlerHealthboxSprites(u8 battler);
 u8 CreateSafariPlayerHealthboxSprites(void);
 void SetBattleBarStruct(u8 battler, u8 healthboxSpriteId, s32 maxVal, s32 currVal, s32 receivedValue);

@@ -102,7 +102,6 @@ SECTIONS {
         src/battle_script_commands.o(.text);
         src/battle_util2.o(.text);
         src/battle_controller_player.o(.text);
-        src/battle_gfx_sfx_util.o(.text);
         src/battle_controller_opponent.o(.text);
         src/battle_ai_switch_items.o(.text);
         src/battle_controller_link_opponent.o(.text);
@@ -484,7 +483,6 @@ SECTIONS {
         src/pokemon.o(.rodata);
         src/calc_util.o(.rodata);
         src/daycare.o(.rodata);
-        src/battle_gfx_sfx_util.o(.rodata);
         src/battle_interface.o(.rodata);
         src/pokeball.o(.rodata);
         src/trade.o(.rodata);
