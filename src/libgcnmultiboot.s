@@ -76,10 +76,10 @@ GameCubeMultiBoot_Main:
 	beq GameCubeMultiBoot_Main_Return
 	@ Save current interrupt master register value
 	ldr r3, pool_InterruptRegs
-	ldrh r2, [r3, OFFSET_REG_IME - 0x200]
+	ldrh r2, [r3, REG_IME - REG_IE]
 	@ Disable all interrupts
 	movs r1, 0
-	strh r1, [r3, OFFSET_REG_IME - 0x200]
+	strh r1, [r3, REG_IME - REG_IE]
 	@ Increment the first counter, if it's less than or equal to 10.
 	ldrb r1, [r0, GCMB_STRUCT_COUNTER1]
 	cmp r1, 0xA
@@ -254,7 +254,7 @@ GameCubeMultiBoot_ExecuteProgram:
 	@ Disable interrupts
 	ldr r3, pool_InterruptRegs
 	movs r1, 0
-	strh r1, [r3, OFFSET_REG_IME - 0x200]
+	strh r1, [r3, REG_IME - REG_IE]
 	@ Jump to the real entry point of the multiboot image (past the image header), in ARM mode
 	ldr r1, pool_MultiBootLoadAddr
 	adds r1, 0xC0
@@ -269,11 +269,11 @@ GameCubeMultiBoot_Init:
 	ldr r3, pool_InterruptRegs
 
 @ Save IME register.
-	ldrh r2, [r3, OFFSET_REG_IME - 0x200]
+	ldrh r2, [r3, REG_IME - REG_IE]
 
 @ Disable interrupts.
 	movs r1, 0
-	strh r1, [r3, OFFSET_REG_IME - 0x200]
+	strh r1, [r3, REG_IME - REG_IE]
 
 @ Set the handler to the "Stop" routine.
 @ Unless the first command that is received is a device reset command, the
@@ -281,9 +281,9 @@ GameCubeMultiBoot_Init:
 	adr r3, GcMbIntrHandler_Stop
 	str r3, [r0, GCMB_STRUCT_SERIAL_INTR_HANDLER]
 
-	ldrb r3, [r0, 0x3]
+	ldrb r3, [r0, GCMB_STRUCT_SAVEDVCOUNT]
 	push {r3}
-	ldrb r3, [r0, 0x1]
+	ldrb r3, [r0, GCMB_STRUCT_COUNTER2]
 	push {r0,r3}
 
 	adds r3, r0, 0
@@ -297,39 +297,39 @@ GameCubeMultiBoot_Init_ClearStructLoop:
 
 	pop {r0,r3}
 	lsrs r3, 1
-	strb r3, [r0, 0x3]
+	strb r3, [r0, GCMB_STRUCT_SAVEDVCOUNT]
 	pop {r3}
-	strb r3, [r0, 0x1]
+	strb r3, [r0, GCMB_STRUCT_COUNTER2]
 
 	ldr r3, pool_SerialRegs
 
 @ Turn off JOY Bus mode.
 	lsls r0, r3, 10
-	strh r0, [r3, OFFSET_REG_RCNT - 0x120]
+	strh r0, [r3, REG_RCNT - REG_SIOMULTI0]
 
 @ Turn on JOY Bus mode.
 	movs r0, 0xC0
 	lsls r0, 8
-	strh r0, [r3, OFFSET_REG_RCNT - 0x120]
+	strh r0, [r3, REG_RCNT - REG_SIOMULTI0]
 
-@ Init JOY Bus registers.
+@ Init JOY Bus registers. JOY_IF_ENABLE | JOY_IF_SEND | JOY_IF_RECV | JOY_IF_RESET
 	movs r0, 0x47
-	strh r0, [r3, OFFSET_REG_JOYCNT - 0x120]
-	strh r1, [r3, OFFSET_REG_JOYSTAT - 0x120]
+	strh r0, [r3, REG_JOYCNT - REG_SIOMULTI0]
+	strh r1, [r3, REG_JOYSTAT - REG_SIOMULTI0]
 
 	ldr r3, pool_InterruptRegs
 
 @ Acknowledge serial interrupt.
 	movs r0, INTR_FLAG_SERIAL
-	strh r0, [r3, OFFSET_REG_IF - 0x200]
+	strh r0, [r3, REG_IF - REG_IE]
 
 @ Enable serial interrupt.
-	ldrh r1, [r3, OFFSET_REG_IE - 0x200]
+	ldrh r1, [r3, REG_IE - REG_IE]
 	orrs r1, r0
-	strh r1, [r3, OFFSET_REG_IE - 0x200]
+	strh r1, [r3, REG_IE - REG_IE]
 
 @ Restore IME register.
-	strh r2, [r3, OFFSET_REG_IME - 0x200]
+	strh r2, [r3, REG_IME - REG_IE]
 
 	bx lr
 	thumb_func_end GameCubeMultiBoot_Init
@@ -340,11 +340,11 @@ GameCubeMultiBoot_HandleSerialInterrupt:
 	ldr r3, pool_SerialRegs
 
 @ Acknowledge reset/receive/send flags.
-	ldrh r1, [r3, OFFSET_REG_JOYCNT - 0x120]
-	strh r1, [r3, OFFSET_REG_JOYCNT - 0x120]
+	ldrh r1, [r3, REG_JOYCNT - REG_SIOMULTI0]
+	strh r1, [r3, REG_JOYCNT - REG_SIOMULTI0]
 
 	movs r2, 0
-	strb r2, [r0]
+	strb r2, [r0, GCMB_STRUCT_COUNTER1]
 
 	ldr r2, [r0, GCMB_STRUCT_SERIAL_INTR_HANDLER]
 	cmp r2, 0
@@ -362,27 +362,27 @@ GameCubeMultiBoot_HandleSerialInterrupt:
 @ unless GameCubeMultiBoot_Init() is called again.
 GcMbIntrHandler_Stop:
 	movs r2, 0
-	strh r2, [r3, OFFSET_REG_JOYSTAT - 0x120]
+	strh r2, [r3, REG_JOYSTAT - REG_SIOMULTI0]
 
 GameCubeMultiBoot_SetInterruptHandler:
 	str r2, [r0, GCMB_STRUCT_SERIAL_INTR_HANDLER]
 
 GameCubeMultiBoot_ReadVCount:
 	ldr r3, pool_RegDispstat
-	ldrh r1, [r3, OFFSET_REG_VCOUNT - OFFSET_REG_DISPSTAT]
-	strb r1, [r0, 0x3]
+	ldrh r1, [r3, REG_VCOUNT - REG_DISPSTAT]
+	strb r1, [r0, GCMB_STRUCT_SAVEDVCOUNT]
 
 GameCubeMultiBoot_HandleSerialInterruptDone:
 	bx lr
 
 GameCubeMultiBoot_BeginHandshake:
 	@ Throw away anything that got sent
-	ldr r1, [r3, OFFSET_REG_JOY_RECV - 0x120]
+	ldr r1, [r3, REG_JOY_RECV  - REG_SIOMULTI0]
 	@ Send the game code, the other side of the link must send back the same game code
 	ldr r1, pool_RubyUSAGameCode
-	str r1, [r3, OFFSET_REG_JOY_TRANS - 0x120]
-	movs r1, 0x10
-	strh r1, [r3, OFFSET_REG_JOYSTAT - 0x120]
+	str r1, [r3, REG_JOY_TRANS - REG_SIOMULTI0]
+	movs r1, 0x10 @ TODO: Find out what this constant is
+	strh r1, [r3, REG_JOYSTAT  - REG_SIOMULTI0]
 	@ Use the saved VCount value to provide 8 bits of entropy for KeyB
 	ldrb r1, [r0, GCMB_STRUCT_SAVEDVCOUNT]
 	strb r1, [r0, GCMB_STRUCT_KEYB + 1]
@@ -417,7 +417,7 @@ GcMbIntrHandler_CheckHandshakeResponse:
 	bcc GcMbIntrHandler_Stop @ stop if not
 
 GameCubeMultiBoot_CheckHandshakeResponse:
-	ldr r1, [r3, OFFSET_REG_JOY_RECV - 0x120]
+	ldr r1, [r3, REG_JOY_RECV - REG_SIOMULTI0]
 	ldr r2, pool_RubyUSAGameCode
 	cmp r1, r2
 	bne GcMbIntrHandler_Stop @ stop if the GameCube didn't reply with the same game code
@@ -432,7 +432,7 @@ GameCubeMultiBoot_CheckHandshakeResponse:
 GcMbIntrHandler_ReceiveKeyA:
 	lsrs r1, 1 @ is receive complete?
 	bcc GcMbIntrHandler_Stop @ branch if not
-	ldr r1, [r3, OFFSET_REG_JOY_RECV - 0x120]
+	ldr r1, [r3, REG_JOY_RECV  - REG_SIOMULTI0]
 	@ make sure top 8 bits of the received value is the KeyA magic number, stop if KeyA is invalid
 	lsrs r2, r1, 24
 	cmp r2, GCMB_MAGIC_KEYA
@@ -464,9 +464,9 @@ GameCubeMultiBoot_KeyBCheckEnd:
 	ldr r1, [r0, GCMB_STRUCT_KEYB]
 	adds r1, GCMB_MAGIC_KEYB
 	ldr r3, pool_SerialRegs
-	str r1, [r3, OFFSET_REG_JOY_TRANS - 0x120]
+	str r1, [r3, REG_JOY_TRANS - REG_SIOMULTI0]
 	movs r1, 0x30
-	strh r1, [r3, OFFSET_REG_JOYSTAT - 0x120]
+	strh r1, [r3, REG_JOYSTAT - REG_SIOMULTI0]
 	@ set new interrupt handler
 	adr r2, GcMbIntrHandler_CheckKeyBSent
 	b GameCubeMultiBoot_SetInterruptHandler
@@ -486,7 +486,7 @@ GcMbIntrHandler_CheckImageSizeResponse:
 	lsrs r1, 1 @ is receive complete?
 	bcc GcMbIntrHandler_Stop @ branch if not
 GameCubeMultiBoot_CheckImageSizeResponse:
-	ldr r1, [r3, OFFSET_REG_JOY_RECV - 0x120]
+	ldr r1, [r3, REG_JOY_RECV - REG_SIOMULTI0]
 	ldr r2, GameCubeMultiBoot_MaximumImageSizeUInt32s
 	cmp r1, r2
 	bhs GcMbIntrHandler_Stop
@@ -513,9 +513,9 @@ GcMbIntrHandler_CheckImageResponse:
 	ands r1, r2
 	adds r1, 0x8
 	lsls r1, 2
-	strh r1, [r3, OFFSET_REG_JOYSTAT - 0x120]
+	strh r1, [r3, REG_JOYSTAT - REG_SIOMULTI0]
 	@ get the recieved uint32
-	ldr r1, [r3, OFFSET_REG_JOY_RECV - 0x120]
+	ldr r1, [r3, REG_JOY_RECV - REG_SIOMULTI0]
 	@ put it in the current destination pointer and advance that pointer
 	stm r2!, {r1}
 	@ save off the advanced pointer
@@ -532,7 +532,7 @@ GcMbIntrHandler_SendCounter2:
 	ldrb r1, [r0, GCMB_STRUCT_COUNTER2]
 	lsls r1, 8
 	adds r1, GCMB_MAGIC_COUNTER2
-	str r1, [r3, OFFSET_REG_JOY_TRANS - 0x120]
+	str r1, [r3, REG_JOY_TRANS - REG_SIOMULTI0]
 	adr r2, GcMbIntrHandler_CheckCounter2Sent
 	b GameCubeMultiBoot_SetInterruptHandler
 
@@ -547,7 +547,7 @@ GcMbIntrHandler_StopIfSendFailed:
 	ldr r1, [r0, GCMB_STRUCT_KEYC_DERIVATION]
 	cmp r1, 0
 	beq GcMbIntrHandler_SendCounter2
-	str r1, [r3, OFFSET_REG_JOY_TRANS - 0x120]
+	str r1, [r3, REG_JOY_TRANS - REG_SIOMULTI0]
 	adr r2, GcMbIntrHandler_CheckKeyCDerivationSent
 	b GameCubeMultiBoot_SetInterruptHandler
 
@@ -567,7 +567,7 @@ GcMbIntrHandler_CheckBootKeyResponse:
 	bcc GcMbIntrHandler_StopIfSendFailed @ branch if not
 
 GameCubeMultiBoot_CheckBootKeyResponse:
-	ldr r1, [r3, OFFSET_REG_JOY_RECV - 0x120]
+	ldr r1, [r3, REG_JOY_RECV - REG_SIOMULTI0]
 	@ make sure received boot key contains expected magic number, stop if not
 	lsrs r2, r1, 24
 	cmp r2, GCMB_MAGIC_BOOTKEY
@@ -591,35 +591,35 @@ GameCubeMultiBoot_Quit:
 	ldr r3, pool_InterruptRegs
 
 @ Save IME register.
-	ldrh r2, [r3, OFFSET_REG_IME - 0x200]
+	ldrh r2, [r3, REG_IME - REG_IE]
 
 @ Disable interrupts.
 	movs r1, 0
-	strh r1, [r3, OFFSET_REG_IME - 0x200]
+	strh r1, [r3, REG_IME - REG_IE]
 
 	ldr r3, pool_SerialRegs
 
 @ Acknowledge all JOYCNT flags.
-	movs r0, 0x7
-	strh r0, [r3, OFFSET_REG_JOYCNT - 0x120]
+	movs r0, 0x7 @ #JOY_IF_SEND | JOY_IF_RECV | JOY_IF_RESET;
+	strh r0, [r3, REG_JOYCNT - REG_SIOMULTI0]
 
 @ Turn off JOY Bus mode.
 	lsls r0, r3, 10
-	strh r0, [r3, OFFSET_REG_RCNT - 0x120] @ store 0x8000
+	strh r0, [r3, REG_RCNT - REG_SIOMULTI0] @ store 0x8000
 
 	ldr r3, pool_InterruptRegs
 
 @ Acknowledge serial interrupt.
 	movs r0, INTR_FLAG_SERIAL
-	strh r0, [r3, OFFSET_REG_IF - 0x200]
+	strh r0, [r3, REG_IF - REG_IE]
 
 @ Disable serial interrupt.
-	ldrh r1, [r3, OFFSET_REG_IE - 0x200]
+	ldrh r1, [r3, REG_IE - REG_IE]
 	bics r1, r0
-	strh r1, [r3, OFFSET_REG_IE - 0x200]
+	strh r1, [r3, REG_IE - REG_IE]
 
 @ Restore IME register.
-	strh r2, [r3, OFFSET_REG_IME - 0x200]
+	strh r2, [r3, REG_IME - REG_IE]
 
 	bx lr
 	thumb_func_end GameCubeMultiBoot_Quit
