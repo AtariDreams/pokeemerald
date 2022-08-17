@@ -1299,7 +1299,7 @@ jumpPoint2:
 	cmp r4, #0
 	bne _081DD892
 jumpPoint3:
-	ldrb r3, [r5 o_MusicPlayerTrack_flags]
+	ldrb r3, [r5, o_MusicPlayerTrack_flags]
 	movs r0, #MPT_FLG_START
 .endif
 	tst r0, r3
