@@ -49,7 +49,7 @@ u8 GiveMailToMonByItemId(struct Pokemon *mon, u16 itemId)
     u16 species;
     u32 personality;
 
-    heldItem[0] = itemId;
+    heldItem[0] = itemId; & 0xFF;
     heldItem[1] = itemId >> 8;
 
     for (id = 0; id < PARTY_SIZE; id++)
