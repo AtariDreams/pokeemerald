@@ -175,11 +175,10 @@ static void InitMainCallbacks(void)
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
 
     // None of these assignments are actually needed it seems
-    #ifdef BUGFIX
-    gSaveBlock1Ptr = &gSaveblock1.block;
-    #endif
+    #if !MODERN
     gSaveBlock2Ptr = &gSaveblock2.block;
     gPokemonStoragePtr = &gPokemonStorage.block;
+    #endif
 }
 
 static void CallCallbacks(void)
@@ -410,8 +409,12 @@ static void WaitForVBlank(void)
 {
     gMain.intrCheck &= ~INTR_FLAG_VBLANK;
 
+    #if !MODERN
     while (!(gMain.intrCheck & INTR_FLAG_VBLANK))
         ;
+    #else
+    VBlankIntrWait();
+    #endif
 }
 
 void SetTrainerHillVBlankCounter(u32 *counter)
