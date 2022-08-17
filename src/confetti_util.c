@@ -74,15 +74,14 @@ bool32 ConfettiUtil_Update(void)
             if (sWork->array[i].dummied)
             {
                 memcpy(&gMain.oamBuffer[i + 64], &gDummyOamData, sizeof(struct OamData));
+                continue;
             }
-            else
-            {
-                sWork->array[i].oam.y = sWork->array[i].y + sWork->array[i].yDelta;
-                sWork->array[i].oam.x = sWork->array[i].x + sWork->array[i].xDelta;
-                sWork->array[i].oam.priority = sWork->array[i].priority;
-                sWork->array[i].oam.tileNum = sWork->array[i].tileNum;
-                memcpy(&gMain.oamBuffer[i + 64], &sWork->array[i], sizeof(struct OamData));
-            }
+
+            sWork->array[i].oam.y = sWork->array[i].y + sWork->array[i].yDelta;
+            sWork->array[i].oam.x = sWork->array[i].x + sWork->array[i].xDelta;
+            sWork->array[i].oam.priority = sWork->array[i].priority;
+            sWork->array[i].oam.tileNum = sWork->array[i].tileNum;
+            memcpy(&gMain.oamBuffer[i + 64], &sWork->array[i], sizeof(struct OamData));
         }
     }
 
@@ -101,7 +100,7 @@ static bool32 SetAnimAndTileNum(struct ConfettiUtil *structPtr, u8 animNum)
         return FALSE;
 
     structPtr->animNum = animNum;
-    structPtr->tileNum = (GetTilesPerImage(structPtr->oam.shape, structPtr->oam.size) * animNum) + tileStart;
+    structPtr->tileNum = tileStart + (GetTilesPerImage(structPtr->oam.shape, structPtr->oam.size) * animNum);
     return TRUE;
 }
 
@@ -109,7 +108,7 @@ u8 ConfettiUtil_SetCallback(u8 id, void (*func)(struct ConfettiUtil *))
 {
     if (sWork == NULL || id >= sWork->count)
         return 0xFF;
-    else if (!sWork->array[id].active)
+    if (!sWork->array[id].active)
         return 0xFF;
 
     sWork->array[id].callback = func;
@@ -120,7 +119,7 @@ u8 ConfettiUtil_SetData(u8 id, u8 dataArrayId, s16 dataValue)
 {
     if (sWork == NULL || id >= sWork->count)
         return 0xFF;
-    else if (!sWork->array[id].active || dataArrayId > ARRAY_COUNT(sWork->array[id].data) - 1) // - 1 b/c last slot is reserved for taskId
+    if (!sWork->array[id].active || dataArrayId > ARRAY_COUNT(sWork->array[id].data) - 1) // - 1 b/c last slot is reserved for taskId
         return 0xFF;
 
     sWork->array[id].data[dataArrayId] = dataValue;
