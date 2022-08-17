@@ -747,58 +747,60 @@ static void AnimTask_MoveTargetMementoShadow_Step(u8 taskId)
 
 static void DoMementoShadowEffect(struct Task *task)
 {
-    int var0, var1;
-    s16 var2;
-    s16 i;
-    int var4;
+    int diffy, y;
+    s16 i, height;
 
-    var2 = task->data[5] - task->data[4];
-    if (var2 != 0)
+    height = task->data[5] - task->data[4];
+    if (height != 0)
     {
-        var0 = task->data[13] / var2;
-        var1 = task->data[6] << 8;
+        diffy = task->data[13] / height;
+        y = task->data[6] << 8;
 
         for (i = 0; i < task->data[4]; i++)
         {
-            gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = task->data[10] - (i - 159);
+            gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = task->data[10] + (159 - i);
         }
 
         for (i = task->data[4]; i <= task->data[5]; i++)
         {
             if (i >= 0)
             {
-                s16 var3 = (var1 >> 8) - i;
-                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = var3 + task->data[10];
+                height = (y >> 8) - i;
+                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = task->data[10] + height;
             }
 
-            var1 += var0;
+            y += diffy;
         }
 
-        var4 = task->data[10] - (i - 159);
-        for (i = i; i < task->data[7]; i++)
+        y = task->data[10] + (159 - i);
+        while (i < task->data[7])
         {
             if (i >= 0)
             {
-                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = var4;
-                var4--;
+                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = y--;
             }
+            i++;
         }
     }
     else
     {
-        var4 = task->data[10] + 159;
+        y = task->data[10] + 159;
         for (i = 0; i < 112; i++)
         {
-            gScanlineEffectRegBuffers[0][i] = var4;
-            gScanlineEffectRegBuffers[1][i] = var4;
-            var4--;
+            gScanlineEffectRegBuffers[0][i] = y;
+            gScanlineEffectRegBuffers[1][i] = y;
+            y--;
         }
     }
 }
 
 static void SetAllBattlersSpritePriority(u8 priority)
 {
+    #if !MODERN
     u16 i;
+    #else
+    u8 i;
+    #endif
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
     {
@@ -810,22 +812,40 @@ static void SetAllBattlersSpritePriority(u8 priority)
 
 void AnimTask_InitMementoShadow(u8 taskId)
 {
-    u8 toBG2 = GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) ^ 1 ? 1 : 0;
+    #if !MODERN
+    bool8 toBG2 = GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 1 ? FALSE : TRUE;
+    #else
+    bool8 toBG2 = (GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 1);
+    u8 battler;
+    #endif
     MoveBattlerSpriteToBG(gBattleAnimAttacker, toBG2, TRUE);
     gSprites[gBattlerSpriteIds[gBattleAnimAttacker]].invisible = FALSE;
-
+    #if !MODERN
     if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)))
     {
-        MoveBattlerSpriteToBG(gBattleAnimAttacker ^ 2, toBG2 ^ 1, TRUE);
-        gSprites[gBattlerSpriteIds[gBattleAnimAttacker ^ 2]].invisible = FALSE;
+        MoveBattlerSpriteToBG(BATTLE_PARTNER(gBattleAnimAttacker), toBG2 ^ 1, TRUE);
+        gSprites[gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimAttacker)]].invisible = FALSE;
     }
+    #else
+    battler = BATTLE_PARTNER(gBattleAnimAttacker);
+    if (IsBattlerSpriteVisible(battler))
+    {
+        MoveBattlerSpriteToBG(battler, toBG2, TRUE);
+        gSprites[gBattlerSpriteIds[battler]].invisible = FALSE;
+    }
+    #endif
+
 
     DestroyAnimVisualTask(taskId);
 }
 
 void AnimTask_MementoHandleBg(u8 taskId)
 {
-    bool8 toBG2 = GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) ^ 1 ? TRUE : FALSE;
+    #if !MODERN
+    bool8 toBG2 = GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 1 ? FALSE : TRUE;
+    #else
+    bool8 toBG2 = (GetBattlerSpriteBGPriorityRank(gBattleAnimAttacker) == 2);
+    #endif
     ResetBattleAnimBg(toBG2);
 
     if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)))
