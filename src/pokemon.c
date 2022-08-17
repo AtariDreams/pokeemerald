@@ -6614,7 +6614,7 @@ void BoxMonRestorePP(struct BoxPokemon *boxMon)
         u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
         if (move)
         {
-            u8 pp = CalculatePPWithBonus(move, GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0), i)
+            u8 pp = CalculatePPWithBonus(move, GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0), i);
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
         #endif
