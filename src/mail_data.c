@@ -10,7 +10,7 @@
 
 void ClearAllMail(void)
 {
-    u8 i;
+    m8 i;
 
     for (i = 0; i < MAIL_COUNT; i++)
         ClearMail(&gSaveBlock1Ptr->mail[i]);
@@ -35,8 +35,7 @@ void ClearMail(struct Mail *mail)
 
 bool8 MonHasMail(struct Pokemon *mon)
 {
-    u16 heldItem = GetMonData(mon, MON_DATA_HELD_ITEM);
-    if (ItemIsMail(heldItem) && GetMonData(mon, MON_DATA_MAIL) != MAIL_NONE)
+    if (ItemIsMail(GetMonData(mon, MON_DATA_HELD_ITEM)) && GetMonData(mon, MON_DATA_MAIL) != MAIL_NONE)
         return TRUE;
     else
         return FALSE;
@@ -49,7 +48,7 @@ u8 GiveMailToMonByItemId(struct Pokemon *mon, u16 itemId)
     u16 species;
     u32 personality;
 
-    heldItem[0] = itemId; & 0xFF;
+    heldItem[0] = itemId & 0xFF;
     heldItem[1] = itemId >> 8;
 
     for (id = 0; id < PARTY_SIZE; id++)
