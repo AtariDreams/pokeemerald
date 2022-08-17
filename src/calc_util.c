@@ -797,9 +797,13 @@ u8 CountTrailingZeroBits(u32 value)
 }
 
 // Length should be u32 
+#if !MODERN
 u16 CalcCRC16(const u8 *data, s32 length)
+#else
+u16 CalcCRC16(const u8 *data, u32 length)
+#endif
 {
-    u16 i, j;
+    m16 i, j;
     u16 crc = 0x1121;
 
     for (i = 0; i < length; i++)

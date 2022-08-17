@@ -10,7 +10,11 @@ u8 CreateInvisibleSpriteWithCallback(void (*)(struct Sprite *));
 void StoreWordInTwoHalfwords(s16 *, u32);
 void LoadWordFromTwoHalfwords(s16 *, u32 *);
 u8 CountTrailingZeroBits(u32 value);
+#if !MODERN
 u16 CalcCRC16(const u8 *data, s32 length);
+#else
+u16 CalcCRC16(const u8 *data, u32 length);
+#endif
 u16 CalcCRC16WithTable(const u8 *data, u32 length);
 u32 CalcByteArraySum(const u8 *data, u32 length);
 void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor);
