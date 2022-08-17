@@ -17,12 +17,14 @@
 #if MODERN
 #define NOINLINE __attribute__((noinline))
 #define PURE __attribute__ ((pure))
+#define CONST __attribute__ ((const))
 #define LIKELY(x) __builtin_expect((x),1)
 #define UNLIKELY(x) __builtin_expect((x),0)
 #define NORETURN _Noreturn
 #else
 #define NOINLINE
 #define PURE
+#define CONST
 #define NORETURN
 #define LIKELY(x) x
 #define UNLIKELY(x) x
