@@ -1457,7 +1457,7 @@ static void Task_NewGameBirchSpeech_SlidePlatformAway(u8 taskId)
         return;
     }
     // This assignment is completely unnessecary given the situation above
-    //TODO: see if this is typo
+    // TODO: see if this is typo
     #if !MODERN
     gTasks[taskId].tBG1HOFS = -60;
     #endif
