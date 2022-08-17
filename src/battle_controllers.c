@@ -1148,7 +1148,7 @@ void BtlController_EmitPrintSelectionString(u8 bufferId, u16 stringID)
     sBattleBuffersTransferData[2] = stringID;
     sBattleBuffersTransferData[3] = (stringID & 0xFF00) >> 8;
     #else
-        sBattleBuffersTransferData[2] = stringID & 0xFF;
+    sBattleBuffersTransferData[2] = stringID & 0xFF;
     sBattleBuffersTransferData[3] = stringID >> 8;
     #endif
 
@@ -1292,7 +1292,7 @@ void BtlController_EmitStatusXor(u8 bufferId, u8 b)
 
 void BtlController_EmitDataTransfer(u8 bufferId, u16 size, void *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_DATATRANSFER;
     sBattleBuffersTransferData[1] = CONTROLLER_DATATRANSFER;
@@ -1305,10 +1305,10 @@ void BtlController_EmitDataTransfer(u8 bufferId, u16 size, void *data)
 
 void BtlController_EmitDMA3Transfer(u8 bufferId, void *dst, u16 size, void *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_DMA3TRANSFER;
-    sBattleBuffersTransferData[1] = (u32)(dst & 0xFF);
+    sBattleBuffersTransferData[1] = (u32)(dst) & 0xFF;
     sBattleBuffersTransferData[2] = ((u32)(dst) & 0x0000FF00) >> 8;
     sBattleBuffersTransferData[3] = ((u32)(dst) & 0x00FF0000) >> 16;
     sBattleBuffersTransferData[4] = ((u32)(dst) & 0xFF000000) >> 24;
@@ -1322,7 +1322,7 @@ void BtlController_EmitDMA3Transfer(u8 bufferId, void *dst, u16 size, void *data
 // Unused
 void BtlController_EmitPlayBGM(u8 bufferId, u16 songId, void *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_PLAYBGM;
     sBattleBuffersTransferData[1] = songId;
@@ -1337,7 +1337,7 @@ void BtlController_EmitPlayBGM(u8 bufferId, u16 songId, void *data)
 
 void BtlController_EmitCmd32(u8 bufferId, u16 size, void *data)
 {
-    s32 i;
+    m32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_32;
     sBattleBuffersTransferData[1] = size;
@@ -1374,7 +1374,7 @@ void BtlController_EmitChosenMonReturnValue(u8 bufferId, u8 partyId, u8 *battleP
 void BtlController_EmitOneReturnValue(u8 bufferId, u16 ret)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_ONERETURNVALUE;
-    sBattleBuffersTransferData[1] = ret;
+    sBattleBuffersTransferData[1] = ret & 0xFF;
     sBattleBuffersTransferData[2] = (ret & 0xFF00) >> 8;
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
@@ -1383,7 +1383,7 @@ void BtlController_EmitOneReturnValue(u8 bufferId, u16 ret)
 void BtlController_EmitOneReturnValue_Duplicate(u8 bufferId, u16 ret)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_ONERETURNVALUE_DUPLICATE;
-    sBattleBuffersTransferData[1] = ret;
+    sBattleBuffersTransferData[1] = ret & 0xFF;
     sBattleBuffersTransferData[2] = (ret & 0xFF00) >> 8;
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
