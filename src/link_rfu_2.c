@@ -483,7 +483,7 @@ static void Task_ChildSearchForParent(u8 taskId)
 static void InitChildRecvBuffers(void)
 {
     u8 i;
-    u8 acceptSlot = lman.acceptSlot_flag;
+    m8 acceptSlot = lman.acceptSlot_flag;
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
         if (acceptSlot & 1)
