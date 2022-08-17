@@ -1336,7 +1336,7 @@ static void Task_Scene1_PanUp(u8 taskId)
         #if !MODERN
         offset = (gTasks[taskId].tBg3PosHi << 16) + (u16)gTasks[taskId].tBg3PosLo;
         #else
-        offset = (gTasks[taskId].tBg2PosHi << 16) | (u16)gTasks[taskId].tBg3PosLo;
+        offset = (gTasks[taskId].tBg3PosHi << 16) | (u16)gTasks[taskId].tBg3PosLo;
         #endif
 
         offset -= 0xC000;
@@ -1419,11 +1419,8 @@ static void Task_Scene2_CreateSprites(u8 taskId)
     gSprites[spriteId].anims = sAnims_PlayerBicycle;
     gTasks[taskId].tPlayerSpriteId = spriteId;
     CreateSprite(&sSpriteTemplate_Volbeat, DISPLAY_WIDTH + 32, 80, 4);
-#if !MODERN
+
     spriteId = CreateIntroFlygonSprite(-64, 60);
-#else
-    spriteId = CreateIntroFlygonSprite_Unused(-64, 60);
-#endif
 
     gSprites[spriteId].callback = SpriteCB_Flygon;
     gTasks[taskId].tFlygonSpriteId = spriteId;
@@ -2042,7 +2039,7 @@ static void CreateGroudonRockSprites(u8 taskId)
     #if !MODERN
     int i;
     #else
-    s16 i;
+    u8 i;
     #endif
     u8 spriteId;
 

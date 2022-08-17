@@ -42,5 +42,4 @@ void CycleSceneryPalette(u8);
 u8 CreateIntroBrendanSprite(s16 x, s16 y);
 u8 CreateIntroMaySprite(s16 x, s16 y);
 u8 CreateIntroFlygonSprite(s16 x, s16 y);
-u8 CreateIntroFlygonSprite_Unused(s16 x, s16 y);
 #endif // GUARD_INTRO_CREDITS_GRAPHICS_H
