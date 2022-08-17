@@ -1959,7 +1959,7 @@ static void SetPartyMonsAllowedInMinigame(void)
 
     if (gPartyMenu.menuType == PARTY_MENU_TYPE_MINIGAME)
     {
-        u8 i;
+        m8 i;
 
         ptr = &gPartyMenu.data1;
         gPartyMenu.data1 = 0;
@@ -2530,7 +2530,7 @@ void DisplayPartyMenuStdMessage(u32 stringId)
 static bool8 ShouldUseChooseMonText(void)
 {
     struct Pokemon *party = gPlayerParty;
-    u8 i;
+    m8 i;
     u8 numAliveMons = 0;
 
     if (gPartyMenu.action == PARTY_ACTION_SEND_OUT)
@@ -2615,7 +2615,7 @@ static void RemoveLevelUpStatsWindow(void)
 
 static void SetPartyMonSelectionActions(struct Pokemon *mons, u8 slotId, u8 action)
 {
-    u8 i;
+    m8 i;
 
     if (action == ACTIONS_NONE)
     {
@@ -2630,7 +2630,13 @@ static void SetPartyMonSelectionActions(struct Pokemon *mons, u8 slotId, u8 acti
 
 static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
 {
-    u8 i, j;
+    #if !MODERN
+    u8 i;
+    #else
+    s32 i;
+    #endif
+
+    m8 j;
 
     sPartyMenuInternal->numActions = 0;
     AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_SUMMARY);
