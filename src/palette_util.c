@@ -11,7 +11,7 @@ void RouletteFlash_Reset(struct RouletteFlashUtil *flash)
 {
     flash->enabled = 0;
     flash->flags = 0;
-    memset(&flash->palettes, 0, sizeof(flash->palettes));
+    memset(flash->palettes, 0, sizeof(flash->palettes));
 }
 
 u8 RouletteFlash_Add(struct RouletteFlashUtil *flash, u8 id, const struct RouletteFlashSettings *settings)
@@ -95,9 +95,11 @@ static u8 RouletteFlash_FadePalette(struct RouletteFlashPalette *pal)
             break;
         }
     }
-    if ((u32)pal->fadeCycleCounter++ != pal->settings.numFadeCycles)
+    // Why have the u32 cast or u8 cast?
+    // TODO: check which is better
+    if (pal->fadeCycleCounter++ != (u8)pal->settings.numFadeCycles)
     {
-        returnval = 0;
+        return 0;
     }
     else
     {
@@ -109,7 +111,7 @@ static u8 RouletteFlash_FadePalette(struct RouletteFlashPalette *pal)
             pal->state--;
         returnval = 1;
     }
-    return returnval;
+    return 1;
 }
 
 static u8 RouletteFlash_FlashPalette(struct RouletteFlashPalette *pal)
@@ -143,7 +145,8 @@ void RouletteFlash_Run(struct RouletteFlashUtil *flash)
         {
             if ((flash->flags >> i) & 1)
             {
-                if (--flash->palettes[i].delayCounter == (u8)-1)
+                // Why not have the delayCounter go down when this is FALSE
+                if (flash->palettes[i].delayCounter-- == 0)
                 {
                     if (flash->palettes[i].settings.color & FLASHUTIL_USE_EXISTING_COLOR)
                         RouletteFlash_FadePalette(&flash->palettes[i]);
