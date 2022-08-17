@@ -5736,7 +5736,7 @@ static u16 SetSelectedWordGroup_AlphabetMode(u16 groupId)
 
 static bool8 IsEasyChatGroupUnlocked2(u8 groupId)
 {
-    int i;
+    m32 i;
     for (i = 0; i < sWordData->numUnlockedGroups; i++)
     {
         if (sWordData->unlockedGroupIds[i] == groupId)
@@ -5792,7 +5792,11 @@ static u8 IsEasyChatWordUnlocked(u16 easyChatWord)
 
 void InitializeEasyChatWordArray(u16 *words, u16 length)
 {
+    #if !MODERN
     while (length--)
+    #else
+    for (; length; length--)
+    #endif
     {
         *(words++) = EC_EMPTY_WORD;
     }
