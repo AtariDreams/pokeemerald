@@ -713,7 +713,7 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
     if (glyphHeight > currY + gCurGlyph.height) // Cannot do subtraction due to underflow comparison
         glyphHeight = gCurGlyph.height;
     else
-        glphWidth -= currY;
+        glyphHeight -= currY;
 
     // if ((glyphWidth = (window->window.width * 8) - textPrinter->printerTemplate.currentX) > gCurGlyph.width)
     //     glyphWidth = gCurGlyph.width;
