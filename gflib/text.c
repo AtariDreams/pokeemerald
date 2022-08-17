@@ -243,7 +243,7 @@ static void SetFontsPointer(const struct FontInfo *fonts)
 
 void DeactivateAllTextPrinters(void)
 {
-    int printer;
+    m32 printer;
     for (printer = 0; printer < NUM_TEXT_PRINTERS; ++printer)
         sTextPrinters[printer].active = FALSE;
 }
