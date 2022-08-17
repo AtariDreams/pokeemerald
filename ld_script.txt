@@ -180,7 +180,6 @@ SECTIONS {
         src/tv.o(.text);
         src/contest_util.o(.text);
         src/script_pokemon_util.o(.text);
-        src/pokemon_size_record.o(.text);
         src/fldeff_misc.o(.text);
         src/field_special_scene.o(.text);
         src/rotating_gate.o(.text);
@@ -550,7 +549,6 @@ SECTIONS {
         src/tv.o(.rodata);
         src/contest_util.o(.rodata);
         src/script_pokemon_util.o(.rodata);
-        src/pokemon_size_record.o(.rodata)
         src/fldeff_misc.o(.rodata);
         src/field_special_scene.o(.rodata);
         src/rotating_gate.o(.rodata);
