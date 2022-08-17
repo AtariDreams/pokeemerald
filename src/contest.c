@@ -3167,8 +3167,10 @@ bool8 IsSpeciesNotUnown(u16 species)
 // tiles are actually drawn on screen.
 static void SwapMoveDescAndContestTilemaps(void)
 {
-    CpuCopy16(gContestResources->contestBgTilemaps[0], gContestResources->contestBgTilemaps[0] + 0x500, 32 * 20);
-    CpuCopy16(gContestResources->contestBgTilemaps[2], gContestResources->contestBgTilemaps[2] + 0x500, 32 * 20);
+    //TODO: have the u8 cast in the macro, not here.
+    // Do the 0x500/2 thing for now as a remedy
+    CpuCopy16(gContestResources->contestBgTilemaps[0], gContestResources->contestBgTilemaps[0] + 0x500/2, 32 * 20);
+    CpuCopy16(gContestResources->contestBgTilemaps[2], gContestResources->contestBgTilemaps[2] + 0x500/2, 32 * 20);
 }
 
 // Functionally unused

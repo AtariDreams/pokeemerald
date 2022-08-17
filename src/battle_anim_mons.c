@@ -653,13 +653,14 @@ static void AnimPosToTranslateLinear(struct Sprite *sprite)
 void ConvertPosDataToTranslateLinearData(struct Sprite *sprite)
 {
     s16 old;
-    int xDiff;
 
     if (sprite->sStartX > sprite->sTargetX)
         sprite->sStepsX = -sprite->sStepsX;
-    xDiff = sprite->sTargetX - sprite->sStartX;
+    
     old = sprite->sStepsX;
-    sprite->sMoveSteps = abs(xDiff / sprite->sStepsX);
+
+    sprite->sMoveSteps = abs((sprite->sTargetX - sprite->sStartX) / old);
+
     sprite->sSpeedY = (sprite->sTargetY - sprite->sStartY) / sprite->sMoveSteps;
     sprite->sSpeedX = old;
 }
@@ -799,7 +800,7 @@ static void TranslateSpriteToBattleAttackerPos(struct Sprite *sprite)
 // Unused
 static void EndUnkPaletteAnim(struct Sprite *sprite)
 {
-    PaletteStruct_ResetById(sprite->data[5]);
+    PaletteStruct_ResetById((u16)sprite->data[5]);
     DestroySpriteAndMatrix(sprite);
 }
 
@@ -839,8 +840,8 @@ void SetSpriteCoordsToAnimAttackerCoords(struct Sprite *sprite)
 // of the two involved mons.
 void SetAnimSpriteInitialXOffset(struct Sprite *sprite, s16 xOffset)
 {
-    u16 attackerX = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
-    u16 targetX = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
+    u8 attackerX = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
+    u8 targetX = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X);
 
     if (attackerX > targetX)
     {
@@ -873,7 +874,7 @@ bool8 TranslateAnimHorizontalArc(struct Sprite *sprite)
     if (AnimTranslateLinear(sprite))
         return TRUE;
     sprite->data[7] += sprite->data[6];
-    sprite->y2 += Sin((u8)(sprite->data[7] >> 8), sprite->data[5]);
+    sprite->y2 += Sin((sprite->data[7] >> 8) & 0xFF, sprite->data[5]);
     return FALSE;
 }
 
@@ -882,7 +883,7 @@ bool8 TranslateAnimVerticalArc(struct Sprite *sprite)
     if (AnimTranslateLinear(sprite))
         return TRUE;
     sprite->data[7] += sprite->data[6];
-    sprite->x2 += Sin((u8)(sprite->data[7] >> 8), sprite->data[5]);
+    sprite->x2 += Sin((sprite->data[7] >> 8) & 0xFF, sprite->data[5]);
     return FALSE;
 }
 
@@ -949,20 +950,17 @@ bool8 IsBattlerSpritePresent(u8 battlerId)
 {
     if (IsContest())
     {
-        if (gBattleAnimAttacker == battlerId)
+        if (gBattleAnimAttacker == battlerId || gBattleAnimTarget == battlerId)
             return TRUE;
-        else if (gBattleAnimTarget == battlerId)
-            return TRUE;
-        else
-            return FALSE;
+
+        return FALSE;
     }
-    else
-    {
+
         if (gBattlerPositions[battlerId] == 0xff)
         {
             return FALSE;
         }
-        else if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
+        if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
         {
             if (GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerId]], MON_DATA_HP) != 0)
                 return TRUE;
@@ -972,7 +970,6 @@ bool8 IsBattlerSpritePresent(u8 battlerId)
             if (GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_HP) != 0)
                 return TRUE;
         }
-    }
     return FALSE;
 }
 
@@ -990,7 +987,7 @@ void GetBattleAnimBg1Data(struct BattleAnimBgData *out)
     if (IsContest())
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_CONTEST;
         out->bgId = 1;
         out->tilesOffset = 0;
@@ -999,7 +996,7 @@ void GetBattleAnimBg1Data(struct BattleAnimBgData *out)
     else
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_1;
         out->bgId = 1;
         out->tilesOffset = 0x200;
@@ -1012,7 +1009,7 @@ void GetBattleAnimBgData(struct BattleAnimBgData *out, u32 bgId)
     if (IsContest())
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_CONTEST;
         out->bgId = 1;
         out->tilesOffset = 0;
@@ -1025,7 +1022,7 @@ void GetBattleAnimBgData(struct BattleAnimBgData *out, u32 bgId)
     else
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_2;
         out->bgId = 2;
         out->tilesOffset = 0x300;
@@ -1036,7 +1033,8 @@ void GetBattleAnimBgData(struct BattleAnimBgData *out, u32 bgId)
 void GetBgDataForTransform(struct BattleAnimBgData *out, u8 battlerId)
 {
     out->bgTiles = gBattleAnimBgTileBuffer;
-    out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+    out->bgTilemap = gBattleAnimBgTilemapBuffer;
+    // Apparently this is debug stuff too
     if (IsContest())
     {
         out->paletteId = BG_ANIM_PAL_CONTEST;
@@ -1135,8 +1133,13 @@ void InitSpriteDataForLinearTranslation(struct Sprite *sprite)
     s16 y = (sprite->data[4] - sprite->data[3]) << 8;
     sprite->data[1] = x / sprite->data[0];
     sprite->data[2] = y / sprite->data[0];
+    #if !MODERN
     sprite->data[4] = 0;
     sprite->data[3] = 0;
+    #else
+    sprite->data[3] = 0;
+    sprite->data[4] = 0;
+    #endif
 }
 
 void InitAnimLinearTranslation(struct Sprite *sprite)
@@ -1163,8 +1166,13 @@ void InitAnimLinearTranslation(struct Sprite *sprite)
 
     sprite->data[1] = xDelta;
     sprite->data[2] = yDelta;
+    #if !MODERN
     sprite->data[4] = 0;
     sprite->data[3] = 0;
+    #else
+    sprite->data[3] = 0;
+    sprite->data[4] = 0;
+    #endif
 }
 
 void StartAnimLinearTranslation(struct Sprite *sprite)
@@ -1270,8 +1278,13 @@ static void InitAnimFastLinearTranslation(struct Sprite *sprite)
 
     sprite->data[1] = x2;
     sprite->data[2] = y2;
+    #if !MODERN
     sprite->data[4] = 0;
     sprite->data[3] = 0;
+    #else
+    sprite->data[3] = 0;
+    sprite->data[4] = 0;
+    #endif
 }
 
 void InitAndRunAnimFastLinearTranslation(struct Sprite *sprite)
@@ -1337,7 +1350,7 @@ void InitAnimFastLinearTranslationWithSpeedAndPos(struct Sprite *sprite)
 
 void SetSpriteRotScale(u8 spriteId, s16 xScale, s16 yScale, u16 rotation)
 {
-    int i;
+    u8 i;
     struct ObjAffineSrcData src;
     struct OamMatrix matrix;
 
@@ -1357,12 +1370,9 @@ void SetSpriteRotScale(u8 spriteId, s16 xScale, s16 yScale, u16 rotation)
 // Pokémon in Contests (except Unown) should be flipped.
 static bool8 ShouldRotScaleSpeciesBeFlipped(void)
 {
-    if (IsContest())
+    if (IsContest() && gSprites[GetAnimBattlerSpriteId(ANIM_ATTACKER)].data[2] != SPECIES_UNOWN)
     {
-        if (gSprites[GetAnimBattlerSpriteId(ANIM_ATTACKER)].data[2] == SPECIES_UNOWN)
-            return FALSE;
-        else
-            return TRUE;
+        return TRUE;
     }
     else
     {
@@ -1404,12 +1414,14 @@ void SetBattlerSpriteYOffsetFromRotation(u8 spriteId)
         c = -c;
 
     // c * 32 >> 8
+    // TODO: did this mean to clear the bits or no?
+    // TODO: does it even matter?
     gSprites[spriteId].y2 = c >> 3;
 }
 
 void TrySetSpriteRotScale(struct Sprite *sprite, bool8 recalcCenterVector, s16 xScale, s16 yScale, u16 rotation)
 {
-    int i;
+    u8 i;
     struct ObjAffineSrcData src;
     struct OamMatrix matrix;
 
@@ -2602,6 +2614,26 @@ static void AnimWeatherBallUp_Step(struct Sprite *sprite)
         DestroyAnimSprite(sprite);
 }
 
+#if MODERN
+void AnimWeatherBallDown(struct Sprite *sprite)
+{
+    sprite->data[0] = gBattleAnimArgs[2];
+    sprite->data[2] = sprite->x + gBattleAnimArgs[4];
+    sprite->data[4] = sprite->y + gBattleAnimArgs[5];
+    if (!GetBattlerSide(gBattleAnimTarget))
+    {
+        sprite->x += gBattleAnimArgs[4] + 30;
+        sprite->y = gBattleAnimArgs[5] - 20;
+    }
+    else
+    {
+        sprite->x += gBattleAnimArgs[4] - 30;
+        sprite->y = gBattleAnimArgs[5] - 80;
+    }
+    sprite->callback = StartAnimLinearTranslation;
+    StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
+}
+#else
 void AnimWeatherBallDown(struct Sprite *sprite)
 {
     int x;
@@ -2623,3 +2655,4 @@ void AnimWeatherBallDown(struct Sprite *sprite)
     sprite->callback = StartAnimLinearTranslation;
     StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
 }
+#endif

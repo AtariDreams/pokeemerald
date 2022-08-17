@@ -290,8 +290,9 @@ struct ContestResources
     struct ContestGraphicsState *gfxState;
     struct ContestMoveAnimData *moveAnim;
     struct ContestTV *tv;
+    //ContestUnused is for debug that was mistakenly left i
     struct ContestUnused * unused;
-    u8 * contestBgTilemaps[CONTESTANT_COUNT];
+    u16 * contestBgTilemaps[CONTESTANT_COUNT];
     void * boxBlinkTiles1;
     void * boxBlinkTiles2;
     void * animBgTileBuffer;
