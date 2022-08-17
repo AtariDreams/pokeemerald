@@ -614,25 +614,18 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
         mplayInfo->tempoC = 0;
         mplayInfo->fadeOI = 0;
 
-        i = 0;
-        track = mplayInfo->tracks;
-
-        while (i < songHeader->trackCount && i < mplayInfo->trackCount)
+        for (i = 0, track = mplayInfo->tracks; i < songHeader->trackCount && i < mplayInfo->trackCount; i++, track++)
         {
             TrackStop(mplayInfo, track);
             track->flags = MPT_FLG_EXIST | MPT_FLG_START;
             track->chan = 0;
             track->cmdPtr = songHeader->part[i];
-            i++;
-            track++;
         }
 
-        while (i < mplayInfo->trackCount)
+        for (; i < mplayInfo->trackCount;  i++, track++)
         {
             TrackStop(mplayInfo, track);
             track->flags = 0;
-            i++;
-            track++;
         }
 
         if (songHeader->reverb & SOUND_MODE_REVERB_SET)
@@ -653,14 +646,9 @@ void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
     mplayInfo->ident++;
     mplayInfo->status |= MUSICPLAYER_STATUS_PAUSE;
 
-    i = mplayInfo->trackCount;
-    track = mplayInfo->tracks;
-
-    while (i > 0)
+    for (i = mplayInfo->trackCount,track = mplayInfo->tracks; i > 0; i--, track++)
     {
         TrackStop(mplayInfo, track);
-        i--;
-        track++;
     }
 
     mplayInfo->ident = ID_NUMBER;
@@ -1476,9 +1464,7 @@ cond_false:
 
 void ply_xcmd(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 n = *track->cmdPtr;
-    track->cmdPtr++;
-
+    u32 n = *track->cmdPtr++;
     gXcmdTable[n](mplayInfo, track);
 }
 
