@@ -311,8 +311,6 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     {
         sTempTextPrinter.textSpeed = 0;
         
-        // Render all text (up to limit) at once
-        // TODO: u16 is not needed here
         for (j = 0; j < 0x400; ++j)
         {
             if (RenderFont(&sTempTextPrinter) == RENDER_FINISH)
@@ -330,7 +328,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 
 void RunTextPrinters(void)
 {
-    int i;
+    m32 i;
 
     if (gDisableTextPrinters)
     {

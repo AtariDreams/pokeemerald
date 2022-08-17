@@ -19,9 +19,14 @@ static void DecompressGlyph_Braille(u16);
 
 u16 FontFunc_Braille(struct TextPrinter *textPrinter)
 {
+    #if !MODERN
     u16 char_;
     struct TextPrinterSubStruct *subStruct;
     subStruct = (struct TextPrinterSubStruct *)(&textPrinter->subStructFields);
+    #else
+    u16 char_;
+    struct TextPrinterSubStruct *subStruct = &textPrinter->subStructFields;
+    #endif
 
     switch (textPrinter->state)
     {
