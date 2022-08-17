@@ -7119,7 +7119,7 @@ static u8 ChangeStatBuffs(s8 statValue, u8 statId, u8 flags, const u8 *BS_ptr)
     if (gBattleMons[gActiveBattler].statStages[statId] < MIN_STAT_STAGE)
         gBattleMons[gActiveBattler].statStages[statId] = MIN_STAT_STAGE;
     M_IF(gBattleMons[gActiveBattler].statStages[statId] > MAX_STAT_STAGE)
-        gBattleMons[gActiveBattler].statStages[statId] = MAX_STAT_STAGE;
+    gBattleMons[gActiveBattler].statStages[statId] = MAX_STAT_STAGE;
 
 #if !MODERN
     if (gBattleCommunication[MULTISTRING_CHOOSER] == B_MSG_STAT_WONT_INCREASE && flags & STAT_BUFF_ALLOW_PTR)
@@ -7350,7 +7350,7 @@ static void Cmd_forcerandomswitch(void)
         {
             if (TryDoForceSwitchOut())
             {
-                #if !MODERN
+#if !MODERN
                 do
                 {
                     do
@@ -7359,19 +7359,19 @@ static void Cmd_forcerandomswitch(void)
                         i += firstMonId;
                     } while (i == battler2PartyId || i == battler1PartyId);
                 } while (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(&party[i], MON_DATA_IS_EGG) == TRUE || GetMonData(&party[i], MON_DATA_HP) == 0); // should be one while loop, but that doesn't match.
-                #else
+#else
                 do
                 {
                     i = Random() % monsCount + firstMonId;
 
                 } while ((i == battler2PartyId || i == battler1PartyId) && (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(&party[i], MON_DATA_IS_EGG) == TRUE || GetMonData(&party[i], MON_DATA_HP) == 0));
-                #endif
+#endif
             }
-            #if !MODERN
+#if !MODERN
             *(gBattleStruct->monToSwitchIntoId + gBattlerTarget) = i;
-            #else
+#else
             gBattleStruct->monToSwitchIntoId[gBattlerTarget] = i;
-            #endif
+#endif
 
             if (!IsMultiBattle())
                 SwitchPartyOrder(gBattlerTarget);
@@ -7432,8 +7432,7 @@ static void Cmd_tryconversiontypechange(void) // randomly changes user's type to
             do
             {
                 moveChecked = Random() & (MAX_MON_MOVES - 1);
-            }
-            while (moveChecked >= validMoves);
+            } while (moveChecked >= validMoves);
 
             moveType = gBattleMoves[gBattleMons[gBattlerAttacker].moves[moveChecked]].type;
 
@@ -7457,6 +7456,7 @@ static void Cmd_givepaydaymoney(void)
 {
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)) && gPaydayMoney != 0)
     {
+        // TODO: the buffer assumes this won't be a u16. can we force this to be a u16 or may that cause problems?
         u32 bonusMoney = gPaydayMoney * gBattleStruct->moneyMultiplier;
         AddMoney(&gSaveBlock1Ptr->money, bonusMoney);
 
@@ -7540,6 +7540,7 @@ static void Cmd_tryKO(void)
         }
         else
         {
+            // This code was added to fix some sort of lock-on bug
             chance = gBattleMoves[gCurrentMove].accuracy + (gBattleMons[gBattlerAttacker].level - gBattleMons[gBattlerTarget].level);
             if (Random() % 100 + 1 < chance && gBattleMons[gBattlerAttacker].level >= gBattleMons[gBattlerTarget].level)
                 chance = TRUE;
@@ -7605,7 +7606,13 @@ static void Cmd_setsandstorm(void)
 
 static void Cmd_weatherdamage(void)
 {
+#if MODERN
+    if (gAbsentBattlerFlags & gBitTable[gBattlerAttacker])
+        gBattleMoveDamage = 0;
+    else if (WEATHER_HAS_EFFECT)
+#else
     if (WEATHER_HAS_EFFECT)
+#endif
     {
         if (gBattleWeather & B_WEATHER_SANDSTORM)
         {
@@ -7620,6 +7627,7 @@ static void Cmd_weatherdamage(void)
                 gBattleMoveDamage = 0;
             }
         }
+        // Should I put an else if to avoid weather bug?
         if (gBattleWeather & B_WEATHER_HAIL)
         {
             if (!IS_BATTLER_OF_TYPE(gBattlerAttacker, TYPE_ICE) && !(gStatuses3[gBattlerAttacker] & STATUS3_UNDERGROUND) && !(gStatuses3[gBattlerAttacker] & STATUS3_UNDERWATER))
@@ -7639,8 +7647,10 @@ static void Cmd_weatherdamage(void)
         gBattleMoveDamage = 0;
     }
 
+#if !MODERN
     if (gAbsentBattlerFlags & gBitTable[gBattlerAttacker])
         gBattleMoveDamage = 0;
+#endif
 
     gBattlescriptCurrInstr++;
 }
@@ -7673,17 +7683,14 @@ static void Cmd_tryinfatuating(void)
         gLastUsedAbility = ABILITY_OBLIVIOUS;
         RecordAbilityBattle(gBattlerTarget, ABILITY_OBLIVIOUS);
     }
+    else if (GetGenderFromSpeciesAndPersonality(speciesAttacker, personalityAttacker) == GetGenderFromSpeciesAndPersonality(speciesTarget, personalityTarget) || gBattleMons[gBattlerTarget].status2 & STATUS2_INFATUATION || GetGenderFromSpeciesAndPersonality(speciesAttacker, personalityAttacker) == MON_GENDERLESS || GetGenderFromSpeciesAndPersonality(speciesTarget, personalityTarget) == MON_GENDERLESS)
+    {
+        gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+    }
     else
     {
-        if (GetGenderFromSpeciesAndPersonality(speciesAttacker, personalityAttacker) == GetGenderFromSpeciesAndPersonality(speciesTarget, personalityTarget) || gBattleMons[gBattlerTarget].status2 & STATUS2_INFATUATION || GetGenderFromSpeciesAndPersonality(speciesAttacker, personalityAttacker) == MON_GENDERLESS || GetGenderFromSpeciesAndPersonality(speciesTarget, personalityTarget) == MON_GENDERLESS)
-        {
-            gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
-        }
-        else
-        {
-            gBattleMons[gBattlerTarget].status2 |= STATUS2_INFATUATED_WITH(gBattlerAttacker);
-            gBattlescriptCurrInstr += 5;
-        }
+        gBattleMons[gBattlerTarget].status2 |= STATUS2_INFATUATED_WITH(gBattlerAttacker);
+        gBattlescriptCurrInstr += 5;
     }
 }
 
@@ -7760,6 +7767,7 @@ static void Cmd_transformdataexecution(void)
     {
         gMoveResultFlags |= MOVE_RESULT_FAILED;
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_TRANSFORM_FAILED;
+        return;
     }
     else
     {
@@ -7798,7 +7806,7 @@ static void Cmd_transformdataexecution(void)
 static void Cmd_setsubstitute(void)
 {
     u16 hp = gBattleMons[gBattlerAttacker].maxHP / 4;
-    if (gBattleMons[gBattlerAttacker].maxHP / 4 == 0)
+    if (UNLIKELY(hp == 0))
         hp = 1;
 
     if (gBattleMons[gBattlerAttacker].hp <= hp)
@@ -7808,9 +7816,14 @@ static void Cmd_setsubstitute(void)
     }
     else
     {
+#if !MODERN
         gBattleMoveDamage = gBattleMons[gBattlerAttacker].maxHP / 4; // one bit value will only work for pokemon which max hp can go to 1020(which is more than possible in games)
+
         if (gBattleMoveDamage == 0)
             gBattleMoveDamage = 1;
+#else
+        gBattleMoveDamage = hp;
+#endif
 
         gBattleMons[gBattlerAttacker].status2 |= STATUS2_SUBSTITUTE;
         gBattleMons[gBattlerAttacker].status2 &= ~STATUS2_WRAPPED;
@@ -7957,7 +7970,6 @@ back:
     gHitMarker &= ~HITMARKER_ATTACKSTRING_PRINTED;
     gBattlescriptCurrInstr = gBattleScriptsForMoveEffects[gBattleMoves[gCurrentMove].effect];
     gBattlerTarget = GetMoveTarget(gCurrentMove, NO_TARGET_OVERRIDE);
-    return;
 #endif
 }
 
@@ -8054,6 +8066,7 @@ static void Cmd_trysetencore(void)
 {
     m32 i;
 
+#if !MODERN
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
         if (gBattleMons[gBattlerTarget].moves[i] == gLastMoves[gBattlerTarget])
@@ -8064,6 +8077,20 @@ static void Cmd_trysetencore(void)
     {
         i = MAX_MON_MOVES;
     }
+#else
+
+    if (gLastMoves[gBattlerTarget] == MOVE_STRUGGLE || gLastMoves[gBattlerTarget] == MOVE_ENCORE || gLastMoves[gBattlerTarget] == MOVE_MIRROR_MOVE)
+    {
+        gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+        return;
+    }
+
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (gBattleMons[gBattlerTarget].moves[i] == gLastMoves[gBattlerTarget])
+            break;
+    }
+#endif
 
     if (gDisableStructs[gBattlerTarget].encoredMove == MOVE_NONE
         && i != MAX_MON_MOVES && gBattleMons[gBattlerTarget].pp[i] != 0)
@@ -8073,11 +8100,10 @@ static void Cmd_trysetencore(void)
         gDisableStructs[gBattlerTarget].encoreTimer = (Random() & 3) + 3;
         gDisableStructs[gBattlerTarget].encoreTimerStartValue = gDisableStructs[gBattlerTarget].encoreTimer;
         gBattlescriptCurrInstr += 5;
+        return;
     }
-    else
-    {
-        gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
-    }
+
+    gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
 }
 
 static void Cmd_painsplitdmgcalc(void)
@@ -8085,13 +8111,19 @@ static void Cmd_painsplitdmgcalc(void)
     if (!(gBattleMons[gBattlerTarget].status2 & STATUS2_SUBSTITUTE))
     {
         s32 hpDiff = (gBattleMons[gBattlerAttacker].hp + gBattleMons[gBattlerTarget].hp) / 2;
-        s32 painSplitHp = gBattleMoveDamage = gBattleMons[gBattlerTarget].hp - hpDiff;
-        u8 *storeLoc = (void *)(&gBattleScripting.painSplitHp);
+        #if !MODERN
+        u8 *storeLoc;
+        gBattleMoveDamage = gBattleMons[gBattlerTarget].hp - hpDiff;
 
-        storeLoc[0] = (painSplitHp);
-        storeLoc[1] = (painSplitHp & 0x0000FF00) >> 8;
-        storeLoc[2] = (painSplitHp & 0x00FF0000) >> 16;
-        storeLoc[3] = (painSplitHp & 0xFF000000) >> 24;
+        storeLoc = (void *)(&gBattleScripting.painSplitHp);
+
+        storeLoc[0] = (gBattleMoveDamage & 0xFF);
+        storeLoc[1] = (gBattleMoveDamage & 0x0000FF00) >> 8;
+        storeLoc[2] = (gBattleMoveDamage & 0x00FF0000) >> 16;
+        storeLoc[3] = (gBattleMoveDamage & 0xFF000000) >> 24;
+        #else
+        gBattleScripting.painSplitHp = gBattleMons[gBattlerTarget].hp - hpDiff;
+        #endif
 
         gBattleMoveDamage = gBattleMons[gBattlerAttacker].hp - hpDiff;
         gSpecialStatuses[gBattlerTarget].dmg = 0xFFFF;
@@ -8123,8 +8155,10 @@ static void Cmd_settypetorandomresistance(void) // conversion 2
 
         for (rands = 0; rands < 1000; rands++)
         {
-            while (((i = Random() & 0x7f) > sizeof(gTypeEffectiveness) / 3))
-                ;
+            do
+            {
+                i = Random() & 0x7f;
+            } while (i > sizeof(gTypeEffectiveness) / 3);
 
             i *= 3;
 

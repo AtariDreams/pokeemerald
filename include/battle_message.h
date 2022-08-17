@@ -123,7 +123,7 @@
     textVar[1] = B_BUFF_NUMBER;                                             \
     textVar[2] = 2;                                                         \
     textVar[3] = maxDigits;                                                 \
-    textVar[4] = (number);                                                  \
+    textVar[4] = (number & 0xFF);                                                  \
     textVar[5] = (number & 0x0000FF00) >> 8;                                \
     textVar[6] = B_BUFF_EOS;                                                \
 }
