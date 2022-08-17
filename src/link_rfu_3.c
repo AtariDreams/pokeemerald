@@ -921,7 +921,7 @@ void SaveLinkTrainerNames(void)
             connectedTrainerRecordIndices[i] = -1;
             for (j = 0; j < (m32)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); j++)
             {
-                if ((u16)gLinkPlayers[i].trainerId ==  gSaveBlock1Ptr->trainerNameRecords[j].trainerId && StringCompare(gLinkPlayers[i].name, gSaveBlock1Ptr->trainerNameRecords[j].trainerName) == 0)
+                if ((gLinkPlayers[i].trainerId & 0xFFFF) ==  gSaveBlock1Ptr->trainerNameRecords[j].trainerId && StringCompare(gLinkPlayers[i].name, gSaveBlock1Ptr->trainerNameRecords[j].trainerName) == 0)
                     connectedTrainerRecordIndices[i] = j;
             }
         }
