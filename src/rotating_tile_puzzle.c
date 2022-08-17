@@ -110,11 +110,13 @@ u16 MoveRotatingTileObjects(u8 puzzleNumber)
     u8 i;
     struct ObjectEventTemplate *objectEvents = gSaveBlock1Ptr->objectEventTemplates;
     u16 localId = 0;
+    s32 puzzleTileStart;
+    u8 puzzleTileNum;
+    u8 switchNum;
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
     {
-        s32 puzzleTileStart;
-        u8 puzzleTileNum;
+
         s16 x = objectEvents[i].x + MAP_OFFSET;
         s16 y = objectEvents[i].y + MAP_OFFSET;
         u16 metatile = MapGridGetMetatileIdAt(x, y);
@@ -126,15 +128,20 @@ u16 MoveRotatingTileObjects(u8 puzzleNumber)
 
         // Object is on a metatile before the puzzle tile section
         // UB: Because this is not if (metatile < puzzleTileStart), for the trick house (metatile - puzzleTileStart) below can result in casting a negative value to u8
+        #ifndef UBFIX
         if (metatile < METATILE_MossdeepGym_YellowArrow_Right)
+        #else
+        if (metatile < puzzleTileStart)
+        #endif
             continue;
 
+        switchNum = (u8)((metatile - puzzleTileStart) / METATILE_ROW_WIDTH);
         // Object is on a metatile after the puzzle tile section (never occurs, in both cases the puzzle tiles are last)
-        if ((u8)((metatile - puzzleTileStart) / METATILE_ROW_WIDTH) >= 5)
+        if (switchNum >= 5)
             continue;
 
         // Object is on a metatile in puzzle tile section, but not one of the currently rotating color
-        if ((u8)((metatile - puzzleTileStart) / METATILE_ROW_WIDTH) != puzzleNumber)
+        if (switchNum != puzzleNumber)
             continue;
 
         puzzleTileNum = (u8)((metatile - puzzleTileStart) % METATILE_ROW_WIDTH);
@@ -176,7 +183,7 @@ u16 MoveRotatingTileObjects(u8 puzzleNumber)
                 localId = objectEvents[i].localId;
                 ScriptMovement_StartObjectMovementScript(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, movementScript);
             }
-            // Never reached in normal gameplay
+            // Never reached in normal gameplay. Offscreen
             else
             {
                 TurnUnsavedRotatingTileObject(i, puzzleTileNum);
