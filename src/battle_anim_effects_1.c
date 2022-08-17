@@ -8126,8 +8126,11 @@ void AnimTask_SketchDrawMon(u8 taskId)
 {
     struct Task* task = &gTasks[taskId];
     struct ScanlineEffectParams params;
-
+    #if !MODERN
     s16 i;
+    #else
+    int i;
+    #endif
     task->data[0] = GetBattlerYCoordWithElevation(gBattleAnimTarget) + 32;
     task->data[1] = 4;
     task->data[2] = 0;

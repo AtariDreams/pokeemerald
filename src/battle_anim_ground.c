@@ -679,7 +679,7 @@ static void AnimTask_ShakeBattlers(u8 taskId)
     #if !MODERN
     u16 i;
     #else
-    s16 i; // TODO: given how data is likely unsigned, should an unsigned comparison work?
+    int i; // TODO: given how data is likely unsigned, should an unsigned comparison work?
     // Yes I know data is s16, but what about the spirit of the code?
     // I am doing s16 because data is s16, so just in case, and it shouldn't have any behavioral effects
     #endif
@@ -727,7 +727,7 @@ static void SetBattlersXOffsetForShake(struct Task *task)
     #if !MODERN
     u16 i;
     #else
-    s16 i;
+    int i;
     #endif
     s16 xOffset;
 
