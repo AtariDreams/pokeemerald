@@ -212,16 +212,15 @@ static const u8 sAcroBikeTrickCollisionTypes[NUM_ACRO_BIKE_COLLISIONS] = {
     COLLISION_HORIZONTAL_RAIL,
 };
 
-static void (*const sPlayerAvatarTransitionFuncs[])(struct ObjectEvent *) =
-    {
-        [PLAYER_AVATAR_STATE_NORMAL] = PlayerAvatarTransition_Normal,
-        [PLAYER_AVATAR_STATE_MACH_BIKE] = PlayerAvatarTransition_MachBike,
-        [PLAYER_AVATAR_STATE_ACRO_BIKE] = PlayerAvatarTransition_AcroBike,
-        [PLAYER_AVATAR_STATE_SURFING] = PlayerAvatarTransition_Surfing,
-        [PLAYER_AVATAR_STATE_UNDERWATER] = PlayerAvatarTransition_Underwater,
-        [PLAYER_AVATAR_STATE_FIELD_MOVE] = PlayerAvatarTransition_ReturnToField,
-        [PLAYER_AVATAR_STATE_FISHING] = PlayerAvatarTransition_Dummy,
-        [PLAYER_AVATAR_STATE_WATERING] = PlayerAvatarTransition_Dummy,
+static void (*const sPlayerAvatarTransitionFuncs[])(struct ObjectEvent *) = {
+    [PLAYER_AVATAR_STATE_NORMAL] = PlayerAvatarTransition_Normal,
+    [PLAYER_AVATAR_STATE_MACH_BIKE] = PlayerAvatarTransition_MachBike,
+    [PLAYER_AVATAR_STATE_ACRO_BIKE] = PlayerAvatarTransition_AcroBike,
+    [PLAYER_AVATAR_STATE_SURFING] = PlayerAvatarTransition_Surfing,
+    [PLAYER_AVATAR_STATE_UNDERWATER] = PlayerAvatarTransition_Underwater,
+    [PLAYER_AVATAR_STATE_FIELD_MOVE] = PlayerAvatarTransition_ReturnToField,
+    [PLAYER_AVATAR_STATE_FISHING] = PlayerAvatarTransition_Dummy,
+    [PLAYER_AVATAR_STATE_WATERING] = PlayerAvatarTransition_Dummy,
 };
 
 static bool8 (*const sArrowWarpMetatileBehaviorChecks[])(u8) =
@@ -255,37 +254,34 @@ static const u8 sPlayerAvatarGfxIds[][2] =
         [PLAYER_AVATAR_STATE_WATERING] = {OBJ_EVENT_GFX_BRENDAN_WATERING, OBJ_EVENT_GFX_MAY_WATERING},
 };
 
-static const u8 sFRLGAvatarGfxIds[GENDER_COUNT] =
-    {
-        [MALE] = OBJ_EVENT_GFX_RED,
-        [FEMALE] = OBJ_EVENT_GFX_LEAF};
+static const u8 sFRLGAvatarGfxIds[GENDER_COUNT] = {
+    [MALE] = OBJ_EVENT_GFX_RED,
+    [FEMALE] = OBJ_EVENT_GFX_LEAF};
 
-static const u8 sRSAvatarGfxIds[GENDER_COUNT] =
-    {
-        [MALE] = OBJ_EVENT_GFX_LINK_RS_BRENDAN,
-        [FEMALE] = OBJ_EVENT_GFX_LINK_RS_MAY};
+static const u8 sRSAvatarGfxIds[GENDER_COUNT] = {
+    [MALE] = OBJ_EVENT_GFX_LINK_RS_BRENDAN,
+    [FEMALE] = OBJ_EVENT_GFX_LINK_RS_MAY};
 
-static const u8 sPlayerAvatarGfxToStateFlag[GENDER_COUNT][5][2] =
-    {
-        [MALE] =
-            {
-                {OBJ_EVENT_GFX_BRENDAN_NORMAL, PLAYER_AVATAR_FLAG_ON_FOOT},
-                {OBJ_EVENT_GFX_BRENDAN_MACH_BIKE, PLAYER_AVATAR_FLAG_MACH_BIKE},
-                {OBJ_EVENT_GFX_BRENDAN_ACRO_BIKE, PLAYER_AVATAR_FLAG_ACRO_BIKE},
-                {OBJ_EVENT_GFX_BRENDAN_SURFING, PLAYER_AVATAR_FLAG_SURFING},
-                {OBJ_EVENT_GFX_BRENDAN_UNDERWATER, PLAYER_AVATAR_FLAG_UNDERWATER},
-            },
-        [FEMALE] =
-            {
-                {OBJ_EVENT_GFX_MAY_NORMAL, PLAYER_AVATAR_FLAG_ON_FOOT},
-                {OBJ_EVENT_GFX_MAY_MACH_BIKE, PLAYER_AVATAR_FLAG_MACH_BIKE},
-                {OBJ_EVENT_GFX_MAY_ACRO_BIKE, PLAYER_AVATAR_FLAG_ACRO_BIKE},
-                {OBJ_EVENT_GFX_MAY_SURFING, PLAYER_AVATAR_FLAG_SURFING},
-                {OBJ_EVENT_GFX_MAY_UNDERWATER, PLAYER_AVATAR_FLAG_UNDERWATER},
-            }};
+static const u8 sPlayerAvatarGfxToStateFlag[GENDER_COUNT][5][2] = {
+    [MALE] =
+        {
+            {OBJ_EVENT_GFX_BRENDAN_NORMAL, PLAYER_AVATAR_FLAG_ON_FOOT},
+            {OBJ_EVENT_GFX_BRENDAN_MACH_BIKE, PLAYER_AVATAR_FLAG_MACH_BIKE},
+            {OBJ_EVENT_GFX_BRENDAN_ACRO_BIKE, PLAYER_AVATAR_FLAG_ACRO_BIKE},
+            {OBJ_EVENT_GFX_BRENDAN_SURFING, PLAYER_AVATAR_FLAG_SURFING},
+            {OBJ_EVENT_GFX_BRENDAN_UNDERWATER, PLAYER_AVATAR_FLAG_UNDERWATER},
+        },
+    [FEMALE] =
+        {
+            {OBJ_EVENT_GFX_MAY_NORMAL, PLAYER_AVATAR_FLAG_ON_FOOT},
+            {OBJ_EVENT_GFX_MAY_MACH_BIKE, PLAYER_AVATAR_FLAG_MACH_BIKE},
+            {OBJ_EVENT_GFX_MAY_ACRO_BIKE, PLAYER_AVATAR_FLAG_ACRO_BIKE},
+            {OBJ_EVENT_GFX_MAY_SURFING, PLAYER_AVATAR_FLAG_SURFING},
+            {OBJ_EVENT_GFX_MAY_UNDERWATER, PLAYER_AVATAR_FLAG_UNDERWATER},
+        }};
 
 static bool8 (*const sArrowWarpMetatileBehaviorChecks2[])(u8) = // Duplicate of sArrowWarpMetatileBehaviorChecks
-{
+    {
         [DIR_SOUTH - 1] = MetatileBehavior_IsSouthArrowWarp,
         [DIR_NORTH - 1] = MetatileBehavior_IsNorthArrowWarp,
         [DIR_WEST - 1] = MetatileBehavior_IsWestArrowWarp,
@@ -293,14 +289,14 @@ static bool8 (*const sArrowWarpMetatileBehaviorChecks2[])(u8) = // Duplicate of 
 };
 
 static bool8 (*const sPushBoulderFuncs[])(struct Task *, struct ObjectEvent *, struct ObjectEvent *) =
-{
+    {
         PushBoulder_Start,
         PushBoulder_Move,
         PushBoulder_End,
 };
 
 static bool8 (*const sPlayerAvatarSecretBaseMatJump[])(struct Task *, struct ObjectEvent *) =
-{
+    {
         PlayerAvatar_DoSecretBaseMatJump,
 };
 
