@@ -453,7 +453,7 @@ static void AnimDefensiveWall(struct Sprite *sprite)
         if (IsBattlerSpriteVisible(battler))
             MoveBattlerSpriteToBG(battler, toBG_2, FALSE);
 
-        battler = BATTLE_PARTNER(battler)
+        battler = BATTLE_PARTNER(battler);
         if (IsBattlerSpriteVisible(battler))
             MoveBattlerSpriteToBG(battler, toBG_2 ^ 1, FALSE);
         #endif
