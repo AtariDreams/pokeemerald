@@ -35,7 +35,7 @@ static void GetKeyInput(void);
 static u16 DetermineSendRecvState(u8);
 static void EnableSio(void);
 static void DisableTm3(void);
-static void SetUpTransferManager(size_t, const void *, void *);
+static void SetUpTransferManager(u32, const void *, void *);
 static void StartTm3(void);
 
 static struct SendRecvMgr sSendRecvMgr;
@@ -709,7 +709,7 @@ static u16 DetermineSendRecvState(u8 mode)
     return resp;
 }
 
-static void SetUpTransferManager(size_t size, const void * data, void * recvBuffer)
+static void SetUpTransferManager(u32 size, const void * data, void * recvBuffer)
 {
     if (sSendRecvMgr.isParent)
     {

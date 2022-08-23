@@ -1732,7 +1732,7 @@ static void SaveRecordMixBases(struct SecretBaseRecordMixer *mixers)
             mixers[2].version = gLinkPlayers[linkId3].version & 0xFF;   \
             mixers[2].language = gLinkPlayers[linkId3].language;
 
-void ReceiveSecretBasesData(void *secretBases, size_t recordSize, u8 linkIdx)
+void ReceiveSecretBasesData(void *secretBases, u32 recordSize, u8 linkIdx)
 {
     struct SecretBaseRecordMixer mixers[3];
     u16 i;

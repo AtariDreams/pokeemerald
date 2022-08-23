@@ -1302,7 +1302,7 @@ void Rfu_SendPacket(void *data)
     }
 }
 
-bool32 Rfu_InitBlockSend(const u8 *src, size_t size)
+bool32 Rfu_InitBlockSend(const u8 *src, u32 size)
 {
     bool8 r4;
     if (gRfu.callback != NULL || gSendCmd[0] != 0)

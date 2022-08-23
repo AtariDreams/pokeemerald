@@ -4599,7 +4599,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
     }
 }
 
-void CopyMon(void *dest, void *src, size_t size)
+void CopyMon(void *dest, void *src, u32 size)
 {
     memcpy(dest, src, size);
 }
