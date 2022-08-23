@@ -112,16 +112,16 @@ static void *LoadPtrFromTaskData(const s16 *);
 static void StorePtrInTaskData(void *, s16 *);
 static u8 GetMultiplayerId_(void);
 static void *GetPlayerRecvBuffer(u8);
-static void ReceiveOldManData(OldMan *, size_t, u8);
-static void ReceiveBattleTowerData(void *, size_t, u8);
-static void ReceiveLilycoveLadyData(LilycoveLady *, size_t, u8);
+static void ReceiveOldManData(OldMan *, u32, u8);
+static void ReceiveBattleTowerData(void *, u32, u8);
+static void ReceiveLilycoveLadyData(LilycoveLady *, u32, u8);
 static void CalculateDaycareMailRandSum(const u8 *);
-static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *, size_t, u8, TVShow *);
+static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *, u32, u8, TVShow *);
 static void ReceiveGiftItem(u16 *, u8 );
 static void Task_DoRecordMixing(u8);
 static void GetSavedApprentices(struct Apprentice *, struct Apprentice *);
-static void ReceiveApprenticeData(struct Apprentice *, size_t, u32);
-static void ReceiveRankingHallRecords(struct PlayerHallRecords *, size_t, u32);
+static void ReceiveApprenticeData(struct Apprentice *, u32, u32);
+static void ReceiveRankingHallRecords(struct PlayerHallRecords *, u32, u32);
 static void GetRecordMixingDaycareMail(struct RecordMixingDaycareMail *);
 static void SanitizeDaycareMailForRuby(struct RecordMixingDaycareMail *);
 static void SanitizeEmeraldBattleTowerRecord(struct EmeraldBattleTowerRecord *);
@@ -634,7 +634,7 @@ static void ShufflePlayerIndices(u32 *data)
     }
 }
 
-static void ReceiveOldManData(OldMan *records, size_t recordSize, u8 multiplayerId)
+static void ReceiveOldManData(OldMan *records, u32 recordSize, u8 multiplayerId)
 {
     u8 version;
     u16 language;
@@ -655,7 +655,7 @@ static void ReceiveOldManData(OldMan *records, size_t recordSize, u8 multiplayer
     ResetMauvilleOldManFlag();
 }
 
-static void ReceiveBattleTowerData(void *records, size_t recordSize, u8 multiplayerId)
+static void ReceiveBattleTowerData(void *records, u32 recordSize, u8 multiplayerId)
 {
     struct EmeraldBattleTowerRecord *battleTowerRecord;
     struct BattleTowerPokemon *btPokemon;
@@ -687,7 +687,7 @@ static void ReceiveBattleTowerData(void *records, size_t recordSize, u8 multipla
     PutNewBattleTowerRecord((void *)records + recordSize * multiplayerId);
 }
 
-static void ReceiveLilycoveLadyData(LilycoveLady *records, size_t recordSize, u8 multiplayerId)
+static void ReceiveLilycoveLadyData(LilycoveLady *records, u32 recordSize, u8 multiplayerId)
 {
     LilycoveLady *lilycoveLady;
     u32 mixIndices[MAX_LINK_PLAYERS];
@@ -729,7 +729,7 @@ enum {
     DAYCARE_SLOT,
 };
 
-static void SwapDaycareMail(struct RecordMixingDaycareMail *records, size_t recordSize, u8 (*idxs)[2], u8 playerSlot1, u8 playerSlot2)
+static void SwapDaycareMail(struct RecordMixingDaycareMail *records, u32 recordSize, u8 (*idxs)[2], u8 playerSlot1, u8 playerSlot2)
 {
     struct DaycareMail temp;
     struct RecordMixingDaycareMail *mixMail1, *mixMail2;
@@ -765,7 +765,7 @@ static u8 GetDaycareMailRandSum(void)
     return sDaycareMailRandSum;
 }
 
-static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, size_t recordSize, u8 multiplayerId, TVShow *shows)
+static void ReceiveDaycareMailData(struct RecordMixingDaycareMail *records, u32 recordSize, u8 multiplayerId, TVShow *shows)
 {
     u16 i, j;
     u8 linkPlayerCount;
@@ -1180,7 +1180,7 @@ static bool32 IsApprenticeAlreadySaved(struct Apprentice *mixApprentice, struct 
     return FALSE;
 }
 
-static void ReceiveApprenticeData(struct Apprentice *records, size_t recordSize, u32 multiplayerId)
+static void ReceiveApprenticeData(struct Apprentice *records, u32 recordSize, u32 multiplayerId)
 {
     s32 i, numApprentices, apprenticeId;
     struct Apprentice *mixApprentice;
@@ -1219,7 +1219,7 @@ static void ReceiveApprenticeData(struct Apprentice *records, size_t recordSize,
     }
 }
 
-static void GetNewHallRecords(struct RecordMixingHallRecords *dst, void *records, size_t recordSize, u32 multiplayerId, s32 linkPlayerCount)
+static void GetNewHallRecords(struct RecordMixingHallRecords *dst, void *records, u32 recordSize, u32 multiplayerId, s32 linkPlayerCount)
 {
     s32 i, j, k, l;
     s32 repeatTrainers;
@@ -1367,7 +1367,7 @@ static void SaveHighestWinStreakRecords(struct RecordMixingHallRecords *mixHallR
         FillWinStreakRecords2P(gSaveBlock2Ptr->hallRecords2P[j], mixHallRecords->hallRecords2P[j]);
 }
 
-static void ReceiveRankingHallRecords(struct PlayerHallRecords *records, size_t recordSize, u32 multiplayerId)
+static void ReceiveRankingHallRecords(struct PlayerHallRecords *records, u32 recordSize, u32 multiplayerId)
 {
     u8 linkPlayerCount = GetLinkPlayerCount();
     struct RecordMixingHallRecords *mixHallRecords = AllocZeroed(sizeof(*mixHallRecords));

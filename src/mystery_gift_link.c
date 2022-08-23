@@ -76,7 +76,7 @@ void MysteryGiftLink_InitRecv(struct MysteryGiftLink * link, u32 ident, void * d
     link->recvBuffer = dest;
 }
 
-static void MGL_ReceiveBlock(u32 playerId, void * dest, size_t size)
+static void MGL_ReceiveBlock(u32 playerId, void * dest, u32 size)
 {
     memcpy(dest, gBlockRecvBuffer[playerId], size);
 }
@@ -127,7 +127,7 @@ static bool32 MGL_Receive(struct MysteryGiftLink * link)
     case 1:
         if (MGL_HasReceived(link->recvPlayerId))
         {
-            size_t blocksize = link->recvCounter * 252;
+            u32 blocksize = link->recvCounter * 252;
             if (link->recvSize - blocksize <= 252)
             {
                 MGL_ReceiveBlock(link->recvPlayerId, link->recvBuffer + blocksize, link->recvSize - blocksize);
@@ -182,7 +182,7 @@ static bool32 MGL_Send(struct MysteryGiftLink * link)
         {
             if (MGL_HasReceived(link->sendPlayerId))
             {
-                size_t blocksize;
+                u32 blocksize;
                 MGL_ResetReceived(link->sendPlayerId);
                 blocksize = 252 * link->sendCounter;
                 if (link->sendSize - blocksize <= 252)
