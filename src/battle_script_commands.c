@@ -6667,7 +6667,11 @@ static void Cmd_trymirrormove(void)
     {
         if (i != gBattlerAttacker)
         {
-            move = *((u8 *)(gBattleStruct->lastTakenMoveFrom) + i * 2 + 0 + gBattlerAttacker * 8)| (*((u8 *)(gBattleStruct->lastTakenMoveFrom) + i * 2 + 1 + gBattlerAttacker * 8) << 8);
+            #if !MODERN
+            move = T1_READ_16(i * 2 + gBattlerAttacker * 8 + gBattleStruct->lastTakenMoveFrom);
+            #else
+            move = gBattleStruct->lastTakenMoveFrom[i * 2 + gBattlerAttacker * 8] | (gBattleStruct->lastTakenMoveFrom[i * 2 + gBattlerAttacker * 8 + 1] << 8);
+            #endif
 
             if (move != MOVE_NONE && move != MOVE_UNAVAILABLE)
             {
@@ -6677,7 +6681,11 @@ static void Cmd_trymirrormove(void)
         }
     }
 
-    move = *(gBattleStruct->lastTakenMove + gBattlerAttacker * 2 + 0) | (*(gBattleStruct->lastTakenMove + gBattlerAttacker * 2 + 1) << 8);
+#if !MODERN
+    move = T1_READ_16(gBattleStruct->lastTakenMove + gBattlerAttacker * 2);
+#else
+    move = gBattleStruct->lastTakenMove[gBattlerAttacker * 2] | (gBattleStruct->lastTakenMove[gBattlerAttacker * 2 + 1] << 8);
+#endif
 
     if (move != MOVE_NONE && move != MOVE_UNAVAILABLE)
     {
