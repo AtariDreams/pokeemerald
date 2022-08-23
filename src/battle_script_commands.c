@@ -8238,8 +8238,6 @@ static void Cmd_setalwayshitflag(void)
 // Sketch
 static void Cmd_copymovepermanently(void)
 {
-    m32 i;
-    struct MovePpInfo movePpData;
     gChosenMove = MOVE_UNAVAILABLE;
 
     if (!(gBattleMons[gBattlerAttacker].status2 & STATUS2_TRANSFORMED)
@@ -8248,54 +8246,47 @@ static void Cmd_copymovepermanently(void)
         && gLastPrintedMoves[gBattlerTarget] != MOVE_UNAVAILABLE
         && gLastPrintedMoves[gBattlerTarget] != MOVE_SKETCH)
     {
-        gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
-        return;
-    }
-
-    for (i = 0; i < MAX_MON_MOVES; i++)
-    {
-        if (gBattleMons[gBattlerAttacker].moves[i] == MOVE_SKETCH)
-            continue;
-#if !MODERN
-        if (gBattleMons[gBattlerAttacker].moves[i] == gLastPrintedMoves[gBattlerTarget])
-            break;
-#else
-        if (gBattleMons[gBattlerAttacker].moves[i] == gLastPrintedMoves[gBattlerTarget])
-        {
-            gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
-            return;
-        }
-#endif
-    }
-
-#if !MODERN
-    if (i == MAX_MON_MOVES) // sketch worked
-    {
-#endif
-        gBattleMons[gBattlerAttacker].moves[gCurrMovePos] = gLastPrintedMoves[gBattlerTarget];
-        gBattleMons[gBattlerAttacker].pp[gCurrMovePos] = gBattleMoves[gLastPrintedMoves[gBattlerTarget]].pp;
-        gActiveBattler = gBattlerAttacker;
+        s32 i;
 
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
-            movePpData.moves[i] = gBattleMons[gBattlerAttacker].moves[i];
-            movePpData.pp[i] = gBattleMons[gBattlerAttacker].pp[i];
+            if (gBattleMons[gBattlerAttacker].moves[i] == MOVE_SKETCH)
+                continue;
+            if (gBattleMons[gBattlerAttacker].moves[i] == gLastPrintedMoves[gBattlerTarget])
+                break;
         }
-        movePpData.ppBonuses = gBattleMons[gBattlerAttacker].ppBonuses;
 
-        BtlController_EmitSetMonData(BUFFER_A, REQUEST_MOVES_PP_BATTLE, 0, sizeof(movePpData), &movePpData);
-        MarkBattlerForControllerExec(gActiveBattler);
+        if (i != MAX_MON_MOVES)
+        {
+            gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
+        }
+        else // sketch worked
+        {
+            struct MovePpInfo movePpData;
 
-        PREPARE_MOVE_BUFFER(gBattleTextBuff1, gLastPrintedMoves[gBattlerTarget])
+            gBattleMons[gBattlerAttacker].moves[gCurrMovePos] = gLastPrintedMoves[gBattlerTarget];
+            gBattleMons[gBattlerAttacker].pp[gCurrMovePos] = gBattleMoves[gLastPrintedMoves[gBattlerTarget]].pp;
+            gActiveBattler = gBattlerAttacker;
 
-        gBattlescriptCurrInstr += 5;
-#if !MODERN
+            for (i = 0; i < MAX_MON_MOVES; i++)
+            {
+                movePpData.moves[i] = gBattleMons[gBattlerAttacker].moves[i];
+                movePpData.pp[i] = gBattleMons[gBattlerAttacker].pp[i];
+            }
+            movePpData.ppBonuses = gBattleMons[gBattlerAttacker].ppBonuses;
+
+            BtlController_EmitSetMonData(BUFFER_A, REQUEST_MOVES_PP_BATTLE, 0, sizeof(movePpData), &movePpData);
+            MarkBattlerForControllerExec(gActiveBattler);
+
+            PREPARE_MOVE_BUFFER(gBattleTextBuff1, gLastPrintedMoves[gBattlerTarget])
+
+            gBattlescriptCurrInstr += 5;
+        }
     }
     else
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
     }
-#endif
 }
 
 static bool8 IsTwoTurnsMove(u16 move)
