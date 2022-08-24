@@ -1081,7 +1081,7 @@ static u8 SetUpCopyrightScreen(void)
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG0HOFS, 0);
         SetGpuReg(REG_OFFSET_BG0VOFS, 0);
-        CpuFill32(0, (void *)VRAM, VRAM_SIZE);
+        CpuFastFill(0, (void *)VRAM, VRAM_SIZE);
         CpuFill32(0, (void *)OAM, OAM_SIZE);
         CpuFill16(0, (void *)(PLTT + 2), PLTT_SIZE - 2);
         ResetPaletteFade();

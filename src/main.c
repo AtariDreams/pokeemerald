@@ -58,10 +58,6 @@ const IntrFunc gIntrTableTemplate[] =
 
 #define INTR_COUNT ((m32)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
 
-#if !MODERN
-static u16 sUnusedVar; // Never read
-#endif
-
 u16 gKeyRepeatStartDelay;
 bool8 gLinkTransferringData;
 struct Main gMain;
@@ -80,7 +76,7 @@ static void UpdateLinkAndCallCallbacks(void);
 static void InitMainCallbacks(void);
 static void CallCallbacks(void);
 static void SeedRngWithRtc(void);
-static void ReadKeys(void);
+static inline void ReadKeys(void);
 void InitIntrHandlers(void);
 static void WaitForVBlank(void);
 void EnableVCountIntrAtLine150(void);
@@ -121,9 +117,6 @@ NORETURN void AgbMain(void)
         SetMainCallback2(NULL);
 
     gLinkTransferringData = FALSE;
-#if !MODERN
-    sUnusedVar = 0xFC0;
-#endif
 
     for (;;)
     {
@@ -256,7 +249,7 @@ void InitKeys(void)
     gMain.newKeysRaw = 0;
 }
 
-static void ReadKeys(void)
+static inline void ReadKeys(void)
 {
     u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;
     gMain.newKeysRaw = keyInput & ~gMain.heldKeysRaw;

@@ -2320,7 +2320,7 @@ static void EndLinkBattleInSteps(void)
         }
         break;
     case 3:
-        CpuFill32(0, (void *)VRAM, VRAM_SIZE);
+        CpuFastFill(0, (void *)VRAM, VRAM_SIZE);
 
         for (i = 0; i < 2; i++)
             LoadChosenBattleElement(i);

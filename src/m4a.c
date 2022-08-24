@@ -8,7 +8,7 @@ extern const u8 gCgb3Vol[];
 BSS_CODE ALIGNED(4) char SoundMainRAM_Buffer[0x800] = {0};
 
 struct SoundInfo gSoundInfo;
-struct PokemonCrySong gPokemonCrySongs[MAX_POKEMON_CRIES];
+ALIGNED(4) struct PokemonCrySong gPokemonCrySongs[MAX_POKEMON_CRIES];
 struct MusicPlayerInfo gPokemonCryMusicPlayers[MAX_POKEMON_CRIES];
 MPlayFunc gMPlayJumpTable[36];
 struct CgbChannel gCgbChans[4];

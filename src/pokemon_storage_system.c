@@ -2127,7 +2127,7 @@ static void Task_InitPokeStorage(u8 taskId)
     case 2:
         PutWindowTilemap(WIN_DISPLAY_INFO);
         ClearWindowTilemap(WIN_MESSAGE);
-        CpuFill32(0, (void *)VRAM, 0x200);
+        CpuFastFill(0, (void *)VRAM, 0x200);
         LoadUserWindowBorderGfx(WIN_MESSAGE, 0xB, 0xE0);
         break;
     case 3:

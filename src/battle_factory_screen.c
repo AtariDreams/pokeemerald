@@ -1134,7 +1134,7 @@ static void CB2_InitSelectScreen(void)
         TRY_FREE_AND_SET_NULL(sFactorySelectMons);
         SetHBlankCallback(NULL);
         SetVBlankCallback(NULL);
-        CpuFill32(0, (void *)VRAM, VRAM_SIZE);
+        CpuFastFill(0, (void *)VRAM, VRAM_SIZE);
         MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sSelect_BgTemplates, ARRAY_COUNT(sSelect_BgTemplates));
         InitWindows(sSelect_WindowTemplates);
@@ -3267,7 +3267,7 @@ static void CB2_InitSwapScreen(void)
     case 0:
         SetHBlankCallback(NULL);
         SetVBlankCallback(NULL);
-        CpuFill32(0, (void *)VRAM, VRAM_SIZE);
+        CpuFastFill(0, (void *)VRAM, VRAM_SIZE);
         MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sSwap_BgTemplates, ARRAY_COUNT(sSwap_BgTemplates));
         InitWindows(sSwap_WindowTemplates);
