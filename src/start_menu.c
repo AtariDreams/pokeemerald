@@ -978,8 +978,7 @@ static u8 SaveConfirmInputCallback(void)
     switch (Menu_ProcessInputNoWrapClearOnChoose())
     {
     case 0: // Yes
-        if ((gSaveFileStatus != SAVE_STATUS_EMPTY && gSaveFileStatus != SAVE_STATUS_CORRUPT) ||
-            gDifferentSaveFile == FALSE)
+        if (gDifferentSaveFile == FALSE || (gSaveFileStatus != SAVE_STATUS_EMPTY && gSaveFileStatus != SAVE_STATUS_CORRUPT))
         {
 
             sSaveDialogCallback = SaveFileExistsCallback;

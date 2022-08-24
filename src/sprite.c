@@ -363,7 +363,7 @@ void UpdateOamCoords(void)
 
 void BuildSpritePriorities(void)
 {
-    u16 i;
+    m16 i;
     for (i = 0; i < MAX_SPRITES; i++)
     {
         struct Sprite *sprite = &gSprites[i];
@@ -374,14 +374,17 @@ void BuildSpritePriorities(void)
 
 void SortSprites(void)
 {
-    u8 i;
+    int i;
     for (i = 1; i < MAX_SPRITES; i++)
     {
-        u8 j = i;
-        struct Sprite *sprite1 = &gSprites[sSpriteOrder[i - 1]];
-        struct Sprite *sprite2 = &gSprites[sSpriteOrder[i]];
-        u16 sprite1Priority = sSpritePriorities[sSpriteOrder[i - 1]];
-        u16 sprite2Priority = sSpritePriorities[sSpriteOrder[i]];
+
+        const u8 key = sSpriteOrder[i];
+        int j = i - 1;
+        u8 key2 = sSpriteOrder[j];
+        struct Sprite *sprite1 = &gSprites[key];
+        struct Sprite *sprite2 = &gSprites[key2];
+        u16 sprite1Priority = sSpritePriorities[key];
+        u16 sprite2Priority = sSpritePriorities[key2];
         s16 sprite1Y = sprite1->oam.y;
         s16 sprite2Y = sprite2->oam.y;
 
@@ -391,8 +394,7 @@ void SortSprites(void)
         if (sprite2Y >= DISPLAY_HEIGHT)
             sprite2Y = sprite2Y - 256;
 
-        if (sprite1->oam.affineMode == ST_OAM_AFFINE_DOUBLE
-         && sprite1->oam.size == ST_OAM_SIZE_3)
+        if (sprite1->oam.affineMode == ST_OAM_AFFINE_DOUBLE && sprite1->oam.size == ST_OAM_SIZE_3)
         {
             u32 shape = sprite1->oam.shape;
             if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
@@ -402,8 +404,7 @@ void SortSprites(void)
             }
         }
 
-        if (sprite2->oam.affineMode == ST_OAM_AFFINE_DOUBLE
-         && sprite2->oam.size == ST_OAM_SIZE_3)
+        if (sprite2->oam.affineMode == ST_OAM_AFFINE_DOUBLE && sprite2->oam.size == ST_OAM_SIZE_3)
         {
             u32 shape = sprite2->oam.shape;
             if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
@@ -413,54 +414,23 @@ void SortSprites(void)
             }
         }
 
-#ifdef UBFIX
-        while (
-#else
-        while (j > 0 &&
-#endif
-            ((sprite1Priority > sprite2Priority)
-             || (sprite1Priority == sprite2Priority && sprite1Y < sprite2Y)))
+        /* Move elements of arr[0..i-1], that are
+          greater than key, to one position ahead
+          of their current position */
+        while (j >= 0 && ((sprite1Priority < sprite2Priority) || (sprite1Priority == sprite2Priority && sprite1Y > sprite2Y)))
         {
-            u8 temp = sSpriteOrder[j];
-            sSpriteOrder[j] = sSpriteOrder[j - 1];
-            sSpriteOrder[j - 1] = temp;
+            sSpriteOrder[j + 1] = sSpriteOrder[j];
+            j = j - 1;
+            key2 = sSpriteOrder[j];
 
-            // UB: If j equals 1, then j-- makes j equal 0.
-            // Then, sSpriteOrder[-1] gets accessed below.
-            // Although this doesn't result in a bug in the ROM,
-            // the behavior is undefined.
-            j--;
-#ifdef UBFIX
-            if (j == 0)
-                break;
-#endif
-
-            sprite1 = &gSprites[sSpriteOrder[j - 1]];
-            sprite2 = &gSprites[sSpriteOrder[j]];
-            sprite1Priority = sSpritePriorities[sSpriteOrder[j - 1]];
-            sprite2Priority = sSpritePriorities[sSpriteOrder[j]];
-            sprite1Y = sprite1->oam.y;
+            sprite2 = &gSprites[key2];
+            sprite2Priority = sSpritePriorities[key2];
             sprite2Y = sprite2->oam.y;
-
-            if (sprite1Y >= DISPLAY_HEIGHT)
-                sprite1Y = sprite1Y - 256;
 
             if (sprite2Y >= DISPLAY_HEIGHT)
                 sprite2Y = sprite2Y - 256;
 
-            if (sprite1->oam.affineMode == ST_OAM_AFFINE_DOUBLE
-             && sprite1->oam.size == ST_OAM_SIZE_3)
-            {
-                u32 shape = sprite1->oam.shape;
-                if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
-                {
-                    if (sprite1Y > 128)
-                        sprite1Y = sprite1Y - 256;
-                }
-            }
-
-            if (sprite2->oam.affineMode == ST_OAM_AFFINE_DOUBLE
-             && sprite2->oam.size == ST_OAM_SIZE_3)
+            if (sprite2->oam.affineMode == ST_OAM_AFFINE_DOUBLE && sprite2->oam.size == ST_OAM_SIZE_3)
             {
                 u32 shape = sprite2->oam.shape;
                 if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
@@ -470,8 +440,110 @@ void SortSprites(void)
                 }
             }
         }
+        sSpriteOrder[j + 1] = key;
     }
 }
+
+// void SortSprites(void)
+// {
+//     u8 i;
+//     for (i = 1; i < MAX_SPRITES; i++)
+//     {
+//         u8 j = i;
+//         struct Sprite *sprite1 = &gSprites[sSpriteOrder[i - 1]];
+//         struct Sprite *sprite2 = &gSprites[sSpriteOrder[i]];
+//         u16 sprite1Priority = sSpritePriorities[sSpriteOrder[i - 1]];
+//         u16 sprite2Priority = sSpritePriorities[sSpriteOrder[i]];
+//         s16 sprite1Y = sprite1->oam.y;
+//         s16 sprite2Y = sprite2->oam.y;
+
+//         if (sprite1Y >= DISPLAY_HEIGHT)
+//             sprite1Y = sprite1Y - 256;
+
+//         if (sprite2Y >= DISPLAY_HEIGHT)
+//             sprite2Y = sprite2Y - 256;
+
+//         if (sprite1->oam.affineMode == ST_OAM_AFFINE_DOUBLE
+//          && sprite1->oam.size == ST_OAM_SIZE_3)
+//         {
+//             u32 shape = sprite1->oam.shape;
+//             if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
+//             {
+//                 if (sprite1Y > 128)
+//                     sprite1Y = sprite1Y - 256;
+//             }
+//         }
+
+//         if (sprite2->oam.affineMode == ST_OAM_AFFINE_DOUBLE
+//          && sprite2->oam.size == ST_OAM_SIZE_3)
+//         {
+//             u32 shape = sprite2->oam.shape;
+//             if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
+//             {
+//                 if (sprite2Y > 128)
+//                     sprite2Y = sprite2Y - 256;
+//             }
+//         }
+
+// #ifdef UBFIX
+//         while (
+// #else
+//         while (j > 0 &&
+// #endif
+//             ((sprite1Priority > sprite2Priority)
+//              || (sprite1Priority == sprite2Priority && sprite1Y < sprite2Y)))
+//         {
+//             u8 temp = sSpriteOrder[j];
+//             sSpriteOrder[j] = sSpriteOrder[j - 1];
+//             sSpriteOrder[j - 1] = temp;
+
+//             // UB: If j equals 1, then j-- makes j equal 0.
+//             // Then, sSpriteOrder[-1] gets accessed below.
+//             // Although this doesn't result in a bug in the ROM,
+//             // the behavior is undefined.
+//             j--;
+// #ifdef UBFIX
+//             if (j == 0)
+//                 break;
+// #endif
+
+//             sprite1 = &gSprites[sSpriteOrder[j - 1]];
+//             sprite2 = &gSprites[sSpriteOrder[j]];
+//             sprite1Priority = sSpritePriorities[sSpriteOrder[j - 1]];
+//             sprite2Priority = sSpritePriorities[sSpriteOrder[j]];
+//             sprite1Y = sprite1->oam.y;
+//             sprite2Y = sprite2->oam.y;
+
+//             if (sprite1Y >= DISPLAY_HEIGHT)
+//                 sprite1Y = sprite1Y - 256;
+
+//             if (sprite2Y >= DISPLAY_HEIGHT)
+//                 sprite2Y = sprite2Y - 256;
+
+//             if (sprite1->oam.affineMode == ST_OAM_AFFINE_DOUBLE
+//              && sprite1->oam.size == ST_OAM_SIZE_3)
+//             {
+//                 u32 shape = sprite1->oam.shape;
+//                 if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
+//                 {
+//                     if (sprite1Y > 128)
+//                         sprite1Y = sprite1Y - 256;
+//                 }
+//             }
+
+//             if (sprite2->oam.affineMode == ST_OAM_AFFINE_DOUBLE
+//              && sprite2->oam.size == ST_OAM_SIZE_3)
+//             {
+//                 u32 shape = sprite2->oam.shape;
+//                 if (shape == ST_OAM_SQUARE || shape == ST_OAM_V_RECTANGLE)
+//                 {
+//                     if (sprite2Y > 128)
+//                         sprite2Y = sprite2Y - 256;
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void CopyMatricesToOamBuffer(void)
 {
