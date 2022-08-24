@@ -660,7 +660,7 @@ static void DoMirageTowerDisintegration(u8 taskId)
         break;
     case 8:
 #ifdef UBFIX
-        EnableBothScriptContexts();
+        ScriptContext_Enable();
         DestroyTask(taskId);
 
         return;
