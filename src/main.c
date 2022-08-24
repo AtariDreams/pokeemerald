@@ -485,5 +485,5 @@ NORETURN void DoSoftReset(void)
 
 void ClearPokemonCrySongs(void)
 {
-    CpuFill16(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
+    CpuFastFill(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
 }
