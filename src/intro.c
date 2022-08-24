@@ -1499,9 +1499,6 @@ static void Task_Scene2_BikeRide(u8 taskId)
 
     if (gTasks[taskId].tFlygonTimer < 512)
         gTasks[taskId].tFlygonTimer++;
-
-    // Alternate colors of the trees
-    CycleSceneryPalette(0);
 }
 
 static void Task_Scene2_End(u8 taskId)
@@ -1733,6 +1730,7 @@ static void SpriteCB_Manectric(struct Sprite *sprite)
         {
             // Manectric is offscreen now, destroy it
             DestroySprite(sprite);
+            return;
         }
         else
         {

@@ -190,12 +190,6 @@ static void InitMainCallbacks(void)
     gTrainerHillVBlankCounter = NULL;
     #endif
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
-
-    // None of these assignments are actually needed it seems
-    #if !MODERN
-    gSaveBlock2Ptr = &gSaveblock2.block;
-    gPokemonStoragePtr = &gPokemonStorage.block;
-    #endif
 }
 
 static void CallCallbacks(void)
