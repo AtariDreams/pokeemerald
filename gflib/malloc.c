@@ -161,8 +161,8 @@ static inline void *AllocZeroedInternal(void *heapStart, u32 size)
         if (size & 3)
             size = 4 * ((size / 4) + 1);
 #else
-        if (size % 4)
-            size += 4 - (size % 4);
+        if (size & 3)
+            size = (size + 3) & ~0x03;
 #endif
 
         CpuFill32(0, mem, size);
