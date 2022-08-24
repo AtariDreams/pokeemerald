@@ -483,7 +483,3 @@ NORETURN void DoSoftReset(void)
     SoftReset(RESET_ALL);
 }
 
-void ClearPokemonCrySongs(void)
-{
-    CpuFastFill(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
-}

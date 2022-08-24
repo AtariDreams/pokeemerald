@@ -67,7 +67,6 @@ void InitFlashTimer(void);
 void SetTrainerHillVBlankCounter(u32 *var);
 void ClearTrainerHillVBlankCounter(void);
 NORETURN void DoSoftReset(void);
-void ClearPokemonCrySongs(void);
 void RestoreSerialTimer3IntrHandlers(void);
 #if !MODERN
 void StartTimer1(void);

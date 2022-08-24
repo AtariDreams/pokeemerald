@@ -502,7 +502,7 @@ bool8 IsCryFinished(void)
     }
     else
     {
-        ClearPokemonCrySongs();
+        CpuFastFill(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
         return TRUE;
     }
 }
@@ -510,7 +510,7 @@ bool8 IsCryFinished(void)
 void StopCryAndClearCrySongs(void)
 {
     MPlayStop(gMPlay_PokemonCry);
-    ClearPokemonCrySongs();
+    CpuFastFill(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
 }
 
 void StopCry(void)
@@ -526,7 +526,7 @@ bool8 IsCryPlayingOrClearCrySongs(void)
     }
     else
     {
-        ClearPokemonCrySongs();
+        CpuFastFill(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
         return FALSE;
     }
 }
@@ -562,9 +562,7 @@ static void RestoreBGMVolumeAfterPokemonCry(void)
 
 void PlayBGM(u16 songNum)
 {
-    if (gDisableMusic)
-        songNum = MUS_DUMMY;
-    if (songNum == MUS_NONE)
+    if (gDisableMusic || songNum == MUS_NONE)
         songNum = MUS_DUMMY;
     m4aSongNumStart(songNum);
 }
