@@ -117,7 +117,6 @@ static bool8 HandleStartMenuInput(void);
 static u8 SaveConfirmSaveCallback(void);
 static u8 SaveYesNoCallback(void);
 static u8 SaveConfirmInputCallback(void);
-static u8 SaveFileExistsCallback(void);
 static u8 SaveConfirmOverwriteDefaultNoCallback(void);
 static u8 SaveConfirmOverwriteCallback(void);
 static u8 SaveOverwriteInputCallback(void);
@@ -978,10 +977,9 @@ static u8 SaveConfirmInputCallback(void)
     switch (Menu_ProcessInputNoWrapClearOnChoose())
     {
     case 0: // Yes
-        if (gDifferentSaveFile == FALSE || (gSaveFileStatus != SAVE_STATUS_EMPTY && gSaveFileStatus != SAVE_STATUS_CORRUPT))
+        if (gDifferentSaveFile && gSaveFileStatus != SAVE_STATUS_EMPTY && gSaveFileStatus != SAVE_STATUS_CORRUPT)
         {
-
-            sSaveDialogCallback = SaveFileExistsCallback;
+            ShowSaveMessage(gText_DifferentSaveFile, SaveConfirmOverwriteDefaultNoCallback);
         }
         else
         {
@@ -993,21 +991,6 @@ static u8 SaveConfirmInputCallback(void)
         HideSaveInfoWindow();
         HideSaveMessageWindow();
         return SAVE_CANCELED;
-    }
-
-    return SAVE_IN_PROGRESS;
-}
-
-// A different save file exists
-static u8 SaveFileExistsCallback(void)
-{
-    if (gDifferentSaveFile == TRUE)
-    {
-        ShowSaveMessage(gText_DifferentSaveFile, SaveConfirmOverwriteDefaultNoCallback);
-    }
-    else
-    {
-        ShowSaveMessage(gText_AlreadySavedFile, SaveConfirmOverwriteCallback);
     }
 
     return SAVE_IN_PROGRESS;
