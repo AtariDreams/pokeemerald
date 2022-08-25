@@ -111,8 +111,7 @@ IntrMain_FoundIntr:
 	msr cpsr_cf, r3
 
 	ldr r1, =gIntrTable
-	add r1, r1, r12
-	ldr r0, [r1]
+	ldr r0, [r1, r12]
 
 	stmfd sp!, {lr}
 	adr lr, IntrMain_RetAddr
