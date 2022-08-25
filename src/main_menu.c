@@ -570,7 +570,7 @@ static u32 InitMainMenu(bool8 returningFromOptionsMenu)
     SetGpuReg(REG_OFFSET_BG0HOFS, 0);
     SetGpuReg(REG_OFFSET_BG0VOFS, 0);
 
-    DmaFill16(3, 0, (void *)VRAM, VRAM_SIZE);
+    DmaFill32(3, 0, (void *)VRAM, VRAM_SIZE);
     DmaFill32(3, 0, (void *)OAM, OAM_SIZE);
     DmaFill16(3, 0, (void *)(PLTT + 2), PLTT_SIZE - 2);
 

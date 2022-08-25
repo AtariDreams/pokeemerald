@@ -229,7 +229,7 @@ void EnableVCountIntrAtLine150(void)
 
 // FRLG commented this out to remove RTC, however Emerald didn't undo this!
 #ifdef BUGFIX
-static void SeedRngWithRtc(void)
+static inline void SeedRngWithRtc(void)
 {
     u32 seed = RtcGetMinuteCount();
     seed = (seed >> 16) ^ (seed & 0xFFFF);
@@ -261,7 +261,7 @@ static inline void ReadKeys(void)
     // Note that newAndRepeatedKeys is never remapped either.
 
     // Potential solution, but needs more testing
-    #if 0
+    #if 1
     gMain.heldKeysRaw = keyInput;
     gMain.heldKeys = gMain.heldKeysRaw;
 
@@ -298,7 +298,7 @@ static inline void ReadKeys(void)
         gMain.keyRepeatCounter = gKeyRepeatStartDelay;
     }
 
-    #if 1
+    #if 0
     gMain.heldKeysRaw = keyInput;
     gMain.heldKeys = gMain.heldKeysRaw;
 
