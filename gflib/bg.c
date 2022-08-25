@@ -48,14 +48,6 @@ static const struct BgConfig sZeroedBgControlStruct = { 0 };
 
 static u32 GetBgType(u8 bg);
 
-// having two of these are unesseccary, but needed to match because they were from 2 different files at the time
-static CONST bool32 IsInvalidBg32(u8 bg);
-#if !MODERN
-static bool8 IsInvalidBg(u8 bg);
-#else
-#define IsInvalidBg(a) IsInvalidBg32(a)
-#endif
-
 void ResetBgs(void)
 {
     ResetBgControlStructs();
@@ -98,8 +90,7 @@ enum
 
 static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 screenSize, u8 paletteMode, u8 priority, u8 mosaic, u8 wraparound)
 {
-    if (!IsInvalidBg(bg))
-    {
+
         if (charBaseIndex != 0xFF)
         {
             sGpuBgConfigs.configs[bg].charBaseIndex = charBaseIndex;
@@ -140,12 +131,11 @@ static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 
         sGpuBgConfigs.configs[bg].unknown_3 = 0;
 
         sGpuBgConfigs.configs[bg].visible = TRUE;
-    }
 }
 // which asm is better?
 static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
 {
-    if (!IsInvalidBg(bg) && sGpuBgConfigs.configs[bg].visible)
+    if ( sGpuBgConfigs.configs[bg].visible)
     {
         switch (attributeId)
         {
@@ -178,7 +168,7 @@ u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
     u16 offset;
     s8 cursor;
 
-    if (IsInvalidBg(bg) || !sGpuBgConfigs.configs[bg].visible)
+    if (!sGpuBgConfigs.configs[bg].visible)
         return -1;
 
     switch (mode)
@@ -206,7 +196,7 @@ u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 static void ShowBgInternal(u8 bg)
 {
     u16 value;
-    if (!IsInvalidBg(bg) && sGpuBgConfigs.configs[bg].visible)
+    if ( sGpuBgConfigs.configs[bg].visible)
     {
         value = sGpuBgConfigs.configs[bg].priority |
                 (sGpuBgConfigs.configs[bg].charBaseIndex << 2) |
@@ -225,11 +215,9 @@ static void ShowBgInternal(u8 bg)
 
 static void HideBgInternal(u8 bg)
 {
-    if (!IsInvalidBg(bg))
-    {
-        sGpuBgConfigs.bgVisibilityAndMode &= ~(1 << (bg + 8));
-        sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
-    }
+
+    sGpuBgConfigs.bgVisibilityAndMode &= ~(1 << (bg + 8));
+    sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
 }
 
 static void SyncBgVisibilityAndMode(void)
@@ -450,29 +438,6 @@ u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
     return cursor;
 }
 
-u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset)
-{
-    u16 paletteOffset;
-    s8 cursor;
-
-    if (IsInvalidBg32(bg))
-    {
-        return -1;
-    }
-
-    paletteOffset = (sGpuBgConfigs2[bg].basePalette * 0x20) + (destOffset * 2);
-    cursor = RequestDma3Copy(src, (void *)(paletteOffset + BG_PLTT), size, 0);
-
-    if (cursor == -1)
-    {
-        return -1;
-    }
-
-    sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
-
-    return (u8)cursor;
-}
-
 bool8 IsDma3ManagerBusyWithBgCopy(void)
 {
     int i;
@@ -581,7 +546,7 @@ s32 ChangeBgX(u8 bg, s32 value, u8 op)
     u16 temp1;
     u16 temp2;
 
-    if (IsInvalidBg32(bg) || !GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
     {
         return -1;
     }
@@ -647,9 +612,7 @@ s32 ChangeBgX(u8 bg, s32 value, u8 op)
 
 s32 GetBgX(u8 bg)
 {
-    if (IsInvalidBg32(bg))
-        return -1;
-    else if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
         return -1;
     else
         return sGpuBgConfigs2[bg].bg_x;
@@ -661,7 +624,7 @@ s32 ChangeBgY(u8 bg, s32 value, u8 op)
     u16 temp1;
     u16 temp2;
 
-    if (IsInvalidBg32(bg) || !GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
     {
         return -1;
     }
@@ -731,7 +694,7 @@ s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
     u16 temp1;
     u16 temp2;
 
-    if (IsInvalidBg32(bg) || !GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
     {
         return -1;
     }
@@ -798,9 +761,7 @@ s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
 
 s32 GetBgY(u8 bg)
 {
-    if (IsInvalidBg32(bg))
-        return -1;
-    else if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
         return -1;
     else
         return sGpuBgConfigs2[bg].bg_y;
@@ -884,7 +845,7 @@ u8 Unused_AdjustBgMosaic(u8 val, u8 mode)
 
 void SetBgTilemapBuffer(u8 bg, void *tilemap)
 {
-    if (!IsInvalidBg32(bg) && GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
     {
         sGpuBgConfigs2[bg].tilemap = tilemap;
     }
@@ -892,7 +853,7 @@ void SetBgTilemapBuffer(u8 bg, void *tilemap)
 
 void UnsetBgTilemapBuffer(u8 bg)
 {
-    if (!IsInvalidBg32(bg) && GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
     {
         sGpuBgConfigs2[bg].tilemap = NULL;
     }
@@ -900,9 +861,7 @@ void UnsetBgTilemapBuffer(u8 bg)
 
 void *GetBgTilemapBuffer(u8 bg)
 {
-    if (IsInvalidBg32(bg))
-        return NULL;
-    else if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
+    if (!GetBgControlAttribute(bg, BG_CTRL_ATTR_VISIBLE))
         return NULL;
     else
         return sGpuBgConfigs2[bg].tilemap;
@@ -910,7 +869,7 @@ void *GetBgTilemapBuffer(u8 bg)
 
 void CopyToBgTilemapBuffer(u8 bg, const void *src, u16 mode, u16 destOffset)
 {
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if ( !IsTileMapOutsideWram(bg))
     {
         if (mode != 0)
             CpuCopy16(src, (void *)(sGpuBgConfigs2[bg].tilemap + (destOffset * 2)), mode);
@@ -923,7 +882,7 @@ void CopyBgTilemapBufferToVram(u8 bg)
 {
     u16 sizeToLoad;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if ( !IsTileMapOutsideWram(bg))
     {
         switch (GetBgType(bg))
         {
@@ -947,7 +906,7 @@ void CopyToBgTilemapBufferRect(u8 bg, const void *src, u8 destX, u8 destY, u8 wi
     u16 destY16;
     u16 mode;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if ( !IsTileMapOutsideWram(bg))
     {
         switch (GetBgType(bg))
         {
@@ -992,7 +951,7 @@ void CopyRectToBgTilemapBufferRect(u8 bg, const void *src, u8 srcX, u8 srcY, u8 
     const void *srcPtr;
     u16 i, j;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if ( !IsTileMapOutsideWram(bg))
     {
         screenSize = GetBgControlAttribute(bg, BG_CTRL_ATTR_SCREENSIZE);
         screenWidth = GetBgMetricTextMode(bg, 0x1) * 0x20;
@@ -1035,7 +994,7 @@ void FillBgTilemapBufferRect_Palette0(u8 bg, u16 tileNum, u8 x, u8 y, u8 width, 
     u16 y16;
     u16 mode;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if ( !IsTileMapOutsideWram(bg))
     {
         switch (GetBgType(bg))
         {
@@ -1075,7 +1034,7 @@ void WriteSequenceToBgTilemapBuffer(u8 bg, u16 firstTileNum, u8 x, u8 y, u8 widt
     u16 mode3;
     u16 x16, y16;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if ( !IsTileMapOutsideWram(bg))
     {
         attribute = GetBgControlAttribute(bg, BG_CTRL_ATTR_SCREENSIZE);
         mode = GetBgMetricTextMode(bg, 0x1) * 0x20;
@@ -1265,14 +1224,6 @@ static u32 GetBgType(u8 bg)
     }
 
     return BG_TYPE_NONE;
-}
-
-static CONST bool32 IsInvalidBg32(u8 bg)
-{
-    if (bg >= NUM_BACKGROUNDS)
-        return TRUE;
-    else
-        return FALSE;
 }
 
 bool32 IsTileMapOutsideWram(u8 bg)
