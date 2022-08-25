@@ -160,12 +160,12 @@ static inline void *AllocZeroedInternal(void *heapStart, u32 size)
 #if !MODERN
         if (size & 3)
             size = 4 * ((size / 4) + 1);
+            CpuFill32(0, mem, size);
 #else
         if (size & 3)
             size = (size + 3) & ~0x03;
+        CpuFastFill(0, mem, size);
 #endif
-
-        CpuFill32(0, mem, size);
     }
 
     return mem;
