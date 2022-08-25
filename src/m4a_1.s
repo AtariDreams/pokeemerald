@@ -698,10 +698,11 @@ SoundMainRAM_Unk2:
 	.if !MODERN
 	mov r1, 0x21
 	mul r2, r1, r0
-	.else
-	add r2, r0, r0, lsl 5
-	.endif
 	ldr r1, [r4, o_SoundChannel_wav]
+	.else
+	add r1, r0, r0, lsl 5
+	ldr r2, [r4, o_SoundChannel_wav]
+	.endif
 	add r2, r2, r1
 	add r2, r2, 0x10
 	ldr r5, =sDecodingBuffer
