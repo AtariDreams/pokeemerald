@@ -44,10 +44,6 @@ static struct BgControl sGpuBgConfigs;
 static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
 static u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
 
-#if !MODERN
-u32 gWindowTileAutoAllocEnabled;
-#endif
-
 static const struct BgConfig sZeroedBgControlStruct = { 0 };
 
 static u32 GetBgType(u8 bg);
@@ -80,7 +76,7 @@ u8 GetBgMode(void)
 
 void ResetBgControlStructs(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < NUM_BACKGROUNDS; i++)
     {
@@ -304,19 +300,9 @@ static bool8 IsInvalidBg(u8 bg)
     else
         return FALSE;
 }
-
-// From FRLG. Dummied out.
-int CONST BgTileAllocOp(int bg, int offset, int count, int mode)
-{
-    return 0;
-}
 #endif
 
-#if !MODERN
-void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable)
-#else
 void ResetBgsAndClearDma3BusyFlags(void)
-#endif
 {
     m32 i;
     ResetBgs();
@@ -325,11 +311,6 @@ void ResetBgsAndClearDma3BusyFlags(void)
     {
         sDmaBusyBitfield[i] = 0;
     }
-
-    // not needed at all, except for matching
-    #if !MODERN
-    gWindowTileAutoAllocEnabled = leftoverFireRedLeafGreenVariable;
-    #endif
 }
 
 #if !MODERN
@@ -459,13 +440,6 @@ u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
     }
 
     sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
-
-    // Uneeded check since always false
-    // TODO: check this
-    #if !MODERN
-    if (gWindowTileAutoAllocEnabled == TRUE)
-        BgTileAllocOp(bg, tileOffset / 0x20, size / 0x20, 1);
-    #endif
 
     return cursor;
 }
