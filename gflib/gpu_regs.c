@@ -10,8 +10,8 @@
 
 static u8 sGpuRegBuffer[GPU_REG_BUF_SIZE];
 static u8 sGpuRegWaitingList[GPU_REG_BUF_SIZE];
-static volatile bool8 sGpuRegBufferLocked;
-static volatile bool8 sShouldSyncRegIE;
+static vbool8 sGpuRegBufferLocked;
+static vbool8 sShouldSyncRegIE;
 static vu16 sRegIE;
 
 static void CopyBufferedValueToGpuReg(u8 regOffset);

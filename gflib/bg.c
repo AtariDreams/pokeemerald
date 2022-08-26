@@ -91,46 +91,46 @@ enum
 static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 screenSize, u8 paletteMode, u8 priority, u8 mosaic, u8 wraparound)
 {
 
-        if (charBaseIndex != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].charBaseIndex = charBaseIndex;
-        }
+    if (charBaseIndex != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].charBaseIndex = charBaseIndex;
+    }
 
-        if (mapBaseIndex != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].mapBaseIndex = mapBaseIndex;
-        }
+    if (mapBaseIndex != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].mapBaseIndex = mapBaseIndex;
+    }
 
-        if (screenSize != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].screenSize = screenSize;
-        }
+    if (screenSize != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].screenSize = screenSize;
+    }
 
-        if (paletteMode != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].paletteMode = paletteMode;
-        }
+    if (paletteMode != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].paletteMode = paletteMode;
+    }
 
-        if (priority != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].priority = priority;
-        }
+    if (priority != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].priority = priority;
+    }
 
-        if (mosaic != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].mosaic = mosaic;
-        }
+    if (mosaic != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].mosaic = mosaic;
+    }
 
-        if (wraparound != 0xFF)
-        {
-            sGpuBgConfigs.configs[bg].wraparound = wraparound;
-        }
-        // these two assignments do nothing since the fields are unused
+    if (wraparound != 0xFF)
+    {
+        sGpuBgConfigs.configs[bg].wraparound = wraparound;
+    }
+    // these two assignments do nothing since the fields are unused
 
-        sGpuBgConfigs.configs[bg].unknown_2 = 0;
-        sGpuBgConfigs.configs[bg].unknown_3 = 0;
+    sGpuBgConfigs.configs[bg].unknown_2 = 0;
+    sGpuBgConfigs.configs[bg].unknown_3 = 0;
 
-        sGpuBgConfigs.configs[bg].visible = TRUE;
+    sGpuBgConfigs.configs[bg].visible = TRUE;
 }
 // which asm is better?
 static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
@@ -293,41 +293,6 @@ void ResetBgsAndClearDma3BusyFlags(void)
     }
 }
 
-#if !MODERN
-void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numTemplates)
-{
-    int i;
-    u8 bg;
-
-    SetBgMode(bgMode);
-    ResetBgControlStructs();
-
-    for (i = 0; i < numTemplates; i++)
-    {
-        bg = templates[i].bg;
-
-            SetBgControlAttributes(bg,
-                                   templates[i].charBaseIndex,
-                                   templates[i].mapBaseIndex,
-                                   templates[i].screenSize,
-                                   templates[i].paletteMode,
-                                   templates[i].priority,
-                                   0,
-                                   0);
-
-            sGpuBgConfigs2[bg].baseTile = templates[i].baseTile;
-            sGpuBgConfigs2[bg].basePalette = 0;
-
-            // apparently unk3 is a dummy?
-            // TODO: look into that
-            sGpuBgConfigs2[bg].unk_3 = 0;
-
-            sGpuBgConfigs2[bg].tilemap = NULL;
-            sGpuBgConfigs2[bg].bg_x = 0;
-            sGpuBgConfigs2[bg].bg_y = 0;
-    }
-}
-#else
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numTemplates)
 {
     u8 bg;
@@ -361,8 +326,6 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numT
             sGpuBgConfigs2[bg].bg_y = 0;
     }
 }
-#endif
-
 
 void InitBgFromTemplate(const struct BgTemplate *template)
 {
@@ -756,77 +719,6 @@ s32 GetBgY(u8 bg)
 void SetBgAffine(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispCenterX, s16 dispCenterY, s16 scaleX, s16 scaleY, u16 rotationAngle)
 {
     SetBgAffineInternal(bg, srcCenterX, srcCenterY, dispCenterX, dispCenterY, scaleX, scaleY, rotationAngle);
-}
-
-u8 Unused_AdjustBgMosaic(u8 val, u8 mode)
-{
-    u16 mosaic = GetGpuReg(REG_OFFSET_MOSAIC);
-    s16 bgH = mosaic & 0xF;
-    s16 bgV = (mosaic >> 4) & 0xF;
-
-    mosaic &= 0xFF00; // clear background mosaic sizes
-
-    switch (mode)
-    {
-    default:
-    case BG_MOSAIC_SET_HV:
-        bgH = val & 0xF;
-        bgV = val >> 0x4;
-        break;
-    case BG_MOSAIC_SET_H:
-        bgH = val & 0xF;
-        break;
-    case BG_MOSAIC_ADD_H:
-        if ((bgH + val) > 0xF)
-        {
-            bgH = 0xF;
-        }
-        else
-        {
-            bgH += val;
-        }
-        break;
-    case BG_MOSAIC_SUB_H:
-        if ((bgH - val) < 0)
-        {
-            bgH = 0x0;
-        }
-        else
-        {
-            bgH -= val;
-        }
-        break;
-    case BG_MOSAIC_SET_V:
-        bgV = val & 0xF;
-        break;
-    case BG_MOSAIC_ADD_V:
-        if ((bgV + val) > 0xF)
-        {
-            bgV = 0xF;
-        }
-        else
-        {
-            bgV += val;
-        }
-        break;
-    case BG_MOSAIC_SUB_V:
-        if ((bgV - val) < 0)
-        {
-            bgV = 0x0;
-        }
-        else
-        {
-            bgV -= val;
-        }
-        break;
-    }
-
-    mosaic |= ((bgV << 0x4) & 0xF0);
-    mosaic |= (bgH & 0xF);
-
-    SetGpuReg(REG_OFFSET_MOSAIC, mosaic);
-
-    return mosaic;
 }
 
 void SetBgTilemapBuffer(u8 bg, void *tilemap)
