@@ -118,12 +118,12 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
 s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode)
 {
     int cursor;
-    int i = 0;
+    int i;
 
     cursor = sDma3RequestCursor;
     sDma3ManagerLocked = TRUE;
 
-    while (i < MAX_DMA_REQUESTS)
+    for (i = 0; i < MAX_DMA_REQUESTS; i++)
     {
         if (sDma3Requests[cursor].size == 0) // an empty request was found.
         {
@@ -142,7 +142,6 @@ s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode)
         }
         if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
             cursor = 0;
-        i++;
     }
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
