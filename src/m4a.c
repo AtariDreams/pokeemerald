@@ -362,7 +362,7 @@ void SoundInit(struct SoundInfo *soundInfo)
     REG_DMA2DAD = REG_ADDR_FIFO_B;
 
     SOUND_INFO_PTR = soundInfo;
-    CpuFill32(0, soundInfo, sizeof(struct SoundInfo));
+    CpuFastFill(0, soundInfo, sizeof(struct SoundInfo));
 
     soundInfo->maxChans = 8;
     soundInfo->masterVolume = 15;

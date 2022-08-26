@@ -203,7 +203,7 @@ static void CB2_SaveFailedScreen(void)
         MResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         SetBgTilemapBuffer(0, (void *)&gDecompressionBuffer[0x2000]);
-        CpuFill32(0, &gDecompressionBuffer[0x2000], 0x800);
+        CpuFastFill(0, &gDecompressionBuffer[0x2000], 0x800);
         LoadBgTiles(0, gTextWindowFrame1_Gfx, 0x120, 0x214);
         InitWindows(sDummyWindowTemplate);
         sWindowIds[TEXT_WIN_ID] = AddWindowWithoutTileMap(sWindowTemplate_Text);

@@ -241,7 +241,7 @@ static u32 LoopedTask_OpenConditionGraphMenu(s32 state)
     case 5:
         BgDmaFill(1, 0, 0, 1);
         BgDmaFill(1, 17, 1, 1);
-        CpuFill32(0, menu->tilemapBuffers[1], BG_SCREEN_SIZE);
+        CpuFastFill(0, menu->tilemapBuffers[1], BG_SCREEN_SIZE);
         SetBgTilemapBuffer(1, menu->tilemapBuffers[1]);
         return LT_INC_AND_PAUSE;
     case 6:
