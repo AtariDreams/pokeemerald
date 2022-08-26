@@ -443,7 +443,7 @@ static void ApplyGammaShift(u8 startPalIndex, u8 numPalettes, s8 gammaIndex)
     u16 curPalIndex;
     u16 palOffset;
     u8 *gammaTable;
-    u16 i;
+    u32 i;
 
     if (gammaIndex > 0)
     {
