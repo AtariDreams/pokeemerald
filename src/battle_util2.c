@@ -14,8 +14,6 @@
 
 void AllocateBattleResources(void)
 {
-    gBattleResources = gBattleResources; // something dumb needed to match
-
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER_HILL)
         InitTrainerHillBattleStruct();
 
@@ -108,12 +106,12 @@ void SwitchPartyOrderInGameMulti(u8 battlerId, u8 arg1)
     if (GetBattlerSide(battlerId) != B_SIDE_OPPONENT)
     {
         m32 i;
-        for (i = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+        for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
             gBattlePartyCurrentOrder[i] = *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders));
 
         SwitchPartyMonSlots(GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[battlerId]), GetPartyIdFromBattlePartyId(arg1));
 
-        for (i = 0; i < (m32)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+        for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
             *(0 * 3 + i + (u8*)(gBattleStruct->battlerPartyOrders)) = gBattlePartyCurrentOrder[i];
     }
 }
