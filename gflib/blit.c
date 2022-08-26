@@ -112,8 +112,6 @@ void BlitBitmapRect4BitTo8Bit(const struct Bitmap *src, struct Bitmap *dst, u16 
     u8 colorKeyBits;
 
     paletteOffset <<= 4;
-    // TODO: do this calculation in the other branch where it is actually needed
-    colorKeyBits = colorKey << 4;
 
     if (dst->width - dstX < width)
         xEnd = (dst->width - dstX) + srcX;
@@ -150,6 +148,7 @@ void BlitBitmapRect4BitTo8Bit(const struct Bitmap *src, struct Bitmap *dst, u16 
     }
     else
     {
+        colorKeyBits = colorKey << 4;
         for (loopSrcY = srcY, loopDstY = dstY; loopSrcY < yEnd; loopSrcY++, loopDstY++)
         {
             pixelsSrc = src->pixels + ((srcX >> 1) & 3) + ((srcX >> 3) << 5) + (((loopSrcY >> 3) * multiplierSrcY) << 5) + ((u32)(loopSrcY << 0x1d) >> 0x1b);
