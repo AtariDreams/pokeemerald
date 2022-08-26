@@ -438,10 +438,8 @@ bool8 IsDma3ManagerBusyWithBgCopy(void)
 
         if ((sDmaBusyBitfield[div] & (1 << mod)))
         {
-            if (CheckForSpaceForDma3Request(i))
-            {
+            if (sDma3Requests[i].size != 0)
                 return TRUE;
-            }
 
             sDmaBusyBitfield[div] &= ~(1 << mod);
         }

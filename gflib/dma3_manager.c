@@ -6,19 +6,9 @@
 #define DMA_REQUEST_COPY16 3
 #define DMA_REQUEST_FILL16 4
 
-struct Dma3Request
-{
-    const u8 *src;
-    u8 *dest;
-    u16 size;
-    u16 mode;
-    u32 value;
-};
-
-static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
-
 static vbool8 sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
+struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 void ClearDma3Requests(void)
 {

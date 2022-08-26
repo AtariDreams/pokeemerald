@@ -47,10 +47,19 @@
 #define Dma3FillLarge16_(value, dest, size) Dma3FillLarge_(value, dest, size, 16)
 #define Dma3FillLarge32_(value, dest, size) Dma3FillLarge_(value, dest, size, 32)
 
+struct Dma3Request
+{
+    const u8 *src;
+    u8 *dest;
+    u16 size;
+    u16 mode;
+    u32 value;
+};
+
 void ClearDma3Requests(void);
 void ProcessDma3Requests(void);
 s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode);
 s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode);
 bool32 CheckForSpaceForDma3Request(int index);
-
+extern struct Dma3Request sDma3Requests[];
 #endif // GUARD_DMA3_H
