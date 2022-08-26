@@ -1253,7 +1253,7 @@ static void SpriteCB_TrainerPicSlideOnscreen(struct Sprite *sprite)
     switch (sprite->data[0])
     {
     case 0:
-        if (CheckForSpaceForDma3Request(sprite->data[7]) != -1)
+        if (CheckForSpaceForDma3Request(sprite->data[7]) == 0)
         {
             sprite->x2 = -80;
             sprite->invisible = FALSE;

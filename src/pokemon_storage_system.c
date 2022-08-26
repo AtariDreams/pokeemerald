@@ -5206,7 +5206,7 @@ static void Task_InitBox(u8 taskId)
         task->tDmaIdx = RequestDma3Fill(0, sStorage->wallpaperBgTilemapBuffer, sizeof(sStorage->wallpaperBgTilemapBuffer), 1);
         break;
     case 1:
-        if (CheckForSpaceForDma3Request(task->tDmaIdx) == -1)
+        if (CheckForSpaceForDma3Request(task->tDmaIdx))
             return;
 
         SetBgTilemapBuffer(2, sStorage->wallpaperBgTilemapBuffer);

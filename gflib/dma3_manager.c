@@ -158,7 +158,7 @@ s16 RequestDma3Fill(s32 value, void *dest, u16 size, u8 mode)
     return -1;  // no free DMA request was found
 }
 
-s16 CheckForSpaceForDma3Request(s16 index)
+bool32 CheckForSpaceForDma3Request(int index)
 {
     #if !MODERN
     int i = 0;
@@ -171,14 +171,14 @@ s16 CheckForSpaceForDma3Request(s16 index)
         for (i = 0; i < MAX_DMA_REQUESTS; i++)
         {
             if (sDma3Requests[i].size != 0)
-                return -1;
+                return 1;
         }
         return 0;
     }
     else  // check the specified request
     {
         if (sDma3Requests[index].size != 0)
-            return -1;
+            return 1;
         return 0;
     }
 }

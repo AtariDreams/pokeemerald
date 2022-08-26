@@ -433,13 +433,12 @@ bool8 IsDma3ManagerBusyWithBgCopy(void)
 
     for (i = 0; i < MAX_DMA_REQUESTS; i++)
     {
-        u8 div = i / 0x20;
-        u8 mod = i % 0x20;
+        int div = i >> 5;
+        int mod = i & 31;
 
         if ((sDmaBusyBitfield[div] & (1 << mod)))
         {
-            s8 reqSpace = CheckForSpaceForDma3Request(i);
-            if (reqSpace == -1)
+            if (CheckForSpaceForDma3Request(i))
             {
                 return TRUE;
             }
