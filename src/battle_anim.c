@@ -707,7 +707,7 @@ void MoveBattlerSpriteToBG(u8 battlerId, bool8 toBG_2, bool8 setSpriteInvisible)
         SetGpuReg(REG_OFFSET_BG1VOFS, gBattle_BG1_Y);
 
         LoadPalette(&gPlttBufferUnfaded[0x100 + battlerId * 16], animBg.paletteId * 16, 0x20);
-        CpuCopy32(&gPlttBufferUnfaded[0x100 + battlerId * 16], (void *)(BG_PLTT + animBg.paletteId * 32), 0x20);
+        CpuFastCopy(&gPlttBufferUnfaded[0x100 + battlerId * 16], (void *)(BG_PLTT + animBg.paletteId * 32), 0x20);
 
         if (IsContest())
             battlerPosition = 0;
