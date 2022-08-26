@@ -55,7 +55,7 @@ void ResetBgs(void)
     SetTextModeAndHideBgs();
 }
 
-static void SetBgModeInternal(u8 bgMode)
+void SetBgMode (u8 bgMode)
 {
     sGpuBgConfigs.bgVisibilityAndMode &= ~0x7;
     sGpuBgConfigs.bgVisibilityAndMode |= bgMode;
@@ -299,14 +299,13 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numT
     int i;
     u8 bg;
 
-    SetBgModeInternal(bgMode);
+    SetBgMode(bgMode);
     ResetBgControlStructs();
 
     for (i = 0; i < numTemplates; i++)
     {
         bg = templates[i].bg;
-        if (bg < NUM_BACKGROUNDS)
-        {
+
             SetBgControlAttributes(bg,
                                    templates[i].charBaseIndex,
                                    templates[i].mapBaseIndex,
@@ -326,7 +325,6 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numT
             sGpuBgConfigs2[bg].tilemap = NULL;
             sGpuBgConfigs2[bg].bg_x = 0;
             sGpuBgConfigs2[bg].bg_y = 0;
-        }
     }
 }
 #else
@@ -335,14 +333,13 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numT
     u8 bg;
     const struct BgTemplate *templateEnd;
 
-    SetBgModeInternal(bgMode);
+    SetBgMode(bgMode);
     ResetBgControlStructs();
 
     for (templateEnd = templates + numTemplates; templates != templateEnd; templates++)
     {
         bg = templates->bg;
-        if (bg < NUM_BACKGROUNDS)
-        {
+
             SetBgControlAttributes(bg,
                                    templates->charBaseIndex,
                                    templates->mapBaseIndex,
@@ -362,7 +359,6 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numT
             sGpuBgConfigs2[bg].tilemap = NULL;
             sGpuBgConfigs2[bg].bg_x = 0;
             sGpuBgConfigs2[bg].bg_y = 0;
-        }
     }
 }
 #endif
@@ -372,8 +368,7 @@ void InitBgFromTemplate(const struct BgTemplate *template)
 {
     u8 bg = template->bg;
 
-    if (bg < NUM_BACKGROUNDS)
-    {
+
         SetBgControlAttributes(bg,
                                template->charBaseIndex,
                                template->mapBaseIndex,
@@ -390,12 +385,6 @@ void InitBgFromTemplate(const struct BgTemplate *template)
         sGpuBgConfigs2[bg].tilemap = NULL;
         sGpuBgConfigs2[bg].bg_x = 0;
         sGpuBgConfigs2[bg].bg_y = 0;
-    }
-}
-// so uneeded except to match
-void SetBgMode(u8 bgMode)
-{
-    SetBgModeInternal(bgMode);
 }
 
 u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
