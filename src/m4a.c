@@ -1520,7 +1520,7 @@ void CgbSound(void)
             }
             else
             {
-                *nrx2ptr = (envelopeStepTimeAndDir & 0xF) + (channels->envelopeVolume << 4);
+                *nrx2ptr = (envelopeStepTimeAndDir & 0xF) | (channels->envelopeVolume << 4);
                 *nrx4ptr = channels->n4 | 0x80;
             }
         }
