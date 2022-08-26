@@ -387,8 +387,7 @@ void SampleFreqSet(u32 freq)
     
     soundInfo = SOUND_INFO_PTR;
 
-    freq = (freq & 0xF0000) >> 16;
-    soundInfo->freq = (u8)freq;
+    soundInfo->freq = (freq >> 16) & 0xF;
     soundInfo->pcmSamplesPerVBlank = gPcmSamplesPerVBlankTable[freq - 1];
     soundInfo->pcmDmaPeriod = PCM_DMA_BUF_SIZE / soundInfo->pcmSamplesPerVBlank;
 
