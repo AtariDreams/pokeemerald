@@ -8729,7 +8729,7 @@ bool8 FreezeObjectEvent(struct ObjectEvent *objectEvent)
 
 void FreezeObjectEvents(void)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
         if (gObjectEvents[i].active && i != gPlayerAvatar.objectEventId)
             FreezeObjectEvent(&gObjectEvents[i]);
@@ -8737,7 +8737,7 @@ void FreezeObjectEvents(void)
 
 void FreezeObjectEventsExceptOne(u8 objectEventId)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
         if (i != objectEventId && gObjectEvents[i].active && i != gPlayerAvatar.objectEventId)
             FreezeObjectEvent(&gObjectEvents[i]);
