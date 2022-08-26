@@ -1721,8 +1721,8 @@ u8 RenderTextHandleBold(u8 *pixels, u8 fontId, const u8 *str)
                 DecompressGlyph_Normal(temp, TRUE);
                 break;
             }
-            CpuCopy32(gCurGlyph.gfxBufferTop, pixels, 0x20);
-            CpuCopy32(gCurGlyph.gfxBufferBottom, pixels + 0x20, 0x20);
+            CpuFastCopy(gCurGlyph.gfxBufferTop, pixels, 0x20);
+            CpuFastCopy(gCurGlyph.gfxBufferBottom, pixels + 0x20, 0x20);
             pixels += 0x40;
             break;
         }

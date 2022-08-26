@@ -1080,7 +1080,8 @@ static void Task_BattleTransition(u8 taskId)
 static bool8 Transition_StartIntro(struct Task *task)
 {
     SetWeatherScreenFadeOut();
-    CpuCopy32(gPlttBufferFaded, gPlttBufferUnfaded, sizeof(gPlttBufferUnfaded));
+    CpuFastArrayCopy(gPlttBufferFaded, gPlttBufferUnfaded);
+    // CpuCopy32(gPlttBufferFaded, gPlttBufferUnfaded, sizeof(gPlttBufferUnfaded));
     if (sTasks_Intro[task->tTransitionId] != NULL)
     {
         CreateTask(sTasks_Intro[task->tTransitionId], 4);
@@ -1799,8 +1800,8 @@ static bool8 PokeballsTrail_Init(struct Task *task)
     u16 *tilemap, *tileset;
 
     GetBg0TilesDst(&tilemap, &tileset);
-    CpuSet(sPokeballTrail_Tileset, tileset, 0x20);
-    CpuFill32(0, tilemap, BG_SCREEN_SIZE);
+    CpuFastSet(sPokeballTrail_Tileset, tileset, 0x20);
+    CpuFastFill(0, tilemap, BG_SCREEN_SIZE);
     LoadPalette(sFieldEffectPal_Pokeball, 0xF0, sizeof(sFieldEffectPal_Pokeball));
 
     task->tState++;

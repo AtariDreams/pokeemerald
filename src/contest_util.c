@@ -1209,29 +1209,29 @@ static s32 DrawResultsTextWindow(const u8 *text, u8 spriteId)
             spriteTilePtrs[i] = (void*)(gSprites[sprite->data[i - 1]].oam.tileNum * 32 + OBJ_VRAM0);
 
         for (i = 0; i < (m32)ARRAY_COUNT(spriteTilePtrs); i++)
-            CpuFill32(0, spriteTilePtrs[i], 0x400);
+            CpuFastFill(0, spriteTilePtrs[i], 0x400);
 
         dst = spriteTilePtrs[0];
-        CpuCopy32(src, dst, 0x20);
-        CpuCopy32(src + 128, dst + 0x100, 0x20);
-        CpuCopy32(src + 128, dst + 0x200, 0x20);
-        CpuCopy32(src + 64,  dst + 0x300, 0x20);
+        CpuFastCopy(src, dst, 0x20);
+        CpuFastCopy(src + 128, dst + 0x100, 0x20);
+        CpuFastCopy(src + 128, dst + 0x200, 0x20);
+        CpuFastCopy(src + 64,  dst + 0x300, 0x20);
 
         for (i = 0; i < strWidth; i++)
         {
             dst = &spriteTilePtrs[(i + 1) / 8][((i + 1) % 8) * 32];
-            CpuCopy32(src + 192, dst, 0x20);
-            CpuCopy32(windowTilesPtr, dst + 0x100, 0x20);
-            CpuCopy32(windowTilesPtr + 960, dst + 0x200, 0x20);
-            CpuCopy32(src + 224, dst + 0x300, 0x20);
+            CpuFastCopy(src + 192, dst, 0x20);
+            CpuFastCopy(windowTilesPtr, dst + 0x100, 0x20);
+            CpuFastCopy(windowTilesPtr + 960, dst + 0x200, 0x20);
+            CpuFastCopy(src + 224, dst + 0x300, 0x20);
             windowTilesPtr += 0x20;
         }
 
         dst = &spriteTilePtrs[(i + 1) / 8][((i + 1) % 8) * 32];
-        CpuCopy32(src + 32,  dst, 0x20);
-        CpuCopy32(src + 160, dst + 0x100, 0x20);
-        CpuCopy32(src + 160, dst + 0x200, 0x20);
-        CpuCopy32(src + 96,  dst + 0x300, 0x20);
+        CpuFastCopy(src + 32,  dst, 0x20);
+        CpuFastCopy(src + 160, dst + 0x100, 0x20);
+        CpuFastCopy(src + 160, dst + 0x200, 0x20);
+        CpuFastCopy(src + 96,  dst + 0x300, 0x20);
     }
     RemoveWindow(windowId);
 

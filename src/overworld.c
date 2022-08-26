@@ -471,10 +471,10 @@ void ApplyNewEncryptionKeyToGameStats(u32 newKey)
 void LoadObjEventTemplatesFromHeader(void)
 {
     // Clear map object templates
-    CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
+    CpuFastArrayFill(0, gSaveBlock1Ptr->objectEventTemplates);
 
     // Copy map header events to save block
-    CpuCopy32(gMapHeader.events->objectEvents,
+    CpuFastCopy(gMapHeader.events->objectEvents,
               gSaveBlock1Ptr->objectEventTemplates,
               gMapHeader.events->objectEventCount * sizeof(struct ObjectEventTemplate));
 }
@@ -484,7 +484,7 @@ void LoadSaveblockObjEventScripts(void)
     // TODO: Make const
     struct ObjectEventTemplate *mapHeaderObjTemplates = gMapHeader.events->objectEvents;
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1Ptr->objectEventTemplates;
-    s32 i;
+    u32 i;
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
         savObjTemplates[i].script = mapHeaderObjTemplates[i].script;
@@ -492,7 +492,7 @@ void LoadSaveblockObjEventScripts(void)
 
 void SetObjEventTemplateCoords(u8 localId, s16 x, s16 y)
 {
-    s32 i;
+    u32 i;
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1Ptr->objectEventTemplates;
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
@@ -508,7 +508,7 @@ void SetObjEventTemplateCoords(u8 localId, s16 x, s16 y)
 
 void SetObjEventTemplateMovementType(u8 localId, u8 movementType)
 {
-    s32 i;
+    u32 i;
 
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1Ptr->objectEventTemplates;
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)

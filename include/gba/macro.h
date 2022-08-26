@@ -31,6 +31,18 @@
 
 #define CpuFastCopy(src, dest, size) CpuFastSet(src, dest, ((size)/(32/8) & 0x1FFFFF))
 
+#define CpuArrayCopy(Data, Destp, Bit)                     \
+        CPU_COPY(     Data, Destp, sizeof(Destp), Bit)
+
+
+#define CpuFastArrayCopy(Data, Destp)                     \
+        CpuFastCopy(     Data, Destp, sizeof(Destp))
+
+#define CpuArrayFill(Data, Destp, Bit)                     \
+        CPU_FILL(     Data, Destp, sizeof(Destp), Bit)
+#define CpuFastArrayFill(Data, Destp)                      \
+        CpuFastFill(     Data, Destp, sizeof(Destp))
+
 #define DmaSet(dmaNum, src, dest, control)        \
 {                                                 \
     vu32 *dmaRegs = (vu32 *)REG_ADDR_DMA##dmaNum; \
@@ -203,5 +215,8 @@
     REG_IE |= flags;                                            \
     REG_IME = imeTemp;                                          \
 }                                                               \
+
+#define DmaArrayCopy(  DmaNo, Srcp, Destp, Bit)             \
+        DmaCopy(       DmaNo, Srcp, Destp, sizeof(Srcp), Bit)
 
 #endif // GUARD_GBA_MACRO_H

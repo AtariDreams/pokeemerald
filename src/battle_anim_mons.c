@@ -1064,7 +1064,7 @@ void ClearBattleAnimBg(u32 bgId)
     struct BattleAnimBgData bgAnimData;
 
     GetBattleAnimBgData(&bgAnimData, bgId);
-    CpuFill32(0, bgAnimData.bgTiles, 0x2000);
+    CpuFastFill(0, bgAnimData.bgTiles, 0x2000);
     LoadBgTiles(bgAnimData.bgId, bgAnimData.bgTiles, 0x2000, bgAnimData.tilesOffset);
     FillBgTilemapBufferRect(bgAnimData.bgId, 0, 0, 0, 32, 64, 17);
     CopyBgTilemapBufferToVram(bgAnimData.bgId);
@@ -1072,7 +1072,7 @@ void ClearBattleAnimBg(u32 bgId)
 
 void AnimLoadCompressedBgGfx(u32 bgId, const u8 *src, u32 tilesOffset)
 {
-    CpuFill32(0, gBattleAnimBgTileBuffer, 0x2000);
+    CpuFastFill(0, gBattleAnimBgTileBuffer, 0x2000);
     LZDecompressWram(src, gBattleAnimBgTileBuffer);
     LoadBgTiles(bgId, gBattleAnimBgTileBuffer, 0x2000, tilesOffset);
 }
@@ -1505,7 +1505,7 @@ void SetGrayscaleOrOriginalPalette(u16 paletteNum, bool8 restoreOriginalColor)
     }
     else
     {
-        CpuCopy32(&gPlttBufferUnfaded[paletteNum], &gPlttBufferFaded[paletteNum], 32);
+        CpuFastCopy(&gPlttBufferUnfaded[paletteNum], &gPlttBufferFaded[paletteNum], 32);
     }
 }
 
@@ -2531,7 +2531,7 @@ void AnimTask_AttackerPunchWithTrace(u8 taskId)
     else
         task->tPriority = 3;
 
-    CpuCopy32(&gPlttBufferUnfaded[src], &gPlttBufferFaded[dest], 0x20);
+    CpuFastCopy(&gPlttBufferUnfaded[src], &gPlttBufferFaded[dest], 0x20);
     BlendPalette(dest, 16, gBattleAnimArgs[1], gBattleAnimArgs[0]);
     task->func = AnimTask_AttackerPunchWithTrace_Step;
 }

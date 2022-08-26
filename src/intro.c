@@ -1076,13 +1076,11 @@ static u8 SetUpCopyrightScreen(void)
         SetGpuReg(REG_OFFSET_BLDCNT, 0);
         SetGpuReg(REG_OFFSET_BLDALPHA, 0);
         SetGpuReg(REG_OFFSET_BLDY, 0);
-        //TODO: Is this needed?
-        *(u16 *)BG_PLTT = RGB_WHITE;
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG0HOFS, 0);
         SetGpuReg(REG_OFFSET_BG0VOFS, 0);
         CpuFastFill(0, (void *)VRAM, VRAM_SIZE);
-        CpuFill32(0, (void *)OAM, OAM_SIZE);
+        CpuFastFill(0, (void *)OAM, OAM_SIZE);
         CpuFill16(0, (void *)(PLTT + 2), PLTT_SIZE - 2);
         ResetPaletteFade();
         LoadCopyrightGraphics(0, 0x3800, 0);

@@ -75,7 +75,7 @@ void m4aSoundInit(void)
 {
     m32 i;
 
-    CpuCopy32((void *)((u32)SoundMainRAM & ~1), SoundMainRAM_Buffer, sizeof(SoundMainRAM_Buffer));
+    CpuFastArrayCopy((void *)((u32)SoundMainRAM & ~1), SoundMainRAM_Buffer);
 
     SoundInit(&gSoundInfo);
     MPlayExtender(gCgbChans);
@@ -303,7 +303,7 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     soundInfo->MidiKeyToCgbFreq = MidiKeyToCgbFreq;
     soundInfo->maxLines = MAX_LINES;
 
-    CpuFill32(0, cgbChans, sizeof(struct CgbChannel) * 4);
+    CpuFastFill(0, cgbChans, sizeof(struct CgbChannel) * 4);
 
     cgbChans[0].type = 1;
     cgbChans[0].panMask = 0x11;
@@ -534,7 +534,7 @@ void m4aSoundVSyncOff(void)
     REG_DMA1CNT_H = DMA_32BIT;
     REG_DMA2CNT_H = DMA_32BIT;
 
-    CpuFill32(0, soundInfo->pcmBuffer, sizeof(soundInfo->pcmBuffer));
+    CpuFastArrayFill(0, soundInfo->pcmBuffer);
 }
 
 void m4aSoundVSyncOn(void)

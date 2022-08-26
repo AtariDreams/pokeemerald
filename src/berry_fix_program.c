@@ -367,7 +367,7 @@ static void BerryFix_SetScene(int scene)
     CopyBgTilemapBufferToVram(0);
     LZ77UnCompVram(sBerryFixGraphics[scene].gfx, (void *)BG_CHAR_ADDR(1));
     LZ77UnCompVram(sBerryFixGraphics[scene].tilemap, (void *)BG_SCREEN_ADDR(31));
-    CpuCopy32(sBerryFixGraphics[scene].palette, (void *)BG_PLTT, 0x100);
+    CpuFastCopy(sBerryFixGraphics[scene].palette, (void *)BG_PLTT, 0x100);
     ShowBg(0);
     ShowBg(1);
 }

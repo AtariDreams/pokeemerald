@@ -159,7 +159,7 @@ static void BattleIntroSlide1(u8 taskId)
         {
             gScanlineEffect.state = 3;
             gTasks[taskId].tState++;
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            CpuFastFill(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);
             SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(0) | BGCNT_CHARBASE(0) | BGCNT_16COLOR | BGCNT_SCREENBASE(28) | BGCNT_TXT256x512);
@@ -268,7 +268,7 @@ static void BattleIntroSlide2(u8 taskId)
         {
             gScanlineEffect.state = 3;
             gTasks[taskId].tState++;
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            CpuFastFill(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);
             SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(0) | BGCNT_CHARBASE(0) | BGCNT_16COLOR | BGCNT_SCREENBASE(28) | BGCNT_TXT256x512);
@@ -356,7 +356,7 @@ static void BattleIntroSlide3(u8 taskId)
         {
             gScanlineEffect.state = 3;
             gTasks[taskId].tState++;
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            CpuFastFill(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);
             SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(0) | BGCNT_CHARBASE(0) | BGCNT_16COLOR | BGCNT_SCREENBASE(28) | BGCNT_TXT256x512);
@@ -385,8 +385,8 @@ static void BattleIntroSlideLink(u8 taskId)
         }
         else
         {
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(30), BG_SCREEN_SIZE);
+            CpuFastFill(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            CpuFastFill(0, (void *)BG_SCREEN_ADDR(30), BG_SCREEN_SIZE);
             gTasks[taskId].data[4] = 1;
         }
     }
@@ -503,7 +503,7 @@ static void BattleIntroSlidePartner(u8 taskId)
 
         if (!gBattle_BG0_Y)
         {
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE * 4);
+            CpuFastFill(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE * 4);
             SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) & ~DISPCNT_WIN1_ON);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);

@@ -2625,8 +2625,8 @@ static void FieldMoveShowMonOutdoorsEffect_LoadGfx(struct Task *task)
 {
     u16 offset = ((REG_BG0CNT >> 2) << 14);
     u16 delta = ((REG_BG0CNT >> 8) << 11);
-    CpuCopy16(sFieldMoveStreaksOutdoors_Gfx, (void *)(VRAM + offset), 0x200);
-    CpuFill32(0, (void *)(VRAM + delta), 0x800);
+    CpuFastCopy(sFieldMoveStreaksOutdoors_Gfx, (void *)(VRAM + offset), 0x200);
+    CpuFastFill(0, (void *)(VRAM + delta), 0x800);
     LoadPalette(sFieldMoveStreaksOutdoors_Pal, 0xf0, sizeof(sFieldMoveStreaksOutdoors_Pal));
     LoadFieldMoveOutdoorStreaksTilemap(delta);
     task->tState++;
@@ -2697,7 +2697,7 @@ static void FieldMoveShowMonOutdoorsEffect_ShrinkBanner(struct Task *task)
 static void FieldMoveShowMonOutdoorsEffect_RestoreBg(struct Task *task)
 {
     u16 bg0cnt = (REG_BG0CNT >> 8) << 11;
-    CpuFill32(0, (void *)VRAM + bg0cnt, 0x800);
+    CpuFastFill(0, (void *)VRAM + bg0cnt, 0x800);
     task->tWinHoriz = DISPLAY_WIDTH + 1;
     task->tWinVert = DISPLAY_HEIGHT + 1;
     task->tWinIn = task->data[11];
@@ -2789,8 +2789,8 @@ static void FieldMoveShowMonIndoorsEffect_LoadGfx(struct Task *task)
     offset = ((REG_BG0CNT >> 2) << 14);
     delta = ((REG_BG0CNT >> 8) << 11);
     task->data[12] = delta;
-    CpuCopy16(sFieldMoveStreaksIndoors_Gfx, (void *)(VRAM + offset), 0x80);
-    CpuFill32(0, (void *)(VRAM + delta), 0x800);
+    CpuCopy32(sFieldMoveStreaksIndoors_Gfx, (void *)(VRAM + offset), 0x80);
+    CpuFastFill(0, (void *)(VRAM + delta), 0x800);
     LoadPalette(sFieldMoveStreaksIndoors_Pal, 0xf0, sizeof(sFieldMoveStreaksIndoors_Pal));
     task->tState++;
 }

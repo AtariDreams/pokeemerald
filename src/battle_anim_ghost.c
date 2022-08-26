@@ -656,7 +656,7 @@ static void AnimTask_SpiteTargetShadow_Step1(u8 taskId)
         break;
     case 1:
         task->data[14] = (task->data[14] + 16) * 16;
-        CpuCopy32(&gPlttBufferUnfaded[task->data[4]], &gPlttBufferFaded[task->data[14]], 32);
+        CpuFastCopy(&gPlttBufferUnfaded[task->data[4]], &gPlttBufferFaded[task->data[14]], 32);
         BlendPalette(task->data[4], 16, 10, RGB(13, 0, 15));
         break;
     case 2:

@@ -3056,7 +3056,7 @@ static void Task_ShowTourneyInfoCard(u8 taskId)
         LoadCompressedPalette(gBattleWindowTextPalette, 0xF0, 0x20);
         if (mode == INFOCARD_MATCH)
             LoadCompressedPalette(gDomeTourneyMatchCardBg_Pal, 0x50, 0x20); // Changes the moving info card bg to orange when in match card mode
-        CpuFill32(0, gPlttBufferFaded, 0x400);
+        CpuFastFill(0, gPlttBufferFaded, 0x400);
         ShowBg(0);
         ShowBg(1);
         ShowBg(2);
@@ -5333,7 +5333,7 @@ static void Task_ShowTourneyTree(u8 taskId)
         LoadCompressedPalette(gDomeTourneyTree_Pal, 0, 0x200);
         LoadCompressedPalette(gDomeTourneyTreeButtons_Pal, 0x100, 0x200);
         LoadCompressedPalette(gBattleWindowTextPalette, 0xF0, 0x20);
-        CpuFill32(0, gPlttBufferFaded, 0x400);
+        CpuFastFill(0, gPlttBufferFaded, 0x400);
         ShowBg(0);
         ShowBg(1);
         ShowBg(2);

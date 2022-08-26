@@ -718,13 +718,13 @@ static u8 UpdateFastPaletteFade(void)
         {
         case FAST_FADE_IN_FROM_WHITE:
         case FAST_FADE_IN_FROM_BLACK:
-            CpuCopy32(gPlttBufferUnfaded, gPlttBufferFaded, PLTT_SIZE);
+            CpuFastCopy(gPlttBufferUnfaded, gPlttBufferFaded, PLTT_SIZE);
             break;
         case FAST_FADE_OUT_TO_WHITE:
-            CpuFill32(0xFFFFFFFF, gPlttBufferFaded, PLTT_SIZE);
+            CpuFastFill(0xFFFFFFFF, gPlttBufferFaded, PLTT_SIZE);
             break;
         case FAST_FADE_OUT_TO_BLACK:
-            CpuFill32(0x00000000, gPlttBufferFaded, PLTT_SIZE);
+            CpuFastFill(0x00000000, gPlttBufferFaded, PLTT_SIZE);
             break;
         }
 

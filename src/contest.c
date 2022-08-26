@@ -1330,10 +1330,10 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         break;
     case 5:
         LoadCompressedPalette(gContestInterfaceAudiencePalette, 0, 0x200);
-        CpuCopy32(gPlttBufferUnfaded + 128, tempPalette1, 16 * sizeof(u16));
-        CpuCopy32(gPlttBufferUnfaded + (5 + gContestPlayerMonIndex) * 16, tempPalette2, 16 * sizeof(u16));
-        CpuCopy32(tempPalette2, gPlttBufferUnfaded + 128, 16 * sizeof(u16));
-        CpuCopy32(tempPalette1, gPlttBufferUnfaded + (5 + gContestPlayerMonIndex) * 16, 16 * sizeof(u16));
+        CpuFastCopy(gPlttBufferUnfaded + 128, tempPalette1, 16 * sizeof(u16));
+        CpuFastCopy(gPlttBufferUnfaded + (5 + gContestPlayerMonIndex) * 16, tempPalette2, 16 * sizeof(u16));
+        CpuFastCopy(tempPalette2, gPlttBufferUnfaded + 128, 16 * sizeof(u16));
+        CpuFastCopy(tempPalette1, gPlttBufferUnfaded + (5 + gContestPlayerMonIndex) * 16, 16 * sizeof(u16));
         DmaCopy32Defvars(3, gPlttBufferUnfaded, eContestTempSave.cachedWindowPalettes, sizeof(eContestTempSave.cachedWindowPalettes));
         LoadContestPalettes();
         break;
@@ -4748,8 +4748,8 @@ static void UpdateApplauseMeter(void)
             src = &gContestApplauseMeterGfx[64];
         else
             src = gContestApplauseMeterGfx;
-        CpuCopy32(src, (void *)(OBJ_VRAM0 + (gSprites[eContest.applauseMeterSpriteId].oam.tileNum + 17 + i) * 32), 32);
-        CpuCopy32(src + 32, (void *)(OBJ_VRAM0 + (gSprites[eContest.applauseMeterSpriteId].oam.tileNum + 25 + i) * 32), 32);
+        CpuFastCopy(src, (void *)(OBJ_VRAM0 + (gSprites[eContest.applauseMeterSpriteId].oam.tileNum + 17 + i) * 32), 32);
+        CpuFastCopy(src + 32, (void *)(OBJ_VRAM0 + (gSprites[eContest.applauseMeterSpriteId].oam.tileNum + 25 + i) * 32), 32);
 
         if (eContest.applauseLevel > 4)
             StartApplauseOverflowAnimation();
@@ -5030,7 +5030,7 @@ static void ShowHideNextTurnGfx(bool8 show)
     {
         if (eContestantStatus[i].turnOrderMod != 0 && show)
         {
-            CpuCopy32(GetTurnOrderNumberGfx(i), (void *)(OBJ_VRAM0 + (gSprites[eContestGfxState[i].nextTurnSpriteId].oam.tileNum + 6) * 32), 32);
+            CpuFastCopy(GetTurnOrderNumberGfx(i), (void *)(OBJ_VRAM0 + (gSprites[eContestGfxState[i].nextTurnSpriteId].oam.tileNum + 6) * 32), 32);
             gSprites[eContestGfxState[i].nextTurnSpriteId].y = sNextTurnSpriteYPositions[gContestantTurnOrder[i]];
             gSprites[eContestGfxState[i].nextTurnSpriteId].invisible = FALSE;
         }

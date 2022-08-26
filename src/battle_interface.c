@@ -956,7 +956,7 @@ u8 CreateBattlerHealthboxSprites(u8 battlerId)
     healthBarSpritePtr->subspriteMode = SUBSPRITES_IGNORE_PRIORITY;
     healthBarSpritePtr->oam.priority = 1;
 
-    CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_1), (void *)(OBJ_VRAM0 + healthBarSpritePtr->oam.tileNum * TILE_SIZE_4BPP), 64);
+    CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_1), (void *)(OBJ_VRAM0 + healthBarSpritePtr->oam.tileNum * TILE_SIZE_4BPP), 64);
 
     gSprites[healthboxLeftSpriteId].hMain_HealthBarSpriteId = healthbarSpriteId;
     gSprites[healthboxLeftSpriteId].hMain_Battler = battlerId;
@@ -1223,7 +1223,7 @@ void UpdateHpTextInHealthbox(u8 healthboxSpriteId, s16 value, u8 maxOrCurrent)
 
             for (i = 0; i < 3; i++)
             {
-                CpuCopy32(&gMonSpritesGfxPtr->barFontGfx[i * 64 + 32],
+                CpuFastCopy(&gMonSpritesGfxPtr->barFontGfx[i * 64 + 32],
                           (void *)((OBJ_VRAM0) + TILE_SIZE_4BPP * (gSprites[healthboxSpriteId].oam.tileNum + var + i)),
                           0x20);
             }
@@ -1250,7 +1250,7 @@ static void UpdateHpTextInHealthboxInDoubles(u8 healthboxSpriteId, s16 value, u8
                 windowTileData = AddTextPrinterAndCreateWindowOnHealthbox(text, 0, 5, 0, &windowId);
                 HpTextIntoHealthboxObject(objVram + 0xC0, windowTileData, 2);
                 RemoveWindowOnHealthbox(windowId);
-                CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_FRAME_END),
+                CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_FRAME_END),
                           (void *)(OBJ_VRAM0) + (gSprites[healthboxSpriteId].oam.tileNum * TILE_SIZE_4BPP + 0x680),
                            0x20);
             }
@@ -1300,13 +1300,13 @@ static void UpdateHpTextInHealthboxInDoubles(u8 healthboxSpriteId, s16 value, u8
             {
                 if (i < 3)
                 {
-                    CpuCopy32(&gMonSpritesGfxPtr->barFontGfx[((i - var) * 64) + 32],
+                    CpuFastCopy(&gMonSpritesGfxPtr->barFontGfx[((i - var) * 64) + 32],
                           (void *)((OBJ_VRAM0) + 32 * (1 + gSprites[r7].oam.tileNum + i)),
                           0x20);
                 }
                 else
                 {
-                    CpuCopy32(&gMonSpritesGfxPtr->barFontGfx[((i - var) * 64) + 32],
+                    CpuFastCopy(&gMonSpritesGfxPtr->barFontGfx[((i - var) * 64) + 32],
                           (void *)((OBJ_VRAM0 + 0x20) + 32 * (i + gSprites[r7].oam.tileNum)),
                           0x20);
                 }
@@ -1314,17 +1314,19 @@ static void UpdateHpTextInHealthboxInDoubles(u8 healthboxSpriteId, s16 value, u8
 
             if (maxOrCurrent == HP_CURRENT)
             {
-                CpuCopy32(&gMonSpritesGfxPtr->barFontGfx[224],
+                CpuFastCopy(&gMonSpritesGfxPtr->barFontGfx[224],
                           (void *)((OBJ_VRAM0) + ((gSprites[r7].oam.tileNum + 4) * TILE_SIZE_4BPP)),
                           0x20);
-                CpuFill32(0, (void *)((OBJ_VRAM0) + (gSprites[r7].oam.tileNum * TILE_SIZE_4BPP)), 0x20);
+                CpuFastFill(0, (void *)((OBJ_VRAM0) + (gSprites[r7].oam.tileNum * TILE_SIZE_4BPP)), 0x20);
             }
+            #if 0
             else if (GetBattlerSide(battlerId) == B_SIDE_PLAYER) // Impossible to reach part, because the battlerId is from the opponent's side.
             {
-                CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_FRAME_END),
+                CpuFastCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_FRAME_END),
                           (void *)(OBJ_VRAM0) + ((gSprites[healthboxSpriteId].oam.tileNum + 52) * TILE_SIZE_4BPP),
                           0x20);
             }
+            #endif
         }
     }
 }
@@ -1360,17 +1362,17 @@ static void PrintSafariMonInfo(u8 healthboxSpriteId, struct Pokemon *mon)
         else
             elementId = 43;
 
-        CpuCopy32(GetHealthboxElementGfxPtr(elementId), &barFontGfx[i * 64], 0x20);
+        CpuFastCopy(GetHealthboxElementGfxPtr(elementId), &barFontGfx[i * 64], 0x20);
     }
 
     for (j = 1; j < var + 1; j++)
     {
         spriteTileNum = (gSprites[healthboxSpriteId].oam.tileNum + (j % 8) + (0x40 * (j / 8))) * TILE_SIZE_4BPP + (void *)OBJ_VRAM0;
-        CpuCopy32(barFontGfx, spriteTileNum, 0x20);
+        CpuFastCopy(barFontGfx, spriteTileNum, 0x20);
         barFontGfx += 0x20;
 
         spriteTileNum = (gSprites[healthboxSpriteId].oam.tileNum + 8 + (j % 8) + (0x40 * (j / 8))) * TILE_SIZE_4BPP + (void *)OBJ_VRAM0;
-        CpuCopy32(barFontGfx, spriteTileNum, 0x20);
+        CpuFastCopy(barFontGfx, spriteTileNum, 0x20);
         barFontGfx += 0x20;
     }
 
@@ -1385,15 +1387,15 @@ static void PrintSafariMonInfo(u8 healthboxSpriteId, struct Pokemon *mon)
     {
         if (j < 2)
         {
-            CpuCopy32(&gMonSpritesGfxPtr->barFontGfx[0x40 * j + 0x20],
+            CpuFastCopy(&gMonSpritesGfxPtr->barFontGfx[0x40 * j + 0x20],
                       ((gSprites[healthBarSpriteId].oam.tileNum + 2 + j) * TILE_SIZE_4BPP) + (void*)(OBJ_VRAM0),
                       32);
         }
         else
         {
             // Yes, it must be written this way to match
-            CpuCopy32(&gMonSpritesGfxPtr->barFontGfx[0x40 * j + 0x20],
-                      (void*)(OBJ_VRAM0) + (gSprites[healthBarSpriteId].oam.tileNum + 8 + j - 2) * TILE_SIZE_4BPP, // Must be written as "8 + j - 2" to match
+            CpuFastCopy(&gMonSpritesGfxPtr->barFontGfx[0x40 * j + 0x20],
+                      (void*)(OBJ_VRAM0) + (gSprites[healthBarSpriteId].oam.tileNum + 6 + j) * TILE_SIZE_4BPP, // Must be written as "8 + j - 2" to match
                       32);
         }
     }
@@ -1425,7 +1427,7 @@ void SwapHpBarsWithHpText(void)
                 {
                     healthBarSpriteId = gSprites[gHealthboxSpriteIds[i]].hMain_HealthBarSpriteId;
 
-                    CpuFill32(0, (void *)(OBJ_VRAM0 + gSprites[healthBarSpriteId].oam.tileNum * TILE_SIZE_4BPP), 0x100);
+                    CpuFastFill(0, (void *)(OBJ_VRAM0 + gSprites[healthBarSpriteId].oam.tileNum * TILE_SIZE_4BPP), 0x100);
                     UpdateHpTextInHealthboxInDoubles(gHealthboxSpriteIds[i], GetMonData(&gPlayerParty[gBattlerPartyIndexes[i]], MON_DATA_HP), HP_CURRENT);
                     UpdateHpTextInHealthboxInDoubles(gHealthboxSpriteIds[i], GetMonData(&gPlayerParty[gBattlerPartyIndexes[i]], MON_DATA_MAX_HP), HP_MAX);
                 }
@@ -1433,7 +1435,7 @@ void SwapHpBarsWithHpText(void)
                 {
                     UpdateStatusIconInHealthbox(gHealthboxSpriteIds[i]);
                     UpdateHealthboxAttribute(gHealthboxSpriteIds[i], &gPlayerParty[gBattlerPartyIndexes[i]], HEALTHBOX_HEALTH_BAR);
-                    CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_FRAME_END_BAR), (void *)(OBJ_VRAM0 + 0x680 + gSprites[gHealthboxSpriteIds[i]].oam.tileNum * TILE_SIZE_4BPP), 32);
+                    CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_FRAME_END_BAR), (void *)(OBJ_VRAM0 + 0x680 + gSprites[gHealthboxSpriteIds[i]].oam.tileNum * TILE_SIZE_4BPP), 32);
                 }
             }
             else
@@ -1449,7 +1451,7 @@ void SwapHpBarsWithHpText(void)
                     {
                         healthBarSpriteId = gSprites[gHealthboxSpriteIds[i]].hMain_HealthBarSpriteId;
 
-                        CpuFill32(0, (void *)(OBJ_VRAM0 + gSprites[healthBarSpriteId].oam.tileNum * 32), 0x100);
+                        CpuFastFill(0, (void *)(OBJ_VRAM0 + gSprites[healthBarSpriteId].oam.tileNum * 32), 0x100);
                         UpdateHpTextInHealthboxInDoubles(gHealthboxSpriteIds[i], GetMonData(&gEnemyParty[gBattlerPartyIndexes[i]], MON_DATA_HP), HP_CURRENT);
                         UpdateHpTextInHealthboxInDoubles(gHealthboxSpriteIds[i], GetMonData(&gEnemyParty[gBattlerPartyIndexes[i]], MON_DATA_MAX_HP), HP_MAX);
                     }
@@ -2086,13 +2088,13 @@ static void UpdateStatusIconInHealthbox(u8 healthboxSpriteId)
 
     FillPalette(sStatusIconColors[statusPalId], pltAdder + 0x100, 2);
     CpuCopy16(gPlttBufferUnfaded + 0x100 + pltAdder, (void *)(OBJ_PLTT + pltAdder * 2), 2);
-    CpuCopy32(statusGfxPtr, (void *)(OBJ_VRAM0 + (gSprites[healthboxSpriteId].oam.tileNum + tileNumAdder) * TILE_SIZE_4BPP), 96);
+    CpuFastCopy(statusGfxPtr, (void *)(OBJ_VRAM0 + (gSprites[healthboxSpriteId].oam.tileNum + tileNumAdder) * TILE_SIZE_4BPP), 96);
     if (IsDoubleBattle() == TRUE || GetBattlerSide(battlerId) == B_SIDE_OPPONENT)
     {
         if (!gBattleSpritesDataPtr->battlerData[battlerId].hpNumbersNoBars)
         {
-            CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_0), (void *)(OBJ_VRAM0 + gSprites[healthBarSpriteId].oam.tileNum * TILE_SIZE_4BPP), 32);
-            CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_65), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 1) * TILE_SIZE_4BPP), 32);
+            CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_0), (void *)(OBJ_VRAM0 + gSprites[healthBarSpriteId].oam.tileNum * TILE_SIZE_4BPP), 32);
+            CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_65), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 1) * TILE_SIZE_4BPP), 32);
         }
     }
     TryAddPokeballIconToHealthbox(healthboxSpriteId, FALSE);
@@ -2324,10 +2326,10 @@ static void MoveBattleBarGraphically(u8 battlerId, u8 whichBar)
         {
             u8 healthbarSpriteId = gSprites[gBattleSpritesDataPtr->battleBars[battlerId].healthboxSpriteId].hMain_HealthBarSpriteId;
             if (i < 2)
-                CpuCopy32(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32,
+                CpuFastCopy(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32,
                           (void *)(OBJ_VRAM0 + (gSprites[healthbarSpriteId].oam.tileNum + 2 + i) * TILE_SIZE_4BPP), 32);
             else
-                CpuCopy32(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32,
+                CpuFastCopy(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32,
                           (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP), 32);
         }
         break;
@@ -2346,10 +2348,10 @@ static void MoveBattleBarGraphically(u8 battlerId, u8 whichBar)
         for (i = 0; i < 8; i++)
         {
             if (i < 4)
-                CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_12) + array[i] * 32,
+                CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_12) + array[i] * 32,
                           (void *)(OBJ_VRAM0 + (gSprites[gBattleSpritesDataPtr->battleBars[battlerId].healthboxSpriteId].oam.tileNum + 0x24 + i) * TILE_SIZE_4BPP), 32);
             else
-                CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_12) + array[i] * 32,
+                CpuFastCopy(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_12) + array[i] * 32,
                           (void *)(OBJ_VRAM0 + 0xB80 + (i + gSprites[gBattleSpritesDataPtr->battleBars[battlerId].healthboxSpriteId].oam.tileNum) * TILE_SIZE_4BPP), 32);
         }
         break;
@@ -2604,18 +2606,18 @@ static void RemoveWindowOnHealthbox(u32 windowId)
 
 static void FillHealthboxObject(void *dest, u32 valMult, u32 numTiles)
 {
-    CpuFill32(0x11111111 * valMult, dest, numTiles * TILE_SIZE_4BPP);
+    CpuFastFill(0x11111111 * valMult, dest, numTiles * TILE_SIZE_4BPP);
 }
 
 static void HpTextIntoHealthboxObject(void *dest, const u8 *windowTileData, u32 windowWidth)
 {
-    CpuCopy32(windowTileData + 256, dest, windowWidth * TILE_SIZE_4BPP);
+    CpuFastCopy(windowTileData + 256, dest, windowWidth * TILE_SIZE_4BPP);
 }
 
 static void TextIntoHealthboxObject(void *dest, const u8 *windowTileData, s32 windowWidth)
 {
     s32 i;
-    CpuCopy32(windowTileData + 256, dest + 256, windowWidth * TILE_SIZE_4BPP);
+    CpuFastCopy(windowTileData + 256, dest + 256, windowWidth * TILE_SIZE_4BPP);
 // + 256 as that prevents the top 4 blank rows of sHealthboxWindowTemplate from being copied
     for (i = 0; i < windowWidth; i++)
     {
@@ -2627,6 +2629,6 @@ static void TextIntoHealthboxObject(void *dest, const u8 *windowTileData, s32 wi
 // MAYBE make s32, but u32 seems to make more sense for now
 static void SafariTextIntoHealthboxObject(void *dest, const u8 *windowTileData, u32 windowWidth)
 {
-    CpuCopy32(windowTileData, dest, windowWidth * TILE_SIZE_4BPP);
-    CpuCopy32(windowTileData + 256, dest + 256, windowWidth * TILE_SIZE_4BPP);
+    CpuFastCopy(windowTileData, dest, windowWidth * TILE_SIZE_4BPP);
+    CpuFastCopy(windowTileData + 256, dest + 256, windowWidth * TILE_SIZE_4BPP);
 }

@@ -742,7 +742,7 @@ void MoveBattlerSpriteToBG(u8 battlerId, bool8 toBG_2, bool8 setSpriteInvisible)
         SetGpuReg(REG_OFFSET_BG2VOFS, gBattle_BG2_Y);
 
         LoadPalette(&gPlttBufferUnfaded[0x100 + battlerId * 16], 0x90, 0x20);
-        CpuCopy32(&gPlttBufferUnfaded[0x100 + battlerId * 16], (void *)(BG_PLTT + 0x120), 0x20);
+        CpuFastCopy(&gPlttBufferUnfaded[0x100 + battlerId * 16], (void *)(BG_PLTT + 0x120), 0x20);
 
         DrawBattlerOnBg(2, 0, 0, GetBattlerPosition(battlerId), animBg.paletteId, animBg.bgTiles + 0x1000, animBg.bgTilemap + 0x400, animBg.tilesOffset);
     }
@@ -834,13 +834,13 @@ static void Task_UpdateMonBg(u8 taskId)
         gBattle_BG1_X = x + gTasks[taskId].t2_BgX;
         gBattle_BG1_Y = y + gTasks[taskId].t2_BgY;
 
-        CpuCopy32(&gPlttBufferFaded[0x100 + battlerId * 16], &gPlttBufferFaded[animBg.paletteId * 16], 32);
+        CpuFastCopy(&gPlttBufferFaded[0x100 + battlerId * 16], &gPlttBufferFaded[animBg.paletteId * 16], 32);
     }
     else
     {
         gBattle_BG2_X = x + gTasks[taskId].t2_BgX;
         gBattle_BG2_Y = y + gTasks[taskId].t2_BgY;
-        CpuCopy32(&gPlttBufferFaded[0x100 + battlerId * 16], &gPlttBufferFaded[0x100 - 112], 32);
+        CpuFastCopy(&gPlttBufferFaded[0x100 + battlerId * 16], &gPlttBufferFaded[0x100 - 112], 32);
     }
 }
 

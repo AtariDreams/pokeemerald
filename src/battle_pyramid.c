@@ -1585,7 +1585,7 @@ void LoadBattlePyramidObjectEventTemplates(void)
 
     id = GetPyramidFloorTemplateId();
     GetPyramidEntranceAndExitSquareIds(&entranceSquareId, &exitSquareId);
-    CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
+    CpuFastArrayFill(0, gSaveBlock1Ptr->objectEventTemplates);
     for (i = 0; i < 2; i++)
     {
         u8 objectPositionsType;
