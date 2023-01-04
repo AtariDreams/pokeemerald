@@ -2,7 +2,7 @@
 #include "io_reg.h"
 #include "gba/io_reg.h"
 
-static const u32 sUnused[] = {
+/* static const u32 sUnused[] = {
     0,
     0,
     (1 << 26) | (1 << 3),
@@ -19,7 +19,7 @@ static const u32 sUnused[] = {
     (1 << 26) | (1 << 4) | (1 << 3) | (1 << 2) | (1 << 1),
     (1 << 25) | (1 << 8),
     (1 << 27) | (1 << 10),
-};
+}; */
 
 const u16 gOverworldBackgroundLayerFlags[] = {
     BLDCNT_TGT2_BG0,
