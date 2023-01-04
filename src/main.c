@@ -84,17 +84,13 @@ void EnableVCountIntrAtLine150(void);
 
 void AgbMain()
 {
-    // Modern compilers are liberal with the stack on entry to this function,
-    // so RegisterRamReset may crash if it resets IWRAM.
-#if !MODERN
-    RegisterRamReset(RESET_ALL);
-#endif //MODERN
+    // TODO: let the compiler know return will never happen.
     CheckForFlashMemory();
     if (!gFlashMemoryPresent)
         while (1)
             asm("svc 2"); // HALT
+
     InitGpuRegManager();
-    REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
     InitKeys();
     InitIntrHandlers();
     m4aSoundInit();

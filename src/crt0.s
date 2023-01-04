@@ -18,11 +18,15 @@ Init::
 	.if MODERN
 	mov r0, #255 @ RESET_ALL
 	svc #1 << 16
+	ldr r1, =PLTT
+	mov r0, #7fff
+	strh r0, [r1]
+	ldr r1, =REG_ADDR_WAITCNT
+	mov r0 #WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3
+	strh r0, [r1]
 	.endif @ MODERN
-	ldr r1, =AgbMain + 1
-	mov lr, pc
-	bx r1
-	b Init
+	ldr r0, =AgbMain + 1
+	bx r0
 
 	.align 2, 0
 sp_sys: .word IWRAM_END - 0x1c0
