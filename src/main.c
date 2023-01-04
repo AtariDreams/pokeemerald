@@ -55,9 +55,7 @@ const IntrFunc gIntrTableTemplate[] =
     IntrDummy,  // Game Pak interrupt
 };
 
-#define INTR_COUNT ((int)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
-
-static u16 sUnusedVar; // Never read
+#define INTR_COUNT (sizeof(gIntrTableTemplate)/sizeof(IntrFunc))
 
 u16 gKeyRepeatStartDelay;
 bool8 gLinkTransferringData;
@@ -91,7 +89,7 @@ void AgbMain()
 #if !MODERN
     RegisterRamReset(RESET_ALL);
 #endif //MODERN
-    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
+    CheckForFlashMemory();
     InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
     InitKeys();
@@ -100,7 +98,6 @@ void AgbMain()
     EnableVCountIntrAtLine150();
     InitRFU();
     RtcInit();
-    CheckForFlashMemory();
     InitMainCallbacks();
     InitMapMusic();
 #ifdef BUGFIX
@@ -113,11 +110,11 @@ void AgbMain()
 
     gSoftResetDisabled = FALSE;
 
-    if (gFlashMemoryPresent != TRUE)
-        SetMainCallback2(NULL);
+    if (!gFlashMemoryPresent)
+        while (1)
+            asm("svc 2"); // HALT
 
     gLinkTransferringData = FALSE;
-    sUnusedVar = 0xFC0;
 
 #ifndef NDEBUG
 #if (LOG_HANDLER == LOG_HANDLER_MGBA_PRINT)
@@ -175,8 +172,8 @@ static void UpdateLinkAndCallCallbacks(void)
 static void InitMainCallbacks(void)
 {
     gMain.vblankCounter1 = 0;
-    gTrainerHillVBlankCounter = NULL;
     gMain.vblankCounter2 = 0;
+    gTrainerHillVBlankCounter = NULL;
     gMain.callback1 = NULL;
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
     gSaveBlock2Ptr = &gSaveblock2.block;
@@ -409,8 +406,7 @@ static void WaitForVBlank(void)
 {
     gMain.intrCheck &= ~INTR_FLAG_VBLANK;
 
-    while (!(gMain.intrCheck & INTR_FLAG_VBLANK))
-        ;
+    VBlankIntrWait();
 }
 
 void SetTrainerHillVBlankCounter(u32 *counter)
