@@ -288,7 +288,7 @@ static void ReadKeys(void)
 
 void InitIntrHandlers(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < INTR_COUNT; i++)
         gIntrTable[i] = gIntrTableTemplate[i];
