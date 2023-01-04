@@ -253,6 +253,8 @@ static void ReadKeys(void)
     // because it compares the raw key input with the remapped held keys.
     // Note that newAndRepeatedKeys is never remapped either.
 
+    // Potential solution, but needs more testing
+
     if (keyInput != 0 && gMain.heldKeys == keyInput)
     {
         gMain.keyRepeatCounter--;
