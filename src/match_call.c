@@ -133,7 +133,7 @@ static EWRAM_DATA struct BattleFrontierStreakInfo sBattleFrontierStreakInfo = {0
 static u32 GetCurrentTotalMinutes(struct Time *);
 static u32 GetNumRegisteredNPCs(void);
 static u32 GetActiveMatchCallTrainerId(u32);
-static int GetTrainerMatchCallId(int);
+static u32 GetTrainerMatchCallId(int);
 static u16 GetRematchTrainerLocation(int);
 static bool32 TrainerIsEligibleForRematch(int);
 static void StartMatchCall(void);
@@ -1542,9 +1542,9 @@ bool32 SelectMatchCallMessage(int trainerId, u8 *str)
 }
 
 // TODO: make all u32
-static int GetTrainerMatchCallId(int trainerId)
+static u32 GetTrainerMatchCallId(int trainerId)
 {
-    int i;
+    u32 i;
     for (i = 0; i < ARRAY_COUNT(sMatchCallTrainers); i++)
         if (sMatchCallTrainers[i].trainerId == trainerId)
             return i;
