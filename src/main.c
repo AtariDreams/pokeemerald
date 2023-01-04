@@ -90,6 +90,9 @@ void AgbMain()
     RegisterRamReset(RESET_ALL);
 #endif //MODERN
     CheckForFlashMemory();
+    if (!gFlashMemoryPresent)
+        while (1)
+            asm("svc 2"); // HALT
     InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
     InitKeys();
@@ -110,12 +113,9 @@ void AgbMain()
 
     gSoftResetDisabled = FALSE;
 
-    if (!gFlashMemoryPresent)
-        while (1)
-            asm("svc 2"); // HALT
-
     gLinkTransferringData = FALSE;
 
+    gTrainerHillVBlankCounter = NULL;
 #ifndef NDEBUG
 #if (LOG_HANDLER == LOG_HANDLER_MGBA_PRINT)
     (void) MgbaOpen();
@@ -123,6 +123,8 @@ void AgbMain()
     AGBPrintfInit();
 #endif
 #endif
+    // First one is on us
+    CB2_InitCopyrightScreenAfterBootup();
     for (;;)
     {
         ReadKeys();
@@ -173,11 +175,9 @@ static void InitMainCallbacks(void)
 {
     gMain.vblankCounter1 = 0;
     gMain.vblankCounter2 = 0;
-    gTrainerHillVBlankCounter = NULL;
     gMain.callback1 = NULL;
-    SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
-    gSaveBlock2Ptr = &gSaveblock2.block;
-    gPokemonStoragePtr = &gPokemonStorage.block;
+    gMain.callback2 = NULL;
+    gMain.state = 0;
 }
 
 static void CallCallbacks(void)
