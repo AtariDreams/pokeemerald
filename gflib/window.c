@@ -19,7 +19,7 @@ EWRAM_DATA static struct Window* sWindowPtr = NULL;
 EWRAM_DATA static u16 sWindowSize = 0;
 
 static u8 GetNumActiveWindowsOnBg(u8 bgId);
-static u8 GetNumActiveWindowsOnBg8Bit(u8 bgId);
+static u32 GetNumActiveWindowsOnBg8Bit(u8 bgId);
 
 static const struct WindowTemplate sDummyWindowTemplate = DUMMY_WIN_TEMPLATE;
 
@@ -706,10 +706,10 @@ void CopyWindowToVram8Bit(u8 windowId, u8 mode)
     }
 }
 
-static u8 GetNumActiveWindowsOnBg8Bit(u8 bgId)
+static u32 GetNumActiveWindowsOnBg8Bit(u8 bgId)
 {
-    u8 windowsNum = 0;
-    s32 i;
+    u32 windowsNum = 0;
+    u32 i;
     for (i = 0; i < WINDOWS_MAX; i++)
     {
         if (gWindows[i].window.bg == bgId)
