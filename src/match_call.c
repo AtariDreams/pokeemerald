@@ -1541,24 +1541,21 @@ bool32 SelectMatchCallMessage(int trainerId, u8 *str)
     return newRematchRequest;
 }
 
+// TODO: make all u32
 static int GetTrainerMatchCallId(int trainerId)
 {
-    int i = 0;
-    while (1)
-    {
+    int i;
+    for (i = 0; i < ARRAY_COUNT(sMatchCallTrainers); i++)
         if (sMatchCallTrainers[i].trainerId == trainerId)
             return i;
-        else
-            i++;
-    }
+    return 0;
 }
 
 static const struct MatchCallText *GetSameRouteMatchCallText(int matchCallId, u8 *str)
 {
     u16 textId = sMatchCallTrainers[matchCallId].sameRouteMatchCallTextId;
-    int mask = 0xFF;
     u32 topic = (textId >> 8) - 1;
-    u32 id = (textId & mask) - 1;
+    u32 id = (textId & 0xFF) - 1;
     return &sMatchCallBattleRequestTopics[topic][id];
 }
 
@@ -1573,17 +1570,13 @@ static const struct MatchCallText *GetDifferentRouteMatchCallText(int matchCallI
 
 static const struct MatchCallText *GetBattleMatchCallText(int matchCallId, u8 *str)
 {
-    int mask;
     u32 textId, topic, id;
 
     topic = Random() % 3;
     textId = sMatchCallTrainers[matchCallId].battleTopicTextIds[topic];
-    if (!textId)
-        SpriteCallbackDummy(NULL); // leftover debugging ???
 
-    mask = 0xFF;
     topic = (textId >> 8) - 1;
-    id = (textId & mask) - 1;
+    id = (textId & 0xFF) - 1;
     return &sMatchCallBattleTopics[topic][id];
 }
 
