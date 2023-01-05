@@ -325,13 +325,12 @@ void SetItemListPerPageCount(struct ItemSlot *slots, u8 slotsCount, u8 *pageItem
     struct ItemSlot *slots_ = slots;
 
     // Count the number of non-empty item slots
-    *totalItems = 0;
+    *totalItems = 1; // 1 for Cancel
     for (i = 0; i < slotsCount; i++)
     {
         if (slots_[i].itemId != ITEM_NONE)
             (*totalItems)++;
     }
-    (*totalItems)++; // + 1 for 'Cancel'
 
     // Set number of items per page
     if (*totalItems > maxPerPage)
