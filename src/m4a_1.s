@@ -675,31 +675,29 @@ SoundMainRAM_Unk2:
 	cmp r0, r1
 	beq _081DD594
 	str r0, [r4, o_SoundChannel_xpi]
-	mov r1, 0x21
-	mul r2, r1, r0
-	ldr r1, [r4, o_SoundChannel_wav]
+	add r1, r0, r0, lsl #5
+	ldr r2, [r4, o_SoundChannel_wav]
 	add r2, r2, r1
-	add r2, r2, 0x10
-	ldr r5, =sDecodingBuffer
+	ldr r5, =sDecodingBuffer+1
 	ldr r6, =gDeltaEncodingTable
 	mov r7, 0x40
-	ldrb lr, [r2], 1
-	strb lr, [r5], 1
-	ldrb r1, [r2], 1
-	b _081DD57C
+	ldrb lr, [r2], 0x11
+	strb lr, [r5]
+	ldrb r1, [r2], 0x11
+_081DD57C:
+	and r0, r1, 0xF
+	ldrsb r0, [r6, r0]
+	add lr, lr, r0
+	strb lr, [r5]
+	subs r7, r7, 2
+	ble _081DD594
 _081DD568:
 	ldrb r1, [r2], 1
 	mov r0, r1, lsr 4
 	ldrsb r0, [r6, r0]
 	add lr, lr, r0
-	strb lr, [r5], 1
-_081DD57C:
-	and r0, r1, 0xF
-	ldrsb r0, [r6, r0]
-	add lr, lr, r0
-	strb lr, [r5], 1
-	subs r7, r7, 2
-	bgt _081DD568
+	strb lr, [r5]
+	b _081DD57C
 _081DD594:
 	ldr r5, =sDecodingBuffer
 	and r0, r3, 0x3F
