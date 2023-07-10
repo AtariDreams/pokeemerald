@@ -8,7 +8,7 @@ static u8 FindFirstActiveTask(void);
 
 void ResetTasks(void)
 {
-    u8 i;
+    unsigned int i;
 
     for (i = 0; i < NUM_TASKS; i++)
     {
