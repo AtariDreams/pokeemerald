@@ -68,7 +68,7 @@ u8 GetBgMode(void)
 
 void ResetBgControlStructs(void)
 {
-    int i;
+    unsigned int i;
 
     for (i = 0; i < NUM_BACKGROUNDS; i++)
     {

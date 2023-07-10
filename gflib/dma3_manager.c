@@ -17,24 +17,19 @@ struct Dma3Request
     u32 value;
 };
 
-static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
+ALIGNED(4) static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 static vbool8 sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
-    int i;
+    unsigned int i;
 
     sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
 
-    for (i = 0; i < MAX_DMA_REQUESTS; i++)
-    {
-        sDma3Requests[i].size = 0;
-        sDma3Requests[i].src = NULL;
-        sDma3Requests[i].dest = NULL;
-    }
+    CpuFastFill(0, sDma3Requests, sizeof(sDma3Requests));
 
     sDma3ManagerLocked = FALSE;
 }
