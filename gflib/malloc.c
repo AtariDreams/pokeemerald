@@ -22,7 +22,7 @@ struct MemBlock {
     struct MemBlock *next;
 
     // Data in the memory block. (Arrays of length 0 are a GNU extension.)
-    u8 data[0];
+    u8 data[];
 };
 
 void PutMemBlockHeader(void *block, struct MemBlock *prev, struct MemBlock *next, u32 size)
