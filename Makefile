@@ -44,6 +44,8 @@ MODERN      ?= 0
 
 ifeq (modern,$(MAKECMDGOALS))
   MODERN := 1
+  UBFIX := 1
+  BUGFIX := 1
 endif
 
 # use arm-none-eabi-cpp for macOS

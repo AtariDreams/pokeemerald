@@ -29,7 +29,12 @@ void ClearDma3Requests(void)
     sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
 
-    CpuFastFill(0, sDma3Requests, sizeof(sDma3Requests));
+    for (i = 0; i < MAX_DMA_REQUESTS; i++)
+    {
+        sDma3Requests[i].size = 0;
+        sDma3Requests[i].src = NULL;
+        sDma3Requests[i].dest = NULL;
+    }
 
     sDma3ManagerLocked = FALSE;
 }
