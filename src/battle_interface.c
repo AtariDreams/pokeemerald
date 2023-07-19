@@ -2246,7 +2246,7 @@ s32 MoveBattleBar(u8 battlerId, u8 healthboxSpriteId, u8 whichBar, u8 unused)
                     gBattleSpritesDataPtr->battleBars[battlerId].oldValue,
                     gBattleSpritesDataPtr->battleBars[battlerId].receivedValue,
                     &gBattleSpritesDataPtr->battleBars[battlerId].currValue,
-                    B_HEALTHBAR_PIXELS / 8, 1);
+                    B_HEALTHBAR_PIXELS / 8, max(gBattleSpritesDataPtr->battleBars[battlerId].maxValue / x, 1));
     }
     else // exp bar
     {
@@ -2468,7 +2468,7 @@ static s16 Debug_TestHealthBar(struct TestingBar *barInfo, s32 *currValue, u16 *
     ret = CalcNewBarValue(barInfo->maxValue,
                     barInfo->oldValue,
                     barInfo->receivedValue,
-                    currValue, B_HEALTHBAR_PIXELS / 8, 1);
+                    currValue, B_HEALTHBAR_PIXELS / 8, max(gBattleSpritesDataPtr->battleBars[battlerId].maxValue / x, 1));
     Debug_TestHealthBar_Helper(barInfo, currValue, dest);
 
     if (barInfo->maxValue < B_HEALTHBAR_PIXELS)
