@@ -1601,7 +1601,7 @@ void CB2_LinkError(void)
     m4aMPlayStop(&gMPlayInfo_SE1);
     m4aMPlayStop(&gMPlayInfo_SE2);
     m4aMPlayStop(&gMPlayInfo_SE3);
-    InitHeap(gHeap, HEAP_SIZE);
+    ResetHeap();
     ResetSpriteData();
     FreeAllSpritePalettes();
     ResetPaletteFadeControl();

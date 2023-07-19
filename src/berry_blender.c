@@ -959,7 +959,7 @@ static bool8 LoadBerryBlenderGfx(void)
     switch (sBerryBlender->loadGfxState)
     {
     case 0:
-        sBerryBlender->tilesBuffer = AllocZeroed(GetDecompressedDataSize(gBerryBlenderCenter_Gfx) + 100);
+        sBerryBlender->tilesBuffer = Calloc(GetDecompressedDataSize(gBerryBlenderCenter_Gfx) + 100);
         LZ77UnCompWram(gBerryBlenderCenter_Gfx, sBerryBlender->tilesBuffer);
         sBerryBlender->loadGfxState++;
         break;
@@ -1047,7 +1047,7 @@ static void InitBerryBlenderWindows(void)
 void DoBerryBlending(void)
 {
     if (sBerryBlender == NULL)
-        sBerryBlender = AllocZeroed(sizeof(*sBerryBlender));
+        sBerryBlender = Calloc(sizeof(*sBerryBlender));
 
     sBerryBlender->gameEndState = 0;
     sBerryBlender->mainState = 0;
@@ -1274,7 +1274,7 @@ static void StartBlender(void)
 
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
     if (sBerryBlender == NULL)
-        sBerryBlender = AllocZeroed(sizeof(*sBerryBlender));
+        sBerryBlender = Calloc(sizeof(*sBerryBlender));
 
     sBerryBlender->mainState = 0;
     sBerryBlender->unk1 = 0;

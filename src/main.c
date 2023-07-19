@@ -55,9 +55,7 @@ const IntrFunc gIntrTableTemplate[] =
     IntrDummy,  // Game Pak interrupt
 };
 
-#define INTR_COUNT ((int)(sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
-
-static u16 sUnusedVar; // Never read
+#define INTR_COUNT (sizeof(gIntrTableTemplate)/sizeof(IntrFunc))
 
 u16 gKeyRepeatStartDelay;
 bool8 gLinkTransferringData;
@@ -109,7 +107,7 @@ void AgbMain()
     ClearDma3Requests();
     ResetBgs();
     SetDefaultFontsPointer();
-    InitHeap(gHeap, HEAP_SIZE);
+    ResetHeap();
 
     gSoftResetDisabled = FALSE;
 
@@ -117,7 +115,6 @@ void AgbMain()
         SetMainCallback2(NULL);
 
     gLinkTransferringData = FALSE;
-    sUnusedVar = 0xFC0;
 
 #ifndef NDEBUG
 #if (LOG_HANDLER == LOG_HANDLER_MGBA_PRINT)
