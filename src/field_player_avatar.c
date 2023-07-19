@@ -1660,8 +1660,9 @@ static void Task_WaitStopSurfing(u8 taskId)
     {
         ObjectEventSetGraphicsId(playerObjEvent, GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_NORMAL));
         ObjectEventSetHeldMovement(playerObjEvent, GetFaceDirectionMovementAction(playerObjEvent->facingDirection));
-        gPlayerAvatar.preventStep = FALSE;
         UnlockPlayerFieldControls();
+        gPlayerAvatar.preventStep = FALSE;
+        playerObjEvent->triggerGroundEffectsOnMove = TRUE;
         DestroySprite(&gSprites[playerObjEvent->fieldEffectSpriteId]);
         DestroyTask(taskId);
     }
