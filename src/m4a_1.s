@@ -183,7 +183,7 @@ _081DCF6A:
 	bne _081DCFB0
 	movs r6, SOUND_CHANNEL_SF_ENV_ATTACK
 	strb r6, [r4, o_SoundChannel_statusFlags]
-	adds r0, r3, 0
+	movs r0, r3
 	adds r0, o_WaveData_data
 	ldr r1, [r4, o_SoundChannel_count]
 	adds r0, r1
@@ -244,7 +244,7 @@ _081DCFD6:
 	ldrb r0, [r4, o_SoundChannel_sustain]
 	cmp r5, r0
 	bhi _081DD006
-	adds r5, r0, 0
+	movs r5, r0
 	beq _081DCFC8
 	subs r6, 0x1
 	strb r6, [r4, o_SoundChannel_statusFlags]

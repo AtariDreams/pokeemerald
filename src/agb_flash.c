@@ -278,7 +278,7 @@ u32 ProgramFlashSectorAndVerify(u16 sectorNum, u8 *src)
 
 u32 ProgramFlashSectorAndVerifyNBytes(u16 sectorNum, u8 *src, u32 n)
 {
-    u8 i;
+    unsigned int i;
     u32 result;
 
     for (i = 0; i < 3; i++)

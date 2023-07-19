@@ -190,7 +190,7 @@ void m4aMPlayContinue(struct MusicPlayerInfo *mplayInfo)
 
 void m4aMPlayAllContinue(void)
 {
-    s32 i;
+    unsigned int i;
 
     for (i = 0; i < NUM_MUSIC_PLAYERS; i++)
         MPlayContinue(gMPlayTable[i].info);

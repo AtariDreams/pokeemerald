@@ -4047,8 +4047,8 @@ u32 GetBoxMonData(struct BoxPokemon *boxMon, s32 field, u8 *data)
 }
 
 #define SET8(lhs) (lhs) = *data
-#define SET16(lhs) (lhs) = data[0] + (data[1] << 8)
-#define SET32(lhs) (lhs) = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24)
+#define SET16(lhs) (lhs) = data[0] | (data[1] << 8)
+#define SET32(lhs) (lhs) = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24)
 
 void SetMonData(struct Pokemon *mon, s32 field, const void *dataArg)
 {
