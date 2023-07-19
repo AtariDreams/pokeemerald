@@ -24,17 +24,10 @@ static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
-    unsigned int i;
-
     sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
 
-    for (i = 0; i < MAX_DMA_REQUESTS; i++)
-    {
-        sDma3Requests[i].size = 0;
-        sDma3Requests[i].src = NULL;
-        sDma3Requests[i].dest = NULL;
-    }
+    CpuFastSet(0, sDma3Requests, sizeof(sDma3Requests));
 
     sDma3ManagerLocked = FALSE;
 }
