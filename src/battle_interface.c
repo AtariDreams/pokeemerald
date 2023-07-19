@@ -2246,7 +2246,7 @@ s32 MoveBattleBar(u8 battlerId, u8 healthboxSpriteId, u8 whichBar, u8 unused)
                     gBattleSpritesDataPtr->battleBars[battlerId].oldValue,
                     gBattleSpritesDataPtr->battleBars[battlerId].receivedValue,
                     &gBattleSpritesDataPtr->battleBars[battlerId].currValue,
-                    B_HEALTHBAR_PIXELS / 8, max(gBattleSpritesDataPtr->battleBars[battlerId].maxValue / x, 1));
+                    B_HEALTHBAR_PIXELS / 8, max(gBattleSpritesDataPtr->battleBars[battlerId].maxValue / 32, 1));
     }
     else // exp bar
     {
@@ -2457,43 +2457,6 @@ static u8 CalcBarFilledPixels(s32 maxValue, s32 oldValue, s32 receivedValue, s32
     }
 
     return filledPixels;
-}
-
-// Unused
-// These two functions seem as if they were made for testing the health bar.
-static s16 Debug_TestHealthBar(struct TestingBar *barInfo, s32 *currValue, u16 *dest, s32 unused)
-{
-    s16 ret, var;
-
-    ret = CalcNewBarValue(barInfo->maxValue,
-                    barInfo->oldValue,
-                    barInfo->receivedValue,
-                    currValue, B_HEALTHBAR_PIXELS / 8, max(gBattleSpritesDataPtr->battleBars[battlerId].maxValue / x, 1));
-    Debug_TestHealthBar_Helper(barInfo, currValue, dest);
-
-    if (barInfo->maxValue < B_HEALTHBAR_PIXELS)
-        var = *currValue >> 8;
-    else
-        var = *currValue;
-
-    DummiedOutFunction(barInfo->maxValue, var, unused);
-
-    return ret;
-}
-
-static void Debug_TestHealthBar_Helper(struct TestingBar *barInfo, s32 *currValue, u16 *dest)
-{
-    u8 pixels[6];
-    u16 src[6];
-    u8 i;
-
-    CalcBarFilledPixels(barInfo->maxValue, barInfo->oldValue,
-                barInfo->receivedValue, currValue, pixels, B_HEALTHBAR_PIXELS / 8);
-
-    for (i = 0; i < 6; i++)
-        src[i] = (barInfo->unkC_0 << 12) | (barInfo->unk10 + pixels[i]);
-
-    CpuCopy16(src, dest, sizeof(src));
 }
 
 static u8 GetScaledExpFraction(s32 oldValue, s32 receivedValue, s32 maxValue, u8 scale)
