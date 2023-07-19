@@ -1328,7 +1328,7 @@ static void Cmd_count_usable_party_mons(void)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         if (i != battlerOnField1 && i != battlerOnField2
-         && GetMonData(&party[i], MON_DATA_HP) != 0
+         && party[i].hp != 0
          && GetMonData(&party[i], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
          && GetMonData(&party[i], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG)
         {
@@ -1578,7 +1578,7 @@ static void Cmd_if_status_in_party(void)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
-        u16 hp = GetMonData(&party[i], MON_DATA_HP);
+        u16 hp = party[i].hp;
         u32 status = GetMonData(&party[i], MON_DATA_STATUS);
 
         if (species != SPECIES_NONE && species != SPECIES_EGG && hp != 0 && status == statusToCompareTo)
@@ -1615,7 +1615,7 @@ static void Cmd_if_status_not_in_party(void)
     for (i = 0; i < PARTY_SIZE; i++)
     {
         u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
-        u16 hp = GetMonData(&party[i], MON_DATA_HP);
+        u16 hp = party[i].hp;
         u32 status = GetMonData(&party[i], MON_DATA_STATUS);
 
         if (species != SPECIES_NONE && species != SPECIES_EGG && hp != 0 && status == statusToCompareTo)

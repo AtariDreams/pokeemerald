@@ -4696,7 +4696,7 @@ static void Cmd_jumpifcantswitch(void)
         {
             if (GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE
              && !GetMonData(&party[i], MON_DATA_IS_EGG)
-             && GetMonData(&party[i], MON_DATA_HP) != 0
+             && party[i].hp != 0
              && gBattlerPartyIndexes[gActiveBattler] != i)
                 break;
         }
@@ -4744,7 +4744,7 @@ static void Cmd_jumpifcantswitch(void)
         {
             if (GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE
              && !GetMonData(&party[i], MON_DATA_IS_EGG)
-             && GetMonData(&party[i], MON_DATA_HP) != 0
+             && party[i].hp != 0
              && gBattlerPartyIndexes[gActiveBattler] != i)
                 break;
         }
@@ -4766,7 +4766,7 @@ static void Cmd_jumpifcantswitch(void)
         {
             if (GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE
              && !GetMonData(&party[i], MON_DATA_IS_EGG)
-             && GetMonData(&party[i], MON_DATA_HP) != 0
+             && party[i].hp != 0
              && gBattlerPartyIndexes[gActiveBattler] != i)
                 break;
         }
@@ -4805,7 +4805,7 @@ static void Cmd_jumpifcantswitch(void)
 
         for (i = 0; i < PARTY_SIZE; i++)
         {
-            if (GetMonData(&party[i], MON_DATA_HP) != 0
+            if (party[i].hp != 0
              && GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE
              && !GetMonData(&party[i], MON_DATA_IS_EGG)
              && i != gBattlerPartyIndexes[battlerIn1] && i != gBattlerPartyIndexes[battlerIn2])
@@ -5690,7 +5690,7 @@ static void Cmd_drawpartystatussummary(void)
         }
         else
         {
-            hpStatuses[i].hp = GetMonData(&party[i], MON_DATA_HP);
+            hpStatuses[i].hp = party[i].hp;
             hpStatuses[i].status = GetMonData(&party[i], MON_DATA_STATUS);
         }
     }
@@ -7259,7 +7259,7 @@ static void Cmd_forcerandomswitch(void)
         {
             if (GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE
              && !GetMonData(&party[i], MON_DATA_IS_EGG)
-             && GetMonData(&party[i], MON_DATA_HP) != 0)
+             && party[i].hp != 0)
              {
                  validMons++;
              }
@@ -7283,7 +7283,7 @@ static void Cmd_forcerandomswitch(void)
                     while (i == battler2PartyId || i == battler1PartyId);
                 } while (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE
                        || GetMonData(&party[i], MON_DATA_IS_EGG) == TRUE
-                       || GetMonData(&party[i], MON_DATA_HP) == 0); //should be one while loop, but that doesn't match.
+                       || party[i].hp == 0); //should be one while loop, but that doesn't match.
             }
             *(gBattleStruct->monToSwitchIntoId + gBattlerTarget) = i;
 

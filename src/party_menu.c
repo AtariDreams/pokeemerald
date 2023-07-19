@@ -2513,7 +2513,7 @@ static bool8 ShouldUseChooseMonText(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE && (GetMonData(&party[i], MON_DATA_HP) != 0 || GetMonData(&party[i], MON_DATA_IS_EGG)))
+        if (GetMonData(&party[i], MON_DATA_SPECIES) != SPECIES_NONE && (party[i].hp != 0 || GetMonData(&party[i], MON_DATA_IS_EGG)))
             numAliveMons++;
         if (numAliveMons > 1)
             return TRUE;
