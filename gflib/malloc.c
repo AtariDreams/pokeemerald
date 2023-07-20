@@ -41,13 +41,13 @@ void ResetHeap(void)
 
 void *AllocInternal(void *heapStart, u32 size)
 {
-    struct MemBlock *pos;
+    struct MemBlock *pos = (struct MemBlock *)heapStart;
 
     // Alignment
     if (size & 3)
         size = 4 * ((size / 4) + 1);
 
-    for (pos = (struct MemBlock *)heapStart; pos; pos = pos->next)
+    do
     {
         // Loop through the blocks looking for unused block that's big enough.
 
@@ -84,7 +84,8 @@ void *AllocInternal(void *heapStart, u32 size)
                 return pos->data;
             }
         }
-    }
+        pos = pos->next;
+    } while (pos != NULL);
     return NULL;
 }
 
