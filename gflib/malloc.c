@@ -37,7 +37,7 @@ void *Alloc(u32 size)
   if (prevp == NULL)                     /* no free list yet */
   {
     base->s.ptr  = base;
-    base->s.size = sizeof(gHeap)-sizeof(Header);
+    base->s.size = sizeof(gHeap)/sizeof(Header);
     freep     = base;
     prevp     = base;
   }
@@ -58,7 +58,7 @@ void *Alloc(u32 size)
       }
 
       freep = prevp;
-      return (p + 1);
+      return p + 1;
     }
 
     if (p == freep)                      /* wrapped around free list */
