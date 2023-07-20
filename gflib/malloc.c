@@ -3,136 +3,95 @@
 
 #define MALLOC_SYSTEM_ID 0xA3A3
 
-struct MemBlock {
-    // Whether this block is currently allocated.
-    bool16 flag;
-
-    // Magic number used for error checking. Should equal MALLOC_SYSTEM_ID.
-    u16 magic;
-
-    // Size of the block (not including this header struct).
-    u32 size;
-
-    // Previous block pointer. Equals sHeapStart if this is the first block.
-    struct MemBlock *prev;
-
-    // Next block pointer. Equals sHeapStart if this is the last block.
-    struct MemBlock *next;
-
-    // Data in the memory block. (Arrays of length 0 are a GNU extension.)
-    u8 data[];
+typedef long Align; /* for alignment to long boundary */
+union header
+{ /* block header */
+    struct
+    {
+        union header *ptr; /* next block if on free list */
+        u32 size;     /* size of this block */
+    } s;
+    Align x; /* force alignment of blocks */
 };
+typedef union header Header;
 
-void InitMemBlock(void *block, struct MemBlock *prev, u32 size)
-{
-    struct MemBlock *header = (struct MemBlock *)block;
-    
-    header->flag = FALSE;
-    header->magic = MALLOC_SYSTEM_ID;
-    header->size = size;
-    header->prev = prev;
-    header->next = NULL;
-}
+void *const basep = gHeap;
+static Header *freep = NULL; /* start of free list */
+/* malloc: general-purpose storage allocator */
 
 void ResetHeap(void)
 {
-    InitMemBlock(gHeap, NULL, sizeof(gHeap) - sizeof(struct MemBlock));
+    freep = NULL;
 }
 
-void *AllocInternal(void *heapStart, u32 size)
+void *Alloc(u32 size)
 {
-    struct MemBlock *pos = (struct MemBlock *)heapStart;
+  Header *base = basep;
+  Header*  p;
+  Header*  prevp;
+  u32   nunits;
 
-    // Alignment
-    if (size & 3)
-        size = 4 * ((size / 4) + 1);
+  nunits = (size + sizeof(Header) - 1) / sizeof(Header) + 1;
 
-    do
+  prevp = freep;
+  if (prevp == NULL)                     /* no free list yet */
+  {
+    base->s.ptr  = base;
+    base->s.size = sizeof(gHeap)-sizeof(Header);
+    freep     = base;
+    prevp     = base;
+  }
+
+  for (p = prevp->s.ptr; ; prevp = p, p = p->s.ptr)
+  {
+    if (p->s.size >= nunits)             /* big enough */
     {
-        // Loop through the blocks looking for unused block that's big enough.
+      if (p->s.size == nunits)           /* exactly */
+      {
+        prevp->s.ptr = p->s.ptr;
+      }
+      else                               /* allocate tail end */
+      {
+        p->s.size -= nunits;
+        p += p->s.size;
+        p->s.size = nunits;
+      }
 
-        if (!pos->flag)
-        {
-            u32 foundBlockSize = pos->size;
+      freep = prevp;
+      return (p + 1);
+    }
 
-            if (foundBlockSize >= size)
-            {
-
-                if (foundBlockSize - size < 2 * sizeof(struct MemBlock))
-                {
-                    // The block isn't much bigger than the requested size,
-                    // so just use it.
-                    pos->flag = TRUE;
-                }
-                else
-                {
-                    // The block is significantly bigger than the requested
-                    // size, so split the rest into a separate block.
-                    foundBlockSize -= sizeof(struct MemBlock) + size;
-
-                    void *next = pos->data + size;
-
-                    pos->size = size;
-
-                    InitMemBlock(next, pos, foundBlockSize);
-                    
-                    pos->next = next;
-
-                    pos->flag = TRUE;
-                }
-
-                return pos->data;
-            }
-        }
-        pos = pos->next;
-    } while (pos != NULL);
-    return NULL;
+    if (p == freep)                      /* wrapped around free list */
+    {
+        return NULL;                     /* none left */
+    }
+  } /* for */
 }
 
-void FreeInternal(void *heapStart, void *pointer)
-{
-    // Never Free
-    if (pointer == NULL)
-        return;
-    
-    struct MemBlock *pos = (struct MemBlock *)pointer;
-    struct MemBlock *block = pos->prev;
-    block->flag = FALSE;
+/* free: put block ap in free list */
+void Free(void *ap) {
+  Header *bp, *p;
+  bp = (Header *)ap - 1; /* point to block header */
+  for (p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
+    if (p >= p->s.ptr && (bp > p || bp < p->s.ptr))
+      break; /* freed block at start or end of arena */
+  if (bp + bp->s.size == p->s.ptr) {
+    bp->s.size += p->s.ptr->s.size;
+    bp->s.ptr = p->s.ptr->s.ptr;
+  } else
+      bp->s.ptr = p->s.ptr;
 
-    // If the freed block isn't the first one, merge with the previous block
-    // if it's not in use.
-    if (block->prev != NULL)
-    {
-        if (!block->prev->flag)
-        {
-            block->prev->next = block->next;
-
-            if (block->next != NULL)
-                block->next->prev = block->prev;
-
-            block->magic = 0;
-            block->prev->size += sizeof(struct MemBlock) + block->size;
-        }
-    }
-
-    // If the freed block isn't the last one, merge with the next block
-    // if it's not in use.
-    if (block->next != NULL)
-    {
-        if (!block->next->flag)
-        {
-            block->size += sizeof(struct MemBlock) + block->next->size;
-            block->next->magic = 0;
-            block->next = block->next->next;
-            if (block->next != NULL)
-                block->next->prev = block;
-        }
-    }
+  if (p + p->s.size == bp) {
+    p->s.size += bp->s.size;
+    p->s.ptr = bp->s.ptr;
+  } else
+    p->s.ptr = bp;
+  freep = p;
 }
 
 void *Calloc(u32 size)
 {
-    void *mem = AllocInternal(gHeap, size);
+    void *mem = Alloc(size);
 
     if (mem != NULL) {
         if (size & 3)
@@ -144,12 +103,3 @@ void *Calloc(u32 size)
     return mem;
 }
 
-void *Alloc(u32 size)
-{
-    return AllocInternal(gHeap, size);
-}
-
-void Free(void *pointer)
-{
-    FreeInternal(gHeap, pointer);
-}
