@@ -20,7 +20,7 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    s32 i;
+    unsigned int i;
 
     for (i = 0; i < GPU_REG_BUF_SIZE; i++)
     {

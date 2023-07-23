@@ -35,11 +35,10 @@ bool16 InitWindows(const struct WindowTemplate *templates)
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {
-        bgTilemapBuffer = GetBgTilemapBuffer(i);
-        if (bgTilemapBuffer != NULL)
+        if (GetBgTilemapBuffer(i) != NULL)
             gWindowBgTilemapBuffers[i] = DummyWindowBgTilemap;
         else
-            gWindowBgTilemapBuffers[i] = bgTilemapBuffer;
+            gWindowBgTilemapBuffers[i] = NULL;
     }
 
     for (i = 0; i < WINDOWS_MAX; ++i)
