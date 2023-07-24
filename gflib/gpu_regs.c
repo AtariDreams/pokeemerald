@@ -130,12 +130,6 @@ void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
 
 u16 GetGpuReg(u8 regOffset)
 {
-    if (regOffset == REG_OFFSET_DISPSTAT)
-        return REG_DISPSTAT;
-
-    if (regOffset == REG_OFFSET_VCOUNT)
-        return REG_VCOUNT;
-
     return GPU_REG_BUF(regOffset);
 }
 
@@ -181,7 +175,7 @@ void DisableInterrupts(u16 mask)
 
 static void UpdateRegDispstatIntrBits(u16 regIE)
 {
-    u16 oldValue = GetGpuReg(REG_OFFSET_DISPSTAT) & (DISPSTAT_HBLANK_INTR | DISPSTAT_VBLANK_INTR);
+    u16 oldValue = REG_DISPSTAT & (DISPSTAT_HBLANK_INTR | DISPSTAT_VBLANK_INTR);
     u16 newValue = 0;
 
     if (regIE & INTR_FLAG_VBLANK)
