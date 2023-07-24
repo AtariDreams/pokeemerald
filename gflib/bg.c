@@ -167,9 +167,6 @@ u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
     u16 offset;
     s8 cursor;
 
-    if (IsInvalidBg(bg) || !sGpuBgConfigs.configs[bg].visible)
-        return -1;
-
     switch (mode)
     {
     case 0x1:
@@ -536,11 +533,6 @@ s32 ChangeBgX(u8 bg, s32 value, u8 op)
     u16 temp1;
     u16 temp2;
 
-    if (IsInvalidBg32(bg) || !sGpuBgConfigs.configs[bg].visible)
-    {
-        return -1;
-    }
-
     switch (op)
     {
     case BG_COORD_SET:
@@ -602,12 +594,7 @@ s32 ChangeBgX(u8 bg, s32 value, u8 op)
 
 s32 GetBgX(u8 bg)
 {
-    if (IsInvalidBg32(bg))
-        return -1;
-    else if (!sGpuBgConfigs.configs[bg].visible)
-        return -1;
-    else
-        return sGpuBgConfigs2[bg].bg_x;
+    return sGpuBgConfigs2[bg].bg_x;
 }
 
 s32 ChangeBgY(u8 bg, s32 value, u8 op)
@@ -615,11 +602,6 @@ s32 ChangeBgY(u8 bg, s32 value, u8 op)
     u8 mode;
     u16 temp1;
     u16 temp2;
-
-    if (IsInvalidBg32(bg) || !sGpuBgConfigs.configs[bg].visible)
-    {
-        return -1;
-    }
 
     switch (op)
     {
@@ -686,11 +668,6 @@ s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
     u16 temp1;
     u16 temp2;
 
-    if (IsInvalidBg32(bg) || !sGpuBgConfigs.configs[bg].visible)
-    {
-        return -1;
-    }
-
     switch (op)
     {
     case BG_COORD_SET:
@@ -753,12 +730,7 @@ s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
 
 s32 GetBgY(u8 bg)
 {
-    if (IsInvalidBg32(bg))
-        return -1;
-    else if (!sGpuBgConfigs.configs[bg].visible)
-        return -1;
-    else
-        return sGpuBgConfigs2[bg].bg_y;
+    return sGpuBgConfigs2[bg].bg_y;
 }
 
 void SetBgAffine(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispCenterX, s16 dispCenterY, s16 scaleX, s16 scaleY, u16 rotationAngle)
@@ -855,12 +827,7 @@ void UnsetBgTilemapBuffer(u8 bg)
 
 void *GetBgTilemapBuffer(u8 bg)
 {
-    if (IsInvalidBg32(bg))
-        return NULL;
-    else if (!sGpuBgConfigs.configs[bg].visible)
-        return NULL;
-    else
-        return sGpuBgConfigs2[bg].tilemap;
+    return sGpuBgConfigs2[bg].tilemap;
 }
 
 void CopyToBgTilemapBuffer(u8 bg, const void *src, u16 mode, u16 destOffset)
