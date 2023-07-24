@@ -12,21 +12,21 @@
 
 #define SET_SPRITE_TILE_RANGE(index, start, count) \
 {                                                  \
-    sSpriteTileRanges[index * 2] = start;          \
-    (sSpriteTileRanges + 1)[index * 2] = count;    \
+    sSpriteTileRanges[index][0] = start;          \
+    sSpriteTileRanges[index][1] = count;    \
 }
 
 #define ALLOC_SPRITE_TILE(n)                             \
 {                                                        \
-    sSpriteTileAllocBitmap[(n) / 8] |= (1 << ((n) % 8)); \
+    sSpriteTileAllocBitmap[(n) >> 3] |= (1 << ((n) & 7)); \
 }
 
 #define FREE_SPRITE_TILE(n)                               \
 {                                                         \
-    sSpriteTileAllocBitmap[(n) / 8] &= ~(1 << ((n) % 8)); \
+    sSpriteTileAllocBitmap[(n) >> 3] &= ~(1 << ((n) & 7)); \
 }
 
-#define SPRITE_TILE_IS_ALLOCATED(n) ((sSpriteTileAllocBitmap[(n) / 8] >> ((n) % 8)) & 1)
+#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1 << ((n) & 7)))
 
 
 struct SpriteCopyRequest
@@ -136,7 +136,7 @@ static const u8 sUnknownData[24] =
     0x02, 0x04, 0x08, 0x20,
 };
 
-static const u8 sCenterToCornerVecTable[3][4][2] =
+static const s8 sCenterToCornerVecTable[3][4][2] =
 {
     {   // square
         {  -4,  -4 },
@@ -271,7 +271,7 @@ static const struct OamDimensions sOamDimensions[3][4] =
 
 // iwram bss
 static u16 sSpriteTileRangeTags[MAX_SPRITES];
-static u16 sSpriteTileRanges[MAX_SPRITES * 2];
+static u16 sSpriteTileRanges[MAX_SPRITES][2];
 static struct AffineAnimState sAffineAnimStates[OAM_MATRIX_COUNT];
 static u16 sSpritePaletteTags[16];
 
@@ -373,14 +373,15 @@ void BuildSpritePriorities(void)
 
 void SortSprites(void)
 {
-    u8 i;
-    for (i = 1; i < MAX_SPRITES; i++)
-    {
-        u8 j = i;
-        struct Sprite *sprite1 = &gSprites[sSpriteOrder[i - 1]];
-        struct Sprite *sprite2 = &gSprites[sSpriteOrder[i]];
-        u16 sprite1Priority = sSpritePriorities[sSpriteOrder[i - 1]];
-        u16 sprite2Priority = sSpritePriorities[sSpriteOrder[i]];
+    unsigned int i, j;
+    u8 key;
+    for (i = 1; i < MAX_SPRITES; i++) {
+        j = i;
+        key = sSpriteOrder[j];
+        struct Sprite *sprite1 = &gSprites[sSpriteOrder[j - 1]];
+        struct Sprite *sprite2 = &gSprites[key];
+        u16 sprite1Priority = sSpritePriorities[sSpriteOrder[j - 1]];
+        u16 sprite2Priority = sSpritePriorities[key];
         s16 sprite1Y = sprite1->oam.y;
         s16 sprite2Y = sprite2->oam.y;
 
@@ -411,24 +412,19 @@ void SortSprites(void)
                     sprite2Y = sprite2Y - 256;
             }
         }
-
-        while (j > 0
-            && ((sprite1Priority > sprite2Priority)
-             || (sprite1Priority == sprite2Priority && sprite1Y < sprite2Y)))
-        {
-            u8 temp = sSpriteOrder[j];
+ 
+        /* Move elements of arr[0..i-1], that are
+          greater than key, to one position ahead
+          of their current position */
+        while (((sprite1Priority > sprite2Priority)
+             || (sprite1Priority == sprite2Priority && sprite1Y < sprite2Y))) {
             sSpriteOrder[j] = sSpriteOrder[j - 1];
-            sSpriteOrder[j - 1] = temp;
 
-            // UB: If j equals 1, then j-- makes j equal 0.
-            // Then, sSpriteOrder[-1] gets accessed below.
-            // Although this doesn't result in a bug in the ROM,
-            // the behavior is undefined.
-            j--;
-#ifdef UBFIX
+            j = j - 1;
+
             if (j == 0)
                 break;
-#endif
+
 
             sprite1 = &gSprites[sSpriteOrder[j - 1]];
             sprite2 = &gSprites[sSpriteOrder[j]];
@@ -465,6 +461,7 @@ void SortSprites(void)
                 }
             }
         }
+        sSpriteOrder[j] = key;
     }
 }
 
@@ -473,7 +470,7 @@ void CopyMatricesToOamBuffer(void)
     u8 i;
     for (i = 0; i < OAM_MATRIX_COUNT; i++)
     {
-        u32 base = 4 * i;
+        u32 base = i << 2;
         gMain.oamBuffer[base + 0].affineParam = gOamMatrices[i].a;
         gMain.oamBuffer[base + 1].affineParam = gOamMatrices[i].b;
         gMain.oamBuffer[base + 2].affineParam = gOamMatrices[i].c;
@@ -483,21 +480,18 @@ void CopyMatricesToOamBuffer(void)
 
 void AddSpritesToOamBuffer(void)
 {
-    u8 i = 0;
-    u8 oamIndex = 0;
+    u8 i, oamIndex = 0;
 
-    while (i < MAX_SPRITES)
+    for (i = 0; i < MAX_SPRITES; i++)
     {
         struct Sprite *sprite = &gSprites[sSpriteOrder[i]];
         if (sprite->inUse && !sprite->invisible && AddSpriteToOamBuffer(sprite, &oamIndex))
             return;
-        i++;
     }
 
-    while (oamIndex < gOamLimit)
+    for (; oamIndex < gOamLimit; oamIndex++)
     {
         gMain.oamBuffer[oamIndex] = gDummyOamData;
-        oamIndex++;
     }
 }
 
@@ -688,13 +682,13 @@ void ResetSprite(struct Sprite *sprite)
 
 void CalcCenterToCornerVec(struct Sprite *sprite, u8 shape, u8 size, u8 affineMode)
 {
-    u8 x = sCenterToCornerVecTable[shape][size][0];
-    u8 y = sCenterToCornerVecTable[shape][size][1];
+    s8 x = sCenterToCornerVecTable[shape][size][0];
+    s8 y = sCenterToCornerVecTable[shape][size][1];
 
     if (affineMode & ST_OAM_AFFINE_DOUBLE_MASK)
     {
-        x *= 2;
-        y *= 2;
+        x = x << 1;
+        y = y << 1;
     }
 
     sprite->centerToCornerVecX = x;
@@ -1211,13 +1205,15 @@ void SetSpriteMatrixAnchor(struct Sprite *sprite, s16 x, s16 y)
 static s32 GetAnchorCoord(s32 a0, s32 a1, s32 coord)
 {
     s32 subResult, var1;
+    s32 result;
 
     subResult = a1 - a0;
     if (subResult < 0)
         var1 = -(subResult) >> 9;
     else
         var1 = -(subResult >> 9);
-    return coord - ((u32)(coord * a1) / (u32)(a0) + var1);
+    result = coord - ((coord * a1) / (a0) + var1);
+    return result;
 }
 
 static void UpdateSpriteMatrixAnchorPos(struct Sprite *sprite, s32 x, s32 y)
@@ -1510,14 +1506,10 @@ void FreeSpriteTilesByTag(u16 tag)
     if (index != 0xFF)
     {
         u16 i;
-        u16 *rangeStarts;
-        u16 *rangeCounts;
         u16 start;
         u16 count;
-        rangeStarts = sSpriteTileRanges;
-        start = rangeStarts[index * 2];
-        rangeCounts = sSpriteTileRanges + 1;
-        count = rangeCounts[index * 2];
+        start = sSpriteTileRanges[index][0];
+        count = sSpriteTileRanges[index][1];
 
         for (i = start; i < start + count; i++)
             FREE_SPRITE_TILE(i);
@@ -1542,7 +1534,7 @@ u16 GetSpriteTileStartByTag(u16 tag)
     u8 index = IndexOfSpriteTileTag(tag);
     if (index == 0xFF)
         return 0xFFFF;
-    return sSpriteTileRanges[index * 2];
+    return sSpriteTileRanges[index][0];
 }
 
 u8 IndexOfSpriteTileTag(u16 tag)
@@ -1562,7 +1554,7 @@ u16 GetSpriteTileTagByTileStart(u16 start)
 
     for (i = 0; i < MAX_SPRITES; i++)
     {
-        if (sSpriteTileRangeTags[i] != TAG_NONE && sSpriteTileRanges[i * 2] == start)
+        if (sSpriteTileRangeTags[i] != TAG_NONE && sSpriteTileRanges[i][0] == start)
             return sSpriteTileRangeTags[i];
     }
 
@@ -1698,8 +1690,8 @@ bool8 AddSubspritesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u
     else
     {
         u16 tileNum;
-        u16 baseX;
-        u16 baseY;
+        s16 baseX;
+        s16 baseY;
         u8 subspriteCount;
         u8 hFlip;
         u8 vFlip;
@@ -1707,44 +1699,38 @@ bool8 AddSubspritesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u
 
         tileNum = oam->tileNum;
         subspriteCount = subspriteTable->subspriteCount;
-        hFlip = ((s32)oam->matrixNum >> 3) & 1;
-        vFlip = ((s32)oam->matrixNum >> 4) & 1;
-        baseX = oam->x - sprite->centerToCornerVecX;
-        baseY = oam->y - sprite->centerToCornerVecY;
+        hFlip = (oam->matrixNum >> 3) & 1;
+        vFlip = (oam->matrixNum >> 4) & 1;
+        baseX = (s16)oam->x - (s16)sprite->centerToCornerVecX;
+        baseY = (s16)oam->y - (s16)sprite->centerToCornerVecY;
 
         for (i = 0; i < subspriteCount; i++, (*oamIndex)++)
         {
-            u16 x;
-            u16 y;
+            s16 x;
+            s16 y;
 
             if (*oamIndex >= gOamLimit)
                 return 1;
 
-            x = subspriteTable->subsprites[i].x;
-            y = subspriteTable->subsprites[i].y;
+            x = (s16)subspriteTable->subsprites[i].x;
+            y = (s16)subspriteTable->subsprites[i].y;
 
             if (hFlip)
             {
-                s8 width = sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].width;
-                s16 right = x;
-                right += width;
-                x = right;
+                x += (s16)sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].width;
                 x = ~x + 1;
             }
 
             if (vFlip)
             {
-                s8 height = sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].height;
-                s16 bottom = y;
-                bottom += height;
-                y = bottom;
+                y += (s16)sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].height;
                 y = ~y + 1;
             }
 
             destOam[i] = *oam;
             destOam[i].shape = subspriteTable->subsprites[i].shape;
             destOam[i].size = subspriteTable->subsprites[i].size;
-            destOam[i].x = (s16)baseX + (s16)x;
+            destOam[i].x = baseX + x;
             destOam[i].y = baseY + y;
             destOam[i].tileNum = tileNum + subspriteTable->subsprites[i].tileOffset;
 
