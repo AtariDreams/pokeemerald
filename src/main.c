@@ -220,7 +220,7 @@ u16 GetGeneratedTrainerIdLower(void)
 
 void EnableVCountIntrAtLine150(void)
 {
-    u16 gpuReg = (150 << 8) | *(vu8 *)REG_DISPSTAT;
+    u16 gpuReg = (150 << 8) | (REG_DISPSTAT & 0xFF);
     SetGpuReg(REG_OFFSET_DISPSTAT, gpuReg | DISPSTAT_VCOUNT_INTR);
     EnableInterrupts(INTR_FLAG_VCOUNT);
 }
