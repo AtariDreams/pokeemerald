@@ -2251,7 +2251,7 @@ static void LoadDescendsSceneGfx(void)
 // Draw ray of light emerging from the clouds
 static void HBlankCB_RayDescends(void)
 {
-    u16 vcount = GetGpuReg(REG_OFFSET_VCOUNT);
+    u16 vcount = REG_VCOUNT;
     if (vcount >= 24 && vcount <= 135 && vcount - 24 <= sRayScene->revealedLightLine)
         REG_BLDALPHA = 0xD08; // This line is above where light has been revealed, draw it
     else
