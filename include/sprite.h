@@ -218,11 +218,7 @@ struct Sprite
     /*0x3E*/ bool16 inUse:1;               //1
              bool16 coordOffsetEnabled:1;  //2
              bool16 invisible:1;           //4
-             bool16 flags_3:1;             //8
-             bool16 flags_4:1;             //0x10
-             bool16 flags_5:1;             //0x20
-             bool16 flags_6:1;             //0x40
-             bool16 flags_7:1;             //0x80
+             u16 pad:5;
     /*0x3F*/ bool16 hFlip:1;               //1
              bool16 vFlip:1;               //2
              bool16 animBeginning:1;       //4
