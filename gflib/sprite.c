@@ -1718,13 +1718,13 @@ bool8 AddSubspritesToOamBuffer(struct Sprite *sprite, struct OamData *destOam, u
             if (hFlip)
             {
                 x += (s16)sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].width;
-                x = ~x + 1;
+                x = -x;
             }
 
             if (vFlip)
             {
                 y += (s16)sOamDimensions[subspriteTable->subsprites[i].shape][subspriteTable->subsprites[i].size].height;
-                y = ~y + 1;
+                y = -y;
             }
 
             destOam[i] = *oam;
