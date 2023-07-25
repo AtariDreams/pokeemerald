@@ -132,8 +132,7 @@ void *AllocZeroedInternal(void *heapStart, u32 size)
     void *mem = AllocInternal(heapStart, size);
 
     if (mem != NULL) {
-        if (size & 3)
-            size = 4 * ((size / 4) + 1);
+        size += (-size & 3);
 
         CpuFill32(0, mem, size);
     }
