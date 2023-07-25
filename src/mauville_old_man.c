@@ -20,7 +20,6 @@
 #include "field_message_box.h"
 #include "script_menu.h"
 #include "trader.h"
-#include "m4a.h"
 #include "constants/mauville_old_man.h"
 
 static void InitGiddyTaleList(void);

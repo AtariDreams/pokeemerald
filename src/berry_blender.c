@@ -7,7 +7,6 @@
 #include "sprite.h"
 #include "sound.h"
 #include "m4a.h"
-#include "bg.h"
 #include "palette.h"
 #include "decompress.h"
 #include "malloc.h"
