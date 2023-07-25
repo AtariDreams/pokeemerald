@@ -9,7 +9,6 @@
 #include "menu_specialized.h"
 #include "mon_markings.h"
 #include "palette.h"
-#include "pokenav.h"
 #include "scanline_effect.h"
 #include "string_util.h"
 #include "strings.h"
