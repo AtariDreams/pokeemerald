@@ -9,7 +9,6 @@
 #include "bg.h"
 #include "window.h"
 #include "strings.h"
-#include "text_window.h"
 #include "menu.h"
 #include "palette.h"
 #include "constants/songs.h"

@@ -61,7 +61,6 @@
 #include "constants/songs.h"
 #include "constants/moves.h"
 #include "constants/party_menu.h"
-#include "constants/battle_frontier.h"
 #include "constants/weather.h"
 #include "constants/metatile_labels.h"
 #include "palette.h"

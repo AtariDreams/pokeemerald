@@ -21,7 +21,6 @@
 #include "strings.h"
 #include "menu.h"
 #include "gpu_regs.h"
-#include "graphics.h"
 #include "pokemon_summary_screen.h"
 #include "item_menu.h"
 

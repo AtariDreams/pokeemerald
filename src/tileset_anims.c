@@ -4,7 +4,6 @@
 #include "util.h"
 #include "battle_transition.h"
 #include "task.h"
-#include "battle_transition.h"
 #include "fieldmap.h"
 
 static EWRAM_DATA struct {
