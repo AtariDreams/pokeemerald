@@ -631,16 +631,26 @@ void InitTilesetAnim_Building(void)
 
 static void TilesetAnim_General(u16 timer)
 {
-    if (timer % 16 == 0)
+    switch (timer % 16)
+    {
+    case 0:
         QueueAnimTiles_General_Flower(timer / 16);
-    if (timer % 16 == 1)
+        break;
+    case 1:
         QueueAnimTiles_General_Water(timer / 16);
-    if (timer % 16 == 2)
+        break;
+    case 2:
         QueueAnimTiles_General_SandWaterEdge(timer / 16);
-    if (timer % 16 == 3)
+        break;
+    case 3:
         QueueAnimTiles_General_Waterfall(timer / 16);
-    if (timer % 16 == 4)
+        break;
+    case 4:
         QueueAnimTiles_General_LandWaterEdge(timer / 16);
+        break;
+    default:
+        break;
+    }
 }
 
 static void TilesetAnim_Building(u16 timer)
@@ -651,6 +661,7 @@ static void TilesetAnim_Building(u16 timer)
 
 static void QueueAnimTiles_General_Flower(u16 timer)
 {
+
     u16 i = timer % ARRAY_COUNT(gTilesetAnims_General_Flower);
     AppendTilesetAnimToBuffer(gTilesetAnims_General_Flower[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(508)), 4 * TILE_SIZE_4BPP);
 }
@@ -836,25 +847,10 @@ void InitTilesetAnim_BattleDome(void)
 
 static void TilesetAnim_Rustboro(u16 timer)
 {
+    QueueAnimTiles_Rustboro_WindyWater(timer / 8, timer % 8);
+
     if (timer % 8 == 0)
-    {
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 0);
         QueueAnimTiles_Rustboro_Fountain(timer / 8);
-    }
-    if (timer % 8 == 1)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 1);
-    if (timer % 8 == 2)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 2);
-    if (timer % 8 == 3)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 3);
-    if (timer % 8 == 4)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 4);
-    if (timer % 8 == 5)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 5);
-    if (timer % 8 == 6)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 6);
-    if (timer % 8 == 7)
-        QueueAnimTiles_Rustboro_WindyWater(timer / 8, 7);
 }
 
 static void TilesetAnim_Dewford(u16 timer)
@@ -871,57 +867,27 @@ static void TilesetAnim_Slateport(u16 timer)
 
 static void TilesetAnim_Mauville(u16 timer)
 {
-    if (timer % 8 == 0)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 0);
-    if (timer % 8 == 1)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 1);
-    if (timer % 8 == 2)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 2);
-    if (timer % 8 == 3)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 3);
-    if (timer % 8 == 4)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 4);
-    if (timer % 8 == 5)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 5);
-    if (timer % 8 == 6)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 6);
-    if (timer % 8 == 7)
-        QueueAnimTiles_Mauville_Flowers(timer / 8, 7);
+    QueueAnimTiles_Mauville_Flowers(timer / 8, timer % 8);
 }
 
 static void TilesetAnim_Lavaridge(u16 timer)
 {
     if (timer % 16 == 0)
         QueueAnimTiles_Lavaridge_Steam(timer / 16);
-    if (timer % 16 == 1)
+   else if (timer % 16 == 1)
         QueueAnimTiles_Lavaridge_Lava(timer / 16);
 }
 
 static void TilesetAnim_EverGrande(u16 timer)
 {
-    if (timer % 8 == 0)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 0);
-    if (timer % 8 == 1)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 1);
-    if (timer % 8 == 2)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 2);
-    if (timer % 8 == 3)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 3);
-    if (timer % 8 == 4)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 4);
-    if (timer % 8 == 5)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 5);
-    if (timer % 8 == 6)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 6);
-    if (timer % 8 == 7)
-        QueueAnimTiles_EverGrande_Flowers(timer / 8, 7);
+    QueueAnimTiles_EverGrande_Flowers(timer / 8, timer % 8);
 }
 
 static void TilesetAnim_Pacifidlog(u16 timer)
 {
     if (timer % 16 == 0)
         QueueAnimTiles_Pacifidlog_LogBridges(timer / 16);
-    if (timer % 16 == 1)
+    else if (timer % 16 == 1)
         QueueAnimTiles_Pacifidlog_WaterCurrents(timer / 16);
 }
 
@@ -966,7 +932,7 @@ static void QueueAnimTiles_Lavaridge_Steam(u8 timer)
     u8 i = timer % ARRAY_COUNT(gTilesetAnims_Lavaridge_Steam);
     AppendTilesetAnimToBuffer(gTilesetAnims_Lavaridge_Steam[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY + 288)), 4 * TILE_SIZE_4BPP);
 
-    i = (timer + 2) % (int)ARRAY_COUNT(gTilesetAnims_Lavaridge_Steam);
+    i = (timer + 2) % ARRAY_COUNT(gTilesetAnims_Lavaridge_Steam);
     AppendTilesetAnimToBuffer(gTilesetAnims_Lavaridge_Steam[i], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(NUM_TILES_IN_PRIMARY + 292)), 4 * TILE_SIZE_4BPP);
 }
 
@@ -1077,10 +1043,11 @@ static void TilesetAnim_SootopolisGym(u16 timer)
 
 static void TilesetAnim_EliteFour(u16 timer)
 {
-    if (timer % 64 == 1)
-        QueueAnimTiles_EliteFour_GroundLights(timer / 64);
-    if (timer % 8 == 1)
+    if (timer % 8 == 1) {
         QueueAnimTiles_EliteFour_WallLights(timer / 8);
+        if (timer % 64 == 1)
+            QueueAnimTiles_EliteFour_GroundLights(timer / 64);
+    }
 }
 
 static void TilesetAnim_BikeShop(u16 timer)
@@ -1168,8 +1135,8 @@ static void QueueAnimTiles_BattlePyramid_StatueShadow(u16 timer)
 static void BlendAnimPalette_BattleDome_FloorLights(u16 timer)
 {
     CpuCopy16(sTilesetAnims_BattleDomeFloorLightPals[timer % ARRAY_COUNT(sTilesetAnims_BattleDomeFloorLightPals)], &gPlttBufferUnfaded[BG_PLTT_ID(8)], PLTT_SIZE_4BPP);
-    BlendPalette(BG_PLTT_ID(8), 16, gPaletteFade.y, gPaletteFade.blendColor & 0x7FFF);
-    if ((u8)FindTaskIdByFunc(Task_BattleTransition_Intro) != TASK_NONE)
+    BlendPalette(BG_PLTT_ID(8), 16, gPaletteFade.y, gPaletteFade.blendColor);
+    if (FindTaskIdByFunc(Task_BattleTransition_Intro) != TASK_NONE)
     {
         sSecondaryTilesetAnimCallback = TilesetAnim_BattleDome2;
         sSecondaryTilesetAnimCounterMax = 32;
@@ -1179,9 +1146,9 @@ static void BlendAnimPalette_BattleDome_FloorLights(u16 timer)
 static void BlendAnimPalette_BattleDome_FloorLightsNoBlend(u16 timer)
 {
     CpuCopy16(sTilesetAnims_BattleDomeFloorLightPals[timer % ARRAY_COUNT(sTilesetAnims_BattleDomeFloorLightPals)], &gPlttBufferUnfaded[BG_PLTT_ID(8)], PLTT_SIZE_4BPP);
-    if ((u8)FindTaskIdByFunc(Task_BattleTransition_Intro) == TASK_NONE)
+    if (FindTaskIdByFunc(Task_BattleTransition_Intro) == TASK_NONE)
     {
-        BlendPalette(BG_PLTT_ID(8), 16, gPaletteFade.y, gPaletteFade.blendColor & 0x7FFF);
+        BlendPalette(BG_PLTT_ID(8), 16, gPaletteFade.y, gPaletteFade.blendColor);
         if (!--sSecondaryTilesetAnimCounterMax)
             sSecondaryTilesetAnimCallback = NULL;
     }
