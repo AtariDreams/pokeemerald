@@ -243,7 +243,7 @@ static void SetFontsPointer(const struct FontInfo *fonts)
 
 void DeactivateAllTextPrinters(void)
 {
-    int printer;
+    unsigned int printer;
     for (printer = 0; printer < WINDOWS_MAX; ++printer)
         sTextPrinters[printer].active = FALSE;
 }
@@ -270,7 +270,7 @@ u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 
 
 bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
-    int i;
+    unsigned int i;
     u16 j;
 
     if (!gFonts)
@@ -282,7 +282,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     sTempTextPrinter.delayCounter = 0;
     sTempTextPrinter.scrollDistance = 0;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
+    for (i = 0; i < ARRAY_COUNT(sTempTextPrinter.subStructFields); i++)
         sTempTextPrinter.subStructFields[i] = 0;
 
     sTempTextPrinter.printerTemplate = *printerTemplate;
@@ -293,7 +293,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
     GenerateFontHalfRowLookupTable(printerTemplate->fgColor, printerTemplate->bgColor, printerTemplate->shadowColor);
     if (speed != TEXT_SKIP_DRAW && speed != 0)
     {
-        --sTempTextPrinter.textSpeed;
+        sTempTextPrinter.textSpeed--;
         sTextPrinters[printerTemplate->windowId] = sTempTextPrinter;
     }
     else
@@ -318,7 +318,7 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 
 void RunTextPrinters(void)
 {
-    int i;
+    unsigned int i;
 
     if (!gDisableTextPrinters)
     {
@@ -352,12 +352,11 @@ bool16 IsTextPrinterActive(u8 id)
 static u32 RenderFont(struct TextPrinter *textPrinter)
 {
     u32 ret;
-    while (TRUE)
+    do
     {
         ret = gFonts[textPrinter->printerTemplate.fontId].fontFunction(textPrinter);
-        if (ret != RENDER_REPEAT)
-            return ret;
-    }
+    } while (ret == RENDER_REPEAT);
+    return ret;
 }
 
 void GenerateFontHalfRowLookupTable(u8 fgColor, u8 bgColor, u8 shadowColor)
@@ -650,25 +649,21 @@ void ClearTextSpan(struct TextPrinter *textPrinter, u32 width)
 {
     struct Window *window;
     struct Bitmap pixels_data;
-    struct TextGlyph *glyph;
-    u8 *glyphHeight;
 
-    if (sLastTextBgColor != TEXT_COLOR_TRANSPARENT)
+    if (sLastTextBgColor == TEXT_COLOR_TRANSPARENT)
+        return;
     {
         window = &gWindows[textPrinter->printerTemplate.windowId];
         pixels_data.pixels = window->tileData;
-        pixels_data.width = window->window.width << 3;
-        pixels_data.height = window->window.height << 3;
-
-        glyph = &gCurGlyph;
-        glyphHeight = &glyph->height;
+        pixels_data.width = window->window.width * 8;
+        pixels_data.height = window->window.height * 8;
 
         FillBitmapRect4Bit(
             &pixels_data,
             textPrinter->printerTemplate.currentX,
             textPrinter->printerTemplate.currentY,
             width,
-            *glyphHeight,
+            gCurGlyph.height,
             sLastTextBgColor);
     }
 }
