@@ -9,16 +9,6 @@ EWRAM_DATA ALIGNED(4) u8 gDecompressionBuffer[0x4000] = {0};
 
 static void DuplicateDeoxysTiles(void *pointer, s32 species);
 
-void LZDecompressWram(const u32 *src, void *dest)
-{
-    LZ77UnCompWram(src, dest);
-}
-
-void LZDecompressVram(const u32 *src, void *dest)
-{
-    LZ77UnCompVram(src, dest);
-}
-
 u16 LoadCompressedSpriteSheet(const struct CompressedSpriteSheet *src)
 {
     struct SpriteSheet dest;
@@ -138,7 +128,7 @@ static void UNUSED StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u
                 {
                     for (i = 0; i < 16; i++)
                     {
-                        if (j % 2 == 0)
+                        if (j & 1 == 0)
                         {
                             // Clear top half of top tile and bottom half of bottom tile when on even j
                             ((dest+i) + (k << 5))[((j >> 1) << 8)] = 0;
