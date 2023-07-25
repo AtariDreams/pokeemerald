@@ -21,7 +21,6 @@
 #include "tv.h"
 #include "text_window.h"
 #include "main_menu.h"
-#include "bg.h"
 #include "window.h"
 #include "constants/coins.h"
 #include "constants/rgb.h"

@@ -24,7 +24,6 @@
 #include "gpu_regs.h"
 #include "graphics.h"
 #include "item_menu_icons.h"
-#include "decompress.h"
 #include "international_string_util.h"
 #include "constants/items.h"
 #include "constants/rgb.h"
