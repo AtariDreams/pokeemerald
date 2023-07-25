@@ -48,7 +48,7 @@ void LoadSecondaryTilesetPalette(struct MapLayout const *mapLayout);
 void CopySecondaryTilesetToVramUsingHeap(struct MapLayout const *mapLayout);
 void CopyPrimaryTilesetToVram(const struct MapLayout *);
 void CopySecondaryTilesetToVram(const struct MapLayout *);
-const struct MapHeader *const GetMapHeaderFromConnection(const struct MapConnection *connection);
+const struct MapHeader *GetMapHeaderFromConnection(const struct MapConnection *connection);
 const struct MapConnection *GetMapConnectionAtPos(s16 x, s16 y);
 void MapGridSetMetatileImpassabilityAt(int x, int y, bool32 impassable);
 
