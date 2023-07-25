@@ -1310,24 +1310,24 @@ static bool8 DecompressGraphics(void)
     case 1:
         if (FreeTempTileDataBuffersIfPossible() != 1)
         {
-            LZDecompressWram(gSummaryPage_Info_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_INFO][0]);
+            LZ77UnCompWram(gSummaryPage_Info_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_INFO][0]);
             sMonSummaryScreen->switchCounter++;
         }
         break;
     case 2:
-        LZDecompressWram(gSummaryPage_InfoEgg_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_INFO][1]);
+        LZ77UnCompWram(gSummaryPage_InfoEgg_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_INFO][1]);
         sMonSummaryScreen->switchCounter++;
         break;
     case 3:
-        LZDecompressWram(gSummaryPage_Skills_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_SKILLS][1]);
+        LZ77UnCompWram(gSummaryPage_Skills_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_SKILLS][1]);
         sMonSummaryScreen->switchCounter++;
         break;
     case 4:
-        LZDecompressWram(gSummaryPage_BattleMoves_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][1]);
+        LZ77UnCompWram(gSummaryPage_BattleMoves_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][1]);
         sMonSummaryScreen->switchCounter++;
         break;
     case 5:
-        LZDecompressWram(gSummaryPage_ContestMoves_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][1]);
+        LZ77UnCompWram(gSummaryPage_ContestMoves_Tilemap, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][1]);
         sMonSummaryScreen->switchCounter++;
         break;
     case 6:
