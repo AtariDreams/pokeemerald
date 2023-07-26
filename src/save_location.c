@@ -5,7 +5,7 @@
 
 static bool32 IsCurMapInLocationList(const u16 *list)
 {
-    s32 i;
+    u32 i;
     u16 map = (gSaveBlock1Ptr->location.mapGroup << 8) + gSaveBlock1Ptr->location.mapNum;
 
     for (i = 0; list[i] != LIST_END; i++)
