@@ -1,9 +1,5 @@
 	.space 0x8
 	.include "main.o"
-	@ ../gflib/bg.o
-	.align 2
-gWindowTileAutoAllocEnabled:
-	.space 4
     @ ../gflib/window.o
 	.align 4
 gTransparentTileNumber:
