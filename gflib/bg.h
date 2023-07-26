@@ -77,7 +77,7 @@ u32 ChangeBgY_ScreenOff(u8 bg, u32 value, u8 op);
 u32 GetBgY(u8 bg);
 void SetBgAffine(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispCenterX, s16 dispCenterY, s16 scaleX, s16 scaleY, u16 rotationAngle);
 u8 Unused_AdjustBgMosaic(u8 val, u8 mode);
-void SetBgTilemapBuffer(u8 bg, void *tilemap);
+void SetBgTilemapBuffer(u8 bg, const void *tilemap);
 void UnsetBgTilemapBuffer(u8 bg);
 void *GetBgTilemapBuffer(u8 bg);
 void CopyToBgTilemapBuffer(u8 bg, const void *src, u16 mode, u16 destOffset);
