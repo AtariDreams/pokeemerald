@@ -3025,7 +3025,7 @@ static bool8 LoadEasyChatScreen(void)
     switch (sScreenControl->funcState)
     {
     case 0:
-        ResetBgsAndClearDma3BusyFlags(0);
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sEasyChatBgTemplates, ARRAY_COUNT(sEasyChatBgTemplates));
         SetBgTilemapBuffer(3, sScreenControl->bg3TilemapBuffer);
         SetBgTilemapBuffer(1, sScreenControl->bg1TilemapBuffer);
