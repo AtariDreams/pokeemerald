@@ -6,7 +6,7 @@
 #include "task.h"
 #include "fieldmap.h"
 
-static ALIGNED(8) EWRAM_DATA struct {
+static ALIGNED(4) EWRAM_DATA struct {
     const u16 *src;
     u16 *dest;
     u16 size;
