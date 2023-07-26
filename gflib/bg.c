@@ -33,9 +33,9 @@ struct BgConfig2
     u32 basePalette:4;
     u32 unk_3:18;
 
-    void *tilemap;
-    s32 bg_x;
-    s32 bg_y;
+    const void *tilemap;
+    u32 bg_x;
+    u32 bg_y;
 };
 
 static struct BgControl sGpuBgConfigs;
@@ -136,7 +136,7 @@ static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 
 
 static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
 {
-    if (!IsInvalidBg(bg) && sGpuBgConfigs.configs[bg].visible)
+    if (sGpuBgConfigs.configs[bg].visible)
     {
         switch (attributeId)
         {
@@ -169,22 +169,20 @@ u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 
     switch (mode)
     {
+    default:
+        cursor = -1;
+        break;
     case 0x1:
-        offset = sGpuBgConfigs.configs[bg].charBaseIndex * BG_CHAR_SIZE;
-        offset = destOffset + offset;
+        offset = sGpuBgConfigs.configs[bg].charBaseIndex * BG_CHAR_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
         if (cursor == -1)
             return -1;
         break;
     case 0x2:
-        offset = sGpuBgConfigs.configs[bg].mapBaseIndex * BG_SCREEN_SIZE;
-        offset = destOffset + offset;
+        offset = sGpuBgConfigs.configs[bg].mapBaseIndex * BG_SCREEN_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
         if (cursor == -1)
             return -1;
-        break;
-    default:
-        cursor = -1;
         break;
     }
 
@@ -527,7 +525,7 @@ u16 GetBgAttribute(u8 bg, u8 attributeId)
     }
 }
 
-s32 ChangeBgX(u8 bg, s32 value, u8 op)
+u32 ChangeBgX(u8 bg, u32 value, u8 op)
 {
     u8 mode;
     u16 temp1;
@@ -592,12 +590,12 @@ s32 ChangeBgX(u8 bg, s32 value, u8 op)
     return sGpuBgConfigs2[bg].bg_x;
 }
 
-s32 GetBgX(u8 bg)
+u32 GetBgX(u8 bg)
 {
     return sGpuBgConfigs2[bg].bg_x;
 }
 
-s32 ChangeBgY(u8 bg, s32 value, u8 op)
+u32 ChangeBgY(u8 bg, u32 value, u8 op)
 {
     u8 mode;
     u16 temp1;
@@ -605,8 +603,8 @@ s32 ChangeBgY(u8 bg, s32 value, u8 op)
 
     switch (op)
     {
-    case BG_COORD_SET:
     default:
+    case BG_COORD_SET:
         sGpuBgConfigs2[bg].bg_y = value;
         break;
     case BG_COORD_ADD:
@@ -662,7 +660,7 @@ s32 ChangeBgY(u8 bg, s32 value, u8 op)
     return sGpuBgConfigs2[bg].bg_y;
 }
 
-s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
+u32 ChangeBgY_ScreenOff(u8 bg, u32 value, u8 op)
 {
     u8 mode;
     u16 temp1;
@@ -728,7 +726,7 @@ s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
     return sGpuBgConfigs2[bg].bg_y;
 }
 
-s32 GetBgY(u8 bg)
+u32 GetBgY(u8 bg)
 {
     return sGpuBgConfigs2[bg].bg_y;
 }
@@ -811,18 +809,12 @@ u8 Unused_AdjustBgMosaic(u8 val, u8 mode)
 
 void SetBgTilemapBuffer(u8 bg, void *tilemap)
 {
-    if (!IsInvalidBg32(bg) && sGpuBgConfigs.configs[bg].visible)
-    {
-        sGpuBgConfigs2[bg].tilemap = tilemap;
-    }
+    sGpuBgConfigs2[bg].tilemap = tilemap;
 }
 
 void UnsetBgTilemapBuffer(u8 bg)
 {
-    if (!IsInvalidBg32(bg) && sGpuBgConfigs.configs[bg].visible)
-    {
-        sGpuBgConfigs2[bg].tilemap = NULL;
-    }
+    sGpuBgConfigs2[bg].tilemap = NULL;
 }
 
 void *GetBgTilemapBuffer(u8 bg)
@@ -832,7 +824,7 @@ void *GetBgTilemapBuffer(u8 bg)
 
 void CopyToBgTilemapBuffer(u8 bg, const void *src, u16 mode, u16 destOffset)
 {
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if (!IsTileMapOutsideWram(bg))
     {
         if (mode != 0)
             CpuCopy16(src, (void *)(sGpuBgConfigs2[bg].tilemap + (destOffset * 2)), mode);
@@ -845,7 +837,7 @@ void CopyBgTilemapBufferToVram(u8 bg)
 {
     u16 sizeToLoad;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if (!IsTileMapOutsideWram(bg))
     {
         switch (GetBgType(bg))
         {
