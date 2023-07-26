@@ -714,7 +714,7 @@ static bool8 AllocPartyMenuBg(void)
         return FALSE;
 
     memset(sPartyBgTilemapBuffer, 0, 0x800);
-    ResetBgsAndClearDma3BusyFlags(0);
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sPartyMenuBgTemplates, ARRAY_COUNT(sPartyMenuBgTemplates));
     SetBgTilemapBuffer(1, sPartyBgTilemapBuffer);
     ResetAllBgsCoordinates();

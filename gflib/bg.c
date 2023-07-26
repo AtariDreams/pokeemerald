@@ -280,7 +280,7 @@ int BgTileAllocOp(int bg, int offset, int count, int mode)
     return 0;
 }
 
-void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable)
+void ResetBgsAndClearDma3BusyFlags(void)
 {
     unsigned int i;
     ResetBgs();
@@ -290,7 +290,7 @@ void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable)
         sDmaBusyBitfield[i] = 0;
     }
 
-    gWindowTileAutoAllocEnabled = leftoverFireRedLeafGreenVariable;
+    gWindowTileAutoAllocEnabled = 0;
 }
 
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, u8 numTemplates)
