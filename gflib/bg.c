@@ -792,7 +792,7 @@ u8 Unused_AdjustBgMosaic(u8 val, u8 mode)
     return mosaic;
 }
 
-void SetBgTilemapBuffer(u8 bg, void *tilemap)
+void SetBgTilemapBuffer(u8 bg, const void *tilemap)
 {
     sGpuBgConfigs2[bg].tilemap = tilemap;
 }
@@ -804,7 +804,7 @@ void UnsetBgTilemapBuffer(u8 bg)
 
 void *GetBgTilemapBuffer(u8 bg)
 {
-    return sGpuBgConfigs2[bg].tilemap;
+    return (void *)sGpuBgConfigs2[bg].tilemap;
 }
 
 void CopyToBgTilemapBuffer(u8 bg, const void *src, u16 mode, u16 destOffset)
@@ -888,10 +888,11 @@ void CopyRectToBgTilemapBufferRect(u8 bg, const void *src, u8 srcX, u8 srcY, u8 
 {
     u16 screenWidth, screenHeight, screenSize;
     u16 var;
-    const void *srcPtr;
+    const u8 *srcPtr8;
+    const u16 *srcPtr16;
     u16 i, j;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if (!IsTileMapOutsideWram(bg))
     {
         screenSize = GetBgControlAttribute(bg, BG_CTRL_ATTR_SCREENSIZE);
         screenWidth = GetBgMetricTextMode(bg, 0x1) * 0x20;
@@ -899,29 +900,31 @@ void CopyRectToBgTilemapBufferRect(u8 bg, const void *src, u8 srcX, u8 srcY, u8 
         switch (GetBgType(bg))
         {
         case BG_TYPE_NORMAL:
-            srcPtr = src + ((srcY * srcWidth) + srcX) * 2;
+            srcPtr16 = (u16 *)src;
+            srcPtr16 += ((srcY * srcWidth) + srcX);
             for (i = destY; i < (destY + rectHeight); i++)
             {
                 for (j = destX; j < (destX + rectWidth); j++)
                 {
                     u16 index = GetTileMapIndexFromCoords(j, i, screenSize, screenWidth, screenHeight);
-                    CopyTileMapEntry(srcPtr, sGpuBgConfigs2[bg].tilemap + (index * 2), palette1, tileOffset, palette2);
-                    srcPtr += 2;
+                    CopyTileMapEntry(srcPtr16, ((u16*)sGpuBgConfigs2[bg].tilemap) + index, palette1, tileOffset, palette2);
+                    srcPtr16++;
                 }
-                srcPtr += (srcWidth - rectWidth) * 2;
+                srcPtr16 += (srcWidth - rectWidth);
             }
             break;
         case BG_TYPE_AFFINE:
-            srcPtr = src + ((srcY * srcWidth) + srcX);
+            srcPtr8 = (u8 *)src;
+            srcPtr8 += ((srcY * srcWidth) + srcX);
             var = GetBgMetricAffineMode(bg, 0x1);
             for (i = destY; i < (destY + rectHeight); i++)
             {
                 for (j = destX; j < (destX + rectWidth); j++)
                 {
-                    *(u8 *)(sGpuBgConfigs2[bg].tilemap + ((var * i) + j)) = *(u8 *)(srcPtr) + tileOffset;
-                    srcPtr++;
+                    *(u8 *)(sGpuBgConfigs2[bg].tilemap + ((i * var) + j)) = *srcPtr8 + tileOffset;
+                    srcPtr8++;
                 }
-                srcPtr += (srcWidth - rectWidth);
+                srcPtr8 += (srcWidth - rectWidth);
             }
             break;
         }
