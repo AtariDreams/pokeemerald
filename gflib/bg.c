@@ -88,8 +88,6 @@ enum
 
 static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 screenSize, u8 paletteMode, u8 priority, u8 mosaic, u8 wraparound)
 {
-    if (!IsInvalidBg(bg))
-    {
         if (charBaseIndex != 0xFF)
         {
             sGpuBgConfigs.configs[bg].charBaseIndex = charBaseIndex;
@@ -129,7 +127,6 @@ static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 
         sGpuBgConfigs.configs[bg].unknown_3 = 0;
 
         sGpuBgConfigs.configs[bg].visible = 1;
-    }
 }
 
 static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
