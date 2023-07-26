@@ -187,7 +187,7 @@ u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 static void ShowBgInternal(u8 bg)
 {
     u16 value;
-    if (!IsInvalidBg(bg) && sGpuBgConfigs.configs[bg].visible)
+    if (sGpuBgConfigs.configs[bg].visible)
     {
         value = sGpuBgConfigs.configs[bg].priority |
                 (sGpuBgConfigs.configs[bg].charBaseIndex << 2) |
