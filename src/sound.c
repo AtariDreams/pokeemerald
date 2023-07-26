@@ -211,8 +211,8 @@ void StopFanfareByFanfareNum(u8 fanfareNum)
 
 void PlayFanfare(u16 songNum)
 {
-    s32 i;
-    for (i = 0; (u32)i < ARRAY_COUNT(sFanfares); i++)
+    unsigned int i;
+    for (i = 0; i < ARRAY_COUNT(sFanfares); i++)
     {
         if (sFanfares[i].songNum == songNum)
         {
@@ -240,6 +240,7 @@ static void Task_Fanfare(u8 taskId)
     if (sFanfareCounter)
     {
         sFanfareCounter--;
+        return;
     }
     else
     {
@@ -250,15 +251,13 @@ static void Task_Fanfare(u8 taskId)
 
 static void CreateFanfareTask(void)
 {
-    if (FuncIsActiveTask(Task_Fanfare) != TRUE)
+    if (FuncIsActiveTask(Task_Fanfare) == TRUE) return;
         CreateTask(Task_Fanfare, 80);
 }
 
 void FadeInNewBGM(u16 songNum, u8 speed)
 {
-    if (gDisableMusic)
-        songNum = 0;
-    if (songNum == MUS_NONE)
+    if (gDisableMusic || songNum == MUS_NONE)
         songNum = 0;
     m4aSongNumStart(songNum);
     m4aMPlayImmInit(&gMPlayInfo_BGM);
@@ -371,7 +370,7 @@ void PlayCryInternal(u16 species, s8 pan, s8 volume, u8 priority, u8 mode)
     u32 release;
     u32 length;
     u32 pitch;
-    u32 chorus;
+    s8 chorus;
     u32 index;
     u8 table;
 
@@ -561,9 +560,7 @@ static void RestoreBGMVolumeAfterPokemonCry(void)
 
 void PlayBGM(u16 songNum)
 {
-    if (gDisableMusic)
-        songNum = 0;
-    if (songNum == MUS_NONE)
+    if (gDisableMusic || songNum == MUS_NONE)
         songNum = 0;
     m4aSongNumStart(songNum);
 }
