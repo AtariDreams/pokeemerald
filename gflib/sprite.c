@@ -819,26 +819,12 @@ void RequestSpriteCopy(const u8 *src, u8 *dest, u16 size)
 
 void CopyFromSprites(u8 *dest)
 {
-    u32 i;
-    u8 *src = (u8 *)gSprites;
-    for (i = 0; i < sizeof(struct Sprite) * MAX_SPRITES; i++)
-    {
-        *dest = *src;
-        dest++;
-        src++;
-    }
+    memcpy(dest, gSprites, sizeof(struct Sprite) * MAX_SPRITES);
 }
 
 void CopyToSprites(u8 *src)
 {
-    u32 i;
-    u8 *dest = (u8 *)gSprites;
-    for (i = 0; i < sizeof(struct Sprite) * MAX_SPRITES; i++)
-    {
-        *dest = *src;
-        src++;
-        dest++;
-    }
+    memcpy(gSprites, src, sizeof(struct Sprite) * MAX_SPRITES);
 }
 
 void ResetAllSprites(void)
