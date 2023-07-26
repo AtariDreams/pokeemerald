@@ -503,7 +503,7 @@ static void CB2_LoadEggHatch(void)
         gSpecialVar_0x8005 = GetCurrentMapMusic();
 
         ResetTempTileDataBuffers();
-        ResetBgsAndClearDma3BusyFlags(0);
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates_EggHatch, ARRAY_COUNT(sBgTemplates_EggHatch));
 
         ChangeBgX(1, 0, BG_COORD_SET);
