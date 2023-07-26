@@ -202,7 +202,7 @@ static void ShowBgInternal(u8 bg)
                 (sGpuBgConfigs.configs[bg].wraparound << 13) |
                 (sGpuBgConfigs.configs[bg].screenSize << 14);
 
-        SetGpuReg((bg << 1) + REG_OFFSET_BG0CNT, value);
+        SetGpuReg(REG_OFFSET_BG0CNT + (bg * 2), value);
 
         sGpuBgConfigs.bgVisibilityAndMode |= 1 << (bg + 8);
         sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
@@ -211,11 +211,8 @@ static void ShowBgInternal(u8 bg)
 
 static void HideBgInternal(u8 bg)
 {
-    if (!IsInvalidBg(bg))
-    {
-        sGpuBgConfigs.bgVisibilityAndMode &= ~(1 << (bg + 8));
-        sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
-    }
+    sGpuBgConfigs.bgVisibilityAndMode &= ~(1 << (bg + 8));
+    sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
 }
 
 static void SyncBgVisibilityAndMode(void)
@@ -263,10 +260,10 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
     SetGpuReg(REG_OFFSET_BG2PC, dest.pc);
     SetGpuReg(REG_OFFSET_BG2PD, dest.pd);
     SetGpuReg(REG_OFFSET_BG2PA, dest.pa);
-    SetGpuReg(REG_OFFSET_BG2X_L, (s16)(dest.dx));
-    SetGpuReg(REG_OFFSET_BG2X_H, (s16)(dest.dx >> 16));
-    SetGpuReg(REG_OFFSET_BG2Y_L, (s16)(dest.dy));
-    SetGpuReg(REG_OFFSET_BG2Y_H, (s16)(dest.dy >> 16));
+    SetGpuReg(REG_OFFSET_BG2X_L, dest.dx & 0xffff);
+    SetGpuReg(REG_OFFSET_BG2X_H, (dest.dx >> 16) & 0xffff);
+    SetGpuReg(REG_OFFSET_BG2Y_L, dest.dy & 0xffff);
+    SetGpuReg(REG_OFFSET_BG2Y_H, (dest.dy >> 16) & 0xffff);
 }
 
 bool8 IsInvalidBg(u8 bg)
@@ -285,7 +282,7 @@ int BgTileAllocOp(int bg, int offset, int count, int mode)
 
 void ResetBgsAndClearDma3BusyFlags(u32 leftoverFireRedLeafGreenVariable)
 {
-    int i;
+    unsigned int i;
     ResetBgs();
 
     for (i = 0; i < NUM_BACKGROUNDS; i++)
