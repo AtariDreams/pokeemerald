@@ -1108,9 +1108,6 @@ u32 GetTileMapIndexFromCoords(s32 x, s32 y, s32 screenSize, u32 screenWidth, u32
 
     switch (screenSize)
     {
-    case 0:
-    case 2:
-        break;
     case 3:
         if (y >= 0x20)
             y += 0x20;
@@ -1120,6 +1117,9 @@ u32 GetTileMapIndexFromCoords(s32 x, s32 y, s32 screenSize, u32 screenWidth, u32
             x -= 0x20;
             y += 0x20;
         }
+        break;
+    case 0:
+    case 2:
         break;
     }
     return (y * 0x20) + x;
@@ -1141,8 +1141,8 @@ void CopyTileMapEntry(const u16 *src, u16 *dest, s32 palette1, s32 tileOffset, s
         var |= (*src + tileOffset) & 0x3FF;
         break;
     default:
-    case 17 ... INT_MAX:
-        var = *src + tileOffset + (palette2 << 12);
+    case 17:
+        var = (*src + tileOffset) + (palette2 << 12);
         break;
     }
     *dest = var;
