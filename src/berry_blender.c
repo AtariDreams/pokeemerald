@@ -1068,7 +1068,7 @@ static void CB2_LoadBerryBlender(void)
         ResetSpriteData();
         FreeAllSpritePalettes();
         SetVBlankCallback(NULL);
-        ResetBgsAndClearDma3BusyFlags(0);
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(1, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         SetBgTilemapBuffer(1, sBerryBlender->tilemapBuffers[0]);
         SetBgTilemapBuffer(2, sBerryBlender->tilemapBuffers[1]);
@@ -1504,7 +1504,7 @@ static void InitBlenderBgs(void)
 
     SetVBlankCallback(VBlankCB_BerryBlender);
 
-    ResetBgsAndClearDma3BusyFlags(0);
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(1, sBgTemplates, ARRAY_COUNT(sBgTemplates));
 
     SetBgTilemapBuffer(1, sBerryBlender->tilemapBuffers[0]);
