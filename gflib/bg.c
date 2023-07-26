@@ -42,8 +42,6 @@ static struct BgControl sGpuBgConfigs;
 static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
 static u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
 
-u32 gWindowTileAutoAllocEnabled;
-
 static const struct BgConfig sZeroedBgControlStruct = { 0 };
 
 static u32 GetBgType(u8 bg);
@@ -289,8 +287,6 @@ void ResetBgsAndClearDma3BusyFlags(void)
     {
         sDmaBusyBitfield[i] = 0;
     }
-
-    gWindowTileAutoAllocEnabled = 0;
 }
 
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates)
@@ -373,9 +369,6 @@ u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
     }
 
     sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
-
-    if (gWindowTileAutoAllocEnabled == TRUE)
-        BgTileAllocOp(bg, tileOffset / 0x20, size / 0x20, 1);
 
     return cursor;
 }
