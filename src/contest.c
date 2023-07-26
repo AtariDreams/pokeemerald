@@ -1047,7 +1047,7 @@ static void InitContestInfoBgs(void)
 {
     s32 i;
 
-    ResetBgsAndClearDma3BusyFlags(0);
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sContestBgTemplates, ARRAY_COUNT(sContestBgTemplates));
     SetBgAttribute(3, BG_ATTR_WRAPAROUND, 1);
     for (i = 0; i < CONTESTANT_COUNT; i++)
