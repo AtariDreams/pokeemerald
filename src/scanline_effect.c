@@ -100,18 +100,12 @@ void ScanlineEffect_InitHBlankDmaTransfer(void)
 
 static void CopyValue16Bit(void)
 {
-    vu16 *dest = (vu16 *)gScanlineEffect.dmaDest;
-    vu16 *src = (vu16 *)&gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer];
-
-    *dest = *src;
+    *(vu16*)(gScanlineEffect.dmaDest) = *(vu16*)(gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer]);
 }
 
 static void CopyValue32Bit(void)
 {
-    vu32 *dest = (vu32 *)gScanlineEffect.dmaDest;
-    vu32 *src = (vu32 *)&gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer];
-
-    *dest = *src;
+    *(vu32*)(gScanlineEffect.dmaDest) = *(vu32*)(gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer]);
 }
 
 #define tStartLine            data[0]
@@ -133,9 +127,8 @@ static void TaskFunc_UpdateWavePerFrame(u8 taskId)
     {
         DestroyTask(taskId);
         gScanlineEffect.waveTaskId = TASK_NONE;
+        return;
     }
-    else
-    {
         if (gTasks[taskId].tApplyBattleBgOffsets)
         {
             switch (gTasks[taskId].tRegOffset)
@@ -172,18 +165,16 @@ static void TaskFunc_UpdateWavePerFrame(u8 taskId)
             offset = gTasks[taskId].tSrcBufferOffset + 320;
             for (i = gTasks[taskId].tStartLine; i < gTasks[taskId].tEndLine; i++)
             {
-                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = gScanlineEffectRegBuffers[0][offset] + value;
-                offset++;
+                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = gScanlineEffectRegBuffers[0][offset++] + value;
             }
         }
         else
         {
             gTasks[taskId].tFramesUntilMove = gTasks[taskId].tDelayInterval;
-            offset = gTasks[taskId].tSrcBufferOffset + 320;
+            offset = 320 + gTasks[taskId].tSrcBufferOffset;
             for (i = gTasks[taskId].tStartLine; i < gTasks[taskId].tEndLine; i++)
             {
-                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = gScanlineEffectRegBuffers[0][offset] + value;
-                offset++;
+                gScanlineEffectRegBuffers[gScanlineEffect.srcBuffer][i] = gScanlineEffectRegBuffers[0][offset++] + value;
             }
 
             // increment src buffer offset
@@ -191,19 +182,17 @@ static void TaskFunc_UpdateWavePerFrame(u8 taskId)
             if (gTasks[taskId].tSrcBufferOffset == gTasks[taskId].tWaveLength)
                 gTasks[taskId].tSrcBufferOffset = 0;
         }
-    }
 }
 
 static void GenerateWave(u16 *buffer, u8 frequency, u8 amplitude, u8 unused)
 {
-    u16 i = 0;
-    u8 theta = 0;
+    u16 i;
+    u8 theta;
 
-    while (i < 256)
+    for(i=0,theta=0;i<256;i++)
     {
         buffer[i] = (gSineTable[theta] * amplitude) / 256;
         theta += frequency;
-        i++;
     }
 }
 
