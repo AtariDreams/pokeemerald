@@ -2509,21 +2509,21 @@ static void UpdateRainCounter(u8, u8);
 
 void SetSavedWeather(u32 weather)
 {
-    u8 oldWeather = gSaveBlock1Ptr->weather;
-    gSaveBlock1Ptr->weather = TranslateWeatherNum(weather);
-    UpdateRainCounter(gSaveBlock1Ptr->weather, oldWeather);
+    u8 oldWeather = gSaveBlock1.weather;
+    gSaveBlock1.weather = TranslateWeatherNum(weather);
+    UpdateRainCounter(gSaveBlock1.weather, oldWeather);
 }
 
 u8 GetSavedWeather(void)
 {
-    return gSaveBlock1Ptr->weather;
+    return gSaveBlock1.weather;
 }
 
 void SetSavedWeatherFromCurrMapHeader(void)
 {
-    u8 oldWeather = gSaveBlock1Ptr->weather;
-    gSaveBlock1Ptr->weather = TranslateWeatherNum(gMapHeader.weather);
-    UpdateRainCounter(gSaveBlock1Ptr->weather, oldWeather);
+    u8 oldWeather = gSaveBlock1.weather;
+    gSaveBlock1.weather = TranslateWeatherNum(gMapHeader.weather);
+    UpdateRainCounter(gSaveBlock1.weather, oldWeather);
 }
 
 void SetWeather(u32 weather)
@@ -2613,17 +2613,17 @@ static u8 TranslateWeatherNum(u8 weather)
     case WEATHER_DOWNPOUR:           return WEATHER_DOWNPOUR;
     case WEATHER_UNDERWATER_BUBBLES: return WEATHER_UNDERWATER_BUBBLES;
     case WEATHER_ABNORMAL:           return WEATHER_ABNORMAL;
-    case WEATHER_ROUTE119_CYCLE:     return sWeatherCycleRoute119[gSaveBlock1Ptr->weatherCycleStage];
-    case WEATHER_ROUTE123_CYCLE:     return sWeatherCycleRoute123[gSaveBlock1Ptr->weatherCycleStage];
+    case WEATHER_ROUTE119_CYCLE:     return sWeatherCycleRoute119[gSaveBlock1.weatherCycleStage];
+    case WEATHER_ROUTE123_CYCLE:     return sWeatherCycleRoute123[gSaveBlock1.weatherCycleStage];
     default:                         return WEATHER_NONE;
     }
 }
 
 void UpdateWeatherPerDay(u16 increment)
 {
-    u16 weatherStage = gSaveBlock1Ptr->weatherCycleStage + increment;
+    u16 weatherStage = gSaveBlock1.weatherCycleStage + increment;
     weatherStage %= WEATHER_CYCLE_LENGTH;
-    gSaveBlock1Ptr->weatherCycleStage = weatherStage;
+    gSaveBlock1.weatherCycleStage = weatherStage;
 }
 
 static void UpdateRainCounter(u8 newWeather, u8 oldWeather)

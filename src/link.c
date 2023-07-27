@@ -301,7 +301,7 @@ static void UNUSED LinkTestScreen(void)
     OpenLink();
     SeedRng(gMain.vblankCounter2);
     for (i = 0; i < TRAINER_ID_LENGTH; i++)
-        gSaveBlock2Ptr->playerTrainerId[i] = Random() % 256;
+        gSaveBlock2.playerTrainerId[i] = Random() % 256;
 
     InitLinkTestBG(0, 2, 4, 0, 0);
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_MODE_0 | DISPCNT_OBJ_1D_MAP | DISPCNT_BG0_ON | DISPCNT_BG2_ON | DISPCNT_OBJ_ON);
@@ -323,9 +323,9 @@ void SetLocalLinkPlayerId(u8 playerId)
 
 static void InitLocalLinkPlayer(void)
 {
-    gLocalLinkPlayer.trainerId = gSaveBlock2Ptr->playerTrainerId[0] | (gSaveBlock2Ptr->playerTrainerId[1] << 8) | (gSaveBlock2Ptr->playerTrainerId[2] << 16) | (gSaveBlock2Ptr->playerTrainerId[3] << 24);
-    StringCopy(gLocalLinkPlayer.name, gSaveBlock2Ptr->playerName);
-    gLocalLinkPlayer.gender = gSaveBlock2Ptr->playerGender;
+    gLocalLinkPlayer.trainerId = gSaveBlock2.playerTrainerId[0] | (gSaveBlock2.playerTrainerId[1] << 8) | (gSaveBlock2.playerTrainerId[2] << 16) | (gSaveBlock2.playerTrainerId[3] << 24);
+    StringCopy(gLocalLinkPlayer.name, gSaveBlock2.playerName);
+    gLocalLinkPlayer.gender = gSaveBlock2.playerGender;
     gLocalLinkPlayer.linkType = gLinkType;
     gLocalLinkPlayer.language = gGameLanguage;
     gLocalLinkPlayer.version = gGameVersion + 0x4000;

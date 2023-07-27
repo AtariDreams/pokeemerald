@@ -14,7 +14,7 @@ enum
     MAP_NUM, // map number
 };
 
-#define ROAMER (&gSaveBlock1Ptr->roamer)
+#define ROAMER (&gSaveBlock1.roamer)
 EWRAM_DATA static u8 sLocationHistory[3][2] = {0};
 EWRAM_DATA static u8 sRoamerLocation[2] = {0};
 
@@ -120,8 +120,8 @@ void UpdateLocationHistoryForRoamer(void)
     sLocationHistory[1][MAP_GRP] = sLocationHistory[0][MAP_GRP];
     sLocationHistory[1][MAP_NUM] = sLocationHistory[0][MAP_NUM];
 
-    sLocationHistory[0][MAP_GRP] = gSaveBlock1Ptr->location.mapGroup;
-    sLocationHistory[0][MAP_NUM] = gSaveBlock1Ptr->location.mapNum;
+    sLocationHistory[0][MAP_GRP] = gSaveBlock1.location.mapGroup;
+    sLocationHistory[0][MAP_NUM] = gSaveBlock1.location.mapNum;
 }
 
 void RoamerMoveToOtherLocationSet(void)
@@ -215,7 +215,7 @@ void CreateRoamerMonInstance(void)
 
 bool8 TryStartRoamerEncounter(void)
 {
-    if (IsRoamerAt(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum) == TRUE && (Random() % 4) == 0)
+    if (IsRoamerAt(gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum) == TRUE && (Random() % 4) == 0)
     {
         CreateRoamerMonInstance();
         return TRUE;
