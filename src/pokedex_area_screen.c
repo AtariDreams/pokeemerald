@@ -249,7 +249,7 @@ static void FindMapsWithMon(u16 species)
     if (sPokedexAreaScreen->alteringCaveId >= NUM_ALTERING_CAVE_TABLES)
         sPokedexAreaScreen->alteringCaveId = 0;
 
-    roamer = &gSaveBlock1Ptr->roamer;
+    roamer = &gSaveBlock1.roamer;
     if (species != roamer->species)
     {
         sPokedexAreaScreen->numOverworldAreas = 0;
@@ -671,7 +671,7 @@ static void Task_HandlePokedexAreaScreenInput(u8 taskId)
             gTasks[taskId].data[1] = 1;
             PlaySE(SE_PC_OFF);
         }
-        else if (JOY_NEW(DPAD_RIGHT) || (JOY_NEW(R_BUTTON) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
+        else if (JOY_NEW(DPAD_RIGHT) || (JOY_NEW(R_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR))
         {
             gTasks[taskId].data[1] = 2;
             PlaySE(SE_DEX_PAGE);

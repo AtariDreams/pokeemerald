@@ -31,15 +31,15 @@ extern u16 *const gSpecialVars[];
 
 void InitEventData(void)
 {
-    memset(gSaveBlock1Ptr->flags, 0, sizeof(gSaveBlock1Ptr->flags));
-    memset(gSaveBlock1Ptr->vars, 0, sizeof(gSaveBlock1Ptr->vars));
+    memset(gSaveBlock1.flags, 0, sizeof(gSaveBlock1.flags));
+    memset(gSaveBlock1.vars, 0, sizeof(gSaveBlock1.vars));
     memset(sSpecialFlags, 0, sizeof(sSpecialFlags));
 }
 
 void ClearTempFieldEventData(void)
 {
-    memset(&gSaveBlock1Ptr->flags[TEMP_FLAGS_START / 8], 0, TEMP_FLAGS_SIZE);
-    memset(&gSaveBlock1Ptr->vars[TEMP_VARS_START - VARS_START], 0, TEMP_VARS_SIZE);
+    memset(&gSaveBlock1.flags[TEMP_FLAGS_START / 8], 0, TEMP_FLAGS_SIZE);
+    memset(&gSaveBlock1.vars[TEMP_VARS_START - VARS_START], 0, TEMP_VARS_SIZE);
     FlagClear(FLAG_SYS_ENC_UP_ITEM);
     FlagClear(FLAG_SYS_ENC_DOWN_ITEM);
     FlagClear(FLAG_SYS_USE_STRENGTH);
@@ -49,13 +49,13 @@ void ClearTempFieldEventData(void)
 
 void ClearDailyFlags(void)
 {
-    memset(&gSaveBlock1Ptr->flags[DAILY_FLAGS_START / 8], 0, DAILY_FLAGS_SIZE);
+    memset(&gSaveBlock1.flags[DAILY_FLAGS_START / 8], 0, DAILY_FLAGS_SIZE);
 }
 
 void DisableNationalPokedex(void)
 {
     u16 *nationalDexVar = GetVarPointer(VAR_NATIONAL_DEX);
-    gSaveBlock2Ptr->pokedex.nationalMagic = 0;
+    gSaveBlock2.pokedex.nationalMagic = 0;
     *nationalDexVar = 0;
     FlagClear(FLAG_SYS_NATIONAL_DEX);
 }
@@ -63,17 +63,17 @@ void DisableNationalPokedex(void)
 void EnableNationalPokedex(void)
 {
     u16 *nationalDexVar = GetVarPointer(VAR_NATIONAL_DEX);
-    gSaveBlock2Ptr->pokedex.nationalMagic = 0xDA;
+    gSaveBlock2.pokedex.nationalMagic = 0xDA;
     *nationalDexVar = 0x302;
     FlagSet(FLAG_SYS_NATIONAL_DEX);
-    gSaveBlock2Ptr->pokedex.mode = DEX_MODE_NATIONAL;
-    gSaveBlock2Ptr->pokedex.order = 0;
+    gSaveBlock2.pokedex.mode = DEX_MODE_NATIONAL;
+    gSaveBlock2.pokedex.order = 0;
     ResetPokedexScrollPositions();
 }
 
 bool32 IsNationalPokedexEnabled(void)
 {
-    if (gSaveBlock2Ptr->pokedex.nationalMagic == 0xDA && VarGet(VAR_NATIONAL_DEX) == 0x302 && FlagGet(FLAG_SYS_NATIONAL_DEX))
+    if (gSaveBlock2.pokedex.nationalMagic == 0xDA && VarGet(VAR_NATIONAL_DEX) == 0x302 && FlagGet(FLAG_SYS_NATIONAL_DEX))
         return TRUE;
     else
         return FALSE;
@@ -166,7 +166,7 @@ u16 *GetVarPointer(u16 id)
     if (id < VARS_START)
         return NULL;
     else if (id < SPECIAL_VARS_START)
-        return &gSaveBlock1Ptr->vars[id - VARS_START];
+        return &gSaveBlock1.vars[id - VARS_START];
     else
         return gSpecialVars[id - SPECIAL_VARS_START];
 }
@@ -198,7 +198,7 @@ u8 *GetFlagPointer(u16 id)
     if (id == 0)
         return NULL;
     else if (id < SPECIAL_FLAGS_START)
-        return &gSaveBlock1Ptr->flags[id / 8];
+        return &gSaveBlock1.flags[id / 8];
     else
         return &sSpecialFlags[(id - SPECIAL_FLAGS_START) / 8];
 }

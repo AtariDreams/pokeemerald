@@ -766,7 +766,7 @@ static void Task_DisplayMainMenu(u8 taskId)
 
         // Note: If there is no save file, the save block is zeroed out,
         // so the default gender is MALE.
-        if (gSaveBlock2Ptr->playerGender == MALE)
+        if (gSaveBlock2.playerGender == MALE)
         {
             palette = RGB(4, 16, 31);
             LoadPalette(&palette, BG_PLTT_ID(15) + 1, PLTT_SIZEOF(1));
@@ -1507,13 +1507,13 @@ static void Task_NewGameBirchSpeech_ChooseGender(u8 taskId)
     {
         case MALE:
             PlaySE(SE_SELECT);
-            gSaveBlock2Ptr->playerGender = gender;
+            gSaveBlock2.playerGender = gender;
             NewGameBirchSpeech_ClearGenderWindow(1, 1);
             gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
             break;
         case FEMALE:
             PlaySE(SE_SELECT);
-            gSaveBlock2Ptr->playerGender = gender;
+            gSaveBlock2.playerGender = gender;
             NewGameBirchSpeech_ClearGenderWindow(1, 1);
             gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
             break;
@@ -1602,7 +1602,7 @@ static void Task_NewGameBirchSpeech_StartNamingScreen(u8 taskId)
         FreeAndDestroyMonPicSprite(gTasks[taskId].tLotadSpriteId);
         NewGameBirchSpeech_SetDefaultPlayerName(Random() % NUM_PRESET_NAMES);
         DestroyTask(taskId);
-        DoNamingScreen(NAMING_SCREEN_PLAYER, gSaveBlock2Ptr->playerName, gSaveBlock2Ptr->playerGender, 0, 0, CB2_NewGameBirchSpeech_ReturnFromNamingScreen);
+        DoNamingScreen(NAMING_SCREEN_PLAYER, gSaveBlock2.playerName, gSaveBlock2.playerGender, 0, 0, CB2_NewGameBirchSpeech_ReturnFromNamingScreen);
     }
 }
 
@@ -1712,7 +1712,7 @@ static void Task_NewGameBirchSpeech_AreYouReady(u8 taskId)
             gTasks[taskId].tTimer--;
             return;
         }
-        if (gSaveBlock2Ptr->playerGender != MALE)
+        if (gSaveBlock2.playerGender != MALE)
             spriteId = gTasks[taskId].tMaySpriteId;
         else
             spriteId = gTasks[taskId].tBrendanSpriteId;
@@ -1823,7 +1823,7 @@ static void CB2_NewGameBirchSpeech_ReturnFromNamingScreen(void)
     FreeAllSpritePalettes();
     ResetAllPicSprites();
     AddBirchSpeechObjects(taskId);
-    if (gSaveBlock2Ptr->playerGender != MALE)
+    if (gSaveBlock2.playerGender != MALE)
     {
         gTasks[taskId].tPlayerGender = FEMALE;
         spriteId = gTasks[taskId].tMaySpriteId;
@@ -2108,13 +2108,13 @@ static void NewGameBirchSpeech_SetDefaultPlayerName(u8 nameId)
     const u8 *name;
     u8 i;
 
-    if (gSaveBlock2Ptr->playerGender == MALE)
+    if (gSaveBlock2.playerGender == MALE)
         name = sMalePresetNames[nameId];
     else
         name = sFemalePresetNames[nameId];
     for (i = 0; i < PLAYER_NAME_LENGTH; i++)
-        gSaveBlock2Ptr->playerName[i] = name[i];
-    gSaveBlock2Ptr->playerName[PLAYER_NAME_LENGTH] = EOS;
+        gSaveBlock2.playerName[i] = name[i];
+    gSaveBlock2.playerName[PLAYER_NAME_LENGTH] = EOS;
 }
 
 static void CreateMainMenuErrorWindow(const u8 *str)
@@ -2140,7 +2140,7 @@ static void MainMenu_FormatSavegamePlayer(void)
 {
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuPlayer);
     AddTextPrinterParameterized3(2, FONT_NORMAL, 0, 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, gSaveBlock2Ptr->playerName, 100), 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gSaveBlock2Ptr->playerName);
+    AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, gSaveBlock2.playerName, 100), 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gSaveBlock2.playerName);
 }
 
 static void MainMenu_FormatSavegameTime(void)
@@ -2150,9 +2150,9 @@ static void MainMenu_FormatSavegameTime(void)
 
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuTime);
     AddTextPrinterParameterized3(2, FONT_NORMAL, 0x6C, 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
-    ptr = ConvertIntToDecimalStringN(str, gSaveBlock2Ptr->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
+    ptr = ConvertIntToDecimalStringN(str, gSaveBlock2.playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
     *ptr = 0xF0;
-    ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2Ptr->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
+    ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2.playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
     AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, str, 0xD0), 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
 }
 
@@ -2193,8 +2193,8 @@ static void MainMenu_FormatSavegameBadges(void)
 
 static void LoadMainMenuWindowFrameTiles(u8 bgId, u16 tileOffset)
 {
-    LoadBgTiles(bgId, GetWindowFrameTilesPal(gSaveBlock2Ptr->optionsWindowFrameType)->tiles, 0x120, tileOffset);
-    LoadPalette(GetWindowFrameTilesPal(gSaveBlock2Ptr->optionsWindowFrameType)->pal, BG_PLTT_ID(2), PLTT_SIZE_4BPP);
+    LoadBgTiles(bgId, GetWindowFrameTilesPal(gSaveBlock2.optionsWindowFrameType)->tiles, 0x120, tileOffset);
+    LoadPalette(GetWindowFrameTilesPal(gSaveBlock2.optionsWindowFrameType)->pal, BG_PLTT_ID(2), PLTT_SIZE_4BPP);
 }
 
 static void DrawMainMenuWindowBorder(const struct WindowTemplate *template, u16 baseTileNum)

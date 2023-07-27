@@ -418,14 +418,14 @@ static void ShowSafariBallsWindow(void)
 
 static void ShowPyramidFloorWindow(void)
 {
-    if (gSaveBlock2Ptr->frontier.curChallengeBattleNum == FRONTIER_STAGES_PER_CHALLENGE)
+    if (gSaveBlock2.frontier.curChallengeBattleNum == FRONTIER_STAGES_PER_CHALLENGE)
         sBattlePyramidFloorWindowId = AddWindow(&sWindowTemplate_PyramidPeak);
     else
         sBattlePyramidFloorWindowId = AddWindow(&sWindowTemplate_PyramidFloor);
 
     PutWindowTilemap(sBattlePyramidFloorWindowId);
     DrawStdWindowFrame(sBattlePyramidFloorWindowId, FALSE);
-    StringCopy(gStringVar1, sPyramidFloorNames[gSaveBlock2Ptr->frontier.curChallengeBattleNum]);
+    StringCopy(gStringVar1, sPyramidFloorNames[gSaveBlock2.frontier.curChallengeBattleNum]);
     StringExpandPlaceholders(gStringVar4, gText_BattlePyramidFloor);
     AddTextPrinterParameterized(sBattlePyramidFloorWindowId, FONT_NORMAL, gStringVar4, 0, 1, TEXT_SKIP_DRAW, NULL);
     CopyWindowToVram(sBattlePyramidFloorWindowId, COPYWIN_GFX);
@@ -1345,7 +1345,7 @@ static void ShowSaveInfoWindow(void)
     sSaveInfoWindowId = AddWindow(&saveInfoWindow);
     DrawStdWindowFrame(sSaveInfoWindowId, FALSE);
 
-    gender = gSaveBlock2Ptr->playerGender;
+    gender = gSaveBlock2.playerGender;
     color = TEXT_COLOR_RED;  // Red when female, blue when male.
 
     if (gender == MALE)

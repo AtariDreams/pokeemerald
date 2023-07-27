@@ -1838,7 +1838,7 @@ static void LinkOpponentHandleEndLinkBattle(void)
     else
         gBattleOutcome = gBattleBufferA[gActiveBattler][1] ^ B_OUTCOME_DREW;
 
-    gSaveBlock2Ptr->frontier.disableRecordBattle = gBattleBufferA[gActiveBattler][2];
+    gSaveBlock2.frontier.disableRecordBattle = gBattleBufferA[gActiveBattler][2];
     FadeOutMapMusic(5);
     BeginFastPaletteFade(3);
     LinkOpponentBufferExecCompleted();
