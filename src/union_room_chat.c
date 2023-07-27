@@ -930,7 +930,7 @@ static void InitUnionRoomChat(struct UnionRoomChat *chat)
     chat->changedRegisteredTexts = FALSE;
     PrepareSendBuffer_Null(chat->sendMessageBuffer);
     for (i = 0; i < UNION_ROOM_KB_ROW_COUNT; i++)
-        StringCopy(chat->registeredTexts[i], gSaveBlock1Ptr->registeredTexts[i]);
+        StringCopy(chat->registeredTexts[i], gSaveBlock1.registeredTexts[i]);
 }
 
 static void FreeUnionRoomChat(void)
@@ -1766,7 +1766,7 @@ static void SaveRegisteredTexts(void)
 {
     int i;
     for (i = 0; i < UNION_ROOM_KB_ROW_COUNT; i++)
-        StringCopy(gSaveBlock1Ptr->registeredTexts[i], sChat->registeredTexts[i]);
+        StringCopy(gSaveBlock1.registeredTexts[i], sChat->registeredTexts[i]);
 }
 
 static u8 *GetRegisteredTextByRow(int row)
@@ -1830,21 +1830,21 @@ static void PrepareSendBuffer_Null(u8 *buffer)
 static void PrepareSendBuffer_Join(u8 *buffer)
 {
     buffer[0] = CHAT_MESSAGE_JOIN;
-    StringCopy(&buffer[1], gSaveBlock2Ptr->playerName);
+    StringCopy(&buffer[1], gSaveBlock2.playerName);
     buffer[1 + (PLAYER_NAME_LENGTH + 1)] = sChat->multiplayerId;
 }
 
 static void PrepareSendBuffer_Chat(u8 *buffer)
 {
     buffer[0] = CHAT_MESSAGE_CHAT;
-    StringCopy(&buffer[1], gSaveBlock2Ptr->playerName);
+    StringCopy(&buffer[1], gSaveBlock2.playerName);
     StringCopy(&buffer[1 + (PLAYER_NAME_LENGTH + 1)], sChat->messageEntryBuffer);
 }
 
 static void PrepareSendBuffer_Leave(u8 *buffer)
 {
     buffer[0] = CHAT_MESSAGE_LEAVE;
-    StringCopy(&buffer[1], gSaveBlock2Ptr->playerName);
+    StringCopy(&buffer[1], gSaveBlock2.playerName);
     buffer[1 + (PLAYER_NAME_LENGTH + 1)] = sChat->multiplayerId;
     RfuSetNormalDisconnectMode();
 }
@@ -1852,14 +1852,14 @@ static void PrepareSendBuffer_Leave(u8 *buffer)
 static void PrepareSendBuffer_Drop(u8 *buffer)
 {
     buffer[0] = CHAT_MESSAGE_DROP;
-    StringCopy(&buffer[1], gSaveBlock2Ptr->playerName);
+    StringCopy(&buffer[1], gSaveBlock2.playerName);
     buffer[1 + (PLAYER_NAME_LENGTH + 1)] = sChat->multiplayerId;
 }
 
 static void PrepareSendBuffer_Disband(u8 *buffer)
 {
     buffer[0] = CHAT_MESSAGE_DISBAND;
-    StringCopy(&buffer[1], gSaveBlock2Ptr->playerName);
+    StringCopy(&buffer[1], gSaveBlock2.playerName);
     buffer[1 + (PLAYER_NAME_LENGTH + 1)] = sChat->multiplayerId;
 }
 
@@ -2010,16 +2010,16 @@ static u8 *GetChatHostName(void)
 
 void InitUnionRoomChatRegisteredTexts(void)
 {
-    StringCopy(gSaveBlock1Ptr->registeredTexts[0], gText_Hello);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[1], gText_Pokemon2);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[2], gText_Trade);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[3], gText_Battle);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[4], gText_Lets);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[5], gText_Ok);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[6], gText_Sorry);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[7], gText_YaySmileEmoji);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[8], gText_ThankYou);
-    StringCopy(gSaveBlock1Ptr->registeredTexts[9], gText_ByeBye);
+    StringCopy(gSaveBlock1.registeredTexts[0], gText_Hello);
+    StringCopy(gSaveBlock1.registeredTexts[1], gText_Pokemon2);
+    StringCopy(gSaveBlock1.registeredTexts[2], gText_Trade);
+    StringCopy(gSaveBlock1.registeredTexts[3], gText_Battle);
+    StringCopy(gSaveBlock1.registeredTexts[4], gText_Lets);
+    StringCopy(gSaveBlock1.registeredTexts[5], gText_Ok);
+    StringCopy(gSaveBlock1.registeredTexts[6], gText_Sorry);
+    StringCopy(gSaveBlock1.registeredTexts[7], gText_YaySmileEmoji);
+    StringCopy(gSaveBlock1.registeredTexts[8], gText_ThankYou);
+    StringCopy(gSaveBlock1.registeredTexts[9], gText_ByeBye);
 }
 
 #define tState               data[0]
@@ -2704,7 +2704,7 @@ static bool32 Display_PrintSavedTheGame(u8 *state)
     {
     case 0:
         DynamicPlaceholderTextUtil_Reset();
-        DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, gSaveBlock2Ptr->playerName);
+        DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, gSaveBlock2.playerName);
         AddStdMessageWindow(STDMESSAGE_SAVED_THE_GAME, 0);
         CopyWindowToVram(sDisplay->messageWindowId, COPYWIN_FULL);
         (*state)++;

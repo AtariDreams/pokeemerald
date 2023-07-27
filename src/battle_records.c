@@ -222,7 +222,7 @@ static void UpdateLinkBattleRecords(struct LinkBattleRecords *records, const u8 
 
 void ClearPlayerLinkBattleRecords(void)
 {
-    ClearLinkBattleRecords(gSaveBlock1Ptr->linkBattleRecords.entries);
+    ClearLinkBattleRecords(gSaveBlock1.linkBattleRecords.entries);
 }
 
 static void IncTrainerCardWins(s32 battlerId)
@@ -262,7 +262,7 @@ void UpdatePlayerLinkBattleRecords(s32 battlerId)
     {
         UpdateTrainerCardWinsLosses(battlerId);
         UpdateLinkBattleRecords(
-            &gSaveBlock1Ptr->linkBattleRecords,
+            &gSaveBlock1.linkBattleRecords,
             gTrainerCards[battlerId].playerName,
             gTrainerCards[battlerId].trainerId,
             gBattleOutcome,
@@ -323,14 +323,14 @@ void ShowLinkBattleRecords(void)
 
     x = GetStringCenterAlignXOffset(FONT_NORMAL, gStringVar4, 208);
     AddTextPrinterParameterized(gRecordsWindowId, FONT_NORMAL, gStringVar4, x, 1, 0, NULL);
-    PrintLinkBattleWinsLossesDraws(gSaveBlock1Ptr->linkBattleRecords.entries);
+    PrintLinkBattleWinsLossesDraws(gSaveBlock1.linkBattleRecords.entries);
 
     StringExpandPlaceholders(gStringVar4, gText_WinLoseDraw);
     AddTextPrinterParameterized(gRecordsWindowId, FONT_NORMAL, gStringVar4, 0, 41, 0, NULL);
 
     for (i = 0; i < LINK_B_RECORDS_COUNT; i++)
     {
-        PrintLinkBattleRecord(&gSaveBlock1Ptr->linkBattleRecords.entries[i], 7 + (i * 2), gSaveBlock1Ptr->linkBattleRecords.languages[i]);
+        PrintLinkBattleRecord(&gSaveBlock1.linkBattleRecords.entries[i], 7 + (i * 2), gSaveBlock1.linkBattleRecords.languages[i]);
     }
 
     PutWindowTilemap(gRecordsWindowId);
