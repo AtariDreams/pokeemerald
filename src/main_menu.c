@@ -1823,15 +1823,15 @@ static void CB2_NewGameBirchSpeech_ReturnFromNamingScreen(void)
     FreeAllSpritePalettes();
     ResetAllPicSprites();
     AddBirchSpeechObjects(taskId);
-    if (gSaveBlock2.playerGender != MALE)
-    {
-        gTasks[taskId].tPlayerGender = FEMALE;
-        spriteId = gTasks[taskId].tMaySpriteId;
-    }
-    else
+    if (gSaveBlock2.playerGender == MALE)
     {
         gTasks[taskId].tPlayerGender = MALE;
         spriteId = gTasks[taskId].tBrendanSpriteId;
+    }
+    else
+    {
+        gTasks[taskId].tPlayerGender = FEMALE;
+        spriteId = gTasks[taskId].tMaySpriteId;
     }
     gSprites[spriteId].x = 180;
     gSprites[spriteId].y = 60;
@@ -1963,24 +1963,23 @@ static void NewGameBirchSpeech_StartFadeOutTarget1InTarget2(u8 taskId, u8 delay)
 
 static void Task_NewGameBirchSpeech_FadeInTarget1OutTarget2(u8 taskId)
 {
-    int alphaCoeff2;
-
     if (gTasks[taskId].tAlphaCoeff1 == 16)
     {
         gTasks[gTasks[taskId].tMainTask].tIsDoneFadingSprites = TRUE;
         DestroyTask(taskId);
+        return;
     }
     else if (gTasks[taskId].tDelayTimer)
     {
         gTasks[taskId].tDelayTimer--;
+        return;
     }
     else
     {
         gTasks[taskId].tDelayTimer = gTasks[taskId].tDelay;
         gTasks[taskId].tAlphaCoeff1++;
         gTasks[taskId].tAlphaCoeff2--;
-        alphaCoeff2 = gTasks[taskId].tAlphaCoeff2 << 8;
-        SetGpuReg(REG_OFFSET_BLDALPHA, gTasks[taskId].tAlphaCoeff1 + alphaCoeff2);
+        SetGpuReg(REG_OFFSET_BLDALPHA, gTasks[taskId].tAlphaCoeff2 * 0x100 + gTasks[taskId].tAlphaCoeff1);
     }
 }
 
@@ -2019,14 +2018,17 @@ static void Task_NewGameBirchSpeech_FadePlatformIn(u8 taskId)
     if (gTasks[taskId].tDelayBefore)
     {
         gTasks[taskId].tDelayBefore--;
+        return;
     }
     else if (gTasks[taskId].tPalIndex == 8)
     {
         DestroyTask(taskId);
+        return;
     }
     else if (gTasks[taskId].tDelayTimer)
     {
         gTasks[taskId].tDelayTimer--;
+        return;
     }
     else
     {
@@ -2053,14 +2055,17 @@ static void Task_NewGameBirchSpeech_FadePlatformOut(u8 taskId)
     if (gTasks[taskId].tDelayBefore)
     {
         gTasks[taskId].tDelayBefore--;
+        return;
     }
     else if (gTasks[taskId].tPalIndex == 0)
     {
         DestroyTask(taskId);
+        return;
     }
     else if (gTasks[taskId].tDelayTimer)
     {
         gTasks[taskId].tDelayTimer--;
+        return;
     }
     else
     {
@@ -2151,8 +2156,8 @@ static void MainMenu_FormatSavegameTime(void)
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuTime);
     AddTextPrinterParameterized3(2, FONT_NORMAL, 0x6C, 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
     ptr = ConvertIntToDecimalStringN(str, gSaveBlock2.playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
-    *ptr = 0xF0;
-    ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2.playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
+    *ptr++ = 0xF0;
+    ConvertIntToDecimalStringN(ptr, gSaveBlock2.playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
     AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, str, 0xD0), 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
 }
 
