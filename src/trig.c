@@ -526,14 +526,12 @@ s16 Cos(s16 index, s16 amplitude)
 // angle in degrees
 s16 Sin2(u16 angle)
 {
-    s32 angleMod = angle % 180;
-    s32 negate = ((angle / 180) & 1);
-    s16 value = gSineDegreeTable[angleMod];
+    s16 value = gSineDegreeTable[angle % 180];
 
-    if (negate)
-        return -value;
-    else
-        return value;
+    if ((angle / 180) & 1)
+        value = -value;
+    
+    return value;
 }
 
 // angle in degrees
