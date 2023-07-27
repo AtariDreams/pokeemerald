@@ -7,17 +7,7 @@ static EWRAM_DATA const u8 *sStringPointers[8] = {};
 
 void DynamicPlaceholderTextUtil_Reset(void)
 {
-    const u8 **ptr;
-    u8 *fillval;
-    const u8 **ptr2;
-
-    ptr = sStringPointers;
-    fillval = NULL;
-    ptr2 = ptr + (ARRAY_COUNT(sStringPointers) - 1);
-    do
-    {
-        *ptr2-- = fillval;
-    } while ((int)ptr2 >= (int)ptr);
+    memset(sStringPointers, 0, ARRAY_COUNT(sStringPointers));
 }
 
 void DynamicPlaceholderTextUtil_SetPlaceholderPtr(u8 idx, const u8 *ptr)
