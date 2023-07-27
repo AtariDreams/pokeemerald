@@ -901,8 +901,6 @@ void HofPCTopBar_RemoveWindow(void)
 
 static u8 InitMenu(u8 windowId, u8 fontId, u8 left, u8 top, u8 cursorHeight, u8 numChoices, u8 initialCursorPos, bool8 muteAPress)
 {
-    s32 pos;
-
     sMenu.left = left;
     sMenu.top = top;
     sMenu.minCursorPos = 0;
@@ -912,12 +910,10 @@ static u8 InitMenu(u8 windowId, u8 fontId, u8 left, u8 top, u8 cursorHeight, u8 
     sMenu.optionHeight = cursorHeight;
     sMenu.APressMuted = muteAPress;
 
-    pos = initialCursorPos;
-
-    if (pos < 0 || pos > sMenu.maxCursorPos)
+    if (initialCursorPos < 0 || initialCursorPos > sMenu.maxCursorPos)
         sMenu.cursorPos = 0;
     else
-        sMenu.cursorPos = pos;
+        sMenu.cursorPos = initialCursorPos;
 
     Menu_MoveCursor(0);
     return sMenu.cursorPos;
@@ -1138,7 +1134,7 @@ void PrintMenuActionTexts(u8 windowId, u8 fontId, u8 left, u8 top, u8 letterSpac
     for (i = 0; i < itemCount; i++)
     {
         printer.currentChar = menuActions[actionIds[i]].text;
-        printer.y = (lineHeight * i) + top;
+        printer.y = top + (lineHeight * i);
         printer.currentY = printer.y;
         AddTextPrinter(&printer, TEXT_SKIP_DRAW, NULL);
     }
@@ -1259,7 +1255,7 @@ void PrintMenuActionGrid(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth
         for (j = 0; j < horizontalCount; j++)
         {
             printer.currentChar = menuActions[actionIds[(horizontalCount * i) + j]].text;
-            printer.x = (optionWidth * j) + left;
+            printer.x = left + (optionWidth * j);
             printer.y = (GetFontAttribute(fontId, FONTATTR_MAX_LETTER_HEIGHT) * i) + top;
             printer.currentX = printer.x;
             printer.currentY = printer.y;
@@ -1277,8 +1273,6 @@ static void UNUSED PrintMenuActionGrid_TopLeft(u8 windowId, u8 fontId, u8 option
 
 static u8 InitMenuGrid(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth, u8 optionHeight, u8 columns, u8 rows, u8 numChoices, u8 cursorPos)
 {
-    s32 pos;
-
     sMenu.left = left;
     sMenu.top = top;
     sMenu.minCursorPos = 0;
@@ -1290,12 +1284,10 @@ static u8 InitMenuGrid(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth, 
     sMenu.columns = columns;
     sMenu.rows = rows;
 
-    pos = cursorPos;
-
-    if (pos < 0 || pos > sMenu.maxCursorPos)
+    if (cursorPos < 0 || cursorPos > sMenu.maxCursorPos)
         sMenu.cursorPos = 0;
     else
-        sMenu.cursorPos = pos;
+        sMenu.cursorPos = cursorPos;
 
     // Why call this when it's not gonna move?
     ChangeMenuGridCursorPosition(MENU_CURSOR_DELTA_NONE, MENU_CURSOR_DELTA_NONE);
@@ -1751,15 +1743,15 @@ void DoScheduledBgTilemapCopiesToVram(void)
 
 void ResetTempTileDataBuffers(void)
 {
-    int i;
-    for (i = 0; i < (int)ARRAY_COUNT(sTempTileDataBuffer); i++)
+    unsigned int i;
+    for (i = 0; i < ARRAY_COUNT(sTempTileDataBuffer); i++)
         sTempTileDataBuffer[i] = NULL;
     sTempTileDataBufferIdx = 0;
 }
 
 bool8 FreeTempTileDataBuffersIfPossible(void)
 {
-    int i;
+    unsigned int i;
 
     if (!IsDma3ManagerBusyWithBgCopy())
     {
@@ -1980,7 +1972,7 @@ void AddTextPrinterParameterized5(u8 windowId, u8 fontId, const u8 *str, u8 left
 
 void PrintPlayerNameOnWindow(u8 windowId, const u8 *src, u16 x, u16 y)
 {
-    int count = 0;
+    u32 count = 0;
     while (gSaveBlock2.playerName[count] != EOS)
         count++;
 
