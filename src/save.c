@@ -15,11 +15,11 @@
 
 static u16 CalculateChecksum(void *, u16);
 static bool8 ReadFlashSector(u8, struct SaveSector *);
-static u8 GetSaveValidStatus(const struct SaveSectorLocation *);
-static u8 CopySaveSlotData(u16, struct SaveSectorLocation *);
+static u8 GetSaveValidStatus(const struct SaveBlockChunk *);
+static u8 CopySaveSlotData(u16, const struct SaveBlockChunk *);
 static u8 TryWriteSector(u8, u8 *);
-static u8 HandleWriteSector(u16, const struct SaveSectorLocation *);
-static u8 HandleReplaceSector(u16, const struct SaveSectorLocation *);
+static u8 HandleWriteSector(u16, const struct SaveBlockChunk *);
+static u8 HandleReplaceSector(u16, const struct SaveBlockChunk *);
 
 // Divide save blocks into individual chunks to be written to flash sectors
 
@@ -42,35 +42,32 @@ static u8 HandleReplaceSector(u16, const struct SaveSectorLocation *);
  * See SECTOR_ID_* constants in save.h
  */
 
-#define SAVEBLOCK_CHUNK(structure, chunkNum)                                   \
-{                                                                              \
-    chunkNum * SECTOR_DATA_SIZE,                                               \
-    sizeof(structure) >= chunkNum * SECTOR_DATA_SIZE ?                         \
-    min(sizeof(structure) - chunkNum * SECTOR_DATA_SIZE, SECTOR_DATA_SIZE) : 0 \
-}
+#define SAVEBLOCK_CHUNK_EX(structure, size, chunkNum)         \
+{                                                             \
+    (u8 *)structure + chunkNum * SECTOR_DATA_SIZE,            \
+    min(size - chunkNum * SECTOR_DATA_SIZE, SECTOR_DATA_SIZE) \
+}                                                             \
 
-struct
+#define SAVEBLOCK_CHUNK(structure, chunkNum) SAVEBLOCK_CHUNK_EX(&structure, sizeof(structure), chunkNum)
+
+static const struct SaveBlockChunk sSaveBlockChunks[NUM_SECTORS_PER_SLOT] =
 {
-    u16 offset;
-    u16 size;
-} static const sSaveSlotLayout[NUM_SECTORS_PER_SLOT] =
-{
-    SAVEBLOCK_CHUNK(struct SaveBlock2, 0), // SECTOR_ID_SAVEBLOCK2
+    SAVEBLOCK_CHUNK(gSaveBlock2, 0),
 
-    SAVEBLOCK_CHUNK(struct SaveBlock1, 0), // SECTOR_ID_SAVEBLOCK1_START
-    SAVEBLOCK_CHUNK(struct SaveBlock1, 1),
-    SAVEBLOCK_CHUNK(struct SaveBlock1, 2),
-    SAVEBLOCK_CHUNK(struct SaveBlock1, 3), // SECTOR_ID_SAVEBLOCK1_END
+    SAVEBLOCK_CHUNK(gSaveBlock1, 0),
+    SAVEBLOCK_CHUNK(gSaveBlock1, 1),
+    SAVEBLOCK_CHUNK(gSaveBlock1, 2),
+    SAVEBLOCK_CHUNK(gSaveBlock1, 3),
 
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 0), // SECTOR_ID_PKMN_STORAGE_START
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 1),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 2),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 3),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 4),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 5),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 6),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 7),
-    SAVEBLOCK_CHUNK(struct PokemonStorage, 8), // SECTOR_ID_PKMN_STORAGE_END
+    SAVEBLOCK_CHUNK(gPokemonStorage, 0),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 1),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 2),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 3),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 4),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 5),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 6),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 7),
+    SAVEBLOCK_CHUNK(gPokemonStorage, 8),
 };
 
 // These will produce an error if a save struct is larger than the space
@@ -89,7 +86,6 @@ u16 gIncrementalSectorId;
 u16 gSaveUnusedVar;
 u16 gSaveFileStatus;
 void (*gGameContinueCallback)(void);
-struct SaveSectorLocation gRamSaveSectorLocations[NUM_SECTORS_PER_SLOT];
 u16 gSaveUnusedVar2;
 u16 gSaveAttemptStatus;
 
@@ -136,7 +132,7 @@ static bool32 SetDamagedSectorBits(u8 op, u8 sectorId)
     return retVal;
 }
 
-static u8 WriteSaveSectorOrSlot(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 WriteSaveSectorOrSlot(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u32 status;
     u16 i;
@@ -174,7 +170,7 @@ static u8 WriteSaveSectorOrSlot(u16 sectorId, const struct SaveSectorLocation *l
     return status;
 }
 
-static u8 HandleWriteSector(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u16 i;
     u16 sector;
@@ -243,7 +239,7 @@ static u8 TryWriteSector(u8 sector, u8 *data)
     }
 }
 
-static u32 RestoreSaveBackupVarsAndIncrement(const struct SaveSectorLocation *locations)
+static u32 RestoreSaveBackupVarsAndIncrement(const struct SaveBlockChunk *locations)
 {
     gReadWriteSector = &gSaveDataBuffer;
     gLastKnownGoodSector = gLastWrittenSector;
@@ -256,7 +252,7 @@ static u32 RestoreSaveBackupVarsAndIncrement(const struct SaveSectorLocation *lo
     return 0;
 }
 
-static u32 RestoreSaveBackupVars(const struct SaveSectorLocation *locations)
+static u32 RestoreSaveBackupVars(const struct SaveBlockChunk *locations)
 {
     gReadWriteSector = &gSaveDataBuffer;
     gLastKnownGoodSector = gLastWrittenSector;
@@ -266,7 +262,7 @@ static u32 RestoreSaveBackupVars(const struct SaveSectorLocation *locations)
     return 0;
 }
 
-static u8 HandleWriteIncrementalSector(u16 numSectors, const struct SaveSectorLocation *locations)
+static u8 HandleWriteIncrementalSector(u16 numSectors, const struct SaveBlockChunk *locations)
 {
     u8 status;
 
@@ -291,7 +287,7 @@ static u8 HandleWriteIncrementalSector(u16 numSectors, const struct SaveSectorLo
     return status;
 }
 
-static u8 HandleReplaceSectorAndVerify(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 HandleReplaceSectorAndVerify(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u8 status = SAVE_STATUS_OK;
 
@@ -307,7 +303,7 @@ static u8 HandleReplaceSectorAndVerify(u16 sectorId, const struct SaveSectorLoca
 }
 
 // Similar to HandleWriteSector, but fully erases the sector first, and skips writing the first signature byte
-static u8 HandleReplaceSector(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 HandleReplaceSector(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u16 i;
     u16 sector;
@@ -391,7 +387,7 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveSectorLocation *loc
     }
 }
 
-static u8 WriteSectorSignatureByte_NoOffset(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 WriteSectorSignatureByte_NoOffset(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     // Adjust sector id for current save slot
     // This first line lacking -1 is the only difference from WriteSectorSignatureByte
@@ -416,7 +412,7 @@ static u8 WriteSectorSignatureByte_NoOffset(u16 sectorId, const struct SaveSecto
     }
 }
 
-static u8 CopySectorSignatureByte(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 CopySectorSignatureByte(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     // Adjust sector id for current save slot
     u16 sector = sectorId + gLastWrittenSector - 1;
@@ -440,7 +436,7 @@ static u8 CopySectorSignatureByte(u16 sectorId, const struct SaveSectorLocation 
     }
 }
 
-static u8 WriteSectorSignatureByte(u16 sectorId, const struct SaveSectorLocation *locations)
+static u8 WriteSectorSignatureByte(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     // Adjust sector id for current save slot
     u16 sector = sectorId + gLastWrittenSector - 1;
@@ -464,7 +460,7 @@ static u8 WriteSectorSignatureByte(u16 sectorId, const struct SaveSectorLocation
     }
 }
 
-static u8 TryLoadSaveSlot(u16 sectorId, struct SaveSectorLocation *locations)
+static u8 TryLoadSaveSlot(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u8 status;
     gReadWriteSector = &gSaveDataBuffer;
@@ -483,7 +479,7 @@ static u8 TryLoadSaveSlot(u16 sectorId, struct SaveSectorLocation *locations)
 }
 
 // sectorId arg is ignored, this always reads the full save slot
-static u8 CopySaveSlotData(u16 sectorId, struct SaveSectorLocation *locations)
+static u8 CopySaveSlotData(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u16 i;
     u16 checksum;
@@ -512,7 +508,7 @@ static u8 CopySaveSlotData(u16 sectorId, struct SaveSectorLocation *locations)
     return SAVE_STATUS_OK;
 }
 
-static u8 GetSaveValidStatus(const struct SaveSectorLocation *locations)
+static u8 GetSaveValidStatus(const struct SaveBlockChunk *locations)
 {
     u16 i;
     u16 checksum;
@@ -686,24 +682,6 @@ static u16 CalculateChecksum(void *data, u16 size)
     return ((checksum >> 16) + checksum);
 }
 
-static void UpdateSaveAddresses(void)
-{
-    int i = SECTOR_ID_SAVEBLOCK2;
-    gRamSaveSectorLocations[i].data = (void *)(gSaveBlock2Ptr) + sSaveSlotLayout[i].offset;
-    gRamSaveSectorLocations[i].size = sSaveSlotLayout[i].size;
-
-    for (i = SECTOR_ID_SAVEBLOCK1_START; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
-    {
-        gRamSaveSectorLocations[i].data = (void *)(gSaveBlock1Ptr) + sSaveSlotLayout[i].offset;
-        gRamSaveSectorLocations[i].size = sSaveSlotLayout[i].size;
-    }
-
-    for (; i <= SECTOR_ID_PKMN_STORAGE_END; i++) //setting i to SECTOR_ID_PKMN_STORAGE_START does not match
-    {
-        gRamSaveSectorLocations[i].data = (void *)(gPokemonStoragePtr) + sSaveSlotLayout[i].offset;
-        gRamSaveSectorLocations[i].size = sSaveSlotLayout[i].size;
-    }
-}
 
 u8 HandleSavingData(u8 saveType)
 {
@@ -712,7 +690,6 @@ u8 HandleSavingData(u8 saveType)
     u8 *tempAddr;
 
     gTrainerHillVBlankCounter = NULL;
-    UpdateSaveAddresses();
     switch (saveType)
     {
     case SAVE_HALL_OF_FAME_ERASE_BEFORE:
@@ -727,7 +704,7 @@ u8 HandleSavingData(u8 saveType)
 
         // Write the full save slot first
         CopyPartyAndObjectsToSave();
-        WriteSaveSectorOrSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
+        WriteSaveSectorOrSlot(FULL_SAVE_SLOT, sSaveBlockChunks);
 
         // Save the Hall of Fame
         tempAddr = gDecompressionBuffer;
@@ -737,7 +714,7 @@ u8 HandleSavingData(u8 saveType)
     case SAVE_NORMAL:
     default:
         CopyPartyAndObjectsToSave();
-        WriteSaveSectorOrSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
+        WriteSaveSectorOrSlot(FULL_SAVE_SLOT, sSaveBlockChunks);
         break;
     case SAVE_LINK:
     case SAVE_EREADER: // Dummied, now duplicate of SAVE_LINK
@@ -745,9 +722,9 @@ u8 HandleSavingData(u8 saveType)
         // Write only SaveBlocks 1 and 2 (skips the PC)
         CopyPartyAndObjectsToSave();
         for(i = SECTOR_ID_SAVEBLOCK2; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
-            HandleReplaceSector(i, gRamSaveSectorLocations);
+            HandleReplaceSector(i, sSaveBlockChunks);
         for(i = SECTOR_ID_SAVEBLOCK2; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
-            WriteSectorSignatureByte_NoOffset(i, gRamSaveSectorLocations);
+            WriteSectorSignatureByte_NoOffset(i, sSaveBlockChunks);
         break;
     case SAVE_OVERWRITE_DIFFERENT_FILE:
         // Erase Hall of Fame
@@ -756,7 +733,7 @@ u8 HandleSavingData(u8 saveType)
 
         // Overwrite save slot
         CopyPartyAndObjectsToSave();
-        WriteSaveSectorOrSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
+        WriteSaveSectorOrSlot(FULL_SAVE_SLOT, sSaveBlockChunks);
         break;
     }
     gTrainerHillVBlankCounter = backupVar;
@@ -789,15 +766,14 @@ bool8 LinkFullSave_Init(void)
 {
     if (gFlashMemoryPresent != TRUE)
         return TRUE;
-    UpdateSaveAddresses();
     CopyPartyAndObjectsToSave();
-    RestoreSaveBackupVarsAndIncrement(gRamSaveSectorLocations);
+    RestoreSaveBackupVarsAndIncrement(sSaveBlockChunks);
     return FALSE;
 }
 
 bool8 LinkFullSave_WriteSector(void)
 {
-    u8 status = HandleWriteIncrementalSector(NUM_SECTORS_PER_SLOT, gRamSaveSectorLocations);
+    u8 status = HandleWriteIncrementalSector(NUM_SECTORS_PER_SLOT, sSaveBlockChunks);
     if (gDamagedSaveSectors)
         DoSaveFailedScreen(SAVE_NORMAL);
 
@@ -812,7 +788,7 @@ bool8 LinkFullSave_WriteSector(void)
 
 bool8 LinkFullSave_ReplaceLastSector(void)
 {
-    HandleReplaceSectorAndVerify(NUM_SECTORS_PER_SLOT, gRamSaveSectorLocations);
+    HandleReplaceSectorAndVerify(NUM_SECTORS_PER_SLOT, sSaveBlockChunks);
     if (gDamagedSaveSectors)
         DoSaveFailedScreen(SAVE_NORMAL);
     return FALSE;
@@ -820,7 +796,7 @@ bool8 LinkFullSave_ReplaceLastSector(void)
 
 bool8 LinkFullSave_SetLastSectorSignature(void)
 {
-    CopySectorSignatureByte(NUM_SECTORS_PER_SLOT, gRamSaveSectorLocations);
+    CopySectorSignatureByte(NUM_SECTORS_PER_SLOT, sSaveBlockChunks);
     if (gDamagedSaveSectors)
         DoSaveFailedScreen(SAVE_NORMAL);
     return FALSE;
@@ -831,13 +807,12 @@ u8 WriteSaveBlock2(void)
     if (gFlashMemoryPresent != TRUE)
         return TRUE;
 
-    UpdateSaveAddresses();
     CopyPartyAndObjectsToSave();
-    RestoreSaveBackupVars(gRamSaveSectorLocations);
+    RestoreSaveBackupVars(sSaveBlockChunks);
 
     // Because RestoreSaveBackupVars is called immediately prior, gIncrementalSectorId will always be 0 below,
     // so this function only saves the first sector (SECTOR_ID_SAVEBLOCK2)
-    HandleReplaceSectorAndVerify(gIncrementalSectorId + 1, gRamSaveSectorLocations);
+    HandleReplaceSectorAndVerify(gIncrementalSectorId + 1, sSaveBlockChunks);
     return FALSE;
 }
 
@@ -851,15 +826,15 @@ bool8 WriteSaveBlock1Sector(void)
     if (sectorId <= SECTOR_ID_SAVEBLOCK1_END)
     {
         // Write a single sector of SaveBlock1
-        HandleReplaceSectorAndVerify(gIncrementalSectorId + 1, gRamSaveSectorLocations);
-        WriteSectorSignatureByte(sectorId, gRamSaveSectorLocations);
+        HandleReplaceSectorAndVerify(gIncrementalSectorId + 1, sSaveBlockChunks);
+        WriteSectorSignatureByte(sectorId, sSaveBlockChunks);
     }
     else
     {
         // Beyond SaveBlock1, don't write the sector.
         // Does write 1 byte of the next sector's signature field, but as these
         // are the same for all valid sectors it doesn't matter.
-        WriteSectorSignatureByte(sectorId, gRamSaveSectorLocations);
+        WriteSectorSignatureByte(sectorId, sSaveBlockChunks);
         finished = TRUE;
     }
 
@@ -879,12 +854,11 @@ u8 LoadGameSave(u8 saveType)
         return SAVE_STATUS_ERROR;
     }
 
-    UpdateSaveAddresses();
     switch (saveType)
     {
     case SAVE_NORMAL:
     default:
-        status = TryLoadSaveSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
+        status = TryLoadSaveSlot(FULL_SAVE_SLOT, sSaveBlockChunks);
         CopyPartyAndObjectsFromSave();
         gSaveFileStatus = status;
         gGameContinueCallback = 0;
@@ -907,8 +881,7 @@ u16 GetSaveBlocksPointersBaseOffset(void)
     sector = gReadWriteSector = &gSaveDataBuffer;
     if (gFlashMemoryPresent != TRUE)
         return 0;
-    UpdateSaveAddresses();
-    GetSaveValidStatus(gRamSaveSectorLocations);
+    GetSaveValidStatus(sSaveBlockChunks);
     slotOffset = NUM_SECTORS_PER_SLOT * (gSaveCounter % NUM_SAVE_SLOTS);
     for (i = 0; i < NUM_SECTORS_PER_SLOT; i++)
     {

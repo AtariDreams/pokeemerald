@@ -663,71 +663,71 @@ static void UNUSED UpdateHPAtStart(u8 battler)
 static void InitArenaChallenge(void)
 {
     bool32 isCurrent;
-    u32 lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
+    u32 lvlMode = gSaveBlock2.frontier.lvlMode;
 
-    gSaveBlock2Ptr->frontier.challengeStatus = 0;
-    gSaveBlock2Ptr->frontier.curChallengeBattleNum = 0;
-    gSaveBlock2Ptr->frontier.challengePaused = FALSE;
-    gSaveBlock2Ptr->frontier.disableRecordBattle = FALSE;
+    gSaveBlock2.frontier.challengeStatus = 0;
+    gSaveBlock2.frontier.curChallengeBattleNum = 0;
+    gSaveBlock2.frontier.challengePaused = FALSE;
+    gSaveBlock2.frontier.disableRecordBattle = FALSE;
     if (lvlMode != FRONTIER_LVL_50)
-        isCurrent = gSaveBlock2Ptr->frontier.winStreakActiveFlags & STREAK_ARENA_OPEN;
+        isCurrent = gSaveBlock2.frontier.winStreakActiveFlags & STREAK_ARENA_OPEN;
     else
-        isCurrent = gSaveBlock2Ptr->frontier.winStreakActiveFlags & STREAK_ARENA_50;
+        isCurrent = gSaveBlock2.frontier.winStreakActiveFlags & STREAK_ARENA_50;
 
     if (!isCurrent)
-        gSaveBlock2Ptr->frontier.arenaWinStreaks[lvlMode] = 0;
+        gSaveBlock2.frontier.arenaWinStreaks[lvlMode] = 0;
 
-    SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE);
+    SetDynamicWarp(0, gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum, WARP_ID_NONE);
     gTrainerBattleOpponent_A = 0;
 }
 
 static void GetArenaData(void)
 {
-    u32 lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
+    u32 lvlMode = gSaveBlock2.frontier.lvlMode;
 
     switch (gSpecialVar_0x8005)
     {
     case ARENA_DATA_PRIZE:
-        gSpecialVar_Result = gSaveBlock2Ptr->frontier.arenaPrize;
+        gSpecialVar_Result = gSaveBlock2.frontier.arenaPrize;
         break;
     case ARENA_DATA_WIN_STREAK:
-        gSpecialVar_Result = gSaveBlock2Ptr->frontier.arenaWinStreaks[lvlMode];
+        gSpecialVar_Result = gSaveBlock2.frontier.arenaWinStreaks[lvlMode];
         break;
     case ARENA_DATA_WIN_STREAK_ACTIVE:
         if (lvlMode != FRONTIER_LVL_50)
-            gSpecialVar_Result = gSaveBlock2Ptr->frontier.winStreakActiveFlags & STREAK_ARENA_OPEN;
+            gSpecialVar_Result = gSaveBlock2.frontier.winStreakActiveFlags & STREAK_ARENA_OPEN;
         else
-            gSpecialVar_Result = gSaveBlock2Ptr->frontier.winStreakActiveFlags & STREAK_ARENA_50;
+            gSpecialVar_Result = gSaveBlock2.frontier.winStreakActiveFlags & STREAK_ARENA_50;
         break;
     }
 }
 
 static void SetArenaData(void)
 {
-    u32 lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
+    u32 lvlMode = gSaveBlock2.frontier.lvlMode;
 
     switch (gSpecialVar_0x8005)
     {
     case ARENA_DATA_PRIZE:
-        gSaveBlock2Ptr->frontier.arenaPrize = gSpecialVar_0x8006;
+        gSaveBlock2.frontier.arenaPrize = gSpecialVar_0x8006;
         break;
     case ARENA_DATA_WIN_STREAK:
-        gSaveBlock2Ptr->frontier.arenaWinStreaks[lvlMode] = gSpecialVar_0x8006;
+        gSaveBlock2.frontier.arenaWinStreaks[lvlMode] = gSpecialVar_0x8006;
         break;
     case ARENA_DATA_WIN_STREAK_ACTIVE:
         if (lvlMode != FRONTIER_LVL_50)
         {
             if (gSpecialVar_0x8006)
-                gSaveBlock2Ptr->frontier.winStreakActiveFlags |= STREAK_ARENA_OPEN;
+                gSaveBlock2.frontier.winStreakActiveFlags |= STREAK_ARENA_OPEN;
             else
-                gSaveBlock2Ptr->frontier.winStreakActiveFlags &= ~(STREAK_ARENA_OPEN);
+                gSaveBlock2.frontier.winStreakActiveFlags &= ~(STREAK_ARENA_OPEN);
         }
         else
         {
             if (gSpecialVar_0x8006)
-                gSaveBlock2Ptr->frontier.winStreakActiveFlags |= STREAK_ARENA_50;
+                gSaveBlock2.frontier.winStreakActiveFlags |= STREAK_ARENA_50;
             else
-                gSaveBlock2Ptr->frontier.winStreakActiveFlags &= ~(STREAK_ARENA_50);
+                gSaveBlock2.frontier.winStreakActiveFlags &= ~(STREAK_ARENA_50);
         }
         break;
     }
@@ -735,28 +735,28 @@ static void SetArenaData(void)
 
 static void SaveArenaChallenge(void)
 {
-    gSaveBlock2Ptr->frontier.challengeStatus = gSpecialVar_0x8005;
+    gSaveBlock2.frontier.challengeStatus = gSpecialVar_0x8005;
     VarSet(VAR_TEMP_CHALLENGE_STATUS, 0);
-    gSaveBlock2Ptr->frontier.challengePaused = TRUE;
+    gSaveBlock2.frontier.challengePaused = TRUE;
     SaveGameFrontier();
 }
 
 static void SetArenaPrize(void)
 {
-    u32 lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
+    u32 lvlMode = gSaveBlock2.frontier.lvlMode;
 
-    if (gSaveBlock2Ptr->frontier.arenaWinStreaks[lvlMode] > 41)
-        gSaveBlock2Ptr->frontier.arenaPrize = sLongStreakPrizeItems[Random() % ARRAY_COUNT(sLongStreakPrizeItems)];
+    if (gSaveBlock2.frontier.arenaWinStreaks[lvlMode] > 41)
+        gSaveBlock2.frontier.arenaPrize = sLongStreakPrizeItems[Random() % ARRAY_COUNT(sLongStreakPrizeItems)];
     else
-        gSaveBlock2Ptr->frontier.arenaPrize = sShortStreakPrizeItems[Random() % ARRAY_COUNT(sShortStreakPrizeItems)];
+        gSaveBlock2.frontier.arenaPrize = sShortStreakPrizeItems[Random() % ARRAY_COUNT(sShortStreakPrizeItems)];
 }
 
 static void GiveArenaPrize(void)
 {
-    if (AddBagItem(gSaveBlock2Ptr->frontier.arenaPrize, 1) == TRUE)
+    if (AddBagItem(gSaveBlock2.frontier.arenaPrize, 1) == TRUE)
     {
-        CopyItemName(gSaveBlock2Ptr->frontier.arenaPrize, gStringVar1);
-        gSaveBlock2Ptr->frontier.arenaPrize = ITEM_NONE;
+        CopyItemName(gSaveBlock2.frontier.arenaPrize, gStringVar1);
+        gSaveBlock2.frontier.arenaPrize = ITEM_NONE;
         gSpecialVar_Result = TRUE;
     }
     else

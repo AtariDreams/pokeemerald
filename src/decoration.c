@@ -519,14 +519,14 @@ void InitDecorationContextItems(void)
 
     if (sDecorationContext.isPlayerRoom == FALSE)
     {
-        sDecorationContext.items = gSaveBlock1Ptr->secretBases[0].decorations;
-        sDecorationContext.pos = gSaveBlock1Ptr->secretBases[0].decorationPositions;
+        sDecorationContext.items = gSaveBlock1.secretBases[0].decorations;
+        sDecorationContext.pos = gSaveBlock1.secretBases[0].decorationPositions;
     }
 
     if (sDecorationContext.isPlayerRoom == TRUE)
     {
-        sDecorationContext.items = gSaveBlock1Ptr->playerRoomDecorations;
-        sDecorationContext.pos = gSaveBlock1Ptr->playerRoomDecorationPositions;
+        sDecorationContext.items = gSaveBlock1.playerRoomDecorations;
+        sDecorationContext.pos = gSaveBlock1.playerRoomDecorationPositions;
     }
 }
 
@@ -581,8 +581,8 @@ static void InitDecorationActionsWindow(void)
 void DoSecretBaseDecorationMenu(u8 taskId)
 {
     InitDecorationActionsWindow();
-    sDecorationContext.items = gSaveBlock1Ptr->secretBases[0].decorations;
-    sDecorationContext.pos = gSaveBlock1Ptr->secretBases[0].decorationPositions;
+    sDecorationContext.items = gSaveBlock1.secretBases[0].decorations;
+    sDecorationContext.pos = gSaveBlock1.secretBases[0].decorationPositions;
     sDecorationContext.size = DECOR_MAX_SECRET_BASE;
     sDecorationContext.isPlayerRoom = FALSE;
     gTasks[taskId].func = HandleDecorationActionsMenuInput;
@@ -591,8 +591,8 @@ void DoSecretBaseDecorationMenu(u8 taskId)
 void DoPlayerRoomDecorationMenu(u8 taskId)
 {
     InitDecorationActionsWindow();
-    sDecorationContext.items = gSaveBlock1Ptr->playerRoomDecorations;
-    sDecorationContext.pos = gSaveBlock1Ptr->playerRoomDecorationPositions;
+    sDecorationContext.items = gSaveBlock1.playerRoomDecorations;
+    sDecorationContext.pos = gSaveBlock1.playerRoomDecorationPositions;
     sDecorationContext.size = DECOR_MAX_PLAYERS_HOUSE;
     sDecorationContext.isPlayerRoom = TRUE;
     gTasks[taskId].func = HandleDecorationActionsMenuInput;
@@ -1078,11 +1078,11 @@ static void IdentifyOwnedDecorationsCurrentlyInUseInternal(u8 taskId)
 
     for (i = 0; i < ARRAY_COUNT(sSecretBaseItemsIndicesBuffer); i++)
     {
-        if (gSaveBlock1Ptr->secretBases[0].decorations[i] != DECOR_NONE)
+        if (gSaveBlock1.secretBases[0].decorations[i] != DECOR_NONE)
         {
             for (j = 0; j < gDecorationInventories[sCurDecorationCategory].size; j++)
             {
-                if (gCurDecorationItems[j] == gSaveBlock1Ptr->secretBases[0].decorations[i])
+                if (gCurDecorationItems[j] == gSaveBlock1.secretBases[0].decorations[i])
                 {
                     for (k = 0; k < count && sSecretBaseItemsIndicesBuffer[k] != j + 1; k++)
                         ;
@@ -1101,11 +1101,11 @@ static void IdentifyOwnedDecorationsCurrentlyInUseInternal(u8 taskId)
     count = 0;
     for (i = 0; i < ARRAY_COUNT(sPlayerRoomItemsIndicesBuffer); i++)
     {
-        if (gSaveBlock1Ptr->playerRoomDecorations[i] != DECOR_NONE)
+        if (gSaveBlock1.playerRoomDecorations[i] != DECOR_NONE)
         {
             for (j = 0; j < gDecorationInventories[sCurDecorationCategory].size; j++)
             {
-                if (gCurDecorationItems[j] == gSaveBlock1Ptr->playerRoomDecorations[i] && IsDecorationIndexInSecretBase(j + 1) != TRUE)
+                if (gCurDecorationItems[j] == gSaveBlock1.playerRoomDecorations[i] && IsDecorationIndexInSecretBase(j + 1) != TRUE)
                 {
                     for (k = 0; k < count && sPlayerRoomItemsIndicesBuffer[k] != j + 1; k++);
                     if (k == count)
@@ -1177,15 +1177,15 @@ static void DecorationItemsMenuAction_Cancel(u8 taskId)
 
 static void SetInitialPositions(u8 taskId)
 {
-    gTasks[taskId].tInitialX = gSaveBlock1Ptr->pos.x;
-    gTasks[taskId].tInitialY = gSaveBlock1Ptr->pos.y;
+    gTasks[taskId].tInitialX = gSaveBlock1.pos.x;
+    gTasks[taskId].tInitialY = gSaveBlock1.pos.y;
     PlayerGetDestCoords(&gTasks[taskId].tCursorX, &gTasks[taskId].tCursorY);
 }
 
 static void WarpToInitialPosition(u8 taskId)
 {
     DrawWholeMapView();
-    SetWarpDestination(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE, gTasks[taskId].tInitialX, gTasks[taskId].tInitialY);
+    SetWarpDestination(gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum, WARP_ID_NONE, gTasks[taskId].tInitialX, gTasks[taskId].tInitialY);
     WarpIntoMap();
 }
 
@@ -1302,9 +1302,9 @@ void SetDecoration(void)
             gSpecialVar_0x8005 = gMapHeader.events->objectEvents[j].localId;
             gSpecialVar_0x8006 = sCurDecorMapX;
             gSpecialVar_0x8007 = sCurDecorMapY;
-            TrySpawnObjectEvent(gSpecialVar_0x8005, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
-            TryMoveObjectEventToMapCoords(gSpecialVar_0x8005, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, gSpecialVar_0x8006, gSpecialVar_0x8007);
-            TryOverrideObjectEventTemplateCoords(gSpecialVar_0x8005, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+            TrySpawnObjectEvent(gSpecialVar_0x8005, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
+            TryMoveObjectEventToMapCoords(gSpecialVar_0x8005, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, gSpecialVar_0x8006, gSpecialVar_0x8007);
+            TryOverrideObjectEventTemplateCoords(gSpecialVar_0x8005, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
             break;
         }
     }
@@ -1405,7 +1405,7 @@ static void SetUpPlacingDecorationPlayerAvatar(u8 taskId, struct PlaceDecoration
     if (data->decoration->shape == DECORSHAPE_3x1 || data->decoration->shape == DECORSHAPE_3x3 || data->decoration->shape == DECORSHAPE_3x2)
         x -= 8;
 
-    if (gSaveBlock2Ptr->playerGender == MALE)
+    if (gSaveBlock2.playerGender == MALE)
         sDecor_CameraSpriteObjectIdx2 = CreateObjectGraphicsSprite(OBJ_EVENT_GFX_BRENDAN_DECORATING, SpriteCallbackDummy, x, 72, 0);
     else
         sDecor_CameraSpriteObjectIdx2 = CreateObjectGraphicsSprite(OBJ_EVENT_GFX_MAY_DECORATING, SpriteCallbackDummy, x, 72, 0);
@@ -2297,7 +2297,7 @@ static void SetUpPuttingAwayDecorationPlayerAvatar(void)
     sDecor_CameraSpriteObjectIdx1 = gSprites[gFieldCamera.spriteId].data[0];
     LoadPlayerSpritePalette();
     gFieldCamera.spriteId = CreateSprite(&sPuttingAwayCursorSpriteTemplate, 120, 80, 0);
-    if (gSaveBlock2Ptr->playerGender == MALE)
+    if (gSaveBlock2.playerGender == MALE)
         sDecor_CameraSpriteObjectIdx2 = CreateObjectGraphicsSprite(OBJ_EVENT_GFX_BRENDAN_DECORATING, SpriteCallbackDummy, 136, 72, 0);
     else
         sDecor_CameraSpriteObjectIdx2 = CreateObjectGraphicsSprite(OBJ_EVENT_GFX_MAY_DECORATING, SpriteCallbackDummy, 136, 72, 0);
@@ -2501,9 +2501,9 @@ static void SetDecorRearrangementFlagIdIfFlagUnset(void)
     yOff = sDecorationContext.pos[sDecorRearrangementDataBuffer[sCurDecorSelectedInRearrangement].idx] & 0x0F;
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
     {
-        if (gSaveBlock1Ptr->objectEventTemplates[i].x == xOff && gSaveBlock1Ptr->objectEventTemplates[i].y == yOff && !FlagGet(gSaveBlock1Ptr->objectEventTemplates[i].flagId))
+        if (gSaveBlock1.objectEventTemplates[i].x == xOff && gSaveBlock1.objectEventTemplates[i].y == yOff && !FlagGet(gSaveBlock1.objectEventTemplates[i].flagId))
         {
-            sDecorRearrangementDataBuffer[sCurDecorSelectedInRearrangement].flagId = gSaveBlock1Ptr->objectEventTemplates[i].flagId;
+            sDecorRearrangementDataBuffer[sCurDecorSelectedInRearrangement].flagId = gSaveBlock1.objectEventTemplates[i].flagId;
             break;
         }
     }
@@ -2692,7 +2692,7 @@ static void InitializeCameraSprite1(struct Sprite *sprite)
 
 static void LoadPlayerSpritePalette(void)
 {
-    if (gSaveBlock2Ptr->playerGender == MALE)
+    if (gSaveBlock2.playerGender == MALE)
         LoadSpritePalette(&sSpritePal_PuttingAwayCursorBrendan);
     else
         LoadSpritePalette(&sSpritePal_PuttingAwayCursorMay);

@@ -108,7 +108,7 @@ void FreeRotatingTilePuzzle(void)
 u16 MoveRotatingTileObjects(u8 puzzleNumber)
 {
     u8 i;
-    struct ObjectEventTemplate *objectEvents = gSaveBlock1Ptr->objectEventTemplates;
+    struct ObjectEventTemplate *objectEvents = gSaveBlock1.objectEventTemplates;
     u16 localId = 0;
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
@@ -170,11 +170,11 @@ u16 MoveRotatingTileObjects(u8 puzzleNumber)
 
             objectEvents[i].x += x;
             objectEvents[i].y += y;
-            if (GetObjectEventIdByLocalIdAndMap(objectEvents[i].localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup) != OBJECT_EVENTS_COUNT)
+            if (GetObjectEventIdByLocalIdAndMap(objectEvents[i].localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup) != OBJECT_EVENTS_COUNT)
             {
                 SaveRotatingTileObject(i, puzzleTileNum);
                 localId = objectEvents[i].localId;
-                ScriptMovement_StartObjectMovementScript(localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, movementScript);
+                ScriptMovement_StartObjectMovementScript(localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, movementScript);
             }
             // Never reached in normal gameplay
             else
@@ -201,7 +201,7 @@ void TurnRotatingTileObjects(void)
     else
         puzzleTileStart = METATILE_TrickHousePuzzle_Arrow_YellowOnWhite_Right;
 
-    objectEvents = gSaveBlock1Ptr->objectEventTemplates;
+    objectEvents = gSaveBlock1.objectEventTemplates;
     for (i = 0; i < sRotatingTilePuzzle->numObjects; i++)
     {
         s32 rotation;
@@ -237,7 +237,7 @@ void TurnRotatingTileObjects(void)
                 rotation = ROTATE_NONE;
         }
 
-        objectEventId = GetObjectEventIdByLocalIdAndMap(objectEvents[sRotatingTilePuzzle->objects[i].eventTemplateId].localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+        objectEventId = GetObjectEventIdByLocalIdAndMap(objectEvents[sRotatingTilePuzzle->objects[i].eventTemplateId].localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
         if (objectEventId != OBJECT_EVENTS_COUNT)
         {
             const u8 *movementScript;
@@ -266,8 +266,8 @@ void TurnRotatingTileObjects(void)
                     continue;
                 }
                 ScriptMovement_StartObjectMovementScript(objectEvents[sRotatingTilePuzzle->objects[i].eventTemplateId].localId,
-                                                         gSaveBlock1Ptr->location.mapNum,
-                                                         gSaveBlock1Ptr->location.mapGroup,
+                                                         gSaveBlock1.location.mapNum,
+                                                         gSaveBlock1.location.mapGroup,
                                                          movementScript);
             }
             // Never reached
@@ -295,8 +295,8 @@ void TurnRotatingTileObjects(void)
                     continue;
                 }
                 ScriptMovement_StartObjectMovementScript(objectEvents[sRotatingTilePuzzle->objects[i].eventTemplateId].localId,
-                                                         gSaveBlock1Ptr->location.mapNum,
-                                                         gSaveBlock1Ptr->location.mapGroup,
+                                                         gSaveBlock1.location.mapNum,
+                                                         gSaveBlock1.location.mapGroup,
                                                          movementScript);
             }
         }
@@ -317,7 +317,7 @@ static void TurnUnsavedRotatingTileObject(u8 eventTemplateId, u8 puzzleTileNum)
     s32 rotation;
     s32 puzzleTileStart;
     u16 movementType;
-    struct ObjectEventTemplate *objectEvents = gSaveBlock1Ptr->objectEventTemplates;
+    struct ObjectEventTemplate *objectEvents = gSaveBlock1.objectEventTemplates;
     s16 x = objectEvents[eventTemplateId].x + MAP_OFFSET;
     s16 y = objectEvents[eventTemplateId].y + MAP_OFFSET;
     u16 metatile = MapGridGetMetatileIdAt(x, y);

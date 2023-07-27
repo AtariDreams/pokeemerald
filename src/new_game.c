@@ -83,25 +83,25 @@ void CopyTrainerId(u8 *dst, u8 *src)
 static void InitPlayerTrainerId(void)
 {
     u32 trainerId = (Random() << 16) | GetGeneratedTrainerIdLower();
-    SetTrainerId(trainerId, gSaveBlock2Ptr->playerTrainerId);
+    SetTrainerId(trainerId, gSaveBlock2.playerTrainerId);
 }
 
 // L=A isnt set here for some reason.
 static void SetDefaultOptions(void)
 {
-    gSaveBlock2Ptr->optionsTextSpeed = OPTIONS_TEXT_SPEED_MID;
-    gSaveBlock2Ptr->optionsWindowFrameType = 0;
-    gSaveBlock2Ptr->optionsSound = OPTIONS_SOUND_MONO;
-    gSaveBlock2Ptr->optionsBattleStyle = OPTIONS_BATTLE_STYLE_SHIFT;
-    gSaveBlock2Ptr->optionsBattleSceneOff = FALSE;
-    gSaveBlock2Ptr->regionMapZoom = FALSE;
+    gSaveBlock2.optionsTextSpeed = OPTIONS_TEXT_SPEED_MID;
+    gSaveBlock2.optionsWindowFrameType = 0;
+    gSaveBlock2.optionsSound = OPTIONS_SOUND_MONO;
+    gSaveBlock2.optionsBattleStyle = OPTIONS_BATTLE_STYLE_SHIFT;
+    gSaveBlock2.optionsBattleSceneOff = FALSE;
+    gSaveBlock2.regionMapZoom = FALSE;
 }
 
 static void ClearPokedexFlags(void)
 {
     gUnusedPokedexU8 = 0;
-    memset(&gSaveBlock2Ptr->pokedex.owned, 0, sizeof(gSaveBlock2Ptr->pokedex.owned));
-    memset(&gSaveBlock2Ptr->pokedex.seen, 0, sizeof(gSaveBlock2Ptr->pokedex.seen));
+    memset(&gSaveBlock2.pokedex.owned, 0, sizeof(gSaveBlock2.pokedex.owned));
+    memset(&gSaveBlock2.pokedex.seen, 0, sizeof(gSaveBlock2.pokedex.seen));
 }
 
 void ClearAllContestWinnerPics(void)
@@ -112,15 +112,15 @@ void ClearAllContestWinnerPics(void)
 
     // Clear Museum paintings
     for (i = MUSEUM_CONTEST_WINNERS_START; i < NUM_CONTEST_WINNERS; i++)
-        gSaveBlock1Ptr->contestWinners[i] = sContestWinnerPicDummy;
+        gSaveBlock1.contestWinners[i] = sContestWinnerPicDummy;
 }
 
 static void ClearFrontierRecord(void)
 {
-    CpuFill32(0, &gSaveBlock2Ptr->frontier, sizeof(gSaveBlock2Ptr->frontier));
+    CpuFill32(0, &gSaveBlock2.frontier, sizeof(gSaveBlock2.frontier));
 
-    gSaveBlock2Ptr->frontier.opponentNames[0][0] = EOS;
-    gSaveBlock2Ptr->frontier.opponentNames[1][0] = EOS;
+    gSaveBlock2.frontier.opponentNames[0][0] = EOS;
+    gSaveBlock2.frontier.opponentNames[1][0] = EOS;
 }
 
 static void WarpToTruck(void)
@@ -151,15 +151,15 @@ void NewGameInitData(void)
         RtcReset();
 
     gDifferentSaveFile = TRUE;
-    gSaveBlock2Ptr->encryptionKey = 0;
+    gSaveBlock2.encryptionKey = 0;
     ZeroPlayerPartyMons();
     ZeroEnemyPartyMons();
     ResetPokedex();
     ClearFrontierRecord();
     ClearSav1();
     ClearAllMail();
-    gSaveBlock2Ptr->specialSaveWarpFlags = 0;
-    gSaveBlock2Ptr->gcnLinkFlags = 0;
+    gSaveBlock2.specialSaveWarpFlags = 0;
+    gSaveBlock2.gcnLinkFlags = 0;
     InitPlayerTrainerId();
     PlayTimeCounter_Reset();
     ClearPokedexFlags();
@@ -168,7 +168,7 @@ void NewGameInitData(void)
     ResetGabbyAndTy();
     ClearSecretBases();
     ClearBerryTrees();
-    SetMoney(&gSaveBlock1Ptr->money, 3000);
+    SetMoney(&gSaveBlock1.money, 3000);
     SetCoins(0);
     ResetLinkContestBoolean();
     ResetGameStats();
@@ -181,7 +181,7 @@ void NewGameInitData(void)
     ResetPokemonStorageSystem();
     ClearRoamerData();
     ClearRoamerLocationData();
-    gSaveBlock1Ptr->registeredItem = ITEM_NONE;
+    gSaveBlock1.registeredItem = ITEM_NONE;
     ClearBag();
     NewGameInitPCItems();
     ClearPokeblocks();
@@ -207,8 +207,8 @@ void NewGameInitData(void)
 
 static void ResetMiniGamesRecords(void)
 {
-    CpuFill16(0, &gSaveBlock2Ptr->berryCrush, sizeof(struct BerryCrush));
-    SetBerryPowder(&gSaveBlock2Ptr->berryCrush.berryPowderAmount, 0);
+    CpuFill16(0, &gSaveBlock2.berryCrush, sizeof(struct BerryCrush));
+    SetBerryPowder(&gSaveBlock2.berryCrush.berryPowderAmount, 0);
     ResetPokemonJumpRecords();
-    CpuFill16(0, &gSaveBlock2Ptr->berryPick, sizeof(struct BerryPickingResults));
+    CpuFill16(0, &gSaveBlock2.berryPick, sizeof(struct BerryPickingResults));
 }
