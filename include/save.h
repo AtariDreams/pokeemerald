@@ -60,9 +60,9 @@ enum
 
 // A save sector location holds a pointer to the data for a particular sector
 // and the size of that data. Size cannot be greater than SECTOR_DATA_SIZE.
-struct SaveSectorLocation
+struct SaveBlockChunk
 {
-    void *data;
+    u8 *data;
     u16 size;
 };
 
@@ -88,7 +88,7 @@ extern struct SaveSector *gFastSaveSector;
 extern u16 gIncrementalSectorId;
 extern u16 gSaveFileStatus;
 extern void (*gGameContinueCallback)(void);
-extern struct SaveSectorLocation gRamSaveSectorLocations[];
+
 
 extern struct SaveSector gSaveDataBuffer;
 

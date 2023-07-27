@@ -173,19 +173,19 @@ static void SetUnionRoomPlayerGfx(u32 leaderId, u32 gfxId)
 
 static void CreateUnionRoomPlayerObjectEvent(u32 leaderId)
 {
-    TrySpawnObjectEvent(sUnionRoomLocalIds[leaderId], gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+    TrySpawnObjectEvent(sUnionRoomLocalIds[leaderId], gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
 }
 
 static void RemoveUnionRoomPlayerObjectEvent(u32 leaderId)
 {
-    RemoveObjectEventByLocalIdAndMap(sUnionRoomLocalIds[leaderId], gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
+    RemoveObjectEventByLocalIdAndMap(sUnionRoomLocalIds[leaderId], gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
 }
 
 static bool32 SetUnionRoomPlayerEnterExitMovement(u32 leaderId, const u8 * movement)
 {
     u8 objectId;
     struct ObjectEvent * object;
-    if (TryGetObjectEventIdByLocalIdAndMap(sUnionRoomLocalIds[leaderId], gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, &objectId))
+    if (TryGetObjectEventIdByLocalIdAndMap(sUnionRoomLocalIds[leaderId], gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, &objectId))
         return FALSE;
     object = &gObjectEvents[objectId];
     if (ObjectEventIsMovementOverridden(object))
@@ -199,7 +199,7 @@ static bool32 TryReleaseUnionRoomPlayerObjectEvent(u32 leaderId)
 {
     u8 objectId;
     struct ObjectEvent * object;
-    if (TryGetObjectEventIdByLocalIdAndMap(sUnionRoomLocalIds[leaderId], gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, &objectId))
+    if (TryGetObjectEventIdByLocalIdAndMap(sUnionRoomLocalIds[leaderId], gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, &objectId))
         return TRUE;
 
     object = &gObjectEvents[objectId];
