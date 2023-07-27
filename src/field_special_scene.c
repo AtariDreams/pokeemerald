@@ -93,11 +93,11 @@ static void Task_Truck1(u8 taskId)
     s16 yBox1, yBox2, yBox3;
 
     yBox1 = GetTruckBoxYMovement(tTimer + 30) * 4;
-    SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + yBox1);
+    SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + yBox1);
     yBox2 = GetTruckBoxYMovement(tTimer) * 2;
-    SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + yBox2);
+    SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + yBox2);
     yBox3 = GetTruckBoxYMovement(tTimer) * 4;
-    SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + yBox3);
+    SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + yBox3);
 
     // Arbitrary timer limit that won't be reached
     if (++tTimer == 30000)
@@ -141,11 +141,11 @@ static void Task_Truck2(u8 taskId)
         cameraYpan = GetTruckCameraBobbingY(tTimerVertical);
         SetCameraPanning(cameraXpan, cameraYpan);
         yBox1 = GetTruckBoxYMovement(tTimerVertical + 30) * 4;
-        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + yBox1);
+        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + yBox1);
         yBox2 = GetTruckBoxYMovement(tTimerVertical) * 2;
-        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + yBox2);
+        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + yBox2);
         yBox3 = GetTruckBoxYMovement(tTimerVertical) * 4;
-        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + yBox3);
+        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + yBox3);
     }
 }
 
@@ -171,9 +171,9 @@ static void Task_Truck3(u8 taskId)
        cameraXpan = sTruckCamera_HorizontalTable[tMoveStep];
        cameraYpan = 0;
        SetCameraPanning(cameraXpan, cameraYpan);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + cameraYpan);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + cameraYpan);
-       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + cameraYpan);
+       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX1_X_OFFSET - cameraXpan, BOX1_Y_OFFSET + cameraYpan);
+       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX2_X_OFFSET - cameraXpan, BOX2_Y_OFFSET + cameraYpan);
+       SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + cameraYpan);
    }
 }
 
@@ -272,9 +272,9 @@ void EndTruckSequence(u8 taskId)
 {
     if (!FuncIsActiveTask(Task_HandleTruckSequence))
     {
-        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX1_X_OFFSET, BOX1_Y_OFFSET);
-        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX2_X_OFFSET, BOX2_Y_OFFSET);
-        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, BOX3_X_OFFSET, BOX3_Y_OFFSET);
+        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_TOP,      gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX1_X_OFFSET, BOX1_Y_OFFSET);
+        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_L, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX2_X_OFFSET, BOX2_Y_OFFSET);
+        SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX3_X_OFFSET, BOX3_Y_OFFSET);
     }
 }
 
@@ -298,7 +298,7 @@ void Task_HandlePorthole(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
     u16 *cruiseState = GetVarPointer(VAR_SS_TIDAL_STATE);
-    struct WarpData *location = &gSaveBlock1Ptr->location;
+    struct WarpData *location = &gSaveBlock1.location;
 
     switch (data[0])
     {
@@ -379,7 +379,7 @@ void LookThroughPorthole(void)
     FlagSet(FLAG_SYS_CRUISE_MODE);
     FlagSet(FLAG_DONT_TRANSITION_MUSIC);
     FlagSet(FLAG_HIDE_MAP_NAME_POPUP);
-    SetDynamicWarp(0, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum, WARP_ID_NONE);
+    SetDynamicWarp(0, gSaveBlock1.location.mapGroup, gSaveBlock1.location.mapNum, WARP_ID_NONE);
     TrySetPortholeWarpDestination();
     DoPortholeWarp();
 }

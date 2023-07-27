@@ -6,7 +6,7 @@
 static bool32 IsCurMapInLocationList(const u16 *list)
 {
     u32 i;
-    u16 map = (gSaveBlock1Ptr->location.mapGroup << 8) + gSaveBlock1Ptr->location.mapNum;
+    u16 map = (gSaveBlock1.location.mapGroup << 8) + gSaveBlock1.location.mapNum;
 
     for (i = 0; list[i] != LIST_END; i++)
     {
@@ -90,26 +90,26 @@ static bool32 IsCurMapInEmptyList(void)
 static void TrySetPokeCenterWarpStatus(void)
 {
     if (!IsCurMapPokeCenter())
-        gSaveBlock2Ptr->specialSaveWarpFlags &= ~POKECENTER_SAVEWARP;
+        gSaveBlock2.specialSaveWarpFlags &= ~POKECENTER_SAVEWARP;
     else
-        gSaveBlock2Ptr->specialSaveWarpFlags |= POKECENTER_SAVEWARP;
+        gSaveBlock2.specialSaveWarpFlags |= POKECENTER_SAVEWARP;
 }
 
 static void TrySetReloadWarpStatus(void)
 {
     if (!IsCurMapReloadLocation())
-        gSaveBlock2Ptr->specialSaveWarpFlags &= ~LOBBY_SAVEWARP;
+        gSaveBlock2.specialSaveWarpFlags &= ~LOBBY_SAVEWARP;
     else
-        gSaveBlock2Ptr->specialSaveWarpFlags |= LOBBY_SAVEWARP;
+        gSaveBlock2.specialSaveWarpFlags |= LOBBY_SAVEWARP;
 }
 
 // Unknown save warp flag. Never set because map list is empty.
 static void TrySetUnknownWarpStatus(void)
 {
     if (!IsCurMapInEmptyList())
-        gSaveBlock2Ptr->specialSaveWarpFlags &= ~UNK_SPECIAL_SAVE_WARP_FLAG_3;
+        gSaveBlock2.specialSaveWarpFlags &= ~UNK_SPECIAL_SAVE_WARP_FLAG_3;
     else
-        gSaveBlock2Ptr->specialSaveWarpFlags |= UNK_SPECIAL_SAVE_WARP_FLAG_3;
+        gSaveBlock2.specialSaveWarpFlags |= UNK_SPECIAL_SAVE_WARP_FLAG_3;
 }
 
 void TrySetMapSaveWarpStatus(void)
@@ -124,16 +124,16 @@ void TrySetMapSaveWarpStatus(void)
 // These flags are read by Pokemon Colosseum/XD for linking. XD Additionally requires FLAG_SYS_GAME_CLEAR
 void SetUnlockedPokedexFlags(void)
 {
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 15);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 0);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 1);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 2);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 4);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 5);
-    gSaveBlock2Ptr->gcnLinkFlags |= (1 << 3);
+    gSaveBlock2.gcnLinkFlags |= (1 << 15);
+    gSaveBlock2.gcnLinkFlags |= (1 << 0);
+    gSaveBlock2.gcnLinkFlags |= (1 << 1);
+    gSaveBlock2.gcnLinkFlags |= (1 << 2);
+    gSaveBlock2.gcnLinkFlags |= (1 << 4);
+    gSaveBlock2.gcnLinkFlags |= (1 << 5);
+    gSaveBlock2.gcnLinkFlags |= (1 << 3);
 }
 
 void SetChampionSaveWarp(void)
 {
-    gSaveBlock2Ptr->specialSaveWarpFlags |= CHAMPION_SAVEWARP;
+    gSaveBlock2.specialSaveWarpFlags |= CHAMPION_SAVEWARP;
 }

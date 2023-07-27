@@ -38,7 +38,7 @@ extern EWRAM_DATA u16 gSpecialVar_ItemId;
 
 u8 GetLilycoveLadyId(void)
 {
-    return gSaveBlock1Ptr->lilycoveLady.id;
+    return gSaveBlock1.lilycoveLady.id;
 }
 
 void SetLilycoveLadyGfx(void)
@@ -48,7 +48,7 @@ void SetLilycoveLadyGfx(void)
     VarSet(VAR_OBJ_GFX_ID_0, sLilycoveLadyGfxId[GetLilycoveLadyId()]);
     if (GetLilycoveLadyId() == LILYCOVE_LADY_CONTEST)
     {
-        lilycoveLady = &gSaveBlock1Ptr->lilycoveLady;
+        lilycoveLady = &gSaveBlock1.lilycoveLady;
         VarSet(VAR_OBJ_GFX_ID_1, sContestLadyMonGfxId[lilycoveLady->contest.category]);
         gSpecialVar_Result = TRUE;
     }
@@ -60,7 +60,7 @@ void SetLilycoveLadyGfx(void)
 
 void InitLilycoveLady(void)
 {
-    u16 id = ((gSaveBlock2Ptr->playerTrainerId[1] << 8) | gSaveBlock2Ptr->playerTrainerId[0]);
+    u16 id = ((gSaveBlock2.playerTrainerId[1] << 8) | gSaveBlock2.playerTrainerId[0]);
     id %= 6;
     id >>= 1;
     switch (id)
@@ -138,7 +138,7 @@ static void FavorLadyPickFavorAndBestItem(void)
 
 static void InitLilycoveFavorLady(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     sFavorLadyPtr->id = LILYCOVE_LADY_FAVOR;
     sFavorLadyPtr->state = LILYCOVE_LADY_STATE_READY;
     sFavorLadyPtr->playerName[0] = EOS;
@@ -151,14 +151,14 @@ static void InitLilycoveFavorLady(void)
 
 static void ResetFavorLadyForRecordMix(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     sFavorLadyPtr->id = LILYCOVE_LADY_FAVOR;
     sFavorLadyPtr->state = LILYCOVE_LADY_STATE_READY;
 }
 
 u8 GetFavorLadyState(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     if (sFavorLadyPtr->state == LILYCOVE_LADY_STATE_PRIZE)
         return LILYCOVE_LADY_STATE_PRIZE;
     else if (sFavorLadyPtr->state == LILYCOVE_LADY_STATE_COMPLETED)
@@ -174,13 +174,13 @@ static const u8 *GetFavorLadyRequest(u8 idx)
 
 void BufferFavorLadyRequest(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     StringCopy(gStringVar1, GetFavorLadyRequest(sFavorLadyPtr->favorId));
 }
 
 bool8 HasAnotherPlayerGivenFavorLadyItem(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     if (sFavorLadyPtr->playerName[0] != EOS)
     {
         StringCopy_PlayerName(gStringVar3, sFavorLadyPtr->playerName);
@@ -197,7 +197,7 @@ static void BufferItemName(u8 *dest, u16 itemId)
 
 void BufferFavorLadyItemName(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     BufferItemName(gStringVar2, sFavorLadyPtr->itemId);
 }
 
@@ -209,7 +209,7 @@ static void SetFavorLadyPlayerName(const u8 *src, u8 *dest)
 
 void BufferFavorLadyPlayerName(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     SetFavorLadyPlayerName(sFavorLadyPtr->playerName, gStringVar3);
     ConvertInternationalString(gStringVar3, sFavorLadyPtr->language);
 }
@@ -217,7 +217,7 @@ void BufferFavorLadyPlayerName(void)
 // Only used to determine if a record-mixed player had given her an item she liked
 bool8 DidFavorLadyLikeItem(void)
 {
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     return sFavorLadyPtr->likedItem ? TRUE : FALSE;
 }
 
@@ -232,12 +232,12 @@ static bool8 DoesFavorLadyLikeItem(u16 itemId)
     u8 i;
     bool8 likedItem;
 
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     numItems = GetNumAcceptedItems(sFavorLadyAcceptedItemLists[sFavorLadyPtr->favorId]);
     sFavorLadyPtr->state = LILYCOVE_LADY_STATE_COMPLETED;
     BufferItemName(gStringVar2, itemId);
     sFavorLadyPtr->itemId = itemId;
-    SetFavorLadyPlayerName(gSaveBlock2Ptr->playerName, sFavorLadyPtr->playerName);
+    SetFavorLadyPlayerName(gSaveBlock2.playerName, sFavorLadyPtr->playerName);
     sFavorLadyPtr->language = gGameLanguage;
     likedItem = FALSE;
     for (i = 0; i < numItems; i ++)
@@ -265,7 +265,7 @@ bool8 IsFavorLadyThresholdMet(void)
 {
     u8 numItemsGiven;
 
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     numItemsGiven = sFavorLadyPtr->numItemsGiven;
     return numItemsGiven < LILYCOVE_LADY_GIFT_THRESHOLD ? FALSE : TRUE;
 }
@@ -279,7 +279,7 @@ u16 FavorLadyGetPrize(void)
 {
     u16 prize;
 
-    sFavorLadyPtr = &gSaveBlock1Ptr->lilycoveLady.favor;
+    sFavorLadyPtr = &gSaveBlock1.lilycoveLady.favor;
     prize = sFavorLadyPrizes[sFavorLadyPtr->favorId];
     FavorLadyBufferPrizeName(prize);
     sFavorLadyPtr->state = LILYCOVE_LADY_STATE_PRIZE;
@@ -315,7 +315,7 @@ static void InitLilycoveQuizLady(void)
 {
     u8 i;
 
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->id = LILYCOVE_LADY_QUIZ;
     sQuizLadyPtr->state = LILYCOVE_LADY_STATE_READY;
 
@@ -337,7 +337,7 @@ static void InitLilycoveQuizLady(void)
 
 static void ResetQuizLadyForRecordMix(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->id = LILYCOVE_LADY_QUIZ;
     sQuizLadyPtr->state = LILYCOVE_LADY_STATE_READY;
     sQuizLadyPtr->waitingForChallenger = FALSE;
@@ -346,7 +346,7 @@ static void ResetQuizLadyForRecordMix(void)
 
 u8 GetQuizLadyState(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     if (sQuizLadyPtr->state == LILYCOVE_LADY_STATE_PRIZE)
         return LILYCOVE_LADY_STATE_PRIZE;
     else if (sQuizLadyPtr->state == LILYCOVE_LADY_STATE_COMPLETED)
@@ -359,7 +359,7 @@ u8 GetQuizAuthor(void)
 {
     s32 i, j;
     u8 authorNameId;
-    struct LilycoveLadyQuiz *quiz = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    struct LilycoveLadyQuiz *quiz = &gSaveBlock1.lilycoveLady.quiz;
 
     if (IsEasyChatAnswerUnlocked(quiz->correctAnswer) == FALSE)
     {
@@ -393,7 +393,7 @@ static u8 BufferQuizAuthorName(void)
     u8 i;
 
     authorNameId = QUIZ_AUTHOR_NAME_PLAYER;
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     if (sQuizLadyPtr->playerName[0] == EOS)
     {
         StringCopy_PlayerName(gStringVar1, gText_QuizLady_Lady);
@@ -404,13 +404,13 @@ static u8 BufferQuizAuthorName(void)
         StringCopy_PlayerName(gStringVar1, sQuizLadyPtr->playerName);
         ConvertInternationalString(gStringVar1, sQuizLadyPtr->language);
         nameLen = GetPlayerNameLength(sQuizLadyPtr->playerName);
-        if (nameLen == GetPlayerNameLength(gSaveBlock2Ptr->playerName))
+        if (nameLen == GetPlayerNameLength(gSaveBlock2.playerName))
         {
             u8 *name = sQuizLadyPtr->playerName;
             for (i = 0; i < nameLen; i++)
             {
                 name = sQuizLadyPtr->playerName;
-                if (name[i] != gSaveBlock2Ptr->playerName[i])
+                if (name[i] != gSaveBlock2.playerName[i])
                 {
                     authorNameId = QUIZ_AUTHOR_NAME_OTHER_PLAYER;
                     break;
@@ -427,11 +427,11 @@ static bool8 IsQuizTrainerIdNotPlayer(void)
     bool8 notPlayer;
     u8 i;
 
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     notPlayer = FALSE;
     for (i = 0; i < TRAINER_ID_LENGTH; i++)
     {
-        if (sQuizLadyPtr->playerTrainerId[i] != gSaveBlock2Ptr->playerTrainerId[i])
+        if (sQuizLadyPtr->playerTrainerId[i] != gSaveBlock2.playerTrainerId[i])
         {
             notPlayer = TRUE;
             break;
@@ -456,7 +456,7 @@ void BufferQuizPrizeName(void)
 
 bool8 BufferQuizAuthorNameAndCheckIfLady(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     if (BufferQuizAuthorName() == QUIZ_AUTHOR_NAME_LADY)
     {
         sQuizLadyPtr->language = gGameLanguage;
@@ -467,7 +467,7 @@ bool8 BufferQuizAuthorNameAndCheckIfLady(void)
 
 bool8 IsQuizLadyWaitingForChallenger(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     return sQuizLadyPtr->waitingForChallenger;
 }
 
@@ -478,7 +478,7 @@ void QuizLadyGetPlayerAnswer(void)
 
 bool8 IsQuizAnswerCorrect(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     CopyEasyChatWord(gStringVar1, sQuizLadyPtr->correctAnswer);
     CopyEasyChatWord(gStringVar2, sQuizLadyPtr->playerAnswer);
     return StringCompare(gStringVar1, gStringVar2) ? FALSE : TRUE;
@@ -486,25 +486,25 @@ bool8 IsQuizAnswerCorrect(void)
 
 void BufferQuizPrizeItem(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     gSpecialVar_0x8005 = sQuizLadyPtr->prize;
 }
 
 void SetQuizLadyState_Complete(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->state = LILYCOVE_LADY_STATE_COMPLETED;
 }
 
 void SetQuizLadyState_GivePrize(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->state = LILYCOVE_LADY_STATE_PRIZE;
 }
 
 void ClearQuizLadyPlayerAnswer(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->playerAnswer = EC_EMPTY_WORD;
 }
 
@@ -515,7 +515,7 @@ void Script_QuizLadyOpenBagMenu(void)
 
 void QuizLadyPickNewQuestion(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     if (BufferQuizAuthorNameAndCheckIfLady())
         sQuizLadyPtr->prevQuestionId = sQuizLadyPtr->questionId;
     else
@@ -527,7 +527,7 @@ void ClearQuizLadyQuestionAndAnswer(void)
 {
     u8 i;
 
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     for (i = 0; i < QUIZ_QUESTION_LEN; i++)
         sQuizLadyPtr->question[i] = EC_EMPTY_WORD;
     sQuizLadyPtr->correctAnswer = EC_EMPTY_WORD;
@@ -548,23 +548,23 @@ void QuizLadyRecordCustomQuizData(void)
 {
     u8 i;
 
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->prize = gSpecialVar_ItemId;
     for (i = 0; i < TRAINER_ID_LENGTH; i++)
-        sQuizLadyPtr->playerTrainerId[i] = gSaveBlock2Ptr->playerTrainerId[i];
-    StringCopy_PlayerName(sQuizLadyPtr->playerName, gSaveBlock2Ptr->playerName);
+        sQuizLadyPtr->playerTrainerId[i] = gSaveBlock2.playerTrainerId[i];
+    StringCopy_PlayerName(sQuizLadyPtr->playerName, gSaveBlock2.playerName);
     sQuizLadyPtr->language = gGameLanguage;
 }
 
 void QuizLadySetWaitingForChallenger(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     sQuizLadyPtr->waitingForChallenger = TRUE;
 }
 
 void BufferQuizCorrectAnswer(void)
 {
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     CopyEasyChatWord(gStringVar3, sQuizLadyPtr->correctAnswer);
 }
 
@@ -578,7 +578,7 @@ void QuizLadyClearQuestionForRecordMix(const LilycoveLady *lilycoveLady)
 {
     u8 i;
 
-    sQuizLadyPtr = &gSaveBlock1Ptr->lilycoveLady.quiz;
+    sQuizLadyPtr = &gSaveBlock1.lilycoveLady.quiz;
     if (lilycoveLady->quiz.prevQuestionId < ARRAY_COUNT(sQuizLadyQuizQuestions)
         && sQuizLadyPtr->id == LILYCOVE_LADY_QUIZ)
     {
@@ -606,7 +606,7 @@ static void ResetContestLadyContestData(void)
 
 static void InitLilycoveContestLady(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     sContestLadyPtr->id = LILYCOVE_LADY_CONTEST;
     sContestLadyPtr->givenPokeblock = FALSE;
     ResetContestLadyContestData();
@@ -615,7 +615,7 @@ static void InitLilycoveContestLady(void)
 
 static void ResetContestLadyForRecordMix(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     sContestLadyPtr->id = LILYCOVE_LADY_CONTEST;
     sContestLadyPtr->givenPokeblock = FALSE;
 
@@ -626,12 +626,12 @@ static void ResetContestLadyForRecordMix(void)
 
 static void ContestLadySavePlayerNameIfHighSheen(u8 sheen)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     if (sContestLadyPtr->maxSheen <= sheen)
     {
         sContestLadyPtr->maxSheen = sheen;
         memset(sContestLadyPtr->playerName, EOS, sizeof(sContestLadyPtr->playerName));
-        memcpy(sContestLadyPtr->playerName, gSaveBlock2Ptr->playerName, sizeof(sContestLadyPtr->playerName));
+        memcpy(sContestLadyPtr->playerName, gSaveBlock2.playerName, sizeof(sContestLadyPtr->playerName));
         sContestLadyPtr->language = gGameLanguage;
     }
 }
@@ -641,7 +641,7 @@ bool8 GivePokeblockToContestLady(struct Pokeblock *pokeblock)
     u8 sheen = 0;
     bool8 correctFlavor = FALSE;
 
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     switch (sContestLadyPtr->category)
     {
     case CONTEST_CATEGORY_COOL:
@@ -694,27 +694,27 @@ bool8 GivePokeblockToContestLady(struct Pokeblock *pokeblock)
 
 static void BufferContestLadyCategoryAndMonName(u8 *category, u8 *nickname)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     StringCopy(category, sContestLadyCategoryNames[sContestLadyPtr->category]);
     StringCopy_Nickname(nickname, sContestLadyMonNames[sContestLadyPtr->category]);
 }
 
 void BufferContestLadyMonName(u8 *category, u8 *nickname)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     *category = sContestLadyPtr->category;
     StringCopy(nickname, sContestLadyMonNames[sContestLadyPtr->category]);
 }
 
 void BufferContestLadyPlayerName(u8 *dest)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     StringCopy(dest, sContestLadyPtr->playerName);
 }
 
 void BufferContestLadyLanguage(u8 *dest)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     *dest = sContestLadyPtr->language;
 }
 
@@ -726,7 +726,7 @@ void BufferContestName(u8 *dest, u8 category)
 // Used by the Contest Lady's TV show to determine how well she performed
 u8 GetContestLadyPokeblockState(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     if (sContestLadyPtr->numGoodPokeblocksGiven >= LILYCOVE_LADY_GIFT_THRESHOLD)
         return CONTEST_LADY_GOOD;
     else if (sContestLadyPtr->numGoodPokeblocksGiven == 0)
@@ -738,7 +738,7 @@ u8 GetContestLadyPokeblockState(void)
 
 bool8 HasPlayerGivenContestLadyPokeblock(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     if (sContestLadyPtr->givenPokeblock == TRUE)
         return TRUE;
     return FALSE;
@@ -748,7 +748,7 @@ bool8 ShouldContestLadyShowGoOnAir(void)
 {
     bool8 putOnAir = FALSE;
 
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     if (sContestLadyPtr->numGoodPokeblocksGiven >= LILYCOVE_LADY_GIFT_THRESHOLD
      || sContestLadyPtr->numOtherPokeblocksGiven >= LILYCOVE_LADY_GIFT_THRESHOLD)
         putOnAir = TRUE;
@@ -768,18 +768,18 @@ void OpenPokeblockCaseForContestLady(void)
 
 void SetContestLadyGivenPokeblock(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     sContestLadyPtr->givenPokeblock = TRUE;
 }
 
 void GetContestLadyMonSpecies(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     gSpecialVar_0x8005 = sContestLadyMonSpecies[sContestLadyPtr->category];
 }
 
 u8 GetContestLadyCategory(void)
 {
-    sContestLadyPtr = &gSaveBlock1Ptr->lilycoveLady.contest;
+    sContestLadyPtr = &gSaveBlock1.lilycoveLady.contest;
     return sContestLadyPtr->category;
 }

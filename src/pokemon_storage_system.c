@@ -6509,8 +6509,8 @@ static void GetRestrictedReleaseMoves(u16 *moves)
     for (i = 0; i < ARRAY_COUNT(sRestrictedReleaseMoves); i++)
     {
         if (sRestrictedReleaseMoves[i].mapGroup == MAP_GROUPS_COUNT
-        || (sRestrictedReleaseMoves[i].mapGroup == gSaveBlock1Ptr->location.mapGroup
-         && sRestrictedReleaseMoves[i].mapNum == gSaveBlock1Ptr->location.mapNum))
+        || (sRestrictedReleaseMoves[i].mapGroup == gSaveBlock1.location.mapGroup
+         && sRestrictedReleaseMoves[i].mapNum == gSaveBlock1.location.mapNum))
         {
             *moves = sRestrictedReleaseMoves[i].move;
             moves++;
@@ -7125,7 +7125,7 @@ static u8 InBoxInput_Normal(void)
         if (JOY_NEW(B_BUTTON))
             return INPUT_PRESSED_B;
 
-        if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
+        if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
         {
             if (JOY_HELD(L_BUTTON))
                 return INPUT_SCROLL_LEFT;
@@ -7294,7 +7294,7 @@ static u8 InBoxInput_MovingMultiple(void)
     }
     else
     {
-        if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
+        if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
         {
             if (JOY_HELD(L_BUTTON))
                 return INPUT_SCROLL_LEFT;
@@ -7462,7 +7462,7 @@ static u8 HandleInput_OnBox(void)
         if (JOY_HELD(DPAD_RIGHT))
             return INPUT_SCROLL_RIGHT;
 
-        if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
+        if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
         {
             if (JOY_HELD(L_BUTTON))
                 return INPUT_SCROLL_LEFT;
@@ -9402,19 +9402,19 @@ static void UNUSED RestorePokemonStorage(void/*struct PokemonStorage * src*/)
 // Functions here are general utility functions.
 u8 StorageGetCurrentBox(void)
 {
-    return gPokemonStoragePtr->currentBox;
+    return gPokemonStorage.currentBox;
 }
 
 static void SetCurrentBox(u8 boxId)
 {
     if (boxId < TOTAL_BOXES_COUNT)
-        gPokemonStoragePtr->currentBox = boxId;
+        gPokemonStorage.currentBox = boxId;
 }
 
 u32 GetBoxMonDataAt(u8 boxId, u8 boxPosition, s32 request)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        return GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], request);
+        return GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], request);
     else
         return 0;
 }
@@ -9422,23 +9422,23 @@ u32 GetBoxMonDataAt(u8 boxId, u8 boxPosition, s32 request)
 void SetBoxMonDataAt(u8 boxId, u8 boxPosition, s32 request, const void *value)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        SetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], request, value);
+        SetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], request, value);
 }
 
 u32 GetCurrentBoxMonData(u8 boxPosition, s32 request)
 {
-    return GetBoxMonDataAt(gPokemonStoragePtr->currentBox, boxPosition, request);
+    return GetBoxMonDataAt(gPokemonStorage.currentBox, boxPosition, request);
 }
 
 void SetCurrentBoxMonData(u8 boxPosition, s32 request, const void *value)
 {
-    SetBoxMonDataAt(gPokemonStoragePtr->currentBox, boxPosition, request, value);
+    SetBoxMonDataAt(gPokemonStorage.currentBox, boxPosition, request, value);
 }
 
 void GetBoxMonNickAt(u8 boxId, u8 boxPosition, u8 *dst)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], MON_DATA_NICKNAME, dst);
+        GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_NICKNAME, dst);
     else
         *dst = EOS;
 }
@@ -9447,8 +9447,8 @@ u32 GetBoxMonLevelAt(u8 boxId, u8 boxPosition)
 {
     u32 lvl;
 
-    if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT && GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], MON_DATA_SANITY_HAS_SPECIES))
-        lvl = GetLevelFromBoxMonExp(&gPokemonStoragePtr->boxes[boxId][boxPosition]);
+    if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT && GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_HAS_SPECIES))
+        lvl = GetLevelFromBoxMonExp(&gPokemonStorage.boxes[boxId][boxPosition]);
 #ifdef BUGFIX
     else
 #endif
@@ -9460,13 +9460,13 @@ u32 GetBoxMonLevelAt(u8 boxId, u8 boxPosition)
 void SetBoxMonNickAt(u8 boxId, u8 boxPosition, const u8 *nick)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        SetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], MON_DATA_NICKNAME, nick);
+        SetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_NICKNAME, nick);
 }
 
 u32 GetAndCopyBoxMonDataAt(u8 boxId, u8 boxPosition, s32 request, void *dst)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        return GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], request, dst);
+        return GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], request, dst);
     else
         return 0;
 }
@@ -9474,20 +9474,20 @@ u32 GetAndCopyBoxMonDataAt(u8 boxId, u8 boxPosition, s32 request, void *dst)
 void SetBoxMonAt(u8 boxId, u8 boxPosition, struct BoxPokemon *src)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        gPokemonStoragePtr->boxes[boxId][boxPosition] = *src;
+        gPokemonStorage.boxes[boxId][boxPosition] = *src;
 }
 
 void CopyBoxMonAt(u8 boxId, u8 boxPosition, struct BoxPokemon *dst)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        *dst = gPokemonStoragePtr->boxes[boxId][boxPosition];
+        *dst = gPokemonStorage.boxes[boxId][boxPosition];
 }
 
 void CreateBoxMonAt(u8 boxId, u8 boxPosition, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 personality, u8 otIDType, u32 otID)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
     {
-        CreateBoxMon(&gPokemonStoragePtr->boxes[boxId][boxPosition],
+        CreateBoxMon(&gPokemonStorage.boxes[boxId][boxPosition],
                      species,
                      level,
                      fixedIV,
@@ -9499,19 +9499,19 @@ void CreateBoxMonAt(u8 boxId, u8 boxPosition, u16 species, u8 level, u8 fixedIV,
 void ZeroBoxMonAt(u8 boxId, u8 boxPosition)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        ZeroBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition]);
+        ZeroBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition]);
 }
 
 void BoxMonAtToMon(u8 boxId, u8 boxPosition, struct Pokemon *dst)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        BoxMonToMon(&gPokemonStoragePtr->boxes[boxId][boxPosition], dst);
+        BoxMonToMon(&gPokemonStorage.boxes[boxId][boxPosition], dst);
 }
 
 struct BoxPokemon *GetBoxedMonPtr(u8 boxId, u8 boxPosition)
 {
     if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
-        return &gPokemonStoragePtr->boxes[boxId][boxPosition];
+        return &gPokemonStorage.boxes[boxId][boxPosition];
     else
         return NULL;
 }
@@ -9519,7 +9519,7 @@ struct BoxPokemon *GetBoxedMonPtr(u8 boxId, u8 boxPosition)
 u8 *GetBoxNamePtr(u8 boxId)
 {
     if (boxId < TOTAL_BOXES_COUNT)
-        return gPokemonStoragePtr->boxNames[boxId];
+        return gPokemonStorage.boxNames[boxId];
     else
         return NULL;
 }
@@ -9527,7 +9527,7 @@ u8 *GetBoxNamePtr(u8 boxId)
 static u8 GetBoxWallpaper(u8 boxId)
 {
     if (boxId < TOTAL_BOXES_COUNT)
-        return gPokemonStoragePtr->boxWallpapers[boxId];
+        return gPokemonStorage.boxWallpapers[boxId];
     else
         return 0;
 }
@@ -9535,7 +9535,7 @@ static u8 GetBoxWallpaper(u8 boxId)
 static void SetBoxWallpaper(u8 boxId, u8 wallpaperId)
 {
     if (boxId < TOTAL_BOXES_COUNT && wallpaperId < WALLPAPER_COUNT)
-        gPokemonStoragePtr->boxWallpapers[boxId] = wallpaperId;
+        gPokemonStorage.boxWallpapers[boxId] = wallpaperId;
 }
 
 // For moving to the next Pokémon while viewing the summary screen
@@ -9576,7 +9576,7 @@ bool8 CheckFreePokemonStorageSpace(void)
     {
         for (j = 0; j < IN_BOX_COUNT; j++)
         {
-            if (!GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_HAS_SPECIES))
+            if (!GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_HAS_SPECIES))
                 return TRUE;
         }
     }
@@ -9588,9 +9588,9 @@ bool32 CheckBoxMonSanityAt(u32 boxId, u32 boxPosition)
 {
     if (boxId < TOTAL_BOXES_COUNT
         && boxPosition < IN_BOX_COUNT
-        && GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], MON_DATA_SANITY_HAS_SPECIES)
-        && !GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], MON_DATA_SANITY_IS_EGG)
-        && !GetBoxMonData(&gPokemonStoragePtr->boxes[boxId][boxPosition], MON_DATA_SANITY_IS_BAD_EGG))
+        && GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_HAS_SPECIES)
+        && !GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_IS_EGG)
+        && !GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_IS_BAD_EGG))
         return TRUE;
     else
         return FALSE;
@@ -9605,8 +9605,8 @@ u32 CountStorageNonEggMons(void)
     {
         for (j = 0; j < IN_BOX_COUNT; j++)
         {
-            if (GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
-                && !GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_IS_EGG))
+            if (GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
+                && !GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_IS_EGG))
                 count++;
         }
     }
@@ -9623,8 +9623,8 @@ u32 CountAllStorageMons(void)
     {
         for (j = 0; j < IN_BOX_COUNT; j++)
         {
-            if (GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
-                || GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_IS_EGG))
+            if (GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
+                || GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_IS_EGG))
                 count++;
         }
     }
@@ -9641,9 +9641,9 @@ bool32 AnyStorageMonWithMove(u16 moveId)
     {
         for (j = 0; j < IN_BOX_COUNT; j++)
         {
-            if (GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
-                && !GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_SANITY_IS_EGG)
-                && GetBoxMonData(&gPokemonStoragePtr->boxes[i][j], MON_DATA_KNOWN_MOVES, (u8 *)moves))
+            if (GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_HAS_SPECIES)
+                && !GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_SANITY_IS_EGG)
+                && GetBoxMonData(&gPokemonStorage.boxes[i][j], MON_DATA_KNOWN_MOVES, (u8 *)moves))
                 return TRUE;
         }
     }
@@ -9659,70 +9659,70 @@ bool32 AnyStorageMonWithMove(u16 moveId)
 
 void ResetWaldaWallpaper(void)
 {
-    gSaveBlock1Ptr->waldaPhrase.iconId = 0;
-    gSaveBlock1Ptr->waldaPhrase.patternId = 0;
-    gSaveBlock1Ptr->waldaPhrase.patternUnlocked = FALSE;
-    gSaveBlock1Ptr->waldaPhrase.colors[0] = RGB(21, 25, 30);
-    gSaveBlock1Ptr->waldaPhrase.colors[1] = RGB(6, 12, 24);
-    gSaveBlock1Ptr->waldaPhrase.text[0] = EOS;
+    gSaveBlock1.waldaPhrase.iconId = 0;
+    gSaveBlock1.waldaPhrase.patternId = 0;
+    gSaveBlock1.waldaPhrase.patternUnlocked = FALSE;
+    gSaveBlock1.waldaPhrase.colors[0] = RGB(21, 25, 30);
+    gSaveBlock1.waldaPhrase.colors[1] = RGB(6, 12, 24);
+    gSaveBlock1.waldaPhrase.text[0] = EOS;
 }
 
 void SetWaldaWallpaperLockedOrUnlocked(bool32 unlocked)
 {
-    gSaveBlock1Ptr->waldaPhrase.patternUnlocked = unlocked;
+    gSaveBlock1.waldaPhrase.patternUnlocked = unlocked;
 }
 
 bool32 IsWaldaWallpaperUnlocked(void)
 {
-    return gSaveBlock1Ptr->waldaPhrase.patternUnlocked;
+    return gSaveBlock1.waldaPhrase.patternUnlocked;
 }
 
 u32 GetWaldaWallpaperPatternId(void)
 {
-    return gSaveBlock1Ptr->waldaPhrase.patternId;
+    return gSaveBlock1.waldaPhrase.patternId;
 }
 
 void SetWaldaWallpaperPatternId(u8 id)
 {
     if (id < ARRAY_COUNT(sWaldaWallpapers))
-        gSaveBlock1Ptr->waldaPhrase.patternId = id;
+        gSaveBlock1.waldaPhrase.patternId = id;
 }
 
 u32 GetWaldaWallpaperIconId(void)
 {
-    return gSaveBlock1Ptr->waldaPhrase.iconId;
+    return gSaveBlock1.waldaPhrase.iconId;
 }
 
 void SetWaldaWallpaperIconId(u8 id)
 {
     if (id < ARRAY_COUNT(sWaldaWallpaperIcons))
-        gSaveBlock1Ptr->waldaPhrase.iconId = id;
+        gSaveBlock1.waldaPhrase.iconId = id;
 }
 
 u16 *GetWaldaWallpaperColorsPtr(void)
 {
-    return gSaveBlock1Ptr->waldaPhrase.colors;
+    return gSaveBlock1.waldaPhrase.colors;
 }
 
 void SetWaldaWallpaperColors(u16 color1, u16 color2)
 {
-    gSaveBlock1Ptr->waldaPhrase.colors[0] = color1;
-    gSaveBlock1Ptr->waldaPhrase.colors[1] = color2;
+    gSaveBlock1.waldaPhrase.colors[0] = color1;
+    gSaveBlock1.waldaPhrase.colors[1] = color2;
 }
 
 u8 *GetWaldaPhrasePtr(void)
 {
-    return gSaveBlock1Ptr->waldaPhrase.text;
+    return gSaveBlock1.waldaPhrase.text;
 }
 
 void SetWaldaPhrase(const u8 *src)
 {
-    StringCopy(gSaveBlock1Ptr->waldaPhrase.text, src);
+    StringCopy(gSaveBlock1.waldaPhrase.text, src);
 }
 
 bool32 IsWaldaPhraseEmpty(void)
 {
-    return (gSaveBlock1Ptr->waldaPhrase.text[0] == EOS);
+    return (gSaveBlock1.waldaPhrase.text[0] == EOS);
 }
 
 

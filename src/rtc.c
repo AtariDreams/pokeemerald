@@ -290,7 +290,7 @@ void RtcCalcTimeDifference(struct SiiRtcInfo *rtc, struct Time *result, struct T
 void RtcCalcLocalTime(void)
 {
     RtcGetInfo(&sRtc);
-    RtcCalcTimeDifference(&sRtc, &gLocalTime, &gSaveBlock2Ptr->localTimeOffset);
+    RtcCalcTimeDifference(&sRtc, &gLocalTime, &gSaveBlock2.localTimeOffset);
 }
 
 void RtcInitLocalTimeOffset(s32 hour, s32 minute)
@@ -305,7 +305,7 @@ void RtcCalcLocalTimeOffset(s32 days, s32 hours, s32 minutes, s32 seconds)
     gLocalTime.minutes = minutes;
     gLocalTime.seconds = seconds;
     RtcGetInfo(&sRtc);
-    RtcCalcTimeDifference(&sRtc, &gSaveBlock2Ptr->localTimeOffset, &gLocalTime);
+    RtcCalcTimeDifference(&sRtc, &gSaveBlock2.localTimeOffset, &gLocalTime);
 }
 
 void CalcTimeDifference(struct Time *result, struct Time *t1, struct Time *t2)

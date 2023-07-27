@@ -248,7 +248,7 @@ static void MailboxMenu_ItemPrintFunc(u8 windowId, u32 itemId, u8 y)
     if (itemId == LIST_CANCEL)
         return;
 
-    StringCopy(buffer, gSaveBlock1Ptr->mail[PARTY_SIZE + itemId].playerName);
+    StringCopy(buffer, gSaveBlock1.mail[PARTY_SIZE + itemId].playerName);
     ConvertInternationalPlayerName(buffer);
     length = StringLength(buffer);
     if (length < PLAYER_NAME_LENGTH - 1)
