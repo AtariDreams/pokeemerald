@@ -172,7 +172,7 @@ u8 *ConvertIntToDecimalStringN(u8 *dest, s32 value, enum StringConvertMode mode,
 
     for (powerOfTen = largestPowerOfTen; powerOfTen > 0; powerOfTen /= 10)
     {
-        u16 digit = value / powerOfTen;
+        s32 digit = value / powerOfTen;
         s32 temp = value - (powerOfTen * digit);
 
         if (state == WRITING_DIGITS)
@@ -682,6 +682,7 @@ s32 StringCompareWithoutExtCtrlCodes(const u8 *str1, const u8 *str2)
                 retVal = 1;
             else
                 retVal = -1;
+            break;
         }
 
         if (*str1 == EOS)
@@ -698,20 +699,17 @@ void ConvertInternationalString(u8 *s, u8 language)
 {
     if (language == LANGUAGE_JAPANESE)
     {
-        u8 i;
+        u32 i;
 
         StripExtCtrlCodes(s);
         i = StringLength(s);
         s[i++] = EXT_CTRL_CODE_BEGIN;
         s[i++] = EXT_CTRL_CODE_ENG;
-        s[i++] = EOS;
+        s[i] = EOS;
 
-        i--;
-
-        while (i != (u8)-1)
+        for (; i; i--)
         {
             s[i + 2] = s[i];
-            i--;
         }
 
         s[0] = EXT_CTRL_CODE_BEGIN;
@@ -721,8 +719,8 @@ void ConvertInternationalString(u8 *s, u8 language)
 
 void StripExtCtrlCodes(u8 *str)
 {
-    u16 srcIndex = 0;
-    u16 destIndex = 0;
+    u32 srcIndex = 0;
+    u32 destIndex = 0;
     while (str[srcIndex] != EOS)
     {
         if (str[srcIndex] == EXT_CTRL_CODE_BEGIN)
