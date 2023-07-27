@@ -247,7 +247,7 @@ static void UNUSED StitchObjectsOn8x8Canvas(s32 object_size, s32 object_count, u
     }
 }
 
-u32 GetDecompressedDataSize(const u32 *ptr)
+u32 GetDecompressedDataSize(const void *ptr)
 {
     const u8 *ptr8 = (const u8 *)ptr;
     return (ptr8[3] << 16) | (ptr8[2] << 8) | (ptr8[1]);
