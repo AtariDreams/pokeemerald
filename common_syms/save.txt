@@ -8,6 +8,5 @@ gIncrementalSectorId
 gSaveUnusedVar
 gSaveFileStatus
 gGameContinueCallback
-gRamSaveSectorLocations
 gSaveUnusedVar2
 gSaveAttemptStatus

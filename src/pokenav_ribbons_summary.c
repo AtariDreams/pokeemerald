@@ -832,7 +832,7 @@ static void PrintRibbonNameAndDescription(struct Pokenav_RibbonsSummaryMenu *men
         // ribbonId here is one of the 'gift' ribbon slots, used to read
         // its actual value from giftRibbons to determine which specific
         // gift ribbon it is
-        ribbonId = gSaveBlock1Ptr->giftRibbons[ribbonId - FIRST_GIFT_RIBBON];
+        ribbonId = gSaveBlock1.giftRibbons[ribbonId - FIRST_GIFT_RIBBON];
 
         // If 0, this gift ribbon slot is unoccupied
         if (ribbonId == 0)

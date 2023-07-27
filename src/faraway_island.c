@@ -37,7 +37,7 @@ static const s16 sFarawayIslandRockCoords[4][2] =
 static u8 GetMewObjectEventId(void)
 {
     u8 objectEventId;
-    TryGetObjectEventIdByLocalIdAndMap(LOCALID_FARAWAY_ISLAND_MEW, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, &objectEventId);
+    TryGetObjectEventIdByLocalIdAndMap(LOCALID_FARAWAY_ISLAND_MEW, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, &objectEventId);
     return objectEventId;
 }
 
@@ -321,8 +321,8 @@ static u8 GetValidMewMoveDirection(u8 ignoredDir)
 void UpdateFarawayIslandStepCounter(void)
 {
     u16 steps = VarGet(VAR_FARAWAY_ISLAND_STEP_COUNTER);
-    if (gSaveBlock1Ptr->location.mapNum == MAP_NUM(FARAWAY_ISLAND_INTERIOR)
-     && gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(FARAWAY_ISLAND_INTERIOR))
+    if (gSaveBlock1.location.mapNum == MAP_NUM(FARAWAY_ISLAND_INTERIOR)
+     && gSaveBlock1.location.mapGroup == MAP_GROUP(FARAWAY_ISLAND_INTERIOR))
     {
         steps++;
         if (steps >= 9999)
@@ -334,8 +334,8 @@ void UpdateFarawayIslandStepCounter(void)
 
 bool8 ObjectEventIsFarawayIslandMew(struct ObjectEvent *objectEvent)
 {
-    if (gSaveBlock1Ptr->location.mapNum == MAP_NUM(FARAWAY_ISLAND_INTERIOR)
-     && gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(FARAWAY_ISLAND_INTERIOR))
+    if (gSaveBlock1.location.mapNum == MAP_NUM(FARAWAY_ISLAND_INTERIOR)
+     && gSaveBlock1.location.mapGroup == MAP_GROUP(FARAWAY_ISLAND_INTERIOR))
     {
         if (objectEvent->graphicsId == OBJ_EVENT_GFX_MEW)
             return TRUE;
@@ -346,8 +346,8 @@ bool8 ObjectEventIsFarawayIslandMew(struct ObjectEvent *objectEvent)
 
 bool8 IsMewPlayingHideAndSeek(void)
 {
-    if (gSaveBlock1Ptr->location.mapNum == MAP_NUM(FARAWAY_ISLAND_INTERIOR)
-     && gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(FARAWAY_ISLAND_INTERIOR))
+    if (gSaveBlock1.location.mapNum == MAP_NUM(FARAWAY_ISLAND_INTERIOR)
+     && gSaveBlock1.location.mapGroup == MAP_GROUP(FARAWAY_ISLAND_INTERIOR))
     {
         if (FlagGet(FLAG_CAUGHT_MEW) != TRUE && FlagGet(FLAG_HIDE_MEW) != TRUE)
             return TRUE;
