@@ -40,12 +40,12 @@ void HideCoinsWindow(void)
 
 u16 GetCoins(void)
 {
-    return gSaveBlock1Ptr->coins ^ gSaveBlock2Ptr->encryptionKey;
+    return gSaveBlock1.coins ^ gSaveBlock2.encryptionKey;
 }
 
 void SetCoins(u16 coinAmount)
 {
-    gSaveBlock1Ptr->coins = coinAmount ^ gSaveBlock2Ptr->encryptionKey;
+    gSaveBlock1.coins = coinAmount ^ gSaveBlock2.encryptionKey;
 }
 
 bool8 AddCoins(u16 toAdd)

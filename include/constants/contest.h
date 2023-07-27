@@ -25,7 +25,7 @@
 #define CONTEST_TYPE_NPC_MASTER  (CONTEST_RANK_MASTER + 1)
 #define CONTEST_TYPE_LINK        (CONTEST_RANK_LINK + 1)
 
-// IDs below - 1 are indexes into gSaveBlock1Ptr->contestWinners[]
+// IDs below - 1 are indexes into gSaveBlock1.contestWinners[]
 // CONTEST_WINNER_ARTIST is for the winner of the most recent contest, and is not saved.
 #define CONTEST_WINNER_ARTIST 0
 #define CONTEST_WINNER_HALL_1 1

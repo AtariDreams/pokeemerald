@@ -26,34 +26,34 @@ static void IncrementCardStatForNewTrainer(u32, u32, u32 *, int);
 
 void ClearMysteryGift(void)
 {
-    CpuFill32(0, &gSaveBlock1Ptr->mysteryGift, sizeof(gSaveBlock1Ptr->mysteryGift));
+    CpuFill32(0, &gSaveBlock1.mysteryGift, sizeof(gSaveBlock1.mysteryGift));
     ClearSavedWonderNewsMetadata(); // Clear is redundant, WonderNews_Reset would be sufficient
     InitQuestionnaireWords();
 }
 
 struct WonderNews *GetSavedWonderNews(void)
 {
-    return &gSaveBlock1Ptr->mysteryGift.news;
+    return &gSaveBlock1.mysteryGift.news;
 }
 
 struct WonderCard *GetSavedWonderCard(void)
 {
-    return &gSaveBlock1Ptr->mysteryGift.card;
+    return &gSaveBlock1.mysteryGift.card;
 }
 
 struct WonderCardMetadata *GetSavedWonderCardMetadata(void)
 {
-    return &gSaveBlock1Ptr->mysteryGift.cardMetadata;
+    return &gSaveBlock1.mysteryGift.cardMetadata;
 }
 
 struct WonderNewsMetadata *GetSavedWonderNewsMetadata(void)
 {
-    return &gSaveBlock1Ptr->mysteryGift.newsMetadata;
+    return &gSaveBlock1.mysteryGift.newsMetadata;
 }
 
 u16 *GetQuestionnaireWordsPtr(void)
 {
-    return gSaveBlock1Ptr->mysteryGift.questionnaireWords;
+    return gSaveBlock1.mysteryGift.questionnaireWords;
 }
 
 // Equivalent to ClearSavedWonderCardAndRelated, but nothing else to clear
@@ -68,16 +68,16 @@ bool32 SaveWonderNews(const struct WonderNews *news)
         return FALSE;
 
     ClearSavedWonderNews();
-    gSaveBlock1Ptr->mysteryGift.news = *news;
-    gSaveBlock1Ptr->mysteryGift.newsCrc = CALC_CRC(gSaveBlock1Ptr->mysteryGift.news);
+    gSaveBlock1.mysteryGift.news = *news;
+    gSaveBlock1.mysteryGift.newsCrc = CALC_CRC(gSaveBlock1.mysteryGift.news);
     return TRUE;
 }
 
 bool32 ValidateSavedWonderNews(void)
 {
-    if (CALC_CRC(gSaveBlock1Ptr->mysteryGift.news) != gSaveBlock1Ptr->mysteryGift.newsCrc)
+    if (CALC_CRC(gSaveBlock1.mysteryGift.news) != gSaveBlock1.mysteryGift.newsCrc)
         return FALSE;
-    if (!ValidateWonderNews(&gSaveBlock1Ptr->mysteryGift.news))
+    if (!ValidateWonderNews(&gSaveBlock1.mysteryGift.news))
         return FALSE;
 
     return TRUE;
@@ -93,7 +93,7 @@ static bool32 ValidateWonderNews(const struct WonderNews *news)
 
 bool32 IsSendingSavedWonderNewsAllowed(void)
 {
-    const struct WonderNews *news = &gSaveBlock1Ptr->mysteryGift.news;
+    const struct WonderNews *news = &gSaveBlock1.mysteryGift.news;
     if (news->sendType == SEND_TYPE_DISALLOWED)
         return FALSE;
 
@@ -102,24 +102,24 @@ bool32 IsSendingSavedWonderNewsAllowed(void)
 
 static void ClearSavedWonderNews(void)
 {
-    CpuFill32(0, GetSavedWonderNews(), sizeof(gSaveBlock1Ptr->mysteryGift.news));
-    gSaveBlock1Ptr->mysteryGift.newsCrc = 0;
+    CpuFill32(0, GetSavedWonderNews(), sizeof(gSaveBlock1.mysteryGift.news));
+    gSaveBlock1.mysteryGift.newsCrc = 0;
 }
 
 static void ClearSavedWonderNewsMetadata(void)
 {
-    CpuFill32(0, GetSavedWonderNewsMetadata(), sizeof(gSaveBlock1Ptr->mysteryGift.newsMetadata));
+    CpuFill32(0, GetSavedWonderNewsMetadata(), sizeof(gSaveBlock1.mysteryGift.newsMetadata));
     WonderNews_Reset();
 }
 
 bool32 IsWonderNewsSameAsSaved(const u8 *news)
 {
-    const u8 *savedNews = (const u8 *)&gSaveBlock1Ptr->mysteryGift.news;
+    const u8 *savedNews = (const u8 *)&gSaveBlock1.mysteryGift.news;
     u32 i;
     if (!ValidateSavedWonderNews())
         return FALSE;
 
-    for (i = 0; i < sizeof(gSaveBlock1Ptr->mysteryGift.news); i++)
+    for (i = 0; i < sizeof(gSaveBlock1.mysteryGift.news); i++)
     {
         if (savedNews[i] != news[i])
             return FALSE;
@@ -136,7 +136,7 @@ void ClearSavedWonderCardAndRelated(void)
     ClearRamScript();
     ClearMysteryGiftFlags();
     ClearMysteryGiftVars();
-    ClearEReaderTrainer(&gSaveBlock2Ptr->frontier.ereaderTrainer);
+    ClearEReaderTrainer(&gSaveBlock2.frontier.ereaderTrainer);
 }
 
 bool32 SaveWonderCard(const struct WonderCard *card)
@@ -146,18 +146,18 @@ bool32 SaveWonderCard(const struct WonderCard *card)
         return FALSE;
 
     ClearSavedWonderCardAndRelated();
-    memcpy(&gSaveBlock1Ptr->mysteryGift.card, card, sizeof(struct WonderCard));
-    gSaveBlock1Ptr->mysteryGift.cardCrc = CALC_CRC(gSaveBlock1Ptr->mysteryGift.card);
-    metadata = &gSaveBlock1Ptr->mysteryGift.cardMetadata;
-    metadata->iconSpecies = (&gSaveBlock1Ptr->mysteryGift.card)->iconSpecies;
+    memcpy(&gSaveBlock1.mysteryGift.card, card, sizeof(struct WonderCard));
+    gSaveBlock1.mysteryGift.cardCrc = CALC_CRC(gSaveBlock1.mysteryGift.card);
+    metadata = &gSaveBlock1.mysteryGift.cardMetadata;
+    metadata->iconSpecies = (&gSaveBlock1.mysteryGift.card)->iconSpecies;
     return TRUE;
 }
 
 bool32 ValidateSavedWonderCard(void)
 {
-    if (gSaveBlock1Ptr->mysteryGift.cardCrc != CALC_CRC(gSaveBlock1Ptr->mysteryGift.card))
+    if (gSaveBlock1.mysteryGift.cardCrc != CALC_CRC(gSaveBlock1.mysteryGift.card))
         return FALSE;
-    if (!ValidateWonderCard(&gSaveBlock1Ptr->mysteryGift.card))
+    if (!ValidateWonderCard(&gSaveBlock1.mysteryGift.card))
         return FALSE;
     if (!ValidateSavedRamScript())
         return FALSE;
@@ -185,7 +185,7 @@ static bool32 ValidateWonderCard(const struct WonderCard *card)
 
 bool32 IsSendingSavedWonderCardAllowed(void)
 {
-    const struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+    const struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
     if (card->sendType == SEND_TYPE_DISALLOWED)
         return FALSE;
 
@@ -194,20 +194,20 @@ bool32 IsSendingSavedWonderCardAllowed(void)
 
 static void ClearSavedWonderCard(void)
 {
-    CpuFill32(0, &gSaveBlock1Ptr->mysteryGift.card, sizeof(gSaveBlock1Ptr->mysteryGift.card));
-    gSaveBlock1Ptr->mysteryGift.cardCrc = 0;
+    CpuFill32(0, &gSaveBlock1.mysteryGift.card, sizeof(gSaveBlock1.mysteryGift.card));
+    gSaveBlock1.mysteryGift.cardCrc = 0;
 }
 
 static void ClearSavedWonderCardMetadata(void)
 {
-    CpuFill32(0, GetSavedWonderCardMetadata(), sizeof(gSaveBlock1Ptr->mysteryGift.cardMetadata));
-    gSaveBlock1Ptr->mysteryGift.cardMetadataCrc = 0;
+    CpuFill32(0, GetSavedWonderCardMetadata(), sizeof(gSaveBlock1.mysteryGift.cardMetadata));
+    gSaveBlock1.mysteryGift.cardMetadataCrc = 0;
 }
 
 u16 GetWonderCardFlagID(void)
 {
     if (ValidateSavedWonderCard())
-        return gSaveBlock1Ptr->mysteryGift.card.flagId;
+        return gSaveBlock1.mysteryGift.card.flagId;
 
     return 0;
 }
@@ -307,31 +307,31 @@ static int GetNumStampsInSavedCard(void)
     if (!ValidateSavedWonderCard())
         return 0;
 
-    card = &gSaveBlock1Ptr->mysteryGift.card;
+    card = &gSaveBlock1.mysteryGift.card;
     if (card->type != CARD_TYPE_STAMP)
         return 0;
 
-    return GetNumStampsInMetadata(&gSaveBlock1Ptr->mysteryGift.cardMetadata, card->maxStamps);
+    return GetNumStampsInMetadata(&gSaveBlock1.mysteryGift.cardMetadata, card->maxStamps);
 }
 
 bool32 MysteryGift_TrySaveStamp(const u16 *stamp)
 {
-    struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+    struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
     int maxStamps = card->maxStamps;
     int i;
     if (!ValidateStamp(stamp))
         return FALSE;
 
-    if (IsStampInMetadata(&gSaveBlock1Ptr->mysteryGift.cardMetadata, stamp, maxStamps))
+    if (IsStampInMetadata(&gSaveBlock1.mysteryGift.cardMetadata, stamp, maxStamps))
         return FALSE;
 
     for (i = 0; i < maxStamps; i++)
     {
-        if (gSaveBlock1Ptr->mysteryGift.cardMetadata.stampData[STAMP_ID][i] == 0
-         && gSaveBlock1Ptr->mysteryGift.cardMetadata.stampData[STAMP_SPECIES][i] == SPECIES_NONE)
+        if (gSaveBlock1.mysteryGift.cardMetadata.stampData[STAMP_ID][i] == 0
+         && gSaveBlock1.mysteryGift.cardMetadata.stampData[STAMP_SPECIES][i] == SPECIES_NONE)
         {
-            gSaveBlock1Ptr->mysteryGift.cardMetadata.stampData[STAMP_ID][i] = stamp[STAMP_ID];
-            gSaveBlock1Ptr->mysteryGift.cardMetadata.stampData[STAMP_SPECIES][i] = stamp[STAMP_SPECIES];
+            gSaveBlock1.mysteryGift.cardMetadata.stampData[STAMP_ID][i] = stamp[STAMP_ID];
+            gSaveBlock1.mysteryGift.cardMetadata.stampData[STAMP_SPECIES][i] = stamp[STAMP_SPECIES];
             return TRUE;
         }
     }
@@ -376,12 +376,12 @@ void MysteryGift_LoadLinkGameData(struct MysteryGiftLinkGameData *data, bool32 i
     }
 
     for (i = 0; i < NUM_QUESTIONNAIRE_WORDS; i++)
-        data->questionnaireWords[i] = gSaveBlock1Ptr->mysteryGift.questionnaireWords[i];
+        data->questionnaireWords[i] = gSaveBlock1.mysteryGift.questionnaireWords[i];
 
-    CopyTrainerId(data->playerTrainerId, gSaveBlock2Ptr->playerTrainerId);
-    StringCopy(data->playerName, gSaveBlock2Ptr->playerName);
+    CopyTrainerId(data->playerTrainerId, gSaveBlock2.playerTrainerId);
+    StringCopy(data->playerName, gSaveBlock2.playerName);
     for (i = 0; i < EASY_CHAT_BATTLE_WORDS_COUNT; i++)
-        data->easyChatProfile[i] = gSaveBlock1Ptr->easyChatProfile[i];
+        data->easyChatProfile[i] = gSaveBlock1.easyChatProfile[i];
 
     memcpy(data->romHeaderGameCode, RomHeaderGameCode, GAME_CODE_LENGTH);
     data->romHeaderSoftwareVersion = RomHeaderSoftwareVersion;
@@ -485,20 +485,20 @@ u16 MysteryGift_GetCardStatFromLinkData(const struct MysteryGiftLinkGameData *da
 
 static void IncrementCardStat(u32 statType)
 {
-    struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+    struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
     if (card->type == CARD_TYPE_LINK_STAT)
     {
         u16 *stat = NULL;
         switch (statType)
         {
         case CARD_STAT_BATTLES_WON:
-            stat = &gSaveBlock1Ptr->mysteryGift.cardMetadata.battlesWon;
+            stat = &gSaveBlock1.mysteryGift.cardMetadata.battlesWon;
             break;
         case CARD_STAT_BATTLES_LOST:
-            stat = &gSaveBlock1Ptr->mysteryGift.cardMetadata.battlesLost;
+            stat = &gSaveBlock1.mysteryGift.cardMetadata.battlesLost;
             break;
         case CARD_STAT_NUM_TRADES:
-            stat = &gSaveBlock1Ptr->mysteryGift.cardMetadata.numTrades;
+            stat = &gSaveBlock1.mysteryGift.cardMetadata.numTrades;
             break;
         case CARD_STAT_NUM_STAMPS: // Unused
         case CARD_STAT_MAX_STAMPS: // Unused
@@ -522,44 +522,44 @@ u16 MysteryGift_GetCardStat(u32 stat)
     {
     case CARD_STAT_BATTLES_WON:
     {
-        struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+        struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
         if (card->type == CARD_TYPE_LINK_STAT)
         {
-            struct WonderCardMetadata *metadata = &gSaveBlock1Ptr->mysteryGift.cardMetadata;
+            struct WonderCardMetadata *metadata = &gSaveBlock1.mysteryGift.cardMetadata;
             return metadata->battlesWon;
         }
         break;
     }
     case CARD_STAT_BATTLES_LOST:
     {
-        struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+        struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
         if (card->type == CARD_TYPE_LINK_STAT)
         {
-            struct WonderCardMetadata *metadata = &gSaveBlock1Ptr->mysteryGift.cardMetadata;
+            struct WonderCardMetadata *metadata = &gSaveBlock1.mysteryGift.cardMetadata;
             return metadata->battlesLost;
         }
         break;
     }
     case CARD_STAT_NUM_TRADES:
     {
-        struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+        struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
         if (card->type == CARD_TYPE_LINK_STAT)
         {
-            struct WonderCardMetadata *metadata = &gSaveBlock1Ptr->mysteryGift.cardMetadata;
+            struct WonderCardMetadata *metadata = &gSaveBlock1.mysteryGift.cardMetadata;
             return metadata->numTrades;
         }
         break;
     }
     case CARD_STAT_NUM_STAMPS:
     {
-        struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+        struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
         if (card->type == CARD_TYPE_STAMP)
             return GetNumStampsInSavedCard();
         break;
     }
     case CARD_STAT_MAX_STAMPS:
     {
-        struct WonderCard *card = &gSaveBlock1Ptr->mysteryGift.card;
+        struct WonderCard *card = &gSaveBlock1.mysteryGift.card;
         if (card->type == CARD_TYPE_STAMP)
             return card->maxStamps;
         break;
@@ -584,7 +584,7 @@ bool32 MysteryGift_TryEnableStatsByFlagId(u16 flagId)
     if (!ValidateSavedWonderCard())
         return FALSE;
 
-    if (gSaveBlock1Ptr->mysteryGift.card.flagId != flagId)
+    if (gSaveBlock1.mysteryGift.card.flagId != flagId)
         return FALSE;
 
     sStatsEnabled = TRUE;
@@ -600,20 +600,20 @@ void MysteryGift_TryIncrementStat(u32 stat, u32 trainerId)
         case CARD_STAT_NUM_TRADES:
             IncrementCardStatForNewTrainer(CARD_STAT_NUM_TRADES,
                                             trainerId,
-                                            gSaveBlock1Ptr->mysteryGift.trainerIds[1],
-                                            ARRAY_COUNT(gSaveBlock1Ptr->mysteryGift.trainerIds[1]));
+                                            gSaveBlock1.mysteryGift.trainerIds[1],
+                                            ARRAY_COUNT(gSaveBlock1.mysteryGift.trainerIds[1]));
             break;
         case CARD_STAT_BATTLES_WON:
             IncrementCardStatForNewTrainer(CARD_STAT_BATTLES_WON,
                                             trainerId,
-                                            gSaveBlock1Ptr->mysteryGift.trainerIds[0],
-                                            ARRAY_COUNT(gSaveBlock1Ptr->mysteryGift.trainerIds[0]));
+                                            gSaveBlock1.mysteryGift.trainerIds[0],
+                                            ARRAY_COUNT(gSaveBlock1.mysteryGift.trainerIds[0]));
             break;
         case CARD_STAT_BATTLES_LOST:
             IncrementCardStatForNewTrainer(CARD_STAT_BATTLES_LOST,
                                             trainerId,
-                                            gSaveBlock1Ptr->mysteryGift.trainerIds[0],
-                                            ARRAY_COUNT(gSaveBlock1Ptr->mysteryGift.trainerIds[0]));
+                                            gSaveBlock1.mysteryGift.trainerIds[0],
+                                            ARRAY_COUNT(gSaveBlock1.mysteryGift.trainerIds[0]));
             break;
         default:
             AGB_ASSERT(0);
@@ -624,7 +624,7 @@ void MysteryGift_TryIncrementStat(u32 stat, u32 trainerId)
 
 static void ClearSavedTrainerIds(void)
 {
-    CpuFill32(0, gSaveBlock1Ptr->mysteryGift.trainerIds, sizeof(gSaveBlock1Ptr->mysteryGift.trainerIds));
+    CpuFill32(0, gSaveBlock1.mysteryGift.trainerIds, sizeof(gSaveBlock1.mysteryGift.trainerIds));
 }
 
 // Returns TRUE if it's a new trainer id, FALSE if an existing one.

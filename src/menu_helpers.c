@@ -251,7 +251,7 @@ bool8 AdjustQuantityAccordingToDPadInput(s16 *quantity, u16 max)
 
 u8 GetLRKeysPressed(void)
 {
-    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
+    if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
     {
         if (JOY_NEW(L_BUTTON))
             return MENU_L_PRESSED;
@@ -264,7 +264,7 @@ u8 GetLRKeysPressed(void)
 
 u8 GetLRKeysPressedAndHeld(void)
 {
-    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
+    if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_LR)
     {
         if (JOY_REPEAT(L_BUTTON))
             return MENU_L_PRESSED;
@@ -279,8 +279,8 @@ bool8 IsHoldingItemAllowed(u16 itemId)
 {
     // Enigma Berry can't be held in link areas
     if (itemId == ITEM_ENIGMA_BERRY
-     && ((gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(TRADE_CENTER)
-       && gSaveBlock1Ptr->location.mapNum == MAP_NUM(TRADE_CENTER))
+     && ((gSaveBlock1.location.mapGroup == MAP_GROUP(TRADE_CENTER)
+       && gSaveBlock1.location.mapNum == MAP_NUM(TRADE_CENTER))
        || InUnionRoom() == TRUE))
         return FALSE;
     else

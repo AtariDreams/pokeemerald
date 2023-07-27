@@ -661,14 +661,14 @@ void InitHostRfuGameData(struct RfuGameData *data, u8 activity, bool32 startedAc
     s32 i;
 
     for (i = 0; i < (s32)ARRAY_COUNT(data->compatibility.playerTrainerId); i++)
-        data->compatibility.playerTrainerId[i] = gSaveBlock2Ptr->playerTrainerId[i];
+        data->compatibility.playerTrainerId[i] = gSaveBlock2.playerTrainerId[i];
 
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
         data->partnerInfo[i] = partnerInfo;
         partnerInfo >>= 8; // Each element is 1 byte
     }
-    data->playerGender = gSaveBlock2Ptr->playerGender;
+    data->playerGender = gSaveBlock2.playerGender;
     data->activity = activity;
     data->startedActivity = startedActivity;
     data->compatibility.language = GAME_LANGUAGE;
@@ -912,15 +912,15 @@ void SaveLinkTrainerNames(void)
         s32 j;
         s32 nextSpace;
         s32 connectedTrainerRecordIndices[MAX_RFU_PLAYERS];
-        struct TrainerNameRecord *newRecords = AllocZeroed(sizeof(gSaveBlock1Ptr->trainerNameRecords));
+        struct TrainerNameRecord *newRecords = AllocZeroed(sizeof(gSaveBlock1.trainerNameRecords));
 
         // Check if we already have a record saved for connected trainers.
         for (i = 0; i < GetLinkPlayerCount(); i++)
         {
             connectedTrainerRecordIndices[i] = -1;
-            for (j = 0; j < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); j++)
+            for (j = 0; j < (int)ARRAY_COUNT(gSaveBlock1.trainerNameRecords); j++)
             {
-                if ((u16)gLinkPlayers[i].trainerId ==  gSaveBlock1Ptr->trainerNameRecords[j].trainerId && StringCompare(gLinkPlayers[i].name, gSaveBlock1Ptr->trainerNameRecords[j].trainerName) == 0)
+                if ((u16)gLinkPlayers[i].trainerId ==  gSaveBlock1.trainerNameRecords[j].trainerId && StringCompare(gLinkPlayers[i].name, gSaveBlock1.trainerNameRecords[j].trainerName) == 0)
                     connectedTrainerRecordIndices[i] = j;
             }
         }
@@ -935,25 +935,25 @@ void SaveLinkTrainerNames(void)
 
                 // If we already had a record for this trainer, wipe it so that the next step doesn't duplicate it.
                 if (connectedTrainerRecordIndices[i] >= 0)
-                    memset(gSaveBlock1Ptr->trainerNameRecords[connectedTrainerRecordIndices[i]].trainerName, 0, PLAYER_NAME_LENGTH + 1);
+                    memset(gSaveBlock1.trainerNameRecords[connectedTrainerRecordIndices[i]].trainerName, 0, PLAYER_NAME_LENGTH + 1);
                 nextSpace++;
             }
         }
 
         // Copy all non-empty records to the new list, in the order they appear on the old list. If the list is full,
         // the last (oldest) records will be dropped.
-        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
+        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1.trainerNameRecords); i++)
         {
-            if (NameIsNotEmpty(gSaveBlock1Ptr->trainerNameRecords[i].trainerName))
+            if (NameIsNotEmpty(gSaveBlock1.trainerNameRecords[i].trainerName))
             {
-                CopyTrainerRecord(&newRecords[nextSpace], gSaveBlock1Ptr->trainerNameRecords[i].trainerId, gSaveBlock1Ptr->trainerNameRecords[i].trainerName);
-                if (++nextSpace >= (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords))
+                CopyTrainerRecord(&newRecords[nextSpace], gSaveBlock1.trainerNameRecords[i].trainerId, gSaveBlock1.trainerNameRecords[i].trainerName);
+                if (++nextSpace >= (int)ARRAY_COUNT(gSaveBlock1.trainerNameRecords))
                     break;
             }
         }
 
         // Finalize the new list, and clean up.
-        memcpy(gSaveBlock1Ptr->trainerNameRecords, newRecords, sizeof(gSaveBlock1Ptr->trainerNameRecords));
+        memcpy(gSaveBlock1.trainerNameRecords, newRecords, sizeof(gSaveBlock1.trainerNameRecords));
         Free(newRecords);
     }
 }
@@ -962,12 +962,12 @@ bool32 PlayerHasMetTrainerBefore(u16 id, u8 *name)
 {
     s32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
+    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1.trainerNameRecords); i++)
     {
-        if (StringCompare(gSaveBlock1Ptr->trainerNameRecords[i].trainerName, name) == 0 && gSaveBlock1Ptr->trainerNameRecords[i].trainerId == id)
+        if (StringCompare(gSaveBlock1.trainerNameRecords[i].trainerName, name) == 0 && gSaveBlock1.trainerNameRecords[i].trainerId == id)
             return TRUE;
 
-        if (!NameIsNotEmpty(gSaveBlock1Ptr->trainerNameRecords[i].trainerName))
+        if (!NameIsNotEmpty(gSaveBlock1.trainerNameRecords[i].trainerName))
             return FALSE;
     }
     return FALSE;
@@ -977,9 +977,9 @@ void WipeTrainerNameRecords(void)
 {
     s32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1Ptr->trainerNameRecords); i++)
+    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1.trainerNameRecords); i++)
     {
-        gSaveBlock1Ptr->trainerNameRecords[i].trainerId = 0;
-        CpuFill16(0, gSaveBlock1Ptr->trainerNameRecords[i].trainerName, PLAYER_NAME_LENGTH + 1);
+        gSaveBlock1.trainerNameRecords[i].trainerId = 0;
+        CpuFill16(0, gSaveBlock1.trainerNameRecords[i].trainerName, PLAYER_NAME_LENGTH + 1);
     }
 }
