@@ -1218,7 +1218,7 @@ static void CB2_LoadRoulette(void)
     case 6:
         AnimateSprites();
         BuildOamBuffer();
-        SetCreditDigits(GetCoins());
+        SetCreditDigits(gSaveBlock1.coins);
         SetBallCounterNumLeft(BALLS_PER_ROUND);
         SetMultiplierSprite(SELECTION_NONE);
         DrawGridBackground(SELECTION_NONE);
@@ -1244,8 +1244,8 @@ static void CB2_LoadRoulette(void)
         BeginHardwarePaletteFade(0xFF, 0, 16, 0, 1);
         taskId = sRoulette->playTaskId = CreateTask(Task_StartPlaying, 0);
         gTasks[taskId].tBallNum = BALLS_PER_ROUND;
-        gTasks[taskId].tCoins = GetCoins();
-        AlertTVThatPlayerPlayedRoulette(GetCoins());
+        gTasks[taskId].tCoins = gSaveBlock1.coins;
+        AlertTVThatPlayerPlayedRoulette(gSaveBlock1.coins);
         sRoulette->spinTaskId = CreateTask(Task_SpinWheel, 1);
         SetMainCallback2(CB2_Roulette);
         return;
@@ -1963,12 +1963,12 @@ static void ExitRoulette(u8 taskId)
 {
     RouletteFlash_Stop(&sRoulette->flashUtil, 0xFFFF);
     RouletteFlash_Reset(&sRoulette->flashUtil);
-    SetCoins(gTasks[taskId].tCoins);
-    if (GetCoins() < sRoulette->minBet)
+    gSaveBlock1.coins = gTasks[taskId].tCoins;
+    if (gSaveBlock1.coins < sRoulette->minBet)
         gSpecialVar_0x8004 = TRUE;
     else
         gSpecialVar_0x8004 = FALSE;
-    TryPutFindThatGamerOnAir(GetCoins());
+    TryPutFindThatGamerOnAir(gSaveBlock1.coins);
     BeginHardwarePaletteFade(0xFF, 0, 0, 16, 0);
     gTasks[taskId].func = Task_ExitRoulette;
 }
@@ -3476,9 +3476,9 @@ void PlayRoulette(void)
 {
     u8 taskId;
     LockPlayerFieldControls();
-    ShowCoinsWindow(GetCoins(), 1, 1);
+    ShowCoinsWindow(gSaveBlock1.coins, 1, 1);
     taskId = CreateTask(Task_PrintRouletteEntryMsg, 0);
-    gTasks[taskId].tCoins = GetCoins();
+    gTasks[taskId].tCoins = gSaveBlock1.coins;
 }
 
 static void LoadOrFreeMiscSpritePalettesAndSheets(bool8 free)

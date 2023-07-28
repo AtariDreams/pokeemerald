@@ -1194,7 +1194,7 @@ static void InitSlotMachine(void)
     sSlotMachine->matches = 0;
     sSlotMachine->reelTimeSpinsLeft = 0;
     sSlotMachine->reelTimeSpinsUsed = 0;
-    sSlotMachine->coins = GetCoins();
+    sSlotMachine->coins = gSaveBlock1.coins;
     sSlotMachine->payout = 0;
     sSlotMachine->netCoinLoss = 0;
     sSlotMachine->bet = 0;
@@ -1213,7 +1213,7 @@ static void InitSlotMachine(void)
         sSlotMachine->reelPixelOffsets[i] = REEL_HEIGHT - sSlotMachine->reelPositions[i] * REEL_SYMBOL_HEIGHT;
         sSlotMachine->reelPixelOffsets[i] %= REEL_HEIGHT;
     }
-    AlertTVThatPlayerPlayedSlotMachine(GetCoins());
+    AlertTVThatPlayerPlayedSlotMachine(gSaveBlock1.coins);
 }
 
 static void SlotMachineSetup_InitPalsSpritesTasks(void)
@@ -1728,8 +1728,8 @@ static bool8 SlotTask_WaitMsg_NoMoreCoins(struct Task *task)
 // SLOTTASK_END
 static bool8 SlotTask_EndGame(struct Task *task)
 {
-    SetCoins(sSlotMachine->coins);
-    TryPutFindThatGamerOnAir(GetCoins());
+    gSaveBlock1.coins = sSlotMachine->coins;
+    TryPutFindThatGamerOnAir(gSaveBlock1.coins);
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     sSlotMachine->state++; // SLOTTASK_FREE
     return FALSE;
