@@ -38,20 +38,10 @@ void HideCoinsWindow(void)
     RemoveWindow(sCoinsWindowId);
 }
 
-u16 GetCoins(void)
-{
-    return gSaveBlock1.coins ^ gSaveBlock2.encryptionKey;
-}
-
-void SetCoins(u16 coinAmount)
-{
-    gSaveBlock1.coins = coinAmount ^ gSaveBlock2.encryptionKey;
-}
-
 bool8 AddCoins(u16 toAdd)
 {
     u16 newAmount;
-    u16 ownedCoins = GetCoins();
+    u16 ownedCoins = gSaveBlock1.coins;
     if (ownedCoins >= MAX_COINS)
         return FALSE;
     // check overflow, can't have less coins than previously
@@ -66,16 +56,16 @@ bool8 AddCoins(u16 toAdd)
             ownedCoins = MAX_COINS;
         newAmount = ownedCoins;
     }
-    SetCoins(newAmount);
+    gSaveBlock1.coins = newAmount;
     return TRUE;
 }
 
 bool8 RemoveCoins(u16 toSub)
 {
-    u16 ownedCoins = GetCoins();
+    u16 ownedCoins = gSaveBlock1.coins;
     if (ownedCoins >= toSub)
     {
-        SetCoins(ownedCoins - toSub);
+        gSaveBlock1.coins = ownedCoins - toSub;
         return TRUE;
     }
     return FALSE;

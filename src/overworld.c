@@ -358,7 +358,7 @@ static void (*const sMovementStatusHandler[])(struct LinkPlayerObjectEvent *, st
 void DoWhiteOut(void)
 {
     RunScriptImmediately(EventScript_WhiteOut);
-    SetMoney(&gSaveBlock1.money, GetMoney(&gSaveBlock1.money) / 2);
+    gSaveBlock1.money /= 2;
     HealPlayerParty();
     Overworld_ResetStateAfterWhiteOut();
     SetWarpDestinationToLastHealLocation();
@@ -424,7 +424,7 @@ static void UpdateMiscOverworldStates(void)
 
 void ResetGameStats(void)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < NUM_GAME_STATS; i++)
         SetGameStat(i, 0);
@@ -449,21 +449,12 @@ u32 GetGameStat(u8 index)
     if (index >= NUM_USED_GAME_STATS)
         return 0;
 
-    return gSaveBlock1.gameStats[index] ^ gSaveBlock2.encryptionKey;
+    return gSaveBlock1.gameStats[index];
 }
 
 void SetGameStat(u8 index, u32 value)
 {
-    if (index < NUM_USED_GAME_STATS)
-        gSaveBlock1.gameStats[index] = value ^ gSaveBlock2.encryptionKey;
-}
-
-void ApplyNewEncryptionKeyToGameStats(u32 newKey)
-{
-    u8 i;
-
-    for (i = 0; i < NUM_GAME_STATS; i++)
-        ApplyNewEncryptionKeyToWord(&gSaveBlock1.gameStats[i], newKey);
+    gSaveBlock1.gameStats[index] = value;
 }
 
 void LoadObjEventTemplatesFromHeader(void)
