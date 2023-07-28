@@ -14,8 +14,6 @@
 #include "decoration_inventory.h"
 #include "agb_flash.h"
 
-static void ApplyNewEncryptionKeyToAllEncryptedData(u32 encryptionKey);
-
 #define SAVEBLOCK_MOVE_RANGE    128
 
 struct LoadedSaveData
@@ -35,7 +33,6 @@ EWRAM_DATA struct SaveBlock2 gSaveBlock2;
 EWRAM_DATA struct PokemonStorage gPokemonStorage;
 
 EWRAM_DATA struct LoadedSaveData gLoadedSaveData = {0};
-EWRAM_DATA u32 gLastEncryptionKey = 0;
 
 // IWRAM common
 bool32 gFlashMemoryPresent;
@@ -167,15 +164,11 @@ void LoadPlayerBag(void)
     // load mail.
     for (i = 0; i < MAIL_COUNT; i++)
         gLoadedSaveData.mail[i] = gSaveBlock1.mail[i];
-
-    gLastEncryptionKey = gSaveBlock2.encryptionKey;
 }
 
 void SavePlayerBag(void)
 {
     unsigned int i;
-    u32 encryptionKeyBackup;
-
     // save player items.
     for (i = 0; i < BAG_ITEMS_COUNT; i++)
         gSaveBlock1.bagPocket_Items[i] = gLoadedSaveData.items[i];
@@ -199,30 +192,4 @@ void SavePlayerBag(void)
     // save mail.
     for (i = 0; i < MAIL_COUNT; i++)
         gSaveBlock1.mail[i] = gLoadedSaveData.mail[i];
-
-    encryptionKeyBackup = gSaveBlock2.encryptionKey;
-    gSaveBlock2.encryptionKey = gLastEncryptionKey;
-    ApplyNewEncryptionKeyToBagItems(encryptionKeyBackup);
-    gSaveBlock2.encryptionKey = encryptionKeyBackup; // updated twice?
-}
-
-void ApplyNewEncryptionKeyToHword(u16 *hWord, u32 newKey)
-{
-    *hWord ^= gSaveBlock2.encryptionKey;
-    *hWord ^= newKey;
-}
-
-void ApplyNewEncryptionKeyToWord(u32 *word, u32 newKey)
-{
-    *word ^= gSaveBlock2.encryptionKey;
-    *word ^= newKey;
-}
-
-static void ApplyNewEncryptionKeyToAllEncryptedData(u32 encryptionKey)
-{
-    ApplyNewEncryptionKeyToGameStats(encryptionKey);
-    ApplyNewEncryptionKeyToBagItems_(encryptionKey);
-    ApplyNewEncryptionKeyToBerryPowder(encryptionKey);
-    ApplyNewEncryptionKeyToWord(&gSaveBlock1.money, encryptionKey);
-    ApplyNewEncryptionKeyToHword(&gSaveBlock1.coins, encryptionKey);
 }
