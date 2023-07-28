@@ -69,73 +69,46 @@ static const struct CompressedSpritePalette sSpritePalette_MoneyLabel =
     .tag = MONEY_LABEL_TAG
 };
 
-u32 GetMoney(u32 *moneyPtr)
+void AddMoney(u32 toAdd)
 {
-    return *moneyPtr ^ gSaveBlock2.encryptionKey;
-}
+    u32 overflowCheck = gSaveBlock1.money + toAdd;
 
-void SetMoney(u32 *moneyPtr, u32 newValue)
-{
-    *moneyPtr = gSaveBlock2.encryptionKey ^ newValue;
-}
-
-bool8 IsEnoughMoney(u32 *moneyPtr, u32 cost)
-{
-    if (GetMoney(moneyPtr) >= cost)
-        return TRUE;
-    else
-        return FALSE;
-}
-
-void AddMoney(u32 *moneyPtr, u32 toAdd)
-{
-    u32 toSet = GetMoney(moneyPtr);
-
-    // can't have more money than MAX
-    if (toSet + toAdd > MAX_MONEY)
+    if (overflowCheck > MAX_MONEY)
     {
-        toSet = MAX_MONEY;
-    }
-    else
-    {
-        toSet += toAdd;
-        // check overflow, can't have less money after you receive more
-        if (toSet < GetMoney(moneyPtr))
-            toSet = MAX_MONEY;
+        gSaveBlock1.money = MAX_MONEY;
+        return;
     }
 
-    SetMoney(moneyPtr, toSet);
+    gSaveBlock1.money = overflowCheck;
 }
 
-void RemoveMoney(u32 *moneyPtr, u32 toSub)
+void RemoveMoney(u32 toSub)
 {
-    u32 toSet = GetMoney(moneyPtr);
-
     // can't subtract more than you already have
-    if (toSet < toSub)
-        toSet = 0;
+    if (gSaveBlock1.money < toSub)
+        gSaveBlock1.money = 0;
     else
-        toSet -= toSub;
-
-    SetMoney(moneyPtr, toSet);
+        gSaveBlock1.money -= toSub;
 }
 
 bool8 IsEnoughForCostInVar0x8005(void)
 {
-    return IsEnoughMoney(&gSaveBlock1.money, gSpecialVar_0x8005);
+    if (gSaveBlock1.money < gSpecialVar_0x8005)
+        return FALSE;
+    return TRUE;
 }
 
 void SubtractMoneyFromVar0x8005(void)
 {
-    RemoveMoney(&gSaveBlock1.money, gSpecialVar_0x8005);
+    RemoveMoney(gSpecialVar_0x8005);
 }
 
-void PrintMoneyAmountInMoneyBox(u8 windowId, int amount, u8 speed)
+void PrintMoneyAmountInMoneyBox(u8 windowId, u8 speed)
 {
-    PrintMoneyAmount(windowId, 38, 1, amount, speed);
+    PrintMoneyAmount(windowId, 38, 1, gSaveBlock1.money, speed);
 }
 
-void PrintMoneyAmount(u8 windowId, u8 x, u8 y, int amount, u8 speed)
+void PrintMoneyAmount(u8 windowId, u8 x, u8 y, u32 amount, u8 speed)
 {
     u8 *txtPtr;
     s32 strLength;
@@ -146,24 +119,24 @@ void PrintMoneyAmount(u8 windowId, u8 x, u8 y, int amount, u8 speed)
     txtPtr = gStringVar4;
 
     while (strLength-- > 0)
-        *(txtPtr++) = CHAR_SPACER;
+        *txtPtr++ = CHAR_SPACER;
 
     StringExpandPlaceholders(txtPtr, gText_PokedollarVar1);
     AddTextPrinterParameterized(windowId, FONT_NORMAL, gStringVar4, x, y, speed, NULL);
 }
 
-void PrintMoneyAmountInMoneyBoxWithBorder(u8 windowId, u16 tileStart, u8 pallete, int amount)
+void PrintMoneyAmountInMoneyBoxWithBorder(u8 windowId, u16 tileStart, u8 pallete)
 {
     DrawStdFrameWithCustomTileAndPalette(windowId, FALSE, tileStart, pallete);
-    PrintMoneyAmountInMoneyBox(windowId, amount, 0);
+    PrintMoneyAmountInMoneyBox(windowId, 0);
 }
 
-void ChangeAmountInMoneyBox(int amount)
+void ChangeAmountInMoneyBox(void)
 {
-    PrintMoneyAmountInMoneyBox(sMoneyBoxWindowId, amount, 0);
+    PrintMoneyAmountInMoneyBox(sMoneyBoxWindowId, 0);
 }
 
-void DrawMoneyBox(int amount, u8 x, u8 y)
+void DrawMoneyBox(u8 x, u8 y)
 {
     struct WindowTemplate template;
 
@@ -172,8 +145,8 @@ void DrawMoneyBox(int amount, u8 x, u8 y)
     FillWindowPixelBuffer(sMoneyBoxWindowId, PIXEL_FILL(0));
     PutWindowTilemap(sMoneyBoxWindowId);
     CopyWindowToVram(sMoneyBoxWindowId, COPYWIN_MAP);
-    PrintMoneyAmountInMoneyBoxWithBorder(sMoneyBoxWindowId, 0x214, 14, amount);
-    AddMoneyLabelObject((8 * x) + 19, (8 * y) + 11);
+    PrintMoneyAmountInMoneyBoxWithBorder(sMoneyBoxWindowId, 0x214, 14);
+    AddMoneyLabelObject(x * 8 + 19, y * 8 + 11);
 }
 
 void HideMoneyBox(void)
