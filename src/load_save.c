@@ -28,9 +28,9 @@ struct LoadedSaveData
 
 // EWRAM DATA
 
-EWRAM_DATA struct SaveBlock2 gSaveBlock2;
-EWRAM_DATA struct SaveBlock1 gSaveBlock1;
-EWRAM_DATA struct PokemonStorage gPokemonStorage;
+EWRAM_DATA struct SaveBlock2 gSaveBlock2 = {0};
+EWRAM_DATA struct SaveBlock1 gSaveBlock1 = {0};
+EWRAM_DATA struct PokemonStorage gPokemonStorage = {0};
 
 EWRAM_DATA struct LoadedSaveData gLoadedSaveData = {0};
 
