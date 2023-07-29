@@ -1070,7 +1070,6 @@ struct SaveBlock1
 
 extern EWRAM_DATA struct SaveBlock2 gSaveBlock2;
 extern EWRAM_DATA struct SaveBlock1 gSaveBlock1;
-extern EWRAM_DATA struct PokemonStorage gPokemonStorage;
 
 struct MapPosition
 {
