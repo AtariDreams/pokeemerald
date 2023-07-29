@@ -2062,6 +2062,7 @@ static void DoMapLoadLoop(u8 *state)
 static void ResetMirageTowerAndSaveBlockPtrs(void)
 {
     ClearMirageTowerPulseBlend();
+    InitHeap(gHeap, HEAP_SIZE); // Glitches happen if we do not do this
 }
 
 static void ResetScreenForMapLoad(void)
