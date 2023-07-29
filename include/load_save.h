@@ -20,7 +20,6 @@ extern bool32 gFlashMemoryPresent;
 void CheckForFlashMemory(void);
 void ClearSav2(void);
 void ClearSav1(void);
-void MoveSaveBlocks_ResetHeap(void);
 u32 UseContinueGameWarp(void);
 void ClearContinueGameWarpStatus(void);
 void SetContinueGameWarpStatus(void);
