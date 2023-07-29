@@ -48,16 +48,8 @@ static const struct MapConnection *GetIncomingConnection(u8 direction, int x, in
 static bool8 IsPosInIncomingConnectingMap(u8 direction, int x, int y, const struct MapConnection *connection);
 static bool8 IsCoordInIncomingConnectingMap(int coord, int srcMax, int destMax, int offset);
 
-#define GetBorderBlockAt(x, y)({                                                                   \
-    u16 block;                                                                                     \
-    int i;                                                                                         \
-    const u16 *border = gMapHeader.mapLayout->border; /* Unused, they read it again below */       \
-                                                                                                   \
-    i = (x + 1) & 1;                                                                               \
-    i += ((y + 1) & 1) * 2;                                                                        \
-                                                                                                   \
-    block = gMapHeader.mapLayout->border[i] | MAPGRID_COLLISION_MASK;                              \
-})
+#define	GetBorderBlockAt(x,y) ( (gMapHeader.mapLayout->border)\
+		[ ( (x + 1) & 1) + ( ( (y + 1) & 1)<<1 ) ] | MAPGRID_COLLISION_MASK )
 
 #define AreCoordsWithinMapGridBounds(x, y) (x >= 0 && x < gBackupMapLayout.width && y >= 0 && y < gBackupMapLayout.height)
 
@@ -100,16 +92,12 @@ void InitTrainerHillMap(void)
 static void InitMapLayoutData(struct MapHeader *mapHeader)
 {
     struct MapLayout const *mapLayout;
-    int width;
-    int height;
     mapLayout = mapHeader->mapLayout;
     CpuFastFill16(MAPGRID_UNDEFINED, sBackupMapData, sizeof(sBackupMapData));
     gBackupMapLayout.map = sBackupMapData;
-    width = mapLayout->width + MAP_OFFSET_W;
-    gBackupMapLayout.width = width;
-    height = mapLayout->height + MAP_OFFSET_H;
-    gBackupMapLayout.height = height;
-    if (width * height <= MAX_MAP_DATA_SIZE)
+    gBackupMapLayout.width = mapLayout->width + MAP_OFFSET_W;
+    gBackupMapLayout.height = mapLayout->height + MAP_OFFSET_H;
+    if (gBackupMapLayout.width * gBackupMapLayout.height <= MAX_MAP_DATA_SIZE)
     {
         InitBackupMapLayoutData(mapLayout->map, mapLayout->width, mapLayout->height);
         InitBackupMapLayoutConnections(mapHeader);
@@ -121,7 +109,7 @@ static void InitBackupMapLayoutData(const u16 *map, u16 width, u16 height)
     u16 *dest;
     int y;
     dest = gBackupMapLayout.map;
-    dest += gBackupMapLayout.width * 7 + MAP_OFFSET;
+    dest += gBackupMapLayout.width * MAP_OFFSET + MAP_OFFSET;
     for (y = 0; y < height; y++)
     {
         CpuCopy16(map, dest, width * 2);
@@ -144,7 +132,7 @@ static void InitBackupMapLayoutConnections(struct MapHeader *mapHeader)
         for (i = 0; i < count; i++, connection++)
         {
             struct MapHeader const *cMap = GetMapHeaderFromConnection(connection);
-            u32 offset = connection->offset;
+            s32 offset = connection->offset;
             switch (connection->direction)
             {
             case CONNECTION_SOUTH:
@@ -344,7 +332,7 @@ static void FillEastConnection(struct MapHeader const *mapHeader, struct MapHead
 
 u8 MapGridGetElevationAt(int x, int y)
 {
-    u16 block = GetMapGridBlockAt(x, y);
+    int block = GetMapGridBlockAt(x, y);
 
     if (block == MAPGRID_UNDEFINED)
         return 0;
@@ -354,7 +342,7 @@ u8 MapGridGetElevationAt(int x, int y)
 
 u8 MapGridGetCollisionAt(int x, int y)
 {
-    u16 block = GetMapGridBlockAt(x, y);
+    int block = GetMapGridBlockAt(x, y);
 
     if (block == MAPGRID_UNDEFINED)
         return TRUE;
@@ -362,9 +350,9 @@ u8 MapGridGetCollisionAt(int x, int y)
     return (block & MAPGRID_COLLISION_MASK) >> MAPGRID_COLLISION_SHIFT;
 }
 
-u32 MapGridGetMetatileIdAt(int x, int y)
+int MapGridGetMetatileIdAt(int x, int y)
 {
-    u16 block = GetMapGridBlockAt(x, y);
+    int block = GetMapGridBlockAt(x, y);
 
     if (block == MAPGRID_UNDEFINED)
         return GetBorderBlockAt(x, y) & MAPGRID_METATILE_ID_MASK;
@@ -372,15 +360,15 @@ u32 MapGridGetMetatileIdAt(int x, int y)
     return block & MAPGRID_METATILE_ID_MASK;
 }
 
-u32 MapGridGetMetatileBehaviorAt(int x, int y)
+int MapGridGetMetatileBehaviorAt(int x, int y)
 {
-    u16 metatile = MapGridGetMetatileIdAt(x, y);
+    int metatile = MapGridGetMetatileIdAt(x, y);
     return GetMetatileAttributesById(metatile) & METATILE_ATTR_BEHAVIOR_MASK;
 }
 
 u8 MapGridGetMetatileLayerTypeAt(int x, int y)
 {
-    u16 metatile = MapGridGetMetatileIdAt(x, y);
+    int metatile = MapGridGetMetatileIdAt(x, y);
     return (GetMetatileAttributesById(metatile) & METATILE_ATTR_LAYER_MASK) >> METATILE_ATTR_LAYER_SHIFT;
 }
 
@@ -396,11 +384,9 @@ void MapGridSetMetatileIdAt(int x, int y, u16 metatile)
 
 void MapGridSetMetatileEntryAt(int x, int y, u16 metatile)
 {
-    int i;
     if (AreCoordsWithinMapGridBounds(x, y))
     {
-        i = x + gBackupMapLayout.width * y;
-        gBackupMapLayout.map[i] = metatile;
+        gBackupMapLayout.map[x + gBackupMapLayout.width * y] = metatile;
     }
 }
 
@@ -509,11 +495,8 @@ static void MoveMapViewToBackup(u8 direction)
     u16 *mapView;
     int x0, y0;
     int x2, y2;
-    u16 *src, *dest;
-    int srci, desti;
     int r9, r8;
     int x, y;
-    int i, j;
     mapView = gSaveBlock1.mapView;
     width = gBackupMapLayout.width;
     r9 = 0;
@@ -543,17 +526,9 @@ static void MoveMapViewToBackup(u8 direction)
     }
     for (y = 0; y < y2; y++)
     {
-        i = 0;
-        j = 0;
         for (x = 0; x < x2; x++)
         {
-            desti = width * (y + y0);
-            srci = (y + r8) * MAP_OFFSET_W + r9;
-            src = &mapView[srci + i];
-            dest = &sBackupMapData[x0 + desti + j];
-            *dest = *src;
-            i++;
-            j++;
+            sBackupMapData[x + x0 + width * (y + y0)] = mapView[x + r9 + MAP_OFFSET_W * (y + r8)];
         }
     }
     ClearSavedMapView();
@@ -640,7 +615,7 @@ static void SetPositionFromConnection(const struct MapConnection *connection, in
     }
 }
 
-bool8 CameraMove(int x, int y)
+int CameraMove(int x, int y)
 {
     int direction;
     const struct MapConnection *connection;
@@ -710,16 +685,20 @@ static bool8 IsPosInIncomingConnectingMap(u8 direction, int x, int y, const stru
 
 static bool8 IsCoordInIncomingConnectingMap(int coord, int srcMax, int destMax, int offset)
 {
-    int offset2;
-    offset2 = offset;
+    int min, max;
+    
 
-    if (offset2 < 0)
-        offset2 = 0;
+    if (offset < 0)
+        min = 0;
+    else
+        min = offset;
 
     if (destMax + offset < srcMax)
-        srcMax = destMax + offset;
+        max = destMax + offset;
+    else
+        max = srcMax;
 
-    if (offset2 <= coord && coord <= srcMax)
+    if (min <= coord && coord <= max)
         return TRUE;
 
     return FALSE;
