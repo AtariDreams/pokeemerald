@@ -533,6 +533,8 @@ struct SaveBlock2
     /*0x64C*/ struct BattleFrontier frontier;
 }; // sizeof=0xF2C
 
+extern EWRAM_DATA struct SaveBlock2 gSaveBlock2;
+
 struct SecretBaseParty
 {
     u32 personality[PARTY_SIZE];
@@ -1068,7 +1070,6 @@ struct SaveBlock1
     // sizeof: 0x3D88
 };
 
-extern EWRAM_DATA struct SaveBlock2 gSaveBlock2;
 extern EWRAM_DATA struct SaveBlock1 gSaveBlock1;
 
 struct MapPosition
