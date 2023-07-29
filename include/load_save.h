@@ -11,10 +11,6 @@
  * the wrong memory leading to various glitches.
  */
 
-extern EWRAM_DATA struct SaveBlock2 gSaveBlock2;
-extern EWRAM_DATA struct SaveBlock1 gSaveBlock1;
-extern EWRAM_DATA struct PokemonStorage gPokemonStorage;
-
 extern bool32 gFlashMemoryPresent;
 
 void CheckForFlashMemory(void);
