@@ -1760,8 +1760,8 @@ void LocalLinkPlayerToBlock(void)
     InitLocalLinkPlayer();
     block = &gLocalLinkPlayerBlock;
     block->linkPlayer = gLocalLinkPlayer;
-    memcpy(block->magic1, sASCIIGameFreakInc, sizeof(block->magic1) - 1);
-    memcpy(block->magic2, sASCIIGameFreakInc, sizeof(block->magic2) - 1);
+    strcpy(block->magic1, sASCIIGameFreakInc);
+    strcpy(block->magic2, sASCIIGameFreakInc);
     memcpy(gBlockSendBuffer, block, sizeof(*block));
 }
 
