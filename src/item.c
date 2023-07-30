@@ -221,7 +221,7 @@ bool8 AddBagItem(u16 itemId, u16 count)
         u8 pocket = ItemId_GetPocket(itemId) - 1;
 
         itemPocket = &gBagPockets[pocket];
-        newItems = AllocZeroed(itemPocket->capacity * sizeof(struct ItemSlot));
+        newItems = Alloc(itemPocket->capacity * sizeof(struct ItemSlot));
         memcpy(newItems, itemPocket->itemSlots, itemPocket->capacity * sizeof(struct ItemSlot));
 
         if (pocket != BERRIES_POCKET)
@@ -456,7 +456,7 @@ bool8 AddPCItem(u16 itemId, u16 count)
     struct ItemSlot *newItems;
 
     // Copy PC items
-    newItems = AllocZeroed(sizeof(gSaveBlock1.pcItems));
+    newItems = Alloc(sizeof(gSaveBlock1.pcItems));
     memcpy(newItems, gSaveBlock1.pcItems, sizeof(gSaveBlock1.pcItems));
 
     // Use any item slots that already contain this item
