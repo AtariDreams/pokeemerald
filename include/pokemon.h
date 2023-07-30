@@ -186,10 +186,6 @@ struct PokemonSubstruct3
 
 union PokemonSubstruct
 {
-    struct PokemonSubstruct0 type0;
-    struct PokemonSubstruct1 type1;
-    struct PokemonSubstruct2 type2;
-    struct PokemonSubstruct3 type3;
     u16 raw[NUM_SUBSTRUCT_BYTES / 2]; // /2 because it's u16, not u8
 };
 
@@ -209,11 +205,10 @@ struct BoxPokemon
     u16 checksum;
     u16 unknown;
 
-    union
-    {
-        u32 raw[(NUM_SUBSTRUCT_BYTES * 4) / 4]; // *4 because there are 4 substructs, /4 because it's u32, not u8
-        union PokemonSubstruct substructs[4];
-    } secure;
+    struct PokemonSubstruct0 substruct0;
+    struct PokemonSubstruct1 substruct1;
+    struct PokemonSubstruct2 substruct2;
+    struct PokemonSubstruct3 substruct3;
 };
 
 struct Pokemon
