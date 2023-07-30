@@ -6854,11 +6854,9 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
 {
     u8 *txtPtr;
     u16 gender;
-    bool8 sanityIsBadEgg;
 
     sStorage->displayMonItemId = ITEM_NONE;
     gender = MON_MALE;
-    sanityIsBadEgg = FALSE;
     if (mode == MODE_PARTY)
     {
         struct Pokemon *mon = (struct Pokemon *)pokemon;
@@ -6866,11 +6864,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
         sStorage->displayMonSpecies = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
         if (sStorage->displayMonSpecies != SPECIES_NONE)
         {
-            sanityIsBadEgg = GetMonData(mon, MON_DATA_SANITY_IS_BAD_EGG);
-            if (sanityIsBadEgg)
-                sStorage->displayMonIsEgg = TRUE;
-            else
-                sStorage->displayMonIsEgg = GetMonData(mon, MON_DATA_IS_EGG);
+            sStorage->displayMonIsEgg = GetMonData(mon, MON_DATA_IS_EGG);
 
             GetMonData(mon, MON_DATA_NICKNAME, sStorage->displayMonName);
             StringGet_Nickname(sStorage->displayMonName);
@@ -6890,11 +6884,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
         if (sStorage->displayMonSpecies != SPECIES_NONE)
         {
             u32 otId = GetBoxMonData(boxMon, MON_DATA_OT_ID);
-            sanityIsBadEgg = GetBoxMonData(boxMon, MON_DATA_SANITY_IS_BAD_EGG);
-            if (sanityIsBadEgg)
-                sStorage->displayMonIsEgg = TRUE;
-            else
-                sStorage->displayMonIsEgg = GetBoxMonData(boxMon, MON_DATA_IS_EGG);
+            sStorage->displayMonIsEgg = GetBoxMonData(boxMon, MON_DATA_IS_EGG);
 
 
             GetBoxMonData(boxMon, MON_DATA_NICKNAME, sStorage->displayMonName);
@@ -6923,10 +6913,7 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
     }
     else if (sStorage->displayMonIsEgg)
     {
-        if (sanityIsBadEgg)
-            StringCopyPadded(sStorage->displayMonNameText, sStorage->displayMonName, CHAR_SPACE, 5);
-        else
-            StringCopyPadded(sStorage->displayMonNameText, gText_EggNickname, CHAR_SPACE, 8);
+        StringCopyPadded(sStorage->displayMonNameText, gText_EggNickname, CHAR_SPACE, 8);
 
         StringFill(sStorage->displayMonSpeciesName, CHAR_SPACE, 8);
         StringFill(sStorage->displayMonGenderLvlText, CHAR_SPACE, 8);
@@ -9589,8 +9576,7 @@ bool32 CheckBoxMonSanityAt(u32 boxId, u32 boxPosition)
     if (boxId < TOTAL_BOXES_COUNT
         && boxPosition < IN_BOX_COUNT
         && GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_HAS_SPECIES)
-        && !GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_IS_EGG)
-        && !GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_IS_BAD_EGG))
+        && !GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SANITY_IS_EGG))
         return TRUE;
     else
         return FALSE;
