@@ -3594,15 +3594,7 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
         break;
     case MON_DATA_NICKNAME:
     {
-        if (boxMon->isBadEgg)
-        {
-            for (retVal = 0;
-                retVal < POKEMON_NAME_LENGTH && gText_BadEgg[retVal] != EOS;
-                data[retVal] = gText_BadEgg[retVal], retVal++) {}
-
-            data[retVal] = EOS;
-        }
-        else if (boxMon->isEgg)
+        if (boxMon->isEgg)
         {
             StringCopy(data, gText_EggNickname);
             retVal = StringLength(data);
@@ -3665,7 +3657,7 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
         retVal = boxMon->unknown;
         break;
     case MON_DATA_SPECIES:
-        retVal = boxMon->isBadEgg ? SPECIES_EGG : boxMon->substruct0.species;
+        retVal = boxMon->substruct0.species;
         break;
     case MON_DATA_HELD_ITEM:
         retVal = boxMon->substruct0.heldItem;
@@ -3828,7 +3820,7 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
         break;
     case MON_DATA_SPECIES_OR_EGG:
         retVal = boxMon->substruct0.species;
-        if (boxMon->substruct0.species && (boxMon->substruct3.isEgg || boxMon->isBadEgg))
+        if (boxMon->substruct0.species && (boxMon->substruct3.isEgg))
             retVal = SPECIES_EGG;
         break;
     case MON_DATA_IVS:
