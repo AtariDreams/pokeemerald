@@ -43,9 +43,9 @@ static u8 GetMewObjectEventId(void)
 
 // When the player enters Faraway Island interior it begins a "hide and seek" minigame where Mew disappears into the grass
 // This function returns the direction Mew will take a step, and is run every time the player takes a step
-u32 GetMewMoveDirection(void)
+u8 GetMewMoveDirection(void)
 {
-    u8 i;
+    u32 i;
     int mewSafeFromTrap;
     struct ObjectEvent *mew = &gObjectEvents[GetMewObjectEventId()];
 
