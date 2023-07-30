@@ -183,9 +183,9 @@ struct LinkPlayer
 
 struct LinkPlayerBlock
 {
-    char magic1[16];
+    char magic1[9];
     struct LinkPlayer linkPlayer;
-    char magic2[16];
+    char magic2[9];
 };
 
 // circular queues
