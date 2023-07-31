@@ -3,25 +3,17 @@
 #include "decoration.h"
 #include "decoration_inventory.h"
 
-EWRAM_DATA struct DecorationInventory gDecorationInventories[DECORCAT_COUNT] = {};
-
-#define SET_DECOR_INV(i, ptr) {\
-    gDecorationInventories[i].items = ptr;\
-    gDecorationInventories[i].size = ARRAY_COUNT(ptr);\
-}
-
-void SetDecorationInventoriesPointers(void)
-{
-    SET_DECOR_INV(DECORCAT_DESK, gSaveBlock1.decorationDesks);
-    SET_DECOR_INV(DECORCAT_CHAIR, gSaveBlock1.decorationChairs);
-    SET_DECOR_INV(DECORCAT_PLANT, gSaveBlock1.decorationPlants);
-    SET_DECOR_INV(DECORCAT_ORNAMENT, gSaveBlock1.decorationOrnaments);
-    SET_DECOR_INV(DECORCAT_MAT, gSaveBlock1.decorationMats);
-    SET_DECOR_INV(DECORCAT_POSTER, gSaveBlock1.decorationPosters);
-    SET_DECOR_INV(DECORCAT_DOLL, gSaveBlock1.decorationDolls);
-    SET_DECOR_INV(DECORCAT_CUSHION, gSaveBlock1.decorationCushions);
-    InitDecorationContextItems();
-}
+#define DECOR_INV(ptr) {.items = ptr, .size = ARRAY_COUNT(ptr)}
+struct DecorationInventory const gDecorationInventories[] = {
+    DECOR_INV(gSaveBlock1.decorationDesks),
+    DECOR_INV(gSaveBlock1.decorationChairs),
+    DECOR_INV(gSaveBlock1.decorationPlants),
+    DECOR_INV(gSaveBlock1.decorationOrnaments),
+    DECOR_INV(gSaveBlock1.decorationMats),
+    DECOR_INV(gSaveBlock1.decorationPosters),
+    DECOR_INV(gSaveBlock1.decorationDolls),
+    DECOR_INV(gSaveBlock1.decorationCushions)
+};
 
 static void ClearDecorationInventory(u8 category)
 {
