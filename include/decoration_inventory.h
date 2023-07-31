@@ -7,7 +7,7 @@ struct DecorationInventory
     u8 size;
 };
 
-extern struct DecorationInventory gDecorationInventories[];
+extern const struct DecorationInventory gDecorationInventories[];
 
 void SetDecorationInventoriesPointers(void);
 void ClearDecorationInventories(void);
