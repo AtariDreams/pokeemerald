@@ -861,7 +861,7 @@ static void AllocateBagItemListBuffers(void)
 static void LoadBagItemListBuffers(u8 pocketId)
 {
     u16 i;
-    struct BagPocket *pocket = &gBagPockets[pocketId];
+    const struct BagPocket *pocket = &gBagPockets[pocketId];
     struct ListMenuItem *subBuffer;
 
     if (!gBagMenu->hideCloseBagText)
@@ -1103,7 +1103,7 @@ static void Task_CloseBagMenu(u8 taskId)
 void UpdatePocketItemList(u8 pocketId)
 {
     u16 i;
-    struct BagPocket *pocket = &gBagPockets[pocketId];
+    const struct BagPocket *pocket = &gBagPockets[pocketId];
     switch (pocketId)
     {
     case TMHM_POCKET:
