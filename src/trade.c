@@ -1037,16 +1037,6 @@ static void SetActiveMenuOptions(void)
     sTradeMenu->optionsActive[PARTY_SIZE * 2] = TRUE;
 }
 
-// why not just use memcpy?
-static void Trade_Memcpy(void *dest, const void *src, u32 size)
-{
-    u8 *_dest = dest;
-    const u8 *_src = src;
-    u32 i;
-    for (i = 0; i < size; i++)
-        _dest[i] = _src[i];
-}
-
 static bool8 BufferTradeParties(void)
 {
     u8 id = GetMultiplayerId();
@@ -1057,7 +1047,7 @@ static bool8 BufferTradeParties(void)
     {
     case 0:
         // The parties are sent in pairs rather than all at once
-        Trade_Memcpy(gBlockSendBuffer, &gPlayerParty[0], 2 * sizeof(struct Pokemon));
+        memcpy(gBlockSendBuffer, &gPlayerParty[0], 2 * sizeof(struct Pokemon));
         sTradeMenu->bufferPartyState++;
         sTradeMenu->timer = 0;
         break;
@@ -1083,13 +1073,13 @@ static bool8 BufferTradeParties(void)
     case 4:
         if (_GetBlockReceivedStatus() == 3)
         {
-            Trade_Memcpy(&gEnemyParty[0], gBlockRecvBuffer[id ^ 1], 2 * sizeof(struct Pokemon));
+            memcpy(&gEnemyParty[0], gBlockRecvBuffer[id ^ 1], 2 * sizeof(struct Pokemon));
             TradeResetReceivedFlags();
             sTradeMenu->bufferPartyState++;
         }
         break;
     case 5:
-        Trade_Memcpy(gBlockSendBuffer, &gPlayerParty[2], 2 * sizeof(struct Pokemon));
+        memcpy(gBlockSendBuffer, &gPlayerParty[2], 2 * sizeof(struct Pokemon));
         sTradeMenu->bufferPartyState++;
         break;
     case 7:
@@ -1100,13 +1090,13 @@ static bool8 BufferTradeParties(void)
     case 8:
         if (_GetBlockReceivedStatus() == 3)
         {
-            Trade_Memcpy(&gEnemyParty[2], gBlockRecvBuffer[id ^ 1],  2 * sizeof(struct Pokemon));
+            memcpy(&gEnemyParty[2], gBlockRecvBuffer[id ^ 1],  2 * sizeof(struct Pokemon));
             TradeResetReceivedFlags();
             sTradeMenu->bufferPartyState++;
         }
         break;
     case 9:
-        Trade_Memcpy(gBlockSendBuffer, &gPlayerParty[4], 2 * sizeof(struct Pokemon));
+        memcpy(gBlockSendBuffer, &gPlayerParty[4], 2 * sizeof(struct Pokemon));
         sTradeMenu->bufferPartyState++;
         break;
     case 11:
@@ -1117,13 +1107,13 @@ static bool8 BufferTradeParties(void)
     case 12:
         if (_GetBlockReceivedStatus() == 3)
         {
-            Trade_Memcpy(&gEnemyParty[4], gBlockRecvBuffer[id ^ 1], 2 * sizeof(struct Pokemon));
+            memcpy(&gEnemyParty[4], gBlockRecvBuffer[id ^ 1], 2 * sizeof(struct Pokemon));
             TradeResetReceivedFlags();
             sTradeMenu->bufferPartyState++;
         }
         break;
     case 13:
-        Trade_Memcpy(gBlockSendBuffer, gSaveBlock1.mail, PARTY_SIZE * sizeof(struct Mail) + 4);
+        memcpy(gBlockSendBuffer, gSaveBlock1.mail, PARTY_SIZE * sizeof(struct Mail) + 4);
         sTradeMenu->bufferPartyState++;
         break;
     case 15:
@@ -1134,13 +1124,13 @@ static bool8 BufferTradeParties(void)
     case 16:
         if (_GetBlockReceivedStatus() == 3)
         {
-            Trade_Memcpy(gTradeMail, gBlockRecvBuffer[id ^ 1], PARTY_SIZE * sizeof(struct Mail));
+            memcpy(gTradeMail, gBlockRecvBuffer[id ^ 1], PARTY_SIZE * sizeof(struct Mail));
             TradeResetReceivedFlags();
             sTradeMenu->bufferPartyState++;
         }
         break;
     case 17:
-        Trade_Memcpy(gBlockSendBuffer, gSaveBlock1.giftRibbons, sizeof(sTradeMenu->giftRibbons));
+        memcpy(gBlockSendBuffer, gSaveBlock1.giftRibbons, sizeof(sTradeMenu->giftRibbons));
         sTradeMenu->bufferPartyState++;
         break;
     case 19:
@@ -1151,7 +1141,7 @@ static bool8 BufferTradeParties(void)
     case 20:
         if (_GetBlockReceivedStatus() == 3)
         {
-            Trade_Memcpy(sTradeMenu->giftRibbons, gBlockRecvBuffer[id ^ 1], sizeof(sTradeMenu->giftRibbons));
+            memcpy(sTradeMenu->giftRibbons, gBlockRecvBuffer[id ^ 1], sizeof(sTradeMenu->giftRibbons));
             TradeResetReceivedFlags();
             sTradeMenu->bufferPartyState++;
         }
