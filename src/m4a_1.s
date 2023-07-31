@@ -675,20 +675,23 @@ SoundMainRAM_Unk2:
 	cmp r0, r1
 	beq _081DD594
 	str r0, [r4, o_SoundChannel_xpi]
-	mov r1, 0x21
-	mul r2, r1, r0
+	@ mov r1, 0x21
+	@ mul r2, r1, r0
+	add r2, r0, r0, lsl 5
+
+
 	ldr r1, [r4, o_SoundChannel_wav]
 	add r2, r2, r1
-	add r2, r2, 0x10
-	ldr r5, =sDecodingBuffer
+	@ add r2, r2, 0x10
+	ldr r5, =sDecodingBuffer + 1
 	ldr r6, =gDeltaEncodingTable
 	mov r7, 0x40
-	ldrb lr, [r2], 1
-	strb lr, [r5], 1
-	ldrb r1, [r2], 1
+	ldrb lr, [r2, 0x11]
+	strb lr, [r5]
+	ldrb r1, [r2, 0x11]
 	b _081DD57C
 _081DD568:
-	ldrb r1, [r2], 1
+	ldrb r1, [r2 0x11],
 	mov r0, r1, lsr 4
 	ldrsb r0, [r6, r0]
 	add lr, lr, r0
@@ -1576,7 +1579,7 @@ _081DDB44:
 _081DDB46:
 	movs r0, 0
 	str r0, [sp, 0x14]
-	adds r4, r5, 0
+	movs r4, r5
 	adds r4, o_MusicPlayerTrack_ToneData_type
 	ldrb r2, [r4]
 	movs r0, TONEDATA_TYPE_RHY | TONEDATA_TYPE_SPL
@@ -1591,7 +1594,7 @@ _081DDB46:
 	ldrb r0, [r1]
 	b _081DDB68
 _081DDB66:
-	adds r0, r3, 0
+	movs r0, r3
 _081DDB68:
 	lsls r1, r0, 1
 	adds r1, r0
