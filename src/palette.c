@@ -716,7 +716,7 @@ static u8 UpdateFastPaletteFade(void)
 
     // gPaletteFade.active cannot change since the last time it was checked. So this
     // is equivalent to `return PALETTE_FADE_STATUS_ACTIVE;`
-    return gPaletteFade.active ? PALETTE_FADE_STATUS_ACTIVE : PALETTE_FADE_STATUS_DONE;
+    return PALETTE_FADE_STATUS_ACTIVE;
 }
 
 void BeginHardwarePaletteFade(u8 blendCnt, u8 delay, u8 y, u8 targetY, u8 shouldResetBlendRegisters)
