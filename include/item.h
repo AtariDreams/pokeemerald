@@ -32,7 +32,7 @@ struct BagPocket
 };
 
 extern const struct Item gItems[];
-extern struct BagPocket gBagPockets[];
+extern const struct BagPocket gBagPockets[];
 
 void SetBagItemsPointers(void);
 void CopyItemName(u16 itemId, u8 *dst);
@@ -54,8 +54,8 @@ void CompactPCItems(void);
 void SwapRegisteredBike(void);
 u16 BagGetItemIdByPocketPosition(u8 pocketId, u16 pocketPos);
 u16 BagGetQuantityByPocketPosition(u8 pocketId, u16 pocketPos);
-void CompactItemsInBagPocket(struct BagPocket *bagPocket);
-void SortBerriesOrTMHMs(struct BagPocket *bagPocket);
+void CompactItemsInBagPocket(const struct BagPocket *bagPocket);
+void SortBerriesOrTMHMs(const struct BagPocket *bagPocket);
 void MoveItemSlotInList(struct ItemSlot* itemSlots_, u32 from, u32 to_);
 void ClearBag(void);
 u16 CountTotalItemQuantityInBag(u16 itemId);

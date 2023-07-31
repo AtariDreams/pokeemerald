@@ -24,6 +24,7 @@
 #include "util.h"
 #include "constants/rgb.h"
 #include "constants/battle_anim.h"
+#include "decoration.h"
 
 /*
     The intro is grouped into the following scenes
@@ -1141,6 +1142,7 @@ void CB2_InitCopyrightScreenAfterBootup(void)
 {
     if (!SetUpCopyrightScreen())
     {
+        InitDecorationContextItems(); // TODO: remove this
         ResetMenuAndMonGlobals();
         Save_ResetSaveCounters();
         LoadGameSave(SAVE_NORMAL);

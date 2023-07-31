@@ -18,28 +18,19 @@
 static bool8 CheckPyramidBagHasItem(u16 itemId, u16 count);
 static bool8 CheckPyramidBagHasSpace(u16 itemId, u16 count);
 
-EWRAM_DATA struct BagPocket gBagPockets[POCKETS_COUNT] = {0};
+
+const struct BagPocket gBagPockets[] =
+{
+    {gSaveBlock1.bagPocket_Items, BAG_ITEMS_COUNT},
+    {gSaveBlock1.bagPocket_PokeBalls, BAG_POKEBALLS_COUNT},
+    {gSaveBlock1.bagPocket_TMHM, BAG_TMHM_COUNT},
+    {gSaveBlock1.bagPocket_Berries, BAG_BERRIES_COUNT},
+    {gSaveBlock1.bagPocket_KeyItems, BAG_KEYITEMS_COUNT},
+};
 
 #include "data/text/item_descriptions.h"
 #include "data/items.h"
 
-void SetBagItemsPointers(void)
-{
-    gBagPockets[ITEMS_POCKET].itemSlots = gSaveBlock1.bagPocket_Items;
-    gBagPockets[ITEMS_POCKET].capacity = BAG_ITEMS_COUNT;
-
-    gBagPockets[KEYITEMS_POCKET].itemSlots = gSaveBlock1.bagPocket_KeyItems;
-    gBagPockets[KEYITEMS_POCKET].capacity = BAG_KEYITEMS_COUNT;
-
-    gBagPockets[BALLS_POCKET].itemSlots = gSaveBlock1.bagPocket_PokeBalls;
-    gBagPockets[BALLS_POCKET].capacity = BAG_POKEBALLS_COUNT;
-
-    gBagPockets[TMHM_POCKET].itemSlots = gSaveBlock1.bagPocket_TMHM;
-    gBagPockets[TMHM_POCKET].capacity = BAG_TMHM_COUNT;
-
-    gBagPockets[BERRIES_POCKET].itemSlots = gSaveBlock1.bagPocket_Berries;
-    gBagPockets[BERRIES_POCKET].capacity = BAG_BERRIES_COUNT;
-}
 
 void CopyItemName(u16 itemId, u8 *dst)
 {
@@ -214,7 +205,7 @@ bool8 AddBagItem(u16 itemId, u16 count)
     }
     else
     {
-        struct BagPocket *itemPocket;
+        const struct BagPocket *itemPocket;
         struct ItemSlot *newItems;
         u16 slotCapacity;
         u16 ownedCount;
@@ -325,7 +316,7 @@ bool8 RemoveBagItem(u16 itemId, u16 count)
         u8 pocket;
         u8 var;
         u16 ownedCount;
-        struct BagPocket *itemPocket;
+        const struct BagPocket *itemPocket;
 
         pocket = ItemId_GetPocket(itemId) - 1;
         itemPocket = &gBagPockets[pocket];
@@ -563,7 +554,7 @@ static void SwapItemSlots(struct ItemSlot *a, struct ItemSlot *b)
     SWAP(*a, *b, temp);
 }
 
-void CompactItemsInBagPocket(struct BagPocket *bagPocket)
+void CompactItemsInBagPocket(const struct BagPocket *bagPocket)
 {
     u16 i, j;
 
@@ -577,7 +568,7 @@ void CompactItemsInBagPocket(struct BagPocket *bagPocket)
     }
 }
 
-void SortBerriesOrTMHMs(struct BagPocket *bagPocket)
+void SortBerriesOrTMHMs(const struct BagPocket *bagPocket)
 {
     u16 i, j;
 
@@ -637,7 +628,7 @@ u16 CountTotalItemQuantityInBag(u16 itemId)
 {
     u16 i;
     u16 ownedCount = 0;
-    struct BagPocket *bagPocket = &gBagPockets[ItemId_GetPocket(itemId) - 1];
+    const struct BagPocket *bagPocket = &gBagPockets[ItemId_GetPocket(itemId) - 1];
 
     for (i = 0; i < bagPocket->capacity; i++)
     {
