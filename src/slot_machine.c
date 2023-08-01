@@ -1115,7 +1115,7 @@ static void PlaySlotMachine_Internal(u8 machineId, MainCallback exitCallback)
 {
     struct Task *task = &gTasks[CreateTask(SlotMachineDummyTask, 0xFF)];
     task->tMachineId = machineId;
-    StoreWordInTwoHalfwords(&task->tExitCallback, (intptr_t)exitCallback);
+    StoreWordInTwoHalfwords(&task->tExitCallback, exitCallback);
 }
 
 // Extracts and assigns machineId and exit callback from task.
