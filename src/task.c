@@ -83,27 +83,24 @@ static void InsertTask(u8 newTaskId)
 
 void DestroyTask(u8 taskId)
 {
-    if (gTasks[taskId].isActive)
-    {
-        gTasks[taskId].isActive = FALSE;
+    if (!gTasks[taskId].isActive)
+        return;
+    gTasks[taskId].isActive = FALSE;
 
-        if (gTasks[taskId].prev == HEAD_SENTINEL)
-        {
-            if (gTasks[taskId].next != TAIL_SENTINEL)
-                gTasks[gTasks[taskId].next].prev = HEAD_SENTINEL;
-        }
-        else
-        {
-            if (gTasks[taskId].next == TAIL_SENTINEL)
-            {
-                gTasks[gTasks[taskId].prev].next = TAIL_SENTINEL;
-            }
-            else
-            {
-                gTasks[gTasks[taskId].prev].next = gTasks[taskId].next;
-                gTasks[gTasks[taskId].next].prev = gTasks[taskId].prev;
-            }
-        }
+    if (gTasks[taskId].prev == HEAD_SENTINEL)
+    {
+        if (gTasks[taskId].next == TAIL_SENTINEL)
+            return;
+        gTasks[gTasks[taskId].next].prev = HEAD_SENTINEL;
+    }
+    else if (gTasks[taskId].next == TAIL_SENTINEL)
+    {
+        gTasks[gTasks[taskId].prev].next = TAIL_SENTINEL;
+    }
+    else
+    {
+        gTasks[gTasks[taskId].prev].next = gTasks[taskId].next;
+        gTasks[gTasks[taskId].next].prev = gTasks[taskId].prev;
     }
 }
 
@@ -165,11 +162,11 @@ bool8 FuncIsActiveTask(TaskFunc func)
 
 u8 FindTaskIdByFunc(TaskFunc func)
 {
-    s32 i;
+    u8 i;
 
     for (i = 0; i < NUM_TASKS; i++)
         if (gTasks[i].isActive == TRUE && gTasks[i].func == func)
-            return (u8)i;
+            return i;
 
     return TASK_NONE; // No task was found.
 }
@@ -198,7 +195,7 @@ void SetWordTaskArg(u8 taskId, u8 dataElem, u32 value)
 u32 GetWordTaskArg(u8 taskId, u8 dataElem)
 {
     if (dataElem < NUM_TASK_DATA - 1)
-        return (u16)gTasks[taskId].data[dataElem] | (gTasks[taskId].data[dataElem + 1] << 16);
+        return (gTasks[taskId].data[dataElem] & 0xFFFF) | (gTasks[taskId].data[dataElem + 1] << 16);
     else
         return 0;
 }
