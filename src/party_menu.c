@@ -1930,7 +1930,7 @@ u8 GetMonAilment(struct Pokemon *mon)
     ailment = GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS));
     if (ailment != AILMENT_NONE)
         return ailment;
-    if (CheckPartyPokerus(mon, 0))
+    if (CheckPartyPokerus(mon))
         return AILMENT_PKRS;
     return AILMENT_NONE;
 }
