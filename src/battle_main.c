@@ -723,15 +723,10 @@ static void CB2_InitBattleInternal(void)
         if (species != SPECIES_EGG && hp != 0 && status == 0)               \
             (flags) |= 1 << (i) * 2;                                        \
                                                                             \
-        if (species == SPECIES_NONE) /* Redundant */                        \
-            continue;                                                       \
-                                                                            \
         /* Is Egg or statused? */                                           \
         if (hp != 0 && (species == SPECIES_EGG || status != 0))             \
             (flags) |= 2 << (i) * 2;                                        \
                                                                             \
-        if (species == SPECIES_NONE) /* Redundant */                        \
-            continue;                                                       \
                                                                             \
         /* Is fainted? */                                                   \
         if (species != SPECIES_EGG && hp == 0)                              \
@@ -746,7 +741,7 @@ static void BufferPartyVsScreenHealth_AtStart(void)
 
     BUFFER_PARTY_VS_SCREEN_STATUS(gPlayerParty, flags, i);
     gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsLo = flags;
-    *(&gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsHi) = flags >> 8;
+    gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsHi = flags >> 8;
     gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsHi |= FlagGet(FLAG_SYS_FRONTIER_PASS) << 7;
 }
 
@@ -986,8 +981,8 @@ static void CB2_HandleStartBattle(void)
                 if (IsLinkTaskFinished())
                 {
                     // 0x300
-                    *(&gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureLo) = 0;
-                    *(&gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureHi) = 3;
+                    gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureLo = 0;
+                    gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureHi = 3;
                     BufferPartyVsScreenHealth_AtStart();
                     SetPlayerBerryDataInBattleStruct();
 
@@ -1021,8 +1016,8 @@ static void CB2_HandleStartBattle(void)
             FindLinkBattleMaster(2, playerMultiplayerId);
             SetAllPlayersBerryData();
             taskId = CreateTask(InitLinkBattleVsScreen, 0);
-            gTasks[taskId].data[1] = 0x10E;
-            gTasks[taskId].data[2] = 0x5A;
+            gTasks[taskId].data[1] = 270;
+            gTasks[taskId].data[2] = 90;
             gTasks[taskId].data[5] = 0;
             gTasks[taskId].data[3] = gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsLo | (gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsHi << 8);
             gTasks[taskId].data[4] = gBlockRecvBuffer[enemyMultiplayerId][1];
