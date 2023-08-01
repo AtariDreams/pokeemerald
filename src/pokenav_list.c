@@ -307,7 +307,6 @@ static u32 LoopedTask_MoveListWindow(s32 state)
     bool32 finished;
     struct PokenavList *list = GetSubstructPtr(POKENAV_SUBSTRUCT_LIST);
     struct PokenavListSub *subPtr = &list->sub;
-
     switch (state)
     {
     case 0:
@@ -331,7 +330,8 @@ static u32 LoopedTask_MoveListWindow(s32 state)
 
         if (finished)
         {
-            subPtr->listWindow.unkA = (subPtr->listWindow.unkA + subPtr->moveDelta) & 0xF;
+            subPtr->listWindow.unkA += subPtr->moveDelta;
+            subPtr->listWindow.unkA &= 0xF;
             ChangeBgY(subPtr->listWindow.bg, subPtr->endBgY, BG_COORD_SET);
             return LT_FINISH;
         }
@@ -396,13 +396,14 @@ int PokenavList_PageUp(void)
     if (ShouldShowUpArrow())
     {
         if (windowState->windowTopIndex >= windowState->entriesOnscreen)
-            scroll = windowState->entriesOnscreen;
+            scroll = -windowState->entriesOnscreen;
         else
-            scroll = windowState->windowTopIndex;
-        MoveListWindow(scroll * -1, TRUE);
+            scroll = -windowState->windowTopIndex;
+        MoveListWindow(scroll, TRUE);
         return 2;
     }
-    else if (windowState->selectedIndexOffset != 0)
+    
+    if (windowState->selectedIndexOffset != 0)
     {
         windowState->selectedIndexOffset = 0;
         return 1;
@@ -416,34 +417,32 @@ int PokenavList_PageDown(void)
 
     if (ShouldShowDownArrow())
     {
-        s32 windowBottomIndex = windowState->windowTopIndex + windowState->entriesOnscreen;
-        s32 scroll = windowState->entriesOffscreen - windowState->windowTopIndex;
-
-        if (windowBottomIndex <= windowState->entriesOffscreen)
-            scroll = windowState->entriesOnscreen;
+        s32 scroll;
+        if (windowState->windowTopIndex + windowState->entriesOnscreen <= windowState->entriesOffscreen)
+            scroll = windowState->entriesOnscreen = windowState->windowTopIndex;
+        else
+            scroll = windowState->entriesOffscreen - windowState->windowTopIndex;
         MoveListWindow(scroll, TRUE);
         return 2;
     }
+
+    if (windowState->listLength >= windowState->entriesOnscreen)
+    {
+        if (windowState->selectedIndexOffset < windowState->entriesOnscreen - 1)
+        {
+            windowState->listLength = windowState->entriesOnscreen - 1;
+            return 1;
+        }
+    }
     else
     {
-        s32 cursor, lastVisibleIndex;
-        if (windowState->listLength >= windowState->entriesOnscreen)
+        if (windowState->selectedIndexOffset < windowState->listLength - 1)
         {
-            cursor = windowState->selectedIndexOffset;
-            lastVisibleIndex = windowState->entriesOnscreen;
+            windowState->listLength = windowState->listLength - 1;
+            return 1;
         }
-        else
-        {
-            cursor = windowState->selectedIndexOffset;
-            lastVisibleIndex = windowState->listLength;
-        }
-        lastVisibleIndex -= 1;
-        if (cursor >= lastVisibleIndex)
-            return 0;
-
-        windowState->selectedIndexOffset = lastVisibleIndex;
-        return 1;
     }
+    return 0;
 }
 
 u32 PokenavList_GetSelectedIndex(void)
@@ -538,7 +537,7 @@ static u32 LoopedTask_EraseListForCheckPage(s32 state)
             return LT_PAUSE;
 
         list->windowState.selectedIndexOffset = 0;
-        return LT_FINISH;
+        break;
     }
     return LT_FINISH;
 }
@@ -603,23 +602,22 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32 state)
         PrintMatchCallListTrainerName(windowState, subPtr);
         return LT_INC_AND_PAUSE;
     case 1:
-        ptr = &list->eraseIndex;
-        if (++(*ptr) < list->windowState.entriesOnscreen)
+        list->eraseIndex++;
+        if (list->eraseIndex < list->windowState.entriesOnscreen)
         {
             EraseListEntry(&subPtr->listWindow, *ptr, 1);
             return LT_PAUSE;
         }
 
-        *ptr = 0;
+        list->eraseIndex = 0;
         if (windowState->listLength <= windowState->entriesOnscreen)
         {
             if (windowState->windowTopIndex != 0)
             {
                 s32 r4 = windowState->windowTopIndex;
-                r5 = -r4;
-                EraseListEntry(&subPtr->listWindow, r5, r4);
+                EraseListEntry(&subPtr->listWindow, -r4, r4);
                 windowState->selectedIndexOffset = r4;
-                *ptr = r5;
+                list->eraseIndex = -r4;
                 return LT_INC_AND_PAUSE;
             }
         }
@@ -629,9 +627,9 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32 state)
             {
                 s32 r4 = windowState->windowTopIndex + windowState->entriesOnscreen - windowState->listLength;
                 r5 = -r4;
-                EraseListEntry(&subPtr->listWindow, r5, r4);
+                EraseListEntry(&subPtr->listWindow, -r4, r4);
                 windowState->selectedIndexOffset = r4;
-                *ptr = r5;
+                list->eraseIndex = -r4;
                 return LT_INC_AND_PAUSE;
             }
         }
@@ -652,7 +650,8 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32 state)
     case 5:
         if (IsPrintListItemsTaskActive())
             return LT_PAUSE;
-        if (++list->eraseIndex >= windowState->listLength || list->eraseIndex >= windowState->entriesOnscreen)
+        list->eraseIndex++;
+        if (list->eraseIndex >= windowState->listLength || list->eraseIndex >= windowState->entriesOnscreen)
             return LT_INC_AND_CONTINUE;
         return LT_SET_STATE(4);
     case 6:
@@ -676,16 +675,19 @@ static void EraseListEntry(struct PokenavListMenuWindow *listWindow, s32 offset,
     }
     else
     {
-        u32 v3 = 16 - offset;
-        u32 v4 = entries - v3;
+        int v3 = 16 - offset;
+        int v4 = entries - v3;
 
         CpuFastFill8(PIXEL_FILL(1), tileData + offset * width, v3 * width);
         CpuFastFill8(PIXEL_FILL(1), tileData, v4 * width);
         CopyWindowToVram(listWindow->windowId, COPYWIN_GFX);
     }
 
-    for (entries--; entries != -1; offset = (offset + 1) & 0xF, entries--)
+    for (; entries > 0; entries--)
+    {
         ClearRematchPokeballIcon(listWindow->windowId, offset);
+        offset = (offset + 1) & 0xF;
+    }
 
     CopyWindowToVram(listWindow->windowId, COPYWIN_MAP);
 }
@@ -695,7 +697,7 @@ static void SetListMarginTile(struct PokenavListMenuWindow *listWindow, bool32 d
 {
     u16 var;
     u16 *tilemapBuffer = (u16 *)GetBgTilemapBuffer(GetWindowAttribute(listWindow->windowId, WINDOW_BG));
-    tilemapBuffer += (listWindow->unkA << 6) + listWindow->x - 1;
+    tilemapBuffer += (listWindow->unkA * 64) + listWindow->x - 1;
 
     if (draw)
         var = (listWindow->fillValue << 12) | (listWindow->tileOffset + 1);
@@ -739,9 +741,9 @@ static void PrintMatchCallFieldNames(struct PokenavListSub *list, u32 fieldId)
     u8 colors[3] = {TEXT_COLOR_WHITE, TEXT_COLOR_RED, TEXT_COLOR_LIGHT_RED};
     u32 top = (list->listWindow.unkA + 1 + (fieldId * 2)) & 0xF;
 
-    FillWindowPixelRect(list->listWindow.windowId, PIXEL_FILL(1), 0, top << 4, list->listWindow.width, 16);
-    AddTextPrinterParameterized3(list->listWindow.windowId, FONT_NARROW, 2, (top << 4) + 1, colors, TEXT_SKIP_DRAW, fieldNames[fieldId]);
-    CopyWindowRectToVram(list->listWindow.windowId, COPYWIN_GFX, 0, top << 1, list->listWindow.width, 2);
+    FillWindowPixelRect(list->listWindow.windowId, PIXEL_FILL(1), 0, top * 16, list->listWindow.width, 16);
+    AddTextPrinterParameterized3(list->listWindow.windowId, FONT_NARROW, 2, top * 16 + 1, colors, TEXT_SKIP_DRAW, fieldNames[fieldId]);
+    CopyWindowRectToVram(list->listWindow.windowId, COPYWIN_GFX, 0, top * 2, list->listWindow.width, 2);
 }
 
 static void PrintMatchCallFlavorText(struct PokenavListWindowState *windowState, struct PokenavListSub *list, u32 checkPageEntry)
@@ -760,7 +762,7 @@ static void PrintMatchCallFlavorText(struct PokenavListWindowState *windowState,
     if (str != NULL)
     {
         FillWindowTilesByRow(list->listWindow.windowId, 1, r6 * 2, list->listWindow.width - 1, 2);
-        AddTextPrinterParameterized(list->listWindow.windowId, FONT_NARROW, str, 2, (r6 << 4) + 1, TEXT_SKIP_DRAW, NULL);
+        AddTextPrinterParameterized(list->listWindow.windowId, FONT_NARROW, str, 2, r6 * 16 + 1, TEXT_SKIP_DRAW, NULL);
         CopyWindowRectToVram(list->listWindow.windowId, COPYWIN_GFX, 0, r6 * 2, list->listWindow.width, 2);
     }
 }
@@ -836,10 +838,9 @@ static const struct SpriteTemplate sSpriteTemplate_UpDownArrow =
 static void LoadListArrowGfx(void)
 {
     u32 i;
-    const struct CompressedSpriteSheet *ptr;
 
-    for (i = 0, ptr = sListArrowSpriteSheets; i < ARRAY_COUNT(sListArrowSpriteSheets); ptr++, i++)
-        LoadCompressedSpriteSheet(ptr);
+    for (i = 0; i < ARRAY_COUNT(sListArrowSpriteSheets); i++)
+        LoadCompressedSpriteSheet(sListArrowSpriteSheets + i);
 
     Pokenav_AllocAndLoadPalettes(sListArrowPalettes);
 }
@@ -911,12 +912,10 @@ static void SpriteCB_DownArrow(struct Sprite *sprite)
 
     if (++sprite->sTimer > 3)
     {
-        s16 offset;
-
         sprite->sTimer = 0;
-        offset = (sprite->sOffset + 1) & 7;
-        sprite->sOffset = offset;
-        sprite->y2 = offset;
+        sprite->sOffset++;
+        sprite->sOffset &= 7;
+        sprite->y2 = sprite->sOffset;
     }
 }
 
@@ -929,12 +928,10 @@ static void SpriteCB_UpArrow(struct Sprite *sprite)
 
     if (++sprite->sTimer > 3)
     {
-        s16 offset;
-
         sprite->sTimer = 0;
-        offset = (sprite->sOffset + 1) & 7;
-        sprite->sOffset = offset;
-        sprite->y2 = -1 * offset;
+        sprite->sOffset++;
+        sprite->sOffset &= 7;
+        sprite->y2 = -sprite->sOffset;
     }
 }
 
