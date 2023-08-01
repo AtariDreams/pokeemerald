@@ -649,7 +649,7 @@ static void Task_SetBuriedTrainerMovement(u8 taskId)
 // Called when a buried Trainer has the reveal_trainer movement applied, from direct interaction
 void SetBuriedTrainerMovement(struct ObjectEvent *objEvent)
 {
-    StoreWordInTwoHalfwords((u16*) &gTasks[CreateTask(Task_SetBuriedTrainerMovement, 0)].tObjEvent, (u32)objEvent);
+    StoreWordInTwoHalfwords(&gTasks[CreateTask(Task_SetBuriedTrainerMovement, 0)].tObjEvent, objEvent);
 }
 
 void DoTrainerApproach(void)
