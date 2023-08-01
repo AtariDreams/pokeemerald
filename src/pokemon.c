@@ -5778,7 +5778,7 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
         if (totalEVs >= MAX_TOTAL_EVS)
             break;
 
-        if (CheckPartyHasHadPokerus(mon, 0))
+        if (CheckPartyHasHadPokerus(mon))
             multiplier = 2;
         else
             multiplier = 1;
@@ -5866,7 +5866,7 @@ void RandomlyGivePartyPokerus(struct Pokemon *party)
         }
         while (GetMonData(mon, MON_DATA_IS_EGG, 0));
 
-        if (!(CheckPartyHasHadPokerus(party, gBitTable[rnd])))
+        if (!CheckPartyHasHadPokerus(mon))
         {
             u8 rnd2;
 
@@ -5888,60 +5888,20 @@ void RandomlyGivePartyPokerus(struct Pokemon *party)
     }
 }
 
-u8 CheckPartyPokerus(struct Pokemon *party, u8 selection)
+u8 CheckPartyHasHadPokerus(struct Pokemon *mon)
 {
-    u8 retVal;
+    if (GetMonData(mon, MON_DATA_IS_EGG, 0) || !GetMonData(mon, MON_DATA_SPECIES, 0))
+        return FALSE;
 
-    int partyIndex = 0;
-    unsigned curBit = 1;
-    retVal = 0;
-
-    if (selection)
-    {
-        do
-        {
-            if ((selection & 1) && (GetMonData(&party[partyIndex], MON_DATA_POKERUS, 0) & 0xF))
-                retVal |= curBit;
-            partyIndex++;
-            curBit <<= 1;
-            selection >>= 1;
-        }
-        while (selection);
-    }
-    else if (GetMonData(&party[0], MON_DATA_POKERUS, 0) & 0xF)
-    {
-        retVal = 1;
-    }
-
-    return retVal;
+    return GetMonData(mon, MON_DATA_POKERUS, 0) != 0;
 }
 
-u8 CheckPartyHasHadPokerus(struct Pokemon *party, u8 selection)
+u8 CheckPartyPokerus(struct Pokemon *mon)
 {
-    u8 retVal;
+    if (GetMonData(mon, MON_DATA_IS_EGG, 0) || !GetMonData(mon, MON_DATA_SPECIES, 0))
+        return FALSE;
 
-    int partyIndex = 0;
-    unsigned curBit = 1;
-    retVal = 0;
-
-    if (selection)
-    {
-        do
-        {
-            if ((selection & 1) && GetMonData(&party[partyIndex], MON_DATA_POKERUS, 0))
-                retVal |= curBit;
-            partyIndex++;
-            curBit <<= 1;
-            selection >>= 1;
-        }
-        while (selection);
-    }
-    else if (GetMonData(&party[0], MON_DATA_POKERUS, 0))
-    {
-        retVal = 1;
-    }
-
-    return retVal;
+    return GetMonData(mon, MON_DATA_POKERUS, 0) & 0xF != 0;
 }
 
 void UpdatePartyPokerusTime(u16 days)
