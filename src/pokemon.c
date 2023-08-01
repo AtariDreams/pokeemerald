@@ -5890,17 +5890,11 @@ void RandomlyGivePartyPokerus(struct Pokemon *party)
 
 u8 CheckPartyHasHadPokerus(struct Pokemon *mon)
 {
-    if (GetMonData(mon, MON_DATA_IS_EGG, 0) || !GetMonData(mon, MON_DATA_SPECIES, 0))
-        return FALSE;
-
     return GetMonData(mon, MON_DATA_POKERUS, 0) != 0;
 }
 
 u8 CheckPartyPokerus(struct Pokemon *mon)
 {
-    if (GetMonData(mon, MON_DATA_IS_EGG, 0) || !GetMonData(mon, MON_DATA_SPECIES, 0))
-        return FALSE;
-
     return GetMonData(mon, MON_DATA_POKERUS, 0) & 0xF != 0;
 }
 
