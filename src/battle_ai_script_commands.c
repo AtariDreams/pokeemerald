@@ -1323,13 +1323,11 @@ static void Cmd_count_usable_party_mons(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (i != battlerOnField1 && i != battlerOnField2
-         && GetMonData(&party[i], MON_DATA_HP) != 0
-         && GetMonData(&party[i], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
-         && GetMonData(&party[i], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG)
-        {
+        if (i == battlerOnField1 || i == battlerOnField2)
+            continue;
+
+        if (canPokeFight(&party[i]))
             AI_THINKING_STRUCT->funcResult++;
-        }
     }
 
     gAIScriptPtr += 2;
