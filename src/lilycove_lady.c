@@ -631,7 +631,7 @@ static void ContestLadySavePlayerNameIfHighSheen(u8 sheen)
     {
         sContestLadyPtr->maxSheen = sheen;
         memset(sContestLadyPtr->playerName, EOS, sizeof(sContestLadyPtr->playerName));
-        memcpy(sContestLadyPtr->playerName, gSaveBlock2.playerName, sizeof(sContestLadyPtr->playerName));
+        StringCopy(sContestLadyPtr->playerName, gSaveBlock2.playerName);
         sContestLadyPtr->language = gGameLanguage;
     }
 }
