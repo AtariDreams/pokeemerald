@@ -765,6 +765,7 @@ static void WaitForFissureCompletion(u8 taskId)
         gBattle_BG3_X = 0;
         gBattle_BG3_Y = 0;
         DestroyTask(taskId);
+        return;
     }
     else
     {
