@@ -691,7 +691,7 @@ SoundMainRAM_Unk2:
 	ldrb r1, [r2, 0x11]
 	b _081DD57C
 _081DD568:
-	ldrb r1, [r2 0x11],
+	ldrb r1, [r2, 0x11]
 	mov r0, r1, lsr 4
 	ldrsb r0, [r6, r0]
 	add lr, lr, r0
