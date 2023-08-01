@@ -2777,7 +2777,7 @@ static void FieldMoveShowMonIndoorsEffect_Init(struct Task *task)
 {
     SetGpuReg(REG_OFFSET_BG0HOFS, task->tBgHoriz);
     SetGpuReg(REG_OFFSET_BG0VOFS, task->tBgVert);
-    StoreWordInTwoHalfwords((u16 *)&task->data[13], (u32)gMain.vblankCallback);
+    StoreWordInTwoHalfwords(&task->data[13], gMain.vblankCallback);
     SetVBlankCallback(VBlankCB_FieldMoveShowMonIndoors);
     task->tState++;
 }
