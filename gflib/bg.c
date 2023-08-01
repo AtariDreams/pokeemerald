@@ -34,8 +34,8 @@ struct BgConfig2
     u32 unk_3:18;
 
     const void *tilemap;
-    u32 bg_x;
-    u32 bg_y;
+    s32 bg_x;
+    s32 bg_y;
 };
 
 static struct BgControl sGpuBgConfigs;
@@ -507,7 +507,7 @@ u16 GetBgAttribute(u8 bg, u8 attributeId)
     }
 }
 
-u32 ChangeBgX(u8 bg, u32 value, u8 op)
+s32 ChangeBgX(u8 bg, s32 value, u8 op)
 {
     u8 mode;
     u16 temp1;
@@ -572,12 +572,12 @@ u32 ChangeBgX(u8 bg, u32 value, u8 op)
     return sGpuBgConfigs2[bg].bg_x;
 }
 
-u32 GetBgX(u8 bg)
+s32 GetBgX(u8 bg)
 {
     return sGpuBgConfigs2[bg].bg_x;
 }
 
-u32 ChangeBgY(u8 bg, u32 value, u8 op)
+s32 ChangeBgY(u8 bg, s32 value, u8 op)
 {
     u8 mode;
     u16 temp1;
@@ -642,7 +642,7 @@ u32 ChangeBgY(u8 bg, u32 value, u8 op)
     return sGpuBgConfigs2[bg].bg_y;
 }
 
-u32 ChangeBgY_ScreenOff(u8 bg, u32 value, u8 op)
+s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
 {
     u8 mode;
     u16 temp1;
@@ -708,7 +708,7 @@ u32 ChangeBgY_ScreenOff(u8 bg, u32 value, u8 op)
     return sGpuBgConfigs2[bg].bg_y;
 }
 
-u32 GetBgY(u8 bg)
+s32 GetBgY(u8 bg)
 {
     return sGpuBgConfigs2[bg].bg_y;
 }
@@ -791,12 +791,14 @@ u8 Unused_AdjustBgMosaic(u8 val, u8 mode)
 
 void SetBgTilemapBuffer(u8 bg, const void *tilemap)
 {
-    sGpuBgConfigs2[bg].tilemap = tilemap;
+    if (sGpuBgConfigs.configs[bg].visible)
+        sGpuBgConfigs2[bg].tilemap = tilemap;
 }
 
 void UnsetBgTilemapBuffer(u8 bg)
 {
-    sGpuBgConfigs2[bg].tilemap = NULL;
+    if (sGpuBgConfigs.configs[bg].visible)
+        sGpuBgConfigs2[bg].tilemap = NULL;
 }
 
 void *GetBgTilemapBuffer(u8 bg)
