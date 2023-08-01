@@ -124,33 +124,29 @@ u8 CreateInvisibleSpriteWithCallback(void (*callback)(struct Sprite *))
     return sprite;
 }
 
-void StoreWordInTwoHalfwords(u16 *h, u32 w)
+void StoreWordInTwoHalfwords(s16 *pwork, void *Adrs)
 {
-    h[0] = (u16)(w);
-    h[1] = (u16)(w >> 16);
+	pwork[0] = (s16)((u32)Adrs);
+	pwork[1] = (s16)((u32)Adrs >> 16);
 }
 
-void LoadWordFromTwoHalfwords(u16 *h, u32 *w)
+void LoadWordFromTwoHalfwords(s16 *pwork, void *Adrs)
 {
-    *w = h[0] | (s16)h[1] << 16;
-}
-
-void SetBgAffineStruct(struct BgAffineSrcData *src, u32 texX, u32 texY, s16 scrX, s16 scrY, s16 sx, s16 sy, u16 alpha)
-{
-    src->texX = texX;
-    src->texY = texY;
-    src->scrX = scrX;
-    src->scrY = scrY;
-    src->sx = sx;
-    src->sy = sy;
-    src->alpha = alpha;
+	u32 *temp = Adrs;
+	*temp = (pwork[0] & 0xffff) | (pwork[1] << 16);
 }
 
 void DoBgAffineSet(struct BgAffineDstData *dest, u32 texX, u32 texY, s16 scrX, s16 scrY, s16 sx, s16 sy, u16 alpha)
 {
     struct BgAffineSrcData src;
+    src.texX = texX;
+    src.texY = texY;
+    src.scrX = scrX;
+    src.scrY = scrY;
+    src.sx = sx;
+    src.sy = sy;
+    src.alpha = alpha;
 
-    SetBgAffineStruct(&src, texX, texY, scrX, scrY, sx, sy, alpha);
     BgAffineSet(&src, dest, 1);
 }
 
@@ -161,12 +157,13 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
     u8 ALIGNED(4) xflip[32];
     u8 h = sSpriteDimensions[shape][size][1];
     u8 w = sSpriteDimensions[shape][size][0];
+    u16 tile;
 
     for (y = 0; y < h; y++)
     {
         for (x = 0; x < w; x++)
         {
-            int tile = (*tilemap & 0x3ff) * 32;
+            tile = (*tilemap & 0x3ff) * 32;
 
             if ((*tilemap & 0xc00) == 0)
             {
@@ -184,8 +181,7 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
                     for (j = 0; j < 4; j++)
                     {
                         u8 i2 = i * 4;
-                        xflip[i2 + (3-j)] = (tiles[tile + i2 + j] & 0xf) << 4;
-                        xflip[i2 + (3-j)] |= tiles[tile + i2 + j] >> 4;
+                        xflip[i2 + (3-j)] = ((tiles[tile + i2 + j] & 0xf) << 4) | (tiles[tile + i2 + j] >> 4);
                     }
                 }
                 if (*tilemap & 0x800)  // yflip
@@ -203,20 +199,6 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
         }
         tilemap += (32 - w);
     }
-}
-
-int CountTrailingZeroBits(u32 value)
-{
-    u8 i;
-
-    for (i = 0; i < 32; i++)
-    {
-        if ((value & 1) == 0)
-            value >>= 1;
-        else
-            return i;
-    }
-    return 0;
 }
 
 u16 CalcCRC16(const u8 *data, s32 length)
