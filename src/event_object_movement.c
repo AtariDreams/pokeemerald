@@ -8740,7 +8740,7 @@ static void CreateLevitateMovementTask(struct ObjectEvent *objectEvent)
     u8 taskId = CreateTask(ApplyLevitateMovement, 0xFF);
     struct Task *task = &gTasks[taskId];
 
-    StoreWordInTwoHalfwords(&task->data[0], (u32)objectEvent);
+    StoreWordInTwoHalfwords(&task->data[0], objectEvent);
     objectEvent->warpArrowSpriteId = taskId;
     task->data[3] = -1;
 }
