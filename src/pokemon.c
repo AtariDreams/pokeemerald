@@ -3575,6 +3575,14 @@ u32 GetMonData2(struct Pokemon *mon, s32 field)
    return GetMonData3(mon, field, NULL);
 }
 
+int canPokeFight(struct Pokemon *mon)
+{
+    if (mon->hp == 0)
+        return FALSE;
+
+    return mon->box.substruct0.species && !(mon->box.substruct3.isEgg);
+}
+
 /* GameFreak called GetBoxMonData with either 2 or 3 arguments, for type
  * safety we have a GetBoxMonData macro (in include/pokemon.h) which
  * dispatches to either GetBoxMonData2 or GetBoxMonData3 based on the
