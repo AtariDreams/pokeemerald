@@ -17,7 +17,7 @@ struct DecorationInventory const gDecorationInventories[] = {
 
 static void ClearDecorationInventory(u8 category)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < gDecorationInventories[category].size; i ++)
         gDecorationInventories[category].items[i] = DECOR_NONE;
 }
