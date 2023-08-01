@@ -1051,9 +1051,9 @@ static void SetOptionInvisibility(struct Sprite ** sprites, bool32 invisible)
 
 static void SpriteCB_OptionSlide(struct Sprite * sprite)
 {
-    sprite->sSlideTime--;
-    if (sprite->sSlideTime != -1)
+    if (sprite->sSlideTime != 0)
     {
+        sprite->sSlideTime--;
         sprite->sSlideSpeed += sprite->sSlideAccel;
         sprite->x = sprite->sSlideSpeed >> 4;
     }
