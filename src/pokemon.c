@@ -2218,13 +2218,11 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     // Determine original trainer ID
     if (otIdType == OT_ID_RANDOM_NO_SHINY)
     {
-        u32 shinyValue;
-        do
-        {
-            // Choose random OT IDs until one that results in a non-shiny Pokémon
-            value = Random32();
-            shinyValue = GET_SHINY_VALUE(value, personality);
-        } while (shinyValue < SHINY_ODDS);
+
+        // Choose random OT IDs until one that results in a non-shiny Pokémon
+        value = Random32();
+        if (GET_SHINY_VALUE(value, personality) < SHINY_ODDS)
+            value ^= 0x10000000;
     }
     else if (otIdType == OT_ID_PRESET)
     {
@@ -2340,7 +2338,7 @@ void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level,
 }
 
 // This is only used to create Wally's Ralts.
-void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
+void CreateWallyRalts(void)
 {
     u32 personality;
     u32 otId;
@@ -2350,8 +2348,13 @@ void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
         otId = Random32();
         personality = Random32();
     }
-    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE);
-    CreateMon(mon, species, level, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
+    while (GetGenderFromSpeciesAndPersonality(SPECIES_RALTS, personality) != MON_MALE);
+
+    // Shiny Lock
+    if (GET_SHINY_VALUE(otId, personality) < SHINY_ODDS)
+        personality ^= 0x10000000;
+    
+    CreateMon(&gEnemyParty[0], SPECIES_RALTS, 5, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
 }
 
 void CreateMonWithIVsPersonality(struct Pokemon *mon, u16 species, u8 level, u32 ivs, u32 personality)
@@ -6462,11 +6465,7 @@ bool8 IsMonShiny(struct Pokemon *mon)
 
 bool8 IsShinyOtIdPersonality(u32 otId, u32 personality)
 {
-    bool8 retVal = FALSE;
-    u32 shinyValue = GET_SHINY_VALUE(otId, personality);
-    if (shinyValue < SHINY_ODDS)
-        retVal = TRUE;
-    return retVal;
+    return (GET_SHINY_VALUE(otId, personality) < SHINY_ODDS);
 }
 
 const u8 *GetTrainerPartnerName(void)
