@@ -10,7 +10,7 @@
 
 void ClearAllMail(void)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < MAIL_COUNT; i++)
         ClearMail(&gSaveBlock1.mail[i]);
