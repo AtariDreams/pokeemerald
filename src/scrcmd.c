@@ -1752,7 +1752,7 @@ bool8 ScrCmd_checkmoney(struct ScriptContext *ctx)
     u8 ignore = ScriptReadByte(ctx);
 
     if (!ignore)
-        gSpecialVar_Result = (gSaveBlock1.money <= amount);
+        gSpecialVar_Result = (gSaveBlock1.money >= amount);
     return FALSE;
 }
 
