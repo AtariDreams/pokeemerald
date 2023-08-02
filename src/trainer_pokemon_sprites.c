@@ -49,12 +49,7 @@ static void DummyPicSpriteCallback(struct Sprite *sprite)
 
 bool16 ResetAllPicSprites(void)
 {
-    int i;
-
-    for (i = 0; i < PICS_COUNT; i ++)
-        sSpritePics[i] = sDummyPicData;
-
-    return FALSE;
+    CpuFastFill8(0, sSpritePics, sizeof(sSpritePics));
 }
 
 static bool16 DecompressPic(u16 species, u32 personality, bool8 isFrontPic, u8 *dest, bool8 isTrainer, bool8 ignoreDeoxys)
