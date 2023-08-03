@@ -3787,9 +3787,9 @@ static const struct SpriteTemplate sSpriteTemplate_DeoxysRockFragment =
 
 static void CreateDeoxysRockFragments(struct Sprite *sprite)
 {
-    int i;
-    int xPos = (s16)gTotalCameraPixelOffsetX + sprite->x + sprite->x2;
-    int yPos = (s16)gTotalCameraPixelOffsetY + sprite->y + sprite->y2 - 4;
+    u8 i;
+    s16 xPos = gTotalCameraPixelOffsetX + sprite->x + sprite->x2;
+    s16 yPos = gTotalCameraPixelOffsetY + sprite->y + sprite->y2 - 4;
 
     for (i = 0; i < 4; i++)
     {
