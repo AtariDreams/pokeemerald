@@ -22,12 +22,12 @@ struct MultiPartnerMenuPokemon
     /*0x1D*/ u8 language;
 };
 
-// defines for the u8 array gTypeEffectiveness
-#define TYPE_EFFECT_ATK_TYPE(i)((gTypeEffectiveness[i + 0]))
-#define TYPE_EFFECT_DEF_TYPE(i)((gTypeEffectiveness[i + 1]))
-#define TYPE_EFFECT_MULTIPLIER(i)((gTypeEffectiveness[i + 2]))
+// defines for the u8 array TypeCheckTable
+#define TYPE_EFFECT_ATK_TYPE(i)((TypeCheckTable[i + 0]))
+#define TYPE_EFFECT_DEF_TYPE(i)((TypeCheckTable[i + 1]))
+#define TYPE_EFFECT_MULTIPLIER(i)((TypeCheckTable[i + 2]))
 
-// defines for the gTypeEffectiveness multipliers
+// defines for the TypeCheckTable multipliers
 #define TYPE_MUL_NO_EFFECT          0
 #define TYPE_MUL_NOT_EFFECTIVE      5
 #define TYPE_MUL_NORMAL             10
@@ -82,7 +82,7 @@ extern struct MultiPartnerMenuPokemon gMultiPartnerParty[MULTI_PARTY_SIZE];
 extern const struct SpriteTemplate gUnusedBattleInitSprite;
 extern const struct OamData gOamData_BattleSpriteOpponentSide;
 extern const struct OamData gOamData_BattleSpritePlayerSide;
-extern const u8 gTypeEffectiveness[336];
+extern const u8 TypeCheckTable[336];
 extern const u8 gTypeNames[NUMBER_OF_MON_TYPES][TYPE_NAME_LENGTH + 1];
 extern const struct TrainerMoney gTrainerMoneyTable[];
 extern const u8 gAbilityNames[][ABILITY_NAME_LENGTH + 1];
