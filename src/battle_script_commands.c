@@ -8013,7 +8013,7 @@ static void Cmd_settypetorandomresistance(void)
 
         for (rands = 0; rands < 1000; rands++)
         {
-            while (((i = Random() % 128) > sizeof(gTypeEffectiveness) / 3));
+            while (((i = Random() % 128) > sizeof(TypeCheckTable) / 3));
 
             i *= 3;
 
@@ -8029,7 +8029,7 @@ static void Cmd_settypetorandomresistance(void)
             }
         }
 
-        for (j = 0, rands = 0; rands < sizeof(gTypeEffectiveness); j += 3, rands += 3)
+        for (j = 0, rands = 0; rands < sizeof(TypeCheckTable); j += 3, rands += 3)
         {
             switch (TYPE_EFFECT_ATK_TYPE(j))
             {
