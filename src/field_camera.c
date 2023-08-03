@@ -40,8 +40,8 @@ static bool8 sBikeCameraPanFlag;
 static void (*sFieldCameraPanningCallback)(void);
 
 struct CameraObject gFieldCamera;
-u16 gTotalCameraPixelOffsetY;
-u16 gTotalCameraPixelOffsetX;
+s16 gTotalCameraPixelOffsetY;
+s16 gTotalCameraPixelOffsetX;
 
 static void ResetCameraOffset(struct FieldCameraOffset *cameraOffset)
 {
