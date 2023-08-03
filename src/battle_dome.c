@@ -2837,7 +2837,7 @@ static int GetTypeEffectivenessPoints(int move, int targetSpecies, int mode)
             }
             if (TYPE_EFFECT_ATK_TYPE(i) == moveType)
             {
-                // BUG: the value of TYPE_x2 does not exist in gTypeEffectiveness, so if defAbility is ABILITY_WONDER_GUARD, the conditional always fails
+                // BUG: the value of TYPE_x2 does not exist in TypeCheckTable, so if defAbility is ABILITY_WONDER_GUARD, the conditional always fails
                 #ifndef BUGFIX
                     #define WONDER_GUARD_EFFECTIVENESS TYPE_x2
                 #else
