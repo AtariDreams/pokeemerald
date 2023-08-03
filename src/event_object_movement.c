@@ -4684,13 +4684,13 @@ void SetSpritePosToMapCoords(s16 mapX, s16 mapY, s16 *destX, s16 *destY)
     if (gFieldCamera.x > 0)
         dx += 16;
 
-    if (gFieldCamera.x < 0)
+    else if (gFieldCamera.x < 0)
         dx -= 16;
 
     if (gFieldCamera.y > 0)
         dy += 16;
 
-    if (gFieldCamera.y < 0)
+    else if (gFieldCamera.y < 0)
         dy -= 16;
 
     *destX = ((mapX - gSaveBlock1.pos.x) << 4) + dx;
@@ -4712,13 +4712,13 @@ static void GetObjectEventMovingCameraOffset(s16 *x, s16 *y)
     if (gFieldCamera.x > 0)
         (*x)++;
 
-    if (gFieldCamera.x < 0)
+    else if (gFieldCamera.x < 0)
         (*x)--;
 
     if (gFieldCamera.y > 0)
         (*y)++;
 
-    if (gFieldCamera.y < 0)
+    else if (gFieldCamera.y < 0)
         (*y)--;
 }
 

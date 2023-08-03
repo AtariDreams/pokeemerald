@@ -331,19 +331,19 @@ void PlayerStep(u8 direction, u16 newKeys, u16 heldKeys)
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
 
     HideShowWarpArrow(playerObjEvent);
-    if (gPlayerAvatar.preventStep == FALSE)
+    if (gPlayerAvatar.preventStep)
+        return;
+
+    Bike_TryAcroBikeHistoryUpdate(newKeys, heldKeys);
+    if (TryInterruptObjectEventSpecialAnim(playerObjEvent, direction))
+        return;
+
+    npc_clear_strange_bits(playerObjEvent);
+    DoPlayerAvatarTransition();
+    if (TryDoMetatileBehaviorForcedMovement() == 0)
     {
-        Bike_TryAcroBikeHistoryUpdate(newKeys, heldKeys);
-        if (TryInterruptObjectEventSpecialAnim(playerObjEvent, direction) == 0)
-        {
-            npc_clear_strange_bits(playerObjEvent);
-            DoPlayerAvatarTransition();
-            if (TryDoMetatileBehaviorForcedMovement() == 0)
-            {
-                MovePlayerAvatarUsingKeypadInput(direction, newKeys, heldKeys);
-                PlayerAllowForcedMovementIfMovingSameDirection();
-            }
-        }
+        MovePlayerAvatarUsingKeypadInput(direction, newKeys, heldKeys);
+        PlayerAllowForcedMovementIfMovingSameDirection();
     }
 }
 
@@ -439,10 +439,9 @@ static bool8 ForcedMovement_None(void)
 
 static bool8 DoForcedMovement(u8 direction, void (*moveFunc)(u8))
 {
-    struct PlayerAvatar *playerAvatar = &gPlayerAvatar;
     u8 collision = CheckForPlayerAvatarCollision(direction);
 
-    playerAvatar->flags |= PLAYER_AVATAR_FLAG_FORCED_MOVE;
+    gPlayerAvatar.flags |= PLAYER_AVATAR_FLAG_FORCED_MOVE;
     if (collision)
     {
         ForcedMovement_None();
@@ -450,21 +449,17 @@ static bool8 DoForcedMovement(u8 direction, void (*moveFunc)(u8))
         {
             return FALSE;
         }
-        else
-        {
-            if (collision == COLLISION_LEDGE_JUMP)
-                PlayerJumpLedge(direction);
-            playerAvatar->flags |= PLAYER_AVATAR_FLAG_FORCED_MOVE;
-            playerAvatar->runningState = MOVING;
-            return TRUE;
-        }
-    }
-    else
-    {
-        playerAvatar->runningState = MOVING;
-        moveFunc(direction);
+
+        if (collision == COLLISION_LEDGE_JUMP)
+            PlayerJumpLedge(direction);
+        gPlayerAvatar.flags |= PLAYER_AVATAR_FLAG_FORCED_MOVE;
+        gPlayerAvatar.runningState = MOVING;
         return TRUE;
     }
+
+    gPlayerAvatar.runningState = MOVING;
+    moveFunc(direction);
+    return TRUE;
 }
 
 static bool8 DoForcedMovementInCurrentDirection(void (*moveFunc)(u8))
@@ -585,11 +580,19 @@ static void MovePlayerNotOnBike(u8 direction, u16 heldKeys)
 static u8 CheckMovementInputNotOnBike(u8 direction)
 {
     if (direction == DIR_NONE)
-        return gPlayerAvatar.runningState = NOT_MOVING;
-    else if (direction != GetPlayerMovementDirection() && gPlayerAvatar.runningState != MOVING)
-        return gPlayerAvatar.runningState = TURN_DIRECTION;
-    else
-        return gPlayerAvatar.runningState = MOVING;
+    {
+        gPlayerAvatar.runningState = NOT_MOVING;
+        return NOT_MOVING;
+    }
+
+    if (direction != GetPlayerMovementDirection() && gPlayerAvatar.runningState != MOVING)
+    {
+        gPlayerAvatar.runningState = TURN_DIRECTION;
+        return TURN_DIRECTION;
+    }
+
+    gPlayerAvatar.runningState = MOVING;
+    return MOVING;
 }
 
 static void PlayerNotOnBikeNotMoving(u8 direction, u16 heldKeys)
@@ -613,18 +616,17 @@ static void PlayerNotOnBikeMoving(u8 direction, u16 heldKeys)
             PlayerJumpLedge(direction);
             return;
         }
-        else if (collision == COLLISION_OBJECT_EVENT && IsPlayerCollidingWithFarawayIslandMew(direction))
+        
+        if (collision == COLLISION_OBJECT_EVENT && IsPlayerCollidingWithFarawayIslandMew(direction))
         {
             PlayerNotOnBikeCollideWithFarawayIslandMew(direction);
             return;
         }
-        else
-        {
-            u8 adjustedCollision = collision - COLLISION_STOP_SURFING;
-            if (adjustedCollision > 3)
-                PlayerNotOnBikeCollide(direction);
-            return;
-        }
+
+        if (collision < COLLISION_STOP_SURFING || collision >= COLLISION_WHEELIE_HOP)
+            PlayerNotOnBikeCollide(direction);
+
+        return;
     }
 
     if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_SURFING)
@@ -736,10 +738,11 @@ static bool8 TryPushBoulder(s16 x, s16 y, u8 direction)
 
         if (objectEventId != OBJECT_EVENTS_COUNT && gObjectEvents[objectEventId].graphicsId == OBJ_EVENT_GFX_PUSHABLE_BOULDER)
         {
-            x = gObjectEvents[objectEventId].currentCoords.x;
-            y = gObjectEvents[objectEventId].currentCoords.y;
+            struct ObjectEvent* boulder = &gObjectEvents[objectEventId];
+            x = boulder->currentCoords.x;
+            y = boulder->currentCoords.y;
             MoveCoords(direction, &x, &y);
-            if (GetCollisionAtCoords(&gObjectEvents[objectEventId], x, y, direction) == COLLISION_NONE
+            if (GetCollisionAtCoords(boulder, x, y, direction) == COLLISION_NONE
              && MetatileBehavior_IsNonAnimDoor(MapGridGetMetatileBehaviorAt(x, y)) == FALSE)
             {
                 StartStrengthAnim(objectEventId, direction);
@@ -752,7 +755,7 @@ static bool8 TryPushBoulder(s16 x, s16 y, u8 direction)
 
 static void CheckAcroBikeCollision(s16 x, s16 y, u8 metatileBehavior, u8 *collision)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < NUM_ACRO_BIKE_COLLISIONS; i++)
     {
@@ -782,19 +785,18 @@ bool8 IsPlayerCollidingWithFarawayIslandMew(u8 direction)
         return FALSE;
 
     object = &gObjectEvents[mewObjectId];
+
     mewPrevX = object->previousCoords.x;
 
-    if (mewPrevX == playerX)
+    if (object->previousCoords.x == playerX && object->previousCoords.y == playerY && object->currentCoords.x == playerX && object->previousCoords.y == playerY)
     {
-        if (object->previousCoords.y != playerY
-            || object->currentCoords.x != mewPrevX
-            || object->currentCoords.y != object->previousCoords.y)
-        {
-            if (object->previousCoords.x == playerX &&
-                object->previousCoords.y == playerY)
-                return TRUE;
-        }
+        return FALSE;
     }
+
+    if (object->previousCoords.x == playerX &&
+        object->previousCoords.y == playerY)
+        return TRUE;
+
     return FALSE;
 }
 
@@ -806,8 +808,8 @@ void SetPlayerAvatarTransitionFlags(u16 transitionFlags)
 
 static void DoPlayerAvatarTransition(void)
 {
-    u8 i;
-    u8 flags = gPlayerAvatar.transitionFlags;
+    u32 i;
+    u32 flags = gPlayerAvatar.transitionFlags;
 
     if (flags != 0)
     {
@@ -1275,7 +1277,7 @@ u8 GetPlayerAvatarGenderByGraphicsId(u8 gfxId)
 
 bool8 PartyHasMonWithSurf(void)
 {
-    u8 i;
+    u32 i;
 
     if (!TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_SURFING))
     {
@@ -1320,13 +1322,12 @@ void ClearPlayerAvatarInfo(void)
 
 void SetPlayerAvatarStateMask(u8 flags)
 {
-    gPlayerAvatar.flags &= (PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_FORCED_MOVE | PLAYER_AVATAR_FLAG_CONTROLLABLE);
-    gPlayerAvatar.flags |= flags;
+    gPlayerAvatar.flags = (gPlayerAvatar.flags & (PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_FORCED_MOVE | PLAYER_AVATAR_FLAG_CONTROLLABLE)) | flags;
 }
 
 static u8 GetPlayerAvatarStateTransitionByGraphicsId(u8 graphicsId, u8 gender)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sPlayerAvatarGfxToStateFlag[0]); i++)
     {
@@ -1338,7 +1339,7 @@ static u8 GetPlayerAvatarStateTransitionByGraphicsId(u8 graphicsId, u8 gender)
 
 u8 GetPlayerAvatarGraphicsIdByCurrentState(void)
 {
-    u8 i;
+    u32 i;
     u8 flags = gPlayerAvatar.flags;
 
     for (i = 0; i < ARRAY_COUNT(sPlayerAvatarGfxToStateFlag[0]); i++)
@@ -2023,32 +2024,29 @@ static void AlignFishingAnimationFrames(void)
 {
     struct Sprite *playerSprite = &gSprites[gPlayerAvatar.spriteId];
     u8 animCmdIndex;
-    u8 animType;
 
     AnimateSprite(playerSprite);
     playerSprite->x2 = 0;
     playerSprite->y2 = 0;
     animCmdIndex = playerSprite->animCmdIndex;
-    if (playerSprite->anims[playerSprite->animNum][animCmdIndex].type == -1)
+    if (playerSprite->anims[playerSprite->animNum][animCmdIndex].type != -1)
     {
-        animCmdIndex--;
+        playerSprite->animDelayCounter++;
     }
     else
     {
-        playerSprite->animDelayCounter++;
-        if (playerSprite->anims[playerSprite->animNum][animCmdIndex].type == -1)
-            animCmdIndex--;
+        animCmdIndex--;
     }
-    animType = playerSprite->anims[playerSprite->animNum][animCmdIndex].type;
-    if (animType == 1 || animType == 2 || animType == 3)
+    animCmdIndex = playerSprite->anims[playerSprite->animNum][animCmdIndex].type;
+    if (animCmdIndex == 1 || animCmdIndex == 2 || animCmdIndex == 3)
     {
         playerSprite->x2 = 8;
         if (GetPlayerFacingDirection() == 3)
             playerSprite->x2 = -8;
     }
-    if (animType == 5)
+    if (animCmdIndex == 5)
         playerSprite->y2 = -8;
-    if (animType == 10 || animType == 11)
+    if (animCmdIndex == 10 || animCmdIndex == 11)
         playerSprite->y2 = 8;
     if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_SURFING)
         SetSurfBlob_PlayerOffset(gObjectEvents[gPlayerAvatar.objectEventId].fieldEffectSpriteId, TRUE, playerSprite->y2);
@@ -2093,7 +2091,7 @@ static void Task_DoPlayerSpinExit(u8 taskId)
             SetSpinStartFacingDir(object->facingDirection);
             tSpinDelayTimer = 0;
             tSpeed = 1;
-            tCurY = (u16)(sprite->y + sprite->y2) << 4;
+            tCurY = (sprite->y + sprite->y2) << 4;
             sprite->y2 = 0;
             CameraObjectReset2();
             object->fixedPriority = TRUE;
@@ -2110,7 +2108,7 @@ static void Task_DoPlayerSpinExit(u8 taskId)
             sprite->y = tCurY >> 4;
 
             // Check if offscreen
-            if (sprite->y + (s16)gTotalCameraPixelOffsetY < -32)
+            if (sprite->y + gTotalCameraPixelOffsetY < -32)
                 tState++;
             break;
         case 2:
@@ -2162,7 +2160,7 @@ static void Task_DoPlayerSpinEntrance(u8 taskId)
             tDestY = sprite->y;
             tPriority = sprite->oam.priority;
             tSubpriority = sprite->subpriority;
-            tCurY = -((u16)sprite->y2 + 32) * 16;
+            tCurY = -(sprite->y2 + 32) << 4;
             sprite->y2 = 0;
             CameraObjectReset2();
             object->fixedPriority = TRUE;
