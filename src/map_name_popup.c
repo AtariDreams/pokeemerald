@@ -227,24 +227,22 @@ enum {
 
 void ShowMapNamePopup(void)
 {
-    if (FlagGet(FLAG_HIDE_MAP_NAME_POPUP) != TRUE)
+    if (FlagGet(FLAG_HIDE_MAP_NAME_POPUP) == TRUE)
+        return;
+    if (!FuncIsActiveTask(Task_MapNamePopUpWindow))
     {
-        if (!FuncIsActiveTask(Task_MapNamePopUpWindow))
-        {
-            // New pop up window
-            sPopupTaskId = CreateTask(Task_MapNamePopUpWindow, 90);
-            SetGpuReg(REG_OFFSET_BG0VOFS, POPUP_OFFSCREEN_Y);
-            gTasks[sPopupTaskId].tState = STATE_PRINT;
-            gTasks[sPopupTaskId].tYOffset = POPUP_OFFSCREEN_Y;
-        }
-        else
-        {
-            // There's already a pop up window running.
-            // Hurry the old pop up offscreen so the new one can appear.
-            if (gTasks[sPopupTaskId].tState != STATE_SLIDE_OUT)
-                gTasks[sPopupTaskId].tState = STATE_SLIDE_OUT;
-            gTasks[sPopupTaskId].tIncomingPopUp = TRUE;
-        }
+        // New pop up window
+        sPopupTaskId = CreateTask(Task_MapNamePopUpWindow, 90);
+        SetGpuReg(REG_OFFSET_BG0VOFS, POPUP_OFFSCREEN_Y);
+        gTasks[sPopupTaskId].tState = STATE_PRINT;
+        gTasks[sPopupTaskId].tYOffset = POPUP_OFFSCREEN_Y;
+    }
+    else
+    {
+        // There's already a pop up window running.
+        // Hurry the old pop up offscreen so the new one can appear.
+        gTasks[sPopupTaskId].tState = STATE_SLIDE_OUT;
+        gTasks[sPopupTaskId].tIncomingPopUp = TRUE;
     }
 }
 
@@ -326,33 +324,26 @@ void HideMapNamePopUpWindow(void)
 
 static void ShowMapNamePopUpWindow(void)
 {
-    u8 mapDisplayHeader[24];
-    u8 *withoutPrefixPtr;
+    u8 mapDisplayHeader[22];
     u8 x;
-    const u8 *mapDisplayHeaderSource;
-
     if (InBattlePyramid())
     {
         if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_TOP)
         {
-            withoutPrefixPtr = &(mapDisplayHeader[3]);
-            mapDisplayHeaderSource = sBattlePyramid_MapHeaderStrings[FRONTIER_STAGES_PER_CHALLENGE];
+            StringCopy(&(mapDisplayHeader[3]), sBattlePyramid_MapHeaderStrings[FRONTIER_STAGES_PER_CHALLENGE]);
         }
         else
         {
-            withoutPrefixPtr = &(mapDisplayHeader[3]);
-            mapDisplayHeaderSource = sBattlePyramid_MapHeaderStrings[gSaveBlock2.frontier.curChallengeBattleNum];
+            StringCopy(&(mapDisplayHeader[3]), sBattlePyramid_MapHeaderStrings[gSaveBlock2.frontier.curChallengeBattleNum]);
         }
-        StringCopy(withoutPrefixPtr, mapDisplayHeaderSource);
     }
     else
     {
-        withoutPrefixPtr = &(mapDisplayHeader[3]);
-        GetMapName(withoutPrefixPtr, gMapHeader.regionMapSectionId, 0);
+        GetMapName(&(mapDisplayHeader[3]), gMapHeader.regionMapSectionId, 0);
     }
     AddMapNamePopUpWindow();
     LoadMapNamePopUpWindowBg();
-    x = GetStringCenterAlignXOffset(FONT_NARROW, withoutPrefixPtr, 80);
+    x = GetStringCenterAlignXOffset(FONT_NARROW, &(mapDisplayHeader[3]), 80);
     mapDisplayHeader[0] = EXT_CTRL_CODE_BEGIN;
     mapDisplayHeader[1] = EXT_CTRL_CODE_HIGHLIGHT;
     mapDisplayHeader[2] = TEXT_COLOR_TRANSPARENT;
@@ -376,8 +367,9 @@ static void DrawMapNamePopUpFrame(u8 bg, u8 x, u8 y, u8 deltaX, u8 deltaY, u8 un
     s32 i;
 
     // Draw top edge
+    // TODO: negative number here because i - 1, if x is 0
     for (i = 0; i < 1 + TILE_TOP_EDGE_END - TILE_TOP_EDGE_START; i++)
-        FillBgTilemapBufferRect(bg, TILE_TOP_EDGE_START + i, i - 1 + x, y - 1, 1, 1, 14);
+        FillBgTilemapBufferRect(bg, TILE_TOP_EDGE_START + i, x - 1 + i, y - 1, 1, 1, 14);
 
     // Draw sides
     FillBgTilemapBufferRect(bg, TILE_LEFT_EDGE_TOP,       x - 1,     y, 1, 1, 14);
@@ -389,7 +381,7 @@ static void DrawMapNamePopUpFrame(u8 bg, u8 x, u8 y, u8 deltaX, u8 deltaY, u8 un
 
     // Draw bottom edge
     for (i = 0; i < 1 + TILE_BOT_EDGE_END - TILE_BOT_EDGE_START; i++)
-        FillBgTilemapBufferRect(bg, TILE_BOT_EDGE_START + i, i - 1 + x, y + deltaY, 1, 1, 14);
+        FillBgTilemapBufferRect(bg, TILE_BOT_EDGE_START + i, x - 1 + i, y + deltaY, 1, 1, 14);
 }
 
 static void LoadMapNamePopUpWindowBg(void)
