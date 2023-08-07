@@ -5967,7 +5967,7 @@ static void ContestDebugPrintBitStrings(void)
             txtPtr = StringCopy(text1, gText_CDot);
             Contest_PrintTextToBg0WindowAt(gContestantTurnOrder[i], text1, 5, 1, FONT_NARROW);
             bits = gContestResources->tv[i].winnerFlags;
-            for (j = 7; j > -1; j--) // Weird loop.
+            for (j = 7; j >= 0; j--) // Weird loop.
             {
                 txtPtr = ConvertIntToDecimalStringN(txtPtr, bits & 1, STR_CONV_MODE_LEFT_ALIGN, 1);
                 bits >>= 1;
@@ -5988,7 +5988,7 @@ static void ContestDebugPrintBitStrings(void)
             StringCopy(text1, gText_BDot);
             bits = gContestResources->tv[i].loserFlags;
             txtPtr = &text1[2];
-            for (j = 7; j > -1; j--) // Weird loop.
+            for (j = 7; j >= 0; j--) // Weird loop.
             {
                 txtPtr = ConvertIntToDecimalStringN(txtPtr, bits & 1, STR_CONV_MODE_LEFT_ALIGN, 1);
                 bits >>= 1;
