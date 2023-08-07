@@ -2343,7 +2343,7 @@ static u8 *GetPokeJumpPlayerName(u8 multiplayerId)
 
 bool32 IsSpeciesAllowedInPokemonJump(u16 species)
 {
-    return GetPokemonJumpSpeciesIdx(species) > -1;
+    return GetPokemonJumpSpeciesIdx(species) >= 0;
 }
 
 void IsPokemonJumpSpeciesInParty(void)
