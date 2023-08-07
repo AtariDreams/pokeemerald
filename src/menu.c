@@ -909,7 +909,7 @@ static u8 InitMenu(u8 windowId, u8 fontId, u8 left, u8 top, u8 cursorHeight, u8 
     sMenu.optionHeight = cursorHeight;
     sMenu.APressMuted = muteAPress;
 
-    if (initialCursorPos < 0 || initialCursorPos > sMenu.maxCursorPos)
+    if (initialCursorPos > sMenu.maxCursorPos)
         sMenu.cursorPos = 0;
     else
         sMenu.cursorPos = initialCursorPos;
@@ -943,11 +943,10 @@ void RedrawMenuCursor(u8 oldPos, u8 newPos)
 u8 Menu_MoveCursor(s8 cursorDelta)
 {
     u8 oldPos = sMenu.cursorPos;
-    int newPos = sMenu.cursorPos + cursorDelta;
 
-    if (newPos < sMenu.minCursorPos)
+    if (sMenu.cursorPos + cursorDelta < sMenu.minCursorPos)
         sMenu.cursorPos = sMenu.maxCursorPos;
-    else if (newPos > sMenu.maxCursorPos)
+    else if (sMenu.cursorPos + cursorDelta > sMenu.maxCursorPos)
         sMenu.cursorPos = sMenu.minCursorPos;
     else
         sMenu.cursorPos += cursorDelta;
@@ -959,11 +958,10 @@ u8 Menu_MoveCursor(s8 cursorDelta)
 u8 Menu_MoveCursorNoWrapAround(s8 cursorDelta)
 {
     u8 oldPos = sMenu.cursorPos;
-    int newPos = sMenu.cursorPos + cursorDelta;
 
-    if (newPos < sMenu.minCursorPos)
+    if (sMenu.cursorPos + cursorDelta < sMenu.minCursorPos)
         sMenu.cursorPos = sMenu.minCursorPos;
-    else if (newPos > sMenu.maxCursorPos)
+    else if (sMenu.cursorPos + cursorDelta > sMenu.maxCursorPos)
         sMenu.cursorPos = sMenu.maxCursorPos;
     else
         sMenu.cursorPos += cursorDelta;
@@ -1097,7 +1095,7 @@ void PrintMenuActionTextsAtPos(u8 windowId, u8 fontId, u8 left, u8 top, u8 lineH
 {
     u8 i;
     for (i = 0; i < itemCount; i++)
-        AddTextPrinterParameterized(windowId, fontId, menuActions[i].text, left, (lineHeight * i) + top, TEXT_SKIP_DRAW, NULL);
+        AddTextPrinterParameterized(windowId, fontId, menuActions[i].text, left, top + lineHeight * i, TEXT_SKIP_DRAW, NULL);
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
 
@@ -1105,7 +1103,7 @@ static void UNUSED PrintMenuActionTextsWithSpacing(u8 windowId, u8 fontId, u8 le
 {
     u8 i;
     for (i = 0; i < itemCount; i++)
-        AddTextPrinterParameterized5(windowId, fontId, menuActions[i].text, left, (lineHeight * i) + top, TEXT_SKIP_DRAW, NULL, letterSpacing, lineSpacing);
+        AddTextPrinterParameterized5(windowId, fontId, menuActions[i].text, left, top + lineHeight * i, TEXT_SKIP_DRAW, NULL, letterSpacing, lineSpacing);
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
 
@@ -1133,7 +1131,7 @@ void PrintMenuActionTexts(u8 windowId, u8 fontId, u8 left, u8 top, u8 letterSpac
     for (i = 0; i < itemCount; i++)
     {
         printer.currentChar = menuActions[actionIds[i]].text;
-        printer.y = top + (lineHeight * i);
+        printer.y = top + lineHeight * i;
         printer.currentY = printer.y;
         AddTextPrinter(&printer, TEXT_SKIP_DRAW, NULL);
     }
@@ -1224,7 +1222,7 @@ static void PrintMenuActionGridText(u8 windowId, u8 fontId, u8 left, u8 top, u8 
     for (i = 0; i < rows; i++)
     {
         for (j = 0; j < columns; j++)
-            AddTextPrinterParameterized(windowId, fontId, menuActions[(i * columns) + j].text, (width * j) + left, (height * i) + top, TEXT_SKIP_DRAW, NULL);
+            AddTextPrinterParameterized(windowId, fontId, menuActions[i * columns + j].text, left + width * j, top + height * i, TEXT_SKIP_DRAW, NULL);
     }
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
@@ -1253,9 +1251,9 @@ void PrintMenuActionGrid(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth
     {
         for (j = 0; j < horizontalCount; j++)
         {
-            printer.currentChar = menuActions[actionIds[(horizontalCount * i) + j]].text;
-            printer.x = left + (optionWidth * j);
-            printer.y = (GetFontAttribute(fontId, FONTATTR_MAX_LETTER_HEIGHT) * i) + top;
+            printer.currentChar = menuActions[actionIds[i * horizontalCount + j]].text;
+            printer.x = left + optionWidth * j;
+            printer.y = top + GetFontAttribute(fontId, FONTATTR_MAX_LETTER_HEIGHT) * i;
             printer.currentX = printer.x;
             printer.currentY = printer.y;
             AddTextPrinter(&printer, TEXT_SKIP_DRAW, NULL);
@@ -1283,7 +1281,8 @@ static u8 InitMenuGrid(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth, 
     sMenu.columns = columns;
     sMenu.rows = rows;
 
-    if (cursorPos < 0 || cursorPos > sMenu.maxCursorPos)
+   // if (cursorPos < 0 || cursorPos > sMenu.maxCursorPos)
+    if (cursorPos > sMenu.maxCursorPos)
         sMenu.cursorPos = 0;
     else
         sMenu.cursorPos = cursorPos;
@@ -1344,11 +1343,9 @@ u8 ChangeMenuGridCursorPosition(s8 deltaX, s8 deltaY)
         sMenu.cursorPos = oldPos;
         return sMenu.cursorPos;
     }
-    else
-    {
-        MoveMenuGridCursor(oldPos, sMenu.cursorPos);
-        return sMenu.cursorPos;
-    }
+
+    MoveMenuGridCursor(oldPos, sMenu.cursorPos);
+    return sMenu.cursorPos;
 }
 
 u8 ChangeGridMenuCursorPosition(s8 deltaX, s8 deltaY)
@@ -1378,11 +1375,9 @@ u8 ChangeGridMenuCursorPosition(s8 deltaX, s8 deltaY)
         sMenu.cursorPos = oldPos;
         return sMenu.cursorPos;
     }
-    else
-    {
-        MoveMenuGridCursor(oldPos, sMenu.cursorPos);
-        return sMenu.cursorPos;
-    }
+
+    MoveMenuGridCursor(oldPos, sMenu.cursorPos);
+    return sMenu.cursorPos;
 }
 
 static s8 UNUSED Menu_ProcessGridInput_NoSoundLimit(void)
@@ -1547,8 +1542,6 @@ static s8 UNUSED Menu_ProcessGridInputRepeat(void)
 
 u8 InitMenuInUpperLeftCorner(u8 windowId, u8 itemCount, u8 initialCursorPos, bool8 APressMuted)
 {
-    s32 pos;
-
     sMenu.left = 0;
     sMenu.top = 1;
     sMenu.minCursorPos = 0;
@@ -1558,12 +1551,13 @@ u8 InitMenuInUpperLeftCorner(u8 windowId, u8 itemCount, u8 initialCursorPos, boo
     sMenu.optionHeight = 16;
     sMenu.APressMuted = APressMuted;
 
-    pos = initialCursorPos;
-
-    if (pos < 0 || pos > sMenu.maxCursorPos)
+    // Impossible for first condition unless u8 is a bug
+    // sMenu.minCursorPos is always 0
+    // if (initialCursorPos < sMenu.minCursorPos || initialCursorPos > sMenu.maxCursorPos)
+    if (initialCursorPos > sMenu.maxCursorPos)
         sMenu.cursorPos = 0;
     else
-        sMenu.cursorPos = pos;
+        sMenu.cursorPos = initialCursorPos;
 
     return Menu_MoveCursor(0);
 }
@@ -1579,7 +1573,7 @@ void PrintMenuTable(u8 windowId, u8 itemCount, const struct MenuAction *menuActi
     u32 i;
 
     for (i = 0; i < itemCount; i++)
-        AddTextPrinterParameterized(windowId, 1, menuActions[i].text, 8, (i * 16) + 1, TEXT_SKIP_DRAW, NULL);
+        AddTextPrinterParameterized(windowId, 1, menuActions[i].text, 8, 1 + (i * 16), TEXT_SKIP_DRAW, NULL);
 
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
@@ -1603,8 +1597,8 @@ void PrintMenuActionTextsInUpperLeftCorner(u8 windowId, u8 itemCount, const stru
     for (i = 0; i < itemCount; i++)
     {
         printer.currentChar = menuActions[actionIds[i]].text;
-        printer.y = (i * 16) + 1;
-        printer.currentY = (i * 16) + 1;
+        printer.y = 1 + 16 * i;
+        printer.currentY = printer.y;
         AddTextPrinter(&printer, TEXT_SKIP_DRAW, NULL);
     }
 
@@ -1643,7 +1637,7 @@ void PrintMenuGridTable(u8 windowId, u8 optionWidth, u8 columns, u8 rows, const 
     for (i = 0; i < rows; i++)
     {
         for (j = 0; j < columns; j++)
-            AddTextPrinterParameterized(windowId, 1, menuActions[(i * columns) + j].text, (optionWidth * j) + 8, (i * 16) + 1, TEXT_SKIP_DRAW, NULL);
+            AddTextPrinterParameterized(windowId, 1, menuActions[(i * columns) + j].text, 8 + optionWidth * j, 1 + 16 * i, TEXT_SKIP_DRAW, NULL);
     }
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
@@ -1667,9 +1661,9 @@ static void UNUSED PrintMenuActionGridTextNoSpacing(u8 windowId, u8 optionWidth,
     {
         for (j = 0; j < columns; j++)
         {
-            printer.currentChar = menuActions[actionIds[(columns * i) + j]].text;
-            printer.x = (optionWidth * j) + 8;
-            printer.y = (16 * i) + 1;
+            printer.currentChar = menuActions[actionIds[i * columns + j]].text;
+            printer.x = 8 + optionWidth * j;
+            printer.y = 1 + 16 * i;
             printer.currentX = printer.x;
             printer.currentY = printer.y;
             AddTextPrinter(&printer, TEXT_SKIP_DRAW, NULL);
@@ -1681,12 +1675,10 @@ static void UNUSED PrintMenuActionGridTextNoSpacing(u8 windowId, u8 optionWidth,
 
 u8 InitMenuActionGrid(u8 windowId, u8 optionWidth, u8 columns, u8 rows, u8 initialCursorPos)
 {
-    s32 pos;
-
     sMenu.left = 0;
     sMenu.top = 1;
     sMenu.minCursorPos = 0;
-    sMenu.maxCursorPos = (columns * rows) - 1;
+    sMenu.maxCursorPos = columns * rows - 1;
     sMenu.windowId = windowId;
     sMenu.fontId = FONT_NORMAL;
     sMenu.optionWidth = optionWidth;
@@ -1694,12 +1686,11 @@ u8 InitMenuActionGrid(u8 windowId, u8 optionWidth, u8 columns, u8 rows, u8 initi
     sMenu.columns = columns;
     sMenu.rows = rows;
 
-    pos = initialCursorPos;
-
-    if (pos < 0 || pos > sMenu.maxCursorPos)
+    // if (pos < 0 || pos > sMenu.maxCursorPos)
+    if (initialCursorPos > sMenu.maxCursorPos)
         sMenu.cursorPos = 0;
     else
-        sMenu.cursorPos = pos;
+        sMenu.cursorPos = initialCursorPos;
 
     // Why call this when it's not gonna move?
     ChangeMenuGridCursorPosition(MENU_CURSOR_DELTA_NONE, MENU_CURSOR_DELTA_NONE);
@@ -1762,10 +1753,7 @@ bool8 FreeTempTileDataBuffersIfPossible(void)
         }
         return FALSE;
     }
-    else
-    {
-        return TRUE;
-    }
+    return TRUE;
 }
 
 void *DecompressAndCopyTileDataToVram(u8 bgId, const void *src, u32 size, u16 offset, u8 mode)
@@ -1898,11 +1886,11 @@ void ResetBgPositions(void)
     ChangeBgY(3, 0, BG_COORD_SET);
 }
 
-void BgDmaFill(u32 bg, u8 value, int offset, int size)
+void BgDmaFill(u8 bg, u8 value, int offset, int size)
 {
-    int temp = (!GetBgAttribute(bg, BG_ATTR_PALETTEMODE)) ? 32 : 64;
-    void *addr = (void *)((GetBgAttribute(bg, BG_ATTR_CHARBASEINDEX) * 0x4000) + (GetBgAttribute(bg, BG_ATTR_BASETILE) + offset) * temp);
-    RequestDma3Fill(value << 24 | value << 16 | value << 8 | value, VRAM + addr, size * temp, 1);
+    u32 temp = (!GetBgAttribute(bg, BG_ATTR_PALETTEMODE)) ? 32 : 64;
+    u32 addr = (GetBgAttribute(bg, BG_ATTR_CHARBASEINDEX) * 0x4000) + ((GetBgAttribute(bg, BG_ATTR_BASETILE) + offset) * temp);
+    RequestDma3Fill(value << 24 | value << 16 | value << 8 | value, (void *)(VRAM + addr), size * temp, 1);
 }
 
 void AddTextPrinterParameterized3(u8 windowId, u8 fontId, u8 left, u8 top, const u8 *color, s8 speed, const u8 *str)
@@ -2071,8 +2059,8 @@ void ListMenuLoadStdPalAt(u8 palOffset, u8 palId)
 
     switch (palId)
     {
-        case 0:
         default:
+        case 0:
             palette = gMenuInfoElements1_Pal;
             break;
         case 1:
@@ -2095,7 +2083,6 @@ void BufferSaveMenuText(u8 textId, u8 *dest, u8 color)
 {
     s32 curFlag;
     s32 flagCount;
-    u8 *endOfString;
     u8 *string = dest;
 
     *(string++) = EXT_CTRL_CODE_BEGIN;
@@ -2126,13 +2113,13 @@ void BufferSaveMenuText(u8 textId, u8 *dest, u8 color)
             GetMapNameGeneric(string, gMapHeader.regionMapSectionId);
             break;
         case SAVE_MENU_BADGES:
-            for (curFlag = FLAG_BADGE01_GET, flagCount = 0, endOfString = string + 1; curFlag < FLAG_BADGE01_GET + NUM_BADGES; curFlag++)
+            for (curFlag = FLAG_BADGE01_GET, flagCount = 0; curFlag < FLAG_BADGE01_GET + NUM_BADGES; curFlag++)
             {
                 if (FlagGet(curFlag))
                     flagCount++;
             }
-            *string = flagCount + CHAR_0;
-            *endOfString = EOS;
+            *string++ = flagCount + CHAR_0;
+            *string = EOS;
             break;
     }
 }
