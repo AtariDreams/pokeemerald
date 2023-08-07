@@ -133,7 +133,7 @@ static EWRAM_DATA struct BattleFrontierStreakInfo sBattleFrontierStreakInfo = {0
 static u32 GetCurrentTotalMinutes(struct Time *);
 static u32 GetNumRegisteredNPCs(void);
 static u32 GetActiveMatchCallTrainerId(u32);
-static int GetTrainerMatchCallId(int);
+static int GetTrainerMatchCallId(u32);
 static u16 GetRematchTrainerLocation(int);
 static bool32 TrainerIsEligibleForRematch(int);
 static void StartMatchCall(void);
@@ -142,10 +142,10 @@ static void DrawMatchCallTextBoxBorder_Internal(u32, u32, u32);
 static void Task_SpinPokenavIcon(u8);
 static void InitMatchCallTextPrinter(int, const u8 *);
 static bool32 RunMatchCallTextPrinter(int);
-static const struct MatchCallText *GetSameRouteMatchCallText(int, u8 *);
-static const struct MatchCallText *GetDifferentRouteMatchCallText(int, u8 *);
-static const struct MatchCallText *GetBattleMatchCallText(int, u8 *);
-static const struct MatchCallText *GetGeneralMatchCallText(int, u8 *);
+static const struct MatchCallText *GetSameRouteMatchCallText(u32, u8 *);
+static const struct MatchCallText *GetDifferentRouteMatchCallText(u32, u8 *);
+static const struct MatchCallText *GetBattleMatchCallText(u32, u8 *);
+static const struct MatchCallText *GetGeneralMatchCallText(u32, u8 *);
 static bool32 ShouldTrainerRequestBattle(int);
 static void BuildMatchCallString(int, const struct MatchCallText *, u8 *);
 static u16 GetFrontierStreakInfo(u16, u32 *);
@@ -1040,10 +1040,10 @@ static u32 GetCurrentTotalMinutes(struct Time *time)
 
 static bool32 UpdateMatchCallMinutesCounter(void)
 {
-    int curMinutes;
+    u32 curMinutes;
     RtcCalcLocalTime();
     curMinutes = GetCurrentTotalMinutes(&gLocalTime);
-    if (sMatchCallState.minutes > curMinutes || curMinutes - sMatchCallState.minutes > 9)
+    if (sMatchCallState.minutes > curMinutes || curMinutes - sMatchCallState.minutes >= 10)
     {
         sMatchCallState.minutes = curMinutes;
         return TRUE;
@@ -1223,7 +1223,7 @@ static void ExecuteMatchCall(u8 taskId)
     {
         tState++;
         data[1] = 0; // Never read
-        if ((u16)tState > 7)
+        if (tState > 7)
             DestroyTask(taskId);
     }
 }
@@ -1382,8 +1382,8 @@ static bool32 MatchCall_EndCall(u8 taskId)
 
 static void DrawMatchCallTextBoxBorder_Internal(u32 windowId, u32 tileOffset, u32 paletteId)
 {
-    int bg, x, y, width, height;
-    int tileNum;
+    u32 bg, x, y, width, height;
+    u32 tileNum;
 
     bg = GetWindowAttribute(windowId, WINDOW_BG);
     x = GetWindowAttribute(windowId, WINDOW_TILEMAP_LEFT);
@@ -1483,7 +1483,7 @@ static u32 GetNumRematchTrainersFought(void)
 // Look through the rematch table for trainers that have been defeated once before.
 // Return the index into the rematch table of the nth defeated trainer,
 // or REMATCH_TABLE_ENTRIES if fewer than n rematch trainers have been defeated.
-static u32 GetNthRematchTrainerFought(int n)
+static u32 GetNthRematchTrainerFought(u32 n)
 {
     u32 i, count;
 
@@ -1501,7 +1501,7 @@ static u32 GetNthRematchTrainerFought(int n)
     return REMATCH_TABLE_ENTRIES;
 }
 
-bool32 SelectMatchCallMessage(int trainerId, u8 *str)
+bool32 SelectMatchCallMessage(u32 trainerId, u8 *str)
 {
     u32 matchCallId;
     const struct MatchCallText *matchCallText;
@@ -1541,61 +1541,56 @@ bool32 SelectMatchCallMessage(int trainerId, u8 *str)
     return newRematchRequest;
 }
 
-static int GetTrainerMatchCallId(int trainerId)
+static int GetTrainerMatchCallId(u32 trainerId)
 {
-    int i = 0;
-    while (1)
+    int i;
+    for (i = 0; i < NELEMS(sMatchCallTrainers[i]); i++)
     {
         if (sMatchCallTrainers[i].trainerId == trainerId)
             return i;
-        else
-            i++;
     }
+    return -1;
 }
 
-static const struct MatchCallText *GetSameRouteMatchCallText(int matchCallId, u8 *str)
+static const struct MatchCallText *GetSameRouteMatchCallText(u32 matchCallId, u8 *str)
 {
     u16 textId = sMatchCallTrainers[matchCallId].sameRouteMatchCallTextId;
-    int mask = 0xFF;
     u32 topic = (textId >> 8) - 1;
-    u32 id = (textId & mask) - 1;
+    u32 id = (textId & 0xFF) - 1;
     return &sMatchCallBattleRequestTopics[topic][id];
 }
 
-static const struct MatchCallText *GetDifferentRouteMatchCallText(int matchCallId, u8 *str)
+static const struct MatchCallText *GetDifferentRouteMatchCallText(u32 matchCallId, u8 *str)
 {
     u16 textId = sMatchCallTrainers[matchCallId].differentRouteMatchCallTextId;
-    int mask = 0xFF;
     u32 topic = (textId >> 8) - 1;
-    u32 id = (textId & mask) - 1;
+    u32 id = (textId & 0xFF) - 1;
     return &sMatchCallBattleRequestTopics[topic][id];
 }
 
-static const struct MatchCallText *GetBattleMatchCallText(int matchCallId, u8 *str)
+static const struct MatchCallText *GetBattleMatchCallText(u32 matchCallId, u8 *str)
 {
-    int mask;
     u32 textId, topic, id;
+    u32 top;
 
     topic = Random() % 3;
     textId = sMatchCallTrainers[matchCallId].battleTopicTextIds[topic];
-    if (!textId)
-        SpriteCallbackDummy(NULL); // leftover debugging ???
+//    if (!textId)
+   //     SpriteCallbackDummy(NULL); // leftover debugging ???
 
-    mask = 0xFF;
-    topic = (textId >> 8) - 1;
-    id = (textId & mask) - 1;
-    return &sMatchCallBattleTopics[topic][id];
+    top = (textId >> 8) - 1;
+    id = (textId & 0xFF) - 1;
+    return &sMatchCallBattleTopics[top][id];
 }
 
-static const struct MatchCallText *GetGeneralMatchCallText(int matchCallId, u8 *str)
+static const struct MatchCallText *GetGeneralMatchCallText(u32 matchCallId, u8 *str)
 {
     int i;
     int count;
     u32 topic, id;
     u16 rand;
 
-    rand = Random();
-    if (!(rand & 1))
+    if (!(Random() & 1))
     {
         // Count the number of facilities with a win streak
         for (count = 0, i = 0; i < NUM_FRONTIER_FACILITIES; i++)
@@ -1632,7 +1627,7 @@ static const struct MatchCallText *GetGeneralMatchCallText(int matchCallId, u8 *
     return &sMatchCallGeneralTopics[topic][id];
 }
 
-static void BuildMatchCallString(int matchCallId, const struct MatchCallText *matchCallText, u8 *str)
+static void BuildMatchCallString(u32 matchCallId, const struct MatchCallText *matchCallText, u8 *str)
 {
     PopulateMatchCallStringVars(matchCallId, matchCallText->stringVarFuncIds);
     StringExpandPlaceholders(str, matchCallText->text);
@@ -1640,9 +1635,9 @@ static void BuildMatchCallString(int matchCallId, const struct MatchCallText *ma
 
 static u8 *const sMatchCallTextStringVars[] = { gStringVar1, gStringVar2, gStringVar3 };
 
-static void PopulateMatchCallStringVars(int matchCallId, const s8 *stringVarFuncIds)
+static void PopulateMatchCallStringVars(u32 matchCallId, const s8 *stringVarFuncIds)
 {
-    int i;
+    u32 i;
     for (i = 0; i < NUM_STRVARS_IN_MSG; i++)
     {
         if (stringVarFuncIds[i] >= 0)
@@ -1675,7 +1670,7 @@ static const struct MultiTrainerMatchCallText sMultiTrainerMatchCallTexts[] =
     { .trainerId = TRAINER_ANNA_AND_MEG_1, .text = gText_Anna },
 };
 
-static void PopulateTrainerName(int matchCallId, u8 *destStr)
+static void PopulateTrainerName(u32 matchCallId, u8 *destStr)
 {
     u32 i;
     u16 trainerId = sMatchCallTrainers[matchCallId].trainerId;
@@ -1691,7 +1686,7 @@ static void PopulateTrainerName(int matchCallId, u8 *destStr)
     StringCopy(destStr, gTrainers[trainerId].trainerName);
 }
 
-static void PopulateMapName(int matchCallId, u8 *destStr)
+static void PopulateMapName(u32 matchCallId, u8 *destStr)
 {
     GetMapName(destStr, GetRematchTrainerLocation(matchCallId), 0);
 }
@@ -1701,25 +1696,25 @@ static u8 GetLandEncounterSlot(void)
     int rand = Random() % 100;
     if (rand < 20)
         return 0;
-    else if (rand >= 20 && rand < 40)
+    else if (rand < 40)
         return 1;
-    else if (rand >= 40 && rand < 50)
+    else if (rand < 50)
         return 2;
-    else if (rand >= 50 && rand < 60)
+    else if (rand < 60)
         return 3;
-    else if (rand >= 60 && rand < 70)
+    else if (rand < 70)
         return 4;
-    else if (rand >= 70 && rand < 80)
+    else if (rand < 80)
         return 5;
-    else if (rand >= 80 && rand < 85)
+    else if (rand < 85)
         return 6;
-    else if (rand >= 85 && rand < 90)
+    else if (rand < 90)
         return 7;
-    else if (rand >= 90 && rand < 94)
+    else if (rand < 94)
         return 8;
-    else if (rand >= 94 && rand < 98)
+    else if (rand < 98)
         return 9;
-    else if (rand >= 98 && rand < 99)
+    else if (rand < 99)
         return 10;
     else
         return 11;
@@ -1730,32 +1725,28 @@ static u8 GetWaterEncounterSlot(void)
     int rand = Random() % 100;
     if (rand < 60)
         return 0;
-    else if (rand >= 60 && rand < 90)
+    else if (rand < 90)
         return 1;
-    else if (rand >= 90 && rand < 95)
+    else if (rand < 95)
         return 2;
-    else if (rand >= 95 && rand < 99)
+    else if (rand < 99)
         return 3;
     else
         return 4;
 }
 
-static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
+static void PopulateSpeciesFromTrainerLocation(u32 matchCallId, u8 *destStr)
 {
     u16 species[2];
     int numSpecies;
     u8 slot;
-    int i = 0;
+    u32 i = 0;
 
-    if (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED)) // ??? This check is nonsense.
-    {
-        while (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED))
+        for (i = 0; gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED); i++)
         {
             if (gWildMonHeaders[i].mapGroup == gRematchTable[matchCallId].mapGroup
              && gWildMonHeaders[i].mapNum == gRematchTable[matchCallId].mapNum)
                 break;
-
-            i++;
         }
 
         if (gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED))
@@ -1781,12 +1772,11 @@ static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
                 return;
             }
         }
-    }
 
     destStr[0] = EOS;
 }
 
-static void PopulateSpeciesFromTrainerParty(int matchCallId, u8 *destStr)
+static void PopulateSpeciesFromTrainerParty(u32 matchCallId, u8 *destStr)
 {
     u16 trainerId;
     union TrainerMonPtr party;
@@ -1828,12 +1818,12 @@ static const u8 *const sBattleFrontierFacilityNames[NUM_FRONTIER_FACILITIES] =
     [FRONTIER_FACILITY_PYRAMID] = gText_BattlePyramid,
 };
 
-static void PopulateBattleFrontierFacilityName(int matchCallId, u8 *destStr)
+static void PopulateBattleFrontierFacilityName(u32 matchCallId, u8 *destStr)
 {
     StringCopy(destStr, sBattleFrontierFacilityNames[sBattleFrontierStreakInfo.facilityId]);
 }
 
-static void PopulateBattleFrontierStreak(int matchCallId, u8 *destStr)
+static void PopulateBattleFrontierStreak(u32 matchCallId, u8 *destStr)
 {
     int i = 0;
     int streak = sBattleFrontierStreakInfo.streak;
@@ -1858,7 +1848,7 @@ static const u16 sBadgeFlags[NUM_BADGES] =
     FLAG_BADGE08_GET,
 };
 
-static int GetNumOwnedBadges(void)
+static u32 GetNumOwnedBadges(void)
 {
     u32 i;
 
@@ -1891,25 +1881,26 @@ static bool32 ShouldTrainerRequestBattle(int matchCallId)
     max = (numRematchTrainersFought * 13) / 10;
     rand = ((dayCount ^ dewfordRand) + (dewfordRand ^ GetGameStat(GAME_STAT_TRAINER_BATTLES))) ^ otId;
     n = rand % max;
-    if (n < numRematchTrainersFought)
+    if (n >= numRematchTrainersFought)
     {
+        return FALSE;
+    }
         if (GetNthRematchTrainerFought(n) == matchCallId)
             return TRUE;
-    }
 
     return FALSE;
 }
 
 static u16 GetFrontierStreakInfo(u16 facilityId, u32 *topicTextId)
 {
-    int i;
-    int j;
+    u32 i;
+    u32 j;
     u16 streak = 0;
 
     switch (facilityId)
     {
     case FRONTIER_FACILITY_DOME:
-        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2.frontier.domeRecordWinStreaks); i++)
+        for (i = 0; i < ARRAY_COUNT(gSaveBlock2.frontier.domeRecordWinStreaks); i++)
         {
             for (j = 0; j < FRONTIER_LVL_MODE_COUNT; j++)
             {
@@ -1928,7 +1919,7 @@ static u16 GetFrontierStreakInfo(u16 facilityId, u32 *topicTextId)
         *topicTextId = GEN_TOPIC_B_PIKE - 1;
         break;
     case FRONTIER_FACILITY_TOWER:
-        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2.frontier.towerRecordWinStreaks); i++)
+        for (i = 0; i < ARRAY_COUNT(gSaveBlock2.frontier.towerRecordWinStreaks); i++)
         {
             for (j = 0; j < FRONTIER_LVL_MODE_COUNT; j++)
             {
@@ -1939,7 +1930,7 @@ static u16 GetFrontierStreakInfo(u16 facilityId, u32 *topicTextId)
         *topicTextId = GEN_TOPIC_STREAK_RECORD - 1;
         break;
     case FRONTIER_FACILITY_PALACE:
-        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2.frontier.palaceRecordWinStreaks); i++)
+        for (i = 0; i < ARRAY_COUNT(gSaveBlock2.frontier.palaceRecordWinStreaks); i++)
         {
             for (j = 0; j < FRONTIER_LVL_MODE_COUNT; j++)
             {
@@ -1950,7 +1941,7 @@ static u16 GetFrontierStreakInfo(u16 facilityId, u32 *topicTextId)
         *topicTextId = GEN_TOPIC_STREAK_RECORD - 1;
         break;
     case MATCH_CALL_FACTORY:
-        for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2.frontier.factoryRecordWinStreaks); i++)
+        for (i = 0; i < ARRAY_COUNT(gSaveBlock2.frontier.factoryRecordWinStreaks); i++)
         {
             for (j = 0; j < FRONTIER_LVL_MODE_COUNT; j++)
             {
@@ -2062,7 +2053,7 @@ static const u8 *const sBirchDexRatingTexts[] =
 
 void BufferPokedexRatingForMatchCall(u8 *destStr)
 {
-    int numSeen, numCaught;
+    u32 numSeen, numCaught;
     u8 *str;
     u8 dexRatingLevel;
 

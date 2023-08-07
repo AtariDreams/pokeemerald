@@ -16,7 +16,7 @@ bool32 TryStartMatchCall(void);
 bool32 IsMatchCallTaskActive(void);
 void StartMatchCallFromScript(const u8 *message);
 void BufferPokedexRatingForMatchCall(u8 *destStr);
-bool32 SelectMatchCallMessage(int, u8 *);
+bool32 SelectMatchCallMessage(u32, u8 *);
 void LoadMatchCallWindowGfx(u32 windowId, u32 destOffset, u32 paletteId);
 void DrawMatchCallTextBoxBorder(u32 windowId, u32 tileOffset, u32 paletteId);
 
