@@ -58,7 +58,7 @@ u32 GetPlayerTextSpeed(void);
 u8 GetPlayerTextSpeedDelay(void);
 void Menu_LoadStdPalAt(u16 offset);
 void AddTextPrinterWithCallbackForMessage(bool8 canSpeedUp, void (*callback)(struct TextPrinterTemplate *, u16));
-void BgDmaFill(u32 bg, u8 value, int offset, int size);
+void BgDmaFill(u8 bg, u8 value, int offset, int size);
 void AddTextPrinterParameterized3(u8 windowId, u8 fontId, u8 left, u8 top, const u8 *color, s8 speed, const u8 *str);
 void ClearStdWindowAndFrameToTransparent(u8 windowId, bool8 copyToVram);
 void SetWindowTemplateFields(struct WindowTemplate *template, u8 priority, u8 tilemapLeft, u8 tilemapTop, u8 width, u8 height, u8 palNum, u16 baseBlock);
