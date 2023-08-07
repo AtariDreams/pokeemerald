@@ -802,7 +802,7 @@ static void ContestEffect_NextAppealLater(void)
 
         turnOrder[eContestAppealResults.contestant] = CONTESTANT_NONE;
 
-        for (i = CONTESTANT_COUNT - 1; i > -1; i--)
+        for (i = CONTESTANT_COUNT - 1; i >= 0; i--)
         {
             for (j = 0; j < CONTESTANT_COUNT; j++)
             {
