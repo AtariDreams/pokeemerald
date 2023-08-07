@@ -4534,7 +4534,7 @@ bool8 ExecuteTableBasedItemEffect(struct Pokemon *mon, u16 item, u8 partyIndex, 
         }                                                                                               \
         if (friendship < 0)                                                                             \
             friendship = 0;                                                                             \
-        if (friendship > MAX_FRIENDSHIP)                                                                \
+        else if (friendship > MAX_FRIENDSHIP)                                                                \
             friendship = MAX_FRIENDSHIP;                                                                \
         SetMonData(mon, MON_DATA_FRIENDSHIP, &friendship);                                              \
         retVal = FALSE;                                                                                 \
