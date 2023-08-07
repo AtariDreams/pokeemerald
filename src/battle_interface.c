@@ -789,7 +789,7 @@ static void Debug_DrawNumber(s16 number, u16 *dest, bool8 unk)
         }
         else
         {
-            for (; i > -1; i--)
+            for (; i >= 0; i--)
                 buff[i] = 0xFF;
 
             if (buff[3] == 0xFF)
