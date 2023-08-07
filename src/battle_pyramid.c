@@ -1827,9 +1827,9 @@ static bool8 TrySetPyramidObjectEventPositionInSquare(u8 objType, u8 *floorLayou
 
     if (gSaveBlock2.frontier.pyramidRandoms[0] & 1)
     {
-        for (y = 7; y > -1; y--)
+        for (y = 7; y >= 0; y--)
         {
-            for (x = 7; x > -1; x--)
+            for (x = 7; x >= 0; x--)
             {
                 if (!TrySetPyramidObjectEventPositionAtCoords(objType, x, y, floorLayoutOffsets, squareId, objectEventId))
                     return FALSE;
