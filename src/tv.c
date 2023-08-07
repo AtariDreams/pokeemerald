@@ -1482,8 +1482,8 @@ static void InterviewAfter_BravoTrainerBattleTowerProfile(void)
     TVShow *show = &gSaveBlock1.tvShows[sCurTVShowSlot];
     show->bravoTrainerTower.kind = TVSHOW_BRAVO_TRAINER_BATTLE_TOWER_PROFILE;
     show->bravoTrainerTower.active = TRUE;
-    StringCopy(show->bravoTrainerTower.trainerName, gSaveBlock2.playerName);
-    StringCopy(show->bravoTrainerTower.pokemonName, gSaveBlock2.frontier.towerInterview.opponentName);
+    StringCopy(show->bravoTrainerTower.playerName, gSaveBlock2.playerName);
+    StringCopy(show->bravoTrainerTower.opponentName, gSaveBlock2.frontier.towerInterview.opponentName);
     show->bravoTrainerTower.species = gSaveBlock2.frontier.towerInterview.playerSpecies;
     show->bravoTrainerTower.defeatedSpecies = gSaveBlock2.frontier.towerInterview.opponentSpecies;
     show->bravoTrainerTower.numFights = GetCurrentBattleTowerWinStreak(gSaveBlock2.frontier.towerLvlMode, 0);
