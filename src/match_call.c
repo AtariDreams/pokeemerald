@@ -134,23 +134,23 @@ static u32 GetCurrentTotalMinutes(struct Time *);
 static u32 GetNumRegisteredNPCs(void);
 static u32 GetActiveMatchCallTrainerId(u32);
 static int GetTrainerMatchCallId(u32);
-static u16 GetRematchTrainerLocation(int);
-static bool32 TrainerIsEligibleForRematch(int);
+static u16 GetRematchTrainerLocation(u32);
+static bool32 TrainerIsEligibleForRematch(u32);
 static void StartMatchCall(void);
 static void ExecuteMatchCall(u8);
 static void DrawMatchCallTextBoxBorder_Internal(u32, u32, u32);
 static void Task_SpinPokenavIcon(u8);
-static void InitMatchCallTextPrinter(int, const u8 *);
-static bool32 RunMatchCallTextPrinter(int);
+static void InitMatchCallTextPrinter(u32, const u8 *);
+static bool32 RunMatchCallTextPrinter(u32);
 static const struct MatchCallText *GetSameRouteMatchCallText(u32, u8 *);
 static const struct MatchCallText *GetDifferentRouteMatchCallText(u32, u8 *);
 static const struct MatchCallText *GetBattleMatchCallText(u32, u8 *);
 static const struct MatchCallText *GetGeneralMatchCallText(u32, u8 *);
-static bool32 ShouldTrainerRequestBattle(int);
-static void BuildMatchCallString(int, const struct MatchCallText *, u8 *);
+static bool32 ShouldTrainerRequestBattle(u32);
+static void BuildMatchCallString(u32, const struct MatchCallText *, u8 *);
 static u16 GetFrontierStreakInfo(u16, u32 *);
-static void PopulateMatchCallStringVars(int, const s8 *);
-static void PopulateMatchCallStringVar(int, int, u8 *);
+static void PopulateMatchCallStringVars(u32, const s8 *);
+static void PopulateMatchCallStringVar(u32, int, u8 *);
 static bool32 MatchCall_LoadGfx(u8);
 static bool32 MatchCall_DrawWindow(u8);
 static bool32 MatchCall_ReadyIntro(u8);
@@ -159,12 +159,12 @@ static bool32 MatchCall_PrintIntro(u8);
 static bool32 MatchCall_PrintMessage(u8);
 static bool32 MatchCall_SlideWindowOut(u8);
 static bool32 MatchCall_EndCall(u8);
-static void PopulateTrainerName(int, u8 *);
-static void PopulateMapName(int, u8 *);
-static void PopulateSpeciesFromTrainerLocation(int, u8 *);
-static void PopulateSpeciesFromTrainerParty(int, u8 *);
-static void PopulateBattleFrontierFacilityName(int, u8 *);
-static void PopulateBattleFrontierStreak(int, u8 *);
+static void PopulateTrainerName(u32, u8 *);
+static void PopulateMapName(u32, u8 *);
+static void PopulateSpeciesFromTrainerLocation(u32, u8 *);
+static void PopulateSpeciesFromTrainerParty(u32, u8 *);
+static void PopulateBattleFrontierFacilityName(u32, u8 *);
+static void PopulateBattleFrontierStreak(u32, u8 *);
 
 #define TEXT_ID(topic, id) (((topic) << 8) | ((id) & 0xFF))
 
@@ -1402,7 +1402,7 @@ static void DrawMatchCallTextBoxBorder_Internal(u32 windowId, u32 tileOffset, u3
     FillBgTilemapBufferRect_Palette0(bg, ((paletteId << 12) & 0xF000) | (tileNum + 7), x + width, y + height, 1, 1);
 }
 
-static void InitMatchCallTextPrinter(int windowId, const u8 *str)
+static void InitMatchCallTextPrinter(u32 windowId, const u8 *str)
 {
     struct TextPrinterTemplate printerTemplate;
     printerTemplate.currentChar = str;
@@ -1423,7 +1423,7 @@ static void InitMatchCallTextPrinter(int windowId, const u8 *str)
     AddTextPrinter(&printerTemplate, GetPlayerTextSpeedDelay(), NULL);
 }
 
-static bool32 RunMatchCallTextPrinter(int windowId)
+static bool32 RunMatchCallTextPrinter(u32 windowId)
 {
     if (JOY_HELD(A_BUTTON))
         gTextFlags.canABSpeedUpPrint = TRUE;
@@ -1447,7 +1447,7 @@ static void Task_SpinPokenavIcon(u8 taskId)
         if (++tSpinStage > 7)
             tSpinStage = 0;
 
-        tTileNum = (tSpinStage * 16) + TILE_POKENAV_ICON;
+        tTileNum = TILE_POKENAV_ICON + (tSpinStage * 16);
         WriteSequenceToBgTilemapBuffer(0, tTileNum | ~0xFFF, 1, 15, 4, 4, 17, 1);
         CopyBgTilemapBufferToVram(0);
     }
@@ -1457,12 +1457,12 @@ static void Task_SpinPokenavIcon(u8 taskId)
 #undef tSpinStage
 #undef tTileNum
 
-static bool32 TrainerIsEligibleForRematch(int matchCallId)
+static bool32 TrainerIsEligibleForRematch(u32 matchCallId)
 {
-    return gSaveBlock1.trainerRematches[matchCallId] > 0;
+    return gSaveBlock1.trainerRematches[matchCallId] != 0;
 }
 
-static u16 GetRematchTrainerLocation(int matchCallId)
+static u16 GetRematchTrainerLocation(u32 matchCallId)
 {
     const struct MapHeader *mapHeader = Overworld_GetMapHeaderByGroupAndId(gRematchTable[matchCallId].mapGroup, gRematchTable[matchCallId].mapNum);
     return mapHeader->regionMapSectionId;
@@ -1544,7 +1544,7 @@ bool32 SelectMatchCallMessage(u32 trainerId, u8 *str)
 static int GetTrainerMatchCallId(u32 trainerId)
 {
     int i;
-    for (i = 0; i < NELEMS(sMatchCallTrainers[i]); i++)
+    for (i = 0; i < NELEMS(sMatchCallTrainers); i++)
     {
         if (sMatchCallTrainers[i].trainerId == trainerId)
             return i;
@@ -1645,7 +1645,7 @@ static void PopulateMatchCallStringVars(u32 matchCallId, const s8 *stringVarFunc
     }
 }
 
-static void (*const sPopulateMatchCallStringVarFuncs[])(int, u8 *) =
+static void (*const sPopulateMatchCallStringVarFuncs[])(u32, u8 *) =
 {
     [STR_TRAINER_NAME]     = PopulateTrainerName,
     [STR_MAP_NAME]         = PopulateMapName,
@@ -1655,7 +1655,7 @@ static void (*const sPopulateMatchCallStringVarFuncs[])(int, u8 *) =
     [STR_FRONTIER_STREAK]  = PopulateBattleFrontierStreak,
 };
 
-static void PopulateMatchCallStringVar(int matchCallId, int funcId, u8 *destStr)
+static void PopulateMatchCallStringVar(u32 matchCallId, int funcId, u8 *destStr)
 {
     sPopulateMatchCallStringVarFuncs[funcId](matchCallId, destStr);
 }
@@ -1862,7 +1862,7 @@ static u32 GetNumOwnedBadges(void)
 }
 
 // Whether or not a trainer calling the player from a different route should request a battle
-static bool32 ShouldTrainerRequestBattle(int matchCallId)
+static bool32 ShouldTrainerRequestBattle(u32 matchCallId)
 {
     int dayCount;
     int otId;
