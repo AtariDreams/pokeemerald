@@ -211,7 +211,7 @@ bool8 CheckForTrainersWantingBattle(void)
         if (numTrainers == 0)
             continue;
 
-        if (gNoOfApproachingTrainers > 1)
+        if (gNoOfApproachingTrainers >= 2)
             break;
         if (GetMonsStateToDoubles_2() != PLAYER_HAS_TWO_USABLE_MONS) // one trainer found and cant have a double battle
             break;
@@ -276,9 +276,10 @@ static u8 CheckTrainer(u8 objectEventId)
 
     if (approachDistance != 0)
     {
-        if (scriptPtr[1] == TRAINER_BATTLE_DOUBLE
-            || scriptPtr[1] == TRAINER_BATTLE_REMATCH_DOUBLE
-            || scriptPtr[1] == TRAINER_BATTLE_CONTINUE_SCRIPT_DOUBLE)
+        u16 type = scriptPtr[1];
+        if (type == TRAINER_BATTLE_DOUBLE
+            || type == TRAINER_BATTLE_REMATCH_DOUBLE
+            || type == TRAINER_BATTLE_CONTINUE_SCRIPT_DOUBLE)
         {
             if (GetMonsStateToDoubles_2() != PLAYER_HAS_TWO_USABLE_MONS)
                 return 0;
@@ -443,6 +444,7 @@ static void Task_RunTrainerSeeFuncList(u8 taskId)
     if (!trainerObj->active)
     {
         SwitchTaskToFollowupFunc(taskId);
+        return;
     }
     else
     {
@@ -458,12 +460,9 @@ static bool8 TrainerSeeIdle(u8 taskId, struct Task *task, struct ObjectEvent *tr
 // TRSEE_EXCLAMATION
 static bool8 TrainerExclamationMark(u8 taskId, struct Task *task, struct ObjectEvent *trainerObj)
 {
-    u8 direction;
-
     ObjectEventGetLocalIdAndMap(trainerObj, &gFieldEffectArguments[0], &gFieldEffectArguments[1], &gFieldEffectArguments[2]);
     FieldEffectStart(FLDEFF_EXCLAMATION_MARK_ICON);
-    direction = GetFaceDirectionMovementAction(trainerObj->facingDirection);
-    ObjectEventSetHeldMovement(trainerObj, direction);
+    ObjectEventSetHeldMovement(trainerObj, GetFaceDirectionMovementAction(trainerObj->facingDirection));
     task->tFuncId++; // TRSEE_EXCLAMATION_WAIT
     return TRUE;
 }
@@ -634,7 +633,7 @@ static void Task_SetBuriedTrainerMovement(u8 taskId)
         task->data[7]++;
     }
     sTrainerSeeFuncList2[task->tFuncId](taskId, task, objEvent);
-    if (task->tFuncId == ((int)ARRAY_COUNT(sTrainerSeeFuncList2) - 1) && !FieldEffectActiveListContains(FLDEFF_ASH_PUFF))
+    if (task->tFuncId == ARRAY_COUNT(sTrainerSeeFuncList2) - 1 && !FieldEffectActiveListContains(FLDEFF_ASH_PUFF))
     {
         SetTrainerMovementType(objEvent, GetTrainerFacingDirectionMovementType(objEvent->facingDirection));
         TryOverrideTemplateCoordsForObjectEvent(objEvent, GetTrainerFacingDirectionMovementType(objEvent->facingDirection));
@@ -750,6 +749,7 @@ static void SpriteCB_TrainerIcons(struct Sprite *sprite)
      || sprite->animEnded)
     {
         FieldEffectStop(sprite, sprite->sFldEffId);
+        return;
     }
     else
     {
