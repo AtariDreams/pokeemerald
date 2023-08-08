@@ -21,7 +21,7 @@
 //         127
 //
 #define MIN_NEEDLE_POS  32
-#define MAX_NEEDLE_POS -32
+#define MAX_NEEDLE_POS 224
 
 #define NEEDLE_MOVE_INCREMENT  5
 
@@ -55,7 +55,7 @@ static void DrawWaveformFlatline(void);
 static void AdvancePlayhead(u8);
 static void DrawWaveformSegment(u8, u8);
 static void DrawWaveformWindow(u8);
-static void ShiftWaveformOver(u8, s16, bool8);
+static void ShiftWaveformOver(u8, s16);
 static void SpriteCB_CryMeterNeedle(struct Sprite *);
 static void SetCryMeterNeedleTarget(s8);
 
@@ -246,7 +246,7 @@ bool8 LoadCryWaveformWindow(struct CryScreenWindow *window, u8 windowId)
         sDexCryScreen->cryState = 0;
         sDexCryScreen->waveformPreviousY = WAVEFORM_WINDOW_HEIGHT / 2;
         sDexCryScreen->playhead = 0;
-        ShiftWaveformOver(windowId, -8 * window->xPos, TRUE); // Does nothing
+        // ShiftWaveformOver(windowId, -8 * window->xPos, TRUE); // Does nothing
         for (i = 0; i < 224; i++)
             CopyToWindowPixelBuffer(windowId, sCryScreenBg_Gfx, TILE_SIZE_4BPP, i);
 
@@ -318,8 +318,8 @@ void UpdateCryWaveformWindow(u8 windowId)
     }
 
     // Draw cry
-    waveformIdx = 2 * (sDexCryScreen->cryState - 1);
-    DrawWaveformSegment(sDexCryScreen->playStartPos * 8 + sDexCryScreen->playhead - 2, sDexCryScreen->cryWaveformBuffer[waveformIdx]);
+    waveformIdx = (sDexCryScreen->cryState - 1) * 2;
+    DrawWaveformSegment(sDexCryScreen->playStartPos * 8 + sDexCryScreen->playhead - 2, sDexCryScreen->cryWaveformBuffer[waveformIdx + 0]);
     DrawWaveformSegment(sDexCryScreen->playStartPos * 8 + sDexCryScreen->playhead - 1, sDexCryScreen->cryWaveformBuffer[waveformIdx + 1]);
     sDexCryScreen->cryState++;
 }
@@ -351,18 +351,19 @@ static void PlayCryScreenCry(u16 species)
     sDexCryScreen->cryState = 1;
 }
 
+#define PCM_DMA_BUF_SIZE 1584 // size of Direct Sound buffer
 static void BufferCryWaveformSegment(void)
 {
-    u8 i;
+    u32 i;
     s8 *baseBuffer;
     s8 *buffer;
 
-    if (gPcmDmaCounter < 2)
+    if (gPcmDmaCounter <= 1)
         baseBuffer = gSoundInfo.pcmBuffer;
     else
         baseBuffer = gSoundInfo.pcmBuffer + (gSoundInfo.pcmDmaPeriod + 1 - gPcmDmaCounter) * gSoundInfo.pcmSamplesPerVBlank;
 
-    buffer = baseBuffer + 0x630;
+    buffer = baseBuffer + PCM_DMA_BUF_SIZE;
     for (i = 0; i < ARRAY_COUNT(sDexCryScreen->cryWaveformBuffer); i++)
         sDexCryScreen->cryWaveformBuffer[i] = buffer[i * 2] * 2;
 }
@@ -378,7 +379,7 @@ static void AdvancePlayhead(u8 windowId)
     u8 i;
     u16 offset;
 
-    ShiftWaveformOver(windowId, sDexCryScreen->playhead, FALSE);
+    ShiftWaveformOver(windowId, sDexCryScreen->playhead);
     sDexCryScreen->playhead += 2;
     offset = (sDexCryScreen->playhead / 8 + sDexCryScreen->playStartPos + 1) % 32;
     for (i = 0; i < 7; i++)
@@ -397,36 +398,38 @@ static void DrawWaveformSegment(u8 position, u8 amplitude)
     u8 currentPointY;
     u8 nybble;
     u16 offset;
-    u16 temp;
-    u8 y;
 
-    temp = (amplitude + 127) * 256;
-    y = temp / 1152.0;
-    if (y > WAVEFORM_WINDOW_HEIGHT - 1)
-        y = WAVEFORM_WINDOW_HEIGHT - 1;
-    currentPointY = y;
+    // u8 y;
+
+    amplitude = amplitude + 127;
+    amplitude = (amplitude << 8) / 1152; // was 1152.0, aka floating point
+
+    //temp = (amplitude + 127) * 256;
+    if (amplitude > WAVEFORM_WINDOW_HEIGHT - 1)
+        amplitude = WAVEFORM_WINDOW_HEIGHT - 1;
+    currentPointY = amplitude;
     nybble = VERT_SLICE;
-    if (y > sDexCryScreen->waveformPreviousY)
+    if (amplitude > sDexCryScreen->waveformPreviousY)
     {
         // Current point lower than previous point, draw point and draw line up to previous
         do
         {
-            offset = sWaveformOffsets[PLAYHEAD_POS][y] + PLAY_START_POS * TILE_SIZE_4BPP;
+            offset = sWaveformOffsets[PLAYHEAD_POS][amplitude] + PLAY_START_POS * TILE_SIZE_4BPP;
             sCryWaveformWindowTiledata[offset] &= sWaveformTileDataNybbleMasks[nybble];
-            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((y / 3) - 1) & 0x0F];
-            y--;
-        } while (y > sDexCryScreen->waveformPreviousY);
+            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((amplitude / 3) - 1) & 0x0F];
+            amplitude--;
+        } while (amplitude > sDexCryScreen->waveformPreviousY);
     }
     else
     {
         // Current point higher than previous point, draw point and draw line down to previous
         do
         {
-            offset = sWaveformOffsets[PLAYHEAD_POS][y] + PLAY_START_POS * TILE_SIZE_4BPP;
+            offset = sWaveformOffsets[PLAYHEAD_POS][amplitude] + PLAY_START_POS * TILE_SIZE_4BPP;
             sCryWaveformWindowTiledata[offset] &= sWaveformTileDataNybbleMasks[nybble];
-            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((y / 3) - 1) & 0x0F];
-            y++;
-        } while (y < sDexCryScreen->waveformPreviousY);
+            sCryWaveformWindowTiledata[offset] |= sWaveformColor[nybble][((amplitude / 3) - 1) & 0x0F];
+            amplitude++;
+        } while (amplitude < sDexCryScreen->waveformPreviousY);
     }
 
     sDexCryScreen->waveformPreviousY = currentPointY;
@@ -440,13 +443,9 @@ static void DrawWaveformWindow(u8 windowId)
 // rsVertical is leftover from a very different version of this function in RS
 // In RS, when TRUE it would use VOFS and when FALSE it would use HOFS (only FALSE was used)
 // Here when TRUE it does nothing
-static void ShiftWaveformOver(u8 windowId, s16 offset, bool8 rsVertical)
+static void ShiftWaveformOver(u8 windowId, s16 offset)
 {
-    if (!rsVertical)
-    {
-        u8 bg = GetWindowAttribute(windowId, WINDOW_BG);
-        ChangeBgX(bg, offset << 8, BG_COORD_SET);
-    }
+    ChangeBgX(GetWindowAttribute(windowId, WINDOW_BG), offset << 8, BG_COORD_SET);
 }
 
 bool8 LoadCryMeter(struct CryScreenWindow *window, u8 windowId)
@@ -487,13 +486,12 @@ void FreeCryScreen(void)
 
 static void SpriteCB_CryMeterNeedle(struct Sprite *sprite)
 {
-    u16 i;
+    u32 i;
     s8 peakAmplitude;
     s16 x;
     s16 y;
     struct ObjAffineSrcData affine;
     struct OamMatrix matrix;
-    u8 amplitude;
 
     gSprites[sCryMeterNeedle->spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
     gSprites[sCryMeterNeedle->spriteId].oam.affineParam = 0;
@@ -521,37 +519,37 @@ static void SpriteCB_CryMeterNeedle(struct Sprite *sprite)
             if (peakAmplitude < sDexCryScreen->cryWaveformBuffer[i])
                 peakAmplitude = sDexCryScreen->cryWaveformBuffer[i];
         }
-        SetCryMeterNeedleTarget(peakAmplitude * 208 / 256);
+        peakAmplitude = peakAmplitude * 208/256;
+        SetCryMeterNeedleTarget(peakAmplitude);
         break;
     case 6:
         // To introduce some randomness, needle jumps to set pos in waveform rather than peak
-        amplitude = sDexCryScreen->cryWaveformBuffer[10];
-        SetCryMeterNeedleTarget(amplitude * 208 / 256);
+        peakAmplitude = sDexCryScreen->cryWaveformBuffer[10] * 208/256;
+        SetCryMeterNeedleTarget(peakAmplitude);
         break;
     }
 
-    if (sCryMeterNeedle->rotation == sCryMeterNeedle->targetRotation)
+    if (sCryMeterNeedle->rotation != sCryMeterNeedle->targetRotation)
     {
-        // Empty, needle has reached target
-    }
-    else if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
-    {
-        // Rotate needle left
-        sCryMeterNeedle->rotation += sCryMeterNeedle->moveIncrement;
-        if (sCryMeterNeedle->rotation > sCryMeterNeedle->targetRotation)
-        {
-            sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
-            sCryMeterNeedle->targetRotation = 0;
-        }
-    }
-    else
-    {
-        // Rotate needle right
-        sCryMeterNeedle->rotation -= sCryMeterNeedle->moveIncrement;
         if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
         {
-            sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
-            sCryMeterNeedle->targetRotation = 0;
+            // Rotate needle left
+            sCryMeterNeedle->rotation += sCryMeterNeedle->moveIncrement;
+            if (sCryMeterNeedle->rotation > sCryMeterNeedle->targetRotation)
+            {
+                sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
+                sCryMeterNeedle->targetRotation = 0;
+            }
+        }
+        else
+        {
+            // Rotate needle right
+            sCryMeterNeedle->rotation -= sCryMeterNeedle->moveIncrement;
+            if (sCryMeterNeedle->rotation < sCryMeterNeedle->targetRotation)
+            {
+                sCryMeterNeedle->rotation = sCryMeterNeedle->targetRotation;
+                sCryMeterNeedle->targetRotation = 0;
+            }
         }
     }
 
@@ -571,8 +569,8 @@ static void SetCryMeterNeedleTarget(s8 offset)
     u16 rotation = (MIN_NEEDLE_POS - offset) & 0xFF;
 
     // Min is positive, max is negative. Make sure needle hasnt moved out of bounds
-    if (rotation > MIN_NEEDLE_POS && rotation < (u8)MAX_NEEDLE_POS)
-        rotation = (u8)MAX_NEEDLE_POS;
+    if (rotation > MIN_NEEDLE_POS && rotation < MAX_NEEDLE_POS)
+        rotation = MAX_NEEDLE_POS;
 
     sCryMeterNeedle->targetRotation = rotation;
     sCryMeterNeedle->moveIncrement = NEEDLE_MOVE_INCREMENT;
