@@ -42,12 +42,10 @@ bool8 ScriptMenu_Multichoice(u8 left, u8 top, u8 multichoiceId, bool8 ignoreBPre
     {
         return FALSE;
     }
-    else
-    {
-        gSpecialVar_Result = 0xFF;
-        DrawMultichoiceMenu(left, top, multichoiceId, ignoreBPress, 0);
-        return TRUE;
-    }
+
+    gSpecialVar_Result = 0xFF;
+    DrawMultichoiceMenu(left, top, multichoiceId, ignoreBPress, 0);
+    return TRUE;
 }
 
 bool8 ScriptMenu_MultichoiceWithDefault(u8 left, u8 top, u8 multichoiceId, bool8 ignoreBPress, u8 defaultChoice)
@@ -56,12 +54,10 @@ bool8 ScriptMenu_MultichoiceWithDefault(u8 left, u8 top, u8 multichoiceId, bool8
     {
         return FALSE;
     }
-    else
-    {
-        gSpecialVar_Result = 0xFF;
-        DrawMultichoiceMenu(left, top, multichoiceId, ignoreBPress, defaultChoice);
-        return TRUE;
-    }
+
+    gSpecialVar_Result = 0xFF;
+    DrawMultichoiceMenu(left, top, multichoiceId, ignoreBPress, defaultChoice);
+    return TRUE;
 }
 
 static u16 UNUSED GetLengthWithExpandedPlayerName(const u8 *str)
@@ -91,12 +87,12 @@ static u16 UNUSED GetLengthWithExpandedPlayerName(const u8 *str)
 
 static void DrawMultichoiceMenu(u8 left, u8 top, u8 multichoiceId, bool8 ignoreBPress, u8 cursorPos)
 {
-    int i;
+    u32 i;
     u8 windowId;
     u8 count = sMultichoiceLists[multichoiceId].count;
     const struct MenuAction *actions = sMultichoiceLists[multichoiceId].list;
     int width = 0;
-    u8 newWidth;
+    u8 newWidth, newHeight;
 
     for (i = 0; i < count; i++)
     {
@@ -105,7 +101,9 @@ static void DrawMultichoiceMenu(u8 left, u8 top, u8 multichoiceId, bool8 ignoreB
 
     newWidth = ConvertPixelWidthToTileWidth(width);
     left = ScriptMenu_AdjustLeftCoordFromWidth(left, newWidth);
-    windowId = CreateWindowFromRect(left, top, newWidth, count * 2);
+
+    newHeight = count * 2;
+    windowId = CreateWindowFromRect(left, top, newWidth, newHeight);
     SetStandardWindowBorderStyle(windowId, FALSE);
     PrintMenuTable(windowId, count, actions);
     InitMenuInUpperLeftCornerNormal(windowId, count, cursorPos);
@@ -161,37 +159,35 @@ static void Task_HandleMultichoiceInput(u8 taskId)
         if (sProcessInputDelay)
         {
             sProcessInputDelay--;
+            return;
+        }
+
+        if (!tDoWrap)
+            selection = Menu_ProcessInputNoWrap();
+        else
+            selection = Menu_ProcessInput();
+
+        if (JOY_NEW(DPAD_UP | DPAD_DOWN))
+        {
+            DrawLinkServicesMultichoiceMenu(tMultichoiceId);
+        }
+
+        if (selection == MENU_NOTHING_CHOSEN)
+            return;
+        if (selection == MENU_B_PRESSED)
+        {
+            if (tIgnoreBPress)
+                return;
+            PlaySE(SE_SELECT);
+            gSpecialVar_Result = MULTI_B_PRESSED;
         }
         else
         {
-            if (!tDoWrap)
-                selection = Menu_ProcessInputNoWrap();
-            else
-                selection = Menu_ProcessInput();
-
-            if (JOY_NEW(DPAD_UP | DPAD_DOWN))
-            {
-                DrawLinkServicesMultichoiceMenu(tMultichoiceId);
-            }
-
-            if (selection != MENU_NOTHING_CHOSEN)
-            {
-                if (selection == MENU_B_PRESSED)
-                {
-                    if (tIgnoreBPress)
-                        return;
-                    PlaySE(SE_SELECT);
-                    gSpecialVar_Result = MULTI_B_PRESSED;
-                }
-                else
-                {
-                    gSpecialVar_Result = selection;
-                }
-                ClearToTransparentAndRemoveWindow(tWindowId);
-                DestroyTask(taskId);
-                ScriptContext_Enable();
-            }
+            gSpecialVar_Result = selection;
         }
+        ClearToTransparentAndRemoveWindow(tWindowId);
+        DestroyTask(taskId);
+        ScriptContext_Enable();
     }
 }
 
@@ -742,24 +738,18 @@ int DisplayTextAndGetWidth(const u8 *str, int prevWidth)
 
 int ConvertPixelWidthToTileWidth(int width)
 {
-    return (((width + 9) / 8) + 1) > MAX_MULTICHOICE_WIDTH ? MAX_MULTICHOICE_WIDTH : (((width + 9) / 8) + 1);
+    int w;
+
+    if ((w = (width + 9) / 8 + 1) > 28)
+        w = 28;
+    return w;
 }
 
 int ScriptMenu_AdjustLeftCoordFromWidth(int left, int width)
 {
-    int adjustedLeft = left;
-
-    if (left + width > MAX_MULTICHOICE_WIDTH)
-    {
-        if (MAX_MULTICHOICE_WIDTH - width < 0)
-        {
-            adjustedLeft = 0;
-        }
-        else
-        {
-            adjustedLeft = MAX_MULTICHOICE_WIDTH - width;
-        }
+    if (left + width > 28) {
+        if ((left = 28 - width) < 0)
+            left = 0;
     }
-
-    return adjustedLeft;
+    return left;
 }
