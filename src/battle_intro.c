@@ -153,7 +153,7 @@ static void BattleIntroSlideEnd(u8 taskId)
 
 static void BattleIntroSlide1(u8 taskId)
 {
-    int i;
+    u32 i;
 
     gBattle_BG1_X += 6;
     switch (gTasks[taskId].tState)
@@ -238,7 +238,7 @@ static void BattleIntroSlide1(u8 taskId)
 
 static void BattleIntroSlide2(u8 taskId)
 {
-    int i;
+    u32 i;
 
     switch (gTasks[taskId].tTerrain)
     {
@@ -350,7 +350,7 @@ static void BattleIntroSlide2(u8 taskId)
 
 static void BattleIntroSlide3(u8 taskId)
 {
-    int i;
+    u32 i;
 
     gBattle_BG1_X += 8;
     switch (gTasks[taskId].tState)
@@ -438,12 +438,11 @@ static void BattleIntroSlide3(u8 taskId)
 
 static void BattleIntroSlideLink(u8 taskId)
 {
-    int i;
+    u32 i;
 
     if (gTasks[taskId].tState > 1 && !gTasks[taskId].data[4])
     {
-        u16 var0 = gBattle_BG1_X & 0x8000;
-        if (var0 || gBattle_BG1_X < 80)
+        if (gBattle_BG1_X & 0x8000 || gBattle_BG1_X < 80)
         {
             gBattle_BG1_X += 3;
             gBattle_BG2_X -= 3;
@@ -584,36 +583,20 @@ static void BattleIntroSlidePartner(u8 taskId)
     }
 }
 
-void DrawBattlerOnBg(int bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
+void DrawBattlerOnBg(u8 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *tiles, u16 *tilemap, u16 tilesOffset)
 {
-    int i, j;
+    u32 i, j, offset;
     u8 battler = GetBattlerAtPosition(battlerPosition);
-    int offset = tilesOffset;
     CpuCopy16(gMonSpritesGfxPtr->sprites.ptr[battlerPosition] + BG_SCREEN_SIZE * gBattleMonForms[battler], tiles, BG_SCREEN_SIZE);
     LoadBgTiles(bgId, tiles, 0x1000, tilesOffset);
+    offset = tilesOffset;
     for (i = y; i < y + 8; i++)
     {
         for (j = x; j < x + 8; j++)
         {
-            tilemap[i * 32 + j] = offset | (paletteId << 12);
+            tilemap[j + i * 32] = offset | (paletteId << 12);
             offset++;
         }
     }
     LoadBgTilemap(bgId, tilemap, BG_SCREEN_SIZE, 0);
-}
-
-static void UNUSED DrawBattlerOnBgDMA(u8 x, u8 y, u8 battlerPosition, u8 arg3, u8 paletteId, u16 arg5, u8 arg6, u8 arg7)
-{
-    int i, j, offset;
-
-    DmaCopy16(3, gMonSpritesGfxPtr->sprites.ptr[battlerPosition] + BG_SCREEN_SIZE * arg3, (void *)BG_SCREEN_ADDR(0) + arg5, BG_SCREEN_SIZE);
-    offset = (arg5 >> 5) - (arg7 << 9);
-    for (i = y; i < y + 8; i++)
-    {
-        for (j = x; j < x + 8; j++)
-        {
-            *((u16 *)(BG_VRAM) + (i * 32) + (j + (arg6 << 10))) = offset | (paletteId << 12);
-            offset++;
-        }
-    }
 }
