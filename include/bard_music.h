@@ -5,9 +5,8 @@ struct BardSound
 {
     /*0x00*/ u8 songLengthId;
     /*0x01*/ s8 songLengthOffset;
-    /*0x02*/ u16 unused;
+    /*0x02*/ s16 unused;
     /*0x04*/ s16 volume;
-    /*0x06*/ u16 unused2;
 };
 
 struct BardPhoneme
@@ -23,7 +22,7 @@ struct BardSong
     /*0x02*/ u8 phonemeTimer;
     /*0x03*/ u8 state;
     /*0x04*/ s16 length;
-    /*0x06*/ u16 volume;
+    /*0x06*/ s16 volume;
     /*0x08*/ s16 pitch;
     /*0x0A*/ s16 voiceInflection;
     /*0x0C*/ u16 lyrics[6];
