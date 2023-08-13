@@ -173,14 +173,22 @@ enum {
     WIN_MSG = PARTY_SIZE,
 };
 
+typedef struct {
+	u8	px;
+	u8	py;
+	u8	sx;
+	u8	sy;
+} PosData;
 struct PartyMenuBoxInfoRects
 {
     void (*blitFunc)(u8, u8, u8, u8, u8, bool8);
-    u8 dimensions[24];
-    u8 descTextLeft;
-    u8 descTextTop;
-    u8 descTextWidth;
-    u8 descTextHeight;
+    PosData name;
+    PosData level;
+    PosData gender;
+    PosData HP;
+    PosData maxHP;
+    PosData hpBar;
+    PosData desc;
 };
 
 struct PartyMenuInternal
@@ -271,7 +279,7 @@ static void DisplayPartyPokemonDescriptionText(u8, struct PartyMenuBox *, u8);
 static bool8 IsMonAllowedInMinigame(u8);
 static void DisplayPartyPokemonDataToTeachMove(u8, u16, u8);
 static u8 CanMonLearnTMTutor(struct Pokemon *, u16, u8);
-static void DisplayPartyPokemonBarDetail(u8, const u8 *, u8, const u8 *);
+static void DisplayPartyPokemonBarDetail(u8, const u8 *, u8, const PosData *);
 static void DisplayPartyPokemonLevel(u8, struct PartyMenuBox *);
 static void DisplayPartyPokemonGender(u8, u16, u8 *, struct PartyMenuBox *);
 static void DisplayPartyPokemonHP(u16, struct PartyMenuBox *);
@@ -495,41 +503,40 @@ static void InitPartyMenu(u8 menuType, u8 layout, u8 partyAction, bool8 keepCurs
     if (sPartyMenuInternal == NULL)
     {
         SetMainCallback2(callback);
+        return;
     }
+
+    gPartyMenu.menuType = menuType;
+    gPartyMenu.exitCallback = callback;
+    gPartyMenu.action = partyAction;
+    sPartyMenuInternal->messageId = messageId;
+    sPartyMenuInternal->task = task;
+    sPartyMenuInternal->exitCallback = NULL;
+    sPartyMenuInternal->lastSelectedSlot = 0;
+    sPartyMenuInternal->spriteIdConfirmPokeball = 0x7F;
+    sPartyMenuInternal->spriteIdCancelPokeball = 0x7F;
+
+    if (menuType == PARTY_MENU_TYPE_CHOOSE_HALF)
+        sPartyMenuInternal->chooseHalf = TRUE;
     else
-    {
-        gPartyMenu.menuType = menuType;
-        gPartyMenu.exitCallback = callback;
-        gPartyMenu.action = partyAction;
-        sPartyMenuInternal->messageId = messageId;
-        sPartyMenuInternal->task = task;
-        sPartyMenuInternal->exitCallback = NULL;
-        sPartyMenuInternal->lastSelectedSlot = 0;
-        sPartyMenuInternal->spriteIdConfirmPokeball = 0x7F;
-        sPartyMenuInternal->spriteIdCancelPokeball = 0x7F;
+        sPartyMenuInternal->chooseHalf = FALSE;
 
-        if (menuType == PARTY_MENU_TYPE_CHOOSE_HALF)
-            sPartyMenuInternal->chooseHalf = TRUE;
-        else
-            sPartyMenuInternal->chooseHalf = FALSE;
+    if (layout != KEEP_PARTY_LAYOUT)
+        gPartyMenu.layout = layout;
 
-        if (layout != KEEP_PARTY_LAYOUT)
-            gPartyMenu.layout = layout;
+    for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->data); i++)
+        sPartyMenuInternal->data[i] = 0;
+    for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->windowId); i++)
+        sPartyMenuInternal->windowId[i] = WINDOW_NONE;
 
-        for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->data); i++)
-            sPartyMenuInternal->data[i] = 0;
-        for (i = 0; i < ARRAY_COUNT(sPartyMenuInternal->windowId); i++)
-            sPartyMenuInternal->windowId[i] = WINDOW_NONE;
+    if (!keepCursorPos)
+        gPartyMenu.slotId = 0;
+    else if (gPartyMenu.slotId > PARTY_SIZE - 1 || GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES) == SPECIES_NONE)
+        gPartyMenu.slotId = 0;
 
-        if (!keepCursorPos)
-            gPartyMenu.slotId = 0;
-        else if (gPartyMenu.slotId > PARTY_SIZE - 1 || GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES) == SPECIES_NONE)
-            gPartyMenu.slotId = 0;
-
-        gTextFlags.autoScroll = 0;
-        CalculatePlayerPartyCount();
-        SetMainCallback2(CB2_InitPartyMenu);
-    }
+    gTextFlags.autoScroll = 0;
+    CalculatePlayerPartyCount();
+    SetMainCallback2(CB2_InitPartyMenu);
 }
 
 static void CB2_UpdatePartyMenu(void)
@@ -599,11 +606,9 @@ static bool8 ShowPartyMenu(void)
             ExitPartyMenu();
             return TRUE;
         }
-        else
-        {
-            sPartyMenuInternal->data[0] = 0;
-            gMain.state++;
-        }
+
+        sPartyMenuInternal->data[0] = 0;
+        gMain.state++;
         break;
     case 8:
         if (AllocPartyMenuBgGfx())
@@ -833,6 +838,7 @@ static void RenderPartyMenuBox(u8 slot)
         CopyWindowToVram(sPartyMenuBoxes[slot].windowId, COPYWIN_GFX);
         PutWindowTilemap(sPartyMenuBoxes[slot].windowId);
         ScheduleBgCopyTilemapToVram(2);
+        return;
     }
     else
     {
@@ -875,6 +881,7 @@ static void DisplayPartyPokemonData(u8 slot)
     {
         sPartyMenuBoxes[slot].infoRects->blitFunc(sPartyMenuBoxes[slot].windowId, 0, 0, 0, 0, TRUE);
         DisplayPartyPokemonNickname(&gPlayerParty[slot], &sPartyMenuBoxes[slot], 0);
+        return;
     }
     else
     {
@@ -915,7 +922,8 @@ static void DisplayPartyPokemonDataForChooseHalf(u8 slot)
     }
     else
     {
-        for (i = 0; i < GetMaxBattleEntries(); i++)
+        u8 entries = GetMaxBattleEntries();
+        for (i = 0; i < entries; i++)
         {
             if (order[i] != 0 && (order[i] - 1) == slot)
             {
@@ -967,7 +975,7 @@ static void DisplayPartyPokemonDataForBattlePyramidHeldItem(u8 slot)
         DisplayPartyPokemonDescriptionData(slot, PARTYBOX_DESC_DONT_HAVE);
 }
 
-// Returns TRUE if teaching move or cant evolve with item (i.e. description data is shown), FALSE otherwise
+// Returns TRUE if teaching move or can't evolve with item (i.e. description data is shown), FALSE otherwise
 static bool8 DisplayPartyPokemonDataForMoveTutorOrEvolutionItem(u8 slot)
 {
     struct Pokemon *currentPokemon = &gPlayerParty[slot];
@@ -977,6 +985,7 @@ static bool8 DisplayPartyPokemonDataForMoveTutorOrEvolutionItem(u8 slot)
     {
         gSpecialVar_Result = FALSE;
         DisplayPartyPokemonDataToTeachMove(slot, 0, gSpecialVar_0x8005);
+        return TRUE;
     }
     else
     {
@@ -985,8 +994,6 @@ static bool8 DisplayPartyPokemonDataForMoveTutorOrEvolutionItem(u8 slot)
 
         switch (CheckIfItemIsTMHMOrEvolutionStone(item))
         {
-        default:
-            return FALSE;
         case 1: // TM/HM
             DisplayPartyPokemonDataToTeachMove(slot, item, 0);
             break;
@@ -995,6 +1002,8 @@ static bool8 DisplayPartyPokemonDataForMoveTutorOrEvolutionItem(u8 slot)
                 return FALSE;
             DisplayPartyPokemonDescriptionData(slot, PARTYBOX_DESC_NO_USE);
             break;
+        default:
+            return FALSE;
         }
     }
     return TRUE;
@@ -1025,6 +1034,7 @@ static void DisplayPartyPokemonDataForMultiBattle(u8 slot)
     if (gMultiPartnerParty[actualSlot].species == SPECIES_NONE)
     {
         DrawEmptySlot(menuBox->windowId);
+        return;
     }
     else
     {
@@ -1032,7 +1042,7 @@ static void DisplayPartyPokemonDataForMultiBattle(u8 slot)
         StringCopy(gStringVar1, gMultiPartnerParty[actualSlot].nickname);
         StringGet_Nickname(gStringVar1);
         ConvertInternationalPlayerName(gStringVar1);
-        DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, menuBox->infoRects->dimensions);
+        DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->name);
         DisplayPartyPokemonLevel(gMultiPartnerParty[actualSlot].level, menuBox);
         DisplayPartyPokemonGender(gMultiPartnerParty[actualSlot].gender, gMultiPartnerParty[actualSlot].species, gMultiPartnerParty[actualSlot].nickname, menuBox);
         DisplayPartyPokemonHP(gMultiPartnerParty[actualSlot].hp, menuBox);
@@ -1052,7 +1062,7 @@ static bool8 RenderPartyMenuBoxes(void)
 
 static u8 *GetPartyMenuBgTile(u16 tileId)
 {
-    return &sPartyBgGfxTilemap[tileId << 5];
+    return &sPartyBgGfxTilemap[tileId * 32];
 }
 
 static void CreatePartyMonSprites(u8 slot)
@@ -1064,25 +1074,24 @@ static void CreatePartyMonSprites(u8 slot)
         u8 status;
         actualSlot = slot - MULTI_PARTY_SIZE;
 
-        if (gMultiPartnerParty[actualSlot].species != SPECIES_NONE)
-        {
-            CreatePartyMonIconSpriteParameterized(gMultiPartnerParty[actualSlot].species, gMultiPartnerParty[actualSlot].personality, &sPartyMenuBoxes[slot], 0, FALSE);
-            CreatePartyMonHeldItemSpriteParameterized(gMultiPartnerParty[actualSlot].species, gMultiPartnerParty[actualSlot].heldItem, &sPartyMenuBoxes[slot]);
-            CreatePartyMonPokeballSpriteParameterized(gMultiPartnerParty[actualSlot].species, &sPartyMenuBoxes[slot]);
-            if (gMultiPartnerParty[actualSlot].hp == 0)
-                status = AILMENT_FNT;
-            else
-                status = GetAilmentFromStatus(gMultiPartnerParty[actualSlot].status);
-            CreatePartyMonStatusSpriteParameterized(gMultiPartnerParty[actualSlot].species, status, &sPartyMenuBoxes[slot]);
-        }
+        if (gMultiPartnerParty[actualSlot].species == SPECIES_NONE)
+            return;
+        CreatePartyMonIconSpriteParameterized(gMultiPartnerParty[actualSlot].species, gMultiPartnerParty[actualSlot].personality, &sPartyMenuBoxes[slot], 0, FALSE);
+        CreatePartyMonHeldItemSpriteParameterized(gMultiPartnerParty[actualSlot].species, gMultiPartnerParty[actualSlot].heldItem, &sPartyMenuBoxes[slot]);
+        CreatePartyMonPokeballSpriteParameterized(gMultiPartnerParty[actualSlot].species, &sPartyMenuBoxes[slot]);
+        if (gMultiPartnerParty[actualSlot].hp == 0)
+            status = AILMENT_FNT;
+        else
+            status = GetAilmentFromStatus(gMultiPartnerParty[actualSlot].status);
+        CreatePartyMonStatusSpriteParameterized(gMultiPartnerParty[actualSlot].species, status, &sPartyMenuBoxes[slot]);
+        return;
     }
-    else if (GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) != SPECIES_NONE)
-    {
-        CreatePartyMonIconSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot], slot);
-        CreatePartyMonHeldItemSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
-        CreatePartyMonPokeballSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
-        CreatePartyMonStatusSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
-    }
+    if (GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) == SPECIES_NONE)
+        return;
+    CreatePartyMonIconSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot], slot);
+    CreatePartyMonHeldItemSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
+    CreatePartyMonPokeballSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
+    CreatePartyMonStatusSprite(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
 }
 
 static bool8 CreatePartyMonSpritesLoop(void)
@@ -1100,6 +1109,7 @@ static void CreateCancelConfirmPokeballSprites(void)
     {
         // The showcase has no Cancel/Confirm buttons
         FillBgTilemapBufferRect(1, 14, 23, 17, 7, 2, 1);
+        return;
     }
     else
     {
@@ -1123,20 +1133,14 @@ void AnimatePartySlot(u8 slot, u8 animNum)
 
     switch (slot)
     {
-    default:
-        if (GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) != SPECIES_NONE)
-        {
-            LoadPartyBoxPalette(&sPartyMenuBoxes[slot], GetPartyBoxPaletteFlags(slot, animNum));
-            AnimateSelectedPartyIcon(sPartyMenuBoxes[slot].monSpriteId, animNum);
-            PartyMenuStartSpriteAnim(sPartyMenuBoxes[slot].pokeballSpriteId, animNum);
-        }
-        return;
     case PARTY_SIZE: // Confirm
         if (animNum == 0)
             SetBgTilemapPalette(1, 23, 16, 7, 2, 1);
         else
             SetBgTilemapPalette(1, 23, 16, 7, 2, 2);
-        spriteId = sPartyMenuInternal->spriteIdConfirmPokeball;
+
+        PartyMenuStartSpriteAnim(sPartyMenuInternal->spriteIdConfirmPokeball, animNum);
+        ScheduleBgCopyTilemapToVram(1);
         break;
     case PARTY_SIZE + 1: // Cancel
         // The position of the Cancel button changes if Confirm is present
@@ -1155,11 +1159,17 @@ void AnimatePartySlot(u8 slot, u8 animNum)
         {
             SetBgTilemapPalette(1, 23, 18, 7, 2, 2);
         }
-        spriteId = sPartyMenuInternal->spriteIdCancelPokeball;
+        PartyMenuStartSpriteAnim(sPartyMenuInternal->spriteIdCancelPokeball, animNum);
+        ScheduleBgCopyTilemapToVram(1);
         break;
+    default:
+        if (GetMonData(&gPlayerParty[slot], MON_DATA_SPECIES) != SPECIES_NONE)
+        {
+            LoadPartyBoxPalette(&sPartyMenuBoxes[slot], GetPartyBoxPaletteFlags(slot, animNum));
+            AnimateSelectedPartyIcon(sPartyMenuBoxes[slot].monSpriteId, animNum);
+            PartyMenuStartSpriteAnim(sPartyMenuBoxes[slot].pokeballSpriteId, animNum);
+        }
     }
-    PartyMenuStartSpriteAnim(spriteId, animNum);
-    ScheduleBgCopyTilemapToVram(1);
 }
 
 static u8 GetPartyBoxPaletteFlags(u8 slot, u8 animNum)
@@ -1294,74 +1304,73 @@ static void HandleChooseMonSelection(u8 taskId, s8 *slotPtr)
     if (*slotPtr == PARTY_SIZE)
     {
         gPartyMenu.task(taskId);
+        return;
     }
-    else
-    {
-        switch (gPartyMenu.action)
-        {
-        case PARTY_ACTION_SOFTBOILED:
-            if (IsSelectedMonNotEgg((u8 *)slotPtr))
-            {
-                PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
-                Task_TryUseSoftboiledOnPartyMon(taskId);
-            }
-            break;
-        case PARTY_ACTION_USE_ITEM:
-            if (IsSelectedMonNotEgg((u8 *)slotPtr))
-            {
-                if (gPartyMenu.menuType == PARTY_MENU_TYPE_IN_BATTLE)
-                    sPartyMenuInternal->exitCallback = CB2_SetUpExitToBattleScreen;
 
-                PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
-                gItemUseCB(taskId, Task_ClosePartyMenuAfterText);
-            }
-            break;
-        case PARTY_ACTION_MOVE_TUTOR:
-            if (IsSelectedMonNotEgg((u8 *)slotPtr))
-            {
-                PlaySE(SE_SELECT);
-                PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
-                TryTutorSelectedMon(taskId);
-            }
-            break;
-        case PARTY_ACTION_GIVE_MAILBOX_MAIL:
-            if (IsSelectedMonNotEgg((u8 *)slotPtr))
-            {
-                PlaySE(SE_SELECT);
-                PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
-                TryGiveMailToSelectedMon(taskId);
-            }
-            break;
-        case PARTY_ACTION_GIVE_ITEM:
-        case PARTY_ACTION_GIVE_PC_ITEM:
-            if (IsSelectedMonNotEgg((u8 *)slotPtr))
-            {
-                PlaySE(SE_SELECT);
-                PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
-                TryGiveItemOrMailToSelectedMon(taskId);
-            }
-            break;
-        case PARTY_ACTION_SWITCH:
-            PlaySE(SE_SELECT);
-            SwitchSelectedMons(taskId);
-            break;
-        case PARTY_ACTION_CHOOSE_AND_CLOSE:
-            PlaySE(SE_SELECT);
-            Task_ClosePartyMenu(taskId);
-            break;
-        case PARTY_ACTION_MINIGAME:
-            if (IsSelectedMonNotEgg((u8 *)slotPtr))
-            {
-                TryEnterMonForMinigame(taskId, (u8)*slotPtr);
-            }
-            break;
-        default:
-        case PARTY_ACTION_ABILITY_PREVENTS:
-        case PARTY_ACTION_SWITCHING:
-            PlaySE(SE_SELECT);
-            Task_TryCreateSelectionWindow(taskId);
-            break;
+    switch (gPartyMenu.action)
+    {
+    case PARTY_ACTION_SOFTBOILED:
+        if (IsSelectedMonNotEgg((u8 *)slotPtr))
+        {
+            PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
+            Task_TryUseSoftboiledOnPartyMon(taskId);
         }
+        break;
+    case PARTY_ACTION_USE_ITEM:
+        if (IsSelectedMonNotEgg((u8 *)slotPtr))
+        {
+            if (gPartyMenu.menuType == PARTY_MENU_TYPE_IN_BATTLE)
+                sPartyMenuInternal->exitCallback = CB2_SetUpExitToBattleScreen;
+
+            PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
+            gItemUseCB(taskId, Task_ClosePartyMenuAfterText);
+        }
+        break;
+    case PARTY_ACTION_MOVE_TUTOR:
+        if (IsSelectedMonNotEgg((u8 *)slotPtr))
+        {
+            PlaySE(SE_SELECT);
+            PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
+            TryTutorSelectedMon(taskId);
+        }
+        break;
+    case PARTY_ACTION_GIVE_MAILBOX_MAIL:
+        if (IsSelectedMonNotEgg((u8 *)slotPtr))
+        {
+            PlaySE(SE_SELECT);
+            PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
+            TryGiveMailToSelectedMon(taskId);
+        }
+        break;
+    case PARTY_ACTION_GIVE_ITEM:
+    case PARTY_ACTION_GIVE_PC_ITEM:
+        if (IsSelectedMonNotEgg((u8 *)slotPtr))
+        {
+            PlaySE(SE_SELECT);
+            PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
+            TryGiveItemOrMailToSelectedMon(taskId);
+        }
+        break;
+    case PARTY_ACTION_SWITCH:
+        PlaySE(SE_SELECT);
+        SwitchSelectedMons(taskId);
+        break;
+    case PARTY_ACTION_CHOOSE_AND_CLOSE:
+        PlaySE(SE_SELECT);
+        Task_ClosePartyMenu(taskId);
+        break;
+    case PARTY_ACTION_MINIGAME:
+        if (IsSelectedMonNotEgg((u8 *)slotPtr))
+        {
+            TryEnterMonForMinigame(taskId, (u8)*slotPtr);
+        }
+        break;
+    default:
+    case PARTY_ACTION_ABILITY_PREVENTS:
+    case PARTY_ACTION_SWITCHING:
+        PlaySE(SE_SELECT);
+        Task_TryCreateSelectionWindow(taskId);
+        break;
     }
 }
 
@@ -1393,14 +1402,14 @@ static void HandleChooseMonCancel(u8 taskId, s8 *slotPtr)
         break;
     default:
         PlaySE(SE_SELECT);
-        if (DisplayCancelChooseMonYesNo(taskId) != TRUE)
-        {
-            if (!MenuHelpers_IsLinkActive())
-                gSpecialVar_0x8004 = PARTY_SIZE + 1;
-            gPartyMenuUseExitCallback = FALSE;
-            *slotPtr = PARTY_SIZE + 1;
-            Task_ClosePartyMenu(taskId);
-        }
+        if (DisplayCancelChooseMonYesNo(taskId) == TRUE)
+            return;
+
+        if (!MenuHelpers_IsLinkActive())
+            gSpecialVar_0x8004 = PARTY_SIZE + 1;
+        gPartyMenuUseExitCallback = FALSE;
+        *slotPtr = PARTY_SIZE + 1;
+        Task_ClosePartyMenu(taskId);
         break;
     }
 }
@@ -1505,9 +1514,8 @@ static u16 PartyMenuButtonHandler(s8 *slotPtr)
 static void UpdateCurrentPartySelection(s8 *slotPtr, s8 movementDir)
 {
     s8 newSlotId = *slotPtr;
-    u8 layout = gPartyMenu.layout;
 
-    if (layout == PARTY_LAYOUT_SINGLE)
+    if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
         UpdatePartySelectionSingleLayout(slotPtr, movementDir);
     else
         UpdatePartySelectionDoubleLayout(slotPtr, movementDir);
@@ -1529,42 +1537,39 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
         if (*slotPtr == 0)
         {
             *slotPtr = PARTY_SIZE + 1;
+            break;
         }
-        else if (*slotPtr == PARTY_SIZE)
+        if (*slotPtr == PARTY_SIZE)
         {
             *slotPtr = gPlayerPartyCount - 1;
+            break;
         }
-        else if (*slotPtr == PARTY_SIZE + 1)
+        if (*slotPtr == PARTY_SIZE + 1)
         {
             if (sPartyMenuInternal->chooseHalf)
                 *slotPtr = PARTY_SIZE;
             else
                 *slotPtr = gPlayerPartyCount - 1;
+            break;
         }
         else
-        {
-            (*slotPtr)--;
-        }
+        (*slotPtr)--;
         break;
     case MENU_DIR_DOWN:
         if (*slotPtr == PARTY_SIZE + 1)
         {
-            *slotPtr = 0;
+        *slotPtr = 0;
+        break;
         }
-        else
+        if (*slotPtr == gPlayerPartyCount - 1)
         {
-            if (*slotPtr == gPlayerPartyCount - 1)
-            {
-                if (sPartyMenuInternal->chooseHalf)
-                    *slotPtr = PARTY_SIZE;
-                else
-                    *slotPtr = PARTY_SIZE + 1;
-            }
-            else
-            {
-                (*slotPtr)++;
-            }
+        if (sPartyMenuInternal->chooseHalf)
+                *slotPtr = PARTY_SIZE;
+        else
+                *slotPtr = PARTY_SIZE + 1;
+        break;
         }
+        (*slotPtr)++;
         break;
     case MENU_DIR_RIGHT:
         if (gPlayerPartyCount != 1 && *slotPtr == 0)
@@ -1589,7 +1594,7 @@ static void UpdatePartySelectionDoubleLayout(s8 *slotPtr, s8 movementDir)
 {
     // PARTY_SIZE + 1 is Cancel, PARTY_SIZE is Confirm
     // newSlot is used temporarily as a movement direction during its later assignment
-    s8 newSlot = movementDir;
+    s8 newSlot;
 
     switch (movementDir)
     {
@@ -1613,7 +1618,7 @@ static void UpdatePartySelectionDoubleLayout(s8 *slotPtr, s8 movementDir)
             }
             (*slotPtr)--;
         }
-        newSlot = GetNewSlotDoubleLayout(*slotPtr, newSlot);
+        newSlot = GetNewSlotDoubleLayout(*slotPtr, MENU_DIR_UP);
         if (newSlot != -1)
             *slotPtr = newSlot;
         break;
@@ -1621,25 +1626,24 @@ static void UpdatePartySelectionDoubleLayout(s8 *slotPtr, s8 movementDir)
         if (*slotPtr == PARTY_SIZE)
         {
             *slotPtr = PARTY_SIZE + 1;
+            break;
         }
         else if (*slotPtr == PARTY_SIZE + 1)
         {
             *slotPtr = 0;
+            break;
         }
         else
         {
             newSlot = GetNewSlotDoubleLayout(*slotPtr, MENU_DIR_DOWN);
-            if (newSlot == -1)
-            {
-                if (sPartyMenuInternal->chooseHalf)
-                    *slotPtr = PARTY_SIZE;
-                else
-                    *slotPtr = PARTY_SIZE + 1;
-            }
-            else
+            if (newSlot != -1)
             {
                 *slotPtr = newSlot;
             }
+            else if (sPartyMenuInternal->chooseHalf)
+                *slotPtr = PARTY_SIZE;
+            else
+                *slotPtr = PARTY_SIZE + 1;
         }
         break;
     case MENU_DIR_RIGHT:
@@ -1654,8 +1658,9 @@ static void UpdatePartySelectionDoubleLayout(s8 *slotPtr, s8 movementDir)
             {
                 *slotPtr = 2;
             }
+            break;
         }
-        else if (*slotPtr == 1)
+        if (*slotPtr == 1)
         {
             if (sPartyMenuInternal->lastSelectedSlot == 5)
             {
@@ -1673,8 +1678,9 @@ static void UpdatePartySelectionDoubleLayout(s8 *slotPtr, s8 movementDir)
         {
             sPartyMenuInternal->lastSelectedSlot = *slotPtr;
             *slotPtr = 0;
+            break;
         }
-        else if (*slotPtr == 4 || *slotPtr == 5)
+        if (*slotPtr == 4 || *slotPtr == 5)
         {
             sPartyMenuInternal->lastSelectedSlot = *slotPtr;
             *slotPtr = 1;
@@ -1688,7 +1694,7 @@ static s8 GetNewSlotDoubleLayout(s8 slotId, s8 movementDir)
     while (TRUE)
     {
         slotId += movementDir;
-        if ((u8)slotId >= PARTY_SIZE)
+        if (slotId >= PARTY_SIZE || slotId < 0)
             return -1;
         if (GetMonData(&gPlayerParty[slotId], MON_DATA_SPECIES) != SPECIES_NONE)
             return slotId;
@@ -1760,7 +1766,7 @@ static void Task_ReturnToChooseMonAfterText(u8 taskId)
     }
 }
 
-static void DisplayGaveHeldItemMessage(struct Pokemon *mon, u16 item, bool8 keepOpen, u8 unused)
+static void DisplayGaveHeldItemMessage(struct Pokemon *mon, u16 item, bool8 keepOpen)
 {
     GetMonNickname(mon, gStringVar1);
     CopyItemName(item, gStringVar2);
@@ -1805,7 +1811,7 @@ static void GiveItemToMon(struct Pokemon *mon, u16 item)
         if (GiveMailToMonByItemId(mon, item) == MAIL_NONE)
             return;
     }
-    itemBytes[0] = item;
+    itemBytes[0] = item & 0xff;
     itemBytes[1] = item >> 8;
     SetMonData(mon, MON_DATA_HELD_ITEM, itemBytes);
 }
@@ -1824,7 +1830,7 @@ static u8 TryTakeMonItem(struct Pokemon *mon)
     return 2;
 }
 
-static void BufferBagFullCantTakeItemMessage(u16 itemUnused)
+static void BufferBagFullCantTakeItemMessage(void)
 {
     StringExpandPlaceholders(gStringVar4, gText_BagFullCouldNotRemoveItem);
 }
@@ -1871,32 +1877,12 @@ void PartyMenuModifyHP(u8 taskId, u8 slot, s8 hpIncrement, s16 hpDifference, Tas
 
 // The usage of hp in this function is mostly nonsense
 // Because caseId is always passed 0, none of the other cases ever occur
-static void ResetHPTaskData(u8 taskId, u8 caseId, u32 hp)
+static void ResetHPTaskData(u8 taskId, u32 hp)
 {
     s16 *data = gTasks[taskId].data;
 
-    switch (caseId) // always zero
-    {
-        case 0:
-            tHP = hp;
-            tStartHP = hp;
-            break;
-        case 1:
-            tMaxHP = hp;
-            break;
-        case 2:
-            tHPIncrement = hp;
-            break;
-        case 3:
-            tHPToAdd = hp;
-            break;
-        case 4:
-            tPartyId = hp;
-            break;
-        case 5:
-            SetTaskFuncWithFollowupFunc(taskId, Task_PartyMenuModifyHP, (TaskFunc)hp); // >casting hp as a taskfunc
-            break;
-    }
+    tHP = hp;
+    tStartHP = hp;
 }
 
 #undef tHP
@@ -1944,7 +1930,7 @@ static void SetPartyMonsAllowedInMinigame(void)
         u8 i;
 
         ptr = &gPartyMenu.data1;
-        gPartyMenu.data1 = 0;
+        *ptr = 0;
         if (gSpecialVar_0x8005 == 0)
         {
             for (i = 0; i < gPlayerPartyCount; i++)
@@ -1987,6 +1973,7 @@ static void TryEnterMonForMinigame(u8 taskId, u8 slot)
         PlaySE(SE_SELECT);
         gSpecialVar_0x8004 = slot;
         Task_ClosePartyMenu(taskId);
+        return;
     }
     else
     {
@@ -2065,10 +2052,7 @@ static u16 GetTutorMove(u8 tutor)
 
 static bool8 CanLearnTutorMove(u16 species, u8 tutor)
 {
-    if (sTutorLearnsets[species] & (1 << tutor))
-        return TRUE;
-    else
-        return FALSE;
+    return (sTutorLearnsets[species] >> tutor) & 1;
 }
 
 static void InitPartyMenuWindows(u8 layout)
@@ -2126,16 +2110,19 @@ static void CreateCancelConfirmWindows(bool8 chooseHalf)
         FillWindowPixelBuffer(cancelWindowId, PIXEL_FILL(0));
 
         // Branches are functionally identical. Second branch is never reached, Spin Trade wasnt fully implemented
-        if (gPartyMenu.menuType != PARTY_MENU_TYPE_SPIN_TRADE)
-        {
-            mainOffset = GetStringCenterAlignXOffset(FONT_SMALL, gText_Cancel, 48);
-            AddTextPrinterParameterized3(cancelWindowId, FONT_SMALL, mainOffset + offset, 1, sFontColorTable[0], TEXT_SKIP_DRAW, gText_Cancel);
-        }
-        else
-        {
-            mainOffset = GetStringCenterAlignXOffset(FONT_SMALL, gText_Cancel2, 48);
-            AddTextPrinterParameterized3(cancelWindowId, FONT_SMALL, mainOffset + offset, 1, sFontColorTable[0], TEXT_SKIP_DRAW, gText_Cancel2);
-        }
+        // if (gPartyMenu.menuType != PARTY_MENU_TYPE_SPIN_TRADE)
+        // {
+        //     mainOffset = GetStringCenterAlignXOffset(FONT_SMALL, gText_Cancel, 48);
+        //     AddTextPrinterParameterized3(cancelWindowId, FONT_SMALL, mainOffset + offset, 1, sFontColorTable[0], TEXT_SKIP_DRAW, gText_Cancel);
+        // }
+        // else
+        // {
+        //     mainOffset = GetStringCenterAlignXOffset(FONT_SMALL, gText_Cancel2, 48);
+        //     AddTextPrinterParameterized3(cancelWindowId, FONT_SMALL, mainOffset + offset, 1, sFontColorTable[0], TEXT_SKIP_DRAW, gText_Cancel2);
+        // }
+
+        mainOffset = GetStringCenterAlignXOffset(FONT_SMALL, gText_Cancel, 48);
+        AddTextPrinterParameterized3(cancelWindowId, FONT_SMALL, mainOffset + offset, 1, sFontColorTable[0], TEXT_SKIP_DRAW, gText_Cancel);
         PutWindowTilemap(cancelWindowId);
         CopyWindowToVram(cancelWindowId, COPYWIN_GFX);
         ScheduleBgCopyTilemapToVram(0);
@@ -2209,8 +2196,9 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
     if (palFlags & PARTY_PAL_NO_MON)
     {
         LOAD_PARTY_BOX_PAL(sPartyBoxNoMonPalIds, sPartyBoxNoMonPalOffsets);
+        return;
     }
-    else if (palFlags & PARTY_PAL_TO_SOFTBOIL)
+    if (palFlags & PARTY_PAL_TO_SOFTBOIL)
     {
         if (palFlags & PARTY_PAL_SELECTED)
         {
@@ -2222,11 +2210,13 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
             LOAD_PARTY_BOX_PAL(sPartyBoxSelectedForActionPalIds1, sPartyBoxPalOffsets1);
             LOAD_PARTY_BOX_PAL(sPartyBoxSelectedForActionPalIds2, sPartyBoxPalOffsets2);
         }
+        return;
     }
-    else if (palFlags & PARTY_PAL_SWITCHING)
+    if (palFlags & PARTY_PAL_SWITCHING)
     {
         LOAD_PARTY_BOX_PAL(sPartyBoxSelectedForActionPalIds1, sPartyBoxPalOffsets1);
         LOAD_PARTY_BOX_PAL(sPartyBoxSelectedForActionPalIds2, sPartyBoxPalOffsets2);
+        return;
     }
     else if (palFlags & PARTY_PAL_TO_SWITCH)
     {
@@ -2240,8 +2230,9 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
             LOAD_PARTY_BOX_PAL(sPartyBoxSelectedForActionPalIds1, sPartyBoxPalOffsets1);
             LOAD_PARTY_BOX_PAL(sPartyBoxSelectedForActionPalIds2, sPartyBoxPalOffsets2);
         }
+        return;
     }
-    else if (palFlags & PARTY_PAL_FAINTED)
+    if (palFlags & PARTY_PAL_FAINTED)
     {
         if (palFlags & PARTY_PAL_SELECTED)
         {
@@ -2253,8 +2244,9 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
             LOAD_PARTY_BOX_PAL(sPartyBoxFaintedPalIds1, sPartyBoxPalOffsets1);
             LOAD_PARTY_BOX_PAL(sPartyBoxFaintedPalIds2, sPartyBoxPalOffsets2);
         }
+        return;
     }
-    else if (palFlags & PARTY_PAL_MULTI_ALT)
+    if (palFlags & PARTY_PAL_MULTI_ALT)
     {
         if (palFlags & PARTY_PAL_SELECTED)
         {
@@ -2266,8 +2258,9 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
             LOAD_PARTY_BOX_PAL(sPartyBoxMultiPalIds1, sPartyBoxPalOffsets1);
             LOAD_PARTY_BOX_PAL(sPartyBoxMultiPalIds2, sPartyBoxPalOffsets2);
         }
+        return;
     }
-    else if (palFlags & PARTY_PAL_SELECTED)
+    if (palFlags & PARTY_PAL_SELECTED)
     {
         LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds1, sPartyBoxPalOffsets1);
         LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds2, sPartyBoxPalOffsets2);
@@ -2279,9 +2272,9 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
     }
 }
 
-static void DisplayPartyPokemonBarDetail(u8 windowId, const u8 *str, u8 color, const u8 *align)
+static void DisplayPartyPokemonBarDetail(u8 windowId, const u8 *str, u8 color, const PosData* pos)
 {
-    AddTextPrinterParameterized3(windowId, FONT_SMALL, align[0], align[1], sFontColorTable[color], 0, str);
+    AddTextPrinterParameterized3(windowId, FONT_SMALL,  pos->px, pos->py, sFontColorTable[color], 0, str);
 }
 
 static void DisplayPartyPokemonNickname(struct Pokemon *mon, struct PartyMenuBox *menuBox, u8 c)
@@ -2291,9 +2284,9 @@ static void DisplayPartyPokemonNickname(struct Pokemon *mon, struct PartyMenuBox
     if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE)
     {
         if (c == 1)
-            menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->dimensions[0] >> 3, menuBox->infoRects->dimensions[1] >> 3, menuBox->infoRects->dimensions[2] >> 3, menuBox->infoRects->dimensions[3] >> 3, FALSE);
+            menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->name.px / 8, menuBox->infoRects->name.py / 8, menuBox->infoRects->name.sx/8, menuBox->infoRects->name.sy/8, FALSE);
         GetMonNickname(mon, nickname);
-        DisplayPartyPokemonBarDetail(menuBox->windowId, nickname, 0, menuBox->infoRects->dimensions);
+        DisplayPartyPokemonBarDetail(menuBox->windowId, nickname, 0, &menuBox->infoRects->name);
     }
 }
 
@@ -2305,7 +2298,7 @@ static void DisplayPartyPokemonLevelCheck(struct Pokemon *mon, struct PartyMenuB
         if (ailment == AILMENT_NONE || ailment == AILMENT_PKRS)
         {
             if (c != 0)
-                menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->dimensions[4] >> 3, (menuBox->infoRects->dimensions[5] >> 3) + 1, menuBox->infoRects->dimensions[6] >> 3, menuBox->infoRects->dimensions[7] >> 3, FALSE);
+                menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->level.px/8, (menuBox->infoRects->level.py/8) + 1, menuBox->infoRects->level.sx/8, menuBox->infoRects->level.sy /8, FALSE);
             if (c != 2)
                 DisplayPartyPokemonLevel(GetMonData(mon, MON_DATA_LEVEL), menuBox);
         }
@@ -2317,7 +2310,7 @@ static void DisplayPartyPokemonLevel(u8 level, struct PartyMenuBox *menuBox)
     ConvertIntToDecimalStringN(gStringVar2, level, STR_CONV_MODE_LEFT_ALIGN, 3);
     StringCopy(gStringVar1, gText_LevelSymbol);
     StringAppend(gStringVar1, gStringVar2);
-    DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->dimensions[4]);
+    DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->level);
 }
 
 static void DisplayPartyPokemonGenderNidoranCheck(struct Pokemon *mon, struct PartyMenuBox *menuBox, u8 c)
@@ -2325,7 +2318,7 @@ static void DisplayPartyPokemonGenderNidoranCheck(struct Pokemon *mon, struct Pa
     u8 nickname[POKEMON_NAME_LENGTH + 1];
 
     if (c == 1)
-        menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->dimensions[8] >> 3, (menuBox->infoRects->dimensions[9] >> 3) + 1, menuBox->infoRects->dimensions[10] >> 3, menuBox->infoRects->dimensions[11] >> 3, FALSE);
+        menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->gender.px/8, (menuBox->infoRects->gender.py/8) + 1, menuBox->infoRects->gender.sx/8, menuBox->infoRects->gender.sy/8, FALSE);
     GetMonNickname(mon, nickname);
     DisplayPartyPokemonGender(GetMonGender(mon), GetMonData(mon, MON_DATA_SPECIES), nickname, menuBox);
 }
@@ -2343,12 +2336,12 @@ static void DisplayPartyPokemonGender(u8 gender, u16 species, u8 *nickname, stru
     case MON_MALE:
         LoadPalette(GetPartyMenuPalBufferPtr(sGenderMalePalIds[0]), sGenderPalOffsets[0] + palOffset, PLTT_SIZEOF(1));
         LoadPalette(GetPartyMenuPalBufferPtr(sGenderMalePalIds[1]), sGenderPalOffsets[1] + palOffset, PLTT_SIZEOF(1));
-        DisplayPartyPokemonBarDetail(menuBox->windowId, gText_MaleSymbol, 2, &menuBox->infoRects->dimensions[8]);
+        DisplayPartyPokemonBarDetail(menuBox->windowId, gText_MaleSymbol, 2, &menuBox->infoRects->gender);
         break;
     case MON_FEMALE:
         LoadPalette(GetPartyMenuPalBufferPtr(sGenderFemalePalIds[0]), sGenderPalOffsets[0] + palOffset, PLTT_SIZEOF(1));
         LoadPalette(GetPartyMenuPalBufferPtr(sGenderFemalePalIds[1]), sGenderPalOffsets[1] + palOffset, PLTT_SIZEOF(1));
-        DisplayPartyPokemonBarDetail(menuBox->windowId, gText_FemaleSymbol, 2, &menuBox->infoRects->dimensions[8]);
+        DisplayPartyPokemonBarDetail(menuBox->windowId, gText_FemaleSymbol, 2, &menuBox->infoRects->gender);
         break;
     }
 }
@@ -2358,7 +2351,7 @@ static void DisplayPartyPokemonHPCheck(struct Pokemon *mon, struct PartyMenuBox 
     if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE)
     {
         if (c != 0)
-            menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->dimensions[12] >> 3, (menuBox->infoRects->dimensions[13] >> 3) + 1, menuBox->infoRects->dimensions[14] >> 3, menuBox->infoRects->dimensions[15] >> 3, FALSE);
+            menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->HP.px/8, (menuBox->infoRects->HP.py/8) + 1, menuBox->infoRects->HP.sx/8, menuBox->infoRects->HP.sy/8, FALSE);
         if (c != 2)
             DisplayPartyPokemonHP(GetMonData(mon, MON_DATA_HP), menuBox);
     }
@@ -2371,7 +2364,7 @@ static void DisplayPartyPokemonHP(u16 hp, struct PartyMenuBox *menuBox)
     strOut[0] = CHAR_SLASH;
     strOut[1] = EOS;
 
-    DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->dimensions[12]);
+    DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->HP);
 }
 
 static void DisplayPartyPokemonMaxHPCheck(struct Pokemon *mon, struct PartyMenuBox *menuBox, u8 c)
@@ -2379,7 +2372,7 @@ static void DisplayPartyPokemonMaxHPCheck(struct Pokemon *mon, struct PartyMenuB
     if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE)
     {
         if (c != 0)
-            menuBox->infoRects->blitFunc(menuBox->windowId, (menuBox->infoRects->dimensions[16] >> 3) + 1, (menuBox->infoRects->dimensions[17] >> 3) + 1, menuBox->infoRects->dimensions[18] >> 3, menuBox->infoRects->dimensions[19] >> 3, FALSE);
+            menuBox->infoRects->blitFunc(menuBox->windowId, (menuBox->infoRects->maxHP.px/8) + 1, (menuBox->infoRects->maxHP.py/8) + 1, menuBox->infoRects->maxHP.sx/8, menuBox->infoRects->maxHP.sy/8, FALSE);
         if (c != 2)
             DisplayPartyPokemonMaxHP(GetMonData(mon, MON_DATA_MAX_HP), menuBox);
     }
@@ -2390,7 +2383,7 @@ static void DisplayPartyPokemonMaxHP(u16 maxhp, struct PartyMenuBox *menuBox)
     ConvertIntToDecimalStringN(gStringVar2, maxhp, STR_CONV_MODE_RIGHT_ALIGN, 3);
     StringCopy(gStringVar1, gText_Slash);
     StringAppend(gStringVar1, gStringVar2);
-    DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->dimensions[16]);
+    DisplayPartyPokemonBarDetail(menuBox->windowId, gStringVar1, 0, &menuBox->infoRects->maxHP);
 }
 
 static void DisplayPartyPokemonHPBarCheck(struct Pokemon *mon, struct PartyMenuBox *menuBox)
@@ -2421,14 +2414,14 @@ static void DisplayPartyPokemonHPBar(u16 hp, u16 maxhp, struct PartyMenuBox *men
         break;
     }
 
-    hpFraction = GetScaledHPFraction(hp, maxhp, menuBox->infoRects->dimensions[22]);
-    FillWindowPixelRect(menuBox->windowId, sHPBarPalOffsets[1], menuBox->infoRects->dimensions[20], menuBox->infoRects->dimensions[21], hpFraction, 1);
-    FillWindowPixelRect(menuBox->windowId, sHPBarPalOffsets[0], menuBox->infoRects->dimensions[20], menuBox->infoRects->dimensions[21] + 1, hpFraction, 2);
-    if (hpFraction != menuBox->infoRects->dimensions[22])
+    hpFraction = GetScaledHPFraction(hp, maxhp, menuBox->infoRects->hpBar.sx);
+    FillWindowPixelRect(menuBox->windowId, sHPBarPalOffsets[1], menuBox->infoRects->hpBar.px, menuBox->infoRects->hpBar.py, hpFraction, 1);
+    FillWindowPixelRect(menuBox->windowId, sHPBarPalOffsets[0], menuBox->infoRects->hpBar.px, menuBox->infoRects->hpBar.py + 1, hpFraction, 2);
+    if (hpFraction != menuBox->infoRects->hpBar.sx)
     {
         // This appears to be an alternating fill
-        FillWindowPixelRect(menuBox->windowId, 0x0D, menuBox->infoRects->dimensions[20] + hpFraction, menuBox->infoRects->dimensions[21], menuBox->infoRects->dimensions[22] - hpFraction, 1);
-        FillWindowPixelRect(menuBox->windowId, 0x02, menuBox->infoRects->dimensions[20] + hpFraction, menuBox->infoRects->dimensions[21] + 1, menuBox->infoRects->dimensions[22] - hpFraction, 2);
+        FillWindowPixelRect(menuBox->windowId, 0x0D, menuBox->infoRects->hpBar.px + hpFraction, menuBox->infoRects->hpBar.py, menuBox->infoRects->hpBar.sx - hpFraction, 1);
+        FillWindowPixelRect(menuBox->windowId, 0x02, menuBox->infoRects->hpBar.px + hpFraction, menuBox->infoRects->hpBar.py + 1, menuBox->infoRects->hpBar.sx - hpFraction, 2);
     }
     CopyWindowToVram(menuBox->windowId, COPYWIN_GFX);
 }
@@ -2437,12 +2430,12 @@ static void DisplayPartyPokemonDescriptionText(u8 stringID, struct PartyMenuBox 
 {
     if (c)
     {
-        int width = ((menuBox->infoRects->descTextLeft % 8) + menuBox->infoRects->descTextWidth + 7) / 8;
-        int height = ((menuBox->infoRects->descTextTop % 8) + menuBox->infoRects->descTextHeight + 7) / 8;
-        menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->descTextLeft >> 3, menuBox->infoRects->descTextTop >> 3, width, height, TRUE);
+        int width = ((menuBox->infoRects->desc.px % 8) + menuBox->infoRects->desc.sx + 7) / 8;
+        int height = ((menuBox->infoRects->desc.py % 8) + menuBox->infoRects->desc.sy + 7) / 8;
+        menuBox->infoRects->blitFunc(menuBox->windowId, menuBox->infoRects->desc.px/8, menuBox->infoRects->desc.py/8, width, height, TRUE);
     }
     if (c != 2)
-        AddTextPrinterParameterized3(menuBox->windowId, FONT_NORMAL, menuBox->infoRects->descTextLeft, menuBox->infoRects->descTextTop, sFontColorTable[0], 0, sDescriptionStringTable[stringID]);
+        AddTextPrinterParameterized3(menuBox->windowId, FONT_NORMAL, menuBox->infoRects->desc.px, menuBox->infoRects->desc.py, sFontColorTable[0], 0, sDescriptionStringTable[stringID]);
 }
 
 static void PartyMenuRemoveWindow(u8 *ptr)
@@ -2505,8 +2498,8 @@ void DisplayPartyMenuStdMessage(u32 stringId)
 static bool8 ShouldUseChooseMonText(void)
 {
     struct Pokemon *party = gPlayerParty;
-    u8 i;
-    u8 numAliveMons = 0;
+    u32 i;
+    u32 numAliveMons = 0;
 
     if (gPartyMenu.action == PARTY_ACTION_SEND_OUT)
         return TRUE;
@@ -2595,6 +2588,7 @@ static void SetPartyMonSelectionActions(struct Pokemon *mons, u8 slotId, u8 acti
     if (action == ACTIONS_NONE)
     {
         SetPartyMonFieldSelectionActions(mons, slotId);
+        return;
     }
     else
     {
@@ -2638,7 +2632,7 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
 
 static u8 GetPartyMenuActionsType(struct Pokemon *mon)
 {
-    u32 actionType;
+    u8 actionType;
 
     switch (gPartyMenu.menuType)
     {
@@ -2711,18 +2705,18 @@ static bool8 CreateSelectionWindow(u8 taskId)
         item = GetMonData(mon, MON_DATA_HELD_ITEM);
         if (item != ITEM_NONE)
         {
-            SetPartyMonSelectionActions(gPlayerParty, gPartyMenu.slotId, GetPartyMenuActionsType(mon));
-            DisplaySelectionWindow(SELECTWINDOW_ITEM);
-            CopyItemName(item, gStringVar2);
-            DisplayPartyMenuStdMessage(PARTY_MSG_ALREADY_HOLDING_ONE);
-        }
-        else
-        {
             StringExpandPlaceholders(gStringVar4, gText_PkmnNotHolding);
             DisplayPartyMenuMessage(gStringVar4, TRUE);
             ScheduleBgCopyTilemapToVram(2);
             gTasks[taskId].func = Task_UpdateHeldItemSprite;
             return FALSE;
+        }
+        else
+        {      
+            SetPartyMonSelectionActions(gPlayerParty, gPartyMenu.slotId, GetPartyMenuActionsType(mon));
+            DisplaySelectionWindow(SELECTWINDOW_ITEM);
+            CopyItemName(item, gStringVar2);
+            DisplayPartyMenuStdMessage(PARTY_MSG_ALREADY_HOLDING_ONE);
         }
     }
     return TRUE;
@@ -2827,6 +2821,7 @@ static void SwitchSelectedMons(u8 taskId)
     if (gPartyMenu.slotId2 == gPartyMenu.slotId)
     {
         FinishTwoMonAction(taskId);
+        return;
     }
     else
     {
@@ -2851,8 +2846,8 @@ static void SwitchSelectedMons(u8 taskId)
             tSlot2SlideDir = -1;
         else
             tSlot2SlideDir = 1;
-        sSlot1TilemapBuffer = Alloc(tSlot1Width * (tSlot1Height << 1));
-        sSlot2TilemapBuffer = Alloc(tSlot2Width * (tSlot2Height << 1));
+        sSlot1TilemapBuffer = Alloc(tSlot1Width * tSlot1Height * sizeof(u16));
+        sSlot2TilemapBuffer = Alloc(tSlot2Width * tSlot2Height * sizeof(u16));
         CopyToBufferFromBgTilemap(0, sSlot1TilemapBuffer, tSlot1Left, tSlot1Top, tSlot1Width, tSlot1Height);
         CopyToBufferFromBgTilemap(0, sSlot2TilemapBuffer, tSlot2Left, tSlot2Top, tSlot2Width, tSlot2Height);
         ClearWindowTilemap(windowIds[0]);
@@ -2899,7 +2894,8 @@ static void MoveAndBufferPartySlot(const void *rectSrc, s16 x, s16 y, s16 width,
     if (TryMovePartySlot(x, width, &srcX, &newX, &newWidth))
     {
         FillBgTilemapBufferRect_Palette0(0, 0, newX, y, newWidth, height);
-        if (TryMovePartySlot(x + dir, width, &srcX, &newX, &newWidth))
+        x += dir;
+        if (TryMovePartySlot(x, width, &srcX, &newX, &newWidth))
             CopyRectToBgTilemapBufferRect(0, rectSrc, srcX, 0, width, height, newX, y, newWidth, height, 17, 0, 0);
     }
 }
@@ -2936,7 +2932,7 @@ static void SlidePartyMenuBoxOneStep(u8 taskId)
 static void Task_SlideSelectedSlotsOffscreen(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    u16 slidingSlotPositions[2];
+    s16 slidingSlotPositions[2];
 
     SlidePartyMenuBoxOneStep(taskId);
     SlidePartyMenuBoxSpritesOneStep(taskId);
@@ -2946,7 +2942,7 @@ static void Task_SlideSelectedSlotsOffscreen(u8 taskId)
     slidingSlotPositions[1] = tSlot2Left + tSlot2Offset;
 
     // Both slots have slid offscreen
-    if (slidingSlotPositions[0] > 33 && slidingSlotPositions[1] > 33)
+    if ((slidingSlotPositions[0] < 0 || slidingSlotPositions[0] >= 34) && (slidingSlotPositions[1] < 0 || slidingSlotPositions[1] >= 34))
     {
         tSlot1SlideDir *= -1;
         tSlot2SlideDir *= -1;
@@ -2979,6 +2975,7 @@ static void Task_SlideSelectedSlotsOnscreen(u8 taskId)
         Free(sSlot1TilemapBuffer);
         Free(sSlot2TilemapBuffer);
         FinishTwoMonAction(taskId);
+        return;
     }
     // Continue sliding
     else
@@ -2995,7 +2992,7 @@ static void Task_SlideSelectedSlotsOnscreen(u8 taskId)
 static void SwitchMenuBoxSprites(u8 *spriteIdPtr1, u8 *spriteIdPtr2)
 {
     u8 spriteIdBuffer = *spriteIdPtr1;
-    u16 xBuffer1, yBuffer1, xBuffer2, yBuffer2;
+    s16 xBuffer1, yBuffer1, xBuffer2, yBuffer2;
 
     *spriteIdPtr1 = *spriteIdPtr2;
     *spriteIdPtr2 = spriteIdBuffer;
@@ -3016,17 +3013,17 @@ static void SwitchMenuBoxSprites(u8 *spriteIdPtr1, u8 *spriteIdPtr2)
 static void SwitchPartyMon(void)
 {
     struct PartyMenuBox *menuBoxes[2];
-    struct Pokemon *mon1, *mon2;
+    struct Pokemon *mon[2];
     struct Pokemon *monBuffer;
 
     menuBoxes[0] = &sPartyMenuBoxes[gPartyMenu.slotId];
     menuBoxes[1] = &sPartyMenuBoxes[gPartyMenu.slotId2];
-    mon1 = &gPlayerParty[gPartyMenu.slotId];
-    mon2 = &gPlayerParty[gPartyMenu.slotId2];
+    mon[0] = &gPlayerParty[gPartyMenu.slotId];
+    mon[1] = &gPlayerParty[gPartyMenu.slotId2];
     monBuffer = Alloc(sizeof(struct Pokemon));
-    *monBuffer = *mon1;
-    *mon1 = *mon2;
-    *mon2 = *monBuffer;
+    *monBuffer = *mon[0];
+    *mon[0]= *mon[1];
+    *mon[1] = *monBuffer;
     Free(monBuffer);
     SwitchMenuBoxSprites(&menuBoxes[0]->pokeballSpriteId, &menuBoxes[1]->pokeballSpriteId);
     SwitchMenuBoxSprites(&menuBoxes[0]->itemSpriteId, &menuBoxes[1]->itemSpriteId);
@@ -3103,6 +3100,7 @@ static void CB2_GiveHoldItem(void)
     if (gSpecialVar_ItemId == ITEM_NONE)
     {
         InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+        return;
     }
     else
     {
@@ -3112,6 +3110,7 @@ static void CB2_GiveHoldItem(void)
         if (sPartyMenuItemId != ITEM_NONE)
         {
             InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_SwitchHoldItemsPrompt, gPartyMenu.exitCallback);
+            return;
         }
         // Give mail
         else if (ItemIsMail(gSpecialVar_ItemId))
@@ -3119,6 +3118,7 @@ static void CB2_GiveHoldItem(void)
             RemoveBagItem(gSpecialVar_ItemId, 1);
             GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], gSpecialVar_ItemId);
             CB2_WriteMailToGiveMon();
+            return;
         }
         // Give item
         else
@@ -3135,7 +3135,7 @@ static void Task_GiveHoldItem(u8 taskId)
     if (!gPaletteFade.active)
     {
         item = gSpecialVar_ItemId;
-        DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], item, FALSE, 0);
+        DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], item, FALSE);
         GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], item);
         RemoveBagItem(item, 1);
         gTasks[taskId].func = Task_UpdateHeldItemSprite;
@@ -3171,7 +3171,7 @@ static void Task_HandleSwitchItemsYesNoInput(u8 taskId)
         if (AddBagItem(sPartyMenuItemId, 1) == FALSE)
         {
             AddBagItem(gSpecialVar_ItemId, 1);
-            BufferBagFullCantTakeItemMessage(sPartyMenuItemId);
+            BufferBagFullCantTakeItemMessage();
             DisplayPartyMenuMessage(gStringVar4, FALSE);
             gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
         }
@@ -3231,6 +3231,7 @@ static void CB2_ReturnToPartyMenuFromWritingMail(void)
         RemoveBagItem(sPartyMenuItemId, 1);
         AddBagItem(item, 1);
         InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_CHOOSE_MON, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+        return;
     }
     // Wrote mail
     else
@@ -3245,7 +3246,7 @@ static void Task_DisplayGaveMailFromPartyMessage(u8 taskId)
     if (!gPaletteFade.active)
     {
         if (sPartyMenuItemId == ITEM_NONE)
-            DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], gSpecialVar_ItemId, FALSE, 0);
+            DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], gSpecialVar_ItemId, FALSE);
         else
             DisplaySwitchedHeldItemMessage(gSpecialVar_ItemId, sPartyMenuItemId, FALSE);
         gTasks[taskId].func = Task_UpdateHeldItemSprite;
@@ -3286,7 +3287,7 @@ static void CursorCb_TakeItem(u8 taskId)
         DisplayPartyMenuMessage(gStringVar4, TRUE);
         break;
     case 1: // No room to take item
-        BufferBagFullCantTakeItemMessage(item);
+        BufferBagFullCantTakeItemMessage();
         DisplayPartyMenuMessage(gStringVar4, TRUE);
         break;
     default: // Took item
@@ -3465,7 +3466,7 @@ static void Task_HandleLoseMailMessageYesNoInput(u8 taskId)
         }
         else
         {
-            BufferBagFullCantTakeItemMessage(item);
+            BufferBagFullCantTakeItemMessage();
             DisplayPartyMenuMessage(gStringVar4, FALSE);
             gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
         }
@@ -3509,6 +3510,7 @@ static void CursorCb_SendMon(u8 taskId)
     if (TrySwitchInPokemon() == TRUE)
     {
         Task_ClosePartyMenu(taskId);
+        return;
     }
     else
     {
@@ -3623,7 +3625,7 @@ static void CursorCb_Trade1(u8 taskId)
     u16 species2 = GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES_OR_EGG);
     u16 species = GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES);
     u8 isModernFatefulEncounter = GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_MODERN_FATEFUL_ENCOUNTER);
-    u32 stringId = GetUnionRoomTradeMessageId(*(struct RfuGameCompatibilityData *)GetHostRfuGameData(), gRfuPartnerCompatibilityData, species2, gUnionRoomOfferedSpecies, gUnionRoomRequestedMonType, species, isModernFatefulEncounter);
+    int stringId = GetUnionRoomTradeMessageId(*(struct RfuGameCompatibilityData *)GetHostRfuGameData(), gRfuPartnerCompatibilityData, species2, gUnionRoomOfferedSpecies, gUnionRoomRequestedMonType, species, isModernFatefulEncounter);
 
     if (stringId != UR_TRADE_MSG_NONE)
     {
@@ -3639,6 +3641,7 @@ static void CursorCb_Trade1(u8 taskId)
     {
         PlaySE(SE_SELECT);
         Task_ClosePartyMenu(taskId);
+        return;
     }
 }
 
@@ -3718,6 +3721,7 @@ static void CursorCb_FieldMove(u8 taskId)
             DisplayPartyMenuStdMessage(sFieldMoveCursorCallbacks[fieldMove].msgId);
 
         gTasks[taskId].func = Task_CancelAfterAorBPress;
+        return;
     }
     else
     {
@@ -3726,8 +3730,9 @@ static void CursorCb_FieldMove(u8 taskId)
         {
             DisplayPartyMenuMessage(gText_CantUseUntilNewBadge, TRUE);
             gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
+            return;
         }
-        else if (sFieldMoveCursorCallbacks[fieldMove].fieldMoveFunc() == TRUE)
+        if (sFieldMoveCursorCallbacks[fieldMove].fieldMoveFunc() == TRUE)
         {
             switch (fieldMove)
             {
@@ -3837,7 +3842,7 @@ static u16 GetFieldMoveMonSpecies(void)
 
 static void Task_CancelAfterAorBPress(u8 taskId)
 {
-    if ((JOY_NEW(A_BUTTON)) || (JOY_NEW(B_BUTTON)))
+    if (JOY_NEW(A_BUTTON | B_BUTTON ))
         CursorCb_Cancel1(taskId);
 }
 
@@ -3928,14 +3933,12 @@ static bool8 SetUpFieldMove_Dive(void)
 static void CreatePartyMonIconSprite(struct Pokemon *mon, struct PartyMenuBox *menuBox, u32 slot)
 {
     bool32 handleDeoxys = TRUE;
-    u16 species2;
 
     // If in a multi battle, show partners Deoxys icon as Normal forme
-    if (IsMultiBattle() == TRUE && gMain.inBattle)
-        handleDeoxys = (sMultiBattlePartnersPartyMask[slot] ^ handleDeoxys) ? TRUE : FALSE;
+    if (IsMultiBattle() == TRUE && gMain.inBattle && sMultiBattlePartnersPartyMask[slot] == TRUE)
+        handleDeoxys = FALSE;
 
-    species2 = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
-    CreatePartyMonIconSpriteParameterized(species2, GetMonData(mon, MON_DATA_PERSONALITY), menuBox, 1, handleDeoxys);
+    CreatePartyMonIconSpriteParameterized(GetMonData(mon, MON_DATA_SPECIES_OR_EGG), GetMonData(mon, MON_DATA_PERSONALITY), menuBox, 1, handleDeoxys);
     UpdatePartyMonHPBar(menuBox->monSpriteId, mon);
 }
 
@@ -4047,6 +4050,7 @@ static void ShowOrHideHeldItemSprite(u16 item, struct PartyMenuBox *menuBox)
     if (item == ITEM_NONE)
     {
         gSprites[menuBox->itemSpriteId].invisible = TRUE;
+        return;
     }
     else
     {
@@ -4207,17 +4211,14 @@ static void SetPartyMonAilmentGfx(struct Pokemon *mon, struct PartyMenuBox *menu
 
 static void UpdatePartyMonAilmentGfx(u8 status, struct PartyMenuBox *menuBox)
 {
-    switch (status)
+    if (status == AILMENT_NONE || status == AILMENT_PKRS)
     {
-    case AILMENT_NONE:
-    case AILMENT_PKRS:
         gSprites[menuBox->statusSpriteId].invisible = TRUE;
-        break;
-    default:
-        StartSpriteAnim(&gSprites[menuBox->statusSpriteId], status - 1);
-        gSprites[menuBox->statusSpriteId].invisible = FALSE;
-        break;
+        return;
     }
+
+    StartSpriteAnim(&gSprites[menuBox->statusSpriteId], status - 1);
+    gSprites[menuBox->statusSpriteId].invisible = FALSE;
 }
 
 static void LoadPartyMenuAilmentGfx(void)
@@ -4445,7 +4446,7 @@ void ItemUseCB_Medicine(u8 taskId, TaskFunc task)
             if (hp == 0)
                 AnimatePartySlot(gPartyMenu.slotId, 1);
             PartyMenuModifyHP(taskId, gPartyMenu.slotId, 1, GetMonData(mon, MON_DATA_HP) - hp, Task_DisplayHPRestoredMessage);
-            ResetHPTaskData(taskId, 0, hp);
+            ResetHPTaskData(taskId, hp);
             return;
         }
         else
@@ -4592,18 +4593,19 @@ static void Task_HandleWhichMoveInput(u8 taskId)
 {
     s8 input = Menu_ProcessInput();
 
-    if (input != MENU_NOTHING_CHOSEN)
+    if (input == MENU_NOTHING_CHOSEN)
     {
-        if (input == MENU_B_PRESSED)
-        {
-            PlaySE(SE_SELECT);
-            ReturnToUseOnWhichMon(taskId);
-        }
-        else
-        {
-            PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
-            SetSelectedMoveForPPItem(taskId);
-        }
+        return;
+    }
+    if (input == MENU_B_PRESSED)
+    {
+        PlaySE(SE_SELECT);
+        ReturnToUseOnWhichMon(taskId);
+    }
+    else
+    {
+        PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
+        SetSelectedMoveForPPItem(taskId);
     }
 }
 
@@ -4654,7 +4656,7 @@ static void TryUsePPItem(u8 taskId)
     struct PartyMenu *ptr = &gPartyMenu;
     struct Pokemon *mon;
 
-    if (ExecuteTableBasedItemEffect_(ptr->slotId, item, *moveSlot))
+    if (ExecuteTableBasedItemEffect_(gPartyMenu.slotId, item, *moveSlot))
     {
         gPartyMenuUseExitCallback = FALSE;
         PlaySE(SE_SELECT);
@@ -4665,7 +4667,7 @@ static void TryUsePPItem(u8 taskId)
     else
     {
         gPartyMenuUseExitCallback = TRUE;
-        mon = &gPlayerParty[ptr->slotId];
+        mon = &gPlayerParty[gPartyMenu.slotId];
         PlaySE(SE_USE_ITEM);
         RemoveBagItem(item, 1);
         move = GetMonData(mon, MON_DATA_MOVE1 + *moveSlot);
@@ -4687,13 +4689,12 @@ void ItemUseCB_PPUp(u8 taskId, TaskFunc task)
 
 u16 ItemIdToBattleMoveId(u16 item)
 {
-    u16 tmNumber = item - ITEM_TM01;
-    return sTMHMMoves[tmNumber];
+    return sTMHMMoves[item - ITEM_TM01];
 }
 
 bool8 IsMoveHm(u16 move)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < NUM_HIDDEN_MACHINES; i++)
     {
@@ -4758,6 +4759,7 @@ void ItemUseCB_TMHM(u8 taskId, TaskFunc task)
     if (GiveMoveToMon(mon, move[0]) != MON_HAS_MAX_MOVES)
     {
         gTasks[taskId].func = Task_LearnedMove;
+        return;
     }
     else
     {
@@ -4797,7 +4799,7 @@ static void Task_DoLearnedMoveFanfareAfterText(u8 taskId)
 
 static void Task_LearnNextMoveOrClosePartyMenu(u8 taskId)
 {
-    if (IsFanfareTaskInactive() && ((JOY_NEW(A_BUTTON)) || (JOY_NEW(B_BUTTON))))
+    if (IsFanfareTaskInactive() && JOY_NEW(A_BUTTON | B_BUTTON))
     {
         if (gPartyMenu.learnMoveState == 1)
             Task_TryLearningNextMove(taskId);
@@ -4924,6 +4926,7 @@ static void Task_HandleStopLearningMoveYesNoInput(u8 taskId)
         if (gPartyMenu.learnMoveState == 1)
         {
             gTasks[taskId].func = Task_TryLearningNextMoveAfterText;
+            return;
         }
         else
         {
@@ -5016,7 +5019,7 @@ static void Task_DisplayLevelUpStatsPg1(u8 taskId)
 
 static void Task_DisplayLevelUpStatsPg2(u8 taskId)
 {
-    if ((JOY_NEW(A_BUTTON)) || (JOY_NEW(B_BUTTON)))
+    if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
         PlaySE(SE_SELECT);
         DisplayLevelUpStatsPg2(taskId);
@@ -5047,7 +5050,7 @@ static void Task_TryLearnNewMoves(u8 taskId)
 {
     u16 learnMove;
 
-    if (WaitFanfare(FALSE) && ((JOY_NEW(A_BUTTON)) || (JOY_NEW(B_BUTTON))))
+    if (WaitFanfare(FALSE) && (JOY_NEW(A_BUTTON | B_BUTTON)))
     {
         RemoveLevelUpStatsWindow();
         learnMove = MonTryLearningNewMove(&gPlayerParty[gPartyMenu.slotId], TRUE);
@@ -5083,7 +5086,7 @@ static void Task_TryLearningNextMove(u8 taskId)
         DisplayMonNeedsToReplaceMove(taskId);
         break;
     case MON_ALREADY_KNOWS_MOVE:
-        return;
+        break;
     default:
         DisplayMonLearnedMove(taskId, result);
         break;
@@ -5101,11 +5104,10 @@ static void PartyMenuTryEvolution(u8 taskId)
         gCB2_AfterEvolution = gPartyMenu.exitCallback;
         BeginEvolutionScene(mon, targetSpecies, TRUE, gPartyMenu.slotId);
         DestroyTask(taskId);
+        return;
     }
-    else
-    {
-        gTasks[taskId].func = Task_ClosePartyMenuAfterText;
-    }
+
+    gTasks[taskId].func = Task_ClosePartyMenuAfterText;
 }
 
 static void DisplayMonNeedsToReplaceMove(u8 taskId)
@@ -5177,7 +5179,7 @@ static void UseSacredAsh(u8 taskId)
     AnimatePartySlot(sPartyMenuInternal->tLastSlotUsed, 0);
     AnimatePartySlot(gPartyMenu.slotId, 1);
     PartyMenuModifyHP(taskId, gPartyMenu.slotId, 1, GetMonData(mon, MON_DATA_HP) - hp, Task_SacredAshDisplayHPRestored);
-    ResetHPTaskData(taskId, 0, hp);
+    ResetHPTaskData(taskId, hp);
     sPartyMenuInternal->tUsedOnSlot = TRUE;
     sPartyMenuInternal->tHadEffect = TRUE;
 }
@@ -5206,11 +5208,10 @@ static void Task_SacredAshLoop(u8 taskId)
             }
             gTasks[taskId].func = Task_ClosePartyMenuAfterText;
             gPartyMenu.slotId = 0;
+            return;
         }
-        else
-        {
-            UseSacredAsh(taskId);
-        }
+
+        UseSacredAsh(taskId);
     }
 }
 
@@ -5248,7 +5249,7 @@ void ItemUseCB_EvolutionStone(u8 taskId, TaskFunc task)
 u8 GetItemEffectType(u16 item)
 {
     const u8 *itemEffect;
-    u32 statusCure;
+    u8 statusCure;
 
     if (!ITEM_HAS_EFFECT(item))
         return ITEM_EFFECT_NONE;
@@ -5367,10 +5368,12 @@ static void TryGiveItemOrMailToSelectedMon(u8 taskId)
     if (sPartyMenuItemId == ITEM_NONE)
     {
         GiveItemOrMailToSelectedMon(taskId);
+        return;
     }
     else if (ItemIsMail(sPartyMenuItemId))
     {
         DisplayItemMustBeRemovedFirstMessage(taskId);
+        return;
     }
     else
     {
@@ -5386,6 +5389,7 @@ static void GiveItemOrMailToSelectedMon(u8 taskId)
         RemoveItemToGiveFromBag(gPartyMenu.bagItem);
         sPartyMenuInternal->exitCallback = CB2_WriteMailToGiveMonFromBag;
         Task_ClosePartyMenu(taskId);
+        return;
     }
     else
     {
@@ -5400,7 +5404,7 @@ static void GiveItemToSelectedMon(u8 taskId)
     if (!gPaletteFade.active)
     {
         item = gPartyMenu.bagItem;
-        DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], item, FALSE, 1);
+        DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], item, FALSE);
         GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], item);
         RemoveItemToGiveFromBag(item);
         gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
@@ -5444,6 +5448,7 @@ static void CB2_ReturnToPartyOrBagMenuFromWritingMail(void)
         RemoveBagItem(sPartyMenuItemId, 1);
         ReturnGiveItemToBagOrPC(item);
         SetMainCallback2(gPartyMenu.exitCallback);
+        return;
     }
     // Wrote mail
     else
@@ -5459,7 +5464,7 @@ static void Task_DisplayGaveMailFromBagMessage(u8 taskId)
         if (sPartyMenuItemId != ITEM_NONE)
             DisplaySwitchedHeldItemMessage(gPartyMenu.bagItem, sPartyMenuItemId, FALSE);
         else
-            DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], gPartyMenu.bagItem, FALSE, 1);
+            DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], gPartyMenu.bagItem, FALSE);
         gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
     }
 }
@@ -5485,11 +5490,12 @@ static void Task_HandleSwitchItemsFromBagYesNoInput(u8 taskId)
         if (AddBagItem(sPartyMenuItemId, 1) == FALSE)
         {
             ReturnGiveItemToBagOrPC(item);
-            BufferBagFullCantTakeItemMessage(sPartyMenuItemId);
+            BufferBagFullCantTakeItemMessage();
             DisplayPartyMenuMessage(gStringVar4, FALSE);
             gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
+            break;
         }
-        else if (ItemIsMail(item))
+        if (ItemIsMail(item))
         {
             sPartyMenuInternal->exitCallback = CB2_WriteMailToGiveMonFromBag;
             Task_ClosePartyMenu(taskId);
@@ -5561,7 +5567,7 @@ static void TryGiveMailToSelectedMon(u8 taskId)
     gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
 }
 
-void InitChooseHalfPartyForBattle(u8 unused)
+void InitChooseHalfPartyForBattle(void)
 {
     ClearSelectedPartyOrder();
     InitPartyMenu(PARTY_MENU_TYPE_CHOOSE_HALF, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_MON, FALSE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, gMain.savedCallback);
@@ -5596,23 +5602,25 @@ static bool8 GetBattleEntryEligibility(struct Pokemon *mon)
         return FALSE;
     }
 
-    switch (VarGet(VAR_FRONTIER_FACILITY))
-    {
-    case FACILITY_MULTI_OR_EREADER:
-        if (GetMonData(mon, MON_DATA_HP) != 0)
-            return TRUE;
-        return FALSE;
-    case FACILITY_UNION_ROOM:
+    u16 var = VarGet(VAR_FRONTIER_FACILITY);
+
+    if (var == FACILITY_UNION_ROOM)
         return TRUE;
-    default: // Battle Frontier
+    if (var == FACILITY_MULTI_OR_EREADER)
+    {
+        if (GetMonData(mon, MON_DATA_HP) == 0)
+            return FALSE;
+    }
+    else {
+        // Battle Frontier
         species = GetMonData(mon, MON_DATA_SPECIES);
         for (; gFrontierBannedSpecies[i] != 0xFFFF; i++)
         {
             if (gFrontierBannedSpecies[i] == species)
                 return FALSE;
         }
-        return TRUE;
     }
+    return TRUE;
 }
 
 static u8 CheckBattleEntriesAndGetMessage(void)
@@ -5655,7 +5663,7 @@ static u8 CheckBattleEntriesAndGetMessage(void)
 
 static bool8 HasPartySlotAlreadyBeenSelected(u8 slot)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(gSelectedOrderFromParty); i++)
     {
@@ -5684,7 +5692,7 @@ static void Task_ValidateChosenHalfParty(u8 taskId)
 
 static void Task_ContinueChoosingHalfParty(u8 taskId)
 {
-    if ((JOY_NEW(A_BUTTON)) || (JOY_NEW(B_BUTTON)))
+    if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
         PlaySE(SE_SELECT);
         DisplayPartyMenuStdMessage(PARTY_MSG_CHOOSE_MON);
@@ -5862,7 +5870,7 @@ void BufferBattlePartyCurrentOrder(void)
 static void BufferBattlePartyOrder(u8 *partyBattleOrder, u8 flankId)
 {
     u8 partyIds[PARTY_SIZE];
-    int i, j;
+    u8 i, j;
 
     if (IsMultiBattle() == TRUE)
     {
@@ -5880,7 +5888,6 @@ static void BufferBattlePartyOrder(u8 *partyBattleOrder, u8 flankId)
             partyBattleOrder[1] = 2 | (1 << 4);
             partyBattleOrder[2] = 5 | (4 << 4);
         }
-        return;
     }
     else if (IsDoubleBattle() == FALSE)
     {
@@ -5909,8 +5916,8 @@ static void BufferBattlePartyOrder(u8 *partyBattleOrder, u8 flankId)
             }
         }
     }
-    for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
-        partyBattleOrder[i] = (partyIds[0 + (i * 2)] << 4) | partyIds[1 + (i * 2)];
+    for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+        partyBattleOrder[i] = (partyIds[0 + (i << 1)] << 4) | partyIds[1 + (i << 1)];
 }
 
 void BufferBattlePartyCurrentOrderBySide(u8 battlerId, u8 flankId)
@@ -5922,7 +5929,7 @@ void BufferBattlePartyCurrentOrderBySide(u8 battlerId, u8 flankId)
 static void BufferBattlePartyOrderBySide(u8 *partyBattleOrder, u8 flankId, u8 battlerId)
 {
     u8 partyIndexes[PARTY_SIZE];
-    int i, j;
+    u8 i, j;
     u8 leftBattler;
     u8 rightBattler;
 
@@ -5982,25 +5989,24 @@ static void BufferBattlePartyOrderBySide(u8 *partyBattleOrder, u8 flankId, u8 ba
     }
 
     for (i = 0; i < 3; i++)
-        partyBattleOrder[i] = (partyIndexes[0 + (i * 2)] << 4) | partyIndexes[1 + (i * 2)];
+        partyBattleOrder[i] = (partyIndexes[0 + (i << 1)] << 4) | partyIndexes[1 + (i << 1)];
 }
 
 void SwitchPartyOrderLinkMulti(u8 battlerId, u8 slot, u8 slot2)
 {
     u8 partyIds[PARTY_SIZE];
     u8 tempSlot = 0;
-    int i, j;
+    u32 i, j;
     u8 *partyBattleOrder;
     u8 partyIdBuffer;
 
     if (IsMultiBattle())
     {
         partyBattleOrder = gBattleStruct->battlerPartyOrders[battlerId];
-        for (i = j = 0; i < PARTY_SIZE / 2; j++, i++)
+        for (i = 0, j = 0; i < PARTY_SIZE / 2; i++)
         {
-            partyIds[j] = partyBattleOrder[i] >> 4;
-            j++;
-            partyIds[j] = partyBattleOrder[i] & 0xF;
+            partyIds[j++] = partyBattleOrder[i] >> 4;
+            partyIds[j++] = partyBattleOrder[i] & 0xF;
         }
         partyIdBuffer = partyIds[slot2];
         for (i = 0; i < PARTY_SIZE; i++)
@@ -6027,7 +6033,7 @@ static u8 GetPartyIdFromBattleSlot(u8 slot)
     u8 modResult = slot & 1;
     u8 retVal;
 
-    slot /= 2;
+    slot >>= 1;
     if (modResult != 0)
         retVal = gBattlePartyCurrentOrder[slot] & 0xF;
     else
@@ -6039,7 +6045,7 @@ static void SetPartyIdAtBattleSlot(u8 slot, u8 setVal)
 {
     bool32 modResult = slot & 1;
 
-    slot /= 2;
+    slot >>=1;
     if (modResult != 0)
         gBattlePartyCurrentOrder[slot] = (gBattlePartyCurrentOrder[slot] & 0xF0) | setVal;
     else
@@ -6048,27 +6054,26 @@ static void SetPartyIdAtBattleSlot(u8 slot, u8 setVal)
 
 void SwitchPartyMonSlots(u8 slot, u8 slot2)
 {
-    u8 partyId = GetPartyIdFromBattleSlot(slot);
-    SetPartyIdAtBattleSlot(slot, GetPartyIdFromBattleSlot(slot2));
-    SetPartyIdAtBattleSlot(slot2, partyId);
+    u8 partyId1 = GetPartyIdFromBattleSlot(slot);
+    u8 partyId2 = GetPartyIdFromBattleSlot(slot2);
+    SetPartyIdAtBattleSlot(slot, partyId2);
+    SetPartyIdAtBattleSlot(slot2, partyId1);
 }
 
 u8 GetPartyIdFromBattlePartyId(u8 battlePartyId)
 {
-    u8 i, j;
+    u32 i;
+    u8 j;
 
-    for (j = i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); j++, i++)
+    for (j = i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
     {
-        if ((gBattlePartyCurrentOrder[i] >> 4) != battlePartyId)
-        {
-            j++;
-            if ((gBattlePartyCurrentOrder[i] & 0xF) == battlePartyId)
-                return j;
-        }
-        else
-        {
+        if ((gBattlePartyCurrentOrder[i] >> 4) == battlePartyId)
             return j;
-        }
+
+        j++;
+        if ((gBattlePartyCurrentOrder[i] & 0xF) == battlePartyId)
+            return j;
+        j++;
     }
     return 0;
 }
@@ -6175,7 +6180,7 @@ static void MoveMultiPartyMenuBoxSprite(u8 spriteId, s16 x)
 static void SlideMultiPartyMenuBoxSpritesOneStep(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    u8 i;
+    u32 i;
 
     for (i = MULTI_PARTY_SIZE; i < PARTY_SIZE; i++)
     {
@@ -6304,7 +6309,7 @@ static void CB2_ChooseMonForMoveRelearner(void)
 
 void DoBattlePyramidMonsHaveHeldItem(void)
 {
-    u8 i;
+    u32 i;
 
     gSpecialVar_Result = FALSE;
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
