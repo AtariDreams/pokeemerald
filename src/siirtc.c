@@ -67,10 +67,10 @@
 extern vu16 GPIOPortDirection;
 
 static u16 sDummy; // unused variable
-static bool8 sLocked;
+static vbool8 sLocked;
 
-static int WriteCommand(u8 value);
-static int WriteData(u8 value);
+static void WriteCommand(u8 value);
+static void WriteData(u8 value);
 static u8 ReadData();
 
 static void EnableGpioPortRead();
@@ -369,14 +369,19 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     GPIO_PORT_DATA = SCK_HI;
     GPIO_PORT_DATA = SCK_HI | CS_HI;
 
-    GPIOPortDirection = DIR_ALL_OUT; // Why is this the only instance that uses a symbol?
+    // GPIOPortDirection = DIR_ALL_OUT; // Why is this the only instance that uses a symbol?
+    
+    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
 
     WriteCommand(CMD_ALARM | WR);
 
     for (i = 0; i < 2; i++)
         WriteData(alarmData[i]);
 
-    GPIO_PORT_DATA = SCK_HI;
+    WriteData(alarmData[0]);
+    WriteData(alarmData[1]);
+
+    // GPIO_PORT_DATA = SCK_HI;
     GPIO_PORT_DATA = SCK_HI;
 
     sLocked = FALSE;
@@ -384,10 +389,10 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     return TRUE;
 }
 
-static int WriteCommand(u8 value)
+static void WriteCommand(u8 value)
 {
-    u8 i;
-    u8 temp;
+    u32 i;
+    u16 temp;
 
     for (i = 0; i < 8; i++)
     {
@@ -397,18 +402,12 @@ static int WriteCommand(u8 value)
         GPIO_PORT_DATA = (temp << 1) | CS_HI;
         GPIO_PORT_DATA = (temp << 1) | SCK_HI | CS_HI;
     }
-
-    // Nothing uses the returned value from this function,
-    // so the undefined behavior is harmless in the vanilla game.
-#ifdef UBFIX
-    return 0;
-#endif
 }
 
-static int WriteData(u8 value)
+static void WriteData(u8 value)
 {
-    u8 i;
-    u8 temp;
+    u32 i;
+    u16 temp;
 
     for (i = 0; i < 8; i++)
     {
@@ -418,17 +417,11 @@ static int WriteData(u8 value)
         GPIO_PORT_DATA = (temp << 1) | CS_HI;
         GPIO_PORT_DATA = (temp << 1) | SCK_HI | CS_HI;
     }
-
-    // Nothing uses the returned value from this function,
-    // so the undefined behavior is harmless in the vanilla game.
-#ifdef UBFIX
-    return 0;
-#endif
 }
 
 static u8 ReadData()
 {
-    u8 i;
+    u32 i;
     u8 temp;
     u8 value;
 
