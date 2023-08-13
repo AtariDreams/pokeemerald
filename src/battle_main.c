@@ -2647,7 +2647,7 @@ static void TryCorrectShedinjaLanguage(struct Pokemon *mon)
     }
 }
 
-u32 GetBattleWindowTemplatePixelWidth(u32 windowsType, u32 tableId)
+s32 GetBattleWindowTemplatePixelWidth(u32 windowsType, u32 tableId)
 {
     return gBattleWindowTemplates[windowsType][tableId].width * 8;
 }
