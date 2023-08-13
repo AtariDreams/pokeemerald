@@ -10,7 +10,6 @@ struct MonMarkingsMenu
     u8 markings; // bit flags
     s8 cursorPos;
     bool8 markingsArray[NUM_MON_MARKINGS];
-    u8 cursorBaseY;
     bool8 spriteSheetLoadRequired;
     struct Sprite *windowSprites[2]; // upper and lower halves of menu window
     struct Sprite *markingSprites[NUM_MON_MARKINGS];

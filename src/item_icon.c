@@ -7,8 +7,8 @@
 #include "constants/items.h"
 
 // EWRAM vars
-EWRAM_DATA u8 *gItemIconDecompressionBuffer = NULL;
-EWRAM_DATA u8 *gItemIcon4x4Buffer = NULL;
+EWRAM_DATA void *gItemIconDecompressionBuffer = NULL;
+EWRAM_DATA void *gItemIcon4x4Buffer = NULL;
 
 // const rom data
 #include "data/item_icon_table.h"
@@ -77,7 +77,7 @@ void FreeItemIconTemporaryBuffers(void)
 
 void CopyItemIconPicTo4x4Buffer(const void *src, void *dest)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < 3; i++)
         CpuCopy16(src + i * 96, dest + i * 128, 0x60);
