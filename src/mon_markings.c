@@ -347,7 +347,7 @@ void BufferMonMarkingsMenuTiles(void)
 
 void OpenMonMarkingsMenu(u8 markings, s16 x, s16 y)
 {
-    u16 i;
+    u32 i;
     sMenu->cursorPos = 0;
     sMenu->markings = markings;
     for (i = 0; i < NUM_MON_MARKINGS; i++)
@@ -357,13 +357,20 @@ void OpenMonMarkingsMenu(u8 markings, s16 x, s16 y)
 
 void FreeMonMarkingsMenu(void)
 {
-    u16 i;
+    u32 i;
 
-    for (i = 0; i < 2; i++)
-    {
-        FreeSpriteTilesByTag(sMenu->baseTileTag + i);
-        FreeSpritePaletteByTag(sMenu->basePaletteTag + i);
-    }
+    // for (i = 0; i < 2; i++)
+    // {
+    //     FreeSpriteTilesByTag(sMenu->baseTileTag + i);
+    //     FreeSpritePaletteByTag(sMenu->basePaletteTag + i);
+    // }
+    
+    FreeSpriteTilesByTag(sMenu->baseTileTag);
+    FreeSpritePaletteByTag(sMenu->basePaletteTag);
+
+    FreeSpriteTilesByTag(sMenu->baseTileTag + 1);
+    FreeSpritePaletteByTag(sMenu->basePaletteTag + 1);
+        
     for (i = 0; i < ARRAY_COUNT(sMenu->windowSprites); i++)
     {
         if (!sMenu->windowSprites[i])
@@ -392,7 +399,7 @@ void FreeMonMarkingsMenu(void)
 
 bool8 HandleMonMarkingsMenuInput(void)
 {
-    u16 i;
+    u32 i;
 
     if (JOY_NEW(DPAD_UP))
     {
@@ -561,7 +568,7 @@ static void SpriteCB_Marking(struct Sprite *sprite)
 
 static void SpriteCB_Cursor(struct Sprite *sprite)
 {
-    sprite->y = (16 * sMenu->cursorPos) + sprite->sCursorYOffset;
+    sprite->y = (sMenu->cursorPos * 16) + sprite->sCursorYOffset;
 }
 
 #undef sCursorYOffset
