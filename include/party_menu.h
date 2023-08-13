@@ -18,6 +18,7 @@ struct PartyMenu
     u16 bagItem;
     s16 data1;           // used variously as a moveId, counter, moveSlotId, or cursorPos
     s16 learnMoveState;  // data2, used only as a learn move state
+    s16 unused;
 };
 
 extern struct PartyMenu gPartyMenu;
@@ -63,7 +64,7 @@ u8 GetItemEffectType(u16 item);
 void CB2_PartyMenuFromStartMenu(void);
 void CB2_ChooseMonToGiveItem(void);
 void ChooseMonToGiveMailFromMailbox(void);
-void InitChooseHalfPartyForBattle(u8 unused);
+void InitChooseHalfPartyForBattle(void);
 void ClearSelectedPartyOrder(void);
 void ChooseMonForTradingBoard(u8 menuType, MainCallback callback);
 void ChooseMonForMoveTutor(void);
