@@ -53,7 +53,7 @@ static const u8 sTextColors[] = { TEXT_COLOR_WHITE, TEXT_COLOR_DARK_GRAY, TEXT_C
 
 static void CB2_SetUpPartiesAndStartBattle(void)
 {
-    s32 i;
+    u32 i;
     StartUnionRoomBattle(BATTLE_TYPE_LINK | BATTLE_TYPE_TRAINER);
     for (i = 0; i < UNION_ROOM_PARTY_SIZE; i++)
     {
