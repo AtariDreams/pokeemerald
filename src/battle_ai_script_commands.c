@@ -1303,11 +1303,6 @@ static void Cmd_count_usable_party_mons(void)
     else
         battlerId = gBattlerTarget;
 
-    if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
-        party = gPlayerParty;
-    else
-        party = gEnemyParty;
-
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
         u32 position;
@@ -1321,13 +1316,27 @@ static void Cmd_count_usable_party_mons(void)
         battlerOnField2 = gBattlerPartyIndexes[battlerId];
     }
 
-    for (i = 0; i < PARTY_SIZE; i++)
+    if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
     {
-        if (i == battlerOnField1 || i == battlerOnField2)
-            continue;
+        for (i = 0; i < gPlayerPartyCount; i++)
+        {
+            if (i == battlerOnField1 || i == battlerOnField2)
+                continue;
 
-        if (canPokeFight(&party[i]))
-            AI_THINKING_STRUCT->funcResult++;
+            if (canPokeFight(&gPlayerParty[i]))
+                AI_THINKING_STRUCT->funcResult++;
+        }
+    }
+    else
+    {
+        for (i = 0; i < gEnemyPartyCount; i++)
+        {
+            if (i == battlerOnField1 || i == battlerOnField2)
+                continue;
+
+            if (canPokeFight(&gEnemyParty[i]))
+                AI_THINKING_STRUCT->funcResult++;
+        }
     }
 
     gAIScriptPtr += 2;
@@ -1566,7 +1575,8 @@ static void Cmd_nop_33(void)
 static void Cmd_if_status_in_party(void)
 {
     struct Pokemon *party;
-    s32 i;
+    u32 i;
+    u32 status;
     u32 statusToCompareTo;
     u8 battlerId;
 
@@ -1580,20 +1590,36 @@ static void Cmd_if_status_in_party(void)
         break;
     }
 
-    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty : gEnemyParty;
-
     statusToCompareTo = T1_READ_32(gAIScriptPtr + 2);
 
-    for (i = 0; i < PARTY_SIZE; i++)
+    if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
     {
-        u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
-        u16 hp = GetMonData(&party[i], MON_DATA_HP);
-        u32 status = GetMonData(&party[i], MON_DATA_STATUS);
-
-        if (species != SPECIES_NONE && species != SPECIES_EGG && hp != 0 && status == statusToCompareTo)
+        for (i = 0; i < gPlayerPartyCount; i++)
         {
-            gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 6);
-            return;
+            if (!canPokeFight(&gPlayerParty[i]))
+                continue;
+            status = GetMonData(&gPlayerParty[i], MON_DATA_STATUS);
+            if (status == statusToCompareTo)
+            {
+                gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 6);
+                return;
+            }
+        }
+    }
+    else
+    {
+        for (i = 0; i < gEnemyPartyCount; i++)
+        {
+            if (!canPokeFight(&gEnemyParty[i]))
+                continue;
+
+            status = GetMonData(&gEnemyParty[i], MON_DATA_STATUS);
+
+            if (status == statusToCompareTo)
+            {
+                gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 6);
+                return;
+            }
         }
     }
 

@@ -570,7 +570,7 @@ static void CreateShedinja(u16 preEvoSpecies, struct Pokemon *mon)
         SetMonData(&gPlayerParty[gPlayerPartyCount], MON_DATA_MAIL, &data);
 
         CalculateMonStats(&gPlayerParty[gPlayerPartyCount]);
-        CalculatePlayerPartyCount();
+        gPlayerPartyCount++;
 
         GetSetPokedexFlag(SpeciesToNationalPokedexNum(gEvolutionTable[preEvoSpecies][1].targetSpecies), FLAG_SET_SEEN);
         GetSetPokedexFlag(SpeciesToNationalPokedexNum(gEvolutionTable[preEvoSpecies][1].targetSpecies), FLAG_SET_CAUGHT);
