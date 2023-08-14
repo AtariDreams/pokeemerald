@@ -822,7 +822,6 @@ static bool8 ShouldUseItem(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        
         if (canPokeFight(&party[i]))
         {
             validMons++;

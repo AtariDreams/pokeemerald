@@ -6377,7 +6377,7 @@ static void SetPlacedMonData(u8 boxId, u8 position)
 static void PurgeMonOrBoxMon(u8 boxId, u8 position)
 {
     if (boxId == TOTAL_BOXES_COUNT)
-        ZeroMonData(&gPlayerParty[position]);
+        RemoveMonFromParty(position);
     else
         ZeroBoxMonAt(boxId, position);
 }
@@ -6749,8 +6749,9 @@ s16 CompactPartySlots(void)
             retVal = i;
         }
     }
-    for (; last < PARTY_SIZE; last++)
-        ZeroMonData(&gPlayerParty[last]);
+    for (; last < PARTY_SIZE; last++) {
+        RemoveMonFromParty(last);
+    }
 
     return retVal;
 }

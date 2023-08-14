@@ -2173,18 +2173,28 @@ void ZeroMonData(struct Pokemon *mon)
     SetMonData(mon, MON_DATA_MAIL, &arg);
 }
 
+void RemoveMonFromParty(u32 index)
+{
+    if (index > PARTY_SIZE)
+        return;
+    ZeroMonData(&gPlayerParty[index]);
+    gPlayerPartyCount--;
+}
+
 void ZeroPlayerPartyMons(void)
 {
-    s32 i;
+    u32 i;
     for (i = 0; i < PARTY_SIZE; i++)
         ZeroMonData(&gPlayerParty[i]);
+    gPlayerPartyCount = 0;
 }
 
 void ZeroEnemyPartyMons(void)
 {
-    s32 i;
+    u32 i;
     for (i = 0; i < PARTY_SIZE; i++)
         ZeroMonData(&gEnemyParty[i]);
+    gEnemyPartyCount = 0;
 }
 
 void CreateMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
@@ -4190,23 +4200,16 @@ void CopyMon(void *dest, void *src, size_t size)
 
 u8 GiveMonToPlayer(struct Pokemon *mon)
 {
-    s32 i;
+    u32 i;
 
     SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2.playerName);
     SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2.playerGender);
     SetMonData(mon, MON_DATA_OT_ID, gSaveBlock2.playerTrainerId);
 
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
-            break;
-    }
-
-    if (i >= PARTY_SIZE)
+    if (gPlayerPartyCount >= PARTY_SIZE)
         return CopyMonToPC(mon);
 
-    CopyMon(&gPlayerParty[i], mon, sizeof(*mon));
-    gPlayerPartyCount = i + 1;
+    CopyMon(&gPlayerParty[gPlayerPartyCount++], mon, sizeof(*mon));
     return MON_GIVEN_TO_PARTY;
 }
 
@@ -4272,18 +4275,16 @@ u8 CalculateEnemyPartyCount(void)
 
 u8 GetMonsStateToDoubles(void)
 {
-    s32 aliveCount = 0;
-    s32 i;
+    u32 aliveCount = 0;
+    u32 i;
     CalculatePlayerPartyCount();
 
     if (gPlayerPartyCount == 1)
-        return gPlayerPartyCount; // PLAYER_HAS_ONE_MON
+        return PLAYER_HAS_ONE_MON; // PLAYER_HAS_ONE_MON
 
     for (i = 0; i < gPlayerPartyCount; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG, NULL) != SPECIES_EGG
-         && GetMonData(&gPlayerParty[i], MON_DATA_HP, NULL) != 0
-         && GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG, NULL) != SPECIES_NONE)
+        if (canPokeFight(&gPlayerParty[i]))
             aliveCount++;
     }
 
