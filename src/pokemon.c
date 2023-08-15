@@ -4397,7 +4397,7 @@ bool8 IsPokemonStorageFull(void)
 
 void GetSpeciesName(u8 *name, u16 species)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i <= POKEMON_NAME_LENGTH; i++)
     {
@@ -4407,7 +4407,7 @@ void GetSpeciesName(u8 *name, u16 species)
             name[i] = gSpeciesNames[species][i];
 
         if (name[i] == EOS)
-            break;
+            return;
     }
 
     name[i] = EOS;
