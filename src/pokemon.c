@@ -2790,10 +2790,9 @@ void CreateEnemyEventMon(void)
 
 #define CALC_STAT(base, iv, ev, statIndex, field)               \
 {                                                               \
-    u8 baseStat = gSpeciesInfo[species].base;                   \
-    s32 n = (((2 * baseStat + iv + ev / 4) * level) / 100) + 5; \
+    u16 n = ((2 * gSpeciesInfo[species].base + iv + ev / 4) * level / 100) + 5; \
     u8 nature = GetNature(mon);                                 \
-    n = ModifyStatByNature(nature, n, statIndex);               \
+    n = ModifyStatByNature(n, nature, statIndex);               \
     SetMonData(mon, field, &n);                                 \
 }
 
@@ -5507,56 +5506,56 @@ u16 SpeciesToCryId(u16 species)
     (destPixels) is an 8 bit pointer, so it addresses two pixels. Shifting by 4 accesses the 2nd
     of these pixels, so this is done every other time.
 */
-#define DRAW_SPINDA_SPOTS(personality, dest)                                    \
-{                                                                               \
-    u32 i;                                                                      \
-    for (i = 0; i < ARRAY_COUNT(gSpindaSpotGraphics); i++)                 \
-    {                                                                           \
-        u32 row;                                                                \
-        u8 x = gSpindaSpotGraphics[i].x + ((personality & 0x0F) - 8);           \
-        u8 y = gSpindaSpotGraphics[i].y + (((personality & 0xF0) >> 4) - 8);    \
-                                                                                \
-        for (row = 0; row < SPINDA_SPOT_HEIGHT; row++)                          \
-        {                                                                       \
-            u32 column;                                                         \
-            u32 spotPixelRow = gSpindaSpotGraphics[i].image[row];               \
-                                                                                \
-            for (column = x; column < x + SPINDA_SPOT_WIDTH; column++)          \
-            {                                                                   \
-                /* Get target pixels on Spinda's sprite */                      \
-                u8 *destPixels = dest + ((column / 8) * TILE_SIZE_4BPP) +       \
-                                        ((column % 8) / 2) +                    \
-                                             ((y / 8) * TILE_SIZE_4BPP * 8) +   \
-                                             ((y % 8) * 4);                     \
-                                                                                \
-                /* Is this pixel in the 16x16 spot image part of the spot? */   \
-                if (spotPixelRow & 1)                                           \
-                {                                                               \
-                    /* destPixels addressess two pixels, alternate which */     \
-                    /* of the two pixels is being considered for drawing */     \
-                    if (column & 1)                                             \
-                    {                                                           \
-                        /* Draw spot pixel if this is Spinda's body color */    \
-                        if ((*destPixels & 0xF0) >= 0x10 && (*destPixels & 0xF0) <= 0x30)\
-                            *destPixels += (SPOT_COLOR_ADJUSTMENT << 4);        \
-                    }                                                           \
-                    else                                                        \
-                    {                                                           \
-                        /* Draw spot pixel if this is Spinda's body color */    \
-                        if ((*destPixels & 0xF) >= 0x1 && (*destPixels & 0xF) <= 0x3)\
-                            *destPixels += SPOT_COLOR_ADJUSTMENT;               \
-                    }                                                           \
-                }                                                               \
-                                                                                \
-                spotPixelRow >>= 1;                                             \
-            }                                                                   \
-                                                                                \
-            y++;                                                                \
-        }                                                                       \
-                                                                                \
-        personality >>= 8;                                                      \
-    }                                                                           \
-}
+#define DRAW_SPINDA_SPOTS(personality, dest)                                                  \
+    {                                                                                         \
+        u32 i;                                                                                \
+        for (i = 0; i < ARRAY_COUNT(gSpindaSpotGraphics); i++)                                \
+        {                                                                                     \
+            u32 row;                                                                          \
+            u8 x = gSpindaSpotGraphics[i].x + ((personality & 0x0F) - 8);                     \
+            u8 y = gSpindaSpotGraphics[i].y + (((personality & 0xF0) >> 4) - 8);              \
+                                                                                              \
+            for (row = 0; row < SPINDA_SPOT_HEIGHT; row++)                                    \
+            {                                                                                 \
+                u32 column;                                                                   \
+                u32 spotPixelRow = gSpindaSpotGraphics[i].image[row];                         \
+                                                                                              \
+                for (column = x; column < x + SPINDA_SPOT_WIDTH; column++)                    \
+                {                                                                             \
+                    /* Get target pixels on Spinda's sprite */                                \
+                    u8 *destPixels = dest + ((column / 8) * TILE_SIZE_4BPP) +                 \
+                                     ((column % 8) / 2) +                                     \
+                                     ((y / 8) * TILE_SIZE_4BPP * 8) +                         \
+                                     ((y % 8) * 4);                                           \
+                                                                                              \
+                    /* Is this pixel in the 16x16 spot image part of the spot? */             \
+                    if (spotPixelRow & 1)                                                     \
+                    {                                                                         \
+                        /* destPixels addressess two pixels, alternate which */               \
+                        /* of the two pixels is being considered for drawing */               \
+                        if (column & 1)                                                       \
+                        {                                                                     \
+                            /* Draw spot pixel if this is Spinda's body color */              \
+                            if ((*destPixels & 0xF0) >= 0x10 && (*destPixels & 0xF0) <= 0x30) \
+                                *destPixels += (SPOT_COLOR_ADJUSTMENT << 4);                  \
+                        }                                                                     \
+                        else                                                                  \
+                        {                                                                     \
+                            /* Draw spot pixel if this is Spinda's body color */              \
+                            if ((*destPixels & 0xF) >= 0x1 && (*destPixels & 0xF) <= 0x3)     \
+                                *destPixels += SPOT_COLOR_ADJUSTMENT;                         \
+                        }                                                                     \
+                    }                                                                         \
+                                                                                              \
+                    spotPixelRow >>= 1;                                                       \
+                }                                                                             \
+                                                                                              \
+                y++;                                                                          \
+            }                                                                                 \
+                                                                                              \
+            personality >>= 8;                                                                \
+        }                                                                                     \
+    }
 
 // Same as DrawSpindaSpots but attempts to discern for itself whether or
 // not it's the front pic.
@@ -5638,7 +5637,7 @@ u8 GetTrainerEncounterMusicId(u16 trainerOpponentId)
         return TRAINER_ENCOUNTER_MUSIC(trainerOpponentId);
 }
 
-u16 ModifyStatByNature(u8 nature, u16 stat, u8 statIndex)
+u16 ModifyStatByNature(u16 stat, u8 nature, u32 statIndex)
 {
 // Because this is a u16 it will be unable to store the
 // result of the multiplication for any stat > 595 for a
@@ -5646,11 +5645,8 @@ u16 ModifyStatByNature(u8 nature, u16 stat, u8 statIndex)
 // Neither occur in the base game, but this can happen if
 // any Nature-affected base stat is increased to a value
 // above 248. The closest by default is Shuckle at 230.
-#ifdef BUGFIX
-    u32 retVal;
-#else
+
     u16 retVal;
-#endif
 
     // Don't modify HP, Accuracy, or Evasion by nature
     if (statIndex <= STAT_HP || statIndex > NUM_NATURE_STATS)
@@ -5659,12 +5655,12 @@ u16 ModifyStatByNature(u8 nature, u16 stat, u8 statIndex)
     switch (gNatureStatTable[nature][statIndex - 1])
     {
     case 1:
-        retVal = stat * 110;
-        retVal /= 100;
+        retVal = stat * 11;
+        retVal /= 10;
         break;
     case -1:
-        retVal = stat * 90;
-        retVal /= 100;
+        retVal = stat * 9;
+        retVal /= 10;
         break;
     default:
         retVal = stat;
