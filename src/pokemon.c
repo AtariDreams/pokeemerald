@@ -2149,10 +2149,7 @@ static const struct SpriteTemplate sSpriteTemplate_64x64 =
 
 void ZeroBoxMonData(struct BoxPokemon *boxMon)
 {
-    u8 *raw = (u8 *)boxMon;
-    u32 i;
-    for (i = 0; i < sizeof(struct BoxPokemon); i++)
-        raw[i] = 0;
+    memset(boxMon, 0, sizeof(struct BoxPokemon));
 }
 
 void ZeroMonData(struct Pokemon *mon)
@@ -5512,17 +5509,17 @@ u16 SpeciesToCryId(u16 species)
 */
 #define DRAW_SPINDA_SPOTS(personality, dest)                                    \
 {                                                                               \
-    s32 i;                                                                      \
-    for (i = 0; i < (s32)ARRAY_COUNT(gSpindaSpotGraphics); i++)                 \
+    u32 i;                                                                      \
+    for (i = 0; i < ARRAY_COUNT(gSpindaSpotGraphics); i++)                 \
     {                                                                           \
-        s32 row;                                                                \
+        u32 row;                                                                \
         u8 x = gSpindaSpotGraphics[i].x + ((personality & 0x0F) - 8);           \
         u8 y = gSpindaSpotGraphics[i].y + (((personality & 0xF0) >> 4) - 8);    \
                                                                                 \
         for (row = 0; row < SPINDA_SPOT_HEIGHT; row++)                          \
         {                                                                       \
-            s32 column;                                                         \
-            s32 spotPixelRow = gSpindaSpotGraphics[i].image[row];               \
+            u32 column;                                                         \
+            u32 spotPixelRow = gSpindaSpotGraphics[i].image[row];               \
                                                                                 \
             for (column = x; column < x + SPINDA_SPOT_WIDTH; column++)          \
             {                                                                   \
@@ -5540,15 +5537,13 @@ u16 SpeciesToCryId(u16 species)
                     if (column & 1)                                             \
                     {                                                           \
                         /* Draw spot pixel if this is Spinda's body color */    \
-                        if ((u8)((*destPixels & 0xF0) - (FIRST_SPOT_COLOR << 4))\
-                                 <= ((LAST_SPOT_COLOR - FIRST_SPOT_COLOR) << 4))\
+                        if ((*destPixels & 0xF0) >= 0x10 && (*destPixels & 0xF0) <= 0x30)\
                             *destPixels += (SPOT_COLOR_ADJUSTMENT << 4);        \
                     }                                                           \
                     else                                                        \
                     {                                                           \
                         /* Draw spot pixel if this is Spinda's body color */    \
-                        if ((u8)((*destPixels & 0xF) - FIRST_SPOT_COLOR)        \
-                                 <= (LAST_SPOT_COLOR - FIRST_SPOT_COLOR))       \
+                        if ((*destPixels & 0xF) >= 0x1 && (*destPixels & 0xF) <= 0x3)\
                             *destPixels += SPOT_COLOR_ADJUSTMENT;               \
                     }                                                           \
                 }                                                               \
@@ -5713,9 +5708,9 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
         u8 friendshipLevel = 0;
         s16 friendship = GetMonData(mon, MON_DATA_FRIENDSHIP, 0);
 
-        if (friendship > 99)
+        if (friendship >= 100)
             friendshipLevel++;
-        if (friendship > 199)
+        if (friendship >= 200)
             friendshipLevel++;
 
         if ((event != FRIENDSHIP_EVENT_WALKING || !(Random() & 1))
@@ -5723,7 +5718,7 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
         {
             s8 mod = sFriendshipEventModifiers[event][friendshipLevel];
             if (mod > 0 && holdEffect == HOLD_EFFECT_FRIENDSHIP_UP)
-                mod = (150 * mod) / 100;
+                mod = mod * 3/2;
             friendship += mod;
             if (mod > 0)
             {
@@ -5734,7 +5729,7 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
             }
             if (friendship < 0)
                 friendship = 0;
-            if (friendship > MAX_FRIENDSHIP)
+            else if (friendship > MAX_FRIENDSHIP)
                 friendship = MAX_FRIENDSHIP;
             SetMonData(mon, MON_DATA_FRIENDSHIP, &friendship);
         }
@@ -5744,11 +5739,13 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
 void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
 {
     u8 evs[NUM_STATS];
-    u16 evIncrease = 0;
+    s16 evIncrease = 0;
     u16 totalEVs = 0;
     u16 heldItem;
     u8 holdEffect;
-    int i, multiplier;
+    u32 i;
+
+    u8 multiplier;
 
     for (i = 0; i < NUM_STATS; i++)
     {
@@ -5804,14 +5801,12 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
         if (holdEffect == HOLD_EFFECT_MACHO_BRACE)
             evIncrease *= 2;
 
-        if (totalEVs + (s16)evIncrease > MAX_TOTAL_EVS)
-            evIncrease = ((s16)evIncrease + MAX_TOTAL_EVS) - (totalEVs + evIncrease);
+        if (totalEVs + evIncrease > MAX_TOTAL_EVS)
+            evIncrease -= ((totalEVs + evIncrease) - MAX_TOTAL_EVS);
 
-        if (evs[i] + (s16)evIncrease > MAX_PER_STAT_EVS)
+        if (evs[i] + evIncrease > MAX_PER_STAT_EVS)
         {
-            int val1 = (s16)evIncrease + MAX_PER_STAT_EVS;
-            int val2 = evs[i] + evIncrease;
-            evIncrease = val1 - val2;
+            evIncrease -= (evs[i] + evIncrease) - MAX_PER_STAT_EVS;
         }
 
         evs[i] += evIncrease;
@@ -5822,7 +5817,7 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
 
 u16 GetMonEVCount(struct Pokemon *mon)
 {
-    int i;
+    u32 i;
     u16 count = 0;
 
     for (i = 0; i < NUM_STATS; i++)
@@ -5883,7 +5878,7 @@ u8 CheckPartyPokerus(struct Pokemon *mon)
 
 void UpdatePartyPokerusTime(u16 days)
 {
-    int i;
+    u32 i;
     for (i = 0; i < PARTY_SIZE; i++)
     {
         if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, 0))
@@ -5909,7 +5904,7 @@ void PartySpreadPokerus(struct Pokemon *party)
 {
     if ((Random() % 3) == 0)
     {
-        int i;
+        u32 i;
         for (i = 0; i < PARTY_SIZE; i++)
         {
             if (GetMonData(&party[i], MON_DATA_SPECIES, 0))
@@ -6020,21 +6015,17 @@ u8 GetMoveRelearnerMoves(struct Pokemon *mon, u16 *moves)
     u8 numMoves = 0;
     u16 species = GetMonData(mon, MON_DATA_SPECIES, 0);
     u8 level = GetMonData(mon, MON_DATA_LEVEL, 0);
-    int i, j, k;
+    u32 i, j, k;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
         learnedMoves[i] = GetMonData(mon, MON_DATA_MOVE1 + i, 0);
 
     for (i = 0; i < MAX_LEVEL_UP_MOVES; i++)
     {
-        u16 moveLevel;
-
         if (gLevelUpLearnsets[species][i] == LEVEL_UP_END)
             break;
 
-        moveLevel = gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_LV;
-
-        if (moveLevel <= (level << 9))
+        if (gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_LV <= (level << 9))
         {
             for (j = 0; j < MAX_MON_MOVES && learnedMoves[j] != (gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_ID); j++)
                 ;
@@ -6056,7 +6047,7 @@ u8 GetMoveRelearnerMoves(struct Pokemon *mon, u16 *moves)
 u8 GetLevelUpMovesBySpecies(u16 species, u16 *moves)
 {
     u8 numMoves = 0;
-    int i;
+    u32 i;
 
     for (i = 0; i < MAX_LEVEL_UP_MOVES && gLevelUpLearnsets[species][i] != LEVEL_UP_END; i++)
          moves[numMoves++] = gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_ID;
@@ -6071,7 +6062,7 @@ u8 GetNumberOfRelearnableMoves(struct Pokemon *mon)
     u8 numMoves = 0;
     u16 species = GetMonData(mon, MON_DATA_SPECIES_OR_EGG, 0);
     u8 level = GetMonData(mon, MON_DATA_LEVEL, 0);
-    int i, j, k;
+    u32 i, j, k;
 
     if (species == SPECIES_EGG)
         return 0;
@@ -6081,14 +6072,10 @@ u8 GetNumberOfRelearnableMoves(struct Pokemon *mon)
 
     for (i = 0; i < MAX_LEVEL_UP_MOVES; i++)
     {
-        u16 moveLevel;
-
         if (gLevelUpLearnsets[species][i] == LEVEL_UP_END)
             break;
 
-        moveLevel = gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_LV;
-
-        if (moveLevel <= (level << 9))
+        if (gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_LV <= (level << 9))
         {
             for (j = 0; j < MAX_MON_MOVES && learnedMoves[j] != (gLevelUpLearnsets[species][i] & LEVEL_UP_MOVE_ID); j++)
                 ;
@@ -6132,7 +6119,7 @@ bool32 IsSpeciesInHoennDex(u16 species)
 
 void ClearBattleMonForms(void)
 {
-    int i;
+    u32 i;
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
         gBattleMonForms[i] = 0;
 }
@@ -6246,13 +6233,10 @@ const u32 *GetMonFrontSpritePal(struct Pokemon *mon)
 
 const u32 *GetMonSpritePalFromSpeciesAndPersonality(u16 species, u32 otId, u32 personality)
 {
-    u32 shinyValue;
-
     if (species > NUM_SPECIES)
         return gMonPaletteTable[SPECIES_NONE].data;
 
-    shinyValue = GET_SHINY_VALUE(otId, personality);
-    if (shinyValue < SHINY_ODDS)
+    if (GET_SHINY_VALUE(otId, personality) < SHINY_ODDS)
         return gMonShinyPaletteTable[species].data;
     else
         return gMonPaletteTable[species].data;
@@ -6279,7 +6263,7 @@ const struct CompressedSpritePalette *GetMonSpritePalStructFromOtIdPersonality(u
 
 bool32 IsHMMove2(u16 move)
 {
-    int i = 0;
+    u32 i = 0;
     while (sHMMoves[i] != HM_MOVES_END)
     {
         if (sHMMoves[i++] == move)
@@ -6308,10 +6292,8 @@ s8 GetFlavorRelationByPersonality(u32 personality, u8 flavor)
 bool8 IsTradedMon(struct Pokemon *mon)
 {
     u8 otName[PLAYER_NAME_LENGTH + 1];
-    u32 otId;
     GetMonData(mon, MON_DATA_OT_NAME, otName);
-    otId = GetMonData(mon, MON_DATA_OT_ID, 0);
-    return IsOtherTrainer(otId, otName);
+    return IsOtherTrainer(GetMonData(mon, MON_DATA_OT_ID, 0), otName);
 }
 
 bool8 IsOtherTrainer(u32 otId, u8 *otName)
@@ -6322,7 +6304,7 @@ bool8 IsOtherTrainer(u32 otId, u8 *otName)
       | (gSaveBlock2.playerTrainerId[2] << 16)
       | (gSaveBlock2.playerTrainerId[3] << 24)))
     {
-        int i;
+        u32 i;
         for (i = 0; otName[i] != EOS; i++)
             if (otName[i] != gSaveBlock2.playerName[i])
                 return TRUE;
@@ -6339,15 +6321,13 @@ void MonRestorePP(struct Pokemon *mon)
 
 void BoxMonRestorePP(struct BoxPokemon *boxMon)
 {
-    int i;
+    u8 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
         if (GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0))
         {
-            u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
-            u16 bonus = GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0);
-            u8 pp = CalculatePPWithBonus(move, bonus, i);
+            u8 pp = CalculatePPWithBonus(GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0), GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0), i);
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
     }
@@ -6372,10 +6352,10 @@ void SetMonPreventsSwitchingString(void)
     BattleStringExpandPlaceholders(gText_PkmnsXPreventsSwitching, gStringVar4);
 }
 
-static s32 GetWildMonTableIdInAlteringCave(u16 species)
+static u32 GetWildMonTableIdInAlteringCave(u16 species)
 {
-    s32 i;
-    for (i = 0; i < (s32) ARRAY_COUNT(sAlteringCaveWildMonHeldItems); i++)
+    u32 i;
+    for (i = 0; i < ARRAY_COUNT(sAlteringCaveWildMonHeldItems); i++)
         if (sAlteringCaveWildMonHeldItems[i].species == species)
             return i;
     return 0;
@@ -6385,10 +6365,10 @@ void SetWildMonHeldItem(void)
 {
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_TRAINER | BATTLE_TYPE_PYRAMID | BATTLE_TYPE_PIKE)))
     {
-        u16 rnd = Random() % 100;
+        u32 rnd = Random() % 100;
         u16 species = GetMonData(&gEnemyParty[0], MON_DATA_SPECIES, 0);
-        u16 chanceNoItem = 45;
-        u16 chanceNotRare = 95;
+        u8 chanceNoItem = 45;
+        u8 chanceNotRare = 95;
         if (!GetMonData(&gPlayerParty[0], MON_DATA_SANITY_IS_EGG, 0)
             && GetMonAbility(&gPlayerParty[0]) == ABILITY_COMPOUND_EYES)
         {
@@ -6397,7 +6377,7 @@ void SetWildMonHeldItem(void)
         }
         if (gMapHeader.mapLayoutId == LAYOUT_ALTERING_CAVE)
         {
-            s32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
+            u32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
             if (alteringCaveId != 0)
             {
                 // In active Altering Cave, use special item list
@@ -6422,16 +6402,15 @@ void SetWildMonHeldItem(void)
             {
                 // Both held items are the same, 100% chance to hold item
                 SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
+                return;
             }
+
+            if (rnd < chanceNoItem)
+                return;
+            if (rnd < chanceNotRare)
+                SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
             else
-            {
-                if (rnd < chanceNoItem)
-                    return;
-                if (rnd < chanceNotRare)
-                    SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
-                else
-                    SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemRare);
-            }
+                SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemRare);
         }
     }
 }
@@ -6602,8 +6581,8 @@ void BattleAnimateBackSprite(struct Sprite *sprite, u16 species)
 // "rightSide" from that team's perspective, i.e. B_POSITION_*_RIGHT
 static u8 UNUSED GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
 {
-    s32 i;
-    s32 battlerId = 0;
+    u8 i;
+    u8 battlerId = 0;
     u8 multiplayerId = GetMultiplayerId();
     switch (gLinkPlayers[multiplayerId].id)
     {
@@ -6618,7 +6597,7 @@ static u8 UNUSED GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
     }
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
-        if (gLinkPlayers[i].id == (s16)battlerId)
+        if (gLinkPlayers[i].id == battlerId)
             break;
     }
     return i;
@@ -6626,8 +6605,7 @@ static u8 UNUSED GetOwnOpposingLinkMultiBattlerId(bool8 rightSide)
 
 u8 GetOpposingLinkMultiBattlerId(bool8 rightSide, u8 multiplayerId)
 {
-    s32 i;
-    s32 battlerId = 0;
+    u8 i, battlerId;
     switch (gLinkPlayers[multiplayerId].id)
     {
     case 0:
@@ -6641,7 +6619,7 @@ u8 GetOpposingLinkMultiBattlerId(bool8 rightSide, u8 multiplayerId)
     }
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
     {
-        if (gLinkPlayers[i].id == (s16)battlerId)
+        if (gLinkPlayers[i].id == battlerId)
             break;
     }
     return i;
@@ -6654,10 +6632,10 @@ u16 FacilityClassToPicIndex(u16 facilityClass)
 
 u16 PlayerGenderToFrontTrainerPicId(u8 playerGender)
 {
-    if (playerGender != MALE)
-        return FacilityClassToPicIndex(FACILITY_CLASS_MAY);
-    else
+    if (playerGender == MALE)
         return FacilityClassToPicIndex(FACILITY_CLASS_BRENDAN);
+    else
+        return FacilityClassToPicIndex(FACILITY_CLASS_MAY);
 }
 
 void HandleSetPokedexFlag(u16 nationalNum, u8 caseId, u32 personality)
