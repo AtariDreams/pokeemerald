@@ -2320,7 +2320,7 @@ void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level,
 {
     u32 personality;
 
-    if ((u8)(unownLetter - 1) < NUM_UNOWN_FORMS)
+    if (unownLetter && unownLetter <= NUM_UNOWN_FORMS)
     {
         u16 actualLetter;
 
@@ -2705,7 +2705,6 @@ static u16 GetDeoxysStat(struct Pokemon *mon, s32 statId)
 {
     s32 ivVal, evVal;
     u16 statValue = 0;
-    u8 nature;
 
     if (gBattleTypeFlags & BATTLE_TYPE_LINK_IN_BATTLE || GetMonData(mon, MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS)
         return 0;
@@ -2713,8 +2712,7 @@ static u16 GetDeoxysStat(struct Pokemon *mon, s32 statId)
     ivVal = GetMonData(mon, MON_DATA_HP_IV + statId, NULL);
     evVal = GetMonData(mon, MON_DATA_HP_EV + statId, NULL);
     statValue = ((sDeoxysBaseStats[statId] * 2 + ivVal + evVal / 4) * mon->level) / 100 + 5;
-    nature = GetNature(mon);
-    statValue = ModifyStatByNature(nature, statValue, (u8)statId);
+    statValue = ModifyStatByNature(GetNature(mon), statValue, (u8)statId);
     return statValue;
 }
 
@@ -2802,6 +2800,20 @@ void CreateEnemyEventMon(void)
     SetMonData(mon, field, &n);                                 \
 }
 
+static inline u16 CalculateMaxHP(u16 species, u8 level, u16 rnd, u16 exp )
+{
+    u16 newMaxHP;
+    if (species == SPECIES_SHEDINJA)
+    {
+        newMaxHP = 1;
+    }
+    else
+    {
+        newMaxHP = (2 *  gSpeciesInfo[species].baseHP + rnd + exp/4) * level / 100 + level + 10;
+    }
+    return newMaxHP;
+}
+
 void CalculateMonStats(struct Pokemon *mon)
 {
     s32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
@@ -2820,19 +2832,11 @@ void CalculateMonStats(struct Pokemon *mon)
     s32 spDefenseEV = GetMonData(mon, MON_DATA_SPDEF_EV, NULL);
     u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
     s32 level = GetLevelFromMonExp(mon);
-    s32 newMaxHP;
+    u16 newMaxHP;
 
     SetMonData(mon, MON_DATA_LEVEL, &level);
 
-    if (species == SPECIES_SHEDINJA)
-    {
-        newMaxHP = 1;
-    }
-    else
-    {
-        s32 n = 2 * gSpeciesInfo[species].baseHP + hpIV;
-        newMaxHP = (((n + hpEV / 4) * level) / 100) + level + 10;
-    }
+    newMaxHP = CalculateMaxHP(species, level, hpIV, hpEV);
 
     gBattleScripting.levelUpHP = newMaxHP - oldMaxHP;
     if (gBattleScripting.levelUpHP == 0)
@@ -2848,16 +2852,17 @@ void CalculateMonStats(struct Pokemon *mon)
 
     if (species == SPECIES_SHEDINJA)
     {
-        if (currentHP != 0 || oldMaxHP == 0)
-            currentHP = 1;
-        else
+        if (currentHP == 0 && oldMaxHP != 0)
             return;
+        currentHP = 1;
     }
     else
     {
-        if (currentHP == 0 && oldMaxHP == 0)
+        if (currentHP == 0 && oldMaxHP != 0)
+            return;
+        if (currentHP == 0)
             currentHP = newMaxHP;
-        else if (currentHP != 0) {
+        else {
             // BUG: currentHP is unintentionally able to become <= 0 after the instruction below. This causes the pomeg berry glitch.
             currentHP += newMaxHP - oldMaxHP;
             #ifdef BUGFIX
@@ -2865,8 +2870,6 @@ void CalculateMonStats(struct Pokemon *mon)
                 currentHP = 1;
             #endif
         }
-        else
-            return;
     }
 
     SetMonData(mon, MON_DATA_HP, &currentHP);
