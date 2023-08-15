@@ -2887,7 +2887,7 @@ u8 GetLevelFromMonExp(struct Pokemon *mon)
 {
     u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
     u32 exp = GetMonData(mon, MON_DATA_EXP, NULL);
-    s32 level = 1;
+    u32 level = 1;
 
     while (level <= MAX_LEVEL && gExperienceTables[gSpeciesInfo[species].growthRate][level] <= exp)
         level++;
@@ -2899,7 +2899,7 @@ u8 GetLevelFromBoxMonExp(struct BoxPokemon *boxMon)
 {
     u16 species = GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL);
     u32 exp = GetBoxMonData(boxMon, MON_DATA_EXP, NULL);
-    s32 level = 1;
+    u32 level = 1;
 
     while (level <= MAX_LEVEL && gExperienceTables[gSpeciesInfo[species].growthRate][level] <= exp)
         level++;
@@ -2914,7 +2914,7 @@ u16 GiveMoveToMon(struct Pokemon *mon, u16 move)
 
 static u16 GiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move)
 {
-    s32 i;
+    u32 i;
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
         u16 existingMove = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, NULL);
@@ -2932,7 +2932,7 @@ static u16 GiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move)
 
 u16 GiveMoveToBattleMon(struct BattlePokemon *mon, u16 move)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
