@@ -6858,16 +6858,15 @@ void DestroyMonSpritesGfxManager(u8 managerId)
     if (gfx->active != GFX_MANAGER_ACTIVE)
     {
         memset(gfx, 0, sizeof(*gfx));
+        return;
     }
-    else
-    {
-        TRY_FREE_AND_SET_NULL(gfx->frameImages);
-        TRY_FREE_AND_SET_NULL(gfx->templates);
-        TRY_FREE_AND_SET_NULL(gfx->spritePointers);
-        TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
-        memset(gfx, 0, sizeof(*gfx));
-        Free(gfx);
-    }
+
+    TRY_FREE_AND_SET_NULL(gfx->frameImages);
+    TRY_FREE_AND_SET_NULL(gfx->templates);
+    TRY_FREE_AND_SET_NULL(gfx->spritePointers);
+    TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
+    memset(gfx, 0, sizeof(*gfx));
+    Free(gfx);
 }
 
 u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
@@ -6877,11 +6876,9 @@ u8 *MonSpritesGfxManager_GetSpritePtr(u8 managerId, u8 spriteNum)
     {
         return NULL;
     }
-    else
-    {
-        if (spriteNum >= gfx->numSprites)
-            spriteNum = 0;
 
-        return gfx->spritePointers[spriteNum];
-    }
+    if (spriteNum >= gfx->numSprites)
+        spriteNum = 0;
+
+    return gfx->spritePointers[spriteNum];
 }
