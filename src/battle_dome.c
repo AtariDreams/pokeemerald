@@ -2507,7 +2507,7 @@ static void InitDomeTrainers(void)
 {                                                                                           \
     u8 baseStat = gSpeciesInfo[species].base;                                                 \
     stats[statIndex] = (((2 * baseStat + ivs + evs[statIndex] / 4) * level) / 100) + 5;     \
-    stats[statIndex] = (u8) ModifyStatByNature(nature, stats[statIndex], statIndex);        \
+    stats[statIndex] = (u8) ModifyStatByNature(stats[statIndex], nature, statIndex);        \
 }
 
 static void CalcDomeMonStats(u16 species, int level, int ivs, u8 evBits, u8 nature, int *stats)
