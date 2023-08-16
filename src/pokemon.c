@@ -5655,12 +5655,10 @@ u16 ModifyStatByNature(u16 stat, u8 nature, u32 statIndex)
     switch (gNatureStatTable[nature][statIndex - 1])
     {
     case 1:
-        retVal = stat * 11;
-        retVal /= 10;
+        retVal = stat * 11/10;
         break;
     case -1:
-        retVal = stat * 9;
-        retVal /= 10;
+        retVal = stat * 9/10;
         break;
     default:
         retVal = stat;
