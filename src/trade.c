@@ -2151,9 +2151,9 @@ static void QueueAction(u16 delay, u8 actionId)
 static u32 GetNumQueuedActions(void)
 {
     u32 numActions = 0;
-    int i;
+    u32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTradeMenu->queuedActions); i++)
+    for (i = 0; i < ARRAY_COUNT(sTradeMenu->queuedActions); i++)
     {
         numActions += sTradeMenu->queuedActions[i].active;
     }
