@@ -892,7 +892,7 @@ bool8 ScrCmd_getplayerxy(struct ScriptContext *ctx)
 
 bool8 ScrCmd_getpartysize(struct ScriptContext *ctx)
 {
-    gSpecialVar_Result = CalculatePlayerPartyCount();
+    gSpecialVar_Result = gPlayerPartyCount;
     return FALSE;
 }
 

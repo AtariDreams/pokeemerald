@@ -4238,8 +4238,7 @@ static u8 SendMonToPC(struct Pokemon *mon)
             }
         }
 
-        boxNo++;
-        if (boxNo == TOTAL_BOXES_COUNT)
+        if (++boxNo == TOTAL_BOXES_COUNT)
             boxNo = 0;
     } while (boxNo != StorageGetCurrentBox());
 
