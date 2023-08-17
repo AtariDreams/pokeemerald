@@ -554,8 +554,8 @@ bool8 StandardWildEncounter(u16 curMetatileBehavior, u16 prevMetatileBehavior)
     u16 headerId;
     struct Roamer *roamer;
 
-    if (sWildEncountersDisabled == TRUE)
-        return FALSE;
+    //if (sWildEncountersDisabled == TRUE)
+    //    return FALSE;
 
     headerId = GetCurrentMapWildMonHeaderId();
     if (headerId == HEADER_NONE)
