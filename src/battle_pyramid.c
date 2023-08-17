@@ -87,7 +87,7 @@ static void BattlePyramidStartMenu(void);
 static void RestorePyramidPlayerParty(void);
 static void InitPyramidBagItems(u8);
 static u8 GetPyramidFloorTemplateId(void);
-static u8 GetPostBattleDirectionHintTextIndex(int *, u8, u8);
+static u8 GetPostBattleDirectionHintTextIndex(u8 *, u8, u8);
 static void Task_SetPyramidFloorPalette(u8);
 static void MarkPyramidTrainerAsBattled(u16);
 static void GetPyramidFloorLayoutOffsets(u8 *);
@@ -963,9 +963,9 @@ static void GiveBattlePyramidPrize(void)
 
 static void SeedPyramidFloor(void)
 {
-    int i;
+    u32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2.frontier.pyramidRandoms); i++)
+    for (i = 0; i < ARRAY_COUNT(gSaveBlock2.frontier.pyramidRandoms); i++)
         gSaveBlock2.frontier.pyramidRandoms[i] = Random();
 
     gSaveBlock2.frontier.pyramidTrainerFlags = 0;
@@ -973,7 +973,7 @@ static void SeedPyramidFloor(void)
 
 static void SetPickupItem(void)
 {
-    int i;
+    u32 i;
     int itemIndex;
     int rand;
     u8 id;
@@ -985,7 +985,7 @@ static void SetPickupItem(void)
         round = TOTAL_PYRAMID_ROUNDS - 1;
 
     id = GetPyramidFloorTemplateId();
-    itemIndex = (gSpecialVar_LastTalked - sPyramidFloorTemplates[id].numTrainers) - 1;
+    itemIndex = gSpecialVar_LastTalked - sPyramidFloorTemplates[id].numTrainers - 1;
     rand = gSaveBlock2.frontier.pyramidRandoms[itemIndex / 2];
     SeedRng2(rand);
 
@@ -1010,9 +1010,9 @@ static void SetPickupItem(void)
 static void HidePyramidItem(void)
 {
     struct ObjectEventTemplate *events = gSaveBlock1.objectEventTemplates;
-    int i = 0;
+    u32 i = 0;
 
-    for (;;)
+    do
     {
         if (events[i].localId == gSpecialVar_LastTalked)
         {
@@ -1023,9 +1023,7 @@ static void HidePyramidItem(void)
             break;
         }
         i++;
-        if (events[i].localId == 0)
-            break;
-    }
+    } while (events[i].localId);
 }
 
 static void SetPyramidFacilityTrainers(void)
@@ -1035,11 +1033,11 @@ static void SetPyramidFacilityTrainers(void)
 
 static void ShowPostBattleHintText(void)
 {
-    int i;
-    int hintType;
+    u32 i;
+    u8 hintType;
     u8 id;
-    int textGroup = 0;
-    int textIndex = 0;
+    u32 textGroup = 0;
+    u32 textIndex = 0;
     struct ObjectEventTemplate *events = gSaveBlock1.objectEventTemplates;
     u16 trainerId = LocalIdToPyramidTrainerId(gObjectEvents[gSelectedObjectEvent].localId);
 
@@ -1054,7 +1052,7 @@ static void ShowPostBattleHintText(void)
 
     hintType = sHintTextTypes[gObjectEvents[gSelectedObjectEvent].localId - 1];
     i = 0;
-    while (!i)
+    do
     {
         switch (hintType)
         {
@@ -1073,7 +1071,7 @@ static void ShowPostBattleHintText(void)
         case HINT_REMAINING_TRAINERS:
             id = GetPyramidFloorTemplateId();
             textIndex = sPyramidFloorTemplates[id].numTrainers;
-            for (i = 0; i < MAX_PYRAMID_TRAINERS; i++)
+            for (i = 0; i < MAX_PYRAMID_TRAINERS && textIndex > 0; i++)
             {
                 if (gBitTable[i] & gSaveBlock2.frontier.pyramidTrainerFlags)
                     textIndex--;
@@ -1099,7 +1097,7 @@ static void ShowPostBattleHintText(void)
             GetPostBattleDirectionHintTextIndex(&hintType, 24, HINT_REMAINING_ITEMS);
             break;
         }
-    }
+    } while (i == 0);
     ShowFieldMessage(sPostBattleTexts[textGroup][hintType][textIndex]);
 }
 
@@ -1165,7 +1163,7 @@ static void UpdatePyramidLightRadius(void)
 
 static void ClearPyramidPartyHeldItems(void)
 {
-    int i, j;
+    u32 i, j;
     u16 item = 0;
 
     for (i = 0; i < PARTY_SIZE; i++)
@@ -1230,7 +1228,7 @@ static void RestorePyramidPlayerParty(void)
         gSaveBlock2.frontier.selectedPartyMons[i] = gSelectedOrderFromParty[i];
 }
 
-static u8 GetPostBattleDirectionHintTextIndex(int *hintType, u8 minDistanceForExitHint, u8 defaultHintType)
+static u8 GetPostBattleDirectionHintTextIndex(u8 *hintType, u8 minDistanceForExitHint, u8 defaultHintType)
 {
     int x, y;
     u8 textIndex = 0;
@@ -1288,7 +1286,10 @@ static u8 GetPostBattleDirectionHintTextIndex(int *hintType, u8 minDistanceForEx
                     }
                     else
                     {
-                        textIndex = (~(x + y) >= 0) ? 0 : 2;
+                        if (x + y >= 0)
+                            textIndex = 2;
+                        else
+                            textIndex = 0;
                     }
                     *hintType = HINT_EXIT_DIRECTION;
                 }
@@ -1326,7 +1327,7 @@ void MarkApproachingPyramidTrainersAsBattled(void)
 
 static void MarkPyramidTrainerAsBattled(u16 trainerId)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < MAX_PYRAMID_TRAINERS; i++)
     {
@@ -1469,7 +1470,7 @@ void CopyPyramidTrainerLoseSpeech(u16 trainerId)
 
 u8 GetTrainerEncounterMusicIdInBattlePyramid(u16 trainerId)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sTrainerClassEncounterMusic); i++)
     {
@@ -1620,7 +1621,7 @@ void LoadBattlePyramidObjectEventTemplates(void)
 
 void LoadBattlePyramidFloorObjectEventScripts(void)
 {
-    int i;
+    u32 i;
     struct ObjectEventTemplate *events = gSaveBlock1.objectEventTemplates;
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
