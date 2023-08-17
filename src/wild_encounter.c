@@ -503,7 +503,7 @@ static bool8 WildEncounterCheck(u32 encounterRate, bool8 ignoreAbility)
 {
     encounterRate *= 16;
     if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_MACH_BIKE | PLAYER_AVATAR_FLAG_ACRO_BIKE))
-        encounterRate = encounterRate * 80 / 100;
+        encounterRate = encounterRate * 4 / 5;
     ApplyFluteEncounterRateMod(&encounterRate);
     ApplyCleanseTagEncounterRateMod(&encounterRate);
     if (!ignoreAbility && !GetMonData(&gPlayerParty[0], MON_DATA_SANITY_IS_EGG))
@@ -532,7 +532,7 @@ static bool8 WildEncounterCheck(u32 encounterRate, bool8 ignoreAbility)
 // skips the wild encounter check entirely.
 static bool8 AllowWildCheckOnNewMetatile(void)
 {
-    if (Random() % 100 >= 60)
+    if (Random() % 5 >= 3)
         return FALSE;
     else
         return TRUE;
