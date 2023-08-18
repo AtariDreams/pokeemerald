@@ -1649,7 +1649,7 @@ static void CheckPutFrontierTVShowOnAir(void)
 
 static void Script_GetFrontierBrainStatus(void)
 {
-    VarGet(VAR_FRONTIER_FACILITY); // Unused return value.
+    /// VarGet(VAR_FRONTIER_FACILITY); // Unused return value.
     gSpecialVar_Result = GetFrontierBrainStatus();
 }
 
