@@ -3717,7 +3717,7 @@ static u8 UpdateAppealHearts(s16 startAppeal, s16 appealDelta, u8 contestant)
     taskId = CreateTask(Task_UpdateAppealHearts, 20);
     startHearts = GetNumHeartsFromAppealPoints(startAppeal);
     heartsDelta = GetNumHeartsFromAppealPoints(startAppeal + appealDelta) - startHearts;
-    GetAppealHeartTileOffset(contestant);  // unused return value
+    /// GetAppealHeartTileOffset(contestant);  // unused return value
     gTasks[taskId].tNumHearts = abs(startHearts);
     gTasks[taskId].tHeartsDelta = heartsDelta;
     if (startHearts > 0 || (startHearts == 0 && heartsDelta > 0))
