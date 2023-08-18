@@ -4423,7 +4423,7 @@ static void CB2_TryLinkTradeEvolution(void)
 static void HandleLinkDataReceive(void)
 {
     u8 recvStatus;
-    TradeGetMultiplayerId(); // no effect call, ret val ignored
+    // TradeGetMultiplayerId(); // no effect call, ret val ignored
     recvStatus = GetBlockReceivedStatus();
     if (recvStatus & (1 << 0))
     {
