@@ -1830,9 +1830,9 @@ u32 GetCurrentFacilityWinStreak(void)
 
 void ResetFrontierTrainerIds(void)
 {
-    s32 i;
+    u32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock2.frontier.trainerIds); i++)
+    for (i = 0; i < ARRAY_COUNT(gSaveBlock2.frontier.trainerIds); i++)
         gSaveBlock2.frontier.trainerIds[i] = 0xFFFF;
 }
 
