@@ -1288,7 +1288,7 @@ static void Task_UpdateLvlInHealthbox(u8 taskId)
     {
         u8 monIndex = gTasks[taskId].tExpTask_monId;
 
-        GetMonData(&gPlayerParty[monIndex], MON_DATA_LEVEL);  // Unused return value.
+        /// GetMonData(&gPlayerParty[monIndex], MON_DATA_LEVEL);  // Unused return value.
 
         if (IsDoubleBattle() == TRUE && monIndex == gBattlerPartyIndexes[BATTLE_PARTNER(battlerId)])
             UpdateHealthboxAttribute(gHealthboxSpriteIds[BATTLE_PARTNER(battlerId)], &gPlayerParty[monIndex], HEALTHBOX_ALL);
@@ -1305,7 +1305,7 @@ static void DestroyExpTaskAndCompleteOnInactiveTextPrinter(u8 taskId)
     u8 battlerId;
 
     monIndex = gTasks[taskId].tExpTask_monId;
-    GetMonData(&gPlayerParty[monIndex], MON_DATA_LEVEL);  // Unused return value.
+    /// GetMonData(&gPlayerParty[monIndex], MON_DATA_LEVEL);  // Unused return value.
     battlerId = gTasks[taskId].tExpTask_battler;
     gBattlerControllerFuncs[battlerId] = CompleteOnInactiveTextPrinter;
     DestroyTask(taskId);
@@ -2737,7 +2737,7 @@ static void PlayerHandleExpUpdate(void)
         u8 taskId;
 
         LoadBattleBarGfx(1);
-        GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES);  // Unused return value.
+       /// GetMonData(&gPlayerParty[monId], MON_DATA_SPECIES);  // Unused return value.
         expPointsToGive = T1_READ_16(&gBattleBufferA[gActiveBattler][2]);
         taskId = CreateTask(Task_GiveExpToMon, 10);
         gTasks[taskId].tExpTask_monId = monId;
