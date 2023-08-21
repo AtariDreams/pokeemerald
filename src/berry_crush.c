@@ -1187,7 +1187,7 @@ static s32 ShowGameDisplay(void)
         ResetTempTileDataBuffers();
         break;
     case 1:
-        CpuFill16(0, (void *)OAM, OAM_SIZE);
+        CpuFastFill(0, (void *)OAM, OAM_SIZE);
         gReservedSpritePaletteCount = 0;
         DigitObjUtil_Init(3);
         break;
