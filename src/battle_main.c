@@ -2324,7 +2324,7 @@ static void EndLinkBattleInSteps(void)
         }
         break;
     case 3:
-        CpuFill32(0, (void *)VRAM, VRAM_SIZE);
+        CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
 
         for (i = 0; i < 2; i++)
             LoadChosenBattleElement(i);
@@ -2407,8 +2407,6 @@ u32 GetBattleBgTemplateData(u8 arrayId, u8 caseId)
 
 static void CB2_InitAskRecordBattle(void)
 {
-    s32 i;
-
     SetHBlankCallback(NULL);
     SetVBlankCallback(NULL);
     CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
@@ -2425,9 +2423,8 @@ static void CB2_InitAskRecordBattle(void)
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
     LoadBattleMenuWindowGfx();
 
-    for (i = 0; i < 2; i++)
-        LoadChosenBattleElement(i);
-
+    LoadChosenBattleElement(0);
+    LoadChosenBattleElement(1);
     ResetSpriteData();
     ResetTasks();
     FreeAllSpritePalettes();
