@@ -475,7 +475,7 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
         {
             if (data->playerCount == 1)
                 data->state = LL_STATE_SHUTDOWN_AND_FAIL;
-            else if (GROUP_MIN2(sPlayerActivityGroupSize) != 0)
+            else if (GROUP_MIN(sPlayerActivityGroupSize) != 0)
                 data->state = LL_STATE_CANCEL_WITH_MSG;
             else
                 data->state = LL_STATE_CANCEL_PROMPT;
@@ -565,7 +565,7 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
                 data->playerCount++;
                 if (data->playerCount == GROUP_MAX(sPlayerActivityGroupSize))
                 {
-                    if (GROUP_MIN2(sPlayerActivityGroupSize) != 0 || data->playerCount == RFU_CHILD_MAX)
+                    if (GROUP_MIN(sPlayerActivityGroupSize) != 0 || data->playerCount == RFU_CHILD_MAX)
                     {
                         data->state = LL_STATE_MEMBERS_OK_PROMPT;
                     }
@@ -622,7 +622,7 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
             break;
         case 1: // NO
         case MENU_B_PRESSED:
-            if (GROUP_MIN2(sPlayerActivityGroupSize) != 0)
+            if (GROUP_MIN(sPlayerActivityGroupSize) != 0)
                 data->state = LL_STATE_CANCEL_WITH_MSG;
             else
                 data->state = LL_STATE_CANCEL_PROMPT;
@@ -641,7 +641,7 @@ static void Task_TryBecomeLinkLeader(u8 taskId)
             break;
         case 1: // NO
         case MENU_B_PRESSED:
-            if (GROUP_MIN2(sPlayerActivityGroupSize) != 0)
+            if (GROUP_MIN(sPlayerActivityGroupSize) != 0)
                 data->state = LL_STATE_MEMBERS_OK_PROMPT;
             else if (data->playerCount == GROUP_MAX(sPlayerActivityGroupSize))
                 data->state = LL_STATE_MEMBERS_OK_PROMPT;
