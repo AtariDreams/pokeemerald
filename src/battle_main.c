@@ -61,7 +61,6 @@
 #include "constants/trainers.h"
 #include "cable_club.h"
 
-extern const struct BgTemplate gBattleBgTemplates[];
 extern const struct WindowTemplate *const gBattleWindowTemplates[];
 
 static void CB2_InitBattleInternal(void);
@@ -736,7 +735,7 @@ static void CB2_InitBattleInternal(void)
 static void BufferPartyVsScreenHealth_AtStart(void)
 {
     u16 flags = 0;
-    s32 i;
+    u32 i;
 
     BUFFER_PARTY_VS_SCREEN_STATUS(gPlayerParty, flags, i);
     gBattleStruct->multiBuffer.linkBattlerHeader.vsScreenHealthFlagsLo = flags;
@@ -746,7 +745,7 @@ static void BufferPartyVsScreenHealth_AtStart(void)
 
 static void SetPlayerBerryDataInBattleStruct(void)
 {
-    s32 i;
+    u32 i;
     struct BattleStruct *battleStruct = gBattleStruct;
     struct BattleEnigmaBerry *battleBerry = &battleStruct->multiBuffer.linkBattlerHeader.battleEnigmaBerry;
 
@@ -1201,8 +1200,8 @@ static void CB2_HandleStartMultiPartnerBattle(void)
                 if (IsLinkTaskFinished())
                 {
                     // 0x300
-                    *(&gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureLo) = 0;
-                    *(&gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureHi) = 3;
+                    gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureLo = 0;
+                    gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureHi = 3;
                     BufferPartyVsScreenHealth_AtStart();
                     SetPlayerBerryDataInBattleStruct();
                     SendBlock(BitmaskAllOtherLinkPlayers(), &gBattleStruct->multiBuffer.linkBattlerHeader, sizeof(gBattleStruct->multiBuffer.linkBattlerHeader));
@@ -1591,8 +1590,8 @@ static void CB2_HandleStartMultiBattle(void)
                 if (IsLinkTaskFinished())
                 {
                     // 0x300
-                    *(&gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureLo) = 0;
-                    *(&gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureHi) = 3;
+                    gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureLo = 0;
+                    gBattleStruct->multiBuffer.linkBattlerHeader.versionSignatureHi = 3;
                     BufferPartyVsScreenHealth_AtStart();
                     SetPlayerBerryDataInBattleStruct();
 
@@ -2327,8 +2326,8 @@ static void EndLinkBattleInSteps(void)
     case 3:
         CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
 
-        for (i = 0; i < 2; i++)
-            LoadChosenBattleElement(i);
+        LoadChosenBattleElement(0);
+        LoadChosenBattleElement(1);
 
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
         gBattleCommunication[MULTIUSE_STATE]++;
@@ -2372,38 +2371,6 @@ static void EndLinkBattleInSteps(void)
         }
         break;
     }
-}
-
-u32 GetBattleBgTemplateData(u8 arrayId, u8 caseId)
-{
-    u32 ret = 0;
-
-    switch (caseId)
-    {
-    case 0:
-        ret = gBattleBgTemplates[arrayId].bg;
-        break;
-    case 1:
-        ret = gBattleBgTemplates[arrayId].charBaseIndex;
-        break;
-    case 2:
-        ret = gBattleBgTemplates[arrayId].mapBaseIndex;
-        break;
-    case 3:
-        ret = gBattleBgTemplates[arrayId].screenSize;
-        break;
-    case 4:
-        ret = gBattleBgTemplates[arrayId].paletteMode;
-        break;
-    case 5: // Only this case is used
-        ret = gBattleBgTemplates[arrayId].priority;
-        break;
-    case 6:
-        ret = gBattleBgTemplates[arrayId].baseTile;
-        break;
-    }
-
-    return ret;
 }
 
 static void CB2_InitAskRecordBattle(void)
@@ -2791,8 +2758,7 @@ static void SpriteCB_AnimFaintOpponent(struct Sprite *sprite)
         {
             u8 *dst = gMonSpritesGfxPtr->sprites.byte[GetBattlerPosition(sprite->sBattler)] + (gBattleMonForms[sprite->sBattler] << 11) + (sprite->data[3] << 8);
 
-            for (i = 0; i < 0x100; i++)
-                *(dst++) = 0;
+            memset(dst, 0, 0x100);
 
             StartSpriteAnim(sprite, gBattleMonForms[sprite->sBattler]);
         }
@@ -3050,22 +3016,16 @@ static void BattleStartClearSetData(void)
         gPalaceSelectionBattleScripts[i] = 0;
     }
 
-    for (i = 0; i < 2; i++)
-    {
-        gSideStatuses[i] = 0;
+    gSideStatuses[0] = 0;
+    gSideStatuses[1] = 0;
 
-        dataPtr = (u8 *)&gSideTimers[i];
-        for (j = 0; j < sizeof(struct SideTimer); j++)
-            dataPtr[j] = 0;
-    }
+    memset(&gSideTimers, 0, sizeof(struct SideTimer));
 
     gBattlerAttacker = 0;
     gBattlerTarget = 0;
     gBattleWeather = 0;
 
-    dataPtr = (u8 *)&gWishFutureKnock;
-    for (i = 0; i < sizeof(struct WishFutureKnock); i++)
-        dataPtr[i] = 0;
+    memset(&gWishFutureKnock, 0, sizeof(struct WishFutureKnock));
 
     gHitMarker = 0;
 
@@ -3126,9 +3086,7 @@ static void BattleStartClearSetData(void)
 
     gRandomTurnNumber = Random();
 
-    dataPtr = (u8 *)(&gBattleResults);
-    for (i = 0; i < sizeof(struct BattleResults); i++)
-        dataPtr[i] = 0;
+    memset(&gBattleResults, 0, sizeof(struct BattleResults));
 
     gBattleResults.shinyWildMon = IsMonShiny(&gEnemyParty[0]);
 
