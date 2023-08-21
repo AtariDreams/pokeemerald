@@ -2900,6 +2900,18 @@ u8 GetLevelFromBoxMonExp(struct BoxPokemon *boxMon)
     return level - 1;
 }
 
+u16 GiveMoveToMonBySlot(struct Pokemon *mon, u8 slot, u16 move)
+{
+    return GiveMoveToBoxMon(&mon->box, move);
+}
+
+static u16 GiveMoveToBoxMonBySlot(struct BoxPokemon *boxMon, u8 slot, u16 move)
+{
+    SetBoxMonData(boxMon, MON_DATA_MOVE1 + slot, &move);
+    SetBoxMonData(boxMon, MON_DATA_PP1 + slot, &gBattleMoves[move].pp);
+    return move;
+}
+
 u16 GiveMoveToMon(struct Pokemon *mon, u16 move)
 {
     return GiveMoveToBoxMon(&mon->box, move);
@@ -3958,7 +3970,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_NICKNAME:
     {
-        s32 i;
+        u32 i;
         for (i = 0; i < POKEMON_NAME_LENGTH; i++)
             boxMon->nickname[i] = data[i];
         break;
@@ -3977,7 +3989,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_OT_NAME:
     {
-        s32 i;
+        u32 i;
         for (i = 0; i < PLAYER_NAME_LENGTH; i++)
             boxMon->otName[i] = data[i];
         break;
@@ -4068,8 +4080,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_MET_LEVEL:
     {
-        u8 metLevel = *data;
-        boxMon->substruct3.metLevel = metLevel;
+        boxMon->substruct3.metLevel = *data;
         break;
     }
     case MON_DATA_MET_GAME:
@@ -4077,8 +4088,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_POKEBALL:
     {
-        u8 pokeball = *data;
-        boxMon->substruct3.pokeball = pokeball;
+        boxMon->substruct3.pokeball = *data;
         break;
     }
     case MON_DATA_OT_GENDER:
