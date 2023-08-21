@@ -2016,8 +2016,8 @@ bool8 UsedPokemonCenterWarp(void)
         MAP_UNDEFINED
     };
 
-    int i;
-    u16 map = (gLastUsedWarp.mapGroup << 8) + gLastUsedWarp.mapNum;
+    u32 i;
+    u16 map = (gLastUsedWarp.mapGroup << 8) | gLastUsedWarp.mapNum;
 
     for (i = 0; sPokemonCenters[i] != MAP_UNDEFINED; i++)
     {
