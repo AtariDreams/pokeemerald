@@ -40,33 +40,33 @@ void HideCoinsWindow(void)
 
 bool8 AddCoins(u16 toAdd)
 {
-    u16 newAmount;
     u16 ownedCoins = gSaveBlock1.coins;
     if (ownedCoins >= MAX_COINS)
         return FALSE;
     // check overflow, can't have less coins than previously
     if (ownedCoins > ownedCoins + toAdd)
     {
-        newAmount = MAX_COINS;
+        ownedCoins = MAX_COINS;
     }
     else
     {
         ownedCoins += toAdd;
         if (ownedCoins > MAX_COINS)
             ownedCoins = MAX_COINS;
-        newAmount = ownedCoins;
     }
-    gSaveBlock1.coins = newAmount;
+    gSaveBlock1.coins = ownedCoins;
     return TRUE;
 }
 
 bool8 RemoveCoins(u16 toSub)
 {
-    u16 ownedCoins = gSaveBlock1.coins;
-    if (ownedCoins >= toSub)
+    if (gSaveBlock1.coins < toSub)
     {
-        gSaveBlock1.coins = ownedCoins - toSub;
-        return TRUE;
+        gSaveBlock1.coins = 0;
+        return FALSE;
     }
-    return FALSE;
+    // TODO: What does the result of this do, and do we need it, if not can we optimize this by taking care of equals and removing return?
+
+    gSaveBlock1.coins -= toSub;
+    return TRUE;
 }
