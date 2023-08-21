@@ -48,6 +48,8 @@ struct EvoInfo
 static EWRAM_DATA struct EvoInfo *sEvoStructPtr = NULL;
 static EWRAM_DATA u16 *sBgAnimPal = NULL;
 
+extern const struct BgTemplate gBattleBgTemplates[];
+
 void (*gCB2_AfterEvolution)(void);
 
 #define sEvoCursorPos           gBattleCommunication[1] // when learning a new move
@@ -1665,8 +1667,9 @@ static void RestoreBgAfterAnim(void)
     gBattle_BG1_X = 0;
     gBattle_BG1_Y = 0;
     gBattle_BG2_X = 0;
-    SetBgAttribute(1, BG_ATTR_PRIORITY, GetBattleBgTemplateData(1, 5));
-    SetBgAttribute(2, BG_ATTR_PRIORITY, GetBattleBgTemplateData(2, 5));
+
+    SetBgAttribute(1, BG_ATTR_PRIORITY, gBattleBgTemplates[1].priority);
+    SetBgAttribute(2, BG_ATTR_PRIORITY, gBattleBgTemplates[2].priority);
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_BG3_ON | DISPCNT_BG0_ON | DISPCNT_OBJ_1D_MAP);
     Free(sBgAnimPal);
 }
