@@ -99,9 +99,7 @@ static void Task_Truck1(u8 taskId)
     yBox3 = GetTruckBoxYMovement(tTimer) * 4;
     SetObjectEventSpritePosByLocalIdAndMap(LOCALID_TRUCK_BOX_BOTTOM_R, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup, BOX3_X_OFFSET - cameraXpan, BOX3_Y_OFFSET + yBox3);
 
-    // Arbitrary timer limit that won't be reached
-    if (++tTimer == 30000)
-        tTimer = 0;
+    ++tTimer;
 
     cameraYpan = GetTruckCameraBobbingY(tTimer);
     SetCameraPanning(cameraXpan, cameraYpan);
@@ -131,6 +129,7 @@ static void Task_Truck2(u8 taskId)
     {
         // Never reached, the task function is changed below before finishing the table
         DestroyTask(taskId);
+        return;
     }
     else
     {
@@ -165,6 +164,7 @@ static void Task_Truck3(u8 taskId)
    if ((u16)tMoveStep == ARRAY_COUNT(sTruckCamera_HorizontalTable))
    {
        DestroyTask(taskId);
+       return;
    }
    else
    {
