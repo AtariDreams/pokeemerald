@@ -2536,7 +2536,7 @@ void CreateApprenticeMon(struct Pokemon *mon, const struct Apprentice *src, u8 m
     u16 evAmount;
     u8 language;
     u32 otId = gApprentices[src->id].otId;
-    u32 personality = ((gApprentices[src->id].otId >> 8) | ((gApprentices[src->id].otId & 0xFF) << 8))
+    u32 personality = ((otId >> 8) | ((otId & 0xFF) << 8))
                     + src->party[monId].species + src->number;
 
     CreateMon(mon,
