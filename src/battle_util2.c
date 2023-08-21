@@ -37,8 +37,7 @@ void AllocateBattleResources(void)
 
     if (gBattleTypeFlags & BATTLE_TYPE_SECRET_BASE)
     {
-        u16 currSecretBaseId = VarGet(VAR_CURRENT_SECRET_BASE);
-        CreateSecretBaseEnemyParty(&gSaveBlock1.secretBases[currSecretBaseId]);
+        CreateSecretBaseEnemyParty(&gSaveBlock1.secretBases[VarGet(VAR_CURRENT_SECRET_BASE)]);
     }
 }
 
