@@ -2840,32 +2840,25 @@ void CalculateMonStats(struct Pokemon *mon)
 
     SetMonData(mon, MON_DATA_MAX_HP, &newMaxHP);
 
+    if (currentHP == 0 && oldMaxHP != 0)
+        return;
+
     CALC_STAT(baseAttack, attackIV, attackEV, STAT_ATK, MON_DATA_ATK)
     CALC_STAT(baseDefense, defenseIV, defenseEV, STAT_DEF, MON_DATA_DEF)
     CALC_STAT(baseSpeed, speedIV, speedEV, STAT_SPEED, MON_DATA_SPEED)
     CALC_STAT(baseSpAttack, spAttackIV, spAttackEV, STAT_SPATK, MON_DATA_SPATK)
     CALC_STAT(baseSpDefense, spDefenseIV, spDefenseEV, STAT_SPDEF, MON_DATA_SPDEF)
 
-    if (species == SPECIES_SHEDINJA)
+    if (newMaxHP < oldMaxHP)
     {
-        if (currentHP == 0 && oldMaxHP != 0)
-            return;
-        currentHP = 1;
+        if (newMaxHP < currentHP)
+        {
+            currentHP = newMaxHP;
+        }
     }
     else
     {
-        if (currentHP == 0 && oldMaxHP != 0)
-            return;
-        if (currentHP == 0)
-            currentHP = newMaxHP;
-        else {
-            // BUG: currentHP is unintentionally able to become <= 0 after the instruction below. This causes the pomeg berry glitch.
-            currentHP += newMaxHP - oldMaxHP;
-            #ifdef BUGFIX
-            if (currentHP <= 0)
-                currentHP = 1;
-            #endif
-        }
+        currentHP += newMaxHP - oldMaxHP;
     }
 
     SetMonData(mon, MON_DATA_HP, &currentHP);
