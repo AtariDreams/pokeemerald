@@ -216,7 +216,7 @@ static void Task_NewGameBirchSpeech_WaitToShowGenderMenu(u8);
 static void Task_NewGameBirchSpeech_ChooseGender(u8);
 static void NewGameBirchSpeech_ShowGenderMenu(void);
 static s8 NewGameBirchSpeech_ProcessGenderMenuInput(void);
-static void NewGameBirchSpeech_ClearGenderWindow(u8, u8);
+static void NewGameBirchSpeech_ClearGenderWindow(void);
 static void Task_NewGameBirchSpeech_WhatsYourName(u8);
 static void Task_NewGameBirchSpeech_SlideOutOldGenderSprite(u8);
 static void Task_NewGameBirchSpeech_SlideInNewGenderSprite(u8);
@@ -714,14 +714,15 @@ static void Task_MainMenuCheckBattery(u8 taskId)
         SetGpuReg(REG_OFFSET_BLDALPHA, 0);
         SetGpuReg(REG_OFFSET_BLDY, 7);
 
-        if (!(RtcGetErrorStatus() & RTC_ERR_FLAG_MASK))
-        {
-            gTasks[taskId].func = Task_DisplayMainMenu;
-        }
-        else
+        if ((RtcGetErrorStatus() & RTC_ERR_FLAG_MASK))
         {
             CreateMainMenuErrorWindow(gText_BatteryRunDry);
             gTasks[taskId].func = Task_WaitForBatteryDryErrorWindow;
+            
+        }
+        else
+        {
+            gTasks[taskId].func = Task_DisplayMainMenu;
         }
     }
 }
@@ -1503,21 +1504,11 @@ static void Task_NewGameBirchSpeech_ChooseGender(u8 taskId)
     int gender = NewGameBirchSpeech_ProcessGenderMenuInput();
     int gender2;
 
-    switch (gender)
-    {
-        case MALE:
-            PlaySE(SE_SELECT);
-            gSaveBlock2.playerGender = gender;
-            NewGameBirchSpeech_ClearGenderWindow(1, 1);
-            gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
-            break;
-        case FEMALE:
-            PlaySE(SE_SELECT);
-            gSaveBlock2.playerGender = gender;
-            NewGameBirchSpeech_ClearGenderWindow(1, 1);
-            gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
-            break;
-    }
+    PlaySE(SE_SELECT);
+    gSaveBlock2.playerGender = gender;
+    NewGameBirchSpeech_ClearGenderWindow();
+    gTasks[taskId].func = Task_NewGameBirchSpeech_WhatsYourName;
+
     gender2 = Menu_GetCursorPos();
     if (gender2 != gTasks[taskId].tPlayerGender)
     {
@@ -2234,13 +2225,12 @@ static void NewGameBirchSpeech_ClearGenderWindowTilemap(u8 bg, u8 x, u8 y, u8 wi
     FillBgTilemapBufferRect(bg, 0, x + 255, y + 255, width + 2, height + 2, 2);
 }
 
-static void NewGameBirchSpeech_ClearGenderWindow(u8 windowId, bool8 copyToVram)
+static void NewGameBirchSpeech_ClearGenderWindow(void)
 {
-    CallWindowFunction(windowId, NewGameBirchSpeech_ClearGenderWindowTilemap);
-    FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
-    ClearWindowTilemap(windowId);
-    if (copyToVram == TRUE)
-        CopyWindowToVram(windowId, COPYWIN_FULL);
+    CallWindowFunction(1, NewGameBirchSpeech_ClearGenderWindowTilemap);
+    FillWindowPixelBuffer(1, PIXEL_FILL(1));
+    ClearWindowTilemap(1);
+    CopyWindowToVram(1, COPYWIN_FULL);
 }
 
 static void NewGameBirchSpeech_ClearWindow(u8 windowId)
