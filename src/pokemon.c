@@ -3898,7 +3898,7 @@ u32 GetBoxMonData2(struct BoxPokemon *boxMon, s32 field)
 
 #define SET8(lhs) (lhs) = *data
 #define SET16(lhs) (lhs) = data[0] | (data[1] << 8)
-#define SET32(lhs) (lhs) = data[0] | (data[1] << 8) + (data[2] << 16) + (data[3] << 24)
+#define SET32(lhs) (lhs) = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24)
 
 void SetMonData(struct Pokemon *mon, s32 field, const void *dataArg)
 {
@@ -5704,7 +5704,7 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
         {
             s8 mod = sFriendshipEventModifiers[event][friendshipLevel];
             if (mod > 0 && holdEffect == HOLD_EFFECT_FRIENDSHIP_UP)
-                mod = mod * 3/2;
+                mod += mod >> 1; // * 3/2
             friendship += mod;
             if (mod > 0)
             {
