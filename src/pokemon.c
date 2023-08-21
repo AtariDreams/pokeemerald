@@ -4306,7 +4306,7 @@ u8 GetMonsStateToDoubles_2(void)
     }
 
     if (aliveCount == 1)
-        return PLAYER_HAS_ONE_MON; // may have more than one, but only one is alive
+        return PLAYER_HAS_ONE_USABLE_MON; // may have more than one, but only one is alive
 
     return (aliveCount > 1) ? PLAYER_HAS_TWO_USABLE_MONS : PLAYER_HAS_ONE_USABLE_MON;
 }
