@@ -1529,10 +1529,10 @@ static void Task_NewGameBirchSpeech_SlideOutOldGenderSprite(u8 taskId)
     else
     {
         gSprites[spriteId].invisible = TRUE;
-        if (gTasks[taskId].tPlayerGender != MALE)
-            spriteId = gTasks[taskId].tMaySpriteId;
-        else
+        if (gTasks[taskId].tPlayerGender == MALE)
             spriteId = gTasks[taskId].tBrendanSpriteId;
+        else
+            spriteId = gTasks[taskId].tMaySpriteId;
         gSprites[spriteId].x = DISPLAY_WIDTH;
         gSprites[spriteId].y = 60;
         gSprites[spriteId].invisible = FALSE;
@@ -2292,7 +2292,7 @@ static void Task_NewGameBirchSpeech_ReturnFromNamingScreenShowTextbox(u8 taskId)
 {
     if (gTasks[taskId].tTimer-- <= 0)
     {
-        NewGameBirchSpeech_ShowDialogueWindow(0, 1);
+        NewGameBirchSpeech_ShowDialogueWindow();
         gTasks[taskId].func = Task_NewGameBirchSpeech_SoItsPlayerName;
     }
 }
