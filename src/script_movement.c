@@ -59,7 +59,7 @@ void ScriptMovement_UnfreezeObjectEvents(void)
 static void ScriptMovement_StartMoveObjects(u8 priority)
 {
     u8 taskId;
-    u8 i;
+    u32 i;
 
     taskId = CreateTask(ScriptMovement_MoveObjects, priority);
 
