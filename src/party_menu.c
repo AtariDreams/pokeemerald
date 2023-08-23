@@ -6416,7 +6416,7 @@ void IsLastMonThatKnowsSurf(void)
     move = GetMonData(&gPlayerParty[gSpecialVar_0x8004], MON_DATA_MOVE1 + gSpecialVar_0x8005);
     if (move == MOVE_SURF)
     {
-        for (i = 0; i < CalculatePlayerPartyCount(); i++)
+        for (i = 0; i < gPlayerPartyCount; i++)
         {
             if (i != gSpecialVar_0x8004)
             {
