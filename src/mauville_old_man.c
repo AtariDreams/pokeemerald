@@ -1249,8 +1249,9 @@ static void GetStoryByStattellerPlayerName(u32 player, void *dst)
 static void StorytellerSetPlayerName(u32 player, const u8 * src)
 {
     u8 * name = sStorytellerPtr->trainerNames[player];
-    memset(name, EOS, PLAYER_NAME_LENGTH);
-    memcpy(name, src, PLAYER_NAME_LENGTH);
+    StringCopy(name, src);
+    // memset(name, EOS, PLAYER_NAME_LENGTH);
+    // memcpy(name, src, PLAYER_NAME_LENGTH);
 }
 
 
