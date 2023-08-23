@@ -983,14 +983,14 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
 }
 
 // Buffers the string in src to dest up to n chars. If src is less than n chars, fill with spaces
-static u8 *BufferConditionMenuSpacedStringN(u8 *dst, const u8 *src, s16 n)
+static u8 *BufferConditionMenuSpacedStringN(u8 *dst, const u8 *src, u32 n)
 {
     while (*src != EOS)
     {
         *(dst++) = *(src++);
         n--;
     }
-    while (n-- > 0)
+    while (n--)
         *(dst++) = CHAR_SPACE;
 
     *dst = EOS;
