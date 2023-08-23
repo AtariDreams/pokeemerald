@@ -4236,12 +4236,11 @@ static void Task_OpenMonPic(u8 taskId)
             return;
         break;
     default:
-        DestroyTask(taskId);
-        // Accessing data of destroyed task. Task data isn't reset until a new task needs that task id.
         if (gTasks[taskId].tIsSwapScreen == TRUE)
             Swap_CreateMonSprite();
         else
             Select_CreateMonSprite();
+        DestroyTask(taskId);
         return;
     }
     task->tState++;
