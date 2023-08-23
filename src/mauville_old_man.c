@@ -1147,7 +1147,7 @@ static const u32 sUnused = 8;
 
 static void StorytellerSetup(void)
 {
-    s32 i;
+    u32 i;
     sStorytellerPtr = &gSaveBlock1.oldMan.storyteller;
 
     sStorytellerPtr->id = MAUVILLE_MAN_STORYTELLER;
@@ -1155,7 +1155,8 @@ static void StorytellerSetup(void)
     for (i = 0; i < NUM_STORYTELLER_TALES; i++)
     {
         sStorytellerPtr->gameStatIDs[i] = 0;
-        sStorytellerPtr->trainerNames[0][i] = EOS;  // Maybe they meant storyteller->trainerNames[i][0] instead?
+        // Maybe they meant storyteller->trainerNames[i][0] instead?
+        sStorytellerPtr->trainerNames[i][0] = EOS;
     }
 }
 
