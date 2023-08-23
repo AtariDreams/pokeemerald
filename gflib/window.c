@@ -146,7 +146,6 @@ int AddWindowWithoutTileMap(const struct WindowTemplate *template)
 {
     u16 win;
     u8 bgLayer;
-    int allocatedBaseBlock;
 
     for (win = 0; win < WINDOWS_MAX; ++win)
     {
@@ -158,8 +157,6 @@ int AddWindowWithoutTileMap(const struct WindowTemplate *template)
         return WINDOW_NONE;
 
     bgLayer = template->bg;
-    allocatedBaseBlock = 0;
-
     gWindows[win].window = *template;
 
     return win;
