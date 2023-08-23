@@ -1514,7 +1514,7 @@ static void CloseBattlePyramidBagTextWindow(void)
 {
     ClearDialogWindowAndFrameToTransparent(WIN_MSG, FALSE);
     // This ClearWindowTilemap call is redundant, since ClearDialogWindowAndFrameToTransparent already calls it.
-    ClearWindowTilemap(WIN_MSG);
+   // ClearWindowTilemap(WIN_MSG);
     ScheduleBgCopyTilemapToVram(1);
 }
 
