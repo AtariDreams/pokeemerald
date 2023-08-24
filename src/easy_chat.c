@@ -5441,14 +5441,18 @@ void BufferDeepLinkPhrase(void)
 */
 static bool8 IsTrendySayingUnlocked(u8 wordIndex)
 {
-    return (gSaveBlock1.unlockedTrendySayings[wordIndex / 8] >> (wordIndex % 8)) & 1;
+    int byteOffset = wordIndex / 8;
+    int shift = wordIndex % 8;
+    return (gSaveBlock1.unlockedTrendySayings[byteOffset] >> shift) & 1;
 }
 
 void UnlockTrendySaying(u8 wordIndex)
 {
     if (wordIndex < NUM_TRENDY_SAYINGS)
     {
-        gSaveBlock1.unlockedTrendySayings[wordIndex / 8] |= 1 << (wordIndex % 8);
+        int byteOffset = wordIndex / 8;
+        int shift = wordIndex % 8;
+        gSaveBlock1.unlockedTrendySayings[byteOffset] |= 1 << shift;
     }
 }
 
