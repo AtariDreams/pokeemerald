@@ -22,7 +22,6 @@ Init::
 	ldr r1, =AgbMain + 1
 	mov lr, pc
 	bx r1
-	b Init
 
 	.align 2, 0
 sp_sys: .word IWRAM_END - 0x1c0
