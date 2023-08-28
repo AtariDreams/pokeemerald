@@ -1217,8 +1217,8 @@ void EraseYesNoWindow(void)
 
 static void PrintMenuActionGridText(u8 windowId, u8 fontId, u8 left, u8 top, u8 width, u8 height, u8 columns, u8 rows, const struct MenuAction *menuActions)
 {
-    u8 i;
-    u8 j;
+    u32 i;
+    u32 j;
     for (i = 0; i < rows; i++)
     {
         for (j = 0; j < columns; j++)
@@ -1234,8 +1234,8 @@ static void UNUSED PrintMenuActionGridTextAtTop(u8 windowId, u8 fontId, u8 width
 
 void PrintMenuActionGrid(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth, u8 horizontalCount, u8 verticalCount, const struct MenuAction *menuActions, const u8 *actionIds)
 {
-    u8 i;
-    u8 j;
+    u32 i;
+    u32 j;
     struct TextPrinterTemplate printer;
 
     printer.windowId = windowId;
@@ -1644,8 +1644,8 @@ void PrintMenuGridTable(u8 windowId, u8 optionWidth, u8 columns, u8 rows, const 
 
 static void UNUSED PrintMenuActionGridTextNoSpacing(u8 windowId, u8 optionWidth, u8 columns, u8 rows, const struct MenuAction *menuActions, const u8 *actionIds)
 {
-    u8 i;
-    u8 j;
+    u32 i;
+    u32 j;
     struct TextPrinterTemplate printer;
 
     printer.windowId = windowId;
@@ -1829,8 +1829,8 @@ u16 copy_decompressed_tile_data_to_vram(u8 bgId, const void *src, u16 size, u16 
 
 void SetBgTilemapPalette(u8 bgId, u8 left, u8 top, u8 width, u8 height, u8 palette)
 {
-    u8 i;
-    u8 j;
+    u32 i;
+    u32 j;
     u16 *ptr = GetBgTilemapBuffer(bgId);
 
     for (i = top; i < top + height; i++)
@@ -1844,8 +1844,8 @@ void SetBgTilemapPalette(u8 bgId, u8 left, u8 top, u8 width, u8 height, u8 palet
 
 void CopyToBufferFromBgTilemap(u8 bgId, u16 *dest, u8 left, u8 top, u8 width, u8 height)
 {
-    u8 i;
-    u8 j;
+    u32 i;
+    u32 j;
     const u16 *src = GetBgTilemapBuffer(bgId);
 
     for (i = 0; i < height; i++)
