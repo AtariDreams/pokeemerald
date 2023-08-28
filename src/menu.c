@@ -1093,7 +1093,7 @@ s8 Menu_ProcessInputNoWrapAround_other(void)
 
 void PrintMenuActionTextsAtPos(u8 windowId, u8 fontId, u8 left, u8 top, u8 lineHeight, u8 itemCount, const struct MenuAction *menuActions)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < itemCount; i++)
         AddTextPrinterParameterized(windowId, fontId, menuActions[i].text, left, top + lineHeight * i, TEXT_SKIP_DRAW, NULL);
     CopyWindowToVram(windowId, COPYWIN_GFX);
@@ -1114,7 +1114,7 @@ static void UNUSED PrintMenuActionTextsAtTop(u8 windowId, u8 fontId, u8 lineHeig
 
 void PrintMenuActionTexts(u8 windowId, u8 fontId, u8 left, u8 top, u8 letterSpacing, u8 lineHeight, u8 itemCount, const struct MenuAction *menuActions, const u8 *actionIds)
 {
-    u8 i;
+    u32 i;
     struct TextPrinterTemplate printer;
 
     printer.windowId = windowId;
