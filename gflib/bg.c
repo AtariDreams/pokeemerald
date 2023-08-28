@@ -650,8 +650,8 @@ s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op)
 
     switch (op)
     {
-    case BG_COORD_SET:
     default:
+    case BG_COORD_SET:
         sGpuBgConfigs2[bg].bg_y = value;
         break;
     case BG_COORD_ADD:
@@ -1111,7 +1111,7 @@ void CopyTileMapEntry(const u16 *src, u16 *dest, s32 palette1, s32 tileOffset, s
     switch (palette1)
     {
     case 0 ... 15:
-        var = ((*src + tileOffset) & 0xFFF) + ((palette1 + palette2) << 12);
+        var = ((*src + tileOffset) & 0xFFF) | ((palette1 + palette2) << 12);
         break;
     case 16:
         var = *dest;
