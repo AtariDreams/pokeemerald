@@ -3415,9 +3415,11 @@ u8 GetBoxMonGender(struct BoxPokemon *boxMon)
     switch (gSpeciesInfo[species].genderRatio)
     {
     case MON_MALE:
+        return MON_MALE;
     case MON_FEMALE:
+        return MON_FEMALE;
     case MON_GENDERLESS:
-        return gSpeciesInfo[species].genderRatio;
+        return MON_GENDERLESS;
     }
 
     if (gSpeciesInfo[species].genderRatio > (personality & 0xFF))
@@ -3431,9 +3433,11 @@ u8 GetGenderFromSpeciesAndPersonality(u16 species, u32 personality)
     switch (gSpeciesInfo[species].genderRatio)
     {
     case MON_MALE:
+        return MON_MALE;
     case MON_FEMALE:
+        return MON_FEMALE;
     case MON_GENDERLESS:
-        return gSpeciesInfo[species].genderRatio;
+        return MON_GENDERLESS;
     }
 
     if (gSpeciesInfo[species].genderRatio > (personality & 0xFF))
