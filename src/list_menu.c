@@ -528,7 +528,7 @@ s32 ListMenuTestInput(struct ListMenuTemplate *template, u32 scrollOffset, u32 s
 
     if (keys == DPAD_UP)
         ListMenuChangeSelection(&list, FALSE, 1, FALSE);
-    if (keys == DPAD_DOWN)
+    else if (keys == DPAD_DOWN)
         ListMenuChangeSelection(&list, FALSE, 1, TRUE);
 
     if (newScrollOffset != NULL)
