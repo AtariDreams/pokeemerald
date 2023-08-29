@@ -1357,7 +1357,7 @@ static void Task_Scene2_Load(u8 taskId)
     gIntroCredits_MovingSceneryVBase = 0;
     gIntroCredits_MovingSceneryVOffset = 0;
     sFlygonYOffset = 0;
-    LoadIntroPart2Graphics(1);
+    LoadIntroPart2Graphics();
     gTasks[taskId].func = Task_Scene2_CreateSprites;
 }
 
