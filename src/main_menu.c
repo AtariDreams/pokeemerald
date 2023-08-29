@@ -1868,7 +1868,7 @@ static void SpriteCB_MovePlayerDownWhileShrinking(struct Sprite *sprite)
 {
     u32 y;
 
-    y = (sprite->y << 16) + sprite->data[0] + 0xC000;
+    y = (((u16)sprite->y) << 16) | sprite->data[0] + 0xC000;
     sprite->y = y >> 16;
     sprite->data[0] = y;
 }
