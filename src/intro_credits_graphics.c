@@ -726,33 +726,41 @@ static void CreateTreeSprites(void);
 static void CreateHouseSprites(void);
 static void Task_BicycleBgAnimation(u8);
 
-void LoadIntroPart2Graphics(u8 scenery)
+void LoadIntroPart2Graphics(void)
 {
     LZ77UnCompVram(sGrass_Gfx, (void *)(BG_CHAR_ADDR(1)));
     LZ77UnCompVram(sGrass_Tilemap, (void *)(BG_SCREEN_ADDR(15)));
     LoadPalette(&sGrass_Pal, BG_PLTT_ID(15), sizeof(sGrass_Pal));
-    switch (scenery)
-    {
-    case 0:
-    default:
-        // Never reached, only called with an argument of 1
-        // Clouds are never used in this part of the intro
-        LZ77UnCompVram(sCloudsBg_Gfx, (void *)(VRAM));
-        LZ77UnCompVram(sCloudsBg_Tilemap, (void *)(BG_SCREEN_ADDR(6)));
-        LoadPalette(&sCloudsBg_Pal, BG_PLTT_ID(0), sizeof(sCloudsBg_Pal));
-        LoadCompressedSpriteSheet(sSpriteSheet_Clouds);
-        LoadPalette(&sClouds_Pal, OBJ_PLTT_ID(0), sizeof(sClouds_Pal));
-        CreateCloudSprites();
-        break;
-    case 1:
-        LZ77UnCompVram(sTrees_Gfx, (void *)(VRAM));
-        LZ77UnCompVram(sTrees_Tilemap, (void *)(BG_SCREEN_ADDR(6)));
-        LoadPalette(&sTrees_Pal, BG_PLTT_ID(0), sizeof(sTrees_Pal));
-        LoadCompressedSpriteSheet(sSpriteSheet_TreesSmall);
-        LoadPalette(&sTreesSmall_Pal, OBJ_PLTT_ID(0), sizeof(sTreesSmall_Pal));
-        CreateTreeSprites();
-        break;
-    }
+
+    LZ77UnCompVram(sTrees_Gfx, (void *)(VRAM));
+    LZ77UnCompVram(sTrees_Tilemap, (void *)(BG_SCREEN_ADDR(6)));
+    LoadPalette(&sTrees_Pal, BG_PLTT_ID(0), sizeof(sTrees_Pal));
+    LoadCompressedSpriteSheet(sSpriteSheet_TreesSmall);
+    LoadPalette(&sTreesSmall_Pal, OBJ_PLTT_ID(0), sizeof(sTreesSmall_Pal));
+    CreateTreeSprites();
+
+    // switch (scenery)
+    // {
+    // default:
+    // case 0:
+    //     // Never reached, only called with an argument of 1
+    //     // Clouds are never used in this part of the intro
+    //     LZ77UnCompVram(sCloudsBg_Gfx, (void *)(VRAM));
+    //     LZ77UnCompVram(sCloudsBg_Tilemap, (void *)(BG_SCREEN_ADDR(6)));
+    //     LoadPalette(&sCloudsBg_Pal, BG_PLTT_ID(0), sizeof(sCloudsBg_Pal));
+    //     LoadCompressedSpriteSheet(sSpriteSheet_Clouds);
+    //     LoadPalette(&sClouds_Pal, OBJ_PLTT_ID(0), sizeof(sClouds_Pal));
+    //     CreateCloudSprites();
+    //     break;
+    // case 1:
+    //     LZ77UnCompVram(sTrees_Gfx, (void *)(VRAM));
+    //     LZ77UnCompVram(sTrees_Tilemap, (void *)(BG_SCREEN_ADDR(6)));
+    //     LoadPalette(&sTrees_Pal, BG_PLTT_ID(0), sizeof(sTrees_Pal));
+    //     LoadCompressedSpriteSheet(sSpriteSheet_TreesSmall);
+    //     LoadPalette(&sTreesSmall_Pal, OBJ_PLTT_ID(0), sizeof(sTreesSmall_Pal));
+    //     CreateTreeSprites();
+    //     break;
+    // }
     gIntroCredits_MovingSceneryState = INTROCRED_SCENERY_NORMAL;
     gReservedSpritePaletteCount = 8;
 }
@@ -941,31 +949,29 @@ u8 CreateBicycleBgAnimationTask(u8 mode, u16 bg1Speed, u16 bg2Speed, u16 bg3Spee
 
 static void Task_BicycleBgAnimation(u8 taskId)
 {
-    s16 bg1Speed;
-    s16 bg2Speed;
-    s16 bg3Speed;
     s32 offset;
+    s32 speed;
 
     // Move BG1
-    bg1Speed = gTasks[taskId].tBg1Speed;
-    if (bg1Speed != 0)
+    if(gTasks[taskId].tBg1Speed)
     {
-        offset = (gTasks[taskId].tBg1PosHi << 16) + (u16)gTasks[taskId].tBg1PosLo;
-        offset -= (u16)bg1Speed << 4;
-        gTasks[taskId].tBg1PosHi = offset >> 16;
-        gTasks[taskId].tBg1PosLo = offset;
+        offset = (gTasks[taskId].tBg1PosHi << 16) | ((u16)gTasks[taskId].tBg1PosLo);
+        speed = ((u16)gTasks[taskId].tBg1Speed & 0xFFFF) << 4;
+        offset -= speed;
+        gTasks[taskId].tBg1PosHi = (offset >> 16) & 0xFFFF;
+        gTasks[taskId].tBg1PosLo = offset & 0xFFFF;
         SetGpuReg(REG_OFFSET_BG1HOFS, gTasks[taskId].tBg1PosHi);
         SetGpuReg(REG_OFFSET_BG1VOFS, gIntroCredits_MovingSceneryVBase + gIntroCredits_MovingSceneryVOffset);
     }
 
     // Move BG2
-    bg2Speed = gTasks[taskId].tBg2Speed;
-    if (bg2Speed != 0)
+    if (gTasks[taskId].tBg2Speed)
     {
-        offset = (gTasks[taskId].tBg2PosHi << 16) + (u16)gTasks[taskId].tBg2PosLo;
-        offset -= (u16)bg2Speed << 4;
-        gTasks[taskId].tBg2PosHi = offset >> 16;
-        gTasks[taskId].tBg2PosLo = offset;
+        offset = (gTasks[taskId].tBg2PosHi << 16) | ((u16)gTasks[taskId].tBg2PosLo);
+        speed = ((u16)gTasks[taskId].tBg2Speed & 0xFFFF) << 4;
+        offset -= speed;
+        gTasks[taskId].tBg2PosHi = (offset >> 16) & 0xFFFF;
+        gTasks[taskId].tBg2PosLo = offset & 0xFFFF;
         SetGpuReg(REG_OFFSET_BG2HOFS, gTasks[taskId].tBg2PosHi);
         if (gTasks[taskId].tMode != 0)
             SetGpuReg(REG_OFFSET_BG2VOFS, gIntroCredits_MovingSceneryVBase + gIntroCredits_MovingSceneryVOffset);
@@ -974,11 +980,10 @@ static void Task_BicycleBgAnimation(u8 taskId)
     }
 
     // Move BG3
-    bg3Speed = gTasks[taskId].tBg3Speed;
-    if (bg3Speed != 0)
+    if (gTasks[taskId].tBg3Speed)
     {
         offset = (gTasks[taskId].tBg3PosHi << 16) + (u16)gTasks[taskId].tBg3PosLo;
-        offset -= (u16)bg3Speed << 4;
+        offset -= ((u16)gTasks[taskId].tBg3Speed & 0xFFFF) << 4;
         gTasks[taskId].tBg3PosHi = offset >> 16;
         gTasks[taskId].tBg3PosLo = offset;
         SetGpuReg(REG_OFFSET_BG3HOFS, gTasks[taskId].tBg3PosHi);
@@ -992,8 +997,9 @@ void CycleSceneryPalette(u8 mode)
     u16 y;
     switch (mode)
     {
-        case 0:
+
         default:
+        case 0:
             if (gMain.vblankCounter1 & 3 || gPaletteFade.active)
                 break;
             if (gMain.vblankCounter1 & 4)
@@ -1008,6 +1014,8 @@ void CycleSceneryPalette(u8 mode)
             }
             LoadPalette(&x, BG_PLTT_ID(0) + 9, sizeof(x));
             LoadPalette(&y, BG_PLTT_ID(0) + 10, sizeof(y));
+            break;
+        case 1:
             break;
         case 2:
             if (gMain.vblankCounter1 & 3 || gPaletteFade.active)
@@ -1025,8 +1033,6 @@ void CycleSceneryPalette(u8 mode)
             LoadPalette(&x, BG_PLTT_ID(0) + 12, sizeof(x));
             LoadPalette(&y, BG_PLTT_ID(0) + 13, sizeof(y));
             break;
-        case 1:
-            break;
     }
 }
 
@@ -1036,34 +1042,34 @@ void CycleSceneryPalette(u8 mode)
 
 static void SpriteCB_MovingScenery(struct Sprite *sprite)
 {
-    s32 x;
-    s16 state = gIntroCredits_MovingSceneryState;
+    s32 xl;
+    s32 sp;
 
-    if (state != INTROCRED_SCENERY_FROZEN)
+    if (gIntroCredits_MovingSceneryState == INTROCRED_SCENERY_FROZEN)
+        return;
+
+    if (gIntroCredits_MovingSceneryState)
     {
-        switch (state)
-        {
-        default: // INTROCRED_SCENERY_DESTROY
-            DestroySprite(sprite);
-            break;
-        case INTROCRED_SCENERY_NORMAL:
-            x = ((sprite->x << 16) | (u16)sprite->tXPos) + (u16)sprite->tXOffset;
-            sprite->x = x >> 16;
-            sprite->tXPos = x;
-            if (sprite->x > 255)
-                sprite->x = -32;
-            if (sprite->tHasVerticalMove)
-                sprite->y2 = -(gIntroCredits_MovingSceneryVBase + gIntroCredits_MovingSceneryVOffset);
-            else
-                sprite->y2 = -gIntroCredits_MovingSceneryVBase;
-            break;
-        }
+        DestroySprite(sprite);
+        return;
     }
+
+    xl = (sprite->x << 16) | (sprite->tXPos & 0xFFFF);
+    sp = (sprite->tXOffset & 0xFFFF);
+    xl += sp;
+    sprite->x = (xl >> 16) & 0xFFFF;
+    sprite->tXPos = xl & 0xFFFF;
+    if (sprite->x > 255)
+        sprite->x = -32;
+    if (sprite->tHasVerticalMove)
+        sprite->y2 = -(gIntroCredits_MovingSceneryVBase + gIntroCredits_MovingSceneryVOffset);
+    else
+        sprite->y2 = -gIntroCredits_MovingSceneryVBase;
 }
 
 static void CreateMovingScenerySprites(bool8 hasVerticalMove, const struct IntroCreditsSpriteMetadata *metadata, const union AnimCmd *const *anims, u8 numSprites)
 {
-    u8 i;
+    u32 i;
 
     for(i = 0; i < numSprites; i++)
     {
