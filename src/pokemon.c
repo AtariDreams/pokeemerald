@@ -5745,8 +5745,6 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
     u8 holdEffect;
     u32 i;
 
-    u8 multiplier;
-
     for (i = 0; i < NUM_STATS; i++)
     {
         evs[i] = GetMonData(mon, MON_DATA_HP_EV + i, 0);
@@ -5758,32 +5756,30 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
         if (totalEVs >= MAX_TOTAL_EVS)
             break;
 
-        if (CheckPartyHasHadPokerus(mon))
-            multiplier = 2;
-        else
-            multiplier = 1;
-
         switch (i)
         {
         case STAT_HP:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_HP * multiplier;
+            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_HP;
             break;
         case STAT_ATK:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Attack * multiplier;
+            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Attack;
             break;
         case STAT_DEF:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Defense * multiplier;
+            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Defense;
             break;
         case STAT_SPEED:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Speed * multiplier;
+            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Speed;
             break;
         case STAT_SPATK:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_SpAttack * multiplier;
+            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_SpAttack;
             break;
         case STAT_SPDEF:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_SpDefense * multiplier;
+            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_SpDefense;
             break;
         }
+
+        if (CheckPartyHasHadPokerus(mon))
+            evIncrease *= 2;
 
         heldItem = GetMonData(mon, MON_DATA_HELD_ITEM, 0);
         if (heldItem == ITEM_ENIGMA_BERRY)
