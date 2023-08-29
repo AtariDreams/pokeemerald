@@ -169,7 +169,7 @@ u32 ScriptReadWord(struct ScriptContext *ctx)
     u32 value1 = *(ctx->scriptPtr++);
     u32 value2 = *(ctx->scriptPtr++);
     u32 value3 = *(ctx->scriptPtr++);
-    return (((((value3 << 8) + value2) << 8) + value1) << 8) + value0;
+    return (value3 << 24) | (value2 << 16) | (value1 << 8) | value0;
 }
 
 void LockPlayerFieldControls(void)
