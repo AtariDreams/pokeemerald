@@ -990,7 +990,7 @@ static u8 *BufferConditionMenuSpacedStringN(u8 *dst, const u8 *src, u32 n)
         *(dst++) = *(src++);
         n--;
     }
-    while (n--)
+    for (;n;n--)
         *(dst++) = CHAR_SPACE;
 
     *dst = EOS;
@@ -1035,7 +1035,7 @@ void GetConditionMenuMonNameAndLocString(u8 *locationDst, u8 *nameDst, u16 boxId
 
 void GetConditionMenuMonConditions(struct ConditionGraph *graph, u8 *numSparkles, u16 boxId, u16 monId, u16 partyId, u16 id, u16 numMons, bool8 excludesCancel)
 {
-    u16 i;
+    u32 i;
 
     if (!excludesCancel)
         numMons--;
@@ -1482,7 +1482,7 @@ static void SpriteCB_ConditionSparkle(struct Sprite *sprite)
 
 static void ShowAllConditionSparkles(struct Sprite *sprite)
 {
-    u8 i, id = sprite->sNextSparkleSpriteId;
+    int i, id = sprite->sNextSparkleSpriteId;
 
     for (i = 0; i < sprite->sNumExtraSparkles + 1; i++)
     {
