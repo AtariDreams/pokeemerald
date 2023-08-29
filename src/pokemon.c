@@ -5739,8 +5739,8 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
 void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
 {
     u8 evs[NUM_STATS];
-    s16 evIncrease = 0;
-    u16 totalEVs = 0;
+    u32 evIncrease = 0;
+    u32 totalEVs = 0;
     u16 heldItem;
     u8 holdEffect;
     u32 i;
@@ -5797,16 +5797,21 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
         if (holdEffect == HOLD_EFFECT_MACHO_BRACE)
             evIncrease *= 2;
 
-        if (totalEVs + evIncrease > MAX_TOTAL_EVS)
-            evIncrease -= ((totalEVs + evIncrease) - MAX_TOTAL_EVS);
+        u32 after_value = evs[i] + evIncrease;
+        
+        u32 adjust_value = (after_value < MAX_PER_STAT_EVS) ? after_value : MAX_PER_STAT_EVS;
 
-        if (evs[i] + evIncrease > MAX_PER_STAT_EVS)
+        u32 add_value = adjust_value - evs[i];
+        u32 after_total = totalEVs + add_value;
+
+        if (MAX_TOTAL_EVS < after_total)
         {
-            evIncrease -= (evs[i] + evIncrease) - MAX_PER_STAT_EVS;
+            adjust_value -= after_total - MAX_TOTAL_EVS;
         }
 
-        evs[i] += evIncrease;
-        totalEVs += evIncrease;
+        totalEVs -= evs[i];
+        evs[i] = adjust_value;
+        totalEVs += evs[i];
         SetMonData(mon, MON_DATA_HP_EV + i, &evs[i]);
     }
 }
