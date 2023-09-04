@@ -12,8 +12,6 @@
 #include "sprite.h"
 #include "text.h"
 
-EWRAM_DATA bool8 gUnusedBikeCameraAheadPanback = FALSE;
-
 struct FieldCameraOffset
 {
     u8 xPixelOffset;
@@ -31,7 +29,6 @@ static s32 MapPosToBgTilemapOffset(struct FieldCameraOffset *, s32, s32);
 static void DrawWholeMapViewInternal(int, int, const struct MapLayout *);
 static void DrawMetatileAt(const struct MapLayout *, u16, int, int);
 static void DrawMetatile(s32, const u16 *, u16);
-static void CameraPanningCB_PanAhead(void);
 
 static struct FieldCameraOffset sFieldCameraOffset;
 static s16 sHorizontalCameraPan;
@@ -52,7 +49,7 @@ static void ResetCameraOffset(struct FieldCameraOffset *cameraOffset)
     cameraOffset->copyBGToVRAM = TRUE;
 }
 
-static void AddCameraTileOffset(struct FieldCameraOffset *cameraOffset, u32 xOffset, u32 yOffset)
+static void AddCameraTileOffset(struct FieldCameraOffset *cameraOffset, int xOffset, int yOffset)
 {
     cameraOffset->xTileOffset += xOffset;
     cameraOffset->xTileOffset %= 32;
@@ -60,7 +57,7 @@ static void AddCameraTileOffset(struct FieldCameraOffset *cameraOffset, u32 xOff
     cameraOffset->yTileOffset %= 32;
 }
 
-static void AddCameraPixelOffset(struct FieldCameraOffset *cameraOffset, u32 xOffset, u32 yOffset)
+static void AddCameraPixelOffset(struct FieldCameraOffset *cameraOffset, int xOffset, int yOffset)
 {
     cameraOffset->xPixelOffset += xOffset;
     cameraOffset->yPixelOffset += yOffset;
@@ -101,21 +98,21 @@ static void DrawWholeMapViewInternal(int x, int y, const struct MapLayout *mapLa
 {
     u8 i;
     u8 j;
-    u32 r6;
-    u8 temp;
+    u16 r6;
+    u8 tempx, tempy;
 
     for (i = 0; i < 32; i += 2)
     {
-        temp = sFieldCameraOffset.yTileOffset + i;
-        if (temp >= 32)
-            temp -= 32;
-        r6 = temp * 32;
+        tempy = sFieldCameraOffset.yTileOffset + i;
+        if (tempy >= 32)
+            tempy -= 32;
+        r6 = 32 * tempy;
         for (j = 0; j < 32; j += 2)
         {
-            temp = sFieldCameraOffset.xTileOffset + j;
-            if (temp >= 32)
-                temp -= 32;
-            DrawMetatileAt(mapLayout, r6 + temp, x + j / 2, y + i / 2);
+            tempx = sFieldCameraOffset.xTileOffset + j;
+            if (tempx >= 32)
+                tempx -= 32;
+            DrawMetatileAt(mapLayout, r6 + tempx, x + j / 2, y + i / 2);
         }
     }
 }
@@ -126,31 +123,30 @@ static void RedrawMapSlicesForCameraUpdate(struct FieldCameraOffset *cameraOffse
 
     if (x > 0)
         RedrawMapSliceWest(cameraOffset, mapLayout);
-    if (x < 0)
+    else if (x < 0)
         RedrawMapSliceEast(cameraOffset, mapLayout);
     if (y > 0)
         RedrawMapSliceNorth(cameraOffset, mapLayout);
-    if (y < 0)
+    else if (y < 0)
         RedrawMapSliceSouth(cameraOffset, mapLayout);
     cameraOffset->copyBGToVRAM = TRUE;
 }
 
 static void RedrawMapSliceNorth(struct FieldCameraOffset *cameraOffset, const struct MapLayout *mapLayout)
 {
-    u8 i;
-    u8 temp;
-    u32 r7;
+    u8 tempx, tempy, i;
+    u16 r7;
 
-    temp = cameraOffset->yTileOffset + 28;
-    if (temp >= 32)
-        temp -= 32;
-    r7 = temp * 32;
+    tempy = cameraOffset->yTileOffset + 28;
+    if (tempy >= 32)
+        tempy -= 32;
+    r7 = tempy * 32;
     for (i = 0; i < 32; i += 2)
     {
-        temp = cameraOffset->xTileOffset + i;
-        if (temp >= 32)
-            temp -= 32;
-        DrawMetatileAt(mapLayout, r7 + temp, gSaveBlock1.pos.x + i / 2, gSaveBlock1.pos.y + 14);
+        tempx = cameraOffset->xTileOffset + i;
+        if (tempx >= 32)
+            tempx -= 32;
+        DrawMetatileAt(mapLayout, r7 + tempx, gSaveBlock1.pos.x + i / 2, gSaveBlock1.pos.y + 14);
     }
 }
 
@@ -158,7 +154,7 @@ static void RedrawMapSliceSouth(struct FieldCameraOffset *cameraOffset, const st
 {
     u8 i;
     u8 temp;
-    u32 r7 = cameraOffset->yTileOffset * 32;
+    u16 r7 = cameraOffset->yTileOffset * 32;
 
     for (i = 0; i < 32; i += 2)
     {
@@ -173,14 +169,16 @@ static void RedrawMapSliceEast(struct FieldCameraOffset *cameraOffset, const str
 {
     u8 i;
     u8 temp;
-    u32 r6 = cameraOffset->xTileOffset;
+    u16 pos;
+    u8 r6 = cameraOffset->xTileOffset;
 
     for (i = 0; i < 32; i += 2)
     {
         temp = cameraOffset->yTileOffset + i;
         if (temp >= 32)
             temp -= 32;
-        DrawMetatileAt(mapLayout, temp * 32 + r6, gSaveBlock1.pos.x, gSaveBlock1.pos.y + i / 2);
+        pos = temp * 32 + r6;
+        DrawMetatileAt(mapLayout, pos, gSaveBlock1.pos.x, gSaveBlock1.pos.y + i / 2);
     }
 }
 
@@ -188,6 +186,7 @@ static void RedrawMapSliceWest(struct FieldCameraOffset *cameraOffset, const str
 {
     u8 i;
     u8 temp;
+    u16 pos;
     u8 r5 = cameraOffset->xTileOffset + 28;
 
     if (r5 >= 32)
@@ -197,7 +196,8 @@ static void RedrawMapSliceWest(struct FieldCameraOffset *cameraOffset, const str
         temp = cameraOffset->yTileOffset + i;
         if (temp >= 32)
             temp -= 32;
-        DrawMetatileAt(mapLayout, temp * 32 + r5, gSaveBlock1.pos.x + 14, gSaveBlock1.pos.y + i / 2);
+        pos = temp * 32 + r5;
+        DrawMetatileAt(mapLayout, pos, gSaveBlock1.pos.x + 14, gSaveBlock1.pos.y + i / 2);
     }
 }
 
@@ -445,7 +445,7 @@ void SetCameraPanning(s16 horizontal, s16 vertical)
 
 void InstallCameraPanAheadCallback(void)
 {
-    sFieldCameraPanningCallback = CameraPanningCB_PanAhead;
+    sFieldCameraPanningCallback = InstallCameraPanAheadCallback;
     sBikeCameraPanFlag = FALSE;
     sHorizontalCameraPan = 0;
     sVerticalCameraPan = 32;
@@ -458,48 +458,4 @@ void UpdateCameraPanning(void)
     //Update sprite offset of overworld objects
     gSpriteCoordOffsetX = gTotalCameraPixelOffsetX - sHorizontalCameraPan;
     gSpriteCoordOffsetY = gTotalCameraPixelOffsetY - sVerticalCameraPan - 8;
-}
-
-static void CameraPanningCB_PanAhead(void)
-{
-    u8 var;
-
-    if (gUnusedBikeCameraAheadPanback == FALSE)
-    {
-        InstallCameraPanAheadCallback();
-    }
-    else
-    {
-        // this code is never reached
-        if (gPlayerAvatar.tileTransitionState == T_TILE_TRANSITION)
-        {
-            sBikeCameraPanFlag ^= 1;
-            if (sBikeCameraPanFlag == FALSE)
-                return;
-        }
-        else
-        {
-            sBikeCameraPanFlag = FALSE;
-        }
-
-        var = GetPlayerMovementDirection();
-        if (var == 2)
-        {
-            if (sVerticalCameraPan > -8)
-                sVerticalCameraPan -= 2;
-        }
-        else if (var == 1)
-        {
-            if (sVerticalCameraPan < 72)
-                sVerticalCameraPan += 2;
-        }
-        else if (sVerticalCameraPan < 32)
-        {
-            sVerticalCameraPan += 2;
-        }
-        else if (sVerticalCameraPan > 32)
-        {
-            sVerticalCameraPan -= 2;
-        }
-    }
 }
