@@ -384,7 +384,7 @@ static void SeedTrendRng(struct DewfordTrend *trend)
 
 static bool8 IsPhraseInSavedTrends(u16 *phrase)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < SAVED_TRENDS_COUNT; i++)
     {
@@ -396,7 +396,7 @@ static bool8 IsPhraseInSavedTrends(u16 *phrase)
 
 static bool8 IsEasyChatPairEqual(u16 *words1, u16 *words2)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < 2; i++)
     {
