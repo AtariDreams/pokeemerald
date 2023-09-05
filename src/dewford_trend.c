@@ -211,10 +211,10 @@ bool8 TrySetTrendyPhrase(u16 *phrase)
 
 static void SortTrends(struct DewfordTrend *trends, u16 numTrends, u8 mode)
 {
-    u16 i;
+    u32 i;
     for (i = 0; i < numTrends; i++)
     {
-        u16 j;
+        u32 j;
         for (j = i + 1; j < numTrends; j++)
         {
             if (CompareTrends(&trends[j], &trends[i], mode))
