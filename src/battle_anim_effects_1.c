@@ -3517,11 +3517,10 @@ static void AnimTask_LeafBlade_Step(u8 taskId)
 
 static s16 LeafBladeGetPosFactor(struct Sprite *sprite)
 {
-    s16 var = 8;
     if (sprite->data[4] < sprite->y)
-        var = -var;
+        return -8;
 
-    return var;
+    return 8;
 }
 
 static void AnimTask_LeafBlade_Step2(struct Task *task, u8 taskId)
