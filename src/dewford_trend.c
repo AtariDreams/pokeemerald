@@ -151,7 +151,7 @@ void UpdateDewfordTrendPerDay(u16 days)
 bool8 TrySetTrendyPhrase(u16 *phrase)
 {
     struct DewfordTrend trend = {0};
-    u16 i;
+    u32 i;
 
     if (!IsPhraseInSavedTrends(phrase))
     {
@@ -182,7 +182,7 @@ bool8 TrySetTrendyPhrase(u16 *phrase)
             {
                 // New trend is "trendier" than dewfordTrend[i]
                 // Shift other trends back to insert new trend
-                u16 j = SAVED_TRENDS_COUNT - 1;
+                u32 j = SAVED_TRENDS_COUNT - 1;
                 while (j > i)
                 {
                     gSaveBlock1.dewfordTrends[j] = gSaveBlock1.dewfordTrends[j - 1];
@@ -191,7 +191,10 @@ bool8 TrySetTrendyPhrase(u16 *phrase)
                 gSaveBlock1.dewfordTrends[i] = trend;
 
                 if (i == SAVED_TRENDS_COUNT - 1)
+                {
                     TryPutTrendWatcherOnAir(phrase);
+                    return FALSE;
+                }
 
                 // If i is 0, the given phrase is the new current phrase
                 return (i == 0);
