@@ -2946,10 +2946,10 @@ static void AnimFrenzyPlantRoot(struct Sprite *sprite)
     StartSpriteAnim(sprite, gBattleAnimArgs[4]);
     sprite->data[2] = gBattleAnimArgs[5];
     sprite->callback = AnimRootFlickerOut;
-    sFrenzyPlantRootData.startX = sprite->x;
-    sFrenzyPlantRootData.startY = sprite->y;
-    sFrenzyPlantRootData.targetX = targetX;
-    sFrenzyPlantRootData.targetY = targetY;
+    // sFrenzyPlantRootData.startX = sprite->x;
+    // sFrenzyPlantRootData.startY = sprite->y;
+    // sFrenzyPlantRootData.targetX = targetX;
+    // sFrenzyPlantRootData.targetY = targetY;
 }
 
 static void AnimRootFlickerOut(struct Sprite *sprite)
