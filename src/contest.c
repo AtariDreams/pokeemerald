@@ -1671,8 +1671,7 @@ static void Task_HideMoveSelectScreen(u8 taskId)
         CopyWindowToVram(MOVE_WINDOWS_START + i, COPYWIN_GFX);
     }
     Contest_SetBgCopyFlags(0);
-    // This seems to be a bug; it should have just copied PLTT_BUFFER_SIZE.
-    DmaCopy32Defvars(3, gPlttBufferFaded, eContestTempSave.cachedPlttBufferFaded, PLTT_SIZE);
+    DmaCopy32Defvars(3, gPlttBufferFaded, eContestTempSave.cachedPlttBufferFaded, sizeof(eContestTempSave.cachedPlttBufferFaded));
     LoadPalette(eContestTempSave.cachedPlttBufferUnfaded, 0, PLTT_SIZE);
     gTasks[taskId].data[0] = 0;
     gTasks[taskId].data[1] = 0;
