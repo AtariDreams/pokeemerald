@@ -36,7 +36,7 @@ void ClearMail(struct Mail *mail)
 bool8 MonHasMail(struct Pokemon *mon)
 {
     u16 heldItem = GetMonData(mon, MON_DATA_HELD_ITEM);
-    if (ItemIsMail(heldItem) && GetMonData(mon, MON_DATA_MAIL) != MAIL_NONE)
+    if (ItemIsMail(heldItem) && mon->mail != MAIL_NONE)
         return TRUE;
     else
         return FALSE;
