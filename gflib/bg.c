@@ -269,21 +269,12 @@ bool8 IsInvalidBg(u8 bg)
         return FALSE;
 }
 
-// From FRLG. Dummied out.
-int BgTileAllocOp(int bg, int offset, int count, int mode)
-{
-    return 0;
-}
-
 void ResetBgsAndClearDma3BusyFlags(void)
 {
     unsigned int i;
     ResetBgs();
 
-    for (i = 0; i < NUM_BACKGROUNDS; i++)
-    {
-        sDmaBusyBitfield[i] = 0;
-    }
+    memset(sDmaBusyBitfield, 0, sizeof(sDmaBusyBitfield));
 }
 
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates)
