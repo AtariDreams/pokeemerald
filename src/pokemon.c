@@ -2384,23 +2384,13 @@ void CreateMonWithIVsOTID(struct Pokemon *mon, u16 species, u8 level, u8 *ivs, u
 
 void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 evSpread)
 {
-    s32 i;
-    s32 statCount = 0;
+    u32 i;
     u16 evAmount;
-    u8 evsBits;
+    u32 evsBits;
 
     CreateMon(mon, species, level, fixedIV, FALSE, 0, OT_ID_PLAYER_ID, 0);
 
-    evsBits = evSpread;
-
-    for (i = 0; i < NUM_STATS; i++)
-    {
-        if (evsBits & 1)
-            statCount++;
-        evsBits >>= 1;
-    }
-
-    evAmount = MAX_TOTAL_EVS / statCount;
+    evAmount = MAX_TOTAL_EVS / __builtin_popcount(evSpread);
 
     evsBits = 1;
 
@@ -2564,8 +2554,8 @@ void CreateApprenticeMon(struct Pokemon *mon, const struct Apprentice *src, u8 m
 
 void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level, u8 nature, u8 fixedIV, u8 evSpread, u32 otId)
 {
-    s32 i;
-    s32 statCount = 0;
+    u32 i;
+    u32 statCount = 0;
     u8 evsBits;
     u16 evAmount;
 
@@ -2576,15 +2566,8 @@ void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level,
     } while (nature != GetNatureFromPersonality(i));
 
     CreateMon(mon, species, level, fixedIV, TRUE, i, OT_ID_PRESET, otId);
-    evsBits = evSpread;
-    for (i = 0; i < NUM_STATS; i++)
-    {
-        if (evsBits & 1)
-            statCount++;
-        evsBits >>= 1;
-    }
 
-    evAmount = MAX_TOTAL_EVS / statCount;
+    evAmount = MAX_TOTAL_EVS / __builtin_popcount(evSpread);
     evsBits = 1;
     for (i = 0; i < NUM_STATS; i++)
     {
