@@ -660,7 +660,7 @@ void ItemUseOutOfBattle_CoinCase(u8 taskId)
 
 void ItemUseOutOfBattle_PowderJar(u8 taskId)
 {
-    ConvertIntToDecimalStringN(gStringVar1, GetBerryPowder(), STR_CONV_MODE_LEFT_ALIGN, 5);
+    ConvertIntToDecimalStringN(gStringVar1, gSaveBlock2.berryCrush.berryPowderAmount, STR_CONV_MODE_LEFT_ALIGN, 5);
     StringExpandPlaceholders(gStringVar4, gText_PowderQty);
 
     if (!gTasks[taskId].tUsingRegisteredKeyItem)
