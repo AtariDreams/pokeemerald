@@ -57,7 +57,6 @@ void Unused_ResetBgControlStruct(u8 bg);
 u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode);
 void SetTextModeAndHideBgs(void);
 bool8 IsInvalidBg(u8 bg);
-int BgTileAllocOp(int bg, int offset, int count, int mode);
 void ResetBgsAndClearDma3BusyFlags(void);
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates);
 void InitBgFromTemplate(const struct BgTemplate *template);
