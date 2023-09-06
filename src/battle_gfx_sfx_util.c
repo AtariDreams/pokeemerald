@@ -905,7 +905,7 @@ static void ClearSpritesBattlerHealthboxAnimData(void)
 
 void CopyAllBattleSpritesInvisibilities(void)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < gBattlersCount; i++)
         gBattleSpritesDataPtr->battlerData[i].invisible = gSprites[gBattlerSpriteIds[i]].invisible;
@@ -1244,8 +1244,8 @@ void HideBattlerShadowSprite(u8 battlerId)
 void FillAroundBattleWindows(void)
 {
     u16 *vramPtr = (u16 *)(VRAM + 0x240);
-    s32 i;
-    s32 j;
+    u32 i;
+    u32 j;
 
     for (i = 0; i < 9; i++)
     {
