@@ -1209,15 +1209,15 @@ static void Task_ExitBuyMenu(u8 taskId)
 
 static void ClearItemPurchases(void)
 {
-    sPurchaseHistoryId = 0;
     memset(gMartPurchaseHistory, 0, sizeof(gMartPurchaseHistory));
+    sPurchaseHistoryId = 0;
 }
 
 static void RecordItemPurchase(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
 
-    u16 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(gMartPurchaseHistory); i++)
     {
