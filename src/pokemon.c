@@ -2154,20 +2154,8 @@ void ZeroBoxMonData(struct BoxPokemon *boxMon)
 
 void ZeroMonData(struct Pokemon *mon)
 {
-    u32 arg;
-    ZeroBoxMonData(&mon->box);
-    arg = 0;
-    SetMonData(mon, MON_DATA_STATUS, &arg);
-    SetMonData(mon, MON_DATA_LEVEL, &arg);
-    SetMonData(mon, MON_DATA_HP, &arg);
-    SetMonData(mon, MON_DATA_MAX_HP, &arg);
-    SetMonData(mon, MON_DATA_ATK, &arg);
-    SetMonData(mon, MON_DATA_DEF, &arg);
-    SetMonData(mon, MON_DATA_SPEED, &arg);
-    SetMonData(mon, MON_DATA_SPATK, &arg);
-    SetMonData(mon, MON_DATA_SPDEF, &arg);
-    arg = MAIL_NONE;
-    SetMonData(mon, MON_DATA_MAIL, &arg);
+    memset(mon, 0, sizeof(*mon));
+    mon->mail = MAIL_NONE;
 }
 
 void RemoveMonFromParty(u32 index)
@@ -2196,12 +2184,9 @@ void ZeroEnemyPartyMons(void)
 
 void CreateMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
 {
-    u32 mail;
     ZeroMonData(mon);
     CreateBoxMon(&mon->box, species, level, fixedIV, hasFixedPersonality, fixedPersonality, otIdType, fixedOtId);
     SetMonData(mon, MON_DATA_LEVEL, &level);
-    mail = MAIL_NONE;
-    SetMonData(mon, MON_DATA_MAIL, &mail);
     CalculateMonStats(mon);
 }
 
@@ -2854,8 +2839,8 @@ void BoxMonToMon(const struct BoxPokemon *src, struct Pokemon *dest)
     SetMonData(dest, MON_DATA_STATUS, &value);
     SetMonData(dest, MON_DATA_HP, &value);
     SetMonData(dest, MON_DATA_MAX_HP, &value);
-    value = MAIL_NONE;
-    SetMonData(dest, MON_DATA_MAIL, &value);
+
+    dest->mail = MAIL_NONE;
     CalculateMonStats(dest);
 }
 
