@@ -4574,19 +4574,16 @@ static void CreateInGameTradePokemonInternal(u8 whichPlayerMon, u8 whichInGameTr
             GetInGameTradeMail(&mail, inGameTrade);
             gTradeMail[0] = mail;
             SetMonData(pokemon, MON_DATA_MAIL, &mailNum);
-            SetMonData(pokemon, MON_DATA_HELD_ITEM, &inGameTrade->heldItem);
         }
-        else
-        {
-            SetMonData(pokemon, MON_DATA_HELD_ITEM, &inGameTrade->heldItem);
-        }
+
+        SetMonData(pokemon, MON_DATA_HELD_ITEM, &inGameTrade->heldItem);
     }
     CalculateMonStats(&gEnemyParty[0]);
 }
 
 static void GetInGameTradeMail(struct Mail *mail, const struct InGameTrade *trade)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < MAIL_WORDS_COUNT; i++)
         mail->words[i] = sIngameTradeMail[trade->mailNum][i];
