@@ -4303,7 +4303,7 @@ static void CreateReelTimeNumberGapSprite(void)
 
 static void DestroyReelTimeMachineSprites(void)
 {
-    u8 i;
+    u32 i;
 
     DestroySprite(&gSprites[sSlotMachine->reelTimeNumberGapSpriteId]);
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimeMachineSpriteIds); i++)
@@ -4318,7 +4318,7 @@ static void DestroyReelTimeMachineSprites(void)
 
 static void DestroyReelTimeShadowSprites(void)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sSlotMachine->reelTimeShadowSpriteIds); i++)
         DestroySprite(&gSprites[sSlotMachine->reelTimeShadowSpriteIds[i]]);
