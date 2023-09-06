@@ -4371,20 +4371,10 @@ bool8 IsPokemonStorageFull(void)
 
 void GetSpeciesName(u8 *name, u16 species)
 {
-    u32 i;
+    if (species > NUM_SPECIES)
+        species = SPECIES_NONE;
 
-    for (i = 0; i <= POKEMON_NAME_LENGTH; i++)
-    {
-        if (species > NUM_SPECIES)
-            name[i] = gSpeciesNames[SPECIES_NONE][i];
-        else
-            name[i] = gSpeciesNames[species][i];
-
-        if (name[i] == EOS)
-            return;
-    }
-
-    name[i] = EOS;
+    StringCopy(name, gSpeciesNames[species]);
 }
 
 u8 CalculatePPWithBonus(u16 move, u8 ppBonuses, u8 moveIndex)
