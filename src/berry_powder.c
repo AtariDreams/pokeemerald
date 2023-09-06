@@ -167,11 +167,6 @@ bool8 TakeBerryPowder(void)
     return TRUE;
 }
 
-u32 GetBerryPowder(void)
-{
-    return gSaveBlock2.berryCrush.berryPowderAmount;
-}
-
 static void PrintBerryPowderAmount(u8 windowId, int amount, u8 x, u8 y, u8 speed)
 {
     ConvertIntToDecimalStringN(gStringVar1, amount, STR_CONV_MODE_RIGHT_ALIGN, 5);
@@ -187,8 +182,7 @@ static void DrawPlayerPowderAmount(u8 windowId, u16 baseTileOffset, u8 paletteNu
 
 void PrintPlayerBerryPowderAmount(void)
 {
-    u32 amount = GetBerryPowder();
-    PrintBerryPowderAmount(sBerryPowderVendorWindowId, amount, 26, 17, 0);
+    PrintBerryPowderAmount(sBerryPowderVendorWindowId, gSaveBlock2.berryCrush.berryPowderAmount, 26, 17, 0);
 }
 
 void DisplayBerryPowderVendorMenu(void)
@@ -199,7 +193,7 @@ void DisplayBerryPowderVendorMenu(void)
     FillWindowPixelBuffer(sBerryPowderVendorWindowId, PIXEL_FILL(0));
     PutWindowTilemap(sBerryPowderVendorWindowId);
     LoadUserWindowBorderGfx_(sBerryPowderVendorWindowId, 0x21D, BG_PLTT_ID(13));
-    DrawPlayerPowderAmount(sBerryPowderVendorWindowId, 0x21D, 13, GetBerryPowder());
+    DrawPlayerPowderAmount(sBerryPowderVendorWindowId, 0x21D, 13, gSaveBlock2.berryCrush.berryPowderAmount);
 }
 
 void RemoveBerryPowderVendorMenu(void)
