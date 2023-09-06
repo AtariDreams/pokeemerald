@@ -104,7 +104,7 @@ void TransferPlttBuffer(void)
 {
     if (!gPaletteFade.bufferTransferDisabled)
     {
-        DmaCopy16(3, gPlttBufferFaded, (void *)PLTT, PLTT_SIZE);
+        DmaCopy32(3, gPlttBufferFaded, (void *)PLTT, PLTT_SIZE);
         sPlttBufferTransferPending = FALSE;
         if (gPaletteFade.mode == HARDWARE_FADE && gPaletteFade.active)
             UpdateBlendRegisters();
@@ -138,18 +138,6 @@ void ResetPaletteFade(void)
         PaletteStruct_Reset(i);
 
     ResetPaletteFadeControl();
-}
-
-static void ReadPlttIntoBuffers(void)
-{
-    u16 i;
-    u16 *pltt = (u16 *)PLTT;
-
-    for (i = 0; i < PLTT_BUFFER_SIZE; i++)
-    {
-        gPlttBufferUnfaded[i] = pltt[i];
-        gPlttBufferFaded[i] = pltt[i];
-    }
 }
 
 bool8 BeginNormalPaletteFade(u32 selectedPalettes, s8 delay, u8 startY, u8 targetY, u16 blendColor)
@@ -195,40 +183,6 @@ bool8 BeginNormalPaletteFade(u32 selectedPalettes, s8 delay, u8 startY, u8 targe
             UpdateBlendRegisters();
         gPaletteFade.bufferTransferDisabled = temp;
         return TRUE;
-    }
-}
-
-static bool8 UNUSED BeginPlttFade(u32 selectedPalettes, u8 delay, u8 startY, u8 targetY, u16 blendColor)
-{
-    ReadPlttIntoBuffers();
-    return BeginNormalPaletteFade(selectedPalettes, delay, startY, targetY, blendColor);
-}
-
-static void UNUSED PaletteStruct_Run(u8 a1, u32 *unkFlags)
-{
-    u8 i;
-
-    for (i = 0; i < NUM_PALETTE_STRUCTS; i++)
-    {
-        struct PaletteStruct *palstruct = &sPaletteStructs[i];
-        if (palstruct->active)
-        {
-            if (palstruct->template->pst_field_8_0 == a1)
-            {
-                if (palstruct->srcIndex == palstruct->template->srcCount)
-                {
-                    PaletteStruct_TryEnd(palstruct);
-                    if (!palstruct->active)
-                        continue;
-                }
-                if (palstruct->countdown1 == 0)
-                    PaletteStruct_Copy(palstruct, unkFlags);
-                else
-                    palstruct->countdown1--;
-
-                PaletteStruct_Blend(palstruct, unkFlags);
-            }
-        }
     }
 }
 
