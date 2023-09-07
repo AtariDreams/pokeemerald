@@ -733,10 +733,10 @@ void HideMainOrSubMenuLeftHeader(u32 id, bool32 onRightSide)
 
 void SetLeftHeaderSpritesInvisibility(void)
 {
-    s32 i;
+    u32 i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
 
-    for (i = 0; i < (s32)ARRAY_COUNT(menu->leftHeaderSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(menu->leftHeaderSprites); i++)
     {
         menu->leftHeaderSprites[i]->invisible = TRUE;
         menu->submenuLeftHeaderSprites[i]->invisible = TRUE;
@@ -755,7 +755,8 @@ bool32 AreLeftHeaderSpritesMoving(void)
 
 static void ShowLeftHeaderSprites(u32 startY, bool32 isOnRightSide)
 {
-    s32 start, end, i;
+    s32 start, end;
+    u32 i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
 
     if (!isOnRightSide)
@@ -763,7 +764,7 @@ static void ShowLeftHeaderSprites(u32 startY, bool32 isOnRightSide)
     else
         start = 256, end = 160;
 
-    for (i = 0; i < (s32)ARRAY_COUNT(menu->leftHeaderSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(menu->leftHeaderSprites); i++)
     {
         menu->leftHeaderSprites[i]->y = startY;
         MoveLeftHeader(menu->leftHeaderSprites[i], start, end, 12);
@@ -772,7 +773,8 @@ static void ShowLeftHeaderSprites(u32 startY, bool32 isOnRightSide)
 
 static void ShowLeftHeaderSubmenuSprites(u32 startY, bool32 isOnRightSide)
 {
-    s32 start, end, i;
+    s32 start, end;
+    u32 i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
 
     if (!isOnRightSide)
@@ -780,7 +782,7 @@ static void ShowLeftHeaderSubmenuSprites(u32 startY, bool32 isOnRightSide)
     else
         start = 256, end = 192;
 
-    for (i = 0; i < (s32)ARRAY_COUNT(menu->submenuLeftHeaderSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(menu->submenuLeftHeaderSprites); i++)
     {
         menu->submenuLeftHeaderSprites[i]->y = startY;
         MoveLeftHeader(menu->submenuLeftHeaderSprites[i], start, end, 12);
@@ -789,7 +791,8 @@ static void ShowLeftHeaderSubmenuSprites(u32 startY, bool32 isOnRightSide)
 
 static void HideLeftHeaderSprites(bool32 isOnRightSide)
 {
-    s32 start, end, i;
+    s32 start, end;
+    u32 i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
 
     if (!isOnRightSide)
@@ -797,7 +800,7 @@ static void HideLeftHeaderSprites(bool32 isOnRightSide)
     else
         start = 192, end = 256;
 
-    for (i = 0; i < (s32)ARRAY_COUNT(menu->leftHeaderSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(menu->leftHeaderSprites); i++)
     {
         MoveLeftHeader(menu->leftHeaderSprites[i], start, end, 12);
     }
@@ -805,7 +808,8 @@ static void HideLeftHeaderSprites(bool32 isOnRightSide)
 
 static void HideLeftHeaderSubmenuSprites(bool32 isOnRightSide)
 {
-    s32 start, end, i;
+    s32 start, end;
+    u32 i;
     struct Pokenav_MainMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
 
     if (!isOnRightSide)
@@ -813,7 +817,7 @@ static void HideLeftHeaderSubmenuSprites(bool32 isOnRightSide)
     else
         start = 192, end = 256;
 
-    for (i = 0; i < (s32)ARRAY_COUNT(menu->submenuLeftHeaderSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(menu->submenuLeftHeaderSprites); i++)
     {
         MoveLeftHeader(menu->submenuLeftHeaderSprites[i], start, end, 12);
     }
