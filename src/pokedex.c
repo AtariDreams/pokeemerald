@@ -4068,12 +4068,12 @@ static void SpriteCB_SlideCaughtMonToCenter(struct Sprite *sprite)
 {
     if (sprite->x < DISPLAY_WIDTH / 2)
         sprite->x += 2;
-    if (sprite->x > DISPLAY_WIDTH / 2)
+    else if (sprite->x > DISPLAY_WIDTH / 2)
         sprite->x -= 2;
 
     if (sprite->y < DISPLAY_HEIGHT / 2)
         sprite->y += 1;
-    if (sprite->y > DISPLAY_HEIGHT / 2)
+    else if (sprite->y > DISPLAY_HEIGHT / 2)
         sprite->y -= 1;
 }
 
