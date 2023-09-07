@@ -2060,7 +2060,7 @@ void LoadPlayerObjectReflectionPalette(u16 tag, u8 slot)
 
 void LoadSpecialObjectReflectionPalette(u16 tag, u8 slot)
 {
-    u8 i;
+    u32 i;
 
     sCurrentSpecialObjectPaletteTag = tag;
     PatchObjectPalette(tag, slot);
