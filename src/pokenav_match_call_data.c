@@ -803,7 +803,7 @@ static u8 MatchCall_GetMapSec_Trainer(match_call_t matchCall)
 
 static u8 MatchCall_GetMapSec_Wally(match_call_t matchCall)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; matchCall.wally->locationData[i].flag != 0xFFFF; i++)
     {
@@ -1123,9 +1123,9 @@ int MatchCall_GetOverrideFacilityClass(u32 idx)
 
 bool32 MatchCall_HasRematchId(u32 idx)
 {
-    int i;
+    u32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sMatchCallHeaders); i++)
+    for (i = 0; i < ARRAY_COUNT(sMatchCallHeaders); i++)
     {
         u32 id = MatchCall_GetRematchTableIdx(i);
         if (id != REMATCH_TABLE_ENTRIES && id == idx)
