@@ -6,16 +6,12 @@
 
 	.text
 
-	thumb_func_start umul3232H32
+	arm_func_start umul3232H32
 umul3232H32:
-	adr r2, __umul3232H32
-	bx r2
-	.arm
-__umul3232H32:
 	umull r2, r3, r0, r1
 	add r0, r3, 0
 	bx lr
-	thumb_func_end umul3232H32
+	arm_func_end umul3232H32
 
 	thumb_func_start SoundMain
 SoundMain:
