@@ -80,12 +80,11 @@ bool8 DecorationCheckSpace(u8 decor)
     return TRUE;
 }
 
-s8 DecorationRemove(u8 decor)
+u8 DecorationRemove(u8 decor)
 {
-    u8 i;
+    u32 i;
     u8 category;
 
-    i = 0;
     if (decor == DECOR_NONE)
         return 0;
 
