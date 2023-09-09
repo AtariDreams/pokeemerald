@@ -47,31 +47,30 @@ void UnusedDummyFunc(void)
 
 void MPlayContinue(struct MusicPlayerInfo *mplayInfo)
 {
-    if (mplayInfo->ident == ID_NUMBER)
-    {
-        mplayInfo->ident++;
-        mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
-        mplayInfo->ident = ID_NUMBER;
-    }
+    if (mplayInfo->ident != ID_NUMBER)
+        return;
+
+    mplayInfo->ident++;
+    mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
+    mplayInfo->ident = ID_NUMBER;
 }
 
 void MPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed)
 {
-    if (mplayInfo->ident == ID_NUMBER)
-    {
-        mplayInfo->ident++;
-        mplayInfo->fadeOC = speed;
-        mplayInfo->fadeOI = speed;
-        mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT);
-        mplayInfo->ident = ID_NUMBER;
-    }
+    if (mplayInfo->ident != ID_NUMBER)
+        return;
+
+    mplayInfo->ident++;
+    mplayInfo->fadeOI = mplayInfo->fadeOC = speed;
+    mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT);
+    mplayInfo->ident = ID_NUMBER;
 }
 
 void m4aSoundInit(void)
 {
-    s32 i;
+    u32 i;
 
-    CpuCopy32((void *)((s32)SoundMainRAM & ~1), SoundMainRAM_Buffer, sizeof(SoundMainRAM_Buffer));
+    CpuFastCopy((void *)((u32)SoundMainRAM & ~1), SoundMainRAM_Buffer, sizeof(SoundMainRAM_Buffer));
 
     SoundInit(&gSoundInfo);
     MPlayExtender(gCgbChans);
@@ -231,26 +230,22 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
 
 void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
 {
-    s32 trackCount = mplayInfo->trackCount;
-    struct MusicPlayerTrack *track = mplayInfo->tracks;
+    u32 trackCount;
+    struct MusicPlayerTrack *track;
 
-    while (trackCount > 0)
+    for (trackCount = mplayInfo->trackCount, track = mplayInfo->tracks; trackCount > 0; trackCount--, track++)
     {
-        if (track->flags & MPT_FLG_EXIST)
+        if (!track->flags & MPT_FLG_EXIST)
+            continue;
+        if (track->flags & MPT_FLG_START)
         {
-            if (track->flags & MPT_FLG_START)
-            {
-                Clear64byte(track);
-                track->flags = MPT_FLG_EXIST;
-                track->bendRange = 2;
-                track->volX = 64;
-                track->lfoSpeed = 22;
-                track->tone.type = 1;
-            }
+            Clear64byte(track);
+            track->flags = MPT_FLG_EXIST;
+            track->bendRange = 2;
+            track->volX = 64;
+            track->lfoSpeed = 22;
+            track->tone.type = 1;
         }
-
-        trackCount--;
-        track++;
     }
 }
 
@@ -299,7 +294,7 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     soundInfo->MidiKeyToCgbFreq = MidiKeyToCgbFreq;
     soundInfo->maxLines = MAX_LINES;
 
-    CpuFill32(0, cgbChans, sizeof(struct CgbChannel) * 4);
+    CpuFastFill(0, cgbChans, sizeof(struct CgbChannel) * 4);
 
     cgbChans[0].type = 1;
     cgbChans[0].panMask = 0x11;
@@ -315,7 +310,7 @@ void MPlayExtender(struct CgbChannel *cgbChans)
 
 void MusicPlayerJumpTableCopy(void)
 {
-    asm("swi 0x2A");
+    asm("svc 0x2A");
 }
 
 void ClearChain(void *x)
@@ -352,13 +347,13 @@ void SoundInit(struct SoundInfo *soundInfo)
                    | SOUND_ALL_MIX_FULL;
     REG_SOUNDBIAS_H = (REG_SOUNDBIAS_H & 0x3F) | 0x40;
 
-    REG_DMA1SAD = (s32)soundInfo->pcmBuffer;
-    REG_DMA1DAD = (s32)&REG_FIFO_A;
-    REG_DMA2SAD = (s32)soundInfo->pcmBuffer + PCM_DMA_BUF_SIZE;
-    REG_DMA2DAD = (s32)&REG_FIFO_B;
+    REG_DMA1SAD = (u32)soundInfo->pcmBuffer;
+    REG_DMA1DAD = (u32)&REG_FIFO_A;
+    REG_DMA2SAD = (u32)soundInfo->pcmBuffer + PCM_DMA_BUF_SIZE;
+    REG_DMA2DAD = (u32)&REG_FIFO_B;
 
     SOUND_INFO_PTR = soundInfo;
-    CpuFill32(0, soundInfo, sizeof(struct SoundInfo));
+    CpuFastFill(0, soundInfo, sizeof(struct SoundInfo));
 
     soundInfo->maxChans = 8;
     soundInfo->masterVolume = 15;
@@ -382,7 +377,7 @@ void SampleFreqSet(u32 freq)
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
 
     freq = (freq & 0xF0000) >> 16;
-    soundInfo->freq = freq;
+    soundInfo->freq = (u8)freq;
     soundInfo->pcmSamplesPerVBlank = gPcmSamplesPerVBlankTable[freq - 1];
     soundInfo->pcmDmaPeriod = PCM_DMA_BUF_SIZE / soundInfo->pcmSamplesPerVBlank;
 
@@ -390,13 +385,13 @@ void SampleFreqSet(u32 freq)
     soundInfo->pcmFreq = (597275 * soundInfo->pcmSamplesPerVBlank + 5000) / 10000;
 
     // CPU frequency 16.78Mhz
-    soundInfo->divFreq = (16777216 / soundInfo->pcmFreq + 1) >> 1;
+    soundInfo->divFreq = (0x01000000 / soundInfo->pcmFreq + 1) >> 1;
 
     // Turn off timer 0.
     REG_TM0CNT_H = 0;
 
     // cycles per LCD fresh 280896
-    REG_TM0CNT_L = -(280896 / soundInfo->pcmSamplesPerVBlank);
+    REG_TM0CNT_L = 0x10000 -(280896 / soundInfo->pcmSamplesPerVBlank);
 
     m4aSoundVSyncOn();
 
@@ -430,17 +425,8 @@ void m4aSoundMode(u32 mode)
     {
         struct SoundChannel *chan;
 
-        soundInfo->maxChans = temp >> SOUND_MODE_MAXCHN_SHIFT;
-
-        temp = MAX_DIRECTSOUND_CHANNELS;
-        chan = &soundInfo->chans[0];
-
-        while (temp != 0)
-        {
+        for (temp = MAX_DIRECTSOUND_CHANNELS, soundInfo->chans; temp > 0; temp--, chan++)
             chan->statusFlags = 0;
-            temp--;
-            chan++;
-        }
     }
 
     temp = mode & SOUND_MODE_MASVOL;
@@ -470,36 +456,25 @@ void m4aSoundMode(u32 mode)
 void SoundClear(void)
 {
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
-    s32 i;
-    void *chan;
+    u32 i;
+    struct SoundChannel *chan;
 
     if (soundInfo->ident != ID_NUMBER)
         return;
 
     soundInfo->ident++;
 
-    i = MAX_DIRECTSOUND_CHANNELS;
-    chan = &soundInfo->chans[0];
+    for (i = MAX_DIRECTSOUND_CHANNELS, chan = soundInfo->chans; i > 0; i--, chan++)
+        chan->statusFlags = 0;
 
-    while (i > 0)
-    {
-        ((struct SoundChannel *)chan)->statusFlags = 0;
-        i--;
-        chan = (void *)((s32)chan + sizeof(struct SoundChannel));
-    }
-
-    chan = soundInfo->cgbChans;
+    chan = (struct SoundChannel *)soundInfo->cgbChans;
 
     if (chan)
     {
-        i = 1;
-
-        while (i <= 4)
+        for (i = 1; i <= 4; i++, chan++)
         {
             soundInfo->CgbOscOff(i);
-            ((struct CgbChannel *)chan)->statusFlags = 0;
-            i++;
-            chan = (void *)((s32)chan + sizeof(struct CgbChannel));
+            chan->statusFlags = 0;
         }
     }
 
@@ -510,21 +485,21 @@ void m4aSoundVSyncOff(void)
 {
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
 
-    if (soundInfo->ident >= ID_NUMBER && soundInfo->ident <= ID_NUMBER + 1)
-    {
-        soundInfo->ident += 10;
+    if (soundInfo->ident != ID_NUMBER && soundInfo->ident != ID_NUMBER + 1)
+        return;
 
-        if (REG_DMA1CNT & (DMA_REPEAT << 16))
-            REG_DMA1CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
+    soundInfo->ident += 10;
 
-        if (REG_DMA2CNT & (DMA_REPEAT << 16))
-            REG_DMA2CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
+    if (REG_DMA1CNT & (DMA_REPEAT << 16))
+        REG_DMA1CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
 
-        REG_DMA1CNT_H = DMA_32BIT;
-        REG_DMA2CNT_H = DMA_32BIT;
+    if (REG_DMA2CNT & (DMA_REPEAT << 16))
+        REG_DMA2CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
 
-        CpuFill32(0, soundInfo->pcmBuffer, sizeof(soundInfo->pcmBuffer));
-    }
+    REG_DMA1CNT_H = DMA_32BIT;
+    REG_DMA2CNT_H = DMA_32BIT;
+
+    CpuFastFill(0, soundInfo->pcmBuffer, sizeof(soundInfo->pcmBuffer));
 }
 
 void m4aSoundVSyncOn(void)
@@ -565,11 +540,9 @@ void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
     mplayInfo->trackCount = trackCount;
     mplayInfo->status = MUSICPLAYER_STATUS_PAUSE;
 
-    while (trackCount != 0)
+    for (; trackCount > 0; trackCount--, tracks++)
     {
         tracks->flags = 0;
-        trackCount--;
-        tracks++;
     }
 
     // append music player and MPlayMain to linked list
@@ -579,7 +552,7 @@ void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
         mplayInfo->MPlayMainNext = soundInfo->MPlayMainHead;
         mplayInfo->musicPlayerNext = soundInfo->musicPlayerHead;
         // NULL assignment semantically useless, but required for match
-        soundInfo->MPlayMainHead = NULL;
+        // soundInfo->MPlayMainHead = NULL;
     }
 
     soundInfo->musicPlayerHead = mplayInfo;
@@ -590,16 +563,14 @@ void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
 
 void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader)
 {
-    s32 i;
+    u32 i;
     u8 unk_B;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    unk_B = mplayInfo->unk_B;
-
-    if (!unk_B
+    if (!mplayInfo->unk_B
         || ((!mplayInfo->songHeader || !(mplayInfo->tracks[0].flags & MPT_FLG_START))
             && ((mplayInfo->status & MUSICPLAYER_STATUS_TRACK) == 0
                 || (mplayInfo->status & MUSICPLAYER_STATUS_PAUSE)))
@@ -611,31 +582,23 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
         mplayInfo->tone = songHeader->tone;
         mplayInfo->priority = songHeader->priority;
         mplayInfo->clock = 0;
-        mplayInfo->tempoD = 150;
-        mplayInfo->tempoI = 150;
+        mplayInfo->tempoI = mplayInfo->tempoD = 150;
         mplayInfo->tempoU = 0x100;
         mplayInfo->tempoC = 0;
         mplayInfo->fadeOI = 0;
 
-        i = 0;
-        track = mplayInfo->tracks;
-
-        while (i < songHeader->trackCount && i < mplayInfo->trackCount)
+        for (i = 0, track = mplayInfo->tracks; i < songHeader->trackCount && i < mplayInfo->trackCount; i++, track++)
         {
             TrackStop(mplayInfo, track);
             track->flags = MPT_FLG_EXIST | MPT_FLG_START;
             track->chan = 0;
             track->cmdPtr = songHeader->part[i];
-            i++;
-            track++;
         }
 
-        while (i < mplayInfo->trackCount)
+        for (; i < mplayInfo->trackCount; i++, track++)
         {
             TrackStop(mplayInfo, track);
             track->flags = 0;
-            i++;
-            track++;
         }
 
         if (songHeader->reverb & SOUND_MODE_REVERB_SET)
@@ -647,7 +610,7 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
 
 void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
 {
-    s32 i;
+    u32 i;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->ident != ID_NUMBER)
@@ -656,14 +619,9 @@ void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
     mplayInfo->ident++;
     mplayInfo->status |= MUSICPLAYER_STATUS_PAUSE;
 
-    i = mplayInfo->trackCount;
-    track = mplayInfo->tracks;
-
-    while (i > 0)
+    for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)
     {
         TrackStop(mplayInfo, track);
-        i--;
-        track++;
     }
 
     mplayInfo->ident = ID_NUMBER;
