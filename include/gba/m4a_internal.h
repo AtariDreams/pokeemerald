@@ -184,7 +184,7 @@ struct SoundInfo
     // values during sensitive operations for locking purposes.
     // This field should be volatile but isn't. This could potentially cause
     // race conditions.
-    u32 ident;
+    vu32 ident;
 
     vu8 pcmDmaCounter;
 
@@ -211,7 +211,7 @@ struct SoundInfo
     MPlayFunc *MPlayJumpTable;
     PlyNoteFunc plynote;
     ExtVolPitFunc ExtVolPit;
-    u8 gap2[16];
+    u32 gap2[4];
     struct SoundChannel chans[MAX_DIRECTSOUND_CHANNELS];
     s8 ALIGNED(4) pcmBuffer[PCM_DMA_BUF_SIZE * 2];
 };
