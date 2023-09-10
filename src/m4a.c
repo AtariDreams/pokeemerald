@@ -685,7 +685,7 @@ void FadeOutBody(struct MusicPlayerInfo *mplayInfo)
     i = mplayInfo->trackCount;
     track = mplayInfo->tracks;
 
-    while (i > 0)
+    for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)
     {
         if (track->flags & MPT_FLG_EXIST)
         {
@@ -694,9 +694,6 @@ void FadeOutBody(struct MusicPlayerInfo *mplayInfo)
             track->volX = (fadeOV >> FADE_VOL_SHIFT);
             track->flags |= MPT_FLG_VOLCHG;
         }
-
-        i--;
-        track++;
     }
 }
 
