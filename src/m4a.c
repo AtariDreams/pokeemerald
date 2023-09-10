@@ -1440,8 +1440,7 @@ cond_false:
 
 void ply_xcmd(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 n = *track->cmdPtr;
-    track->cmdPtr++;
+    u32 n = *track->cmdPtr++;
 
     gXcmdTable[n](mplayInfo, track);
 }
