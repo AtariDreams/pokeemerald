@@ -701,7 +701,7 @@ void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *tr
 {
     if (track->flags & MPT_FLG_VOLSET)
     {
-        s32 x;
+        u32 x;
         s32 y;
 
         x = (u32)(track->vol * track->volX) >> 5;
@@ -1168,13 +1168,12 @@ void CgbSound(void)
 
 void m4aMPlayTempoControl(struct MusicPlayerInfo *mplayInfo, u16 tempo)
 {
-    if (mplayInfo->ident == ID_NUMBER)
-    {
-        mplayInfo->ident++;
-        mplayInfo->tempoU = tempo;
-        mplayInfo->tempoI = (mplayInfo->tempoD * mplayInfo->tempoU) >> 8;
-        mplayInfo->ident = ID_NUMBER;
-    }
+    if (mplayInfo->ident != ID_NUMBER)
+        return;
+    mplayInfo->ident++;
+    mplayInfo->tempoU = tempo;
+    mplayInfo->tempoI = (mplayInfo->tempoD * mplayInfo->tempoU) >> 8;
+    mplayInfo->ident = ID_NUMBER;
 }
 
 void m4aMPlayVolumeControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u16 volume)
@@ -1302,13 +1301,9 @@ void m4aMPlayModDepthSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 mo
 
     mplayInfo->ident++;
 
-    i = mplayInfo->trackCount;
-    track = mplayInfo->tracks;
-    bit = 1;
-
-    while (i > 0)
+    for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)
     {
-        if (trackBits & bit)
+        if (trackBits & 1)
         {
             if (track->flags & MPT_FLG_EXIST)
             {
@@ -1319,9 +1314,7 @@ void m4aMPlayModDepthSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 mo
             }
         }
 
-        i--;
-        track++;
-        bit <<= 1;
+        trackBits >>= 1;
     }
 
     mplayInfo->ident = ID_NUMBER;
@@ -1329,8 +1322,7 @@ void m4aMPlayModDepthSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 mo
 
 void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lfoSpeed)
 {
-    s32 i;
-    u32 bit;
+    u32 i;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->ident != ID_NUMBER)
@@ -1338,13 +1330,9 @@ void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lf
 
     mplayInfo->ident++;
 
-    i = mplayInfo->trackCount;
-    track = mplayInfo->tracks;
-    bit = 1;
-
-    while (i > 0)
+    for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)
     {
-        if (trackBits & bit)
+        if (trackBits & 1)
         {
             if (track->flags & MPT_FLG_EXIST)
             {
@@ -1355,9 +1343,7 @@ void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lf
             }
         }
 
-        i--;
-        track++;
-        bit <<= 1;
+        trackBits >>= 1;
     }
 
     mplayInfo->ident = ID_NUMBER;
@@ -1447,7 +1433,7 @@ void ply_memacc(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *trac
 cond_true:
     {
         // *& is required for matching
-        (*&gMPlayJumpTable[1])(mplayInfo, track);
+        (gMPlayJumpTable[1])(mplayInfo, track);
         return;
     }
 
