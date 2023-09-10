@@ -173,7 +173,7 @@ void m4aSongNumContinue(u16 n)
 
 void m4aMPlayAllStop(void)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < NUM_MUSIC_PLAYERS; i++)
         m4aMPlayStop(gMPlayTable[i].info);
@@ -189,7 +189,7 @@ void m4aMPlayContinue(struct MusicPlayerInfo *mplayInfo)
 
 void m4aMPlayAllContinue(void)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < NUM_MUSIC_PLAYERS; i++)
         MPlayContinue(gMPlayTable[i].info);
@@ -1361,14 +1361,11 @@ void ply_memacc(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *trac
     u8 *addr;
     u8 data;
 
-    op = *track->cmdPtr;
-    track->cmdPtr++;
+    op = *track->cmdPtr++;
 
-    addr = mplayInfo->memAccArea + *track->cmdPtr;
-    track->cmdPtr++;
+    addr = mplayInfo->memAccArea + *track->cmdPtr++;
 
-    data = *track->cmdPtr;
-    track->cmdPtr++;
+    data = *track->cmdPtr++;
 
     switch (op)
     {
@@ -1481,56 +1478,47 @@ void ply_xwave(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
 
 void ply_xtype(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.type = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.type = *track->cmdPtr++;
 }
 
 void ply_xatta(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.attack = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.attack = *track->cmdPtr++;
 }
 
 void ply_xdeca(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.decay = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.decay = *track->cmdPtr++;
 }
 
 void ply_xsust(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.sustain = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.sustain = *track->cmdPtr++;
 }
 
 void ply_xrele(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.release = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.release = *track->cmdPtr++;
 }
 
 void ply_xiecv(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->pseudoEchoVolume = *track->cmdPtr;
-    track->cmdPtr++;
+    track->pseudoEchoVolume = *track->cmdPtr++;
 }
 
 void ply_xiecl(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->pseudoEchoLength = *track->cmdPtr;
-    track->cmdPtr++;
+    track->pseudoEchoLength = *track->cmdPtr++;
 }
 
 void ply_xleng(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.length = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.length = *track->cmdPtr++;
 }
 
 void ply_xswee(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    track->tone.pan_sweep = *track->cmdPtr;
-    track->cmdPtr++;
+    track->tone.pan_sweep = *track->cmdPtr++;
 }
 
 void ply_xcmd_0C(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
