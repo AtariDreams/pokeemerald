@@ -1640,14 +1640,11 @@ void SetPokemonCryProgress(u32 val)
     gPokemonCrySong.unkCmd0DParam = val;
 }
 
-bool32 IsPokemonCryPlaying(struct MusicPlayerInfo *mplayInfo)
+int IsPokemonCryPlaying(struct MusicPlayerInfo *mplayInfo)
 {
     struct MusicPlayerTrack *track = mplayInfo->tracks;
 
-    if (track->chan && track->chan->track == track)
-        return TRUE;
-    else
-        return FALSE;
+    return (track->chan && track->chan->track == track);
 }
 
 void SetPokemonCryChorus(s8 val)
