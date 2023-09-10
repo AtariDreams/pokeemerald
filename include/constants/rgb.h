@@ -7,7 +7,7 @@
 
 #define RGB(r, g, b)  ((r) | ((g) << 5) | ((b) << 10))
 #define RGB2(r, g, b) (((b) << 10) | ((g) << 5) | (r))
-#define _RGB(r, g, b) ((((b) & 0x1F) << 10) + (((g) & 0x1F) << 5) + ((r) & 0x1F))
+#define _RGB(r, g, b) ((((b) & 0x1F) << 10) | (((g) & 0x1F) << 5) | ((r) & 0x1F))
 
 #define RGB_ALPHA       (1 << 15)
 #define IS_ALPHA(color) ((color) & RGB_ALPHA)
