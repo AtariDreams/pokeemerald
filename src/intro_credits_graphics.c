@@ -982,7 +982,7 @@ static void Task_BicycleBgAnimation(u8 taskId)
     // Move BG3
     if (gTasks[taskId].tBg3Speed)
     {
-        offset = (gTasks[taskId].tBg3PosHi << 16) + (u16)gTasks[taskId].tBg3PosLo;
+        offset = (gTasks[taskId].tBg3PosHi << 16) | (u16)gTasks[taskId].tBg3PosLo;
         offset -= ((u16)gTasks[taskId].tBg3Speed & 0xFFFF) << 4;
         gTasks[taskId].tBg3PosHi = offset >> 16;
         gTasks[taskId].tBg3PosLo = offset;
