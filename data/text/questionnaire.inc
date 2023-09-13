@@ -12,9 +12,9 @@ Questionnaire_Text_YouKnowThoseWordsGift::
 	.string "Oh, hello!\n"
 	.string "You know those words?\p"
 	.string "That means you must know about\n"
-	.string "the MYSTERY GIFT.\p"
-	.string "From now on, you should be\n"
-	.string "receiving MYSTERY GIFTS!$"
+	.string "the secret map.\p"
+	.string "Here, let me give you\n"
+	.string "This OLD SEA MAP.$"
 
 Questionnaire_Text_YouCanAccessMysteryGift::
 	.string "Once you save your game, you can\n"
