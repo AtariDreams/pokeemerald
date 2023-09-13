@@ -970,7 +970,7 @@ u8 Menu_MoveCursorNoWrapAround(s8 cursorDelta)
     return sMenu.cursorPos;
 }
 
-u8 Menu_GetCursorPos(void)
+s8 Menu_GetCursorPos(void)
 {
     return sMenu.cursorPos;
 }
