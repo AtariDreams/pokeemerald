@@ -856,16 +856,23 @@ static bool8 HandleMainMenuInput(u8 taskId)
         SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE(0, DISPLAY_HEIGHT));
         gTasks[taskId].func = Task_HandleMainMenuBPressed;
     }
-    else if ((JOY_NEW(DPAD_UP)) && tCurrItem > 0)
+    else if ((JOY_NEW(DPAD_UP)))
     {
-        sCurrItemAndOptionMenuCheck = tCurrItem;
-        return TRUE;
+        if (tCurrItem > 0)
+        {
+            tCurrItem--;
+            sCurrItemAndOptionMenuCheck = tCurrItem;
+            return TRUE;
+        }
     }
-    else if ((JOY_NEW(DPAD_DOWN)) && tCurrItem < tItemCount - 1)
+    else if ((JOY_NEW(DPAD_DOWN)))
     {
-        tCurrItem++;
-        sCurrItemAndOptionMenuCheck = tCurrItem;
-        return TRUE;
+        if (tCurrItem + 1 < tItemCount)
+        {
+            tCurrItem++;
+            sCurrItemAndOptionMenuCheck = tCurrItem;
+            return TRUE;
+        }
     }
     return FALSE;
 }
@@ -1097,7 +1104,7 @@ static void Task_NewGameBirchSpeech_WaitToShowBirch(u8 taskId)
 {
     u8 spriteId;
 
-    if (gTasks[taskId].tTimer)
+    if (gTasks[taskId].tTimer > 0)
     {
         gTasks[taskId].tTimer--;
         return;
@@ -1119,10 +1126,10 @@ static void Task_NewGameBirchSpeech_WaitForSpriteFadeInWelcome(u8 taskId)
     if (gTasks[taskId].tIsDoneFadingSprites)
     {
         gSprites[gTasks[taskId].tBirchSpriteId].oam.objMode = ST_OAM_OBJ_NORMAL;
-        if (gTasks[taskId].tTimer)
+        if (gTasks[taskId].tTimer > 0)
         {
-                    gTasks[taskId].tTimer--;
-                    return;
+            gTasks[taskId].tTimer--;
+            return;
         }
 
         InitWindows(sNewGameBirchSpeechTextWindows);
@@ -1247,7 +1254,7 @@ static void Task_NewGameBirchSpeech_StartPlayerFadeIn(u8 taskId)
 
     gSprites[gTasks[taskId].tBirchSpriteId].invisible = TRUE;
     gSprites[gTasks[taskId].tLotadSpriteId].invisible = TRUE;
-    if (gTasks[taskId].tTimer)
+    if (gTasks[taskId].tTimer > 0)
     {
         gTasks[taskId].tTimer--;
         return;
@@ -1501,7 +1508,7 @@ static void Task_NewGameBirchSpeech_AreYouReady(u8 taskId)
     {
         gSprites[gTasks[taskId].tBirchSpriteId].invisible = TRUE;
         gSprites[gTasks[taskId].tLotadSpriteId].invisible = TRUE;
-        if (gTasks[taskId].tTimer)
+        if (gTasks[taskId].tTimer > 0)
         {
             gTasks[taskId].tTimer--;
             return;
@@ -1717,7 +1724,7 @@ static void Task_NewGameBirchSpeech_FadeOutTarget1InTarget2(u8 taskId)
         DestroyTask(taskId);
         return;
     }
-    if (gTasks[taskId].tDelayTimer)
+    if (gTasks[taskId].tDelayTimer > 0)
     {
         gTasks[taskId].tDelayTimer--;
         return;
@@ -1755,7 +1762,7 @@ static void Task_NewGameBirchSpeech_FadeInTarget1OutTarget2(u8 taskId)
         DestroyTask(taskId);
         return;
     }
-    if (gTasks[taskId].tDelayTimer)
+    if (gTasks[taskId].tDelayTimer > 0)
     {
         gTasks[taskId].tDelayTimer--;
         return;
@@ -1801,7 +1808,7 @@ static void NewGameBirchSpeech_StartFadeInTarget1OutTarget2(u8 taskId, u8 delay)
 
 static void Task_NewGameBirchSpeech_FadePlatformIn(u8 taskId)
 {
-    if (gTasks[taskId].tDelayBefore)
+    if (gTasks[taskId].tDelayBefore > 0)
     {
         gTasks[taskId].tDelayBefore--;
         return;
@@ -1811,7 +1818,7 @@ static void Task_NewGameBirchSpeech_FadePlatformIn(u8 taskId)
         DestroyTask(taskId);
         return;
     }
-    if (gTasks[taskId].tDelayTimer)
+    if (gTasks[taskId].tDelayTimer > 0)
     {
         gTasks[taskId].tDelayTimer--;
         return;
@@ -1838,7 +1845,7 @@ static void NewGameBirchSpeech_StartFadePlatformIn(u8 taskId, u8 delay)
 
 static void Task_NewGameBirchSpeech_FadePlatformOut(u8 taskId)
 {
-    if (gTasks[taskId].tDelayBefore)
+    if (gTasks[taskId].tDelayBefore > 0)
     {
         gTasks[taskId].tDelayBefore--;
         return;
@@ -1848,7 +1855,7 @@ static void Task_NewGameBirchSpeech_FadePlatformOut(u8 taskId)
         DestroyTask(taskId);
         return;
     }
-    if (gTasks[taskId].tDelayTimer)
+    if (gTasks[taskId].tDelayTimer > 0)
     {
         gTasks[taskId].tDelayTimer--;
         return;
