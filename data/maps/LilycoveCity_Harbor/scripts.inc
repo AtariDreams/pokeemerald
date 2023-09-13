@@ -122,7 +122,7 @@ LilycoveCity_Harbor_EventScript_GetAuroraTicketState::
 
 LilycoveCity_Harbor_EventScript_GetOldSeaMapState::
 	setvar VAR_TEMP_C, 0
-	goto_if_unset FLAG_ENABLE_SHIP_FARAWAY_ISLAND, Common_EventScript_NopReturn
+	goto_if_unset FLAG_RECEIVED_OLD_SEA_MAP, Common_EventScript_NopReturn
 	checkitem ITEM_OLD_SEA_MAP
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_NopReturn
 	setvar VAR_TEMP_C, 1
