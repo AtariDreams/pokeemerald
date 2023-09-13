@@ -3704,6 +3704,7 @@ static void Task_HandleSpinTradeYesNoInput(u8 taskId)
 
 static void CursorCb_FieldMove(u8 taskId)
 {
+    // TODO: make sure Menu_GetCursorPos is not negative
     u8 fieldMove = sPartyMenuInternal->actions[Menu_GetCursorPos()] - MENU_FIELD_MOVES;
     const struct MapHeader *mapHeader;
 
