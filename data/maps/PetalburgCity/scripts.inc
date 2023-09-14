@@ -234,6 +234,7 @@ PetalburgCity_EventScript_CitySign::
 
 PetalburgCity_EventScript_Gentleman::
 	msgbox PetalburgCity_Text_FullPartyExplanation, MSGBOX_NPC
+	braillemsgbox RandomDude
 	end
 
 PetalburgCity_EventScript_WallyHouseSign::
