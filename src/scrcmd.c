@@ -105,9 +105,7 @@ bool8 ScrCmd_end(struct ScriptContext *ctx)
 
 bool8 ScrCmd_gotonative(struct ScriptContext *ctx)
 {
-    bool8 (*addr)(void) = (bool8 (*)(void))ScriptReadWord(ctx);
-
-    SetupNativeScript(ctx, addr);
+    SetupNativeScript(ctx, (bool8 (*)(void))ScriptReadWord(ctx));
     return TRUE;
 }
 
@@ -168,7 +166,7 @@ bool8 ScrCmd_goto_if(struct ScriptContext *ctx)
     u8 condition = ScriptReadByte(ctx);
     const u8 *ptr = (const u8 *)ScriptReadWord(ctx);
 
-    if (sScriptConditionTable[condition][ctx->comparisonResult] == 1)
+    if (sScriptConditionTable[condition][ctx->comparisonResult])
         ScriptJump(ctx, ptr);
     return FALSE;
 }
@@ -178,7 +176,7 @@ bool8 ScrCmd_call_if(struct ScriptContext *ctx)
     u8 condition = ScriptReadByte(ctx);
     const u8 *ptr = (const u8 *)ScriptReadWord(ctx);
 
-    if (sScriptConditionTable[condition][ctx->comparisonResult] == 1)
+    if (sScriptConditionTable[condition][ctx->comparisonResult])
         ScriptCall(ctx, ptr);
     return FALSE;
 }
@@ -194,17 +192,17 @@ bool8 ScrCmd_setvaddress(struct ScriptContext *ctx)
 
 bool8 ScrCmd_vgoto(struct ScriptContext *ctx)
 {
-    u32 addr = ScriptReadWord(ctx);
+    u8 *addr = (u8 *)(ScriptReadWord(ctx) - sAddressOffset);
 
-    ScriptJump(ctx, (u8 *)(addr - sAddressOffset));
+    ScriptJump(ctx, addr);
     return FALSE;
 }
 
 bool8 ScrCmd_vcall(struct ScriptContext *ctx)
 {
-    u32 addr = ScriptReadWord(ctx);
+    u8 *addr = (u8 *)(ScriptReadWord(ctx) - sAddressOffset);
 
-    ScriptCall(ctx, (u8 *)(addr - sAddressOffset));
+    ScriptCall(ctx, addr);
     return FALSE;
 }
 
@@ -213,7 +211,7 @@ bool8 ScrCmd_vgoto_if(struct ScriptContext *ctx)
     u8 condition = ScriptReadByte(ctx);
     const u8 *ptr = (const u8 *)(ScriptReadWord(ctx) - sAddressOffset);
 
-    if (sScriptConditionTable[condition][ctx->comparisonResult] == 1)
+    if (sScriptConditionTable[condition][ctx->comparisonResult])
         ScriptJump(ctx, ptr);
     return FALSE;
 }
@@ -223,7 +221,7 @@ bool8 ScrCmd_vcall_if(struct ScriptContext *ctx)
     u8 condition = ScriptReadByte(ctx);
     const u8 *ptr = (const u8 *)(ScriptReadWord(ctx) - sAddressOffset);
 
-    if (sScriptConditionTable[condition][ctx->comparisonResult] == 1)
+    if (sScriptConditionTable[condition][ctx->comparisonResult])
         ScriptCall(ctx, ptr);
     return FALSE;
 }
