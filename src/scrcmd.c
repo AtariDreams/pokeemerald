@@ -251,7 +251,7 @@ bool8 ScrCmd_gotostd_if(struct ScriptContext *ctx)
     u8 condition = ScriptReadByte(ctx);
     u8 index = ScriptReadByte(ctx);
 
-    if (sScriptConditionTable[condition][ctx->comparisonResult] == 1)
+    if (sScriptConditionTable[condition][ctx->comparisonResult])
     {
         const u8 **ptr = &gStdScripts[index];
         if (ptr < gStdScripts_End)
@@ -611,10 +611,7 @@ bool8 ScrCmd_setflashlevel(struct ScriptContext *ctx)
 
 static bool8 IsPaletteNotActive(void)
 {
-    if (!gPaletteFade.active)
-        return TRUE;
-    else
-        return FALSE;
+    return !gPaletteFade.active;
 }
 
 bool8 ScrCmd_fadescreen(struct ScriptContext *ctx)
@@ -1537,9 +1534,9 @@ bool8 ScrCmd_closebraillemessage(struct ScriptContext *ctx)
 
 bool8 ScrCmd_vmessage(struct ScriptContext *ctx)
 {
-    u32 msg = ScriptReadWord(ctx);
+    u8 *msg = (u8 *)(ScriptReadWord(ctx) - sAddressOffset);
 
-    ShowFieldMessage((u8 *)(msg - sAddressOffset));
+    ShowFieldMessage(msg);
     return FALSE;
 }
 
@@ -1658,9 +1655,8 @@ bool8 ScrCmd_vbuffermessage(struct ScriptContext *ctx)
 bool8 ScrCmd_vbufferstring(struct ScriptContext *ctx)
 {
     u8 stringVarIndex = ScriptReadByte(ctx);
-    u32 addr = ScriptReadWord(ctx);
 
-    const u8 *src = (u8 *)(addr - sAddressOffset);
+    const u8 *src = (u8 *)(ScriptReadWord(ctx) - sAddressOffset);
     u8 *dest = sScriptStringVars[stringVarIndex];
     StringCopy(dest, src);
     return FALSE;
@@ -1708,7 +1704,7 @@ bool8 ScrCmd_setmonmove(struct ScriptContext *ctx)
 
 bool8 ScrCmd_checkpartymove(struct ScriptContext *ctx)
 {
-    u8 i;
+    u16 i;
     u16 moveId = ScriptReadHalfword(ctx);
 
     gSpecialVar_Result = PARTY_SIZE;
@@ -1841,25 +1837,19 @@ bool8 ScrCmd_gotobeatenscript(struct ScriptContext *ctx)
 
 bool8 ScrCmd_checktrainerflag(struct ScriptContext *ctx)
 {
-    u16 index = VarGet(ScriptReadHalfword(ctx));
-
-    ctx->comparisonResult = HasTrainerBeenFought(index);
+    ctx->comparisonResult = HasTrainerBeenFought(VarGet(ScriptReadHalfword(ctx)));
     return FALSE;
 }
 
 bool8 ScrCmd_settrainerflag(struct ScriptContext *ctx)
 {
-    u16 index = VarGet(ScriptReadHalfword(ctx));
-
-    SetTrainerFlag(index);
+    SetTrainerFlag(VarGet(ScriptReadHalfword(ctx)));
     return FALSE;
 }
 
 bool8 ScrCmd_cleartrainerflag(struct ScriptContext *ctx)
 {
-    u16 index = VarGet(ScriptReadHalfword(ctx));
-
-    ClearTrainerFlag(index);
+    ClearTrainerFlag(VarGet(ScriptReadHalfword(ctx)));
     return FALSE;
 }
 
@@ -1882,7 +1872,7 @@ bool8 ScrCmd_dowildbattle(struct ScriptContext *ctx)
 
 bool8 ScrCmd_pokemart(struct ScriptContext *ctx)
 {
-    const void *ptr = (void *)ScriptReadWord(ctx);
+    const u16 *ptr = (const u16 *)ScriptReadWord(ctx);
 
     CreatePokemartMenu(ptr);
     ScriptContext_Stop();
@@ -1891,7 +1881,7 @@ bool8 ScrCmd_pokemart(struct ScriptContext *ctx)
 
 bool8 ScrCmd_pokemartdecoration(struct ScriptContext *ctx)
 {
-    const void *ptr = (void *)ScriptReadWord(ctx);
+    const u16 *ptr = (const u16 *)ScriptReadWord(ctx);
 
     CreateDecorationShop1Menu(ptr);
     ScriptContext_Stop();
@@ -1901,7 +1891,7 @@ bool8 ScrCmd_pokemartdecoration(struct ScriptContext *ctx)
 // Changes clerk dialogue slightly from above. See MART_TYPE_DECOR2
 bool8 ScrCmd_pokemartdecoration2(struct ScriptContext *ctx)
 {
-    const void *ptr = (void *)ScriptReadWord(ctx);
+    const u16 *ptr = (const u16 *)ScriptReadWord(ctx);
 
     CreateDecorationShop2Menu(ptr);
     ScriptContext_Stop();
@@ -2046,8 +2036,8 @@ bool8 ScrCmd_setmetatile(struct ScriptContext *ctx)
 
 bool8 ScrCmd_opendoor(struct ScriptContext *ctx)
 {
-    u16 x = VarGet(ScriptReadHalfword(ctx));
-    u16 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx));
+    u32 y = VarGet(ScriptReadHalfword(ctx));
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
@@ -2058,8 +2048,8 @@ bool8 ScrCmd_opendoor(struct ScriptContext *ctx)
 
 bool8 ScrCmd_closedoor(struct ScriptContext *ctx)
 {
-    u16 x = VarGet(ScriptReadHalfword(ctx));
-    u16 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx));
+    u32 y = VarGet(ScriptReadHalfword(ctx));
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
@@ -2083,8 +2073,8 @@ bool8 ScrCmd_waitdooranim(struct ScriptContext *ctx)
 
 bool8 ScrCmd_setdooropen(struct ScriptContext *ctx)
 {
-    u16 x = VarGet(ScriptReadHalfword(ctx));
-    u16 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx));
+    u32 y = VarGet(ScriptReadHalfword(ctx));
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
@@ -2094,8 +2084,8 @@ bool8 ScrCmd_setdooropen(struct ScriptContext *ctx)
 
 bool8 ScrCmd_setdoorclosed(struct ScriptContext *ctx)
 {
-    u16 x = VarGet(ScriptReadHalfword(ctx));
-    u16 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx));
+    u32 y = VarGet(ScriptReadHalfword(ctx));
 
     x += MAP_OFFSET;
     y += MAP_OFFSET;
@@ -2168,7 +2158,7 @@ bool8 ScrCmd_turnrotatingtileobjects(struct ScriptContext *ctx)
 
 bool8 ScrCmd_initrotatingtilepuzzle(struct ScriptContext *ctx)
 {
-    u16 isTrickHouse = VarGet(ScriptReadHalfword(ctx));
+    u8 isTrickHouse = VarGet(ScriptReadHalfword(ctx));
 
     InitRotatingTilePuzzle(isTrickHouse);
     return FALSE;
@@ -2192,15 +2182,13 @@ bool8 ScrCmd_lockfortrainer(struct ScriptContext *ctx)
     {
         return FALSE;
     }
-    else
+
+    if (gObjectEvents[gSelectedObjectEvent].active)
     {
-        if (gObjectEvents[gSelectedObjectEvent].active)
-        {
-            FreezeForApproachingTrainers();
-            SetupNativeScript(ctx, IsFreezeObjectAndPlayerFinished);
-        }
-        return TRUE;
+        FreezeForApproachingTrainers();
+        SetupNativeScript(ctx, IsFreezeObjectAndPlayerFinished);
     }
+    return TRUE;
 }
 
 // This command will set a Pokémon's modernFatefulEncounter bit; there is no similar command to clear it.
