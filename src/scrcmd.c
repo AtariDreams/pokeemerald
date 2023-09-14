@@ -1476,46 +1476,49 @@ bool8 ScrCmd_braillemessage(struct ScriptContext *ctx)
 {
     u8 *ptr = (u8 *)ScriptReadWord(ctx);
     struct WindowTemplate winTemplate;
-    s32 i;
-    u8 width, height;
-    u8 xWindow, yWindow, xText, yText;
-    u8 temp;
+    u32 i;
+    u8 sx, sy;
+    u8 x1, y1, xText, yText;
+    u8 mx, my;
+    u8 x, y;
 
     // + 6 for the 6 bytes at the start of a braille message (brailleformat macro)
     // In RS these bytes are used to position the text and window, but
     // in Emerald they are unused and position is calculated below instead
     StringExpandPlaceholders(gStringVar4, ptr + 6);
 
-    width = GetStringWidth(FONT_BRAILLE, gStringVar4, -1) / 8u;
+    sx = GetStringWidth(FONT_BRAILLE, gStringVar4, -1) / 8;
 
-    if (width > 28)
-        width = 28;
+    if (sx > 28)
+        sx = 28;
 
-    for (i = 0, height = 4; gStringVar4[i] != EOS;)
+    sy = 4;
+    for (i = 0; gStringVar4[i] != EOS; i++)
     {
-        if (gStringVar4[i++] == CHAR_NEWLINE)
-            height += 3;
+        if (gStringVar4[i] == CHAR_NEWLINE)
+            sy += 3;
     }
 
-    if (height > 18)
-        height = 18;
+    if (sy > 18)
+        sy = 18;
 
-    temp = width + 2;
-    xWindow = (30 - temp) / 2;
+    x1 = sx + 2;
+    x1 = (30 - x1) / 2;
 
-    temp = height + 2;
-    yText = (20 - temp) / 2;
+    y1 = sy + 2;
+    y1 = (20 - y1) / 2;
 
-    xText = xWindow;
-    xWindow += 1;
+    mx = x1 + 1;
 
-    yWindow = yText;
-    yText += 2;
+    my = y1 + 2;
 
-    xText = (xWindow - xText - 1) * 8 + 3;
-    yText = (yText - yWindow - 1) * 8;
+    xText = (mx - x1 - 1) * 8 + 3;
+    yText = (my - y1 - 1) * 8;
 
-    winTemplate = CreateWindowTemplate(0, xWindow, yWindow + 1, width, height, 0xF, 0x1);
+    x = x1 + 1;
+    y = y1 + 1;
+
+    winTemplate = CreateWindowTemplate(0, x, y, sx, sy, 0xF, 0x1);
     sBrailleWindowId = AddWindow(&winTemplate);
     LoadUserWindowBorderGfx(sBrailleWindowId, 0x214, BG_PLTT_ID(14));
     DrawStdWindowFrame(sBrailleWindowId, FALSE);
