@@ -683,7 +683,7 @@ static const u16 sPlayerBerrySpriteTags[MAX_RFU_PLAYERS] =
 
 // sTimerDigits_Gfx is part of this array but is (apparently) uncompressed
 // It gets cast to raw uncompressed data when used in sDigitObjTemplates
-static const struct CompressedSpriteSheet sSpriteSheets[] =
+static const struct SpriteSheet sSpriteSheets[] =
 {
     { .data = sCrusherBase_Gfx, .size = 0x800, .tag = TAG_CRUSHER_BASE },
     { .data = sImpact_Gfx,      .size = 0xE00, .tag = GFXTAG_IMPACT },

@@ -281,7 +281,7 @@ static const union AffineAnimCmd sAffineAnim_StarterCircle[] =
 static const union AffineAnimCmd * const sAffineAnims_StarterPokemon = {sAffineAnim_StarterPokemon};
 static const union AffineAnimCmd * const sAffineAnims_StarterCircle[] = {sAffineAnim_StarterCircle};
 
-static const struct CompressedSpriteSheet sSpriteSheet_PokeballSelect[] =
+static const struct SpriteSheet sSpriteSheet_PokeballSelect[] =
 {
     {
         .data = gPokeballSelection_Gfx,
@@ -291,7 +291,7 @@ static const struct CompressedSpriteSheet sSpriteSheet_PokeballSelect[] =
     {}
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_StarterCircle[] =
+static const struct SpriteSheet sSpriteSheet_StarterCircle[] =
 {
     {
         .data = sStarterCircle_Gfx,

@@ -904,7 +904,7 @@ static const struct ScanlineEffectParams sTourneyTreeScanlineEffectParams =
     .initState = 1,
 };
 
-static const struct CompressedSpriteSheet sTourneyTreeButtonsSpriteSheet[] =
+static const struct SpriteSheet sTourneyTreeButtonsSpriteSheet[] =
 {
     {.data = gDomeTourneyTreeButtons_Gfx, .size = 0x0600, .tag = TAG_BUTTONS},
     {},

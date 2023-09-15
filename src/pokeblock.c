@@ -274,7 +274,7 @@ static const union AffineAnimCmd *const sAffineAnims_PokeblockCaseShake[] =
     sAffineAnim_PokeblockCaseShake
 };
 
-const struct CompressedSpriteSheet gPokeblockCase_SpriteSheet =
+const struct SpriteSheet gPokeblockCase_SpriteSheet =
 {
     gMenuPokeblockDevice_Gfx, 0x800, TAG_POKEBLOCK_CASE
 };

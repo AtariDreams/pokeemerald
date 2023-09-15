@@ -2413,7 +2413,7 @@ static const union AffineAnimCmd *const sAffineAnims_Unused2[] =
     sAffineAnim_Unused2
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_WheelIcons =
+static const struct SpriteSheet sSpriteSheet_WheelIcons =
 {
     .data = sWheelIcons_Gfx,
     .size = 0xC00,
@@ -2497,14 +2497,14 @@ static const union AnimCmd *const sAnim_WheelIcon_PurpleMakuhita[] =
     &sAnim_WheelIcons[11]
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Headers =
+static const struct SpriteSheet sSpriteSheet_Headers =
 {
     .data = gRouletteHeaders_Gfx,
     .size = 0x1600,
     .tag = GFXTAG_HEADERS
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_GridIcons =
+static const struct SpriteSheet sSpriteSheet_GridIcons =
 {
     .data = sGridIcons_Gfx,
     .size = 0x400,
@@ -2852,7 +2852,7 @@ static const struct OamData sOam_BallCounter =
     .priority = 1,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheets_Interface[] =
+static const struct SpriteSheet sSpriteSheets_Interface[] =
 {
     {
         .data = gRouletteCredit_Gfx,
@@ -3001,7 +3001,7 @@ static const struct OamData sOam_Ball =
     .priority = 2,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Ball = {
+static const struct SpriteSheet sSpriteSheet_Ball = {
     .data = sBall_Gfx,
     .size = 0x200,
     .tag = GFXTAG_BALL
@@ -3111,7 +3111,7 @@ static const struct OamData sOam_WheelCenter =
     .priority = 2,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_WheelCenter =
+static const struct SpriteSheet sSpriteSheet_WheelCenter =
 {
     .data = gRouletteCenter_Gfx,
     .size = 0x800,
@@ -3147,7 +3147,7 @@ static const struct OamData sOam_Taillow =
     .priority = 2,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ShroomishTaillow =
+static const struct SpriteSheet sSpriteSheet_ShroomishTaillow =
 {
     .data = sShroomishTaillow_Gfx,
     .size = 0xE00,
@@ -3269,7 +3269,7 @@ static const struct OamData sOam_TaillowShadow =
     .priority = 2,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Shadow =
+static const struct SpriteSheet sSpriteSheet_Shadow =
 {
     .data = sShadow_Gfx,
     .size = 0x180,

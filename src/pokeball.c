@@ -57,7 +57,7 @@ static u16 GetBattlerPokeballItemId(u8 battlerId);
 #define GFX_TAG_LUXURY_BALL  55010
 #define GFX_TAG_PREMIER_BALL 55011
 
-const struct CompressedSpriteSheet gBallSpriteSheets[POKEBALL_COUNT] =
+const struct SpriteSheet gBallSpriteSheets[POKEBALL_COUNT] =
 {
     [BALL_POKE]    = {gBallGfx_Poke,    384, GFX_TAG_POKE_BALL},
     [BALL_GREAT]   = {gBallGfx_Great,   384, GFX_TAG_GREAT_BALL},

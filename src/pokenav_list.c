@@ -767,7 +767,7 @@ static void PrintMatchCallFlavorText(struct PokenavListWindowState *windowState,
     }
 }
 
-static const struct CompressedSpriteSheet sListArrowSpriteSheets[] =
+static const struct SpriteSheet sListArrowSpriteSheets[] =
 {
     {
         .data = sListArrow_Gfx,

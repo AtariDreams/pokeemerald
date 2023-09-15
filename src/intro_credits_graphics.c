@@ -87,7 +87,7 @@ static const struct SpriteTemplate sSpriteTemplate_MovingScenery =
     .callback = SpriteCB_MovingScenery
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Clouds[] =
+static const struct SpriteSheet sSpriteSheet_Clouds[] =
 {
     {
         .data = sClouds_Gfx,
@@ -214,7 +214,7 @@ static const struct IntroCreditsSpriteMetadata sSpriteMetadata_Clouds[] =
     },
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_TreesSmall[] =
+static const struct SpriteSheet sSpriteSheet_TreesSmall[] =
 {
     {
         .data = sTreesSmall_Gfx,
@@ -361,7 +361,7 @@ static const struct IntroCreditsSpriteMetadata sSpriteMetadata_Trees[] =
     }
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_HouseSilhouette[] =
+static const struct SpriteSheet sSpriteSheet_HouseSilhouette[] =
 {
     {
         .data = sHouseSilhouette_Gfx,
@@ -576,7 +576,7 @@ static const struct SpriteTemplate sSpriteTemplate_FlygonLatias =
     .callback = SpriteCB_FlygonLeftHalf
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_IntroBrendan[] =
+const struct SpriteSheet gSpriteSheet_IntroBrendan[] =
 {
     {
         .data = gIntroBrendan_Gfx,
@@ -586,7 +586,7 @@ const struct CompressedSpriteSheet gSpriteSheet_IntroBrendan[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_IntroMay[] =
+const struct SpriteSheet gSpriteSheet_IntroMay[] =
 {
     {
         .data = gIntroMay_Gfx,
@@ -596,7 +596,7 @@ const struct CompressedSpriteSheet gSpriteSheet_IntroMay[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_IntroBicycle[] =
+const struct SpriteSheet gSpriteSheet_IntroBicycle[] =
 {
     {
         .data = sBicycle_Gfx,
@@ -607,7 +607,7 @@ const struct CompressedSpriteSheet gSpriteSheet_IntroBicycle[] =
 };
 
 // In RS these were Latios/Latias. In Emerald both are replaced with Flygon and now only 1 is used
-static const struct CompressedSpriteSheet sSpriteSheet_IntroFlygon_Unused[] =
+static const struct SpriteSheet sSpriteSheet_IntroFlygon_Unused[] =
 {
     {
         .data = gIntroFlygon_Gfx,
@@ -617,7 +617,7 @@ static const struct CompressedSpriteSheet sSpriteSheet_IntroFlygon_Unused[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_IntroFlygon[] =
+const struct SpriteSheet gSpriteSheet_IntroFlygon[] =
 {
     {
         .data = gIntroFlygon_Gfx,
@@ -636,7 +636,7 @@ const struct SpritePalette gSpritePalettes_IntroPlayerFlygon[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_CreditsBrendan[] =
+const struct SpriteSheet gSpriteSheet_CreditsBrendan[] =
 {
     {
         .data = sBrendanCredits_Gfx,
@@ -646,7 +646,7 @@ const struct CompressedSpriteSheet gSpriteSheet_CreditsBrendan[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_CreditsMay[] =
+const struct SpriteSheet gSpriteSheet_CreditsMay[] =
 {
     {
         .data = sMayCredits_Gfx,
@@ -656,7 +656,7 @@ const struct CompressedSpriteSheet gSpriteSheet_CreditsMay[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_CreditsBicycle[] =
+const struct SpriteSheet gSpriteSheet_CreditsBicycle[] =
 {
     {
         .data = sBicycle_Gfx,
@@ -667,7 +667,7 @@ const struct CompressedSpriteSheet gSpriteSheet_CreditsBicycle[] =
 };
 
 // Unused
-static const struct CompressedSpriteSheet sSpriteSheet_Latios[] =
+static const struct SpriteSheet sSpriteSheet_Latios[] =
 {
     {
         .data = sLatios_Gfx,
@@ -678,7 +678,7 @@ static const struct CompressedSpriteSheet sSpriteSheet_Latios[] =
 };
 
 // Unused
-static const struct CompressedSpriteSheet sSpriteSheet_Latias[] =
+static const struct SpriteSheet sSpriteSheet_Latias[] =
 {
     {
         .data = sLatias_Gfx,
@@ -697,7 +697,7 @@ const struct SpritePalette gSpritePalettes_Credits[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_CreditsRivalBrendan[] =
+const struct SpriteSheet gSpriteSheet_CreditsRivalBrendan[] =
 {
     {
         .data = sBrendanCredits_Gfx,
@@ -707,7 +707,7 @@ const struct CompressedSpriteSheet gSpriteSheet_CreditsRivalBrendan[] =
     {}
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_CreditsRivalMay[] =
+const struct SpriteSheet gSpriteSheet_CreditsRivalMay[] =
 {
     {
         .data = sMayCredits_Gfx,

@@ -2376,7 +2376,7 @@ static const u32 sVine4_Gfx[] = INCBIN_U32("graphics/pokemon_jump/vine4.4bpp.lz"
 
 static const u32 sStar_Gfx[] = INCBIN_U32("graphics/pokemon_jump/star.4bpp.lz");
 
-static const struct CompressedSpriteSheet sCompressedSpriteSheets[] =
+static const struct SpriteSheet sCompressedSpriteSheets[] =
 {
     {sVine1_Gfx, 0x600, GFXTAG_VINE1},
     {sVine2_Gfx, 0xC00, GFXTAG_VINE2},
@@ -3660,7 +3660,7 @@ static const u8 sVenusaurStates[] = {
     [VINE_UPSWING_HIGHER]   = VENUSAUR_UP,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Digits = {gMinigameDigits_Gfx, 0, TAG_DIGITS};
+static const struct SpriteSheet sSpriteSheet_Digits = {gMinigameDigits_Gfx, 0, TAG_DIGITS};
 static const struct SpritePalette sSpritePalette_Digits = {gMinigameDigits_Pal, TAG_DIGITS};
 
 static const u16 sPlayerNameWindowCoords_2Players[] = {

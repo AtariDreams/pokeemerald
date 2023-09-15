@@ -69,7 +69,7 @@ static const union AnimCmd *const sAnims_SwapLine[] =
     sAnim_SwapLine_LeftArrow
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_SwapLine =
+static const struct SpriteSheet sSpriteSheet_SwapLine =
 {
     gSwapLineGfx, 0x100, TAG_SWAP_LINE
 };
