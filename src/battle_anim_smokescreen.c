@@ -46,7 +46,7 @@ const u8 gBattlePalaceNatureToMoveTarget[NUM_NATURES] =
     [NATURE_QUIRKY]  = PALACE_TARGET_STRONGER,
 };
 
-static const struct CompressedSpriteSheet sSmokescreenImpactSpriteSheet =
+static const struct SpriteSheet sSmokescreenImpactSpriteSheet =
 {
     .data = gSmokescreenImpactTiles, .size = 0x180, .tag = TAG_SMOKESCREEN
 };
@@ -124,7 +124,7 @@ static const struct SpriteTemplate sSmokescreenImpactSpriteTemplate =
     .callback = SpriteCB_SmokescreenImpact
 };
 
-const struct CompressedSpriteSheet gSpriteSheet_EnemyShadow =
+const struct SpriteSheet gSpriteSheet_EnemyShadow =
 {
     .data = gEnemyMonShadow_Gfx, .size = 0x80, .tag = GFXTAG_SHADOW
 };

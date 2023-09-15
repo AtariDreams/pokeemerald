@@ -940,7 +940,7 @@ const u32 gBattleVSFrame_Gfx[] = INCBIN_U32("graphics/battle_transitions/vs_fram
 const u32 gBattleVSFrame_Tilemap[] = INCBIN_U32("graphics/battle_transitions/vs_frame.bin.lz");
 const u32 gBattleVSFrame_Pal[] = INCBIN_U32("graphics/battle_transitions/vs_frame.gbapal.lz");
 
-const u32 gVsLettersGfx[] = INCBIN_U32("graphics/battle_transitions/vs.4bpp.lz");
+const u8 gVsLettersGfx[] = INCBIN_U8("graphics/battle_transitions/vs.4bpp.lz");
 
 #include "data/graphics/battle_terrain.h"
 

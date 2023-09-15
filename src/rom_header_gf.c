@@ -20,8 +20,8 @@ struct GFRomHeader
     u32 version;
     u32 language;
     u8 gameName[32];
-    const struct CompressedSpriteSheet * monFrontPics;
-    const struct CompressedSpriteSheet * monBackPics;
+    const struct SpriteSheet * monFrontPics;
+    const struct SpriteSheet * monBackPics;
     const struct CompressedSpritePalette * monNormalPalettes;
     const struct CompressedSpritePalette * monShinyPalettes;
     const u8 * const * monIcons;
@@ -74,7 +74,7 @@ struct GFRomHeader
     const u8 * const * abilityDescriptions;
     const struct Item * items;
     const struct BattleMove * moves;
-    const struct CompressedSpriteSheet * ballGfx;
+    const struct SpriteSheet * ballGfx;
     const struct CompressedSpritePalette * ballPalettes;
     u32 gcnLinkFlagsOffset;
     u32 gameClearFlag;

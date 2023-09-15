@@ -218,7 +218,7 @@ static const struct WindowTemplate sCallMsgBoxWindowTemplate =
     .baseBlock = 10
 };
 
-static const struct CompressedSpriteSheet sOptionsCursorSpriteSheets[1] =
+static const struct SpriteSheet sOptionsCursorSpriteSheets[1] =
 {
     {sOptionsCursor_Gfx, 0x40, GFXTAG_CURSOR}
 };

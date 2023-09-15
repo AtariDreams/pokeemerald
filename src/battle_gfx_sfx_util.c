@@ -29,7 +29,7 @@
 extern const u8 gBattlePalaceNatureToMoveTarget[];
 extern const u8 * const gBattleAnims_General[];
 extern const u8 * const gBattleAnims_Special[];
-extern const struct CompressedSpriteSheet gSpriteSheet_EnemyShadow;
+extern const struct SpriteSheet gSpriteSheet_EnemyShadow;
 extern const struct SpriteTemplate gSpriteTemplate_EnemyShadow;
 
 // this file's functions
@@ -42,34 +42,34 @@ static void Task_ClearBitWhenSpecialAnimDone(u8 taskId);
 static void ClearSpritesBattlerHealthboxAnimData(void);
 
 // const rom data
-static const struct CompressedSpriteSheet sSpriteSheet_SinglesPlayerHealthbox =
+static const struct SpriteSheet sSpriteSheet_SinglesPlayerHealthbox =
 {
     gHealthboxSinglesPlayerGfx, 0x1000, TAG_HEALTHBOX_PLAYER1_TILE
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_SinglesOpponentHealthbox =
+static const struct SpriteSheet sSpriteSheet_SinglesOpponentHealthbox =
 {
     gHealthboxSinglesOpponentGfx, 0x1000, TAG_HEALTHBOX_OPPONENT1_TILE
 };
 
-static const struct CompressedSpriteSheet sSpriteSheets_DoublesPlayerHealthbox[2] =
+static const struct SpriteSheet sSpriteSheets_DoublesPlayerHealthbox[2] =
 {
     {gHealthboxDoublesPlayerGfx, 0x800, TAG_HEALTHBOX_PLAYER1_TILE},
     {gHealthboxDoublesPlayerGfx, 0x800, TAG_HEALTHBOX_PLAYER2_TILE}
 };
 
-static const struct CompressedSpriteSheet sSpriteSheets_DoublesOpponentHealthbox[2] =
+static const struct SpriteSheet sSpriteSheets_DoublesOpponentHealthbox[2] =
 {
     {gHealthboxDoublesOpponentGfx, 0x800, TAG_HEALTHBOX_OPPONENT1_TILE},
     {gHealthboxDoublesOpponentGfx, 0x800, TAG_HEALTHBOX_OPPONENT2_TILE}
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_SafariHealthbox =
+static const struct SpriteSheet sSpriteSheet_SafariHealthbox =
 {
     gHealthboxSafariGfx, 0x1000, TAG_HEALTHBOX_SAFARI_TILE
 };
 
-static const struct CompressedSpriteSheet sSpriteSheets_HealthBar[MAX_BATTLERS_COUNT] =
+static const struct SpriteSheet sSpriteSheets_HealthBar[MAX_BATTLERS_COUNT] =
 {
     {gBlankGfxCompressed, 0x0100, TAG_HEALTHBAR_PLAYER1_TILE},
     {gBlankGfxCompressed, 0x0120, TAG_HEALTHBAR_OPPONENT1_TILE},

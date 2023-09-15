@@ -347,7 +347,7 @@ u8 GetNumLevelsGainedFromDaycare(void)
 
 static void ClearDaycareMonMail(struct DaycareMail *mail)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < PLAYER_NAME_LENGTH + 1; i++)
         mail->otName[i] = 0;
@@ -366,7 +366,7 @@ static void ClearDaycareMon(struct DaycareMon *daycareMon)
 
 static void UNUSED ClearAllDaycareData(struct DayCare *daycare)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < DAYCARE_MON_COUNT; i++)
         ClearDaycareMon(&daycare->mons[i]);
