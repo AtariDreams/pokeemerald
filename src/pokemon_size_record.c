@@ -64,16 +64,16 @@ static u32 GetMonSizeHash(struct Pokemon *pkmn)
     return (hibyte << 8) + lobyte;
 }
 
-static u8 TranslateBigMonSizeTableIndex(u16 a)
+static u32 TranslateBigMonSizeTableIndex(u16 a)
 {
-    u8 i;
+    u32 i;
 
     for (i = 1; i < 15; i++)
     {
         if (a < sBigMonSizeTable[i].unk4)
             return i - 1;
     }
-    return i;
+    return 15;
 }
 
 static u32 GetMonSize(u16 species, u16 b)
@@ -81,6 +81,7 @@ static u32 GetMonSize(u16 species, u16 b)
     u64 unk2;
     u64 unk4;
     u64 unk0;
+    u64 size;
     u32 height;
     u32 var;
 
@@ -89,15 +90,15 @@ static u32 GetMonSize(u16 species, u16 b)
     unk0 = sBigMonSizeTable[var].unk0;
     unk2 = sBigMonSizeTable[var].unk2;
     unk4 = sBigMonSizeTable[var].unk4;
-    unk0 += (b - unk4) / unk2;
-    return height * unk0 / 10;
+    size = unk0 + (b - unk4) / unk2;
+    return height * size / 10;
 }
 
 static void FormatMonSizeRecord(u8 *string, u32 size)
 {
 #ifdef UNITS_IMPERIAL
     //Convert size from centimeters to inches
-    size = (f64)(size * 10) / (CM_PER_INCH * 10);
+    size = (size * 10) / (CM_PER_INCH * 10);
 #endif
 
     string = ConvertIntToDecimalStringN(string, size / 10, STR_CONV_MODE_LEFT_ALIGN, 8);
@@ -125,7 +126,7 @@ static u8 CompareMonSize(u16 species, u16 *sizeRecord)
             u32 newSize;
             u16 sizeParams;
 
-            *(&sizeParams) = GetMonSizeHash(pkmn);
+            sizeParams = GetMonSizeHash(pkmn);
             newSize = GetMonSize(species, sizeParams);
             oldSize = GetMonSize(species, *sizeRecord);
             FormatMonSizeRecord(gStringVar2, newSize);
@@ -195,7 +196,7 @@ void CompareLotadSize(void)
 
 void GiveGiftRibbonToParty(u8 index, u8 ribbonId)
 {
-    s32 i;
+    u32 i;
     bool32 gotRibbon = FALSE;
     u8 data = 1;
     u8 array[ARRAY_COUNT(sGiftRibbonsMonDataIds)];
