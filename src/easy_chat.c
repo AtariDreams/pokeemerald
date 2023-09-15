@@ -915,7 +915,7 @@ static const struct SpritePalette sSpritePalettes[] = {
     {0}
 };
 
-static const struct CompressedSpriteSheet sCompressedSpriteSheets[] = {
+static const struct SpriteSheet sCompressedSpriteSheets[] = {
     {
         .data = sRSInterviewFrame_Gfx,
         .size = 0x800,

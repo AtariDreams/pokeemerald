@@ -122,7 +122,7 @@ static const LoopedTask sRegionMapLoopTaskFuncs[] =
     [POKENAV_MAP_FUNC_EXIT]         = LoopedTask_ExitRegionMap
 };
 
-static const struct CompressedSpriteSheet sCityZoomTextSpriteSheet[1] =
+static const struct SpriteSheet sCityZoomTextSpriteSheet[1] =
 {
     {gRegionMapCityZoomText_Gfx, 0x800, GFXTAG_CITY_ZOOM}
 };

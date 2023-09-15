@@ -335,7 +335,7 @@ static const struct SpriteTemplate sSpriteTemplate_JudgmentIcon =
     .callback = SpriteCB_JudgmentIcon,
 };
 
-static const struct CompressedSpriteSheet sBattleArenaJudgmentSymbolsSpriteSheet[] =
+static const struct SpriteSheet sBattleArenaJudgmentSymbolsSpriteSheet[] =
 {
     {gBattleArenaJudgmentSymbolsGfx, 0x200, TAG_JUDGMENT_ICON},
     {0}

@@ -147,7 +147,7 @@ static const u16 sStampShadowPal7[]      = INCBIN_U16("graphics/wonder_card/stam
 static const u16 sStampShadowPal8[]      = INCBIN_U16("graphics/wonder_card/stamp_shadow_8.gbapal");
 static const u32 sStampShadowGfx[]       = INCBIN_U32("graphics/wonder_card/stamp_shadow.4bpp.lz");
 
-static const struct CompressedSpriteSheet sSpriteSheet_StampShadow = {
+static const struct SpriteSheet sSpriteSheet_StampShadow = {
     sStampShadowGfx, 0x100, TAG_STAMP_SHADOW
 };
 

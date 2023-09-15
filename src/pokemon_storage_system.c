@@ -8714,7 +8714,7 @@ static void CreateItemIconSprites(void)
 {
     s32 i;
     u8 spriteId;
-    struct CompressedSpriteSheet spriteSheet;
+    struct SpriteSheet spriteSheet;
     struct SpriteTemplate spriteTemplate;
 
     if (sStorage->boxOption == OPTION_MOVE_ITEMS)

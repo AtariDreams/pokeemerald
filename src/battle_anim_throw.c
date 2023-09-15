@@ -140,7 +140,7 @@ static const struct CaptureStar sCaptureStars[] =
 #define TAG_PARTICLES_LUXURYBALL  55030
 #define TAG_PARTICLES_PREMIERBALL 55031
 
-static const struct CompressedSpriteSheet sBallParticleSpriteSheets[POKEBALL_COUNT] =
+static const struct SpriteSheet sBallParticleSpriteSheets[POKEBALL_COUNT] =
 {
     [BALL_POKE]    = {gBattleAnimSpriteGfx_Particles, 0x100, TAG_PARTICLES_POKEBALL},
     [BALL_GREAT]   = {gBattleAnimSpriteGfx_Particles, 0x100, TAG_PARTICLES_GREATBALL},
