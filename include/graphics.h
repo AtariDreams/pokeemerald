@@ -4294,7 +4294,7 @@ extern const u32 gBattleAnimSpriteGfx_IceSpikes[];
 extern const u32 gBattleAnimSpriteGfx_HandsAndFeet[];
 extern const u32 gBattleAnimSpriteGfx_MistCloud[];
 extern const u32 gBattleAnimSpriteGfx_Clamp[];
-//extern const struct CompressedSpriteSheet gBattleAnimSpriteGfx_146[];
+//extern const struct SpriteSheet gBattleAnimSpriteGfx_146[];
 extern const u32 gBattleAnimSpriteGfx_Bubble[];
 extern const u32 gBattleAnimSpriteGfx_Orbs[];
 extern const u32 gBattleAnimSpriteGfx_WaterImpact[];

@@ -1603,7 +1603,7 @@ static void CalculateNumAdditionalSparkles(u8 monIndex)
 
 static void LoadConditionGfx(void)
 {
-    struct CompressedSpriteSheet spriteSheet;
+    struct SpriteSheet spriteSheet;
     struct SpritePalette spritePalette;
 
     spritePalette = sSpritePalette_Condition;

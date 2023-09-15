@@ -130,7 +130,7 @@ static const struct BgTemplate sBgTemplates[] =
     }
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ClockHand =
+static const struct SpriteSheet sSpriteSheet_ClockHand =
 {
     sHand_Gfx, 0x2000, GFXTAG_WALL_CLOCK_HAND
 };

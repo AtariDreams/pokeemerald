@@ -51,7 +51,7 @@ static void Task_StaticCountdown_Run(u8 taskId);
 static const u16 s321Start_Static_Pal[] = INCBIN_U16("graphics/link/321start_static.gbapal");
 static const u32 s321Start_Static_Gfx[] = INCBIN_U32("graphics/link/321start_static.4bpp.lz");
 
-static const struct CompressedSpriteSheet sSpriteSheet_321Start_Static[] =
+static const struct SpriteSheet sSpriteSheet_321Start_Static[] =
 {
     {s321Start_Static_Gfx, 0xC00, TAG_STATIC_COUNTDOWN},
     {},
@@ -602,7 +602,7 @@ static void SpriteCB_Start(struct Sprite *sprite)
 
 static void Load321StartGfx(u16 tileTag, u16 palTag)
 {
-    struct CompressedSpriteSheet spriteSheet = {s321Start_Gfx, 0xE00, 0};
+    struct SpriteSheet spriteSheet = {s321Start_Gfx, 0xE00, 0};
     struct SpritePalette spritePalette = {s321Start_Pal, 0};
 
     spriteSheet.tag = tileTag;

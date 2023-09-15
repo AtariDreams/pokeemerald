@@ -292,7 +292,7 @@ static const union AnimCmd *const sWirelessStatusIndicatorAnims[] = {
     [WIRELESS_STATUS_ANIM_ERROR]     = sWirelessStatusIndicator_Error
 };
 
-static const struct CompressedSpriteSheet sWirelessStatusIndicatorSpriteSheet = {
+static const struct SpriteSheet sWirelessStatusIndicatorSpriteSheet = {
     sWirelessLinkIconPic, 0x0380, TAG_GFX_STATUS_INDICATOR
 };
 

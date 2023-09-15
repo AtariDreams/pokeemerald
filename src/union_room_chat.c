@@ -757,7 +757,7 @@ static const u32 sTextEntryCursorTiles[] = INCBIN_U32("graphics/union_room_chat/
 static const u32 sTextEntryArrowTiles[] = INCBIN_U32("graphics/union_room_chat/text_entry_arrow.4bpp.lz");
 static const u32 sRButtonGfxTiles[] = INCBIN_U32("graphics/union_room_chat/r_button.4bpp.lz");
 
-static const struct CompressedSpriteSheet sSpriteSheets[] = {
+static const struct SpriteSheet sSpriteSheets[] = {
     {.data = sKeyboardCursorTiles,         .size = 0x1000, .tag = GFXTAG_KEYBOARD_CURSOR},
     {.data = sTextEntryArrowTiles,         .size = 0x0040, .tag = GFXTAG_TEXT_ENTRY_ARROW},
     {.data = sTextEntryCursorTiles,        .size = 0x0040, .tag = GFXTAG_TEXT_ENTRY_CURSOR},

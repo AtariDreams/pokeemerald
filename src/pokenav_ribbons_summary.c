@@ -1135,7 +1135,7 @@ static void BufferSmallRibbonGfxData(u16 *dst, u32 ribbonId)
     dst[3] = (tileNum + 1) | (palNum << 12) | 0x400;
 }
 
-static const struct CompressedSpriteSheet sSpriteSheet_RibbonIconsBig =
+static const struct SpriteSheet sSpriteSheet_RibbonIconsBig =
 {
     sRibbonIconsBig_Gfx, 0x1800, GFXTAG_RIBBON_ICONS_BIG
 };

@@ -1072,7 +1072,7 @@ static u8 AddScrollIndicatorArrowObject(u8 arrowDir, u8 x, u8 y, u16 tileTag, u1
 
 u8 AddScrollIndicatorArrowPair(const struct ScrollArrowsTemplate *arrowInfo, u16 *scrollOffset)
 {
-    struct CompressedSpriteSheet spriteSheet;
+    struct SpriteSheet spriteSheet;
     struct SpritePalette spritePal;
     struct ScrollIndicatorPair *data;
     u8 taskId;
@@ -1317,7 +1317,7 @@ void ListMenuSetUpRedOutlineCursorSpriteOamTable(u16 rowWidth, u16 rowHeight, st
 
 static u8 ListMenuAddRedOutlineCursorObject(struct CursorStruct *cursor)
 {
-    struct CompressedSpriteSheet spriteSheet;
+    struct SpriteSheet spriteSheet;
     struct SpritePalette spritePal;
     struct RedOutlineCursor *data;
     struct SpriteTemplate spriteTemplate;
@@ -1402,7 +1402,7 @@ static void Task_RedArrowCursor(u8 taskId)
 
 static u8 ListMenuAddRedArrowCursorObject(struct CursorStruct *cursor)
 {
-    struct CompressedSpriteSheet spriteSheet;
+    struct SpriteSheet spriteSheet;
     struct SpritePalette spritePal;
     struct RedArrowCursor *data;
     struct SpriteTemplate spriteTemplate;
