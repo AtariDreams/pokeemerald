@@ -11,7 +11,7 @@
 #include "constants/battle_anim.h"
 #include "constants/rgb.h"
 
-extern const struct CompressedSpriteSheet gBattleAnimPicTable[];
+extern const struct SpriteSheet gBattleAnimPicTable[];
 extern const struct CompressedSpritePalette gBattleAnimPaletteTable[];
 extern const u8 *const gBattleAnims_StatusConditions[];
 extern const struct OamData gOamData_AffineOff_ObjNormal_8x8;

@@ -41,7 +41,7 @@ static void EndOnPostEvoMon(u8 taskId);
 static const u16 sEvoSparkle_Pal[] = INCBIN_U16("graphics/misc/evo_sparkle.gbapal");
 static const u32 sEvoSparkle_Gfx[] = INCBIN_U32("graphics/misc/evo_sparkle.4bpp.lz");
 
-static const struct CompressedSpriteSheet sEvoSparkleSpriteSheets[] =
+static const struct SpriteSheet sEvoSparkleSpriteSheets[] =
 {
     {sEvoSparkle_Gfx, 0x20, TAG_SPARKLE},
     {NULL, 0, 0}

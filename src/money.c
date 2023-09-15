@@ -56,7 +56,7 @@ static const struct SpriteTemplate sSpriteTemplate_MoneyLabel =
     .callback = SpriteCallbackDummy
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_MoneyLabel =
+static const struct SpriteSheet sSpriteSheet_MoneyLabel =
 {
     .data = gShopMenuMoney_Gfx,
     .size = 256,

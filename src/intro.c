@@ -108,7 +108,7 @@ static void SpriteCB_RayquazaOrb(struct Sprite *sprite);
 
 static void MainCB2_EndIntro(void);
 
-extern const struct CompressedSpriteSheet gBattleAnimPicTable[];
+extern const struct SpriteSheet gBattleAnimPicTable[];
 extern const struct CompressedSpritePalette gBattleAnimPaletteTable[];
 extern const struct SpriteTemplate gAncientPowerRockSpriteTemplate[];
 
@@ -201,7 +201,7 @@ static const u8 sUnusedData[] = {
     0x10, 0x11, 0x12, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x02, 0x0D, 0x0E, 0x0F, 0x10,
     0x11, 0x12, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x00
 };
-static const struct CompressedSpriteSheet sSpriteSheet_Sparkle[] =
+static const struct SpriteSheet sSpriteSheet_Sparkle[] =
 {
     {gIntroSparkle_Gfx, 0x400, TAG_SPARKLE},
     {},
@@ -265,7 +265,7 @@ static const u8 sSparkleCoords[][2] =
     {208, 38},
     {},
 };
-static const struct CompressedSpriteSheet sSpriteSheet_RunningPokemon[] =
+static const struct SpriteSheet sSpriteSheet_RunningPokemon[] =
 {
     {gIntroVolbeat_Gfx, 0x400, TAG_VOLBEAT},
     {gIntroTorchic_Gfx, 0xC00, TAG_TORCHIC},
@@ -413,7 +413,7 @@ static const struct SpriteTemplate sSpriteTemplate_Manectric =
     .affineAnims = gDummySpriteAffineAnimTable,
     .callback = SpriteCB_Manectric,
 };
-static const struct CompressedSpriteSheet sSpriteSheet_Lightning[] =
+static const struct SpriteSheet sSpriteSheet_Lightning[] =
 {
     {gIntroLightning_Gfx, 0xC00, TAG_LIGHTNING},
     {},
@@ -484,7 +484,7 @@ static const s16 sGroudonRockData[][3] =
     { 56, 2, 0x200},
     {174, 1, 0x100},
 };
-static const struct CompressedSpriteSheet sSpriteSheet_Bubbles[] =
+static const struct SpriteSheet sSpriteSheet_Bubbles[] =
 {
     {gIntroBubbles_Gfx, 0x600, TAG_BUBBLES},
     {},
@@ -961,12 +961,12 @@ static const struct SpriteTemplate sSpriteTemplate_FlygonSilhouette =
     .affineAnims = gDummySpriteAffineAnimTable,
     .callback = SpriteCB_FlygonSilhouette,
 };
-static const struct CompressedSpriteSheet sSpriteSheet_WaterDropsAndLogo[] =
+static const struct SpriteSheet sSpriteSheet_WaterDropsAndLogo[] =
 {
     {sIntroDropsLogo_Gfx, 0x1400, GFXTAG_DROPS_LOGO},
     {},
 };
-static const struct CompressedSpriteSheet sSpriteSheet_FlygonSilhouette[] =
+static const struct SpriteSheet sSpriteSheet_FlygonSilhouette[] =
 {
     {gIntroFlygonSilhouette_Gfx, 0x400, TAG_FLYGON_SILHOUETTE},
     {},
@@ -1013,7 +1013,7 @@ static const struct SpriteTemplate sSpriteTemplate_RayquazaOrb =
     .affineAnims = gDummySpriteAffineAnimTable,
     .callback = SpriteCB_RayquazaOrb,
 };
-static const struct CompressedSpriteSheet sSpriteSheet_RayquazaOrb[] =
+static const struct SpriteSheet sSpriteSheet_RayquazaOrb[] =
 {
     {sIntroMisc_Gfx, 0xA00, TAG_RAYQUAZA_ORB},
     {},

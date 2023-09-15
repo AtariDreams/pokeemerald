@@ -105,7 +105,7 @@ static const u8 sHelpBarTextColors[3] =
     TEXT_COLOR_RED, TEXT_COLOR_WHITE, TEXT_COLOR_DARK_GRAY
 };
 
-static const struct CompressedSpriteSheet sSpinningPokenavSpriteSheet[] =
+static const struct SpriteSheet sSpinningPokenavSpriteSheet[] =
 {
     {
         .data = sSpinningPokenav_Gfx,
@@ -123,14 +123,14 @@ static const struct SpritePalette sSpinningNavgearPalettes[] =
     {}
 };
 
-static const struct CompressedSpriteSheet sMenuLeftHeaderSpriteSheet =
+static const struct SpriteSheet sMenuLeftHeaderSpriteSheet =
 {
     .data = gPokenavLeftHeaderHoennMap_Gfx, // Hoenn map is the first of the headers listed
     .size = 0xC00,
     .tag = 2
 };
 
-static const struct CompressedSpriteSheet sMenuLeftHeaderSpriteSheets[] =
+static const struct SpriteSheet sMenuLeftHeaderSpriteSheets[] =
 {
     [POKENAV_GFX_MAIN_MENU] = {
         .data = gPokenavLeftHeaderMainMenu_Gfx,

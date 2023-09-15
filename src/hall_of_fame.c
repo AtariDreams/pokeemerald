@@ -148,7 +148,7 @@ static const u8 sMonInfoTextColors[4] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHIT
 static const u8 sPlayerInfoTextColors[4] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY};
 static const u8 sUnusedTextColors[4] = {TEXT_COLOR_RED, TEXT_COLOR_LIGHT_RED, TEXT_COLOR_TRANSPARENT};
 
-static const struct CompressedSpriteSheet sSpriteSheet_Confetti[] =
+static const struct SpriteSheet sSpriteSheet_Confetti[] =
 {
     {.data = gConfetti_Gfx, .size = 0x220, .tag = TAG_CONFETTI},
     {},

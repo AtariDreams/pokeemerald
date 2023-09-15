@@ -772,7 +772,7 @@ static const struct SpriteTemplate sDexListStartMenuCursorSpriteTemplate =
     .callback = SpriteCB_DexListStartMenuCursor,
 };
 
-static const struct CompressedSpriteSheet sInterfaceSpriteSheet[] =
+static const struct SpriteSheet sInterfaceSpriteSheet[] =
 {
     {gPokedexInterface_Gfx, 0x2000, TAG_DEX_INTERFACE},
     {0}
