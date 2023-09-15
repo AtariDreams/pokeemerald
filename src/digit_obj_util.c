@@ -261,9 +261,9 @@ static void DrawNumObjsLeadingZeros(struct DigitPrinter *objWork, s32 num, bool3
 static void DrawNumObjsMinusInFront(struct DigitPrinter *objWork, s32 num, bool32 sign)
 {
     u32 pow10 = objWork->pow10;
-    static u32 oamId;
-    static int curDigit;
-    static int firstDigit;
+    u32 oamId;
+    int curDigit;
+    int firstDigit;
 
     oamId = objWork->firstOamId;
     curDigit = 0;
@@ -307,8 +307,8 @@ static void DrawNumObjsMinusInBack(struct DigitPrinter *objWork, s32 num, bool32
 {
     u32 pow10 = objWork->pow10;
     u32 oamId = objWork->firstOamId;
-    bool32 printingDigits = FALSE;
-    s32 nsprites = 0;
+    int printingDigits = FALSE;
+    u32 nsprites = 0;
 
     while (pow10 != 0)
     {
@@ -327,11 +327,9 @@ static void DrawNumObjsMinusInBack(struct DigitPrinter *objWork, s32 num, bool32
         }
     }
 
-    while (nsprites < objWork->oamCount)
+    for (; nsprites < objWork->oamCount; nsprites++)
     {
-        gMain.oamBuffer[oamId].affineMode = ST_OAM_AFFINE_ERASE;
-        oamId++;
-        nsprites++;
+        gMain.oamBuffer[oamId++].affineMode = ST_OAM_AFFINE_ERASE;
     }
 
     if (sign)
@@ -342,7 +340,7 @@ static void DrawNumObjsMinusInBack(struct DigitPrinter *objWork, s32 num, bool32
 
 void DigitObjUtil_DeletePrinter(u32 id)
 {
-    s32 oamId, oamCount, i;
+    u32 oamId, oamCount, i;
 
     if (sOamWork == NULL)
         return;
@@ -365,7 +363,7 @@ void DigitObjUtil_DeletePrinter(u32 id)
 
 void DigitObjUtil_HideOrShow(u32 id, bool32 hide)
 {
-    s32 oamId, oamCount, i;
+    u32 oamId, oamCount, i;
 
     if (sOamWork == NULL)
         return;
