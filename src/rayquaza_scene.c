@@ -552,7 +552,7 @@ static const union AnimCmd *const sAnims_DuoFight_Groudon[] =
     sAnim_DuoFight_Groudon_Body
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_DuoFight_Groudon =
+static const struct SpriteSheet sSpriteSheet_DuoFight_Groudon =
 {
     gRaySceneDuoFight_Groudon_Gfx, 0x3000, TAG_DUOFIGHT_GROUDON
 };
@@ -584,7 +584,7 @@ static const union AnimCmd *const sAnims_DuoFight_GroudonShoulderKyogreDorsalFin
     sAnim_DuoFight_GroudonShoulderKyogreDorsalFin
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_DuoFight_GroudonShoulder =
+static const struct SpriteSheet sSpriteSheet_DuoFight_GroudonShoulder =
 {
     gRaySceneDuoFight_GroudonShoulder_Gfx, 0x200, TAG_DUOFIGHT_GROUDON_SHOULDER
 };
@@ -611,7 +611,7 @@ static const union AnimCmd *const sAnims_DuoFight_GroudonClaw[] =
     sAnim_DuoFight_GroudonClaw
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_DuoFight_GroudonClaw =
+static const struct SpriteSheet sSpriteSheet_DuoFight_GroudonClaw =
 {
     gRaySceneDuoFight_GroudonClaw_Gfx, 0x400, TAG_DUOFIGHT_GROUDON_CLAW
 };
@@ -703,7 +703,7 @@ static const union AnimCmd *const sAnims_DuoFight_Kyogre[] =
     sAnim_DuoFight_Kyogre_RightShoulder
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_DuoFight_Kyogre =
+static const struct SpriteSheet sSpriteSheet_DuoFight_Kyogre =
 {
     gRaySceneDuoFight_Kyogre_Gfx, 0xF00, TAG_DUOFIGHT_KYOGRE
 };
@@ -738,7 +738,7 @@ static const union AnimCmd *const sAnims_DuoFight_KyogrePectoralFin[] =
     sAnim_DuoFight_KyogrePectoralFin
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_DuoFight_KyogrePectoralFin =
+static const struct SpriteSheet sSpriteSheet_DuoFight_KyogrePectoralFin =
 {
     gRaySceneDuoFight_KyogrePectoralFin_Gfx, 0xC0, TAG_DUOFIGHT_KYOGRE_PECTORAL_FIN
 };
@@ -754,7 +754,7 @@ static const struct SpriteTemplate sSpriteTemplate_DuoFight_KyogrePectoralFin =
     .callback = SpriteCallbackDummy,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_DuoFight_KyogreDorsalFin =
+static const struct SpriteSheet sSpriteSheet_DuoFight_KyogreDorsalFin =
 {
     gRaySceneDuoFight_KyogreDorsalFin_Gfx, 0x200, TAG_DUOFIGHT_KYOGRE_DORSAL_FIN
 };
@@ -825,7 +825,7 @@ static const union AffineAnimCmd *const sAffineAnims_TakesFlight_Smoke[] =
     sAffineAnim_TakesFlight_Smoke
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_TakesFlight_Smoke =
+static const struct SpriteSheet sSpriteSheet_TakesFlight_Smoke =
 {
     gRaySceneTakesFlight_Smoke_Gfx, 0x100, TAG_FLIGHT_SMOKE
 };
@@ -924,12 +924,12 @@ static const union AnimCmd *const sAnims_Descends_RayquazaTail[] =
     sAnim_Descends_RayquazaTail
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Descends_Rayquaza =
+static const struct SpriteSheet sSpriteSheet_Descends_Rayquaza =
 {
     gRaySceneDescends_Rayquaza_Gfx, 0x1000, TAG_DESCENDS_RAYQUAZA
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Descends_RayquazaTail =
+static const struct SpriteSheet sSpriteSheet_Descends_RayquazaTail =
 {
     gRaySceneDescends_RayquazaTail_Gfx, 0x200, TAG_DESCENDS_RAYQUAZA_TAIL
 };
@@ -1138,32 +1138,32 @@ static const union AnimCmd *const sAnims_ChasesAway_KyogreSplash[] =
     sAnim_ChasesAway_KyogreSplash
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ChasesAway_Groudon =
+static const struct SpriteSheet sSpriteSheet_ChasesAway_Groudon =
 {
     gRaySceneChasesAway_Groudon_Gfx, 0x1800, TAG_CHASE_GROUDON
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ChasesAway_GroudonTail =
+static const struct SpriteSheet sSpriteSheet_ChasesAway_GroudonTail =
 {
     gRaySceneChasesAway_GroudonTail_Gfx, 0x80, TAG_CHASE_GROUDON_TAIL
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ChasesAway_Kyogre =
+static const struct SpriteSheet sSpriteSheet_ChasesAway_Kyogre =
 {
     gRaySceneChasesAway_Kyogre_Gfx, 0x600, TAG_CHASE_KYOGRE
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ChasesAway_Rayquaza =
+static const struct SpriteSheet sSpriteSheet_ChasesAway_Rayquaza =
 {
     gRaySceneChasesAway_Rayquaza_Gfx, 0x2000, TAG_CHASE_RAYQUAZA
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ChasesAway_RayquazaTail =
+static const struct SpriteSheet sSpriteSheet_ChasesAway_RayquazaTail =
 {
     gRaySceneChasesAway_RayquazaTail_Gfx, 0x800, TAG_CHASE_RAYQUAZA_TAIL
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ChasesAway_KyogreSplash =
+static const struct SpriteSheet sSpriteSheet_ChasesAway_KyogreSplash =
 {
     gRaySceneChasesAway_KyogreSplash_Gfx, 0x300, TAG_CHASE_SPLASH
 };

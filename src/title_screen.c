@@ -183,7 +183,7 @@ static const struct SpriteTemplate sVersionBannerRightSpriteTemplate =
     .callback = SpriteCB_VersionBannerRight,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_EmeraldVersion[] =
+static const struct SpriteSheet sSpriteSheet_EmeraldVersion[] =
 {
     {
         .data = gTitleScreenEmeraldVersionGfx,
@@ -291,7 +291,7 @@ static const struct SpriteTemplate sStartCopyrightBannerSpriteTemplate =
     .callback = SpriteCB_PressStartCopyrightBanner,
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_PressStart[] =
+static const struct SpriteSheet sSpriteSheet_PressStart[] =
 {
     {
         .data = gTitleScreenPressStartGfx,
@@ -349,7 +349,7 @@ static const struct SpriteTemplate sPokemonLogoShineSpriteTemplate =
     .callback = SpriteCB_PokemonLogoShine,
 };
 
-static const struct CompressedSpriteSheet sPokemonLogoShineSpriteSheet[] =
+static const struct SpriteSheet sPokemonLogoShineSpriteSheet[] =
 {
     {
         .data = sTitleScreenLogoShineGfx,

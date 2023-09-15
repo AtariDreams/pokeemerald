@@ -888,7 +888,7 @@ static const union AnimCmd *const sSpriteAnimTable_MenuPokeball[] =
     sPokeballAnim_Open
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_MenuPokeball =
+static const struct SpriteSheet sSpriteSheet_MenuPokeball =
 {
     gPartyMenuPokeball_Gfx, 0x400, TAG_POKEBALL
 };
@@ -974,7 +974,7 @@ static const union AnimCmd *const sSpriteAnimTable_MenuPokeballSmall[] =
     sSmallPokeballAnim_Blank4
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_MenuPokeballSmall =
+static const struct SpriteSheet sSpriteSheet_MenuPokeballSmall =
 {
     gPartyMenuPokeballSmall_Gfx, 0x0300, TAG_POKEBALL_SMALL
 };
@@ -1068,7 +1068,7 @@ static const union AnimCmd *const sSpriteTemplate_StatusCondition[] =
     sSpriteAnim_Blank
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_StatusIcons =
+static const struct SpriteSheet sSpriteSheet_StatusIcons =
 {
     gStatusGfx_Icons, 0x400, TAG_STATUS_ICONS
 };

@@ -70,7 +70,7 @@ static const struct OamData sOamData_LogoCircles =
     .affineParam = 0
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_LogoCircles =
+static const struct SpriteSheet sSpriteSheet_LogoCircles =
 {
     .data = sLogoCircles_Gfx,
     .size = 0x1800,

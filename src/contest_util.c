@@ -264,7 +264,7 @@ static const struct SpriteTemplate sSpriteTemplate_Confetti =
     .callback = SpriteCB_Confetti
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Confetti =
+static const struct SpriteSheet sSpriteSheet_Confetti =
 {
     .data = gConfetti_Gfx,
     .size = 0x220,

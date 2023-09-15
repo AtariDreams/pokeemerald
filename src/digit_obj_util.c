@@ -136,9 +136,9 @@ bool32 DigitObjUtil_CreatePrinter(u32 id, s32 num, const struct DigitObjUtilTemp
         }
         else
         {
-            struct CompressedSpriteSheet compSpriteSheet;
+            struct SpriteSheet compSpriteSheet;
 
-            compSpriteSheet = *(struct CompressedSpriteSheet *)(template->spriteSheet);
+            compSpriteSheet = *(template->spriteSheet);
             compSpriteSheet.size = GetDecompressedDataSize(template->spriteSheet->data);
             sOamWork->array[id].tileStart = LoadCompressedSpriteSheet(&compSpriteSheet);
         }
@@ -204,7 +204,7 @@ static void CopyWorkToOam(struct DigitPrinter *objWork)
 
 void DigitObjUtil_PrintNumOn(u32 id, s32 num)
 {
-    bool32 sign;
+    int sign;
 
     if (sOamWork == NULL)
         return;
@@ -261,7 +261,7 @@ static void DrawNumObjsLeadingZeros(struct DigitPrinter *objWork, s32 num, bool3
 static void DrawNumObjsMinusInFront(struct DigitPrinter *objWork, s32 num, bool32 sign)
 {
     u32 pow10 = objWork->pow10;
-    static int oamId;
+    static u32 oamId;
     static int curDigit;
     static int firstDigit;
 
