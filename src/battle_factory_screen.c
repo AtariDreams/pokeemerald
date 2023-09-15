@@ -284,7 +284,7 @@ static const struct SpriteSheet sSelect_SpriteSheets[] =
     {},
 };
 
-static const struct CompressedSpriteSheet sSelect_BallGfx[] =
+static const struct SpriteSheet sSelect_BallGfx[] =
 {
     {gPokeballSelection_Gfx, 0x800, GFXTAG_BALL},
     {},
@@ -649,7 +649,7 @@ static const struct SpriteSheet sSwap_SpriteSheets[] =
     {},
 };
 
-static const struct CompressedSpriteSheet sSwap_BallGfx[] =
+static const struct SpriteSheet sSwap_BallGfx[] =
 {
     {gPokeballSelection_Gfx, 0x800, GFXTAG_BALL},
     {},

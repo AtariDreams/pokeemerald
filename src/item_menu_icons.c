@@ -127,12 +127,12 @@ static const union AffineAnimCmd *const sBagAffineAnimCmds[] =
     [ANIM_BAG_SHAKE]  = sSpriteAffineAnim_BagShake
 };
 
-const struct CompressedSpriteSheet gBagMaleSpriteSheet =
+const struct SpriteSheet gBagMaleSpriteSheet =
 {
     gBagMaleTiles, 0x3000, TAG_BAG_GFX
 };
 
-const struct CompressedSpriteSheet gBagFemaleSpriteSheet =
+const struct SpriteSheet gBagFemaleSpriteSheet =
 {
     gBagFemaleTiles, 0x3000, TAG_BAG_GFX
 };
@@ -371,7 +371,7 @@ static const struct CompressedTilesPal sBerryPicTable[] =
     [ITEM_TO_BERRY(ITEM_ENIGMA_BERRY) - 1] = {gBerryPic_Enigma, gBerryPalette_Enigma},
 };
 
-const struct CompressedSpriteSheet gBerryCheckCircleSpriteSheet =
+const struct SpriteSheet gBerryCheckCircleSpriteSheet =
 {
     gBerryCheckCircle_Gfx, 0x800, TAG_BERRY_CHECK_CIRCLE_GFX
 };
