@@ -97,7 +97,7 @@ const struct MonCoords gTrainerFrontPicCoords[] =
 
 #define TRAINER_SPRITE(trainerPic, sprite, size) [TRAINER_PIC_##trainerPic] = {sprite, size, TRAINER_PIC_##trainerPic}
 
-const struct CompressedSpriteSheet gTrainerFrontPicTable[] =
+const struct SpriteSheet gTrainerFrontPicTable[] =
 {
     TRAINER_SPRITE(HIKER, gTrainerFrontPic_Hiker, TRAINER_PIC_SIZE),
     TRAINER_SPRITE(AQUA_GRUNT_M, gTrainerFrontPic_AquaGruntM, TRAINER_PIC_SIZE),

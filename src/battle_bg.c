@@ -115,7 +115,7 @@ static const struct SpriteTemplate sVsLetter_S_SpriteTemplate =
     .callback = SpriteCB_VsLetterDummy
 };
 
-static const struct CompressedSpriteSheet sVsLettersSpriteSheet =
+static const struct SpriteSheet sVsLettersSpriteSheet =
 {
     gVsLettersGfx, 0x1000, TAG_VS_LETTERS
 };

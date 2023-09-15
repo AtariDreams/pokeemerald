@@ -580,7 +580,7 @@ static const union AffineAnimCmd *const sAffineAnims_Pokeblock[] =
     sAffineAnim_Pokeblock
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Pokeblock =
+static const struct SpriteSheet sSpriteSheet_Pokeblock =
 {
     gPokeblock_Gfx, 0x20, TAG_POKEBLOCK
 };

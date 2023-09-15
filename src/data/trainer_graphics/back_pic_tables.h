@@ -13,7 +13,7 @@ const struct MonCoords gTrainerBackPicCoords[] =
 // this table goes functionally unused, since none of these pics are compressed
 // and the place they would get extracted to gets overwritten later anyway
 // the casts are so they'll play nice with the strict struct definition
-const struct CompressedSpriteSheet gTrainerBackPicTable[] =
+const struct SpriteSheet gTrainerBackPicTable[] =
 {
     [TRAINER_BACK_PIC_BRENDAN] = {
         .data = (const u32 *)gTrainerBackPic_Brendan,

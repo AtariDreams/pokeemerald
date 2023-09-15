@@ -360,14 +360,14 @@ static const sPassAreasLayout[CURSOR_AREA_COUNT - 1] =
     [CURSOR_AREA_SYMBOL_PYRAMID - 1] = { 50,  66,  92, 108},
 };
 
-static const struct CompressedSpriteSheet sCursorSpriteSheets[] =
+static const struct SpriteSheet sCursorSpriteSheets[] =
 {
     {sCursor_Gfx, 0x100, TAG_CURSOR},
     {sMapCursor_Gfx, 0x400, TAG_MAP_INDICATOR},
     {gFrontierPassMedals_Gfx, 0x380, TAG_MEDAL_SILVER},
 };
 
-static const struct CompressedSpriteSheet sHeadsSpriteSheet[] =
+static const struct SpriteSheet sHeadsSpriteSheet[] =
 {
     {sHeads_Gfx, 0x100, TAG_HEAD_MALE},
     {}

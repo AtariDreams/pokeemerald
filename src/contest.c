@@ -436,7 +436,7 @@ static const struct SpriteTemplate sSpriteTemplate_SliderHeart =
     .callback = SpriteCallbackDummy
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_NextTurn[CONTESTANT_COUNT] =
+static const struct SpriteSheet sSpriteSheet_NextTurn[CONTESTANT_COUNT] =
 {
     {
         .data = gContestNextTurnGfx,
@@ -555,7 +555,7 @@ static const struct SubspriteTable sSubspriteTable_NextTurn[] =
 };
 
 // Unused
-static const struct CompressedSpriteSheet sSpriteSheet_Faces =
+static const struct SpriteSheet sSpriteSheet_Faces =
 {
     .data = gContestFaces_Gfx,
     .size = 0x180,
@@ -588,7 +588,7 @@ static const struct SpriteTemplate sSpriteTemplate_Faces =
     .callback = SpriteCallbackDummy
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_ApplauseMeter =
+static const struct SpriteSheet sSpriteSheet_ApplauseMeter =
 {
     .data = gContestApplauseGfx,
     .size = 0x400,
@@ -651,14 +651,14 @@ static const struct SpriteTemplate sSpriteTemplate_Judge =
     .callback = SpriteCallbackDummy
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_Judge =
+static const struct SpriteSheet sSpriteSheet_Judge =
 {
     .data = gContestJudgeGfx,
     .size = 0x800,
     .tag = TAG_JUDGE
 };
 
-static const struct CompressedSpriteSheet sSpriteSheet_JudgeSymbols =
+static const struct SpriteSheet sSpriteSheet_JudgeSymbols =
 {
     .data = gContestJudgeSymbolsGfx,
     .size = 0x380,
@@ -832,7 +832,7 @@ static const struct WindowTemplate sContestWindowTemplates[] =
 
 #include "data/contest_opponents.h"
 
-static const struct CompressedSpriteSheet sSpriteSheets_ContestantsTurnBlinkEffect[CONTESTANT_COUNT] =
+static const struct SpriteSheet sSpriteSheets_ContestantsTurnBlinkEffect[CONTESTANT_COUNT] =
 {
     {
         .data = gBlankGfxCompressed,

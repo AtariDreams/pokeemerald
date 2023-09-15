@@ -137,7 +137,7 @@ static const u16 sBgMountains_Tilemap[] = INCBIN_U16("graphics/cable_car/bg_moun
 static const u16 sPylonTop_Tilemap[] = INCBIN_U16("graphics/cable_car/pylon_top.bin");
 static const u16 sPylonPole_Tilemap[] = INCBIN_U16("graphics/cable_car/pylon_pole.bin.lz");
 
-static const struct CompressedSpriteSheet sSpriteSheets[] = {
+static const struct SpriteSheet sSpriteSheets[] = {
     { gCableCar_Gfx,      0x800, TAG_CABLE_CAR },
     { gCableCarDoor_Gfx,   0x40, TAG_DOOR },
     { gCableCarCable_Gfx,  0x80, TAG_CABLE },
