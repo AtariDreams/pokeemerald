@@ -4765,7 +4765,7 @@ static void AnimFalseSwipeSlice_Step3(struct Sprite *sprite)
     if (++sprite->data[0] > 1)
     {
         sprite->data[0] = 0;
-        sprite->invisible = !sprite->invisible;
+        sprite->invisible ^= 1;
         if (++sprite->data[1] > 8)
             DestroyAnimSprite(sprite);
     }
@@ -4819,7 +4819,7 @@ static void AnimSharpenSphere_Step(struct Sprite *sprite)
 {
     if (++sprite->data[0] >= sprite->data[1])
     {
-        sprite->invisible = !sprite->invisible;
+        sprite->invisible ^= 1;
         if (!sprite->invisible)
         {
             sprite->data[4]++;

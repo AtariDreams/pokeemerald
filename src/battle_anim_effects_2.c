@@ -2497,7 +2497,7 @@ static void AnimPencil_Step(struct Sprite *sprite)
         if (++sprite->data[2] > 1)
         {
             sprite->data[2] = 0;
-            sprite->invisible = !sprite->invisible;
+            sprite->invisible ^= 1;
         }
         if (++sprite->data[1] > 16)
         {
@@ -2537,7 +2537,7 @@ static void AnimPencil_Step(struct Sprite *sprite)
         if (++sprite->data[2] > 1)
         {
             sprite->data[2] = 0;
-            sprite->invisible = !sprite->invisible;
+            sprite->invisible ^= 1;
         }
         if (++sprite->data[1] > 16)
         {
