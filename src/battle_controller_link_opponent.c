@@ -1103,7 +1103,7 @@ static void SetLinkOpponentMonData(u8 monId)
 static void LinkOpponentHandleSetRawMonData(void)
 {
     u8 *dst = (u8 *)&gEnemyParty[gBattlerPartyIndexes[gActiveBattler]] + gBattleBufferA[gActiveBattler][1];
-    u8 i;
+    u32 i;
 
     for (i = 0; i < gBattleBufferA[gActiveBattler][2]; i++)
         dst[i] = gBattleBufferA[gActiveBattler][3 + i];
@@ -1626,6 +1626,7 @@ static void LinkOpponentHandleHitAnimation(void)
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         LinkOpponentBufferExecCompleted();
+        return;
     }
     else
     {
@@ -1743,6 +1744,7 @@ static void LinkOpponentHandleDrawPartyStatusSummary(void)
     if (gBattleBufferA[gActiveBattler][1] != 0 && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
     {
         LinkOpponentBufferExecCompleted();
+        return;
     }
     else
     {
