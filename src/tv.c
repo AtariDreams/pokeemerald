@@ -6149,7 +6149,7 @@ static void DoTVShowTrainerFanClub(void)
     {
     case 0:
         TVShowConvertInternationalString(gStringVar1, show->trainerFanClub.playerName, show->trainerFanClub.language);
-        playerId = ((show->common.trainerIdHi << 8) + show->common.trainerIdLo);
+        playerId = ((show->common.trainerIdHi << 8) | show->common.trainerIdLo);
         switch (playerId % 10)
         {
         case 0:
