@@ -172,7 +172,6 @@ static u8 WriteSaveSectorOrSlot(u16 sectorId, const struct SaveBlockChunk *locat
 
 static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations)
 {
-    u16 i;
     u16 sector;
     u8 *data;
     u16 size;
@@ -187,8 +186,7 @@ static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations
     size = locations[sectorId].size;
 
     // Clear temp save sector
-    for (i = 0; i < SECTOR_SIZE; i++)
-        ((u8 *)gReadWriteSector)[i] = 0;
+    memset(gReadWriteSector, 0, SECTOR_SIZE);
 
     // Set footer data
     gReadWriteSector->id = sectorId;
@@ -196,8 +194,7 @@ static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations
     gReadWriteSector->counter = gSaveCounter;
 
     // Copy current data to temp buffer for writing
-    for (i = 0; i < size; i++)
-        gReadWriteSector->data[i] = data[i];
+    memcpy(gReadWriteSector->data, data, size);
 
     gReadWriteSector->checksum = CalculateChecksum(data, size);
 
@@ -670,6 +667,7 @@ static bool8 ReadFlashSector(u8 sectorId, struct SaveSector *sector)
 
 static u16 CalculateChecksum(void *data, u16 size)
 {
+
     u16 i;
     u32 checksum = 0;
 
