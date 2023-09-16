@@ -9412,7 +9412,7 @@ static void Cmd_assistattackselect(void)
 
         for (moveId = 0; moveId < MAX_MON_MOVES; moveId++)
         {
-            s32 i = 0;
+            u32 i = 0;
             u16 move = GetMonData(&party[monId], MON_DATA_MOVE1 + moveId);
 
             if (IsInvalidForSleepTalkOrAssist(move))
@@ -9810,10 +9810,104 @@ static void Cmd_removelightscreenreflect(void)
     gBattlescriptCurrInstr++;
 }
 
+static u32 getBallCaptureRatio(void)
+{
+    u32 catchRate = gSpeciesInfo[gBattleMons[gBattlerTarget].species].catchRate;
+
+    switch (gLastUsedItem)
+    {
+    case ITEM_GREAT_BALL:
+        return 15;
+    case ITEM_ULTRA_BALL:
+        return 20;
+
+    case ITEM_NET_BALL:
+    {
+        if (IS_BATTLER_OF_TYPE(gBattlerTarget, TYPE_WATER) || IS_BATTLER_OF_TYPE(gBattlerTarget, TYPE_BUG))
+            return 35;
+        break;
+    }
+    case ITEM_DIVE_BALL:
+        if (GetCurrentMapType() == MAP_TYPE_UNDERWATER)
+            return 35;
+        break;
+    case ITEM_NEST_BALL:
+    {
+        u32 targetLevel = gBattleMons[gBattlerTarget].level;
+
+        if (targetLevel < 30)
+        {
+            u32 levelDiff = 41 - targetLevel;
+            if (levelDiff > 40)
+            {
+                // 40 /10
+                return 40;
+            }
+            return levelDiff;
+        }
+    }
+    break;
+    case ITEM_REPEAT_BALL:
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species), FLAG_GET_CAUGHT))
+            return 35;
+        break;
+    case ITEM_TIMER_BALL:
+    {
+        u32 ratio = 10 + gBattleResults.battleTurnCounter * 3;
+        if (ratio > 40)
+            return 40;
+        return ratio;
+    }
+    break;
+    default:
+        break;
+    }
+    return 10;
+}
+static u8 capturePokemonStatus(void)
+{
+    u32 catchVal;
+    if (gLastUsedItem == ITEM_MASTER_BALL)
+    {
+        gBattleResults.usedMasterBall = TRUE;
+        return BALL_3_SHAKES_SUCCESS;
+    }
+
+    if (gLastUsedItem == ITEM_SAFARI_BALL)
+        catchVal = gBattleStruct->safariCatchFactor * 51 * 3 / 8;
+    else
+    {
+        if (gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL] < 255)
+            gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL]++;
+        u32 hpBase = gBattleMons[gBattlerTarget].maxHP * 3;
+        u32 hpValue = hpBase - gBattleMons[gBattlerTarget].hp * 2;
+
+        catchVal = hpValue * getBallCaptureRatio() * gSpeciesInfo[gBattleMons[gBattlerTarget].species].catchRate / hpBase;
+
+        if (gBattleMons[gBattlerTarget].status1 & (STATUS1_SLEEP | STATUS1_FREEZE))
+            catchVal = catchVal * 5 / 2;
+        else if (gBattleMons[gBattlerTarget].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
+            catchVal += catchVal >> 1;
+
+        catchVal /= 10;
+    }
+
+    if (catchVal >= 255)
+        return BALL_3_SHAKES_SUCCESS;
+
+    catchVal = 16581375 / (catchVal * catchVal * catchVal);
+
+    catchVal = 65536 / Sqrt(Sqrt(Sqrt(Sqrt(catchVal))));
+
+    for (u8 shakes = 0; shakes < BALL_3_SHAKES_SUCCESS; shakes++)
+    {
+        if (Random() >= catchVal)
+            return shakes;
+    }
+    return BALL_3_SHAKES_SUCCESS;
+}
 static void Cmd_handleballthrow(void)
 {
-    u8 ballMultiplier = 0;
-
     if (gBattleControllerExecFlags)
         return;
 
@@ -9834,88 +9928,13 @@ static void Cmd_handleballthrow(void)
     }
     else
     {
-        u32 odds;
-        u8 catchRate;
+        u8 shakes = capturePokemonStatus();
 
-        if (gLastUsedItem == ITEM_SAFARI_BALL)
-            catchRate = gBattleStruct->safariCatchFactor * 1275 / 100;
-        else
-            catchRate = gSpeciesInfo[gBattleMons[gBattlerTarget].species].catchRate;
+        BtlController_EmitBallThrowAnim(BUFFER_A, shakes);
+        MarkBattlerForControllerExec(gActiveBattler);
 
-        if (gLastUsedItem > ITEM_SAFARI_BALL)
+        if (shakes == BALL_3_SHAKES_SUCCESS) // mon caught, copy of the code above
         {
-            switch (gLastUsedItem)
-            {
-            case ITEM_NET_BALL:
-                if (IS_BATTLER_OF_TYPE(gBattlerTarget, TYPE_WATER) || IS_BATTLER_OF_TYPE(gBattlerTarget, TYPE_BUG))
-                    ballMultiplier = 30;
-                else
-                    ballMultiplier = 10;
-                break;
-            case ITEM_DIVE_BALL:
-                if (GetCurrentMapType() == MAP_TYPE_UNDERWATER)
-                    ballMultiplier = 35;
-                else
-                    ballMultiplier = 10;
-                break;
-            case ITEM_NEST_BALL:
-                if (gBattleMons[gBattlerTarget].level < 40)
-                {
-                    ballMultiplier = 40 - gBattleMons[gBattlerTarget].level;
-                    if (ballMultiplier <= 9)
-                        ballMultiplier = 10;
-                }
-                else
-                {
-                    ballMultiplier = 10;
-                }
-                break;
-            case ITEM_REPEAT_BALL:
-                if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species), FLAG_GET_CAUGHT))
-                    ballMultiplier = 30;
-                else
-                    ballMultiplier = 10;
-                break;
-            case ITEM_TIMER_BALL:
-                ballMultiplier = gBattleResults.battleTurnCounter + 10;
-                if (ballMultiplier > 40)
-                    ballMultiplier = 40;
-                break;
-            case ITEM_LUXURY_BALL:
-            case ITEM_PREMIER_BALL:
-                ballMultiplier = 10;
-                break;
-            }
-        }
-        else
-            ballMultiplier = sBallCatchBonuses[gLastUsedItem - ITEM_ULTRA_BALL];
-
-        odds = (catchRate * ballMultiplier / 10)
-            * (gBattleMons[gBattlerTarget].maxHP * 3 - gBattleMons[gBattlerTarget].hp * 2)
-            / (3 * gBattleMons[gBattlerTarget].maxHP);
-
-        if (gBattleMons[gBattlerTarget].status1 & (STATUS1_SLEEP | STATUS1_FREEZE))
-            odds *= 2;
-        if (gBattleMons[gBattlerTarget].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
-            odds = (odds * 15) / 10;
-
-        if (gLastUsedItem != ITEM_SAFARI_BALL)
-        {
-            if (gLastUsedItem == ITEM_MASTER_BALL)
-            {
-                gBattleResults.usedMasterBall = TRUE;
-            }
-            else
-            {
-                if (gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL] < 255)
-                    gBattleResults.catchAttempts[gLastUsedItem - ITEM_ULTRA_BALL]++;
-            }
-        }
-
-        if (odds > 254) // mon caught
-        {
-            BtlController_EmitBallThrowAnim(BUFFER_A, BALL_3_SHAKES_SUCCESS);
-            MarkBattlerForControllerExec(gActiveBattler);
             gBattlescriptCurrInstr = BattleScript_SuccessBallThrow;
             SetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattlerTarget]], MON_DATA_POKEBALL, &gLastUsedItem);
 
@@ -9924,36 +9943,10 @@ static void Cmd_handleballthrow(void)
             else
                 gBattleCommunication[MULTISTRING_CHOOSER] = 1;
         }
-        else // mon may be caught, calculate shakes
+        else // not caught
         {
-            u8 shakes;
-
-            odds = Sqrt(Sqrt(16711680 / odds));
-            odds = 1048560 / odds;
-
-            for (shakes = 0; shakes < BALL_3_SHAKES_SUCCESS && Random() < odds; shakes++);
-
-            if (gLastUsedItem == ITEM_MASTER_BALL)
-                shakes = BALL_3_SHAKES_SUCCESS; // why calculate the shakes before that check?
-
-            BtlController_EmitBallThrowAnim(BUFFER_A, shakes);
-            MarkBattlerForControllerExec(gActiveBattler);
-
-            if (shakes == BALL_3_SHAKES_SUCCESS) // mon caught, copy of the code above
-            {
-                gBattlescriptCurrInstr = BattleScript_SuccessBallThrow;
-                SetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattlerTarget]], MON_DATA_POKEBALL, &gLastUsedItem);
-
-                if (CalculatePlayerPartyCount() == PARTY_SIZE)
-                    gBattleCommunication[MULTISTRING_CHOOSER] = 0;
-                else
-                    gBattleCommunication[MULTISTRING_CHOOSER] = 1;
-            }
-            else // not caught
-            {
-                gBattleCommunication[MULTISTRING_CHOOSER] = shakes;
-                gBattlescriptCurrInstr = BattleScript_ShakeBallThrow;
-            }
+            gBattleCommunication[MULTISTRING_CHOOSER] = shakes;
+            gBattlescriptCurrInstr = BattleScript_ShakeBallThrow;
         }
     }
 }
