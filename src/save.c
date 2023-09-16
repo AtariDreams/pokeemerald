@@ -207,14 +207,13 @@ static u8 HandleWriteSectorNBytes(u8 sectorId, u8 *data, u16 size)
     struct SaveSector *sector = &gSaveDataBuffer;
 
     // Clear temp save sector
-    for (i = 0; i < SECTOR_SIZE; i++)
-        ((u8 *)sector)[i] = 0;
+
+    memset(gSaveDataBuffer, 0, SECTOR_SIZE);
 
     sector->signature = SECTOR_SIGNATURE;
 
     // Copy data to temp buffer for writing
-    for (i = 0; i < size; i++)
-        sector->data[i] = data[i];
+    memcpy(sector->data, data, size);
 
     sector->id = CalculateChecksum(data, size); // though this appears to be incorrect, it might be some sector checksum instead of a whole save checksum and only appears to be relevent to HOF data, if used.
     return TryWriteSector(sectorId, sector->data);
