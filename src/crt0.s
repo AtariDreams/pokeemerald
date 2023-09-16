@@ -37,7 +37,7 @@ IntrMain::
 	ldr r2, [r3]
 	ldrh r1, [r3, #REG_IME - REG_IE]
 	mrs r0, spsr
-	stmfd sp!, {r0-r3,lr}
+	push {r0-r3,lr}
 	mov r0, #0
 	strh r0, [r3, #REG_IME - REG_IE]
 	and r1, r2, r2, lsr #16
@@ -104,16 +104,16 @@ IntrMain_FoundIntr:
 	msr cpsr_cf, r3
 	ldr r1, =gIntrTable
 	ldr r0, [r1, r12]
-	stmfd sp!, {lr}
+	push {lr}
 	adr lr, IntrMain_RetAddr
 	bx r0
 IntrMain_RetAddr:
-	ldmfd sp!, {lr}
+	pop {lr}
 	mrs r3, cpsr
 	bic r3, r3, #PSR_I_BIT | PSR_F_BIT | PSR_MODE_MASK
 	orr r3, r3, #PSR_I_BIT | PSR_IRQ_MODE
 	msr cpsr_cf, r3
-	ldmia sp!, {r0-r3,lr}
+	pop {r0-r3,lr}
 	strh r2, [r3]
 	strh r1, [r3, #REG_IME - REG_IE]
 	msr spsr_cf, r0
