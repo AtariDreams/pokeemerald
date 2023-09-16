@@ -1441,7 +1441,7 @@ static void MakeCaptureStars(struct Sprite *sprite)
 
 static void SpriteCB_CaptureStar_Flicker(struct Sprite *sprite)
 {
-    sprite->invisible = !sprite->invisible;
+    sprite->invisible ^= 1;
     if (TranslateAnimHorizontalArc(sprite))
         DestroySprite(sprite);
 }
