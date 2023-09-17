@@ -1815,17 +1815,16 @@ static void Cmd_healthbarupdate(void)
         }
         else
         {
-            s16 healthValue;
+            s16 damage;
+            if (gBattleMoveDamage > 10000)
+            {
+                damage = 10000;
+            }
+            else {
+				damage= gBattleMoveDamage;
+			}
 
-            s32 currDmg = gBattleMoveDamage;
-            s32 maxPossibleDmgValue = 10000; // not present in R/S, ensures that huge damage values don't change sign
-
-            if (currDmg <= maxPossibleDmgValue)
-                healthValue = currDmg;
-            else
-                healthValue = maxPossibleDmgValue;
-
-            BtlController_EmitHealthBarUpdate(BUFFER_A, healthValue);
+            BtlController_EmitHealthBarUpdate(BUFFER_A, damage);
             MarkBattlerForControllerExec(gActiveBattler);
 
             if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleMoveDamage > 0)
@@ -3482,13 +3481,12 @@ static void Cmd_getexp(void)
 #endif
                     gBattleMons[2].spAttack = GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_SPATK);
                 }
-                gBattleScripting.getexpState = 5;
             }
             else
             {
                 gBattleMoveDamage = 0;
-                gBattleScripting.getexpState = 5;
             }
+            gBattleScripting.getexpState = 5;
         }
         break;
     case 5: // looper increment
