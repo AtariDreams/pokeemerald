@@ -40,7 +40,7 @@ void HandleLinkBattleSetup(void)
 
 void SetUpBattleVarsAndBirchZigzagoon(void)
 {
-    s32 i;
+    u32 i;
 
     gBattleMainFunc = BeginBattleIntroDummy;
 
@@ -69,8 +69,6 @@ void SetUpBattleVarsAndBirchZigzagoon(void)
 
 void InitBattleControllers(void)
 {
-    s32 i;
-
     if (!(gBattleTypeFlags & BATTLE_TYPE_RECORDED))
         RecordedBattle_Init(B_RECORD_MODE_RECORDING);
     else
@@ -88,15 +86,13 @@ void InitBattleControllers(void)
 
     if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
     {
-        for (i = 0; i < gBattlersCount; i++)
+        for (u8 i = 0; i < gBattlersCount; i++)
             BufferBattlePartyCurrentOrderBySide(i, 0);
     }
 
-    for (i = 0; i < sizeof(gBattleStruct->tvMovePoints); i++)
-        *((u8 *)(&gBattleStruct->tvMovePoints) + i) = 0;
-
-    for (i = 0; i < sizeof(gBattleStruct->tv); i++)
-        *((u8 *)(&gBattleStruct->tv) + i) = 0;
+    memset(&gBattleStruct->tvMovePoints, 0, sizeof(gBattleStruct->tvMovePoints));
+    
+    memset(&gBattleStruct->tv, 0, sizeof(gBattleStruct->tvMovePoints));
 }
 
 static void InitSinglePlayerBtlControllers(void)
@@ -650,6 +646,7 @@ static void PrepareBufferDataTransfer(u8 bufferId, u8 *data, u16 size)
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
     {
         PrepareBufferDataTransferLink(bufferId, size, data);
+        return;
     }
     else
     {
@@ -698,10 +695,10 @@ enum
 
 void PrepareBufferDataTransferLink(u8 bufferId, u16 size, u8 *data)
 {
-    s32 alignedSize;
-    s32 i;
+    u32 alignedSize;
+    u32 i;
 
-    alignedSize = size - size % 4 + 4;
+    alignedSize = size + (-size & 3);
     if (gTasks[sLinkSendTaskId].data[14] + alignedSize + LINK_BUFF_DATA + 1 > BATTLE_BUFFER_LINK_SIZE)
     {
         gTasks[sLinkSendTaskId].data[12] = gTasks[sLinkSendTaskId].data[14];
@@ -910,25 +907,20 @@ static void UNUSED BtlController_EmitGetRawMonData(u8 bufferId, u8 monId, u8 byt
 
 void BtlController_EmitSetMonData(u8 bufferId, u8 requestId, u8 monToCheck, u8 bytes, void *data)
 {
-    s32 i;
-
     sBattleBuffersTransferData[0] = CONTROLLER_SETMONDATA;
     sBattleBuffersTransferData[1] = requestId;
     sBattleBuffersTransferData[2] = monToCheck;
-    for (i = 0; i < bytes; i++)
-        sBattleBuffersTransferData[3 + i] = *(u8 *)(data++);
-    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 3 + bytes);
+
+    memcpy(sBattleBuffersTransferData + 3, data, bytes);
+    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, bytes + 3);
 }
 
 static void UNUSED BtlController_EmitSetRawMonData(u8 bufferId, u8 monId, u8 bytes, void *data)
 {
-    s32 i;
-
     sBattleBuffersTransferData[0] = CONTROLLER_SETRAWMONDATA;
     sBattleBuffersTransferData[1] = monId;
     sBattleBuffersTransferData[2] = bytes;
-    for (i = 0; i < bytes; i++)
-        sBattleBuffersTransferData[3 + i] = *(u8 *)(data++);
+    memcpy(sBattleBuffersTransferData + 3, data, bytes);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, bytes + 3);
 }
 
@@ -1020,33 +1012,30 @@ void BtlController_EmitBallThrowAnim(u8 bufferId, u8 caseId)
 
 static void UNUSED BtlController_EmitPause(u8 bufferId, u8 toWait, void *data)
 {
-    s32 i;
-
     sBattleBuffersTransferData[0] = CONTROLLER_PAUSE;
     sBattleBuffersTransferData[1] = toWait;
-    for (i = 0; i < toWait * 3; i++)
-        sBattleBuffersTransferData[2 + i] = *(u8 *)(data++);
+    memcpy(sBattleBuffersTransferData + 2, data, toWait * 3);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, toWait * 3 + 2);
 }
 
 void BtlController_EmitMoveAnimation(u8 bufferId, u16 move, u8 turnOfMove, u16 movePower, s32 dmg, u8 friendship, struct DisableStruct *disableStructPtr, u8 multihit)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_MOVEANIMATION;
-    sBattleBuffersTransferData[1] = move;
-    sBattleBuffersTransferData[2] = (move & 0xFF00) >> 8;
+    sBattleBuffersTransferData[1] = move & 0xFF;
+    sBattleBuffersTransferData[2] = move >> 8;
     sBattleBuffersTransferData[3] = turnOfMove;
-    sBattleBuffersTransferData[4] = movePower;
-    sBattleBuffersTransferData[5] = (movePower & 0xFF00) >> 8;
-    sBattleBuffersTransferData[6] = dmg;
-    sBattleBuffersTransferData[7] = (dmg & 0x0000FF00) >> 8;
-    sBattleBuffersTransferData[8] = (dmg & 0x00FF0000) >> 16;
-    sBattleBuffersTransferData[9] = (dmg & 0xFF000000) >> 24;
+    sBattleBuffersTransferData[4] = movePower & 0xFF;
+    sBattleBuffersTransferData[5] = movePower >> 8;
+    sBattleBuffersTransferData[6] = dmg & 0xFF;
+    sBattleBuffersTransferData[7] = (dmg >> 8) & 0xFF;
+    sBattleBuffersTransferData[8] = (dmg >> 16) & 0xFF;
+    sBattleBuffersTransferData[9] = (dmg >> 24) & 0xFF;
     sBattleBuffersTransferData[10] = friendship;
     sBattleBuffersTransferData[11] = multihit;
     if (WEATHER_HAS_EFFECT2)
     {
-        sBattleBuffersTransferData[12] = gBattleWeather;
-        sBattleBuffersTransferData[13] = (gBattleWeather & 0xFF00) >> 8;
+        sBattleBuffersTransferData[12] = gBattleWeather & 0xFF;
+        sBattleBuffersTransferData[13] = gBattleWeather >> 8;
     }
     else
     {
@@ -1061,13 +1050,13 @@ void BtlController_EmitMoveAnimation(u8 bufferId, u16 move, u8 turnOfMove, u16 m
 
 void BtlController_EmitPrintString(u8 bufferId, u16 stringID)
 {
-    s32 i;
+    u32 i;
     struct BattleMsgData *stringInfo;
 
     sBattleBuffersTransferData[0] = CONTROLLER_PRINTSTRING;
     sBattleBuffersTransferData[1] = gBattleOutcome;
     sBattleBuffersTransferData[2] = stringID;
-    sBattleBuffersTransferData[3] = (stringID & 0xFF00) >> 8;
+    sBattleBuffersTransferData[3] = stringID >> 8;
 
     stringInfo = (struct BattleMsgData *)(&sBattleBuffersTransferData[4]);
     stringInfo->currentMove = gCurrentMove;
@@ -1098,8 +1087,8 @@ void BtlController_EmitPrintSelectionString(u8 bufferId, u16 stringID)
 
     sBattleBuffersTransferData[0] = CONTROLLER_PRINTSTRINGPLAYERONLY;
     sBattleBuffersTransferData[1] = CONTROLLER_PRINTSTRINGPLAYERONLY;
-    sBattleBuffersTransferData[2] = stringID;
-    sBattleBuffersTransferData[3] = (stringID & 0xFF00) >> 8;
+    sBattleBuffersTransferData[2] = stringID & 0xFF;
+    sBattleBuffersTransferData[3] = stringID >> 8;
 
     stringInfo = (struct BattleMsgData *)(&sBattleBuffersTransferData[4]);
     stringInfo->currentMove = gCurrentMove;
@@ -1125,8 +1114,8 @@ void BtlController_EmitChooseAction(u8 bufferId, u8 action, u16 itemId)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_CHOOSEACTION;
     sBattleBuffersTransferData[1] = action;
-    sBattleBuffersTransferData[2] = itemId;
-    sBattleBuffersTransferData[3] = (itemId & 0xFF00) >> 8;
+    sBattleBuffersTransferData[2] = itemId & 0xFF;
+    sBattleBuffersTransferData[3] = itemId >> 8;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
@@ -1143,20 +1132,18 @@ void BtlController_EmitYesNoBox(u8 bufferId)
 
 void BtlController_EmitChooseMove(u8 bufferId, bool8 isDoubleBattle, bool8 NoPpNumber, struct ChooseMoveStruct *movePpData)
 {
-    s32 i;
-
     sBattleBuffersTransferData[0] = CONTROLLER_CHOOSEMOVE;
     sBattleBuffersTransferData[1] = isDoubleBattle;
     sBattleBuffersTransferData[2] = NoPpNumber;
     sBattleBuffersTransferData[3] = 0;
-    for (i = 0; i < sizeof(*movePpData); i++)
-        sBattleBuffersTransferData[4 + i] = *((u8 *)(movePpData) + i);
+
+    memcpy(sBattleBuffersTransferData + 4, movePpData, sizeof(*movePpData));
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sizeof(*movePpData) + 4);
 }
 
 void BtlController_EmitChooseItem(u8 bufferId, u8 *battlePartyOrder)
 {
-    s32 i;
+    u32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_OPENBAG;
     for (i = 0; i < PARTY_SIZE / 2; i++)
@@ -1166,7 +1153,7 @@ void BtlController_EmitChooseItem(u8 bufferId, u8 *battlePartyOrder)
 
 void BtlController_EmitChoosePokemon(u8 bufferId, u8 caseId, u8 slotId, u8 abilityId, u8 *data)
 {
-    s32 i;
+    u32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_CHOOSEPOKEMON;
     sBattleBuffersTransferData[1] = caseId;
@@ -1187,47 +1174,47 @@ static void UNUSED BtlController_EmitCmd23(u8 bufferId)
 }
 
 // why is the argument u16 if it's being cast to s16 anyway?
-void BtlController_EmitHealthBarUpdate(u8 bufferId, u16 hpValue)
+void BtlController_EmitHealthBarUpdate(u8 bufferId, s16 hpValue)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_HEALTHBARUPDATE;
     sBattleBuffersTransferData[1] = 0;
-    sBattleBuffersTransferData[2] = (s16)hpValue;
-    sBattleBuffersTransferData[3] = ((s16)hpValue & 0xFF00) >> 8;
+    sBattleBuffersTransferData[2] = hpValue & 0xFF;
+    sBattleBuffersTransferData[3] = (hpValue >> 8) & 0xFF;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
 // why is the argument u16 if it's being cast to s16 anyway?
-void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, u16 expPoints)
+void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, s16 expPoints)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_EXPUPDATE;
     sBattleBuffersTransferData[1] = partyId;
-    sBattleBuffersTransferData[2] = (s16)expPoints;
-    sBattleBuffersTransferData[3] = ((s16)expPoints & 0xFF00) >> 8;
+    sBattleBuffersTransferData[2] = expPoints & 0xFF;
+    sBattleBuffersTransferData[3] = (expPoints >> 8) & 0xFF;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
 void BtlController_EmitStatusIconUpdate(u8 bufferId, u32 status1, u32 status2)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_STATUSICONUPDATE;
-    sBattleBuffersTransferData[1] = status1;
-    sBattleBuffersTransferData[2] = (status1 & 0x0000FF00) >> 8;
-    sBattleBuffersTransferData[3] = (status1 & 0x00FF0000) >> 16;
-    sBattleBuffersTransferData[4] = (status1 & 0xFF000000) >> 24;
-    sBattleBuffersTransferData[5] = status2;
-    sBattleBuffersTransferData[6] = (status2 & 0x0000FF00) >> 8;
-    sBattleBuffersTransferData[7] = (status2 & 0x00FF0000) >> 16;
-    sBattleBuffersTransferData[8] = (status2 & 0xFF000000) >> 24;
+    sBattleBuffersTransferData[1] = status1 & 0xFF;
+    sBattleBuffersTransferData[2] = (status1 >> 8) & 0xFF;
+    sBattleBuffersTransferData[3] = (status1 >> 16) & 0xFF;
+    sBattleBuffersTransferData[4] = status1 >> 24;
+    sBattleBuffersTransferData[5] = status2 & 0xFF;
+    sBattleBuffersTransferData[6] = (status2 >> 8) & 0xFF;
+    sBattleBuffersTransferData[7] = (status2 >> 16) & 0xFF;
+    sBattleBuffersTransferData[8] = (status2 >> 24);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 9);
 }
 
-void BtlController_EmitStatusAnimation(u8 bufferId, bool8 status2, u32 status)
+void BtlController_EmitStatusAnimation(u8 bufferId, bool8 type, u32 status)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_STATUSANIMATION;
-    sBattleBuffersTransferData[1] = status2;
-    sBattleBuffersTransferData[2] = status;
-    sBattleBuffersTransferData[3] = (status & 0x0000FF00) >> 8;
-    sBattleBuffersTransferData[4] = (status & 0x00FF0000) >> 16;
-    sBattleBuffersTransferData[5] = (status & 0xFF000000) >> 24;
+    sBattleBuffersTransferData[1] = type;
+    sBattleBuffersTransferData[2] = status & 0xFF;
+    sBattleBuffersTransferData[3] = (status >> 8) & 0xFF;
+    sBattleBuffersTransferData[4] = (status >> 16) & 0xFF;
+    sBattleBuffersTransferData[5] = status >> 24;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 6);
 }
 
@@ -1240,14 +1227,11 @@ static void UNUSED BtlController_EmitStatusXor(u8 bufferId, u8 b)
 
 void BtlController_EmitDataTransfer(u8 bufferId, u16 size, void *data)
 {
-    s32 i;
-
     sBattleBuffersTransferData[0] = CONTROLLER_DATATRANSFER;
     sBattleBuffersTransferData[1] = CONTROLLER_DATATRANSFER;
     sBattleBuffersTransferData[2] = size;
-    sBattleBuffersTransferData[3] = (size & 0xFF00) >> 8;
-    for (i = 0; i < size; i++)
-        sBattleBuffersTransferData[4 + i] = *(u8 *)(data++);
+    sBattleBuffersTransferData[3] = (size >> 8);
+    memcpy(sBattleBuffersTransferData + 4, data, size);
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 4);
 }
 
@@ -1299,17 +1283,17 @@ void BtlController_EmitTwoReturnValues(u8 bufferId, u8 ret8, u16 ret16)
     sBattleBuffersTransferData[0] = CONTROLLER_TWORETURNVALUES;
     sBattleBuffersTransferData[1] = ret8;
     sBattleBuffersTransferData[2] = ret16;
-    sBattleBuffersTransferData[3] = (ret16 & 0xFF00) >> 8;
+    sBattleBuffersTransferData[3] = ret16 >> 8;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
 void BtlController_EmitChosenMonReturnValue(u8 bufferId, u8 partyId, u8 *battlePartyOrder)
 {
-    s32 i;
+    u32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_CHOSENMONRETURNVALUE;
     sBattleBuffersTransferData[1] = partyId;
-    for (i = 0; i < (int)ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
+    for (i = 0; i < ARRAY_COUNT(gBattlePartyCurrentOrder); i++)
         sBattleBuffersTransferData[2 + i] = battlePartyOrder[i];
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 5);
 }
@@ -1318,7 +1302,7 @@ void BtlController_EmitOneReturnValue(u8 bufferId, u16 ret)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_ONERETURNVALUE;
     sBattleBuffersTransferData[1] = ret;
-    sBattleBuffersTransferData[2] = (ret & 0xFF00) >> 8;
+    sBattleBuffersTransferData[2] = ret  >> 8;
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
@@ -1327,7 +1311,7 @@ void BtlController_EmitOneReturnValue_Duplicate(u8 bufferId, u16 ret)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_ONERETURNVALUE_DUPLICATE;
     sBattleBuffersTransferData[1] = ret;
-    sBattleBuffersTransferData[2] = (ret & 0xFF00) >> 8;
+    sBattleBuffersTransferData[2] = ret >> 8;
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
@@ -1429,14 +1413,12 @@ void BtlController_EmitIntroTrainerBallThrow(u8 bufferId)
 
 void BtlController_EmitDrawPartyStatusSummary(u8 bufferId, struct HpAndStatus* hpAndStatus, u8 flags)
 {
-    s32 i;
 
     sBattleBuffersTransferData[0] = CONTROLLER_DRAWPARTYSTATUSSUMMARY;
     sBattleBuffersTransferData[1] = flags & ~PARTY_SUMM_SKIP_DRAW_DELAY; // If true, skip player side
     sBattleBuffersTransferData[2] = (flags & PARTY_SUMM_SKIP_DRAW_DELAY) >> 7; // If true, skip delay after drawing. True during intro
     sBattleBuffersTransferData[3] = CONTROLLER_DRAWPARTYSTATUSSUMMARY;
-    for (i = 0; i < (s32)(sizeof(struct HpAndStatus) * PARTY_SIZE); i++)
-        sBattleBuffersTransferData[4 + i] = *(i + (u8 *)(hpAndStatus));
+    memcpy(sBattleBuffersTransferData + 4, hpAndStatus, (sizeof(struct HpAndStatus) * PARTY_SIZE));
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, sizeof(struct HpAndStatus) * PARTY_SIZE + 4);
 }
 
@@ -1472,18 +1454,17 @@ void BtlController_EmitBattleAnimation(u8 bufferId, u8 animationId, u16 argument
     sBattleBuffersTransferData[0] = CONTROLLER_BATTLEANIMATION;
     sBattleBuffersTransferData[1] = animationId;
     sBattleBuffersTransferData[2] = argument;
-    sBattleBuffersTransferData[3] = (argument & 0xFF00) >> 8;
+    sBattleBuffersTransferData[3] = argument >> 8;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
 }
 
 // mode is a LINK_STANDBY_* constant
 void BtlController_EmitLinkStandbyMsg(u8 bufferId, u8 mode, bool32 record)
 {
-    bool8 record_ = record;
     sBattleBuffersTransferData[0] = CONTROLLER_LINKSTANDBYMSG;
     sBattleBuffersTransferData[1] = mode;
 
-    if (record_)
+    if (record)
         sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = RecordedBattle_BufferNewBattlerData(&sBattleBuffersTransferData[4]);
     else
         sBattleBuffersTransferData[3] = sBattleBuffersTransferData[2] = 0;
