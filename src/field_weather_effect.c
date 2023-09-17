@@ -2407,8 +2407,8 @@ static void DestroyBubbleSprites(void)
 
 static void UpdateBubbleSprite(struct Sprite *sprite)
 {
-    ++sprite->tScrollXCounter;
-    if (++sprite->tScrollXCounter > 8) // double increment
+    sprite->tScrollXCounter += 2;
+    if (sprite->tScrollXCounter > 8)
     {
         sprite->tScrollXCounter = 0;
         if (sprite->tScrollXDir == 0)
