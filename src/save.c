@@ -16,7 +16,7 @@
 static u16 CalculateChecksum(void *, u16);
 static bool8 ReadFlashSector(u8, struct SaveSector *);
 static u8 GetSaveValidStatus(const struct SaveBlockChunk *);
-static u8 CopySaveSlotData(u16, const struct SaveBlockChunk *);
+static u8 CopySaveSlotData(const struct SaveBlockChunk *);
 static u8 TryWriteSector(u8, u8 *);
 static u8 HandleWriteSector(u16, const struct SaveBlockChunk *);
 static u8 HandleReplaceSector(u16, const struct SaveBlockChunk *);
@@ -203,20 +203,19 @@ static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations
 
 static u8 HandleWriteSectorNBytes(u8 sectorId, u8 *data, u16 size)
 {
-    u16 i;
     struct SaveSector *sector = &gSaveDataBuffer;
 
     // Clear temp save sector
 
-    memset(gSaveDataBuffer, 0, SECTOR_SIZE);
+    memset(&gSaveDataBuffer, 0, SECTOR_SIZE);
 
-    sector->signature = SECTOR_SIGNATURE;
+    gSaveDataBuffer.signature = SECTOR_SIGNATURE;
 
     // Copy data to temp buffer for writing
-    memcpy(sector->data, data, size);
+    memcpy(gSaveDataBuffer.data, data, size);
 
-    sector->id = CalculateChecksum(data, size); // though this appears to be incorrect, it might be some sector checksum instead of a whole save checksum and only appears to be relevent to HOF data, if used.
-    return TryWriteSector(sectorId, sector->data);
+    gSaveDataBuffer.id = CalculateChecksum(data, size); // though this appears to be incorrect, it might be some sector checksum instead of a whole save checksum and only appears to be relevent to HOF data, if used.
+    return TryWriteSector(sectorId, gSaveDataBuffer.data);
 }
 
 static u8 TryWriteSector(u8 sector, u8 *data)
@@ -317,8 +316,7 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveBlockChunk *locatio
     size = locations[sectorId].size;
 
     // Clear temp save sector.
-    for (i = 0; i < SECTOR_SIZE; i++)
-        ((u8 *)gReadWriteSector)[i] = 0;
+    memset(gReadWriteSector, 0, SECTOR_SIZE);
 
     // Set footer data
     gReadWriteSector->id = sectorId;
@@ -326,8 +324,7 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveBlockChunk *locatio
     gReadWriteSector->counter = gSaveCounter;
 
     // Copy current data to temp buffer for writing
-    for (i = 0; i < size; i++)
-        gReadWriteSector->data[i] = data[i];
+    memcpy(gReadWriteSector->data, data, size);
 
     gReadWriteSector->checksum = CalculateChecksum(data, size);
 
@@ -456,26 +453,18 @@ static u8 WriteSectorSignatureByte(u16 sectorId, const struct SaveBlockChunk *lo
     }
 }
 
-static u8 TryLoadSaveSlot(u16 sectorId, const struct SaveBlockChunk *locations)
+static u8 TryLoadSaveSlot(const struct SaveBlockChunk *locations)
 {
     u8 status;
     gReadWriteSector = &gSaveDataBuffer;
-    if (sectorId != FULL_SAVE_SLOT)
-    {
-        // This function may not be used with a specific sector id
-        status = SAVE_STATUS_ERROR;
-    }
-    else
-    {
-        status = GetSaveValidStatus(locations);
-        CopySaveSlotData(FULL_SAVE_SLOT, locations);
-    }
+    status = GetSaveValidStatus(locations);
+    CopySaveSlotData(locations);
 
     return status;
 }
 
 // sectorId arg is ignored, this always reads the full save slot
-static u8 CopySaveSlotData(u16 sectorId, const struct SaveBlockChunk *locations)
+static u8 CopySaveSlotData(const struct SaveBlockChunk *locations)
 {
     u16 i;
     u16 checksum;
@@ -495,9 +484,7 @@ static u8 CopySaveSlotData(u16 sectorId, const struct SaveBlockChunk *locations)
         // Only copy data for sectors whose signature and checksum fields are correct
         if (gReadWriteSector->signature == SECTOR_SIGNATURE && gReadWriteSector->checksum == checksum)
         {
-            u16 j;
-            for (j = 0; j < locations[id].size; j++)
-                ((u8 *)locations[id].data)[j] = gReadWriteSector->data[j];
+            memcpy(locations[id].data, gReadWriteSector->data, locations[id].size);
         }
     }
 
@@ -666,8 +653,7 @@ static bool8 ReadFlashSector(u8 sectorId, struct SaveSector *sector)
 
 static u16 CalculateChecksum(void *data, u16 size)
 {
-
-    u16 i;
+    u32 i;
     u32 checksum = 0;
 
     for (i = 0; i < (size / 4); i++)
@@ -855,7 +841,7 @@ u8 LoadGameSave(u8 saveType)
     {
     case SAVE_NORMAL:
     default:
-        status = TryLoadSaveSlot(FULL_SAVE_SLOT, sSaveBlockChunks);
+        status = TryLoadSaveSlot(sSaveBlockChunks);
         CopyPartyAndObjectsFromSave();
         gSaveFileStatus = status;
         gGameContinueCallback = 0;
@@ -872,8 +858,8 @@ u8 LoadGameSave(u8 saveType)
 
 u32 TryReadSpecialSaveSector(u8 sector, u8 *dst)
 {
-    s32 i;
-    s32 size;
+    u32 i;
+    u32 size;
     u8 *savData;
 
     if (sector != SECTOR_ID_TRAINER_HILL && sector != SECTOR_ID_RECORDED_BATTLE)
