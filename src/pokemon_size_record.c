@@ -98,12 +98,12 @@ static void FormatMonSizeRecord(u8 *string, u32 size)
 {
 #ifdef UNITS_IMPERIAL
     //Convert size from centimeters to inches
-    size = (size * 10) / (CM_PER_INCH * 10);
+    size = (size * 100) / (254);
 #endif
 
-    string = ConvertIntToDecimalStringN(string, size / 10, STR_CONV_MODE_LEFT_ALIGN, 8);
+    string = ConvertIntToDecimalStringN(string, size / 100, STR_CONV_MODE_LEFT_ALIGN, 8);
     string = StringAppend(string, gText_DecimalPoint);
-    ConvertIntToDecimalStringN(string, size % 10, STR_CONV_MODE_LEFT_ALIGN, 1);
+    ConvertIntToDecimalStringN(string, size % 100, STR_CONV_MODE_LEFT_ALIGN, 1);
 }
 
 static u8 CompareMonSize(u16 species, u16 *sizeRecord)
@@ -199,8 +199,6 @@ void GiveGiftRibbonToParty(u8 index, u8 ribbonId)
     u32 i;
     bool32 gotRibbon = FALSE;
     u8 data = 1;
-    u8 array[ARRAY_COUNT(sGiftRibbonsMonDataIds)];
-    memcpy(array, sGiftRibbonsMonDataIds, sizeof(sGiftRibbonsMonDataIds));
 
     if (index < GIFT_RIBBONS_COUNT && ribbonId <= MAX_GIFT_RIBBON)
     {
@@ -211,7 +209,7 @@ void GiveGiftRibbonToParty(u8 index, u8 ribbonId)
 
             if (GetMonData(mon, MON_DATA_SPECIES) != 0 && GetMonData(mon, MON_DATA_SANITY_IS_EGG) == 0)
             {
-                SetMonData(mon, array[index], &data);
+                SetMonData(mon, sGiftRibbonsMonDataIds[index], &data);
                 gotRibbon = TRUE;
             }
         }
