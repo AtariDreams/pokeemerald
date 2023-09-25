@@ -1136,7 +1136,8 @@ static void UpdateLvlInHealthbox(u8 healthboxSpriteId, u8 lvl)
 void UpdateHpTextInHealthbox(u8 healthboxSpriteId, s16 value, u8 maxOrCurrent)
 {
     u32 windowId, spriteTileNum;
-    const u8 *windowTileData, *p;
+    const u8 *windowTileData;
+    u8 *p;
     if (GetBattlerSide(gSprites[healthboxSpriteId].hMain_Battler) == B_SIDE_PLAYER && !IsDoubleBattle())
     {
         u8 text[32];
@@ -1912,7 +1913,8 @@ static void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon)
 {
     u8 nickname[POKEMON_NAME_LENGTH + 1];
     u8 *ptr;
-    u32 windowId, spriteTileNum;
+    u32 windowId;
+    u8 *spriteTileNum;
     u8 *windowTileData;
     u16 species;
     u8 gender;
@@ -2350,7 +2352,7 @@ static s32 CalcNewBarValue(s32 maxValue, s32 oldValue, s32 receivedValue, s32 *c
 
     if (maxValue < scale) // handle cases of max var having less pixels than the whole bar
     {
-        s32 toAdd = Q_24_8(maxValue) / scale;
+        s32 toAdd = maxValue * 0x100 / scale;
 
         if (receivedValue < 0) // fill bar right
         {
@@ -2484,6 +2486,7 @@ static u8 GetScaledExpFraction(s32 oldValue, s32 receivedValue, s32 maxValue, u8
 {
     s32 newVal, result;
     s8 oldToMax, newToMax;
+    s32 scaleMax = scale * 8;
 
     scale *= 8;
     newVal = oldValue - receivedValue;
@@ -2493,11 +2496,9 @@ static u8 GetScaledExpFraction(s32 oldValue, s32 receivedValue, s32 maxValue, u8
     else if (newVal > maxValue)
         newVal = maxValue;
 
-    oldToMax = oldValue * scale / maxValue;
-    newToMax = newVal * scale / maxValue;
-    result = oldToMax - newToMax;
-
-    return abs(result);
+    oldToMax = oldValue * scaleMax / maxValue;
+    newToMax = newVal * scaleMax / maxValue;
+    return abs(oldToMax - newToMax);
 }
 
 u8 GetScaledHPFraction(s16 hp, s16 maxhp, u8 scale)
@@ -2516,7 +2517,7 @@ u8 GetHPBarLevel(s16 hp, s16 maxhp)
 
     if (hp == maxhp)
     {
-        result = HP_BAR_FULL;
+        return HP_BAR_FULL;
     }
     else
     {
