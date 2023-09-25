@@ -270,14 +270,13 @@ static u8 None_Finish(void)
 // this function always builds the same two tables.
 static void BuildColorMaps(void)
 {
-    u16 i;
+    u32 i;
     u8 (*colorMaps)[32];
     u16 colorVal;
     u16 curBrightness;
     u16 brightnessDelta;
     u16 colorMapIndex;
     u16 baseBrightness;
-    u32 remainingBrightness;
     s16 diff;
 
     sPaletteColorMapTypes = sBasePaletteColorMapTypes;
@@ -304,12 +303,8 @@ static void BuildColorMaps(void)
                 colorMaps[colorMapIndex][colorVal] = curBrightness >> 8;
             }
 
-            baseBrightness = curBrightness;
-            remainingBrightness = 0x1f00 - curBrightness;
-            if ((0x1f00 - curBrightness) < 0)
-                remainingBrightness += 0xf;
+            brightnessDelta = (0x1f00 - curBrightness) / (NUM_WEATHER_COLOR_MAPS - 3);
 
-            brightnessDelta = remainingBrightness / (NUM_WEATHER_COLOR_MAPS - 3);
             if (colorVal < 12)
             {
                 // For shadows (color values < 12), the remaining color mappings are
