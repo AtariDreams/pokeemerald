@@ -309,11 +309,13 @@ static void AnimStringWrap(struct Sprite *sprite)
 
 static void AnimStringWrap_Step(struct Sprite *sprite)
 {
-    if (++sprite->data[0] == 3)
+    if (sprite->data[0] == 2)
     {
         sprite->data[0] = 0;
         sprite->invisible ^= 1;
     }
+    else
+        sprite->data[0]++;
 
     if (++sprite->data[1] == 51)
     {
@@ -335,8 +337,9 @@ static void AnimSpiderWeb_Step(struct Sprite *sprite)
     if (sprite->data[2] < 20)
     {
         sprite->data[2]++;
+        return;
     }
-    else if (sprite->data[1]++ & 1)
+    if (sprite->data[1]++ & 1)
     {
         sprite->data[0]--;
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(sprite->data[0], 16 - sprite->data[0]));
@@ -372,14 +375,11 @@ static void AnimTranslateStinger(struct Sprite *sprite)
     {
         gBattleAnimArgs[2] = -gBattleAnimArgs[2];
     }
-    else
+    else if (GetBattlerSide(gBattleAnimAttacker))
     {
-        if (GetBattlerSide(gBattleAnimAttacker))
-        {
-            gBattleAnimArgs[2] = -gBattleAnimArgs[2];
-            gBattleAnimArgs[1] = -gBattleAnimArgs[1];
-            gBattleAnimArgs[3] = -gBattleAnimArgs[3];
-        }
+        gBattleAnimArgs[2] = -gBattleAnimArgs[2];
+        gBattleAnimArgs[1] = -gBattleAnimArgs[1];
+        gBattleAnimArgs[3] = -gBattleAnimArgs[3];
     }
 
     if (!IsContest() && GetBattlerSide(gBattleAnimAttacker) == GetBattlerSide(gBattleAnimTarget))
@@ -397,7 +397,7 @@ static void AnimTranslateStinger(struct Sprite *sprite)
     lVarX = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2) + gBattleAnimArgs[2];
     lVarY = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET) + gBattleAnimArgs[3];
     rot = ArcTan2Neg(lVarX - sprite->x, lVarY - sprite->y);
-    rot += 0xC000;
+    rot -= 0x4000;
     TrySetSpriteRotScale(sprite, FALSE, 0x100, 0x100, rot);
 
     sprite->data[0] = gBattleAnimArgs[4];
@@ -434,39 +434,31 @@ static void AnimMissileArc(struct Sprite *sprite)
 
 static void AnimMissileArc_Step(struct Sprite *sprite)
 {
+    s16 work[8];
+    s16 xpos, ypos;
+
     sprite->invisible = FALSE;
 
     if (TranslateAnimHorizontalArc(sprite))
     {
         DestroyAnimSprite(sprite);
+        return;
     }
-    else
-    {
-        s16 tempData[8];
-        s16 *data = sprite->data;
-        u16 x1 = sprite->x;
-        s16 x2 = sprite->x2;
-        u16 y1 = sprite->y;
-        s16 y2 = sprite->y2;
-        int i;
 
-        for (i = 0; i < 8; i++)
-            tempData[i] = data[i];
+    memcpy(work, sprite->data, sizeof(work));
 
-        x2 += x1;
-        y2 += y1;
+    xpos = sprite->x + sprite->x2;
+    ypos = sprite->y + sprite->y2;
 
-        if (!TranslateAnimHorizontalArc(sprite))
-        {
-            u16 rotation = ArcTan2Neg(sprite->x + sprite->x2 - x2,
-                                  sprite->y + sprite->y2 - y2);
-            rotation += 0xC000;
-            TrySetSpriteRotScale(sprite, FALSE, 0x100, 0x100, rotation);
+    if (TranslateAnimHorizontalArc(sprite))
+        return;
 
-            for (i = 0; i < 8; i++)
-                data[i] = tempData[i];
-        }
-    }
+    u16 rotation = ArcTan2Neg(sprite->x + sprite->x2 - xpos,
+                              sprite->y + sprite->y2 - ypos);
+    rotation -= 0x4000;
+    TrySetSpriteRotScale(sprite, FALSE, 0x100, 0x100, rotation);
+
+    memcpy(sprite->data, work, sizeof(work));
 }
 
 static void AnimTailGlowOrb(struct Sprite *sprite)
