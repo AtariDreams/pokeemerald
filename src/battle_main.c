@@ -4759,9 +4759,6 @@ static void SetActionsAndBattlersTurnOrder(void)
 
 static void TurnValuesCleanUp(bool8 var0)
 {
-    s32 i;
-    u8 *dataPtr;
-
     for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
     {
         if (var0)
@@ -4771,9 +4768,7 @@ static void TurnValuesCleanUp(bool8 var0)
         }
         else
         {
-            dataPtr = (u8 *)(&gProtectStructs[gActiveBattler]);
-            for (i = 0; i < sizeof(struct ProtectStruct); i++)
-                dataPtr[i] = 0;
+            memset(&gProtectStructs[gActiveBattler], 0, sizeof(struct ProtectStruct));
 
             if (gDisableStructs[gActiveBattler].isFirstTurn)
                 gDisableStructs[gActiveBattler].isFirstTurn--;
@@ -4796,14 +4791,8 @@ static void TurnValuesCleanUp(bool8 var0)
 
 void SpecialStatusesClear(void)
 {
-    for (gActiveBattler = 0; gActiveBattler < gBattlersCount; gActiveBattler++)
-    {
-        s32 i;
-        u8 *dataPtr = (u8 *)(&gSpecialStatuses[gActiveBattler]);
-
-        for (i = 0; i < sizeof(struct SpecialStatus); i++)
-            dataPtr[i] = 0;
-    }
+    memset(gSpecialStatuses, 0, sizeof(struct SpecialStatus) * gBattlersCount);
+    gActiveBattler = gBattlersCount; // TODO: Is this needed?
 }
 
 static void CheckFocusPunch_ClearVarsBeforeTurnStarts(void)
