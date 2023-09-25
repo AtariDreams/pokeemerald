@@ -3815,7 +3815,7 @@ static void AnimCuttingSlice(struct Sprite *sprite)
 
 static void AnimAirCutterSlice(struct Sprite *sprite)
 {
-    u8 x, y;
+    s16 x, y;
     switch (gBattleAnimArgs[3])
     {
     case 1:
@@ -3874,8 +3874,8 @@ static void AnimSlice_Step(struct Sprite *sprite)
     sprite->data[2] -= 0x18;
     sprite->x2 = sprite->data[3] >> 8;
     sprite->y2 = sprite->data[4] >> 8;
-    sprite->data[0]++;
-    if (sprite->data[0] == 20)
+
+    if (++sprite->data[0] == 20)
     {
         StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
         sprite->data[0] = 3;
@@ -3956,7 +3956,7 @@ static void AnimProtect(struct Sprite *sprite)
 
     sprite->x = GetBattlerSpriteCoord2(gBattleAnimAttacker, BATTLER_COORD_X) + gBattleAnimArgs[0];
     sprite->y = GetBattlerSpriteCoord2(gBattleAnimAttacker, BATTLER_COORD_Y) + gBattleAnimArgs[1];
-    if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER || IsContest())
+    if (IsContest() || GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
         sprite->oam.priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker) + 1;
     else
         sprite->oam.priority = GetBattlerSpriteBGPriority(gBattleAnimAttacker);
@@ -3971,33 +3971,32 @@ static void AnimProtect(struct Sprite *sprite)
 
 static void AnimProtect_Step(struct Sprite *sprite)
 {
-    int i, id, savedPal;
+    int i;
+    u16 temp;
     sprite->data[5] += 96;
     sprite->x2 = -(sprite->data[5] >> 8);
     if (++sprite->data[1] > 1)
     {
         sprite->data[1] = 0;
-        savedPal = gPlttBufferFaded[sprite->data[2] + 1];
-        i = 0;
-        while (i < 6)
+        temp = gPlttBufferFaded[sprite->data[2] + 1];
+        for (i = 0; i < 6; i++)
         {
-            id = sprite->data[2] + ++i;
-            gPlttBufferFaded[id] = gPlttBufferFaded[id + 1];
+            gPlttBufferFaded[sprite->data[2] + i + 1] = gPlttBufferFaded[sprite->data[2] + i + 2];
         }
 
-        gPlttBufferFaded[sprite->data[2] + 7] = savedPal;
+        gPlttBufferFaded[sprite->data[2] + 7] = temp;
     }
 
     if (sprite->data[7] > 6 && sprite->data[0] >0 && ++sprite->data[6] > 1)
     {
         sprite->data[6] = 0;
-        sprite->data[7] -= 1;
+        sprite->data[7]--;
         SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(16 - sprite->data[7], sprite->data[7]));
     }
 
     if (sprite->data[0] > 0)
     {
-        sprite->data[0] -= 1;
+        sprite->data[0]--;
     }
     else if (++sprite->data[6] > 1)
     {
@@ -4106,7 +4105,7 @@ static void AnimMilkBottle_Step2(struct Sprite *sprite, int unk1, int unk2)
     if (sprite->data[3] <= 11)
         sprite->data[4] += 2;
 
-    if ((u16)(sprite->data[3] - 0x12) <= 0x17)
+    if (sprite->data[3] >= 18 && sprite->data[3] < 42)
         sprite->data[4] -= 2;
 
     if ((sprite->data[3]) > 0x2F)
@@ -4725,7 +4724,7 @@ static void AnimSlashSlice(struct Sprite *sprite)
 
 static void AnimFalseSwipeSlice(struct Sprite *sprite)
 {
-    sprite->x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2) + 0xFFD0;
+    sprite->x = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2) - 48;
     sprite->y = GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET);
     StoreSpriteCallbackInData6(sprite, AnimFalseSwipeSlice_Step1);
     sprite->callback = RunStoredCallbackWhenAnimEnds;
