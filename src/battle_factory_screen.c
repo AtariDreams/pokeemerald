@@ -3661,7 +3661,7 @@ static void Swap_UpdateMenuCursorPosition(s8 direction)
 
 static void Swap_HighlightActionButton(u8 actionId)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sFactorySwapScreen->pkmnForSwapButtonSpriteIds[0]); i++)
     {
@@ -3688,7 +3688,7 @@ static void Swap_HighlightActionButton(u8 actionId)
 
 static void Swap_HideActionButtonHighlights(void)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sFactorySwapScreen->pkmnForSwapButtonSpriteIds[0]); i++)
     {
