@@ -945,7 +945,7 @@ void Weather_SetBlendCoeffs(u8 eva, u8 evb)
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(eva, evb));
 }
 
-void Weather_SetTargetBlendCoeffs(u8 eva, u8 evb, int delay)
+void Weather_SetTargetBlendCoeffs(u8 eva, u8 evb, u8 delay)
 {
     gWeatherPtr->targetBlendEVA = eva;
     gWeatherPtr->targetBlendEVB = evb;
