@@ -20,13 +20,11 @@ static void DecompressGlyph_Braille(u16);
 u16 FontFunc_Braille(struct TextPrinter *textPrinter)
 {
     u16 char_;
-    struct TextPrinterSubStruct *subStruct;
-    subStruct = (struct TextPrinterSubStruct *)(&textPrinter->subStructFields);
 
     switch (textPrinter->state)
     {
     case RENDER_STATE_HANDLE_CHAR:
-        if (JOY_HELD(A_BUTTON | B_BUTTON) && subStruct->hasPrintBeenSpedUp)
+        if (JOY_HELD(A_BUTTON | B_BUTTON) && textPrinter->subStruct.hasPrintBeenSpedUp)
         {
             textPrinter->delayCounter = 0;
         }
@@ -35,7 +33,7 @@ u16 FontFunc_Braille(struct TextPrinter *textPrinter)
             textPrinter->delayCounter --;
             if (gTextFlags.canABSpeedUpPrint && JOY_NEW(A_BUTTON | B_BUTTON))
             {
-                subStruct->hasPrintBeenSpedUp = TRUE;
+                textPrinter->subStruct.hasPrintBeenSpedUp = TRUE;
                 textPrinter->delayCounter = 0;
             }
             return RENDER_UPDATE;
@@ -85,7 +83,7 @@ u16 FontFunc_Braille(struct TextPrinter *textPrinter)
                 textPrinter->printerTemplate.currentChar++;
                 return RENDER_REPEAT;
             case EXT_CTRL_CODE_FONT:
-                subStruct->fontId = *textPrinter->printerTemplate.currentChar;
+                textPrinter->subStruct.fontId = *textPrinter->printerTemplate.currentChar;
                 textPrinter->printerTemplate.currentChar++;
                 return RENDER_REPEAT;
             case EXT_CTRL_CODE_RESET_FONT:
@@ -97,7 +95,7 @@ u16 FontFunc_Braille(struct TextPrinter *textPrinter)
             case EXT_CTRL_CODE_PAUSE_UNTIL_PRESS:
                 textPrinter->state = RENDER_STATE_WAIT;
                 if (gTextFlags.autoScroll)
-                    subStruct->autoScrollDelay = 0;
+                    textPrinter->subStruct.autoScrollDelay = 0;
                 return RENDER_UPDATE;
             case EXT_CTRL_CODE_WAIT_SE:
                 textPrinter->state = RENDER_STATE_WAIT_SE;
@@ -129,7 +127,7 @@ u16 FontFunc_Braille(struct TextPrinter *textPrinter)
             TextPrinterInitDownArrowCounters(textPrinter);
             return RENDER_UPDATE;
         case CHAR_EXTRA_SYMBOL:
-            char_ = *textPrinter->printerTemplate.currentChar++| 0x100;
+            char_ = *textPrinter->printerTemplate.currentChar++ + 0x100;
             break;
         case CHAR_KEYPAD_ICON:
             textPrinter->printerTemplate.currentChar++;

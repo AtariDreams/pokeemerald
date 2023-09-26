@@ -90,7 +90,7 @@ void FillBitmapRect4Bit(struct Bitmap *surface, u16 x, u16 y, u16 width, u16 hei
         for (loopX = x; loopX < xEnd; loopX++)
         {
             u8 *pixels = surface->pixels + ((loopX >> 1) & 3) + ((loopX >> 3) << 5) + (((loopY >> 3) * multiplierY) << 5) + ((u32)(loopY << 29) >> 27);
-            if ((loopX << 31) != 0)
+            if ((loopX & 1))
                 *pixels = (*pixels & 0xF) | toOrr1;
             else
                 *pixels = (*pixels & 0xF0) | toOrr2;
