@@ -1096,7 +1096,7 @@ void SetDaycareCompatibilityString(void)
 
 bool8 NameHasGenderSymbol(const u8 *name, u8 genderRatio)
 {
-    u8 i;
+    u32 i;
     u8 symbolsCount[GENDER_COUNT];
     symbolsCount[MALE] = symbolsCount[FEMALE] = 0;
 
