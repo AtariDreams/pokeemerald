@@ -165,9 +165,9 @@ static void RemoveWindowOnHealthbox(u32 windowId);
 static void UpdateHpTextInHealthboxInDoubles(u8, s16, u8);
 static void UpdateStatusIconInHealthbox(u8);
 
-static void TextIntoHealthboxObject(void *, u8 *, u32);
-static void SafariTextIntoHealthboxObject(void *, u8 *, u32);
-static void HpTextIntoHealthboxObject(void *, u8 *, u32);
+static void TextIntoHealthboxObject(void *, const u8 *, u32);
+static void SafariTextIntoHealthboxObject(void *, const u8 *, u32);
+static void HpTextIntoHealthboxObject(void *, const u8 *, u32);
 static void FillHealthboxObject(void *, u32, u32);
 
 static void Task_HidePartyStatusSummary_BattleStart_1(u8);
@@ -2564,12 +2564,12 @@ static void FillHealthboxObject(void *dest, u32 valMult, u32 numTiles)
     CpuFill32(0x11111111 * valMult, dest, numTiles * TILE_SIZE_4BPP);
 }
 
-static void HpTextIntoHealthboxObject(void *dest, u8 *windowTileData, u32 windowWidth)
+static void HpTextIntoHealthboxObject(void *dest, const u8 *windowTileData, u32 windowWidth)
 {
     CpuCopy32(windowTileData + 256, dest, windowWidth * TILE_SIZE_4BPP);
 }
 
-static void TextIntoHealthboxObject(void *dest, u8 *windowTileData, u32 windowWidth)
+static void TextIntoHealthboxObject(void *dest, const u8 *windowTileData, u32 windowWidth)
 {
     CpuCopy32(windowTileData + 256, dest + 256, windowWidth * TILE_SIZE_4BPP);
 // + 256 as that prevents the top 4 blank rows of sHealthboxWindowTemplate from being copied
@@ -2580,7 +2580,7 @@ static void TextIntoHealthboxObject(void *dest, u8 *windowTileData, u32 windowWi
     }
 }
 
-static void SafariTextIntoHealthboxObject(void *dest, u8 *windowTileData, u32 windowWidth)
+static void SafariTextIntoHealthboxObject(void *dest, const u8 *windowTileData, u32 windowWidth)
 {
     CpuCopy32(windowTileData, dest, windowWidth * TILE_SIZE_4BPP);
     CpuCopy32(windowTileData + 256, dest + 256, windowWidth * TILE_SIZE_4BPP);
