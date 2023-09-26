@@ -72,9 +72,11 @@ s16 Sin2(u16 angle)
     movs    r3, #180\n\
     muls    r3, r1, r3\n\
     subs    r0, r0, r3\n\
-    ldr     r1, .LCPI2_1\n\
-    ands    r1, r0\n\
-    lsls    r0, r1, #1\n\
+    @ ldr     r1, .LCPI2_1\n\
+    @ ands    r1, r0\n\
+    @ lsls    r0, r1, #1\n\
+    lsls    r0, r0, #16\n\
+    lsrs    r0, r0, #15\n\
     ldr     r1, .LCPI2_2\n\
 .LPC2_0:\n\
     add     r1, pc\n\
@@ -89,8 +91,6 @@ s16 Sin2(u16 angle)
     .align\n\
     .LCPI2_0:\n\
     .long   11651\n\
-    .LCPI2_1:\n\
-    .long   65535\n\
     .LCPI2_2:\n\
     .long   gSineDegreeTable-(.LPC2_0+4)\n");
 }
