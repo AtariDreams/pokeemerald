@@ -885,7 +885,7 @@ void DrawDownArrow(u8 windowId, u16 x, u16 y, u8 bgColor, bool8 drawArrow, u8 *c
 static u16 RenderText(struct TextPrinter *textPrinter)
 {
     u16 currChar;
-    int scrollSpeed, speed;
+    u32 scrollSpeed, speed;
 
     switch (textPrinter->state)
     {

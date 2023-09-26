@@ -823,7 +823,7 @@ void HofPCTopBar_Print(const u8 *string, u8 left, bool8 copyToVram)
         width = GetStringWidth(FONT_SMALL, string, 0);
         AddTextPrinterParameterized3(sHofPCTopBarWindowId,
                   FONT_SMALL,
-                  236 - (GetWindowAttribute(sHofPCTopBarWindowId, WINDOW_TILEMAP_LEFT) * 8) - left - width,
+                  236 - (GetWindowAttribute(sHofPCTopBarWindowId, WINDOW_TILEMAP_LEFT) << 3) - left - width,
                   1,
                   sTextColors,
                   0,
