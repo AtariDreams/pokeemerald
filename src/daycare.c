@@ -1086,12 +1086,10 @@ void SetDaycareCompatibilityString(void)
     whichString = 0;
     if (relationshipScore == PARENTS_INCOMPATIBLE)
         whichString = 3;
-    if (relationshipScore == PARENTS_LOW_COMPATIBILITY)
+    else if (relationshipScore == PARENTS_LOW_COMPATIBILITY)
         whichString = 2;
-    if (relationshipScore == PARENTS_MED_COMPATIBILITY)
+    else if (relationshipScore == PARENTS_MED_COMPATIBILITY)
         whichString = 1;
-    if (relationshipScore == PARENTS_MAX_COMPATIBILITY)
-        whichString = 0;
 
     StringCopy(gStringVar4, sCompatibilityMessages[whichString]);
 }
