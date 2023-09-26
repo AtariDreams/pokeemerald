@@ -4348,18 +4348,15 @@ u8 GetSecretBaseTrainerClass(void)
 
 bool8 IsPlayerPartyAndPokemonStorageFull(void)
 {
-    s32 i;
-
-    for (i = 0; i < PARTY_SIZE; i++)
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
-            return FALSE;
+    if (gPlayerPartyCount < PARTY_SIZE)
+        return FALSE;
 
     return IsPokemonStorageFull();
 }
 
 bool8 IsPokemonStorageFull(void)
 {
-    s32 i, j;
+    u32 i, j;
 
     for (i = 0; i < TOTAL_BOXES_COUNT; i++)
         for (j = 0; j < IN_BOX_COUNT; j++)
@@ -6078,9 +6075,7 @@ bool32 IsSpeciesInHoennDex(u16 species)
 
 void ClearBattleMonForms(void)
 {
-    u32 i;
-    for (i = 0; i < MAX_BATTLERS_COUNT; i++)
-        gBattleMonForms[i] = 0;
+    memset(gBattleMonForms, 0, MAX_BATTLERS_COUNT);
 }
 
 u16 GetBattleBGM(void)
