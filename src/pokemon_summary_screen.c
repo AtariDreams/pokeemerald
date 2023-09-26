@@ -2793,11 +2793,12 @@ static void PrintGenderSymbol(struct Pokemon *mon, u16 species)
 
 static void PrintAOrBButtonIcon(u8 windowId, bool8 bButton, u32 x)
 {
+    // sBButton_Gfx - sizeof(sBButton_Gfx) = sAButton_Gfx
     const u8 *button;
-    if (!bButton)
-        button = sButtons_Gfx[0];
+    if (bButton)
+        button = sBButton_Gfx;
     else
-        button = sButtons_Gfx[1];
+        button = sAButton_Gfx;
 
     BlitBitmapToWindow(windowId, button, x, 0, 16, 16);
 }
