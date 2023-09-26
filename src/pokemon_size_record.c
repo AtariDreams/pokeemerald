@@ -76,6 +76,7 @@ static u32 TranslateBigMonSizeTableIndex(u16 a)
     return 15;
 }
 
+__attribute__((target("arm")))
 static u32 GetMonSize(u16 species, u16 b)
 {
     u64 unk2;
