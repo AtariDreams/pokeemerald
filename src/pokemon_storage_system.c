@@ -870,7 +870,7 @@ static void TilemapUtil_DrawPrev(u8);
 static void TilemapUtil_Draw(u8);
 
 // Unknown utility
-static void UnkUtil_Init(struct UnkUtil *, struct UnkUtilData *, u32);
+static void UnkUtil_Init(struct UnkUtil *, struct UnkUtilData *, u8);
 static void UnkUtil_Run(void);
 static void UnkUtil_CpuRun(struct UnkUtilData *);
 static void UnkUtil_DmaRun(struct UnkUtilData *);
@@ -5292,8 +5292,8 @@ static bool8 ScrollToBox(void)
 
 static s8 DetermineBoxScrollDirection(u8 boxId)
 {
-    u8 i;
-    u8 currentBox = StorageGetCurrentBox();
+    u32 i;
+    u32 currentBox = gPokemonStorage.currentBox;
 
     for (i = 0; currentBox != boxId; i++)
     {
@@ -5329,8 +5329,7 @@ static bool8 DoWallpaperGfxChange(void)
     case 1:
         if (!UpdatePaletteFade())
         {
-            u8 curBox = StorageGetCurrentBox();
-            LoadWallpaperGfx(curBox, 0);
+            LoadWallpaperGfx(StorageGetCurrentBox(), 0);
             sStorage->wallpaperChangeState++;
         }
         break;
@@ -5421,8 +5420,8 @@ static bool32 WaitForWallpaperGfxLoad(void)
 
 static void DrawWallpaper(const void *tilemap, s8 direction, u8 offset)
 {
-    s16 tileOffset = offset * 256;
-    s16 paletteNum = (offset * 2) + 3;
+    u16 tileOffset = offset * 256;
+    u16 paletteNum = (offset * 2) + 3;
     s16 x = ((sStorage->bg2_X / 8 + 10) + (direction * 24)) & 0x3F;
 
     CopyRectToBgTilemapBufferRect(2, tilemap, 0, 0, 20, 18, x, 2, 20, 18, 17, tileOffset, paletteNum);
@@ -5546,8 +5545,7 @@ static void CreateIncomingBoxTitle(u8 boxId, s8 direction)
     LoadSpriteSheet(&spriteSheet);
     LoadPalette(sBoxTitleColors[GetBoxWallpaper(boxId)], palOffset, sizeof(sBoxTitleColors[0]));
     x = GetBoxTitleBaseX(GetBoxNamePtr(boxId));
-    adjustedX = x;
-    adjustedX += direction * 192;
+    adjustedX = x + direction * 192;
 
     // Title is split across two sprites
     for (i = 0; i < 2; i++)
@@ -5580,9 +5578,11 @@ static void CycleBoxTitleSprites(void)
 
 static void SpriteCB_IncomingBoxTitle(struct Sprite *sprite)
 {
-    if (sprite->sIncomingDelay != 0)
+    if (sprite->sIncomingDelay != 0) {
         sprite->sIncomingDelay--;
-    else if ((sprite->x += sprite->sSpeed) == sprite->sIncomingX)
+        return;
+    }
+    if ((sprite->x += sprite->sSpeed) == sprite->sIncomingX)
         sprite->callback = SpriteCallbackDummy;
 }
 
@@ -5591,6 +5591,7 @@ static void SpriteCB_OutgoingBoxTitle(struct Sprite *sprite)
     if (sprite->sOutgoingDelay != 0)
     {
         sprite->sOutgoingDelay--;
+        return;
     }
     else
     {
@@ -5609,8 +5610,7 @@ static void SpriteCB_OutgoingBoxTitle(struct Sprite *sprite)
 
 static void CycleBoxTitleColor(void)
 {
-    u8 boxId = StorageGetCurrentBox();
-    u8 wallpaperId = GetBoxWallpaper(boxId);
+    u8 wallpaperId = GetBoxWallpaper(StorageGetCurrentBox());
     if (sStorage->boxTitleCycleId == 0)
         CpuCopy16(sBoxTitleColors[wallpaperId], &gPlttBufferUnfaded[sStorage->boxTitlePalOffset], PLTT_SIZEOF(2));
     else
@@ -9757,7 +9757,7 @@ EWRAM_DATA static u16 sNumTilemapUtilIds = 0;
 
 static void TilemapUtil_Init(u8 count)
 {
-    u16 i;
+    u32 i;
 
     sTilemapUtil = Alloc(sizeof(*sTilemapUtil) * count);
     sNumTilemapUtilIds = (sTilemapUtil == NULL) ? 0 : count;
@@ -9965,7 +9965,7 @@ static void TilemapUtil_Draw(u8 id)
 
 EWRAM_DATA static struct UnkUtil *sUnkUtil = NULL;
 
-static void UnkUtil_Init(struct UnkUtil *util, struct UnkUtilData *data, u32 max)
+static void UnkUtil_Init(struct UnkUtil *util, struct UnkUtilData *data, u8 max)
 {
     sUnkUtil = util;
     util->data = data;
@@ -9975,7 +9975,7 @@ static void UnkUtil_Init(struct UnkUtil *util, struct UnkUtilData *data, u32 max
 
 static void UnkUtil_Run(void)
 {
-    u16 i;
+    u32 i;
     if (sUnkUtil->numActive)
     {
         for (i = 0; i < sUnkUtil->numActive; i++)
