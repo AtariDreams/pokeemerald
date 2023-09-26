@@ -119,7 +119,7 @@ void PickLotteryCornerTicket(void)
 
 static u8 GetMatchingDigits(u16 winNumber, u16 otId)
 {
-    u8 i;
+    u32 i;
     u8 matchingDigits = 0;
 
     for (i = 0; i < 5; i++)
@@ -127,14 +127,11 @@ static u8 GetMatchingDigits(u16 winNumber, u16 otId)
         sWinNumberDigit = winNumber % 10;
         sOtIdDigit = otId % 10;
 
-        if (sWinNumberDigit == sOtIdDigit)
-        {
-            winNumber = winNumber / 10;
-            otId = otId / 10;
-            matchingDigits++;
-        }
-        else
+        if (sWinNumberDigit != sOtIdDigit)
             break;
+        winNumber = winNumber / 10;
+        otId = otId / 10;
+        matchingDigits++;
     }
     return matchingDigits;
 }

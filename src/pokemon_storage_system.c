@@ -574,6 +574,7 @@ EWRAM_DATA static bool8 sIsMonBeingMoved = 0;
 EWRAM_DATA static u8 sMovingMonOrigBoxId = 0;
 EWRAM_DATA static u8 sMovingMonOrigBoxPos = 0;
 EWRAM_DATA static bool8 sAutoActionOn = 0;
+EWRAM_DATA static u8 sSavedCursorPosition = 0;
 
 // Main tasks
 static void EnterPokeStorage(u8);
@@ -765,7 +766,6 @@ static void SetCursorInParty(void);
 static void SetCursorBoxPosition(u8);
 static void ClearSavedCursorPos(void);
 static void SaveCursorPos(void);
-static u8 GetSavedCursorPos(void);
 static void InitMonPlaceChange(u8);
 static bool8 DoMonPlaceChange(void);
 static bool8 MonPlaceChange_Shift(void);
@@ -1407,17 +1407,24 @@ u8 CountMonsInBox(u8 boxId)
     return count;
 }
 
-s16 GetFirstFreeBoxSpot(u8 boxId)
+static int CheckPokemonAt(u32 boxId, u32 boxPosition)
 {
-    u16 i;
+    if (boxId < TOTAL_BOXES_COUNT && boxPosition < IN_BOX_COUNT)
+        return GetBoxMonData(&gPokemonStorage.boxes[boxId][boxPosition], MON_DATA_SPECIES) != SPECIES_NONE;
+    return FALSE;
+}
+
+static u32 GetFirstFreeBoxSpot(u8 boxId)
+{
+    u32 i;
 
     for (i = 0; i < IN_BOX_COUNT; i++)
     {
-        if (GetBoxMonDataAt(boxId, i, MON_DATA_SPECIES) == SPECIES_NONE)
+        if (!CheckPokemonAt(boxId, i))
             return i;
     }
 
-    return -1; // all spots are taken
+    return IN_BOX_COUNT; // all spots are taken
 }
 
 u8 CountPartyNonEggMons(void)
@@ -1436,22 +1443,22 @@ u8 CountPartyNonEggMons(void)
     return count;
 }
 
-u8 CountPartyAliveNonEggMonsExcept(u8 slotToIgnore)
+u16 CountPartyAliveNonEggMonsExcept(u8 slotToIgnore)
 {
-    u16 i, count;
+    u32 i;
+    u16 j;
 
-    for (i = 0, count = 0; i < PARTY_SIZE; i++)
+    for (i = 0, j = 0; i < gPlayerPartyCount; i++)
     {
         if (i != slotToIgnore
-            && GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE
             && !GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG)
             && GetMonData(&gPlayerParty[i], MON_DATA_HP) != 0)
         {
-            count++;
+            j++;
         }
     }
 
-    return count;
+    return j;
 }
 
 u16 CountPartyAliveNonEggMons_IgnoreVar0x8004Slot(void)
@@ -2561,7 +2568,7 @@ static void Task_HidePartyPokemon(u8 taskId)
     case 1:
         if (!HidePartyMenu())
         {
-            SetCursorBoxPosition(GetSavedCursorPos());
+            SetCursorBoxPosition(sSavedCursorPosition);
             sStorage->state++;
         }
         break;
@@ -6112,8 +6119,6 @@ static void SetCursorBoxPosition(u8 cursorBoxPosition)
     SetCursorPosition(CURSOR_AREA_IN_BOX, cursorBoxPosition);
 }
 
-EWRAM_DATA static u8 sSavedCursorPosition = 0;
-
 static void ClearSavedCursorPos(void)
 {
     sSavedCursorPosition = 0;
@@ -6122,11 +6127,6 @@ static void ClearSavedCursorPos(void)
 static void SaveCursorPos(void)
 {
     sSavedCursorPosition = sCursorPosition;
-}
-
-static u8 GetSavedCursorPos(void)
-{
-    return sSavedCursorPosition;
 }
 
 static void InitMonPlaceChange(u8 type)
@@ -6398,8 +6398,8 @@ static void SetShiftedMonData(u8 boxId, u8 position)
 
 static bool8 TryStorePartyMonInBox(u8 boxId)
 {
-    s16 boxPosition = GetFirstFreeBoxSpot(boxId);
-    if (boxPosition == -1)
+    u32 boxPosition = GetFirstFreeBoxSpot(boxId);
+    if (boxPosition == IN_BOX_COUNT)
         return FALSE;
 
     if (sIsMonBeingMoved)
@@ -6504,7 +6504,7 @@ struct
 
 static void GetRestrictedReleaseMoves(u16 *moves)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sRestrictedReleaseMoves); i++)
     {
@@ -6820,7 +6820,7 @@ static void TryRefreshDisplayMon(void)
     // mosaic or update display. Keep displaying the
     // currently held Pokémon.
     sStorage->setMosaic = (sIsMonBeingMoved == FALSE);
-    if (!sIsMonBeingMoved)
+    if (sStorage->setMosaic)
     {
         // Update display Pokémon
         switch (sCursorArea)
