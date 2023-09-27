@@ -892,7 +892,7 @@ static u16 RenderText(struct TextPrinter *textPrinter)
     case RENDER_STATE_HANDLE_CHAR:
         if (JOY_HELD(A_BUTTON | B_BUTTON) && textPrinter->subStruct.hasPrintBeenSpedUp)
             textPrinter->delayCounter = 0;
-        else if (textPrinter->textSpeed)
+        else if (textPrinter->delayCounter && textPrinter->textSpeed)
         {
             textPrinter->delayCounter--;
             if (gTextFlags.canABSpeedUpPrint && (JOY_NEW(A_BUTTON | B_BUTTON)))
