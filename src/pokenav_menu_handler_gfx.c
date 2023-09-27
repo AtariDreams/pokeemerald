@@ -1040,7 +1040,7 @@ static void StartOptionZoom(struct Sprite ** sprites)
 
 static void SetOptionInvisibility(struct Sprite ** sprites, bool32 invisible)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < NUM_OPTION_SUBSPRITES; i++)
     {

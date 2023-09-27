@@ -296,7 +296,7 @@ static void CopyDoorTilesToVram(const struct DoorGraphics *gfx, const struct Doo
 
 static void BuildDoorTiles(u16 *tiles, u16 tileNum, const u8 *paletteNums)
 {
-    int i;
+    u16 i;
     u16 tile;
 
     // Only the first 4 tiles of each metatile (bottom layer) actually use the door tiles
