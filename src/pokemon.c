@@ -5629,6 +5629,40 @@ u16 ModifyStatByNature(u16 stat, u8 nature, u32 statIndex)
     return retVal;
 }
 
+u32 ChangeFriendship(u32 friendship, u32 change_value)
+{
+    static const u32 KAWAIGARI_NUMBER_STOPPER[] = {
+        200,
+        150,
+        100,
+        75,
+        50,
+        25,
+        0,
+    };
+    u32 stopper_index = 0;
+    for (u32 j = 0; j < ARRAY_COUNT(KAWAIGARI_NUMBER_STOPPER); ++j)
+    {
+        if (KAWAIGARI_NUMBER_STOPPER[j] <= friendship)
+        {
+            break;
+        }
+        ++stopper_index;
+    }
+    if (change_value > 0)
+    {
+        friendship += change_value;
+    }
+    else if (ARRAY_COUNT(KAWAIGARI_NUMBER_STOPPER) > stopper_index && friendship + change_value > KAWAIGARI_NUMBER_STOPPER[stopper_index])
+    {
+        friendship += change_value;
+    }
+    if (friendship > 255)
+        friendship = 255;
+
+    return friendship;
+}
+
 #define IS_LEAGUE_BATTLE                                                                \
     ((gBattleTypeFlags & BATTLE_TYPE_TRAINER)                                           \
     && (gTrainers[gTrainerBattleOpponent_A].trainerClass == TRAINER_CLASS_ELITE_FOUR    \
@@ -6655,7 +6689,7 @@ static bool8 ShouldSkipFriendshipChange(void)
 
 static void InitMonSpritesGfx_Battle(struct MonSpritesGfxManager* gfx)
 {
-    u16 i, j;
+    u32 i, j;
     for (i = 0; i < gfx->numSprites; i++)
     {
         gfx->templates[i] = gBattlerSpriteTemplates[i];
@@ -6668,7 +6702,7 @@ static void InitMonSpritesGfx_Battle(struct MonSpritesGfxManager* gfx)
 
 static void InitMonSpritesGfx_FullParty(struct MonSpritesGfxManager* gfx)
 {
-    u16 i, j;
+    u32 i, j;
     for (i = 0; i < gfx->numSprites; i++)
     {
         gfx->templates[i] = sSpriteTemplate_64x64;
