@@ -2222,9 +2222,9 @@ static void FlashSelectionOnWheel(u8 selectionId)
 
 static void DrawGridBackground(u8 selectionId)
 {
-    vu8 i, j;
-    vu16 x, y;
-    vu8 tilemapOffset;
+    u8 i, j;
+    u16 x, y;
+    u8 tilemapOffset;
     u8 selectionIds[NUM_BOARD_POKES >= NUM_BOARD_COLORS ? NUM_BOARD_POKES + 1 : NUM_BOARD_COLORS + 1];
     u8 numSquares;
     sRoulette->updateGridHighlight = TRUE;
