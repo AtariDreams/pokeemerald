@@ -2573,69 +2573,69 @@ int CanRegisterMonForTradingBoard(struct RfuGameCompatibilityData player, u16 sp
     return CANT_REGISTER_MON;
 }
 
-// Spin Trade wasnt fully implemented, but this checks if a mon would be valid to Spin Trade
-// Unlike later generations, this version of Spin Trade isnt only for Eggs
-int CanSpinTradeMon(struct Pokemon *mon, u16 monIdx)
-{
-    int i, version, versions, canTradeAnyMon, numMonsLeft;
-    int speciesArray[PARTY_SIZE];
+// // Spin Trade wasnt fully implemented, but this checks if a mon would be valid to Spin Trade
+// // Unlike later generations, this version of Spin Trade isnt only for Eggs
+// int CanSpinTradeMon(struct Pokemon *mon, u16 monIdx)
+// {
+//     int i, version, versions, canTradeAnyMon, numMonsLeft;
+//     int speciesArray[PARTY_SIZE];
 
-    // Make Eggs not count for numMonsLeft
-    for (i = 0; i < gPlayerPartyCount; i++)
-    {
-        speciesArray[i] = GetMonData(&mon[i], MON_DATA_SPECIES_OR_EGG);
-        if (speciesArray[i] == SPECIES_EGG)
-            speciesArray[i] = SPECIES_NONE;
-    }
+//     // Make Eggs not count for numMonsLeft
+//     for (i = 0; i < gPlayerPartyCount; i++)
+//     {
+//         speciesArray[i] = GetMonData(&mon[i], MON_DATA_SPECIES_OR_EGG);
+//         if (speciesArray[i] == SPECIES_EGG)
+//             speciesArray[i] = SPECIES_NONE;
+//     }
 
-    versions = 0;
-    canTradeAnyMon = TRUE;
-    for (i = 0; i < GetLinkPlayerCount(); i++)
-    {
-        version = gLinkPlayers[i].version & 0xFF;
-        if (version == VERSION_FIRE_RED ||
-            version == VERSION_LEAF_GREEN)
-            versions = 0;
-        else
-            versions |= 1;
-    }
+//     versions = 0;
+//     canTradeAnyMon = TRUE;
+//     for (i = 0; i < GetLinkPlayerCount(); i++)
+//     {
+//         version = gLinkPlayers[i].version & 0xFF;
+//         if (version == VERSION_FIRE_RED ||
+//             version == VERSION_LEAF_GREEN)
+//             versions = 0;
+//         else
+//             versions |= 1;
+//     }
 
-    for (i = 0; i < GetLinkPlayerCount(); i++)
-    {
-        struct LinkPlayer *player = &gLinkPlayers[i];
+//     for (i = 0; i < GetLinkPlayerCount(); i++)
+//     {
+//         struct LinkPlayer *player = &gLinkPlayers[i];
 
-        // Does player not have National Dex
-        do
-        {
-            if (!(player->progressFlags & 0xF))
-                canTradeAnyMon = FALSE;
+//         // Does player not have National Dex
+//         do
+//         {
+//             if (!(player->progressFlags & 0xF))
+//                 canTradeAnyMon = FALSE;
 
-            if (versions && (player->progressFlags / 16))
-                canTradeAnyMon = FALSE;
-        } while (0);
-    }
+//             if (versions && (player->progressFlags / 16))
+//                 canTradeAnyMon = FALSE;
+//         } while (0);
+//     }
 
-    if (canTradeAnyMon == FALSE)
-    {
-        if (!IsSpeciesInHoennDex(speciesArray[monIdx]))
-            return CANT_TRADE_NATIONAL;
+//     if (canTradeAnyMon == FALSE)
+//     {
+//         if (!IsSpeciesInHoennDex(speciesArray[monIdx]))
+//             return CANT_TRADE_NATIONAL;
 
-        if (speciesArray[monIdx] == SPECIES_NONE)
-            return CANT_TRADE_EGG_YET;
-    }
+//         if (speciesArray[monIdx] == SPECIES_NONE)
+//             return CANT_TRADE_EGG_YET;
+//     }
 
-    numMonsLeft = 0;
-    for (i = 0; i < gPlayerPartyCount; i++)
-    {
-        if (monIdx != i)
-            numMonsLeft += speciesArray[i];
-    }
+//     numMonsLeft = 0;
+//     for (i = 0; i < gPlayerPartyCount; i++)
+//     {
+//         if (monIdx != i)
+//             numMonsLeft += speciesArray[i];
+//     }
 
-    if (!numMonsLeft)
-        return CANT_TRADE_LAST_MON;
-    else
-        return CAN_TRADE_MON;
-}
+//     if (!numMonsLeft)
+//         return CANT_TRADE_LAST_MON;
+//     else
+//         return CAN_TRADE_MON;
+// }
 
 static void SpriteCB_LinkMonGlow(struct Sprite *sprite)
 {

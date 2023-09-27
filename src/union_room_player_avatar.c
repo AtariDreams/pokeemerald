@@ -407,7 +407,7 @@ void CreateUnionRoomPlayerSprites(u8 * spriteIds, s32 leaderId)
 
 void DestroyUnionRoomPlayerSprites(u8 * spriteIds)
 {
-    s32 i;
+    u32 i;
     for (i = 0; i < NUM_UNION_ROOM_SPRITES; i++)
         DestroySprite(&gSprites[spriteIds[i]]);
 }
