@@ -320,7 +320,7 @@ bool32 LoadNextConditionMenuMonData(u8 mode)
     return FALSE;
 }
 
-u8 *CopyStringLeftAlignedToConditionData(u8 *dst, const u8 *src, s16 n)
+u8 *CopyStringLeftAlignedToConditionData(u8 * restrict dst, const u8 * restrict src, s16 n)
 {
     while (*src != EOS)
         *dst++ = *src++, n--;
