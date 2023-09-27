@@ -3052,6 +3052,17 @@ void DeleteFirstMoveAndGiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 move)
     (var) /= (gStatStageRatios)[(mon)->statStages[(statIndex)]][1];                 \
 }
 
+
+u32 DamageBase( u32 atkPower, u32 atkLevel, u32 defGuard )
+{
+  u32 damage;
+
+  damage = (gBattleMovePower * atkPower * (atkLevel*2/5+2));
+  damage = damage / defGuard / 50;
+  damage += 2;
+  return damage;
+}
+
 s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *defender, u32 move, u16 sideStatus, u16 powerOverride, u8 typeOverride, u8 battlerIdAtk, u8 battlerIdDef)
 {
     u32 i;
@@ -3182,6 +3193,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         else
             APPLY_STAT_MOD(damage, attacker, attack, STAT_ATK)
 
+        // damage = DamageBase(attack,attacker->level, defense);
         damage = damage * gBattleMovePower;
         damage *= (2 * attacker->level / 5 + 2);
 
