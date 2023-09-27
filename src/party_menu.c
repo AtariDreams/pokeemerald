@@ -91,7 +91,7 @@ enum {
     MENU_STORE,
     MENU_REGISTER,
     MENU_TRADE1,
-    MENU_TRADE2,
+    // MENU_TRADE2,
     MENU_TOSS,
     MENU_FIELD_MOVES
 };
@@ -110,7 +110,7 @@ enum {
     ACTIONS_MAIL,
     ACTIONS_REGISTER,
     ACTIONS_TRADE,
-    ACTIONS_SPIN_TRADE,
+    // ACTIONS_SPIN_TRADE,
     ACTIONS_TAKEITEM_TOSS,
 };
 
@@ -374,8 +374,8 @@ static void Task_HandleSendMailToPCYesNoInput(u8);
 static void Task_LoseMailMessageYesNo(u8);
 static void Task_HandleLoseMailMessageYesNoInput(u8);
 static bool8 TrySwitchInPokemon(void);
-static void Task_SpinTradeYesNo(u8);
-static void Task_HandleSpinTradeYesNoInput(u8);
+// static void Task_SpinTradeYesNo(u8);
+//static void Task_HandleSpinTradeYesNoInput(u8);
 static void Task_CancelAfterAorBPress(u8);
 static void DisplayFieldMoveExitAreaMessage(u8);
 static void DisplayCantUseFlashMessage(void);
@@ -481,7 +481,7 @@ static void CursorCb_NoEntry(u8);
 static void CursorCb_Store(u8);
 static void CursorCb_Register(u8);
 static void CursorCb_Trade1(u8);
-static void CursorCb_Trade2(u8);
+// static void CursorCb_Trade2(u8);
 static void CursorCb_Toss(u8);
 static void CursorCb_FieldMove(u8);
 static bool8 SetUpFieldMove_Surf(void);
@@ -2668,9 +2668,9 @@ static u8 GetPartyMenuActionsType(struct Pokemon *mon)
     case PARTY_MENU_TYPE_UNION_ROOM_TRADE:
         actionType = ACTIONS_TRADE;
         break;
-    case PARTY_MENU_TYPE_SPIN_TRADE:
-        actionType = ACTIONS_SPIN_TRADE;
-        break;
+    // case PARTY_MENU_TYPE_SPIN_TRADE:
+    //     actionType = ACTIONS_SPIN_TRADE;
+    //     break;
     case PARTY_MENU_TYPE_STORE_PYRAMID_HELD_ITEMS:
         actionType = ACTIONS_TAKEITEM_TOSS;
         break;
@@ -3647,7 +3647,7 @@ static void CursorCb_Trade1(u8 taskId)
 
 // Spin Trade (based on the translation of the Japanese trade prompt)
 // Not fully implemented, and normally unreachable because PARTY_MENU_TYPE_SPIN_TRADE is never used
-static void CursorCb_Trade2(u8 taskId)
+/* static void CursorCb_Trade2(u8 taskId)
 {
     PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[0]);
     PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
@@ -3675,32 +3675,33 @@ static void CursorCb_Trade2(u8 taskId)
     DisplayPartyMenuMessage(gStringVar4, TRUE);
     gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
 }
+ */
 
-static void Task_SpinTradeYesNo(u8 taskId)
-{
-    if (IsPartyMenuTextPrinterActive() != TRUE)
-    {
-        PartyMenuDisplayYesNoMenu();
-        gTasks[taskId].func = Task_HandleSpinTradeYesNoInput;
-    }
-}
+// static void Task_SpinTradeYesNo(u8 taskId)
+// {
+//     if (IsPartyMenuTextPrinterActive() != TRUE)
+//     {
+//         PartyMenuDisplayYesNoMenu();
+//         gTasks[taskId].func = Task_HandleSpinTradeYesNoInput;
+//     }
+// }
 
 // See comment on CursorCb_Trade2. Because no callback is set, selecting YES (0) to spin trade just closes the party menu
-static void Task_HandleSpinTradeYesNoInput(u8 taskId)
-{
-    switch (Menu_ProcessInputNoWrapClearOnChoose())
-    {
-    case 0:
-        Task_ClosePartyMenu(taskId);
-        break;
-    case MENU_B_PRESSED:
-        PlaySE(SE_SELECT);
-        // fallthrough
-    case 1:
-        Task_ReturnToChooseMonAfterText(taskId);
-        break;
-    }
-}
+// static void Task_HandleSpinTradeYesNoInput(u8 taskId)
+// {
+//     switch (Menu_ProcessInputNoWrapClearOnChoose())
+//     {
+//     case 0:
+//         Task_ClosePartyMenu(taskId);
+//         break;
+//     case MENU_B_PRESSED:
+//         PlaySE(SE_SELECT);
+//         // fallthrough
+//     case 1:
+//         Task_ReturnToChooseMonAfterText(taskId);
+//         break;
+//     }
+// }
 
 static void CursorCb_FieldMove(u8 taskId)
 {

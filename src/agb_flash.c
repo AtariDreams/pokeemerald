@@ -128,14 +128,16 @@ void SetReadFlash1(u16 *dest)
 }
 
 #define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
+
 #define NAKED __attribute__((naked))
+
 // Using volatile here to make sure the flash memory will ONLY be read as bytes, to prevent any compiler optimizations.
 NAKED void ReadFlash_Core(vu8 *src, u8 *dest, u32 size)
 {
     asm_unified("\
         cmp     r2, #0\n\
         beq     .LBB0_2\n\
-.LBB0_1:                                @ =>This Inner Loop Header: Depth=1\n\
+.LBB0_1:\n\
         ldrb    r3, [r0]\n\
         strb    r3, [r1]\n\
         subs    r2, r2, #1\n\
