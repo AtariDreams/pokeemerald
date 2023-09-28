@@ -495,7 +495,7 @@ static void ApplyColorMap(u8 startPalIndex, u8 numPalettes, s8 colorMapIndex)
                     r = colorMap[baseColor.r];
                     g = colorMap[baseColor.g];
                     b = colorMap[baseColor.b];
-                    gPlttBufferFaded[palOffset++] = RGB2(r, g, b);
+                    gPlttBufferFaded[palOffset++] = RGB(r, g, b);
                 }
             }
 
@@ -580,7 +580,7 @@ static void ApplyColorMapWithBlend(u8 startPalIndex, u8 numPalettes, s8 colorMap
                 r += ((rBlend - r) * blendCoeff) >> 4;
                 g += ((gBlend - g) * blendCoeff) >> 4;
                 b += ((bBlend - b) * blendCoeff) >> 4;
-                gPlttBufferFaded[palOffset++] = RGB2(r, g, b);
+                gPlttBufferFaded[palOffset++] = RGB(r, g, b);
             }
         }
 
@@ -637,7 +637,7 @@ static void ApplyDroughtColorMapWithBlend(s8 colorMapIndex, u8 blendCoeff, u16 b
                 g2 += ((gBlend - g2) * blendCoeff) >> 4;
                 b2 += ((bBlend - b2) * blendCoeff) >> 4;
 
-                gPlttBufferFaded[palOffset++] = RGB2(r2, g2, b2);
+                gPlttBufferFaded[palOffset++] = RGB(r2, g2, b2);
             }
         }
     }
@@ -679,7 +679,7 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
                 g += ((gBlend - g) * blendCoeff) >> 4;
                 b += ((bBlend - b) * blendCoeff) >> 4;
 
-                gPlttBufferFaded[palOffset] = RGB2(r, g, b);
+                gPlttBufferFaded[palOffset] = RGB(r, g, b);
                 palOffset++;
             }
         }

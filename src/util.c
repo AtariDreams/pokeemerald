@@ -201,9 +201,9 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
     }
 }
 
-u16 CalcCRC16(const u8 *data, s32 length)
+u16 CalcCRC16(const u8 *data, u32 length)
 {
-    u16 i, j;
+    u32 i, j;
     u16 crc = 0x1121;
 
     for (i = 0; i < length; i++)
@@ -222,7 +222,7 @@ u16 CalcCRC16(const u8 *data, s32 length)
 
 u16 CalcCRC16WithTable(const u8 *data, u32 length)
 {
-    u16 i;
+    u32 i;
     u16 crc = 0x1121;
     u8 byte;
 
@@ -245,17 +245,25 @@ u32 CalcByteArraySum(const u8 *data, u32 length)
 
 void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor)
 {
-    u16 i;
+    union colorWork
+    {
+        struct PlttData data;
+        u16 raw;
+    };
+
+    u32 i, index;
     for (i = 0; i < numEntries; i++)
     {
-        u16 index = i + palOffset;
-        struct PlttData *data1 = (struct PlttData *)&gPlttBufferUnfaded[index];
-        s8 r = data1->r;
-        s8 g = data1->g;
-        s8 b = data1->b;
-        struct PlttData *data2 = (struct PlttData *)&blendColor;
-        gPlttBufferFaded[index] = RGB(r + (((data2->r - r) * coeff) >> 4),
-                                      g + (((data2->g - g) * coeff) >> 4),
-                                      b + (((data2->b - b) * coeff) >> 4));
+        index = i + palOffset;
+        union colorWork data1;
+        data1.raw = gPlttBufferUnfaded[index];
+        s8 r = data1.data.r;
+        s8 g = data1.data.g;
+        s8 b = data1.data.b;
+        union colorWork data2;
+        data2.raw = blendColor;
+        gPlttBufferFaded[index] = RGB(r + (((data2.data.r - r) * coeff) >> 4),
+                                      g + (((data2.data.g - g) * coeff) >> 4),
+                                      b + (((data2.data.b - b) * coeff) >> 4));
     }
 }
