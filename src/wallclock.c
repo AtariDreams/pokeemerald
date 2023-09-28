@@ -795,38 +795,36 @@ static void Task_SetClock_HandleInput(u8 taskId)
     if (gTasks[taskId].tMinuteHandAngle % 6)
     {
         gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
+        return;
+    }
+
+    gTasks[taskId].tMinuteHandAngle = gTasks[taskId].tMinutes * 6;
+    gTasks[taskId].tHourHandAngle = (gTasks[taskId].tHours % 12) * 30 + (gTasks[taskId].tMinutes / 2);
+    if (JOY_NEW(A_BUTTON))
+    {
+        gTasks[taskId].func = Task_SetClock_AskConfirm;
+        return;
     }
     else
     {
-        gTasks[taskId].tMinuteHandAngle = gTasks[taskId].tMinutes * 6;
-        gTasks[taskId].tHourHandAngle = (gTasks[taskId].tHours % 12) * 30 + (gTasks[taskId].tMinutes / 10) * 5;
-        if (JOY_NEW(A_BUTTON))
+        gTasks[taskId].tMoveDir = MOVE_NONE;
+
+        if (JOY_HELD(DPAD_LEFT))
+            gTasks[taskId].tMoveDir = MOVE_BACKWARD;
+
+        else if (JOY_HELD(DPAD_RIGHT))
+            gTasks[taskId].tMoveDir = MOVE_FORWARD;
+
+        if (gTasks[taskId].tMoveDir != MOVE_NONE)
         {
-            gTasks[taskId].func = Task_SetClock_AskConfirm;
+            if (gTasks[taskId].tMoveSpeed < 0xFF)
+                gTasks[taskId].tMoveSpeed++;
+
+            gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
+            AdvanceClock(taskId, gTasks[taskId].tMoveDir);
+            return;
         }
-        else
-        {
-            gTasks[taskId].tMoveDir = MOVE_NONE;
-
-            if (JOY_HELD(DPAD_LEFT))
-                gTasks[taskId].tMoveDir = MOVE_BACKWARD;
-
-            if (JOY_HELD(DPAD_RIGHT))
-                gTasks[taskId].tMoveDir = MOVE_FORWARD;
-
-            if (gTasks[taskId].tMoveDir != MOVE_NONE)
-            {
-                if (gTasks[taskId].tMoveSpeed < 0xFF)
-                    gTasks[taskId].tMoveSpeed++;
-
-                gTasks[taskId].tMinuteHandAngle = CalcNewMinHandAngle(gTasks[taskId].tMinuteHandAngle, gTasks[taskId].tMoveDir, gTasks[taskId].tMoveSpeed);
-                AdvanceClock(taskId, gTasks[taskId].tMoveDir);
-            }
-            else
-            {
-                gTasks[taskId].tMoveSpeed = 0;
-            }
-        }
+        gTasks[taskId].tMoveSpeed = 0;
     }
 }
 
@@ -911,6 +909,7 @@ static u8 CalcMinHandDelta(u16 speed)
     return 1;
 }
 
+__attribute__((target("arm")))
 static u16 CalcNewMinHandAngle(u16 angle, u8 direction, u8 speed)
 {
     u8 delta = CalcMinHandDelta(speed);
