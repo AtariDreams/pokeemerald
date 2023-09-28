@@ -3475,6 +3475,19 @@ void SetMultiuseSpriteTemplateToTrainerFront(u16 trainerPicId, u8 battlerPositio
     gMultiuseSpriteTemplate.anims = gTrainerFrontAnimsPtrTable[trainerPicId];
 }
 
+void healPokemon(struct Pokemon *mon, u32 recoverHp)
+{
+    u32 max_hp = mon->maxHP;
+    u32 before_hp = mon->hp;
+    u32 after_hp = before_hp + recoverHp;
+    if (max_hp < after_hp)
+    {
+        after_hp = max_hp;
+    }
+    mon->hp = after_hp;
+}
+
+
 /* GameFreak called GetMonData with either 2 or 3 arguments, for type
  * safety we have a GetMonData macro (in include/pokemon.h) which
  * dispatches to either GetMonData2 or GetMonData3 based on the number
@@ -4824,10 +4837,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                             if (!usedByAI)
                             {
                                 // Restore HP
-                                dataUnsigned = GetMonData(mon, MON_DATA_HP, NULL) + dataUnsigned;
-                                if (dataUnsigned > GetMonData(mon, MON_DATA_MAX_HP, NULL))
-                                    dataUnsigned = GetMonData(mon, MON_DATA_MAX_HP, NULL);
-                                SetMonData(mon, MON_DATA_HP, &dataUnsigned);
+                                healPokemon(mon, dataUnsigned);
 
                                 // Update battler (if applicable)
                                 if (gMain.inBattle && battlerId != MAX_BATTLERS_COUNT)
