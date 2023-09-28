@@ -806,7 +806,7 @@ void TintPalette_GrayScale(u16 *palette, u16 count)
 
         gray = (r * 76 + g * 151 + b * 29) >> 8;
 
-        *palette++ = RGB2(gray, gray, gray);
+        *palette++ = RGB(gray, gray, gray);
     }
 }
 
@@ -828,7 +828,7 @@ void TintPalette_GrayScale2(u16 *palette, u16 count)
 
         gray = sRoundedDownGrayscaleMap[gray];
 
-        *palette++ = RGB2(gray, gray, gray);
+        *palette++ = RGB(gray, gray, gray);
     }
 }
 
@@ -855,7 +855,7 @@ void TintPalette_SepiaTone(u16 *palette, u16 count)
         if (r > 31)
             r = 31;
 
-        *palette++ = RGB2(r, g, b);
+        *palette++ = RGB(r, g, b);
     }
 }
 
@@ -883,7 +883,7 @@ void TintPalette_CustomTone(u16 *palette, u16 count, u16 rTone, u16 gTone, u16 b
         if (b > 31)
             b = 31;
 
-        *palette++ = RGB2(r, g, b);
+        *palette++ = RGB(r, g, b);
     }
 }
 

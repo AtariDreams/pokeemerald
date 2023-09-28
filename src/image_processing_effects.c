@@ -140,7 +140,7 @@ static void ApplyImageEffect_RedChannelGrayscale(u8 delta)
                 if (grayValue > 31)
                     grayValue = 31;
 
-                *pixel = RGB2(grayValue, grayValue, grayValue);
+                *pixel = RGB(grayValue, grayValue, grayValue);
             }
         }
     }
@@ -162,7 +162,7 @@ static void ApplyImageEffect_RedChannelGrayscaleHighlight(u8 highlight)
                 if (grayValue > 31 - highlight)
                     grayValue = 31 - (highlight >> 1);
 
-                *pixel = RGB2(grayValue, grayValue, grayValue);
+                *pixel = RGB(grayValue, grayValue, grayValue);
             }
         }
     }
@@ -495,7 +495,7 @@ static void AddPointillismPoints(u16 point)
                 break;
             }
 
-            *pixel = RGB2(red, green, blue);
+            *pixel = RGB(red, green, blue);
         }
     }
 }
@@ -507,7 +507,7 @@ static u16 ConvertColorToGrayscale(u16 *color)
     s32 g = GET_G(clr);
     s32 b = GET_B(clr);
     s32 gray = (r * Q_8_8(0.3) + g * Q_8_8(0.59) + b * Q_8_8(0.1133)) >> 8;
-    return RGB2(gray, gray, gray);
+    return RGB(gray, gray, gray);
 }
 
 // The dark colors are the colored edges of the Cool painting effect.
@@ -574,7 +574,7 @@ static u16 GetColorFromPersonality(u8 personality)
         break;
     }
 
-    return RGB2(red, green, blue);
+    return RGB(red, green, blue);
 }
 
 static u16 QuantizePixel_BlackAndWhite(u16 *color)
@@ -614,7 +614,7 @@ static u16 QuantizePixel_Invert(u16 *color)
     green = 31 - green;
     blue  = 31 - blue;
 
-    return RGB2(red, green, blue);
+    return RGB(red, green, blue);
 }
 
 static u16 QuantizePixel_MotionBlur(u16 *prevPixel, u16 *curPixel)
@@ -672,7 +672,7 @@ static u16 QuantizePixel_MotionBlur(u16 *prevPixel, u16 *curPixel)
     red   = (pixelChannels[1][0] * (31 - largestDiff / 2)) / 31;
     green = (pixelChannels[1][1] * (31 - largestDiff / 2)) / 31;
     blue  = (pixelChannels[1][2] * (31 - largestDiff / 2)) / 31;
-    return RGB2(red, green, blue);
+    return RGB(red, green, blue);
 }
 
 static u16 QuantizePixel_Blur(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
@@ -716,7 +716,7 @@ static u16 QuantizePixel_Blur(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     red   = (red   * factor) / 31;
     green = (green * factor) / 31;
     blue  = (blue  * factor) / 31;
-    return RGB2(red, green, blue);
+    return RGB(red, green, blue);
 }
 
 static u16 QuantizePixel_BlurHard(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
@@ -760,7 +760,7 @@ static u16 QuantizePixel_BlurHard(u16 *prevPixel, u16 *curPixel, u16 *nextPixel)
     red   = (red   * factor) / 31;
     green = (green * factor) / 31;
     blue  = (blue  * factor) / 31;
-    return RGB2(red, green, blue);
+    return RGB(red, green, blue);
 }
 
 void ConvertImageProcessingToGBA(struct ImageProcessingContext *context)
@@ -885,7 +885,7 @@ static void SetPresetPalette_GrayscaleSmall(void)
     gCanvasPalette[0] = RGB_BLACK;
     gCanvasPalette[1] = RGB_BLACK;
     for (i = 0; i < 14; i++)
-        gCanvasPalette[i + 2] = RGB2(2 * (i + 2), 2 * (i + 2), 2 * (i + 2));
+        gCanvasPalette[i + 2] = RGB(2 * (i + 2), 2 * (i + 2), 2 * (i + 2));
 }
 
 static void SetPresetPalette_Grayscale(void)
@@ -894,7 +894,7 @@ static void SetPresetPalette_Grayscale(void)
 
     gCanvasPalette[0] = RGB_BLACK;
     for (i = 0; i < 32; i++)
-        gCanvasPalette[i + 1] = RGB2(i, i, i);
+        gCanvasPalette[i + 1] = RGB(i, i, i);
 }
 
 static void QuantizePalette_Standard(bool8 useLimitedPalette)
@@ -909,7 +909,7 @@ static void QuantizePalette_Standard(bool8 useLimitedPalette)
     for (i = 0; i < maxIndex; i++)
         gCanvasPalette[i] = RGB_BLACK;
 
-    gCanvasPalette[maxIndex] = RGB2(15, 15, 15);
+    gCanvasPalette[maxIndex] = RGB(15, 15, 15);
     for (j = 0; j < gCanvasRowEnd; j++)
     {
         u16 *pixelRow = &gCanvasPixels[(gCanvasRowStart + j) * gCanvasWidth];
@@ -1088,7 +1088,7 @@ static u16 QuantizePixel_Standard(u16 *pixel)
     if (blue > 30)
         blue = 30;
 
-    return RGB2(red, green, blue);
+    return RGB(red, green, blue);
 }
 
 static u16 QuantizePixel_PrimaryColors(u16 *color)
