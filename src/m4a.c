@@ -20,6 +20,29 @@ struct MusicPlayerInfo gMPlayInfo_SE2;
 struct MusicPlayerInfo gMPlayInfo_SE3;
 u8 gMPlayMemAccArea[0x10];
 
+__attribute__((target("arm")))
+
+// u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
+// {
+//     u32 val1;
+//     u32 val2;
+//     u32 fineAdjustShifted = fineAdjust << 24;
+
+//     if (key > 178)
+//     {
+//         key = 178;
+//         fineAdjustShifted = 255 << 24;
+//     }
+
+//     val1 = gScaleTable[key];
+//     val1 = gFreqTable[val1 & 0xF] >> (val1 >> 4);
+
+//     val2 = gScaleTable[key + 1];
+//     val2 = gFreqTable[val2 & 0xF] >> (val2 >> 4);
+
+//     return umul3232H32(wav->freq, val1 + umul3232H32(val2 - val1, fineAdjustShifted));
+// }
+
 u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
 {
     u32 val1;
@@ -38,8 +61,22 @@ u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
     val2 = gScaleTable[key + 1];
     val2 = gFreqTable[val2 & 0xF] >> (val2 >> 4);
 
-    return umul3232H32(wav->freq, val1 + umul3232H32(val2 - val1, fineAdjustShifted));
+    u32 multiplier, temp32Hi, temp32Lo;
+
+    multiplier = val2 - val1;
+
+    asm( "umull %0,%1,%2,%3" : "=r"(temp32Hi), "=r"(temp32Lo) : "r"(multiplier), "r"(fineAdjustShifted));
+
+    fineAdjustShifted = val1 + temp32Lo;
+
+    multiplier = wav->freq;
+
+
+    asm( "umull %0,%1,%2,%3" : "=r"(temp32Hi), "=r"(temp32Lo): "r"(multiplier), "r"(fineAdjustShifted));
+
+    return temp32Lo;
 }
+
 
 void UnusedDummyFunc(void)
 {
