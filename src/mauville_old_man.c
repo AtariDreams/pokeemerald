@@ -593,9 +593,9 @@ static void Task_BardSong(u8 taskId)
         }
 
         if (!task->tUseTemporaryLyrics)
-            sUnknownBardRelated = MACRO2(bard->songLyrics[task->tCurrWord]);
+            sUnknownBardRelated = MACRO1(bard->songLyrics[task->tCurrWord]);
         else
-            sUnknownBardRelated = MACRO2(bard->temporaryLyrics[task->tCurrWord]);
+            sUnknownBardRelated = MACRO1(bard->temporaryLyrics[task->tCurrWord]);
 
         gBardSong.length /= wordLen;
         if (gBardSong.length <= 0)
