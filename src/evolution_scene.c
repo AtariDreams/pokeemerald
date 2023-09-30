@@ -1582,9 +1582,9 @@ static void Task_AnimateBg(u8 taskId)
 
 static void InitMovingBgPalette(u16 *palette)
 {
-    s32 i, j;
+    u32 i, j;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sBgAnim_PalIndexes); i++)
+    for (i = 0; i < ARRAY_COUNT(sBgAnim_PalIndexes); i++)
     {
         for (j = 0; j < 16; j++)
         {
