@@ -9904,7 +9904,7 @@ static u8 capturePokemonStatus(void)
         if (gBattleMons[gBattlerTarget].status1 & (STATUS1_SLEEP | STATUS1_FREEZE))
             catchVal = catchVal * 5 / 2;
         else if (gBattleMons[gBattlerTarget].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
-            catchVal += catchVal >> 1;
+            catchVal += catchVal >> 1; // * 3/2
 
         catchVal /= 10;
     }
