@@ -1324,9 +1324,12 @@ u16 rfu_clearSlot(u8 connTypeFlag, u8 slotStatusIndex)
                 if (NI_comm->state & SLOT_BUSY_FLAG)
                 {
                     rfu_STC_releaseFrame(slotStatusIndex, send_recv, NI_comm);
-                    for (i = 0; i < RFU_CHILD_MAX; ++i)
-                        if ((NI_comm->bmSlotOrg >> i) & 1)
-                            NI_comm->failCounter = 0;
+
+                    if (__builtin_popcount(NI_comm->bmSlotOrg & 0xFFFF) != 0)
+                        NI_comm->failCounter = 0;
+                    // for (i = 0; i < RFU_CHILD_MAX; ++i)
+                    //     if ((NI_comm->bmSlotOrg >> i) & 1)
+                    //         NI_comm->failCounter = 0;
                 }
                 CpuFill16(0, NI_comm, sizeof(struct NIComm));
             }
