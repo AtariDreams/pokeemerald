@@ -72,6 +72,7 @@ static void TrySweetScentEncounter(u8 taskId)
             if (SweetScentWildEncounter() == TRUE)
             {
                 DestroyTask(taskId);
+                return;
             }
             else
             {
