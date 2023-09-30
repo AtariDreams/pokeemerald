@@ -2410,12 +2410,14 @@ static void InitDomeTrainers(void)
     }
 
     // Count the number of types in the players party, to factor into the ranking
-    for (monTypesCount = 0, j = 0; j < 32; j++)
-    {
-        if (monTypesBits & 1)
-            monTypesCount++;
-        monTypesBits >>= 1;
-    }
+
+    monTypesCount = __builtin_popcount(monTypesBits);
+    // for (monTypesCount = 0, j = 0; j < 32; j++)
+    // {
+    //     if (monTypesBits & 1)
+    //         monTypesCount++;
+    //     monTypesBits >>= 1;
+    // }
 
     monLevel = SetFacilityPtrsGetLevel();
     rankingScores[0] += (monTypesCount * monLevel) / 20;
