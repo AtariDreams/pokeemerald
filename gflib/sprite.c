@@ -18,15 +18,15 @@
 
 #define ALLOC_SPRITE_TILE(n)                             \
 {                                                        \
-    sSpriteTileAllocBitmap[(n) >> 3] |= (1 << ((n) & 7)); \
+    sSpriteTileAllocBitmap[(n) >> 3] |= (1u << ((n) & 7u)); \
 }
 
 #define FREE_SPRITE_TILE(n)                               \
 {                                                         \
-    sSpriteTileAllocBitmap[(n) >> 3] &= ~(1 << ((n) & 7)); \
+    sSpriteTileAllocBitmap[(n) >> 3] &= ~(1u << ((n) & 7u)); \
 }
 
-#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1 << ((n) & 7)))
+#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1u << ((n) & 7u)))
 
 
 struct SpriteCopyRequest
