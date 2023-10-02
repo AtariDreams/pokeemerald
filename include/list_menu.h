@@ -32,7 +32,7 @@ struct ListMenu;
 struct ListMenuItem
 {
     const u8 *name;
-    s32 id;
+    u32 id;
 };
 
 struct ListMenuTemplate
