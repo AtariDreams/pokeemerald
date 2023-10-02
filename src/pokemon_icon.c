@@ -1198,10 +1198,10 @@ const u8 *GetMonIconTiles(u16 species, bool32 handleDeoxys)
 
 void TryLoadAllMonIconPalettesAtOffset(u16 offset)
 {
-    s32 i;
+    u32 i;
     if (offset <= BG_PLTT_ID(16 - ARRAY_COUNT(gMonIconPaletteTable)))
     {
-        for (i = 0; i < (int)ARRAY_COUNT(gMonIconPaletteTable); i++)
+        for (i = 0; i < ARRAY_COUNT(gMonIconPaletteTable); i++)
         {
             LoadPalette(gMonIconPaletteTable[i].data, offset, PLTT_SIZE_4BPP);
             offset += 16;
