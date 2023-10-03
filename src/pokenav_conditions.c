@@ -17,13 +17,12 @@
 
 struct Pokenav_ConditionMenu
 {
-    u32 monPal[CONDITION_MONS_LOADED][0x20];
-    u8 fill[0x180];
+    u16 monPal[PARTY_SIZE][0x40];
     u32 monPicGfx[CONDITION_MONS_LOADED][MON_PIC_SIZE];
     bool8 inSearchMode;
-    s16 toLoadListIndex;
+    u16 toLoadListIndex;
     u32 (*callback)(struct Pokenav_ConditionMenu *);
-    u8 fill2[0x18];
+    // u8 fill2[0x18]; Unused Sort Data
     u8 locationText[CONDITION_MONS_LOADED][24];
     u8 nameText[CONDITION_MONS_LOADED][64];
     struct ConditionGraph graph;
@@ -194,7 +193,7 @@ static u8 ConditionGraphHandleDpadInput(struct Pokenav_ConditionMenu *menu)
 static u8 SwitchConditionSummaryIndex(u8 moveUp)
 {
     u16 newLoadId;
-    bool8 wasNotLastMon, isNotLastMon;
+    int wasNotLastMon, isNotLastMon;
     struct Pokenav_ConditionMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU);
     struct PokenavMonList *monListPtr = GetSubstructPtr(POKENAV_SUBSTRUCT_MON_LIST);
 
@@ -285,13 +284,22 @@ bool32 LoadConditionGraphMenuGfx(void)
         ConditionGraphDrawMonPic(var, 1);
         break;
     case 7:
-        CopyMonNameGenderLocation((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        var = monListPtr->currIndex - 1;
+        if (var < 0)
+            var = monListPtr->listCount - 1;
+        CopyMonNameGenderLocation(var, 2);
         break;
     case 8:
-        GetMonConditionGraphData((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        var = monListPtr->currIndex - 1;
+        if (var < 0)
+            var = monListPtr->listCount - 1;
+        GetMonConditionGraphData(var, 2);
         break;
     case 9:
-        ConditionGraphDrawMonPic((monListPtr->currIndex - 1 >= 0) ? monListPtr->currIndex - 1 : monListPtr->listCount - 1, 2);
+        var = monListPtr->currIndex - 1;
+        if (var < 0)
+            var = monListPtr->listCount - 1;
+        ConditionGraphDrawMonPic(var, 2);
         menu->state = 0;
         return TRUE;
     }
@@ -320,12 +328,13 @@ bool32 LoadNextConditionMenuMonData(u8 mode)
     return FALSE;
 }
 
-u8 *CopyStringLeftAlignedToConditionData(u8 * restrict dst, const u8 * restrict src, s16 n)
+u8 *CopyStringLeftAlignedToConditionData(u8 * restrict dst, const u8 * restrict src, int n)
 {
+    // todo: prevent overflow via bounds checks
     while (*src != EOS)
         *dst++ = *src++, n--;
 
-    while (n-- > 0)
+    for (; n > 0; n--)
         *dst++ = CHAR_SPACE;
 
     *dst = EOS;
@@ -334,7 +343,8 @@ u8 *CopyStringLeftAlignedToConditionData(u8 * restrict dst, const u8 * restrict 
 
 static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
 {
-    u16 boxId, monId, gender, species, level, lvlDigits;
+    u16 boxId, monId, gender, species, level;
+    int lvlDigits;
     struct BoxPokemon *boxMon;
     u8 *txtPtr, *str_;
     struct PokenavMonList *monListPtr = GetSubstructPtr(POKENAV_SUBSTRUCT_MON_LIST);
@@ -377,9 +387,6 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
     *(str_++) = 60;
     switch (gender)
     {
-    default:
-        *(str_++) = CHAR_SPACER; // Genderless
-        break;
     case MON_MALE:
         *(str_++) = EXT_CTRL_CODE_BEGIN;
         *(str_++) = EXT_CTRL_CODE_COLOR;
@@ -398,6 +405,9 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
         *(str_++) = TEXT_COLOR_LIGHT_GREEN;
         *(str_++) = CHAR_FEMALE;
         break;
+    default:
+        *(str_++) = CHAR_SPACER; // Genderless
+        break;
     }
 
     *(str_++) = EXT_CTRL_CODE_BEGIN;
@@ -415,7 +425,7 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
     if (!skipPadding)
     {
         lvlDigits = 3 - lvlDigits;
-        while (lvlDigits-- != 0)
+        while (lvlDigits-- > 0)
             *(str_++) = CHAR_SPACE;
     }
 
@@ -425,7 +435,8 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
 
 static void CopyMonNameGenderLocation(s16 listId, u8 loadId)
 {
-    u16 boxId, i;
+    u16 boxId;
+    u32 i;
     struct Pokenav_ConditionMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU);
     struct PokenavMonList *monListPtr = GetSubstructPtr(POKENAV_SUBSTRUCT_MON_LIST);
 
@@ -457,12 +468,14 @@ static void CopyMonNameGenderLocation(s16 listId, u8 loadId)
 
 static void InitPartyConditionListParameters(void)
 {
-    u16 i, count;
+    u16 i;
+    u32 count;
     struct Pokenav_ConditionMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU);
     struct PokenavMonList *monListPtr = AllocSubstruct(POKENAV_SUBSTRUCT_MON_LIST, sizeof(struct PokenavMonList));
 
     menu->inSearchMode = FALSE;
-    for (i = 0, count = 0; i < CalculatePlayerPartyCount(); i++)
+
+    for (i = 0, count = 0; i < gPlayerPartyCount; i++)
     {
         if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
         {
@@ -490,7 +503,8 @@ static void InitSearchResultsConditionList(void)
 
 static void GetMonConditionGraphData(s16 listId, u8 loadId)
 {
-    u16 boxId, monId, i;
+    u16 boxId, monId;
+    u32 i;
     struct Pokenav_ConditionMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU);
     struct PokenavMonList *monListPtr = GetSubstructPtr(POKENAV_SUBSTRUCT_MON_LIST);
 
