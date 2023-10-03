@@ -26,9 +26,9 @@ struct Pokenav_SearchResults
 {
     u32 (*callback)(struct Pokenav_SearchResults *);
     u32 loopedTaskId;
-    u8 fill1[4];
-    s32 boxId;
-    s32 monId;
+    // u8 fill1[4];
+    u32 boxId;
+    u32 monId;
     u32 conditionDataId;
     bool32 returnFromGraph;
     bool32 saveResultsList;
