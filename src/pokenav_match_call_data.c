@@ -1024,15 +1024,12 @@ static void MatchCall_BufferCallMessageTextByRematchTeam(const match_call_text_d
     {
         if (FlagGet(FLAG_SYS_GAME_CLEAR))
         {
-            do
-            {
-                if (gSaveBlock1.trainerRematches[idx])
-                    i += 2;
-                else if (CountBattledRematchTeams(idx) >= 2)
-                    i += 3;
-                else
-                    i++;
-            } while (0);
+            if (gSaveBlock1.trainerRematches[idx])
+                i += 2;
+            else if (CountBattledRematchTeams(idx) >= 2)
+                i += 3;
+            else
+                i++;
         }
 
         StringExpandPlaceholders(dest, textData[i].text);
