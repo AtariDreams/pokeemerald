@@ -1809,7 +1809,7 @@ static void CreateSlateportTentSelectableMons(u8 firstMonId)
 
 static void Select_CopyMonsToPlayerParty(void)
 {
-    u8 i, j;
+    u32 i, j;
 
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
     {
