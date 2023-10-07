@@ -47,7 +47,7 @@ struct PokenavListMenuWindow
     s32 moveDelta;
     u32 bgMoveType;
     PokenavListBufferItemFunc bufferItemFunc;
-    void (*iconDrawFunc)(u16, u32, u32);
+    void (*iconDrawFunc)(u8, u32, u32);
     struct Sprite *rightArrow;
     struct Sprite *upArrow;
     struct Sprite *downArrow;
@@ -705,7 +705,7 @@ static void SetListMarginTile(struct PokenavListMenuWindow *listWindow, bool32 d
 // Print the trainer's name and title at the top of their check page
 static void PrintCheckPageTrainerName(struct PokenavListWindowState *state, struct PokenavListMenuWindow *list)
 {
-    u8 colors[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_RED};
+    const u8 colors[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_RED};
 
     list->bufferItemFunc(state->listPtr + state->listItemSize * state->windowTopIndex, list->itemTextBuffer);
     list->iconDrawFunc(list->windowId, state->windowTopIndex, list->unkA);
