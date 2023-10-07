@@ -393,7 +393,7 @@ bool32 OpenRibbonsMonListFromRibbonsSummary(void)
     return TRUE;
 }
 
-void CreateRibbonsMonListLoopedTask(s32 idx)
+void CreateRibbonsMonListLoopedTask(u32 idx)
 {
     struct Pokenav_RibbonsMonMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_MON_MENU);
     menu->loopedTaskId = CreateLoopedTask(sRibbonsMonMenuLoopTaskFuncs[idx], 1);

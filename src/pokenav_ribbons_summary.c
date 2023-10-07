@@ -523,7 +523,7 @@ bool32 OpenRibbonsSummaryMenu(void)
     return TRUE;
 }
 
-void CreateRibbonsSummaryLoopedTask(s32 id)
+void CreateRibbonsSummaryLoopedTask(u32 id)
 {
     struct Pokenav_RibbonsSummaryMenu *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_SUMMARY_MENU);
     menu->loopedTaskId = CreateLoopedTask(sRibbonsSummaryMenuLoopTaskFuncs[id], 1);
