@@ -29,7 +29,7 @@ struct PokenavCallbacks
     bool32 (*init)(void);
     u32 (*callback)(void);
     bool32 (*open)(void);
-    void (*createLoopTask)(s32);
+    void (*createLoopTask)(u32);
     bool32 (*isLoopTaskActive)(void);
     void (*free1)(void);
     void (*free2)(void);
