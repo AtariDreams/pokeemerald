@@ -413,7 +413,7 @@ static struct Pokenav_MenuGfx * OpenPokenavMenu(void)
     return gfx;
 }
 
-void CreateMenuHandlerLoopedTask(s32 ltIdx)
+void CreateMenuHandlerLoopedTask(u32 ltIdx)
 {
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
     gfx->loopedTaskId = CreateLoopedTask(sMenuHandlerLoopTaskFuncs[ltIdx], 1);
