@@ -1477,7 +1477,7 @@ u8 CountPartyMons(void)
     return count;
 }
 
-u8 *StringCopyAndFillWithSpaces(u8 *dst, const u8 *src, u16 n)
+u8 *StringCopyAndFillWithSpaces(u8 * restrict dst, const u8 * restrict src, u16 n)
 {
     u8 *str;
 
@@ -1563,10 +1563,16 @@ static void Task_PCMainMenu(u8 taskId)
         {
         case MENU_NOTHING_CHOSEN:
             task->tNextOption = task->tSelectedOption;
-            if (JOY_NEW(DPAD_UP) && --task->tNextOption < 0)
-                task->tNextOption = OPTIONS_COUNT - 1;
-            if (JOY_NEW(DPAD_DOWN) && ++task->tNextOption > OPTIONS_COUNT - 1)
-                task->tNextOption = 0;
+            if (JOY_NEW(DPAD_UP))
+            {
+                if (--task->tNextOption < 0)
+                    task->tNextOption = OPTIONS_COUNT - 1;
+            }
+            else if (JOY_NEW(DPAD_DOWN))
+            {
+                if (++task->tNextOption > OPTIONS_COUNT - 1)
+                    task->tNextOption = 0;
+            }
 
             if (task->tSelectedOption != task->tNextOption)
             {
@@ -1574,7 +1580,7 @@ static void Task_PCMainMenu(u8 taskId)
                 FillWindowPixelBuffer(0, PIXEL_FILL(1));
                 AddTextPrinterParameterized2(0, FONT_NORMAL, sMainMenuTexts[task->tSelectedOption].desc, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             }
-            break;
+            return;
         case MENU_B_PRESSED:
         case OPTION_EXIT:
             ClearStdWindowAndFrame(task->tWindowId, TRUE);
@@ -1582,7 +1588,7 @@ static void Task_PCMainMenu(u8 taskId)
             ScriptContext_Enable();
             RemoveWindow(task->tWindowId);
             DestroyTask(taskId);
-            break;
+            return;
         default:
             if (task->tInput == OPTION_WITHDRAW && CountPartyMons() == PARTY_SIZE)
             {
@@ -1590,20 +1596,21 @@ static void Task_PCMainMenu(u8 taskId)
                 FillWindowPixelBuffer(0, PIXEL_FILL(1));
                 AddTextPrinterParameterized2(0, FONT_NORMAL, gText_PartyFull, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
                 task->tState = STATE_ERROR_MSG;
+                break;
             }
-            else if (task->tInput == OPTION_DEPOSIT && CountPartyMons() == 1)
+            if (task->tInput == OPTION_DEPOSIT && CountPartyMons() == 1)
             {
                 // Can't deposit
                 FillWindowPixelBuffer(0, PIXEL_FILL(1));
                 AddTextPrinterParameterized2(0, FONT_NORMAL, gText_JustOnePkmn, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
                 task->tState = STATE_ERROR_MSG;
+                break;
             }
-            else
-            {
-                // Enter PC
-                FadeScreen(FADE_TO_BLACK, 0);
-                task->tState = STATE_ENTER_PC;
-            }
+
+            // Enter PC
+            FadeScreen(FADE_TO_BLACK, 0);
+            task->tState = STATE_ENTER_PC;
+
             break;
         }
         break;
@@ -1615,8 +1622,9 @@ static void Task_PCMainMenu(u8 taskId)
             FillWindowPixelBuffer(0, PIXEL_FILL(1));
             AddTextPrinterParameterized2(0, FONT_NORMAL, sMainMenuTexts[task->tSelectedOption].desc, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             task->tState = STATE_HANDLE_INPUT;
+            break;
         }
-        else if (JOY_NEW(DPAD_UP))
+        if (JOY_NEW(DPAD_UP))
         {
             if (--task->tSelectedOption < 0)
                 task->tSelectedOption = OPTIONS_COUNT - 1;
@@ -1625,8 +1633,9 @@ static void Task_PCMainMenu(u8 taskId)
             FillWindowPixelBuffer(0, PIXEL_FILL(1));
             AddTextPrinterParameterized2(0, FONT_NORMAL, sMainMenuTexts[task->tSelectedOption].desc, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             task->tState = STATE_HANDLE_INPUT;
+            break;
         }
-        else if (JOY_NEW(DPAD_DOWN))
+        if (JOY_NEW(DPAD_DOWN))
         {
             if (++task->tSelectedOption >= OPTIONS_COUNT - 1)
                 task->tSelectedOption = 0;
@@ -1635,6 +1644,7 @@ static void Task_PCMainMenu(u8 taskId)
             FillWindowPixelBuffer(0, PIXEL_FILL(1));
             AddTextPrinterParameterized2(0, FONT_NORMAL, sMainMenuTexts[task->tSelectedOption].desc, 0, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
             task->tState = STATE_HANDLE_INPUT;
+            break;
         }
         break;
     case STATE_ENTER_PC:
@@ -1679,7 +1689,7 @@ static void FieldTask_ReturnToPcMenu(void)
 
 static void CreateMainMenu(u8 whichMenu, s16 *windowIdPtr)
 {
-    s16 windowId;
+    u16 windowId;
     struct WindowTemplate template = sWindowTemplate_MainMenu;
     template.width = GetMaxWidthInMenuTable((void *)sMainMenuTexts, OPTIONS_COUNT);
     windowId = AddWindow(&template);
@@ -1687,7 +1697,7 @@ static void CreateMainMenu(u8 whichMenu, s16 *windowIdPtr)
     DrawStdWindowFrame(windowId, FALSE);
     PrintMenuTable(windowId, OPTIONS_COUNT, (void *)sMainMenuTexts);
     InitMenuInUpperLeftCornerNormal(windowId, OPTIONS_COUNT, whichMenu);
-    *windowIdPtr = windowId;
+    *windowIdPtr = (s16)windowId;
 }
 
 static void CB2_ExitPokeStorage(void)
@@ -1760,30 +1770,20 @@ void ResetPokemonStorageSystem(void)
 //------------------------------------------------------------------------------
 
 
-static void LoadChooseBoxMenuGfx(struct ChooseBoxMenu *menu, u16 tileTag, u16 palTag, u8 subpriority, bool32 loadPal)
+static void LoadChooseBoxMenuGfx(void)
 {
-    // Because loadPal is always false, the below palette is never used.
-    // The Choose Box menu instead uses the palette indicated by palTag, which is always PALTAG_MISC_1 (sHandCursor_Pal)
-    struct SpritePalette palette =
-    {
-        sChooseBoxMenu_Pal, palTag
-    };
     struct SpriteSheet sheets[] =
-    {
-        {sChooseBoxMenuCenter_Gfx, 0x800, tileTag},
-        {sChooseBoxMenuSides_Gfx,  0x180, tileTag + 1},
-        {}
-    };
-
-    if (loadPal) // Always false
-        LoadSpritePalette(&palette);
-
+        {
+            {sChooseBoxMenuCenter_Gfx, 0x800, GFXTAG_CHOOSE_BOX_MENU},
+            {sChooseBoxMenuSides_Gfx, 0x180, GFXTAG_CHOOSE_BOX_MENU + 1},
+            {}};
     LoadSpriteSheets(sheets);
-    sChooseBoxMenu = menu;
-    menu->tileTag = tileTag;
-    menu->paletteTag = palTag;
-    menu->subpriority = subpriority;
-    menu->loadedPalette = loadPal;
+
+    sChooseBoxMenu = &sStorage->chooseBoxMenu;
+    sStorage->chooseBoxMenu.tileTag = GFXTAG_CHOOSE_BOX_MENU;
+    sStorage->chooseBoxMenu.paletteTag = PALTAG_MISC_1;
+    sStorage->chooseBoxMenu.subpriority = 3;
+    sStorage->chooseBoxMenu.loadedPalette = FALSE;
 }
 
 static void FreeChooseBoxMenu(void)
@@ -1886,7 +1886,7 @@ static void ChooseBoxMenu_CreateSprites(u8 curBox)
 
 static void ChooseBoxMenu_DestroySprites(void)
 {
-    u16 i;
+    u32 i;
     if (sChooseBoxMenu->menuSprite)
     {
         DestroySprite(sChooseBoxMenu->menuSprite);
@@ -2005,17 +2005,16 @@ static void EnterPokeStorage(u8 boxOption)
     if (sStorage == NULL)
     {
         SetMainCallback2(CB2_ExitPokeStorage);
+        return;
     }
-    else
-    {
-        sStorage->boxOption = boxOption;
-        sStorage->isReopening = FALSE;
-        sMovingItemId = ITEM_NONE;
-        sStorage->state = 0;
-        sStorage->taskId = CreateTask(Task_InitPokeStorage, 3);
-        sLastUsedBox = StorageGetCurrentBox();
-        SetMainCallback2(CB2_PokeStorage);
-    }
+
+    sStorage->boxOption = boxOption;
+    sStorage->isReopening = FALSE;
+    sMovingItemId = ITEM_NONE;
+    sStorage->state = 0;
+    sStorage->taskId = CreateTask(Task_InitPokeStorage, 3);
+    sLastUsedBox = StorageGetCurrentBox();
+    SetMainCallback2(CB2_PokeStorage);
 }
 
 static void CB2_ReturnToPokeStorage(void)
@@ -2025,15 +2024,14 @@ static void CB2_ReturnToPokeStorage(void)
     if (sStorage == NULL)
     {
         SetMainCallback2(CB2_ExitPokeStorage);
+        return;
     }
-    else
-    {
-        sStorage->boxOption = sCurrentBoxOption;
-        sStorage->isReopening = TRUE;
-        sStorage->state = 0;
-        sStorage->taskId = CreateTask(Task_InitPokeStorage, 3);
-        SetMainCallback2(CB2_PokeStorage);
-    }
+
+    sStorage->boxOption = sCurrentBoxOption;
+    sStorage->isReopening = TRUE;
+    sStorage->state = 0;
+    sStorage->taskId = CreateTask(Task_InitPokeStorage, 3);
+    SetMainCallback2(CB2_PokeStorage);
 }
 
 static void ResetAllBgCoords(void)
@@ -2148,11 +2146,10 @@ static void Task_InitPokeStorage(u8 taskId)
             SetPokeStorageTask(Task_ChangeScreen);
             return;
         }
-        else
-        {
+
             SetScrollingBackground();
             InitPokeStorageBg0();
-        }
+
         break;
     case 6:
         InitPalettesAndSprites();
@@ -2193,7 +2190,7 @@ static void Task_InitPokeStorage(u8 taskId)
             SetPokeStorageTask(Task_ReshowPokeStorage);
         }
         SetVBlankCallback(VBlankCB_PokeStorage);
-        return;
+        /* FALL THROUGH */
     default:
         return;
     }
@@ -2285,12 +2282,12 @@ static void Task_PokeStorageMain(u8 taskId)
             {
                 PrintMessage(MSG_WHICH_ONE_WILL_TAKE);
                 sStorage->state = MSTATE_WAIT_MSG;
+                break;
             }
-            else
-            {
+
                 ClearSavedCursorPos();
                 SetPokeStorageTask(Task_ShowPartyPokemon);
-            }
+        
             break;
         case INPUT_HIDE_PARTY:
             if (sStorage->boxOption == OPTION_MOVE_MONS)
@@ -2850,7 +2847,7 @@ static void Task_DepositMenu(u8 taskId)
     {
     case 0:
         PrintMessage(MSG_DEPOSIT_IN_WHICH_BOX);
-        LoadChooseBoxMenuGfx(&sStorage->chooseBoxMenu, GFXTAG_CHOOSE_BOX_MENU, PALTAG_MISC_1, 3, FALSE);
+        LoadChooseBoxMenuGfx();
         CreateChooseBoxMenuSprites(sDepositBoxId);
         sStorage->state++;
         break;
@@ -3497,7 +3494,7 @@ static void Task_JumpBox(u8 taskId)
     {
     case 0:
         PrintMessage(MSG_JUMP_TO_WHICH_BOX);
-        LoadChooseBoxMenuGfx(&sStorage->chooseBoxMenu, GFXTAG_CHOOSE_BOX_MENU, PALTAG_MISC_1, 3, FALSE);
+        LoadChooseBoxMenuGfx();
         CreateChooseBoxMenuSprites(StorageGetCurrentBox());
         sStorage->state++;
         break;
@@ -4808,12 +4805,12 @@ static void MovePartySpriteToNextSlot(struct Sprite *sprite, u16 partyId)
     if (partyId == 0)
         x = 104, y = 64;
     else
-        x = 152, y = 8 * (3 * (partyId - 1)) + 16;
+        x = 152, y = 16 + (partyId - 1) * 24;
 
-    sprite->sMonX = (u16)(sprite->x) * 8;
-    sprite->sMonY = (u16)(sprite->y) * 8;
-    sprite->sSpeedX = ((x * 8) - sprite->sMonX) / 8;
-    sprite->sSpeedY = ((y * 8) - sprite->sMonY) / 8;
+    sprite->sMonX = sprite->x << 3;
+    sprite->sMonY = sprite->y << 3;
+    sprite->sSpeedX = ((x << 3) - sprite->sMonX) / 8;
+    sprite->sSpeedY = ((y << 3) - sprite->sMonY) / 8;
     sprite->data[6] = 8;
     sprite->callback = SpriteCB_MovePartyMonToNextSlot;
 }
@@ -4822,10 +4819,10 @@ static void SpriteCB_MovePartyMonToNextSlot(struct Sprite *sprite)
 {
     if (sprite->sMoveSteps != 0)
     {
-        s16 x = sprite->sMonX += sprite->sSpeedX;
-        s16 y = sprite->sMonY += sprite->sSpeedY;
-        sprite->x = x / 8u;
-        sprite->y = y / 8u;
+        sprite->sMonX += sprite->sSpeedX;
+        sprite->sMonY += sprite->sSpeedY;
+        sprite->x = sprite->sMonX >> 3;
+        sprite->y = sprite->sMonY >> 3;
         sprite->sMoveSteps--;
     }
     else
@@ -4838,7 +4835,7 @@ static void SpriteCB_MovePartyMonToNextSlot(struct Sprite *sprite)
         else
         {
             sprite->x = 152;
-            sprite->y = 8 * (3 * (sprite->sPartyId - 1)) + 16;
+            sprite->y = 16 + (sprite->sPartyId - 1) * 24;
         }
         sprite->callback = SpriteCallbackDummy;
         sStorage->partySprites[sprite->sPartyId] = sprite;
@@ -4864,7 +4861,8 @@ static void DestroyMovingMonIcon(void)
 
 static void MovePartySprites(s16 yDelta)
 {
-    u16 i, posY;
+    u32 i;
+    s16 posY;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -4872,8 +4870,7 @@ static void MovePartySprites(s16 yDelta)
         {
             sStorage->partySprites[i]->y += yDelta;
             posY = sStorage->partySprites[i]->y + sStorage->partySprites[i]->y2 + sStorage->partySprites[i]->centerToCornerVecY;
-            posY += 16;
-            if (posY > 192)
+            if (posY < -16 || posY > 176)
                 sStorage->partySprites[i]->invisible = TRUE;
             else
                 sStorage->partySprites[i]->invisible = FALSE;
@@ -4892,7 +4889,7 @@ static void DestroyPartyMonIcon(u8 partyId)
 
 static void DestroyAllPartyMonIcons(void)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -5114,7 +5111,7 @@ static u16 TryLoadMonIconTiles(u16 species)
 
 static void RemoveSpeciesFromIconList(u16 species)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < MAX_MON_ICONS; i++)
     {
