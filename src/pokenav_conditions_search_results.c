@@ -673,7 +673,7 @@ static void CreateSearchResultsList(void)
 {
     struct PokenavListTemplate template;
 
-    template.list = (struct PokenavListItem *)GetSearchResultsMonDataList();
+    template.list = GetSearchResultsMonDataList();
     template.count = GetSearchResultsMonListCount();
     template.itemSize = sizeof(struct PokenavListItem);
     template.startIndex = GetSearchResultsCurrentListIndex();
