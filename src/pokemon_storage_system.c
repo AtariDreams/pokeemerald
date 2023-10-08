@@ -633,7 +633,6 @@ static void InitMenu(void);
 static void SetMenuText(u8);
 static s8 GetMenuItemTextId(u8);
 static void AddMenu(void);
-static bool8 IsMenuLoading(void);
 static s16 HandleMenuInput(void);
 static void RemoveMenu(void);
 
@@ -2600,10 +2599,6 @@ static void Task_OnSelectedMon(u8 taskId)
         }
         break;
     case 1:
-        if (!IsMenuLoading())
-            sStorage->state = 2;
-        break;
-    case 2:
         switch (HandleMenuInput())
         {
         case MENU_B_PRESSED:
@@ -2712,22 +2707,22 @@ static void Task_OnSelectedMon(u8 taskId)
             break;
         }
         break;
-    case 3:
+    case 2:
         PlaySE(SE_FAILURE);
         PrintMessage(MSG_LAST_POKE);
-        sStorage->state = 6;
+        sStorage->state = 5;
         break;
-    case 5:
+    case 3:
         PlaySE(SE_FAILURE);
-        PrintMessage(MSG_CANT_RELEASE_EGG);
-        sStorage->state = 6;
+        PrintMessage(MSG_PLEASE_REMOVE_MAIL);
+        sStorage->state = 5;
         break;
     case 4:
         PlaySE(SE_FAILURE);
-        PrintMessage(MSG_PLEASE_REMOVE_MAIL);
-        sStorage->state = 6;
+        PrintMessage(MSG_CANT_RELEASE_EGG);
+        sStorage->state = 5;
         break;
-    case 6:
+    case 5:
         if (JOY_NEW(A_BUTTON | B_BUTTON | DPAD_ANY))
         {
             ClearBottomWindow();
@@ -3388,10 +3383,6 @@ static void Task_HandleBoxOptions(u8 taskId)
         sStorage->state++;
         break;
     case 1:
-        if (IsMenuLoading())
-            return;
-        sStorage->state++;
-    case 2:
         switch (HandleMenuInput())
         {
         case MENU_B_PRESSED:
@@ -3429,10 +3420,6 @@ static void Task_HandleWallpapers(u8 taskId)
         sStorage->state++;
         break;
     case 1:
-        if (!IsMenuLoading())
-             sStorage->state++;
-        break;
-    case 2:
         sStorage->wallpaperSetId = HandleMenuInput();
         switch (sStorage->wallpaperSetId)
         {
@@ -3460,7 +3447,7 @@ static void Task_HandleWallpapers(u8 taskId)
             break;
         }
         break;
-    case 3:
+    case 2:
         if (!IsDma3ManagerBusyWithBgCopy())
         {
             AddWallpapersMenu(sStorage->wallpaperSetId);
@@ -3468,7 +3455,7 @@ static void Task_HandleWallpapers(u8 taskId)
             sStorage->state++;
         }
         break;
-    case 4:
+    case 3:
         sStorage->wallpaperId = HandleMenuInput();
         switch (sStorage->wallpaperId)
         {
@@ -3487,18 +3474,18 @@ static void Task_HandleWallpapers(u8 taskId)
             break;
         }
         break;
-    case 5:
+    case 4:
         if (!DoWallpaperGfxChange())
         {
             AnimateBoxScrollArrows(TRUE);
             SetPokeStorageTask(Task_PokeStorageMain);
         }
         break;
-    case 6:
+    case 5:
         if (!IsDma3ManagerBusyWithBgCopy())
         {
             SetWallpaperForCurrentBox(sStorage->wallpaperId);
-            sStorage->state = 5;
+            sStorage->state = 4;
         }
         break;
     }
@@ -7995,14 +7982,6 @@ static void AddMenu(void)
     InitMenuInUpperLeftCornerNormal(sStorage->menuWindowId, sStorage->menuItemsCount, 0);
     ScheduleBgCopyTilemapToVram(0);
     sStorage->menuUnusedField = 0;
-}
-
-// Called after AddMenu to determine whether or not the handler callback should
-// wait to move on to the next state. Evidently there was no need to wait, and
-// now it always returns FALSE
-static bool8 IsMenuLoading(void)
-{
-    return FALSE;
 }
 
 static s16 HandleMenuInput(void)
