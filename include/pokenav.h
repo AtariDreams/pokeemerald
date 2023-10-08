@@ -29,11 +29,11 @@ struct PokenavListItem
     } item;
 };
 
-typedef void (*PokenavListBufferItemFunc)(struct PokenavListItem *, u8 *);
+typedef void (*PokenavListBufferItemFunc)(const void *, u8 *);
 
 struct PokenavListTemplate
 {
-    struct PokenavListItem * list;
+    void * list;
     u16 count;
     u16 startIndex;
     u8 itemSize;
