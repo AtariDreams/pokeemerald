@@ -63,7 +63,7 @@ static void DrawListIndexNumber(s32, s32, s32);
 static void AddRibbonsMonListWindow(struct Pokenav_RibbonsMonMenu *);
 static void UpdateIndexNumberDisplay(struct Pokenav_RibbonsMonMenu *);
 static void CreateRibbonMonsList(void);
-static void BufferRibbonMonInfoText(struct PokenavListItem *, u8 *);
+static void BufferRibbonMonInfoText(const void *, u8 *);
 
 static const LoopedTask sMonRibbonListLoopTaskFuncs[] =
 {
@@ -221,20 +221,20 @@ static struct PokenavMonListItem *GetMonRibbonMonListData(void)
     return list->monList->monData;
 }
 
-static s32 GetRibbonsMonListCount(void)
+static u32 GetRibbonsMonListCount(void)
 {
     struct Pokenav_RibbonsMonList * list = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_MON_LIST);
     return list->monList->listCount;
 }
 
-static s32 UNUSED GetMonRibbonSelectedMonData(void)
+static u32 UNUSED GetMonRibbonSelectedMonData(void)
 {
     struct Pokenav_RibbonsMonList * list = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_MON_LIST);
-    s32 idx = PokenavList_GetSelectedIndex();
+    u32 idx = PokenavList_GetSelectedIndex();
     return list->monList->monData[idx].data;
 }
 
-static s32 GetRibbonListMenuCurrIndex(void)
+static u32 GetRibbonListMenuCurrIndex(void)
 {
     struct Pokenav_RibbonsMonList * list = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_MON_LIST);
     return list->monList->currIndex;
@@ -247,7 +247,7 @@ static u32 GetMonRibbonListLoopTaskFunc(s32 state)
 
 static u32 BuildPartyMonRibbonList(s32 state)
 {
-    s32 i;
+    u32 i;
     struct PokenavMonListItem item;
     struct Pokenav_RibbonsMonList * list = GetSubstructPtr(POKENAV_SUBSTRUCT_RIBBONS_MON_LIST);
 
@@ -258,7 +258,7 @@ static u32 BuildPartyMonRibbonList(s32 state)
     {
         struct Pokemon *pokemon = &gPlayerParty[i];
         if (!GetMonData(pokemon, MON_DATA_SANITY_HAS_SPECIES))
-            return LT_INC_AND_CONTINUE;
+            break;
         if (!GetMonData(pokemon, MON_DATA_SANITY_IS_EGG))
         {
             u32 ribbonCount = GetMonData(pokemon, MON_DATA_RIBBON_COUNT);
@@ -344,16 +344,14 @@ static void InsertMonListItem(struct Pokenav_RibbonsMonList *list, struct Pokena
 
 static bool32 UNUSED PlayerHasRibbonsMon(void)
 {
-    s32 i, j;
+    u32 i, j;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gPlayerParty[i];
-        if (!GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES))
-            continue;
-        if (GetMonData(mon, MON_DATA_SANITY_IS_EGG))
-            continue;
-        if (GetMonData(mon, MON_DATA_RIBBONS))
+        if (GetMonData(mon, MON_DATA_SANITY_HAS_SPECIES) &&
+            !GetMonData(mon, MON_DATA_SANITY_IS_EGG) &&
+            GetMonData(mon, MON_DATA_RIBBONS))
             return TRUE;
     }
 
@@ -361,9 +359,7 @@ static bool32 UNUSED PlayerHasRibbonsMon(void)
     {
         for (j = 0; j < IN_BOX_COUNT; j++)
         {
-            if (!CheckBoxMonSanityAt(i, j))
-                continue;
-            if (GetBoxMonDataAt(i, j, MON_DATA_RIBBONS))
+            if (CheckBoxMonSanityAt(i, j) && GetBoxMonDataAt(i, j, MON_DATA_RIBBONS))
                 return TRUE;
         }
     }
@@ -666,10 +662,10 @@ static void UpdateIndexNumberDisplay(struct Pokenav_RibbonsMonMenu *menu)
 static void DrawListIndexNumber(s32 windowId, s32 index, s32 max)
 {
     u8 strbuf[16];
-    u32 x;
+    s32 x;
 
-    u8 * ptr = strbuf;
-    ptr = ConvertIntToDecimalStringN(ptr, index, STR_CONV_MODE_RIGHT_ALIGN, 3);
+    u8 * ptr;
+    ptr = ConvertIntToDecimalStringN(strbuf, index, STR_CONV_MODE_RIGHT_ALIGN, 3);
     *ptr++ = CHAR_SLASH;
     ConvertIntToDecimalStringN(ptr, max, STR_CONV_MODE_RIGHT_ALIGN, 3);
     x = GetStringCenterAlignXOffset(FONT_NORMAL, strbuf, 56);
@@ -679,7 +675,7 @@ static void DrawListIndexNumber(s32 windowId, s32 index, s32 max)
 static void CreateRibbonMonsList(void)
 {
     struct PokenavListTemplate template;
-    template.list = (struct PokenavListItem *)GetMonRibbonMonListData();
+    template.list = GetMonRibbonMonListData();
     template.count = GetRibbonsMonListCount();
     template.itemSize = sizeof(struct PokenavListItem);
     template.startIndex = GetRibbonListMenuCurrIndex();
@@ -695,7 +691,7 @@ static void CreateRibbonMonsList(void)
 }
 
 // Buffers the "Nickname gender/level" text for the ribbon mon list
-static void BufferRibbonMonInfoText(struct PokenavListItem * listItem, u8 * dest)
+static void BufferRibbonMonInfoText(const void * listItem, u8 * dest)
 {
     u8 gender;
     u8 level;
@@ -724,14 +720,14 @@ static void BufferRibbonMonInfoText(struct PokenavListItem * listItem, u8 * dest
     dest = GetStringClearToWidth(dest, FONT_NORMAL, gStringVar3, 60);
     switch (gender)
     {
-    default:
-        genderStr = sText_NoGenderSymbol;
-        break;
     case MON_MALE:
         genderStr = sText_MaleSymbol;
         break;
     case MON_FEMALE:
         genderStr = sText_FemaleSymbol;
+        break;
+    default:
+        genderStr = sText_NoGenderSymbol;
         break;
     }
 

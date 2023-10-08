@@ -851,7 +851,7 @@ static u32 ExitMatchCall(s32 state)
 static void CreateMatchCallList(void)
 {
     struct PokenavListTemplate template;
-    template.list = (struct PokenavListItem *)GetMatchCallList();
+    template.list = GetMatchCallList();
     template.count = GetNumberRegistered();
     template.itemSize = sizeof(struct PokenavListItem);
     template.startIndex = 0;
