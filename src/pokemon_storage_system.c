@@ -1324,9 +1324,9 @@ static const u8 sHandCursorShadow_Gfx[] = INCBIN_U8("graphics/pokemon_storage/ha
 //------------------------------------------------------------------------------
 
 
-void DrawTextWindowAndBufferTiles(const u8 *string, void *dst, u8 zero1, u8 zero2, s32 bytesToBuffer)
+void DrawTextWindowAndBufferTiles(const u8 * restrict string, void *restrict dst, u32 bytesToBuffer)
 {
-    s32 i, tileBytesToBuffer, remainingBytes;
+    u32 i, tileBytesToBuffer;
     u16 windowId;
     u8 txtColor[3];
     u8 *tileData1, *tileData2;
@@ -1335,37 +1335,33 @@ void DrawTextWindowAndBufferTiles(const u8 *string, void *dst, u8 zero1, u8 zero
     winTemplate.width = 24;
     winTemplate.height = 2;
     windowId = AddWindow(&winTemplate);
-    FillWindowPixelBuffer(windowId, PIXEL_FILL(zero2));
+    FillWindowPixelBuffer(windowId, 0);
     tileData1 = (u8 *) GetWindowAttribute(windowId, WINDOW_TILE_DATA);
     tileData2 = (winTemplate.width * TILE_SIZE_4BPP) + tileData1;
 
-    if (!zero1)
-        txtColor[0] = TEXT_COLOR_TRANSPARENT;
-    else
-        txtColor[0] = zero2;
+    // if (!zero1)
+    //     txtColor[0] = TEXT_COLOR_TRANSPARENT;
+    // else
+    //     txtColor[0] = zero2;
+    txtColor[0] = TEXT_COLOR_TRANSPARENT;
     txtColor[1] = TEXT_DYNAMIC_COLOR_6;
     txtColor[2] = TEXT_DYNAMIC_COLOR_5;
     AddTextPrinterParameterized4(windowId, FONT_NORMAL, 0, 1, 0, 0, txtColor, TEXT_SKIP_DRAW, string);
 
-    tileBytesToBuffer = bytesToBuffer;
-    if (tileBytesToBuffer > 6u)
-        tileBytesToBuffer = 6;
-    remainingBytes = bytesToBuffer - 6;
-    if (tileBytesToBuffer > 0)
+    tileBytesToBuffer = bytesToBuffer < 6 ? bytesToBuffer : 6;
+
+    for (i = tileBytesToBuffer; i != 0; i--)
     {
-        for (i = tileBytesToBuffer; i != 0; i--)
-        {
-            CpuCopy16(tileData1, dst, 0x80);
-            CpuCopy16(tileData2, dst + 0x80, 0x80);
-            tileData1 += 0x80;
-            tileData2 += 0x80;
-            dst += 0x100;
-        }
+        CpuCopy16(tileData1, dst, 0x80);
+        CpuCopy16(tileData2, dst + 0x80, 0x80);
+        tileData1 += 0x80;
+        tileData2 += 0x80;
+        dst += 0x100;
     }
 
     // Never used. bytesToBuffer is always passed <= 6, so remainingBytes is always <= 0 here
-    if (remainingBytes > 0)
-        CpuFill16((zero2 << 4) | zero2, dst, (u32)(remainingBytes) * 0x100);
+    // if (remainingBytes > 0)
+    //     CpuFill16((zero2 << 4) | zero2, dst, (u32)(remainingBytes) * 0x100);
 
     RemoveWindow(windowId);
 }
@@ -1450,8 +1446,9 @@ u16 CountPartyAliveNonEggMonsExcept(u8 slotToIgnore)
 
     for (i = 0, j = 0; i < gPlayerPartyCount; i++)
     {
-        if (i != slotToIgnore
-            && !GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG)
+        if (i == slotToIgnore)
+            continue;
+        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG)
             && GetMonData(&gPlayerParty[i], MON_DATA_HP) != 0)
         {
             j++;
@@ -1496,7 +1493,7 @@ static void UNUSED UnusedWriteRectCpu(u16 *dest, u16 dest_left, u16 dest_top, co
 {
     u16 i;
 
-    dest_width *= 2;
+    dest_width *= sizeof(u16);
     dest += dest_top * 0x20 + dest_left;
     src += src_top * src_width + src_left;
     for (i = 0; i < dest_height; i++)
@@ -1512,7 +1509,7 @@ static void UNUSED UnusedWriteRectDma(u16 *dest, u16 dest_left, u16 dest_top, u1
     u16 i;
 
     dest += dest_top * 0x20 + dest_left;
-    width *= 2;
+    width *= sizeof(u16);
     for (i = 0; i < height; dest += 0x20, i++)
         Dma3FillLarge16_(0, dest, width);
 }
@@ -5503,7 +5500,7 @@ static void InitBoxTitle(u8 boxId)
     sStorage->wallpaperPalBits |= (1 << 16) << tagIndex;
 
     StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), 0, BOX_NAME_LENGTH);
-    DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 0, 0, 2);
+    DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 2);
     LoadSpriteSheet(&spriteSheet);
     x = GetBoxTitleBaseX(GetBoxNamePtr(boxId));
 
@@ -5548,7 +5545,7 @@ static void CreateIncomingBoxTitle(u8 boxId, s8 direction)
     }
 
     StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), 0, BOX_NAME_LENGTH);
-    DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 0, 0, 2);
+    DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 2);
     LoadSpriteSheet(&spriteSheet);
     LoadPalette(sBoxTitleColors[GetBoxWallpaper(boxId)], palOffset, sizeof(sBoxTitleColors[0]));
     x = GetBoxTitleBaseX(GetBoxNamePtr(boxId));
@@ -9558,7 +9555,7 @@ s16 AdvanceStorageMonIndex(struct BoxPokemon *boxMons, u8 currIndex, u8 maxIndex
 
 bool8 CheckFreePokemonStorageSpace(void)
 {
-    s32 i, j;
+    u32 i, j;
 
     for (i = 0; i < TOTAL_BOXES_COUNT; i++)
     {
@@ -9585,7 +9582,7 @@ bool32 CheckBoxMonSanityAt(u32 boxId, u32 boxPosition)
 
 u32 CountStorageNonEggMons(void)
 {
-    s32 i, j;
+    u32 i, j;
     u32 count = 0;
 
     for (i = 0; i < TOTAL_BOXES_COUNT; i++)
@@ -9622,7 +9619,7 @@ u32 CountAllStorageMons(void)
 bool32 AnyStorageMonWithMove(u16 moveId)
 {
     u16 moves[] = {moveId, MOVES_COUNT};
-    s32 i, j;
+    u32 i, j;
 
     for (i = 0; i < TOTAL_BOXES_COUNT; i++)
     {
