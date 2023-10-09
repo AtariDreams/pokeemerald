@@ -82,7 +82,7 @@ void EnableVCountIntrAtLine150(void);
 
 #define B_START_SELECT (B_BUTTON | START_BUTTON | SELECT_BUTTON)
 
-void AgbMain()
+void AgbMain(void)
 {
     // Modern compilers are liberal with the stack on entry to this function,
     // so RegisterRamReset may crash if it resets IWRAM.
@@ -247,17 +247,15 @@ static void ReadKeys(void)
     gMain.newKeys = gMain.newKeysRaw;
     gMain.newAndRepeatedKeys = gMain.newKeysRaw;
 
-    // BUG: Key repeat won't work when pressing L using L=A button mode
-    // because it compares the raw key input with the remapped held keys.
-    // Note that newAndRepeatedKeys is never remapped either.
-
-    if (keyInput != 0 && gMain.heldKeys == keyInput)
+    if (keyInput != 0 && gMain.heldKeysRaw == keyInput)
     {
         gMain.keyRepeatCounter--;
 
         if (gMain.keyRepeatCounter == 0)
         {
             gMain.newAndRepeatedKeys = keyInput;
+            if ((keyInput & L_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+                gMain.newAndRepeatedKeys |= A_BUTTON;
             gMain.keyRepeatCounter = gKeyRepeatContinueDelay;
         }
     }
@@ -268,7 +266,7 @@ static void ReadKeys(void)
     }
 
     gMain.heldKeysRaw = keyInput;
-    gMain.heldKeys = gMain.heldKeysRaw;
+    gMain.heldKeys = keyInput;
 
     // Remap L to A if the L=A option is enabled.
     if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
