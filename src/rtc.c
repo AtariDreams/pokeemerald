@@ -56,7 +56,13 @@ u32 ConvertBcdToBinary(u8 bcd)
 
 bool8 IsLeapYear(u32 year)
 {
-    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+    if (year % 400 == 0)
+        return TRUE;
+    
+    if (year % 100 == 0)
+        return FALSE;
+
+    if (year % 4 == 0)
         return TRUE;
 
     return FALSE;
