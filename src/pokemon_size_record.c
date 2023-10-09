@@ -95,6 +95,7 @@ static u32 GetMonSize(u16 species, u16 b)
     return height * size / 10;
 }
 
+__attribute__((target("arm")))
 static void FormatMonSizeRecord(u8 *string, u32 size)
 {
 #ifdef UNITS_IMPERIAL

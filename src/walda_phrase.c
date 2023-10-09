@@ -225,6 +225,7 @@ static void MaskWallpaperData(u8 *data, u32 size, u8 mask)
         data[i] ^= mask;
 }
 
+__attribute__((target("arm")))
 static bool8 GetWallpaperDataBit(u8 *data, u32 bitNum)
 {
     u32 i = bitNum >> 3;
@@ -233,6 +234,7 @@ static bool8 GetWallpaperDataBit(u8 *data, u32 bitNum)
     return (data[i] & flag) != 0;
 }
 
+__attribute__((target("arm")))
 static void SetWallpaperDataBit(u8 *data, u32 bitNum)
 {
     u32 i = bitNum >> 3;
@@ -241,6 +243,7 @@ static void SetWallpaperDataBit(u8 *data, u32 bitNum)
     data[i] |= flag;
 }
 
+__attribute__((target("arm")))
 static void ClearWallpaperDataBit(u8 *data, u32 bitNum)
 {
     u32 i = bitNum >> 7;
