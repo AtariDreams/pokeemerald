@@ -54,7 +54,7 @@ u32 ConvertBcdToBinary(u8 bcd)
         return 0xFF;
 }
 
-bool8 IsLeapYear(u32 year)
+static bool32 IsLeapYear(u32 year)
 {
     if (year % 400 == 0)
         return TRUE;
@@ -77,14 +77,14 @@ u16 ConvertDateToDayCount(u8 year, u8 month, u8 day)
     {
         dayCount += 365;
 
-        if (IsLeapYear(i) == TRUE)
+        if (IsLeapYear(i))
             dayCount++;
     }
 
     for (i = 0; i < month - 1; i++)
         dayCount += sNumDaysInMonths[i];
 
-    if (month > MONTH_FEB && IsLeapYear(year) == TRUE)
+    if (month > MONTH_FEB && IsLeapYear(year))
         dayCount++;
 
     dayCount += day;
