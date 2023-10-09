@@ -352,13 +352,13 @@ void MusicPlayerJumpTableCopy(void)
 
 void ClearChain(void *x)
 {
-    void (*func)(void *) = *(&gMPlayJumpTable[34]);
+    void (*func)(void *) = gMPlayJumpTable[34];
     func(x);
 }
 
 void Clear64byte(void *x)
 {
-    void (*func)(void *) = *(&gMPlayJumpTable[35]);
+    void (*func)(void *) = gMPlayJumpTable[35];
     func(x);
 }
 
