@@ -153,16 +153,14 @@ struct NamingScreenTemplate
 
 struct NamingScreenData
 {
-    u8 tilemapBuffer1[0x800];
-    u8 tilemapBuffer2[0x800];
-    u8 tilemapBuffer3[0x800];
+    u8 tilemapBuffer[3][0x800];
     u8 textBuffer[16];
     u8 tileBuffer[0x600];
     u8 state;
     u8 windows[WIN_COUNT];
-    u16 inputCharBaseXPos;
-    u16 bg1vOffset;
-    u16 bg2vOffset;
+    s16 inputCharBaseXPos;
+    s16 bg1vOffset;
+    s16 bg2vOffset;
     u16 bg1Priority;
     u16 bg2Priority;
     u8 bgToReveal;
@@ -525,9 +523,9 @@ static void NamingScreen_InitBGs(void)
     SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_EFFECT_BLEND | BLDCNT_TGT2_BG1 | BLDCNT_TGT2_BG2);
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(12, 8));
 
-    SetBgTilemapBuffer(1, sNamingScreen->tilemapBuffer1);
-    SetBgTilemapBuffer(2, sNamingScreen->tilemapBuffer2);
-    SetBgTilemapBuffer(3, sNamingScreen->tilemapBuffer3);
+    SetBgTilemapBuffer(1, sNamingScreen->tilemapBuffer[0]);
+    SetBgTilemapBuffer(2, sNamingScreen->tilemapBuffer[1]);
+    SetBgTilemapBuffer(3, sNamingScreen->tilemapBuffer[2]);
 
     FillBgTilemapBufferRect_Palette0(1, 0, 0, 0, 0x20, 0x20);
     FillBgTilemapBufferRect_Palette0(2, 0, 0, 0, 0x20, 0x20);
@@ -840,7 +838,7 @@ static bool8 PageSwapAnimState_Init(struct Task *task)
 
 static bool8 PageSwapAnimState_1(struct Task *task)
 {
-    u16 *const vOffsets[] =
+    s16 *const vOffsets[] =
     {
         &sNamingScreen->bg2vOffset,
         &sNamingScreen->bg1vOffset
@@ -851,7 +849,7 @@ static bool8 PageSwapAnimState_1(struct Task *task)
     *vOffsets[sNamingScreen->bgToHide] = Sin((task->tFrameCount + 128) & 0xFF, 40);
     if (task->tFrameCount >= 64)
     {
-        u8 temp = sNamingScreen->bg1Priority;  //Why u8 and not u16?
+        u16 temp = sNamingScreen->bg1Priority;  //Why u8 and not u16?
 
         sNamingScreen->bg1Priority = sNamingScreen->bg2Priority;
         sNamingScreen->bg2Priority = temp;
@@ -862,7 +860,7 @@ static bool8 PageSwapAnimState_1(struct Task *task)
 
 static bool8 PageSwapAnimState_2(struct Task *task)
 {
-    u16 *const vOffsets[] =
+    s16 *const vOffsets[] =
     {
         &sNamingScreen->bg2vOffset,
         &sNamingScreen->bg1vOffset
@@ -1049,11 +1047,10 @@ static void SpriteCB_Cursor(struct Sprite *sprite)
 
     if (sprite->sFlashing)
     {
-        s8 gb = sprite->sColor;
-        s8 r = sprite->sColor >> 1;
-        u16 index = OBJ_PLTT_ID(IndexOfSpritePaletteTag(PALTAG_CURSOR)) + 1;
+        u8 gb = sprite->sColor;
+        u8 r = sprite->sColor >> 1;
 
-        MultiplyInvertedPaletteRGBComponents(index, r, gb, gb);
+        MultiplyInvertedPaletteRGBComponents(OBJ_PLTT_ID(IndexOfSpritePaletteTag(PALTAG_CURSOR)) + 1, r, gb, gb);
     }
 }
 
@@ -1122,8 +1119,8 @@ static void CreateCursorSprite(void)
     SetCursorInvisibility(TRUE);
     gSprites[sNamingScreen->cursorSpriteId].oam.priority = 1;
     gSprites[sNamingScreen->cursorSpriteId].oam.objMode = ST_OAM_OBJ_BLEND;
-    gSprites[sNamingScreen->cursorSpriteId].sColorIncr = 1; // ? immediately overwritten
-    gSprites[sNamingScreen->cursorSpriteId].sColorIncr = 2;
+    gSprites[sNamingScreen->cursorSpriteId].sColorIncr = 2; // ? immediately overwritten
+    gSprites[sNamingScreen->cursorSpriteId].sColorDelay = 2; // TODO: does this matter?
     SetCursorPos(0, 0);
 }
 
@@ -1136,7 +1133,7 @@ static void SetCursorPos(s16 x, s16 y)
     else
         cursorSprite->x = 0;
 
-    cursorSprite->y = y * 16 + 88;
+    cursorSprite->y = (y << 4) + 88;
     cursorSprite->sPrevX = cursorSprite->sX;
     cursorSprite->sPrevY = cursorSprite->sY;
     cursorSprite->sX = x;
@@ -1752,7 +1749,7 @@ static void DummyGenderIcon(void)
 
 }
 
-static const u8 sGenderColors[2][3] =
+static const u8 ALIGNED(4) sGenderColors[2][3] =
 {
     {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_LIGHT_BLUE, TEXT_COLOR_BLUE},
     {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_LIGHT_RED, TEXT_COLOR_RED}
@@ -1795,11 +1792,11 @@ static u8 GetTextEntryPosition(void)
 
 static u8 GetPreviousTextCaretPosition(void)
 {
-    s8 i;
+    u8 i;
 
-    for (i = sNamingScreen->template->maxChars - 1; i > 0; i--)
+    for (i = sNamingScreen->template->maxChars; i > 1;)
     {
-        if (sNamingScreen->textBuffer[i] != EOS)
+        if (sNamingScreen->textBuffer[--i] != EOS)
             return i;
     }
     return 0;

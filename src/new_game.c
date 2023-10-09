@@ -105,7 +105,7 @@ static void ClearPokedexFlags(void)
 
 void ClearAllContestWinnerPics(void)
 {
-    s32 i;
+    u32 i;
 
     ClearContestWinnerPicsInContestHall();
 
