@@ -1404,7 +1404,7 @@ static void AnimTask_Withdraw_Step(u8 taskId)
     {
         gTasks[taskId].data[0] += 0xB0;
         // this y position update gets overwritten by SetBattlerSpriteYOffsetFromRotation()
-        gSprites[spriteId].y2++;
+       // gSprites[spriteId].y2++;
     }
     else if (gTasks[taskId].data[1] == 1)
     {
@@ -1417,7 +1417,7 @@ static void AnimTask_Withdraw_Step(u8 taskId)
     {
         gTasks[taskId].data[0] -= 0xB0;
         // this y position update gets overwritten by SetBattlerSpriteYOffsetFromRotation()
-        gSprites[spriteId].y2--;
+        // gSprites[spriteId].y2--;
     }
 
     SetBattlerSpriteYOffsetFromRotation(spriteId);
