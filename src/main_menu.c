@@ -1337,19 +1337,18 @@ static void Task_NewGameBirchSpeech_SlideOutOldGenderSprite(u8 taskId)
         return;
     }
 
-        gSprites[spriteId].invisible = TRUE;
-        if (gTasks[taskId].tPlayerGender == MALE)
-            spriteId = gTasks[taskId].tBrendanSpriteId;
-        else
-            spriteId = gTasks[taskId].tMaySpriteId;
-        gSprites[spriteId].x = DISPLAY_WIDTH;
-        gSprites[spriteId].y = 60;
-        gSprites[spriteId].invisible = FALSE;
-        gTasks[taskId].tPlayerSpriteId = spriteId;
-        gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
-        NewGameBirchSpeech_StartFadeInTarget1OutTarget2(taskId, 0);
-        gTasks[taskId].func = Task_NewGameBirchSpeech_SlideInNewGenderSprite;
-
+    gSprites[spriteId].invisible = TRUE;
+    if (gTasks[taskId].tPlayerGender == MALE)
+        spriteId = gTasks[taskId].tBrendanSpriteId;
+    else
+        spriteId = gTasks[taskId].tMaySpriteId;
+    gSprites[spriteId].x = DISPLAY_WIDTH;
+    gSprites[spriteId].y = 60;
+    gSprites[spriteId].invisible = FALSE;
+    gTasks[taskId].tPlayerSpriteId = spriteId;
+    gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
+    NewGameBirchSpeech_StartFadeInTarget1OutTarget2(taskId, 0);
+    gTasks[taskId].func = Task_NewGameBirchSpeech_SlideInNewGenderSprite;
 }
 
 static void Task_NewGameBirchSpeech_SlideInNewGenderSprite(u8 taskId)
