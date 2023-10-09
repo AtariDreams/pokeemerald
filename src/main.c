@@ -35,7 +35,7 @@ const u8 gGameVersion = GAME_VERSION;
 
 const u8 gGameLanguage = GAME_LANGUAGE; // English
 
-const IntrFunc gIntrTableTemplate[] =
+ALIGNED(4) const IntrFunc gIntrTableTemplate[] =
 {
     VCountIntr, // V-count interrupt
     SerialIntr, // Serial interrupt
@@ -60,7 +60,7 @@ bool8 gLinkTransferringData;
 struct Main gMain;
 u16 gKeyRepeatContinueDelay;
 bool8 gSoftResetDisabled;
-IntrFunc gIntrTable[INTR_COUNT];
+ALIGNED(4) IntrFunc gIntrTable[INTR_COUNT];
 u8 gLinkVSyncDisabled;
 u32 IntrMain_Buffer[0x200];
 s8 gPcmDmaCounter;
@@ -89,6 +89,7 @@ void AgbMain(void)
 #if !MODERN
     RegisterRamReset(RESET_ALL);
 #endif //MODERN
+    DebugPrintf("Here");
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
     InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;

@@ -868,7 +868,7 @@ void LoadBattleTextboxAndBackground(void)
 
 static void DrawLinkBattleParticipantPokeballs(u8 taskId, u8 multiplayerId, u8 bgId, u8 destX, u8 destY)
 {
-    s32 i;
+    u32 i;
     u16 pokeballStatuses = 0;
     u16 tiles[6];
 
