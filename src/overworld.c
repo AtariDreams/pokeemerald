@@ -472,7 +472,7 @@ void LoadSaveblockObjEventScripts(void)
 {
     const struct ObjectEventTemplate *mapHeaderObjTemplates = gMapHeader.events->objectEvents;
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1.objectEventTemplates;
-    s32 i;
+    u32 i;
 
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
         savObjTemplates[i].script = mapHeaderObjTemplates[i].script;
@@ -2279,7 +2279,7 @@ static void CheckRfuKeepAliveTimer(void)
 
 static void ResetAllPlayerLinkStates(void)
 {
-    s32 i;
+    u32 i;
     for (i = 0; i < MAX_LINK_PLAYERS; i++)
         sPlayerLinkStates[i] = PLAYER_LINK_STATE_IDLE;
 }
@@ -2287,8 +2287,8 @@ static void ResetAllPlayerLinkStates(void)
 // Returns true if all connected players are in state.
 static bool32 AreAllPlayersInLinkState(u16 state)
 {
-    s32 i;
-    s32 count = gFieldLinkPlayerCount;
+    u32 i;
+    u32 count = gFieldLinkPlayerCount;
 
     for (i = 0; i < count; i++)
         if (sPlayerLinkStates[i] != state)
@@ -2298,8 +2298,8 @@ static bool32 AreAllPlayersInLinkState(u16 state)
 
 static bool32 IsAnyPlayerInLinkState(u16 state)
 {
-    s32 i;
-    s32 count = gFieldLinkPlayerCount;
+    u32 i;
+    u32 count = gFieldLinkPlayerCount;
 
     for (i = 0; i < count; i++)
         if (sPlayerLinkStates[i] == state)
