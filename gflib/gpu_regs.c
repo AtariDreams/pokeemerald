@@ -20,13 +20,15 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    unsigned int i;
+    memset(sGpuRegWaitingList, 0xFF, GPU_REG_BUF_SIZE);
 
-    for (i = 0; i < GPU_REG_BUF_SIZE; i++)
-    {
-        sGpuRegBuffer[i] = 0;
-        sGpuRegWaitingList[i] = EMPTY_SLOT;
-    }
+    // Memory already set to 0
+    // for (i = 0; i < GPU_REG_BUF_SIZE; i++)
+    // {
+    //     // todo: all set to 0?
+    //    //  sGpuRegBuffer[i] = 0;
+    //     sGpuRegWaitingList[i] = EMPTY_SLOT;
+    // }
 
     sGpuRegBufferLocked = FALSE;
     sShouldSyncRegIE = FALSE;
