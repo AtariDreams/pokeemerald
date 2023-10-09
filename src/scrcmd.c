@@ -2036,11 +2036,9 @@ bool8 ScrCmd_setmetatile(struct ScriptContext *ctx)
 
 bool8 ScrCmd_opendoor(struct ScriptContext *ctx)
 {
-    u32 x = VarGet(ScriptReadHalfword(ctx));
-    u32 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
+    u32 y = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
 
-    x += MAP_OFFSET;
-    y += MAP_OFFSET;
     PlaySE(GetDoorSoundEffect(x, y));
     FieldAnimateDoorOpen(x, y);
     return FALSE;
@@ -2048,11 +2046,9 @@ bool8 ScrCmd_opendoor(struct ScriptContext *ctx)
 
 bool8 ScrCmd_closedoor(struct ScriptContext *ctx)
 {
-    u32 x = VarGet(ScriptReadHalfword(ctx));
-    u32 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
+    u32 y = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
 
-    x += MAP_OFFSET;
-    y += MAP_OFFSET;
     FieldAnimateDoorClose(x, y);
     return FALSE;
 }
@@ -2073,22 +2069,18 @@ bool8 ScrCmd_waitdooranim(struct ScriptContext *ctx)
 
 bool8 ScrCmd_setdooropen(struct ScriptContext *ctx)
 {
-    u32 x = VarGet(ScriptReadHalfword(ctx));
-    u32 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
+    u32 y = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
 
-    x += MAP_OFFSET;
-    y += MAP_OFFSET;
     FieldSetDoorOpened(x, y);
     return FALSE;
 }
 
 bool8 ScrCmd_setdoorclosed(struct ScriptContext *ctx)
 {
-    u32 x = VarGet(ScriptReadHalfword(ctx));
-    u32 y = VarGet(ScriptReadHalfword(ctx));
+    u32 x = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
+    u32 y = VarGet(ScriptReadHalfword(ctx)) + MAP_OFFSET;
 
-    x += MAP_OFFSET;
-    y += MAP_OFFSET;
     FieldSetDoorClosed(x, y);
     return FALSE;
 }
@@ -2096,10 +2088,10 @@ bool8 ScrCmd_setdoorclosed(struct ScriptContext *ctx)
 // Below two are functions for elevators in RS, do nothing in Emerald
 bool8 ScrCmd_addelevmenuitem(struct ScriptContext *ctx)
 {
-    u8 v3 = ScriptReadByte(ctx);
-    u16 v5 = VarGet(ScriptReadHalfword(ctx));
-    u16 v7 = VarGet(ScriptReadHalfword(ctx));
-    u16 v9 = VarGet(ScriptReadHalfword(ctx));
+    // u8 v3 = ScriptReadByte(ctx);
+    // u16 v5 = VarGet(ScriptReadHalfword(ctx));
+    // u16 v7 = VarGet(ScriptReadHalfword(ctx));
+    // u16 v9 = VarGet(ScriptReadHalfword(ctx));
 
     //ScriptAddElevatorMenuItem(v3, v5, v7, v9);
     return FALSE;

@@ -215,7 +215,7 @@ void DigitObjUtil_PrintNumOn(u32 id, s32 num)
     if (num < 0)
     {
         sign = TRUE;
-        num *= -1;
+        num = -num;
     }
     else
     {
