@@ -84,14 +84,11 @@ void EnableVCountIntrAtLine150(void);
 
 void AgbMain(void)
 {
-    // Modern compilers are liberal with the stack on entry to this function,
-    // so RegisterRamReset may crash if it resets IWRAM.
-#if !MODERN
-    RegisterRamReset(RESET_ALL);
-#endif //MODERN
-    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
-    InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
+
+    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
+
+    InitGpuRegManager();
     InitKeys();
     InitIntrHandlers();
     m4aSoundInit();
@@ -99,22 +96,22 @@ void AgbMain(void)
     InitRFU();
     RtcInit();
     CheckForFlashMemory();
+    // Works because of null initialization
+    if (gFlashMemoryPresent)
+        SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+
+    SeedRngWithRtc(); // see comment at SeedRngWithRtc definition below
     InitMainCallbacks();
     InitMapMusic();
-#ifdef BUGFIX
-    SeedRngWithRtc(); // see comment at SeedRngWithRtc definition below
-#endif
     ClearDma3Requests();
     ResetBgs();
     SetDefaultFontsPointer();
     InitHeap(gHeap, HEAP_SIZE);
 
-    gSoftResetDisabled = FALSE;
-
-    if (gFlashMemoryPresent != TRUE)
-        SetMainCallback2(NULL);
-
-    gLinkTransferringData = FALSE;
+    // TODO: redundant?
+    // gTrainerHillVBlankCounter = NULL;
+    // gSoftResetDisabled = FALSE;
+    // gLinkTransferringData = FALSE;
 
 #ifndef NDEBUG
 #if (LOG_HANDLER == LOG_HANDLER_MGBA_PRINT)
@@ -123,6 +120,8 @@ void AgbMain(void)
     AGBPrintfInit();
 #endif
 #endif
+
+    // Loop forever
     for (;;)
     {
         ReadKeys();
@@ -172,7 +171,6 @@ static void UpdateLinkAndCallCallbacks(void)
 static void InitMainCallbacks(void)
 {
     gMain.vblankCounter1 = 0;
-    gTrainerHillVBlankCounter = NULL;
     gMain.vblankCounter2 = 0;
     gMain.callback1 = NULL;
     SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
