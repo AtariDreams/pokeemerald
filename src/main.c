@@ -89,7 +89,6 @@ void AgbMain(void)
 #if !MODERN
     RegisterRamReset(RESET_ALL);
 #endif //MODERN
-    DebugPrintf("Here");
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
     InitGpuRegManager();
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
