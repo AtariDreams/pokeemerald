@@ -61,20 +61,31 @@ u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
     val2 = gScaleTable[key + 1];
     val2 = gFreqTable[val2 & 0xF] >> (val2 >> 4);
 
-    u32 multiplier, temp32Hi, temp32Lo;
+    u32 multiplier;
+
+    u64 result;
 
     multiplier = val2 - val1;
 
-    asm( "umull %0,%1,%2,%3" : "=r"(temp32Hi), "=r"(temp32Lo) : "r"(multiplier), "r"(fineAdjustShifted));
+    result = ((u64)multiplier * fineAdjustShifted);
 
-    fineAdjustShifted = val1 + temp32Lo;
+    fineAdjustShifted = val1 + (result >> 32);
 
     multiplier = wav->freq;
 
+    result = ((u64)multiplier * fineAdjustShifted);
 
-    asm( "umull %0,%1,%2,%3" : "=r"(temp32Hi), "=r"(temp32Lo): "r"(multiplier), "r"(fineAdjustShifted));
+    return (result >> 32);
 
-    return temp32Lo;
+    // asm( "umull %0,%1,%2,%3" : "=r"(temp32Hi), "=r"(temp32Lo) : "r"(multiplier), "r"(fineAdjustShifted));
+
+    // fineAdjustShifted = val1 + temp32Lo;
+
+    // multiplier = wav->freq;
+
+    // asm( "umull %0,%1,%2,%3" : "=r"(temp32Hi), "=r"(temp32Lo): "r"(multiplier), "r"(fineAdjustShifted));
+
+    // return temp32Lo;
 }
 
 
