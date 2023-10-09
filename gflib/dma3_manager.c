@@ -144,7 +144,7 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
             sDma3Requests[cursor].mode = mode;
             sDma3Requests[cursor].value = value;
 
-            if(mode == 1)
+            if(mode)
                 sDma3Requests[cursor].mode = DMA_REQUEST_FILL32;
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_FILL16;

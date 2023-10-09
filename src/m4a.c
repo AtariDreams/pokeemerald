@@ -268,8 +268,9 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
     if (mplayInfo->ident == ID_NUMBER)
     {
         mplayInfo->ident++;
-        mplayInfo->fadeOC = speed;
+
         mplayInfo->fadeOI = speed;
+        mplayInfo->fadeOC = speed;
         mplayInfo->fadeOV = (0 << FADE_VOL_SHIFT) | FADE_IN;
         mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
         mplayInfo->ident = ID_NUMBER;
