@@ -664,7 +664,7 @@ static void Task_MainMenuCheckSaveFile(u8 taskId)
     }
     if (sCurrItemAndOptionMenuCheck & OPTION_MENU_FLAG) // are we returning from the options menu?
     {
-        // No need to clear any flags since we set the valye directly
+        // No need to clear any flags since we set the value directly
         sCurrItemAndOptionMenuCheck = tMenuType + 1; // if so, highlight the OPTIONS item
     }
     tCurrItem = sCurrItemAndOptionMenuCheck;
