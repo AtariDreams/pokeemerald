@@ -1660,10 +1660,11 @@ void AnimTask_AirCutterProjectile(u8 taskId)
     {
         gTasks[taskId].data[4] = 2;
         gBattleAnimArgs[0] = -gBattleAnimArgs[0];
-        if (gBattleAnimArgs[2] & 1)
-            gBattleAnimArgs[2] &= ~1;
-        else
-            gBattleAnimArgs[2] |= 1;
+        gBattleAnimArgs[2] ^= 1;
+        // if (gBattleAnimArgs[2] & 1)
+        //     gBattleAnimArgs[2] &= ~1;
+        // else
+        //     gBattleAnimArgs[2] |= 1;
     }
     else
     {
@@ -1672,10 +1673,11 @@ void AnimTask_AirCutterProjectile(u8 taskId)
             gTasks[taskId].data[4] = 1;
             gBattleAnimArgs[0] = -gBattleAnimArgs[0];
             gBattleAnimArgs[1] = -gBattleAnimArgs[1];
-            if (gBattleAnimArgs[2] & 1)
-                gBattleAnimArgs[2] &= ~1;
-            else
-                gBattleAnimArgs[2] |= 1;
+            gBattleAnimArgs[2] ^= 1;
+            // if (gBattleAnimArgs[2] & 1)
+            //     gBattleAnimArgs[2] &= ~1;
+            // else
+            //     gBattleAnimArgs[2] |= 1;
         }
     }
 

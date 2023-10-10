@@ -246,7 +246,7 @@ static void SetWallpaperDataBit(u8 *data, u32 bitNum)
 __attribute__((target("arm")))
 static void ClearWallpaperDataBit(u8 *data, u32 bitNum)
 {
-    u32 i = bitNum >> 7;
+    u32 i = bitNum >> 3;
     u8 mask = ~((1 << 7) >> (bitNum & 7));
 
     data[i] &= mask;
