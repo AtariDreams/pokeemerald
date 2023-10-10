@@ -392,7 +392,7 @@ u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset)
         return -1;
     }
 
-    sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor % 0x20));
 
     return (u8)cursor;
 }

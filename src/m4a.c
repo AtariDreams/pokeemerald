@@ -1509,16 +1509,7 @@ void ply_xxx(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 
 void ply_xwave(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 wav;
-
-#ifdef UBFIX
-    wav = 0;
-#endif
-
-    READ_XCMD_BYTE(wav, 0) // UB: uninitialized variable
-    READ_XCMD_BYTE(wav, 1)
-    READ_XCMD_BYTE(wav, 2)
-    READ_XCMD_BYTE(wav, 3)
+    u32 wav = (track->cmdPtr[3] << 24) | (track->cmdPtr[2] << 16) | (track->cmdPtr[1] << 8) | track->cmdPtr[0];
 
     track->tone.wav = (struct WaveData *)wav;
     track->cmdPtr += 4;
@@ -1571,16 +1562,9 @@ void ply_xswee(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
 
 void ply_xcmd_0C(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 unk;
+    u16 unk = (track->cmdPtr[1] << 8) | track->cmdPtr[0];
 
-#ifdef UBFIX
-    unk = 0;
-#endif
-
-    READ_XCMD_BYTE(unk, 0) // UB: uninitialized variable
-    READ_XCMD_BYTE(unk, 1)
-
-    if (track->unk_3A < (u16)unk)
+    if (track->unk_3A < unk)
     {
         track->unk_3A++;
         track->cmdPtr -= 2;
@@ -1595,18 +1579,9 @@ void ply_xcmd_0C(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *tra
 
 void ply_xcmd_0D(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 unk;
+    u32 wav = (track->cmdPtr[3] << 24) | (track->cmdPtr[2] << 16) | (track->cmdPtr[1] << 8) | track->cmdPtr[0];
 
-#ifdef UBFIX
-    unk = 0;
-#endif
-
-    READ_XCMD_BYTE(unk, 0) // UB: uninitialized variable
-    READ_XCMD_BYTE(unk, 1)
-    READ_XCMD_BYTE(unk, 2)
-    READ_XCMD_BYTE(unk, 3)
-
-    track->unk_3C = unk;
+    track->unk_3C = wav;
     track->cmdPtr += 4;
 }
 
@@ -1617,8 +1592,8 @@ void DummyFunc(void)
 struct MusicPlayerInfo *SetPokemonCryTone(struct ToneData *tone)
 {
     u32 maxClock = 0;
-    s32 maxClockIndex = 0;
-    s32 i;
+    u32 maxClockIndex = 0;
+    u32 i;
     struct MusicPlayerInfo *mplayInfo;
 
     for (i = 0; i < MAX_POKEMON_CRIES; i++)
