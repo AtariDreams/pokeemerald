@@ -5443,7 +5443,7 @@ static bool8 IsTrendySayingUnlocked(u8 wordIndex)
 {
     int byteOffset = wordIndex / 8;
     int shift = wordIndex % 8;
-    return (gSaveBlock1.unlockedTrendySayings[byteOffset] >> shift) & 1;
+    return (gSaveBlock1.unlockedTrendySayings[byteOffset]) & (1 << shift);
 }
 
 void UnlockTrendySaying(u8 wordIndex)
