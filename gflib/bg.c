@@ -392,21 +392,21 @@ u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset)
         return -1;
     }
 
-    sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor % 0x20));
 
     return (u8)cursor;
 }
 
 bool8 IsDma3ManagerBusyWithBgCopy(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < 0x80; i++)
     {
         u8 div = i / 0x20;
         u8 mod = i % 0x20;
 
-        if ((sDmaBusyBitfield[div] & (1 << mod)))
+        if ((sDmaBusyBitfield[div] & (1U << mod)))
         {
             s8 reqSpace = CheckForSpaceForDma3Request(i);
             if (reqSpace == -1)
@@ -414,7 +414,7 @@ bool8 IsDma3ManagerBusyWithBgCopy(void)
                 return TRUE;
             }
 
-            sDmaBusyBitfield[div] &= ~(1 << mod);
+            sDmaBusyBitfield[div] &= ~(1U << mod);
         }
     }
 

@@ -1931,7 +1931,7 @@ static void Task_PlayerExchangeUpdate(u8 taskId)
             {
                 for (i = 0; i < RFU_CHILD_MAX; i++)
                 {
-                    if ((gRfu.newChildQueue >> i) & 1)
+                    if (gRfu.newChildQueue & (1 << i))
                     {
                         gRfu.nextChildBits = 1 << i;
                         gRfu.newChildQueue ^= (1 << i);
