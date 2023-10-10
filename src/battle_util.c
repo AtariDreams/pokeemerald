@@ -914,7 +914,7 @@ void ResetSentPokesToOpponentValue(void)
 
 void OpponentSwitchInResetSentPokesToOpponentValue(u8 battler)
 {
-    s32 i = 0;
+    u32 i = 0;
     u32 bits = 0;
 
     if (GetBattlerSide(battler) == B_SIDE_OPPONENT)
