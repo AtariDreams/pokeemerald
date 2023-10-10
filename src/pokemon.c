@@ -5106,8 +5106,7 @@ u8 GetItemEffectParamOffset(u16 itemId, u8 effectByte, u8 effectBit)
             break;
         case 4:
             effectFlags = itemEffect[4];
-            if (effectFlags & ITEM4_PP_UP)
-                effectFlags &= ~(ITEM4_PP_UP);
+            effectFlags &= ~(ITEM4_PP_UP);
             j = 0;
             while (effectFlags)
             {
@@ -5116,8 +5115,7 @@ u8 GetItemEffectParamOffset(u16 itemId, u8 effectByte, u8 effectBit)
                     switch (j)
                     {
                     case 2: // ITEM4_HEAL_HP
-                        if (effectFlags & (ITEM4_REVIVE >> 2))
-                            effectFlags &= ~(ITEM4_REVIVE >> 2);
+                        effectFlags &= ~(ITEM4_REVIVE >> 2);
                         // fallthrough
                     case 0: // ITEM4_EV_HP
                         if (i == effectByte && (effectFlags & effectBit))

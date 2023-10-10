@@ -304,8 +304,8 @@ $(GFLIB_BUILDDIR)/bg.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7t
 $(GFLIB_BUILDDIR)/blit.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/window.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/text.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast -mthumb
-$(C_BUILDDIR)/math_util.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/math_util.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
 endif
 
 ifeq ($(DINFO),1)
