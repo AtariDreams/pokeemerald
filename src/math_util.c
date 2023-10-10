@@ -14,7 +14,7 @@ s16 MathUtil_Mul16Shift(u8 s, s16 x, s16 y)
     s32 tmp;
     tmp = x;
     tmp *= y;
-    tmp /= (0x00000001<<s);
+    tmp >>= s;
     return (s16)tmp;
 }
 
@@ -24,7 +24,7 @@ s32 MathUtil_Mul32(s32 x, s32 y)
 
     result = (s64)x;
     result *= (s64)y;
-    result /= 256;
+    result >>= 8;
     return (s32)result;
 }
 
@@ -36,7 +36,7 @@ s16 MathUtil_Div16(s16 x, s16 y)
         return 0;
     }
     tmp = x;
-    tmp *= 0x100;
+    tmp <<= 8;
     tmp /= y;
     return (s16)tmp;
 }
@@ -48,7 +48,7 @@ s16 MathUtil_Div16Shift(u8 s, s16 x, s16 y)
 		return 0;
 	}
     tmp = x;
-    tmp *= (0x00000001<<s);
+    tmp <<= s;
     tmp /= y;
     return (s16)tmp;
 }
@@ -60,7 +60,7 @@ s32 MathUtil_Div32(s32 x, s32 y)
 		return 0;
 	}
     tmp = (s64)x;
-    tmp *= 0x100;
+    tmp <<= 8;
     tmp /= (s64)y;
     return (s32)tmp;
 }
