@@ -7,6 +7,10 @@ SootopolisCity_MysteryEventsHouse_B1F_OnTransition:
 	special SetEReaderTrainerGfxId
 	end
 
+SootopolisCity_Event_Rose_Text:
+	.string "Well, you found me.\n"
+	.string "So many victories.$"
+
 SootopolisCity_MysteryEventsHouse_B1F_OnFrame:
 	map_script_2 VAR_TEMP_1, 0, SootopolisCity_MysteryEventsHouse_B1F_EventScript_BattleVisitingTrainer
 	.2byte 0
