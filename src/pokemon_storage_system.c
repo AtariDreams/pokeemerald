@@ -51,9 +51,9 @@
 
 // PC main menu options
 enum {
+    OPTION_MOVE_MONS,
     OPTION_WITHDRAW,
     OPTION_DEPOSIT,
-    OPTION_MOVE_MONS,
     OPTION_MOVE_ITEMS,
     OPTION_EXIT,
     OPTIONS_COUNT
@@ -879,9 +879,9 @@ struct {
     const u8 *desc;
 } static const sMainMenuTexts[OPTIONS_COUNT] =
 {
+    [OPTION_MOVE_MONS]  = {gText_MovePokemon,     gText_MoveMonDescription},
     [OPTION_WITHDRAW]   = {gText_WithdrawPokemon, gText_WithdrawMonDescription},
     [OPTION_DEPOSIT]    = {gText_DepositPokemon,  gText_DepositMonDescription},
-    [OPTION_MOVE_MONS]  = {gText_MovePokemon,     gText_MoveMonDescription},
     [OPTION_MOVE_ITEMS] = {gText_MoveItems,       gText_MoveItemsDescription},
     [OPTION_EXIT]       = {gText_SeeYa,           gText_SeeYaDescription}
 };
@@ -7592,18 +7592,6 @@ static bool8 SetMenuTexts_Mon(void)
 
     switch (sStorage->boxOption)
     {
-    case OPTION_DEPOSIT:
-        if (species != SPECIES_NONE)
-            SetMenuText(MENU_STORE);
-        else
-            return FALSE;
-        break;
-    case OPTION_WITHDRAW:
-        if (species != SPECIES_NONE)
-            SetMenuText(MENU_WITHDRAW);
-        else
-            return FALSE;
-        break;
     case OPTION_MOVE_MONS:
         if (sIsMonBeingMoved)
         {
@@ -7619,6 +7607,18 @@ static bool8 SetMenuTexts_Mon(void)
             else
                 return FALSE;
         }
+        break;
+    case OPTION_DEPOSIT:
+        if (species != SPECIES_NONE)
+            SetMenuText(MENU_STORE);
+        else
+            return FALSE;
+        break;
+    case OPTION_WITHDRAW:
+        if (species != SPECIES_NONE)
+            SetMenuText(MENU_WITHDRAW);
+        else
+            return FALSE;
         break;
     case OPTION_MOVE_ITEMS:
     default:
