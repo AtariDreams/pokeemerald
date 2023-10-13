@@ -899,11 +899,6 @@ bool8 IsBattlerSpritePresent(u8 battlerId)
     return FALSE;
 }
 
-bool8 IsDoubleBattle(void)
-{
-    return IS_DOUBLE_BATTLE();
-}
-
 #define BG_ANIM_PAL_1        8
 #define BG_ANIM_PAL_2        9
 #define BG_ANIM_PAL_CONTEST 14
@@ -2305,7 +2300,7 @@ void SetAverageBattlerPositions(u8 battlerId, bool8 respectMonPicOffsets, s16 *x
 
     battlerX = GetBattlerSpriteCoord(battlerId, xCoordType);
     battlerY = GetBattlerSpriteCoord(battlerId, yCoordType);
-    if (IsDoubleBattle() && !IsContest())
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && !IsContest())
     {
         partnerX = GetBattlerSpriteCoord(BATTLE_PARTNER(battlerId), xCoordType);
         partnerY = GetBattlerSpriteCoord(BATTLE_PARTNER(battlerId), yCoordType);

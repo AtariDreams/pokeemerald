@@ -727,7 +727,7 @@ void BattleLoadAllHealthBoxesGfxAtOnce(void)
 
     LoadSpritePalette(&sSpritePalettes_HealthBoxHealthBar[0]);
     LoadSpritePalette(&sSpritePalettes_HealthBoxHealthBar[1]);
-    if (!IsDoubleBattle())
+    if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
     {
         LoadCompressedSpriteSheet(&sSpriteSheet_SinglesPlayerHealthbox);
         LoadCompressedSpriteSheet(&sSpriteSheet_SinglesOpponentHealthbox);
@@ -756,7 +756,7 @@ bool8 BattleLoadAllHealthBoxesGfx(u8 state)
             LoadSpritePalette(&sSpritePalettes_HealthBoxHealthBar[0]);
             LoadSpritePalette(&sSpritePalettes_HealthBoxHealthBar[1]);
         }
-        else if (!IsDoubleBattle())
+        else if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
         {
             if (state == 2)
             {
@@ -1085,12 +1085,12 @@ void HandleLowHpMusicChange(struct Pokemon *mon, u8 battlerId)
     else
     {
         gBattleSpritesDataPtr->battlerData[battlerId].lowHpSong = 0;
-        if (!IsDoubleBattle())
+        if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
         {
             m4aSongNumStop(SE_LOW_HEALTH);
             return;
         }
-        if (IsDoubleBattle() && !gBattleSpritesDataPtr->battlerData[BATTLE_PARTNER(battlerId)].lowHpSong)
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && !gBattleSpritesDataPtr->battlerData[BATTLE_PARTNER(battlerId)].lowHpSong)
         {
             m4aSongNumStop(SE_LOW_HEALTH);
             return;
@@ -1103,7 +1103,7 @@ void BattleStopLowHpSound(void)
     u8 playerBattler = GetBattlerAtPosition(B_POSITION_PLAYER_LEFT);
 
     gBattleSpritesDataPtr->battlerData[playerBattler].lowHpSong = 0;
-    if (IsDoubleBattle())
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
         gBattleSpritesDataPtr->battlerData[BATTLE_PARTNER(playerBattler)].lowHpSong = 0;
 
     m4aSongNumStop(SE_LOW_HEALTH);
@@ -1128,7 +1128,7 @@ void HandleBattleLowHpMusicChange(void)
 
         if (GetMonData(&gPlayerParty[battler1PartyId], MON_DATA_HP) != 0)
             HandleLowHpMusicChange(&gPlayerParty[battler1PartyId], playerBattler1);
-        if (IsDoubleBattle() && GetMonData(&gPlayerParty[battler2PartyId], MON_DATA_HP) != 0)
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && GetMonData(&gPlayerParty[battler2PartyId], MON_DATA_HP) != 0)
             HandleLowHpMusicChange(&gPlayerParty[battler2PartyId], playerBattler2);
     }
 }
@@ -1170,7 +1170,7 @@ void LoadAndCreateEnemyShadowSprites(void)
                                                                                     0xC8);
     gSprites[gBattleSpritesDataPtr->healthBoxesData[battlerId].shadowSpriteId].data[0] = battlerId;
 
-    if (IsDoubleBattle())
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
     {
         battlerId = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
         gBattleSpritesDataPtr->healthBoxesData[battlerId].shadowSpriteId = CreateSprite(&gSpriteTemplate_EnemyShadow,

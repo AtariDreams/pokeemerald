@@ -1777,7 +1777,7 @@ static void Cmd_teamattack_moveback(void)
     sBattleAnimScriptPtr += 2;
 
     // Apply to double battles when attacking own side
-    if (!IsContest() && IsDoubleBattle()
+    if (!IsContest() && (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
      && GetBattlerSide(gBattleAnimAttacker) == GetBattlerSide(gBattleAnimTarget))
     {
         if (wantedBattler == ANIM_ATTACKER)
@@ -1814,7 +1814,7 @@ static void Cmd_teamattack_movefwd(void)
     sBattleAnimScriptPtr += 2;
 
     // Apply to double battles when attacking own side
-    if (!IsContest() && IsDoubleBattle()
+    if (!IsContest() && (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
      && GetBattlerSide(gBattleAnimAttacker) == GetBattlerSide(gBattleAnimTarget))
     {
         if (wantedBattler == ANIM_ATTACKER)
