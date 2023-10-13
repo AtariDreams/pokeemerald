@@ -424,11 +424,9 @@ static void Cmd_createvisualtask(void)
     taskFunc = (TaskFunc)T2_READ_32(sBattleAnimScriptPtr);
     sBattleAnimScriptPtr += 4;
 
-    taskPriority = sBattleAnimScriptPtr[0];
-    sBattleAnimScriptPtr++;
+    taskPriority = *sBattleAnimScriptPtr++;
 
-    numArgs = sBattleAnimScriptPtr[0];
-    sBattleAnimScriptPtr++;
+    numArgs = *sBattleAnimScriptPtr++;
 
     for (i = 0; i < numArgs; i++)
     {
@@ -657,8 +655,6 @@ bool8 IsBattlerSpriteVisible(u8 battlerId)
     }
     if (!IsBattlerSpritePresent(battlerId))
         return FALSE;
-    if (IsContest())
-        return TRUE; // This line won't ever be reached.
     if (!gBattleSpritesDataPtr->battlerData[battlerId].invisible || !gSprites[gBattlerSpriteIds[battlerId]].invisible)
         return TRUE;
 
