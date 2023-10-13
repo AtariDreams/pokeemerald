@@ -480,28 +480,14 @@ static void SetDistanceOfClosestHiddenItem(u8 taskId, s16 itemDistanceX, s16 ite
         // Other items have been found, check if this one is closer
 
         // Get absolute x distance of the already-found item
-        if (tItemDistanceX < 0)
-            oldItemAbsX = tItemDistanceX * -1; // WEST
-        else
-            oldItemAbsX = tItemDistanceX;      // EAST
 
-        // Get absolute y distance of the already-found item
-        if (tItemDistanceY < 0)
-            oldItemAbsY = tItemDistanceY * -1; // NORTH
-        else
-            oldItemAbsY = tItemDistanceY;      // SOUTH
+        oldItemAbsX = abs(tItemDistanceX);
 
-        // Get absolute x distance of the newly-found item
-        if (itemDistanceX < 0)
-            newItemAbsX = itemDistanceX * -1;
-        else
-            newItemAbsX = itemDistanceX;
+        oldItemAbsY = abs(tItemDistanceY);
 
-        // Get absolute y distance of the newly-found item
-        if (itemDistanceY < 0)
-            newItemAbsY = itemDistanceY * -1;
-        else
-            newItemAbsY = itemDistanceY;
+        newItemAbsX = abs(itemDistanceX);
+
+        newItemAbsY = abs(itemDistanceY);
 
 
         if (oldItemAbsX + oldItemAbsY > newItemAbsX + newItemAbsY)
@@ -530,17 +516,9 @@ static u8 GetDirectionToHiddenItem(s16 itemDistanceX, s16 itemDistanceY)
     if (itemDistanceX == 0 && itemDistanceY == 0)
         return DIR_NONE; // player is standing on the item.
 
-    // Get absolute X distance.
-    if (itemDistanceX < 0)
-        absX = itemDistanceX * -1;
-    else
-        absX = itemDistanceX;
+    absX = abs(itemDistanceX);
 
-    // Get absolute Y distance.
-    if (itemDistanceY < 0)
-        absY = itemDistanceY * -1;
-    else
-        absY = itemDistanceY;
+    absY = abs(itemDistanceY);
 
     if (absX > absY)
     {
@@ -558,14 +536,11 @@ static u8 GetDirectionToHiddenItem(s16 itemDistanceX, s16 itemDistanceY)
             else
                 return DIR_WEST;
         }
-        if (absX == absY)
-        {
-            if (itemDistanceY < 0)
-                return DIR_SOUTH;
-            else
-                return DIR_WEST;
-        }
-        return DIR_NONE; // Unreachable
+
+        if (itemDistanceY < 0)
+            return DIR_SOUTH;
+        else
+            return DIR_WEST;
     }
 }
 
