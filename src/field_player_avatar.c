@@ -1829,6 +1829,7 @@ static bool8 Fishing_CheckForBite(struct Task *task)
     if (!DoesCurrentMapHaveFishingMons())
     {
         task->tStep = FISHING_NO_BITE;
+        return TRUE;
     }
     else
     {
