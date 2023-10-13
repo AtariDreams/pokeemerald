@@ -162,9 +162,7 @@ void GetPokeblockFeederWithinRange(void)
         if (gSaveBlock1.location.mapNum == sPokeblockFeeders[i].mapNum)
         {
             // Get absolute value of x and y distance from Pokeblock feeder on current map.
-            x = abs(x - sPokeblockFeeders[i].x);
-            y = abs(y - sPokeblockFeeders[i].y);
-            if ((x + y) <= 5)
+            if ((abs(x - sPokeblockFeeders[i].x) + abs(y - sPokeblockFeeders[i].y)) <= 5)
             {
                 gSpecialVar_Result = i;
                 return;
