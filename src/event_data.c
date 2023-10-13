@@ -207,7 +207,7 @@ u8 FlagSet(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
     if (ptr)
-        *ptr |= 1 << (id & 7);
+        *ptr |= (1U << (id & 7U));
     return 0;
 }
 
@@ -215,7 +215,7 @@ u8 FlagClear(u16 id)
 {
     u8 *ptr = GetFlagPointer(id);
     if (ptr)
-        *ptr &= ~(1 << (id & 7));
+        *ptr &= ~(1U << (id & 7U));
     return 0;
 }
 
@@ -226,7 +226,7 @@ bool8 FlagGet(u16 id)
     if (!ptr)
         return FALSE;
 
-    if (!(((*ptr) >> (id & 7)) & 1))
+    if (!(*ptr & (1U << (id & 7U))));
         return FALSE;
 
     return TRUE;
