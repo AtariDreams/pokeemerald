@@ -896,7 +896,7 @@ static void BuyMenuCollectObjectEventData(void)
 
 static void BuyMenuDrawObjectEvents(void)
 {
-    u8 i;
+    u32 i;
     u8 spriteId;
     const struct ObjectEventGraphicsInfo *graphicsInfo;
 
