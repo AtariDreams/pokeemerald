@@ -124,8 +124,8 @@ static void ApplyLevitateMovement(u8);
 static bool8 MovementType_Disguise_Callback(struct ObjectEvent *, struct Sprite *);
 static bool8 MovementType_Buried_Callback(struct ObjectEvent *, struct Sprite *);
 static void CreateReflectionEffectSprites(void);
-static u8 GetObjectEventIdByLocalId(u8);
-static u8 GetObjectEventIdByLocalIdAndMapInternal(u8, u8, u8);
+static u32 GetObjectEventIdByLocalId(u8);
+static u32 GetObjectEventIdByLocalIdAndMapInternal(u8, u8, u8);
 static bool8 GetAvailableObjectEventId(u16, u8, u8, u8 *);
 static void SetObjectEventDynamicGraphicsId(struct ObjectEvent *);
 static void RemoveObjectEventInternal(struct ObjectEvent *);
@@ -1208,7 +1208,7 @@ u8 GetFirstInactiveObjectEventId(void)
     return i;
 }
 
-u8 GetObjectEventIdByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroupId)
+u32 GetObjectEventIdByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroupId)
 {
     if (localId < OBJ_EVENT_ID_PLAYER)
         return GetObjectEventIdByLocalIdAndMapInternal(localId, mapNum, mapGroupId);
@@ -1237,9 +1237,9 @@ u8 GetObjectEventIdByXY(s16 x, s16 y)
     return i;
 }
 
-static u8 GetObjectEventIdByLocalIdAndMapInternal(u8 localId, u8 mapNum, u8 mapGroupId)
+static u32 GetObjectEventIdByLocalIdAndMapInternal(u8 localId, u8 mapNum, u8 mapGroupId)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
     {
         if (gObjectEvents[i].active && gObjectEvents[i].localId == localId && gObjectEvents[i].mapNum == mapNum && gObjectEvents[i].mapGroup == mapGroupId)
@@ -1249,9 +1249,9 @@ static u8 GetObjectEventIdByLocalIdAndMapInternal(u8 localId, u8 mapNum, u8 mapG
     return OBJECT_EVENTS_COUNT;
 }
 
-static u8 GetObjectEventIdByLocalId(u8 localId)
+static u32 GetObjectEventIdByLocalId(u8 localId)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
     {
         if (gObjectEvents[i].active && gObjectEvents[i].localId == localId)

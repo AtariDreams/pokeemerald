@@ -1359,7 +1359,7 @@ static bool32 MatchCall_SlideWindowOut(u8 taskId)
 
 static bool32 MatchCall_EndCall(u8 taskId)
 {
-    u8 playerObjectId;
+    u32 playerObjectId;
     if (!IsDma3ManagerBusyWithBgCopy() && !IsSEPlaying())
     {
         ChangeBgY(0, 0, BG_COORD_SET);

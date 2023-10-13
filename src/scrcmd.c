@@ -1229,7 +1229,7 @@ bool8 ScrCmd_lock(struct ScriptContext *ctx)
 
 bool8 ScrCmd_releaseall(struct ScriptContext *ctx)
 {
-    u8 playerObjectId;
+    u32 playerObjectId;
 
     HideFieldMessageBox();
     playerObjectId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
@@ -1241,7 +1241,7 @@ bool8 ScrCmd_releaseall(struct ScriptContext *ctx)
 
 bool8 ScrCmd_release(struct ScriptContext *ctx)
 {
-    u8 playerObjectId;
+    u32 playerObjectId;
 
     HideFieldMessageBox();
     if (gObjectEvents[gSelectedObjectEvent].active)
