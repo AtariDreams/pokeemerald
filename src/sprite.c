@@ -546,6 +546,7 @@ u8 CreateSpriteAt(u8 index, const struct SpriteTemplate *template, s16 x, s16 y,
     {
         s16 tileNum;
         sprite->images = template->images;
+
         tileNum = AllocSpriteTiles((u8)(sprite->images->size / TILE_SIZE_4BPP));
         if (tileNum == -1)
         {
@@ -617,7 +618,7 @@ void ResetOamRange(u8 start, u8 end)
 {
     u8 i;
     for (i = start; i < end; i++)
-        gMain.oamBuffer[i] = *(struct OamData *)&gDummyOamData;
+        gMain.oamBuffer[i] = gDummyOamData;
 }
 
 void LoadOam(void)
