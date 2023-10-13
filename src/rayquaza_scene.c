@@ -3101,7 +3101,7 @@ static void SpriteCB_ChasesAway_RayquazaFloat(struct Sprite *body)
     if (!(body->sFloatTimer & tail->sTailFloatDelay))
     {
         body->y2 += body->sYOffset;
-        gSprites[body->sTailSpriteId].y2 += body->sYOffset; // why access gSprites again? tail->y2 would be sufficient
+        tail->y2 += body->sYOffset; // why access gSprites again? tail->y2 would be sufficient
         body->sYOffset += body->sYOffsetDir;
         if (body->sYOffset >= tail->sTailFloatPeak || body->sYOffset <= -tail->sTailFloatPeak)
         {
