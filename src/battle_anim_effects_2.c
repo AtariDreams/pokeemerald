@@ -2563,7 +2563,7 @@ static void AnimBlendThinRing(struct Sprite *sprite)
         battler = gBattleAnimTarget;
 
     r4 = gBattleAnimArgs[3] ^ 1;
-    if (IsDoubleBattle() && IsBattlerSpriteVisible(BATTLE_PARTNER(battler)))
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && IsBattlerSpriteVisible(BATTLE_PARTNER(battler)))
     {
         SetAverageBattlerPositions(battler, r4, &x, &y);
         if (r4 == 0)
