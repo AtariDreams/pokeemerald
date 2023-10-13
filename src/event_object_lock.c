@@ -98,7 +98,7 @@ void FreezeObjects_WaitForPlayerAndSelected(void)
 
 void ScriptUnfreezeObjectEvents(void)
 {
-    u8 playerObjectId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
+    u32 playerObjectId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
     ObjectEventClearHeldMovementIfFinished(&gObjectEvents[playerObjectId]);
     ScriptMovement_UnfreezeObjectEvents();
     UnfreezeObjectEvents();
