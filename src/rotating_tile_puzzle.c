@@ -96,7 +96,7 @@ void InitRotatingTilePuzzle(bool8 isTrickHouse)
 
 void FreeRotatingTilePuzzle(void)
 {
-    u8 id;
+    u32 id;
 
     TRY_FREE_AND_SET_NULL(sRotatingTilePuzzle);
 
@@ -200,7 +200,7 @@ void TurnRotatingTileObjects(void)
     objectEvents = gSaveBlock1.objectEventTemplates;
     for (i = 0; i < sRotatingTilePuzzle->numObjects; i++)
     {
-        u8 objectEventId;
+        u32 objectEventId;
         objectEventId = GetObjectEventIdByLocalIdAndMap(objectEvents[sRotatingTilePuzzle->objects[i].eventTemplateId].localId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
         if (objectEventId != OBJECT_EVENTS_COUNT)
         {

@@ -581,7 +581,7 @@ static void LoadLinkPartnerObjectEventSpritePalette(u8 graphicsId, u8 localEvent
         graphicsId == OBJ_EVENT_GFX_RIVAL_BRENDAN_NORMAL ||
         graphicsId == OBJ_EVENT_GFX_RIVAL_MAY_NORMAL)
     {
-        u8 obj = GetObjectEventIdByLocalIdAndMap(localEventId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
+        u32 obj = GetObjectEventIdByLocalIdAndMap(localEventId, gSaveBlock1.location.mapNum, gSaveBlock1.location.mapGroup);
         if (obj != OBJECT_EVENTS_COUNT)
         {
             u8 spriteId = gObjectEvents[obj].spriteId;
