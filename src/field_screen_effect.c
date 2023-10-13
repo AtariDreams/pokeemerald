@@ -332,7 +332,7 @@ static void Task_ExitDoor(u8 taskId)
     case 1:
         if (WaitForWeatherFadeIn())
         {
-            u8 objEventId;
+            u32 objEventId;
             SetPlayerVisibility(TRUE);
             objEventId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
             ObjectEventSetHeldMovement(&gObjectEvents[objEventId], MOVEMENT_ACTION_WALK_NORMAL_DOWN);
@@ -342,7 +342,7 @@ static void Task_ExitDoor(u8 taskId)
     case 2:
         if (IsPlayerStandingStill())
         {
-            u8 objEventId;
+            u32 objEventId;
             task->data[1] = FieldAnimateDoorClose(*x, *y);
             objEventId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
             ObjectEventClearHeldMovementIfFinished(&gObjectEvents[objEventId]);
@@ -380,7 +380,7 @@ static void Task_ExitNonAnimDoor(u8 taskId)
     case 1:
         if (WaitForWeatherFadeIn())
         {
-            u8 objEventId;
+            u32 objEventId;
             SetPlayerVisibility(TRUE);
             objEventId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
             ObjectEventSetHeldMovement(&gObjectEvents[objEventId], GetWalkNormalMovementAction(GetPlayerFacingDirection()));
@@ -692,7 +692,7 @@ static void Task_DoDoorWarp(u8 taskId)
     case 1:
         if (task->data[1] < 0 || gTasks[task->data[1]].isActive != TRUE)
         {
-            u8 objEventId;
+            u32 objEventId;
             objEventId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
             ObjectEventClearHeldMovementIfActive(&gObjectEvents[objEventId]);
             objEventId = GetObjectEventIdByLocalIdAndMap(OBJ_EVENT_ID_PLAYER, 0, 0);
