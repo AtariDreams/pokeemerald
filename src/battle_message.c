@@ -2217,7 +2217,8 @@ static const u8 *TryGetStatusString(u8 *src)
     statusPtr = status;
     for (i = 0; i < ARRAY_COUNT(status); i++)
     {
-        if (*src == EOS) break; // one line required to match -g
+        if (*src == EOS)
+            break; // one line required to match -g
         *statusPtr = *src;
         src++;
         statusPtr++;
