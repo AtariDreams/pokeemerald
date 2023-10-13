@@ -2577,7 +2577,7 @@ void AnimTask_DoomDesireLightBeam(u8 taskId)
         else
         {
             u8 position = GetBattlerPosition(gBattleAnimTarget);
-            if (IsDoubleBattle() == TRUE)
+            if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) == TRUE)
             {
                 if (position == B_POSITION_OPPONENT_LEFT)
                     gBattle_BG1_X = -155;
@@ -4500,7 +4500,7 @@ void AnimTask_HelpingHandAttackerMovement(u8 taskId)
     task->data[15] = GetAnimBattlerSpriteId(ANIM_ATTACKER);
     if (!IsContest())
     {
-        if (IsDoubleBattle() == TRUE)
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) == TRUE)
         {
             int attackerX = GetBattlerSpriteCoord(gBattleAnimAttacker, BATTLER_COORD_X);
             int partnerX = GetBattlerSpriteCoord(BATTLE_PARTNER(gBattleAnimAttacker), BATTLER_COORD_X);
