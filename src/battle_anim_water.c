@@ -890,7 +890,7 @@ static void AnimTask_CreateSurfWave_Step1(u8 taskId)
         rgbBuffer = gPlttBufferFaded[BG_PLTT_ID(animBg.paletteId) + 7];
         for (i = 6; i != 0; i--)
         {
-            gPlttBufferFaded[BG_PLTT_ID(animBg.paletteId) + 1 + i] = gPlttBufferFaded[BG_PLTT_ID(animBg.paletteId) + 1 + i - 1]; // 1 + i - 1 is needed to match for some bizarre reason
+            gPlttBufferFaded[BG_PLTT_ID(animBg.paletteId) + 1 + i] = gPlttBufferFaded[BG_PLTT_ID(animBg.paletteId) + i];
         }
         gPlttBufferFaded[BG_PLTT_ID(animBg.paletteId) + 1] = rgbBuffer;
         gTasks[taskId].data[5] = 0;
