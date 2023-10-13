@@ -2984,7 +2984,7 @@ static void RemoveWindowByIndex(u8 windowIndex)
 
 static void PrintPageSpecificText(u8 pageIndex)
 {
-    u16 i;
+    u32 i;
     for (i = 0; i < ARRAY_COUNT(sMonSummaryScreen->windowIds); i++)
     {
         if (sMonSummaryScreen->windowIds[i] != WINDOW_NONE)
