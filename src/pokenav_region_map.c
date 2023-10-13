@@ -735,8 +735,8 @@ static void UpdateCityZoomTextPosition(void)
 
 static void SetCityZoomTextInvisibility(bool32 invisible)
 {
-    int i;
+    u32 i;
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(state->cityZoomTextSprites); i++)
         state->cityZoomTextSprites[i]->invisible = invisible;
 }
