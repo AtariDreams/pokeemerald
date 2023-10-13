@@ -939,7 +939,7 @@ static void Intro_WaitForShinyAnimAndHealthbox(void)
     bool8 healthboxAnimDone = FALSE;
 
     // Check if healthbox has finished sliding in
-    if (!IsDoubleBattle() || (IsDoubleBattle() && (gBattleTypeFlags & BATTLE_TYPE_MULTI)))
+    if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE) || ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && (gBattleTypeFlags & BATTLE_TYPE_MULTI)))
     {
         if (gSprites[gHealthboxSpriteIds[gActiveBattler]].callback == SpriteCallbackDummy)
             healthboxAnimDone = TRUE;
@@ -965,7 +965,7 @@ static void Intro_WaitForShinyAnimAndHealthbox(void)
 
         HandleLowHpMusicChange(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], gActiveBattler);
 
-        if (IsDoubleBattle())
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
             HandleLowHpMusicChange(&gPlayerParty[gBattlerPartyIndexes[BATTLE_PARTNER(gActiveBattler)]], BATTLE_PARTNER(gActiveBattler));
 
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].introEndDelay = 3;
@@ -994,7 +994,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     {
         if (!gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].healthboxSlideInStarted)
         {
-            if (IsDoubleBattle() && !(gBattleTypeFlags & BATTLE_TYPE_MULTI))
+            if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && !(gBattleTypeFlags & BATTLE_TYPE_MULTI))
             {
                 UpdateHealthboxAttribute(gHealthboxSpriteIds[BATTLE_PARTNER(gActiveBattler)], &gPlayerParty[gBattlerPartyIndexes[BATTLE_PARTNER(gActiveBattler)]], HEALTHBOX_ALL);
                 StartHealthboxSlideIn(BATTLE_PARTNER(gActiveBattler));
@@ -1025,7 +1025,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     }
 
     // Wait for battler anims
-    if (!IsDoubleBattle() || (IsDoubleBattle() && (gBattleTypeFlags & BATTLE_TYPE_MULTI)))
+    if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE) || ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && (gBattleTypeFlags & BATTLE_TYPE_MULTI)))
     {
         if (gSprites[gBattleControllerData[gActiveBattler]].callback == SpriteCallbackDummy
             && gSprites[gBattlerSpriteIds[gActiveBattler]].callback == SpriteCallbackDummy)
@@ -1047,7 +1047,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     // Clean up
     if (bgmRestored && battlerAnimsDone)
     {
-        if (IsDoubleBattle() && !(gBattleTypeFlags & BATTLE_TYPE_MULTI))
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && !(gBattleTypeFlags & BATTLE_TYPE_MULTI))
             DestroySprite(&gSprites[gBattleControllerData[BATTLE_PARTNER(gActiveBattler)]]);
         DestroySprite(&gSprites[gBattleControllerData[gActiveBattler]]);
 
@@ -1154,7 +1154,7 @@ static void Task_GiveExpToMon(u8 taskId)
     u8 battlerId = gTasks[taskId].tExpTask_battler;
     s16 gainedExp = gTasks[taskId].tExpTask_gainedExp;
 
-    if (IsDoubleBattle() == TRUE || monId != gBattlerPartyIndexes[battlerId]) // Give exp without moving the expbar.
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) == TRUE || monId != gBattlerPartyIndexes[battlerId]) // Give exp without moving the expbar.
     {
         struct Pokemon *mon = &gPlayerParty[monId];
         u16 species = GetMonData(mon, MON_DATA_SPECIES);
@@ -1174,7 +1174,7 @@ static void Task_GiveExpToMon(u8 taskId)
             BtlController_EmitTwoReturnValues(BUFFER_B, RET_VALUE_LEVELED_UP, gainedExp);
             gActiveBattler = savedActiveBattler;
 
-            if (IsDoubleBattle() == TRUE
+            if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) == TRUE
              && ((u16)(monId) == gBattlerPartyIndexes[battlerId] || (u16)(monId) == gBattlerPartyIndexes[BATTLE_PARTNER(battlerId)]))
                 gTasks[taskId].func = Task_LaunchLvlUpAnim;
             else
@@ -1270,7 +1270,7 @@ static void Task_LaunchLvlUpAnim(u8 taskId)
     u8 battlerId = gTasks[taskId].tExpTask_battler;
     u8 monIndex = gTasks[taskId].tExpTask_monId;
 
-    if (IsDoubleBattle() == TRUE && monIndex == gBattlerPartyIndexes[BATTLE_PARTNER(battlerId)])
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) == TRUE && monIndex == gBattlerPartyIndexes[BATTLE_PARTNER(battlerId)])
         battlerId ^= BIT_FLANK;
 
     InitAndLaunchSpecialAnimation(battlerId, battlerId, battlerId, B_ANIM_LVL_UP);
@@ -1287,7 +1287,7 @@ static void Task_UpdateLvlInHealthbox(u8 taskId)
 
         /// GetMonData(&gPlayerParty[monIndex], MON_DATA_LEVEL);  // Unused return value.
 
-        if (IsDoubleBattle() == TRUE && monIndex == gBattlerPartyIndexes[BATTLE_PARTNER(battlerId)])
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) == TRUE && monIndex == gBattlerPartyIndexes[BATTLE_PARTNER(battlerId)])
             UpdateHealthboxAttribute(gHealthboxSpriteIds[BATTLE_PARTNER(battlerId)], &gPlayerParty[monIndex], HEALTHBOX_ALL);
         else
             UpdateHealthboxAttribute(gHealthboxSpriteIds[battlerId], &gPlayerParty[monIndex], HEALTHBOX_ALL);
@@ -2998,7 +2998,7 @@ static void Task_StartSendOutAnim(u8 taskId)
         u8 savedActiveBattler = gActiveBattler;
 
         gActiveBattler = gTasks[taskId].tBattlerId;
-        if (!IsDoubleBattle() || (gBattleTypeFlags & BATTLE_TYPE_MULTI))
+        if (!(gBattleTypeFlags & BATTLE_TYPE_DOUBLE) || (gBattleTypeFlags & BATTLE_TYPE_MULTI))
         {
             gBattleBufferA[gActiveBattler][1] = gBattlerPartyIndexes[gActiveBattler];
             StartSendOutAnim(gActiveBattler, FALSE);

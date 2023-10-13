@@ -832,7 +832,7 @@ void AnimTask_MetallicShine(u8 taskId)
     if (!IsContest())
         SetAnimBgAttribute(1, BG_ANIM_CHAR_BASE_BLOCK, 1);
 
-    if (IsDoubleBattle() && !IsContest())
+    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && !IsContest())
     {
         if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_RIGHT || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT)
         {

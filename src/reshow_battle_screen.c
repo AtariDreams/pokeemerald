@@ -140,7 +140,7 @@ static void CB2_ReshowBattleScreenAfterMenu(void)
             species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[opponentBattler]], MON_DATA_SPECIES);
             SetBattlerShadowSpriteCallback(opponentBattler, species);
 
-            if (IsDoubleBattle())
+            if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
             {
                 opponentBattler = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
                 species = GetMonData(&gEnemyParty[gBattlerPartyIndexes[opponentBattler]], MON_DATA_SPECIES);
