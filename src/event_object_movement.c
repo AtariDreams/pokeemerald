@@ -1930,14 +1930,13 @@ void ObjectEventGetLocalIdAndMap(struct ObjectEvent *objectEvent, void *localId,
 
 void AllowObjectAtPosTriggerGroundEffects(s16 x, s16 y)
 {
-    u8 objectEventId;
+    u32 objectEventId;
     struct ObjectEvent *objectEvent;
 
     objectEventId = GetObjectEventIdByXY(x, y);
     if (objectEventId != OBJECT_EVENTS_COUNT)
     {
-        objectEvent = &gObjectEvents[objectEventId];
-        objectEvent->triggerGroundEffectsOnMove = TRUE;
+        gObjectEvents[objectEventId].triggerGroundEffectsOnMove = TRUE;
     }
 }
 
@@ -1949,10 +1948,8 @@ void SetObjectSubpriority(u8 localId, u8 mapNum, u8 mapGroup, u8 subpriority)
 
     if (!TryGetObjectEventIdByLocalIdAndMap(localId, mapNum, mapGroup, &objectEventId))
     {
-        objectEvent = &gObjectEvents[objectEventId];
-        sprite = &gSprites[objectEvent->spriteId];
-        objectEvent->fixedPriority = TRUE;
-        sprite->subpriority = subpriority;
+        gObjectEvents[objectEventId].fixedPriority = TRUE;
+        gSprites[objectEvent->spriteId].subpriority = subpriority;
     }
 }
 
@@ -7460,7 +7457,7 @@ static void GetGroundEffectFlags_JumpLanding(struct ObjectEvent *objEvent, u32 *
 
     if (objEvent->landingJump && !objEvent->disableJumpLandingGroundEffect)
     {
-        u8 i;
+        u32 i;
 
         for (i = 0; i < ARRAY_COUNT(metatileFuncs); i++)
         {
