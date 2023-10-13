@@ -193,7 +193,6 @@ EWRAM_DATA u8 gLastHitBy[MAX_BATTLERS_COUNT] = {0};
 EWRAM_DATA u16 gChosenMoveByBattler[MAX_BATTLERS_COUNT] = {0};
 EWRAM_DATA u8 gMoveResultFlags = 0;
 EWRAM_DATA u32 gHitMarker = 0;
-EWRAM_DATA static u8 sUnusedBattlersArray[MAX_BATTLERS_COUNT] = {0};
 EWRAM_DATA u8 gBideTarget[MAX_BATTLERS_COUNT] = {0};
 EWRAM_DATA u16 gSideStatuses[NUM_BATTLE_SIDES] = {0};
 EWRAM_DATA struct SideTimer gSideTimers[NUM_BATTLE_SIDES] = {0};
@@ -2920,12 +2919,8 @@ void EndBounceEffect(u8 battler, u8 which)
 static void SpriteCB_BounceEffect(struct Sprite *sprite)
 {
     u8 bouncerSpriteId = sprite->sBouncerSpriteId;
-    s32 index;
 
-    if (sprite->sWhich == BOUNCE_HEALTHBOX)
-        index = sprite->sSinIndex;
-    else
-        index = sprite->sSinIndex;
+    s16 index = sprite->sSinIndex;
 
     gSprites[bouncerSpriteId].y2 = Sin(index, sprite->sAmplitude) + sprite->sAmplitude;
     sprite->sSinIndex = (sprite->sSinIndex + sprite->sDelta) & 0xFF;
@@ -3002,7 +2997,7 @@ static void BattleStartClearSetData(void)
             dataPtr[j] = 0;
 
         gDisableStructs[i].isFirstTurn = 2;
-        sUnusedBattlersArray[i] = 0;
+
         gLastMoves[i] = MOVE_NONE;
         gLastLandedMoves[i] = MOVE_NONE;
         gLastHitByType[i] = 0;
@@ -3941,7 +3936,7 @@ u8 IsRunningFromBattleImpossible(void)
 {
     u8 holdEffect;
     u8 side;
-    s32 i;
+    u32 i;
 
     if (gBattleMons[gActiveBattler].item == ITEM_ENIGMA_BERRY)
         holdEffect = gEnigmaBerries[gActiveBattler].holdEffect;
@@ -3952,9 +3947,12 @@ u8 IsRunningFromBattleImpossible(void)
 
     if (holdEffect == HOLD_EFFECT_CAN_ALWAYS_RUN)
         return BATTLE_RUN_SUCCESS;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
+    
+    // Ghosts can always escape.
+    if (gBattleMons[gActiveBattler].type1 == TYPE_GHOST || gBattleMons[gActiveBattler].type2 == TYPE_GHOST)
         return BATTLE_RUN_SUCCESS;
-    if (gBattleMons[gActiveBattler].ability == ABILITY_RUN_AWAY)
+
+    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
         return BATTLE_RUN_SUCCESS;
 
     side = GetBattlerSide(gActiveBattler);
