@@ -79,7 +79,7 @@ static EWRAM_DATA u8 sCurrentReflectionType = 0;
 static EWRAM_DATA u16 sCurrentSpecialObjectPaletteTag = 0;
 static EWRAM_DATA struct LockedAnimObjectEvents *sLockedAnimObjectEvents = {0};
 
-static void MoveCoordsInDirection(u32, s16 *, s16 *, s16, s16);
+static void MoveCoordsInDirection(u8, s16 *, s16 *, s16, s16);
 static bool8 ObjectEventExecSingleMovementAction(struct ObjectEvent *, struct Sprite *);
 static void SetMovementDelay(struct Sprite *, s16);
 static bool8 WaitForMovementDelay(struct Sprite *);
@@ -4654,19 +4654,16 @@ static void UNUSED MoveCoordsInMapCoordIncrement(u8 direction, s16 *x, s16 *y)
     *y += sDirectionToVectors[direction].y << 4;
 }
 
-static void MoveCoordsInDirection(u32 dir, s16 *x, s16 *y, s16 deltaX, s16 deltaY)
+static void MoveCoordsInDirection(u8 dir, s16 *x, s16 *y, s16 deltaX, s16 deltaY)
 {
-    u8 direction = dir;
-    s16 dx2 = (u16)deltaX;
-    s16 dy2 = (u16)deltaY;
-    if (sDirectionToVectors[direction].x > 0)
-        *x += dx2;
-    if (sDirectionToVectors[direction].x < 0)
-        *x -= dx2;
-    if (sDirectionToVectors[direction].y > 0)
-        *y += dy2;
-    if (sDirectionToVectors[direction].y < 0)
-        *y -= dy2;
+    if (sDirectionToVectors[dir].x > 0)
+        *x += deltaX;
+    else if (sDirectionToVectors[dir].x < 0)
+        *x -= deltaX;
+    if (sDirectionToVectors[dir].y > 0)
+        *y += deltaY;
+    else if (sDirectionToVectors[dir].y < 0)
+        *y -= deltaY;
 }
 
 void GetMapCoordsFromSpritePos(s16 x, s16 y, s16 *destX, s16 *destY)
@@ -8450,9 +8447,9 @@ static void UNUSED DestroyVirtualObjects(void)
     }
 }
 
-static int GetVirtualObjectSpriteId(u8 virtualObjId)
+static u32 GetVirtualObjectSpriteId(u8 virtualObjId)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < MAX_SPRITES; i++)
     {
@@ -8473,7 +8470,7 @@ void TurnVirtualObject(u8 virtualObjId, u8 direction)
 
 void SetVirtualObjectGraphics(u8 virtualObjId, u8 graphicsId)
 {
-    int spriteId = GetVirtualObjectSpriteId(virtualObjId);
+    u8 spriteId = GetVirtualObjectSpriteId(virtualObjId);
 
     if (spriteId != MAX_SPRITES)
     {
