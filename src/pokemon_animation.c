@@ -4649,9 +4649,9 @@ static void ConcaveArc(struct Sprite *sprite)
     else
     {
         sprite->x2 = -(Sin(sprite->data[7], sprite->data[5]));
-        sprite->y2 = Sin((sprite->data[7] + 192) % 256, sprite->data[4]);
-        if (sprite->y2 > 0)
-            sprite->y2 *= -1;
+        sprite->y2 = -abs(Sin((sprite->data[7] + 192) % 256, sprite->data[4]));
+        // if (sprite->y2 > 0)
+        //     sprite->y2 *= -1;
 
         sprite->y2 += sprite->data[4];
         sprite->data[7] += sprite->data[3];
