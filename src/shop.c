@@ -376,7 +376,7 @@ static void SetShopMenuCallback(void (* callback)(void))
 
 static void SetShopItemsForSale(const u16 *items)
 {
-    u16 i = 0;
+    u32 i = 0;
 
     sMartInfo.itemList = items;
     sMartInfo.itemCount = 0;
@@ -934,7 +934,7 @@ static bool8 BuyMenuCheckIfObjectEventOverlapsMenuBg(s16 *object)
 
 static void BuyMenuCopyMenuBgToBg1TilemapBuffer(void)
 {
-    s16 i;
+    u32 i;
     u16 *dest = sShopData->tilemapBuffers[1];
     const u16 *src = sShopData->tilemapBuffers[0];
 
