@@ -2981,7 +2981,7 @@ static void BattleMainCB1(void)
 
 static void BattleStartClearSetData(void)
 {
-    s32 i;
+    u32 i;
     u32 j;
     u8 *dataPtr;
 
