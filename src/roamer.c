@@ -69,7 +69,7 @@ void ClearRoamerData(void)
 
 void ClearRoamerLocationData(void)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sLocationHistory); i++)
     {
@@ -153,6 +153,7 @@ void RoamerMove(void)
     if ((Random() % 16) == 0)
     {
         RoamerMoveToOtherLocationSet();
+        return;
     }
     else
     {
