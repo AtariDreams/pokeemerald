@@ -1200,8 +1200,7 @@ u8 DoFieldEndTurnEffects(void)
 
             // It's stupid, but won't match without it
             {
-                u8 *var = &gBattleStruct->turnCountersTracker;
-                (*var)++;
+                gBattleStruct->turnCountersTracker++;
                 gBattleStruct->turnSideTracker = 0;
             }
             // fall through
