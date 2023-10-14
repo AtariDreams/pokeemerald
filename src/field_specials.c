@@ -292,7 +292,7 @@ bool32 CountSSTidalStep(u16 delta)
     return TRUE;
 }
 
-u8 GetSSTidalLocation(s8 *mapGroup, s8 *mapNum, s16 *x, s16 *y)
+u8 GetSSTidalLocation(u8 *mapGroup, u8 *mapNum, s16 *x, s16 *y)
 {
     u16 *varCruiseStepCount = GetVarPointer(VAR_CRUISE_STEP_COUNT);
     switch (*GetVarPointer(VAR_SS_TIDAL_STATE))
@@ -351,25 +351,21 @@ u8 GetSSTidalLocation(s8 *mapGroup, s8 *mapNum, s16 *x, s16 *y)
 
 bool32 ShouldDoWallyCall(void)
 {
-    if (FlagGet(FLAG_ENABLE_FIRST_WALLY_POKENAV_CALL))
+    if (!FlagGet(FLAG_ENABLE_FIRST_WALLY_POKENAV_CALL))
+        return FALSE;
+    switch (gMapHeader.mapType)
     {
-        switch (gMapHeader.mapType)
-        {
-        case MAP_TYPE_TOWN:
-        case MAP_TYPE_CITY:
-        case MAP_TYPE_ROUTE:
-        case MAP_TYPE_OCEAN_ROUTE:
-            if (++(*GetVarPointer(VAR_WALLY_CALL_STEP_COUNTER)) < 250)
-                return FALSE;
-            break;
-        default:
-            return FALSE;
-        }
-    }
-    else
-    {
+    case MAP_TYPE_TOWN:
+    case MAP_TYPE_CITY:
+    case MAP_TYPE_ROUTE:
+    case MAP_TYPE_OCEAN_ROUTE:
+
+        break;
+    default:
         return FALSE;
     }
+    if (++(*GetVarPointer(VAR_WALLY_CALL_STEP_COUNTER)) < 250)
+        return FALSE;
 
     return TRUE;
 }
