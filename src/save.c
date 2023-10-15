@@ -42,32 +42,32 @@ static u8 HandleReplaceSector(u16, const struct SaveBlockChunk *);
  * See SECTOR_ID_* constants in save.h
  */
 
-#define SAVEBLOCK_CHUNK_EX(structure, size, chunkNum)         \
-{                                                             \
-    (u8 *)structure + chunkNum * SECTOR_DATA_SIZE,            \
-    min(size - chunkNum * SECTOR_DATA_SIZE, SECTOR_DATA_SIZE) \
-}                                                             \
+#define SAVEBLOCK_CHUNK_EX(structure, size, chunkNum)                 \
+    {                                                                 \
+        (u8 *)structure + chunkNum *SECTOR_DATA_SIZE,                 \
+            min(size - chunkNum * SECTOR_DATA_SIZE, SECTOR_DATA_SIZE) \
+    }
 
 #define SAVEBLOCK_CHUNK(structure, chunkNum) SAVEBLOCK_CHUNK_EX(&structure, sizeof(structure), chunkNum)
 
 static const struct SaveBlockChunk sSaveBlockChunks[NUM_SECTORS_PER_SLOT] =
-{
-    SAVEBLOCK_CHUNK(gSaveBlock2, 0),
+    {
+        SAVEBLOCK_CHUNK(gSaveBlock2, 0),
 
-    SAVEBLOCK_CHUNK(gSaveBlock1, 0),
-    SAVEBLOCK_CHUNK(gSaveBlock1, 1),
-    SAVEBLOCK_CHUNK(gSaveBlock1, 2),
-    SAVEBLOCK_CHUNK(gSaveBlock1, 3),
+        SAVEBLOCK_CHUNK(gSaveBlock1, 0),
+        SAVEBLOCK_CHUNK(gSaveBlock1, 1),
+        SAVEBLOCK_CHUNK(gSaveBlock1, 2),
+        SAVEBLOCK_CHUNK(gSaveBlock1, 3),
 
-    SAVEBLOCK_CHUNK(gPokemonStorage, 0),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 1),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 2),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 3),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 4),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 5),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 6),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 7),
-    SAVEBLOCK_CHUNK(gPokemonStorage, 8),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 0),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 1),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 2),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 3),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 4),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 5),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 6),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 7),
+        SAVEBLOCK_CHUNK(gPokemonStorage, 8),
 };
 
 // These will produce an error if a save struct is larger than the space
@@ -261,25 +261,22 @@ static u8 HandleWriteIncrementalSector(u16 numSectors, const struct SaveBlockChu
 {
     u8 status;
 
-    if (gIncrementalSectorId < numSectors - 1)
+    if (gIncrementalSectorId >= numSectors - 1)
+        goto error;
+
+    HandleWriteSector(gIncrementalSectorId++, locations);
+    if (gDamagedSaveSectors)
     {
-        status = SAVE_STATUS_OK;
-        HandleWriteSector(gIncrementalSectorId, locations);
-        gIncrementalSectorId++;
-        if (gDamagedSaveSectors)
-        {
-            status = SAVE_STATUS_ERROR;
-            gLastWrittenSector = gLastKnownGoodSector;
-            gSaveCounter = gLastSaveCounter;
-        }
-    }
-    else
-    {
-        // Exceeded max sector, finished
-        status = SAVE_STATUS_ERROR;
+        gLastWrittenSector = gLastKnownGoodSector;
+        gSaveCounter = gLastSaveCounter;
+        goto error;
     }
 
-    return status;
+    return SAVE_STATUS_OK;
+
+error:
+
+    return SAVE_STATUS_ERROR;
 }
 
 static u8 HandleReplaceSectorAndVerify(u16 sectorId, const struct SaveBlockChunk *locations)
@@ -541,8 +538,7 @@ static u8 GetSaveValidStatus(const struct SaveBlockChunk *locations)
 
     if (saveSlot1Status == SAVE_STATUS_OK && saveSlot2Status == SAVE_STATUS_OK)
     {
-        if ((saveSlot1Counter == -1 && saveSlot2Counter ==  0)
-         || (saveSlot1Counter ==  0 && saveSlot2Counter == -1))
+        if ((saveSlot1Counter == -1 && saveSlot2Counter == 0) || (saveSlot1Counter == 0 && saveSlot2Counter == -1))
         {
             if ((unsigned)(saveSlot1Counter + 1) < (unsigned)(saveSlot2Counter + 1))
                 gSaveCounter = saveSlot2Counter;
@@ -566,7 +562,7 @@ static u8 GetSaveValidStatus(const struct SaveBlockChunk *locations)
         gSaveCounter = saveSlot1Counter;
         if (saveSlot2Status == SAVE_STATUS_ERROR)
             return SAVE_STATUS_ERROR; // Slot 2 errored
-        return SAVE_STATUS_OK; // Slot 1 is OK, slot 2 is empty
+        return SAVE_STATUS_OK;        // Slot 1 is OK, slot 2 is empty
     }
 
     if (saveSlot2Status == SAVE_STATUS_OK)
@@ -574,12 +570,11 @@ static u8 GetSaveValidStatus(const struct SaveBlockChunk *locations)
         gSaveCounter = saveSlot2Counter;
         if (saveSlot1Status == SAVE_STATUS_ERROR)
             return SAVE_STATUS_ERROR; // Slot 1 errored
-        return SAVE_STATUS_OK; // Slot 2 is OK, slot 1 is empty
+        return SAVE_STATUS_OK;        // Slot 2 is OK, slot 1 is empty
     }
 
     // Neither slot is OK, check if both are empty
-    if (saveSlot1Status == SAVE_STATUS_EMPTY
-     && saveSlot2Status == SAVE_STATUS_EMPTY)
+    if (saveSlot1Status == SAVE_STATUS_EMPTY && saveSlot2Status == SAVE_STATUS_EMPTY)
     {
         gSaveCounter = 0;
         gLastWrittenSector = 0;
@@ -641,7 +636,6 @@ static u16 CalculateChecksum(void *data, u16 size)
     return ((checksum >> 16) + checksum);
 }
 
-
 u8 HandleSavingData(u8 saveType)
 {
     u8 i;
@@ -680,9 +674,9 @@ u8 HandleSavingData(u8 saveType)
         // Used by link / Battle Frontier
         // Write only SaveBlocks 1 and 2 (skips the PC)
         CopyPartyAndObjectsToSave();
-        for(i = SECTOR_ID_SAVEBLOCK2; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
+        for (i = SECTOR_ID_SAVEBLOCK2; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
             HandleReplaceSector(i, sSaveBlockChunks);
-        for(i = SECTOR_ID_SAVEBLOCK2; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
+        for (i = SECTOR_ID_SAVEBLOCK2; i <= SECTOR_ID_SAVEBLOCK1_END; i++)
             WriteSectorSignatureByte_NoOffset(i, sSaveBlockChunks);
         break;
     case SAVE_OVERWRITE_DIFFERENT_FILE:
@@ -878,8 +872,8 @@ u32 TryWriteSpecialSaveSector(u8 sector, u8 *src)
     return SAVE_STATUS_OK;
 }
 
-#define tState         data[0]
-#define tTimer         data[1]
+#define tState data[0]
+#define tTimer data[1]
 #define tInBattleTower data[2]
 
 // Note that this is very different from TrySavingData(SAVE_LINK).
