@@ -223,13 +223,13 @@ static u8 TryWriteSector(u8 sector, u8 *data)
     if (ProgramFlashSectorAndVerify(sector, data)) // is damaged?
     {
         // Failed
-        SetDamagedSectorBits(ENABLE, sector);
+        gDamagedSaveSectors |= (1 << sector);
         return SAVE_STATUS_ERROR;
     }
     else
     {
         // Succeeded
-        SetDamagedSectorBits(DISABLE, sector);
+        gDamagedSaveSectors &= ~(1 << sector);
         return SAVE_STATUS_OK;
     }
 }
@@ -304,7 +304,6 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveBlockChunk *locatio
     u16 sector;
     u8 *data;
     u16 size;
-    u8 status;
 
     // Adjust sector id for current save slot
     sector = sectorId + gLastWrittenSector;
@@ -331,53 +330,30 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveBlockChunk *locatio
     // Erase old save data
     EraseFlashSector(sector);
 
-    status = SAVE_STATUS_OK;
-
     // Write new save data up to signature field
     for (i = 0; i < SECTOR_SIGNATURE_OFFSET; i++)
     {
         if (ProgramFlashByte(sector, i, ((u8 *)gReadWriteSector)[i]))
         {
-            status = SAVE_STATUS_ERROR;
-            break;
+            goto error;
         }
     }
 
-    if (status == SAVE_STATUS_ERROR)
+    // Write signature (skipping the first byte) and counter fields.
+    // The byte of signature that is skipped is instead written by WriteSectorSignatureByte or WriteSectorSignatureByte_NoOffset
+    for (i = 0; i < SECTOR_SIZE - (SECTOR_SIGNATURE_OFFSET + 1); i++)
     {
-        // Writing save data failed
-        SetDamagedSectorBits(ENABLE, sector);
-        return SAVE_STATUS_ERROR;
-    }
-    else
-    {
-        // Writing save data succeeded, write signature and counter
-        status = SAVE_STATUS_OK;
-
-        // Write signature (skipping the first byte) and counter fields.
-        // The byte of signature that is skipped is instead written by WriteSectorSignatureByte or WriteSectorSignatureByte_NoOffset
-        for (i = 0; i < SECTOR_SIZE - (SECTOR_SIGNATURE_OFFSET + 1); i++)
+        if (ProgramFlashByte(sector, SECTOR_SIGNATURE_OFFSET + 1 + i, ((u8 *)gReadWriteSector)[SECTOR_SIGNATURE_OFFSET + 1 + i]))
         {
-            if (ProgramFlashByte(sector, SECTOR_SIGNATURE_OFFSET + 1 + i, ((u8 *)gReadWriteSector)[SECTOR_SIGNATURE_OFFSET + 1 + i]))
-            {
-                status = SAVE_STATUS_ERROR;
-                break;
-            }
-        }
-
-        if (status == SAVE_STATUS_ERROR)
-        {
-            // Writing signature/counter failed
-            SetDamagedSectorBits(ENABLE, sector);
-            return SAVE_STATUS_ERROR;
-        }
-        else
-        {
-            // Succeeded
-            SetDamagedSectorBits(DISABLE, sector);
-            return SAVE_STATUS_OK;
+            goto error;
         }
     }
+
+    gDamagedSaveSectors &= ~(1 << sectorId);
+    return SAVE_STATUS_OK;
+error:
+    gDamagedSaveSectors |= (1 << sectorId);
+    return SAVE_STATUS_ERROR;
 }
 
 static u8 WriteSectorSignatureByte_NoOffset(u16 sectorId, const struct SaveBlockChunk *locations)
