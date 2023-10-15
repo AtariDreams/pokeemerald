@@ -573,10 +573,10 @@ void CB2_InitTitleScreen(void)
     default:
     case 0:
         SetVBlankCallback(NULL);
+        *((vu16 *)PLTT) = RGB_WHITE;
         SetGpuReg(REG_OFFSET_BLDCNT, 0);
         SetGpuReg(REG_OFFSET_BLDALPHA, 0);
         SetGpuReg(REG_OFFSET_BLDY, 0);
-        *((vu16 *)PLTT) = RGB_WHITE;
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         SetGpuReg(REG_OFFSET_BG2CNT, 0);
         SetGpuReg(REG_OFFSET_BG1CNT, 0);
@@ -622,7 +622,7 @@ void CB2_InitTitleScreen(void)
 
         gTasks[taskId].tCounter = 256;
         gTasks[taskId].tSkipToNext = FALSE;
-        gTasks[taskId].tPointless = -16;
+        // gTasks[taskId].tPointless = -16;
         gTasks[taskId].tBg2Y = -32;
         gMain.state = 3;
         break;
