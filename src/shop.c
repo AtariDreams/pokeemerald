@@ -1143,10 +1143,9 @@ static void BuyMenuSubtractMoney(u8 taskId)
 
 static void Task_ReturnToItemListAfterItemPurchase(u8 taskId)
 {
-    s16 *data = gTasks[taskId].data;
-
     if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
+        s16 *data = gTasks[taskId].data;
         PlaySE(SE_SELECT);
 
         // Purchasing 10+ Balls gets the player a Premier Ball
