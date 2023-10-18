@@ -408,7 +408,7 @@ struct PokemonStorageSystemData
     u8 taskId;
     // struct UnkUtil unkUtil;
     // struct UnkUtilData unkUtilData[8];
-    u16 partyMenuTilemapBuffer[0x108];
+    ALIGNED(4) u16 partyMenuTilemapBuffer[0x108];
     //u16 partyMenuUnused1; // Unused leftover from localization or RS
     u16 partyMenuY;
     //s8 partyMenuUnused2; // Unused
@@ -432,7 +432,7 @@ struct PokemonStorageSystemData
     //u16 scrollUnused5; // Never read
     //u16 scrollUnused6; // Never read
     // u8 filler1[22]; Unused scanwork
-    u8 boxTitleTiles[512];
+    ALIGNED(2) u8 boxTitleTiles[512];
     // u8 boxTitleTiles2[512];
     u8 boxTitleCycleId;
     // u8 wallpaperLoadState; // Written to, but never read.
@@ -449,7 +449,7 @@ struct PokemonStorageSystemData
     //u16 unkUnused1; // Never read.
     s16 wallpaperSetId;
     s16 wallpaperId;
-    u16 wallpaperTilemap[360];
+    ALIGNED(4) u16 wallpaperTilemap[360];
     u8 wallpaperChangeState;
     u8 scrollState;
     u8 scrollToBoxId;
