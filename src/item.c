@@ -588,35 +588,23 @@ void SortBerriesOrTMHMs(const struct BagPocket *bagPocket)
     }
 }
 
-void MoveItemSlotInList(struct ItemSlot* itemSlots_, u32 from, u32 to_)
+void MoveItemSlotInList(struct ItemSlot* itemSlots_, u32 from, u32 to)
 {
     // dumb assignments needed to match
-    struct ItemSlot *itemSlots = itemSlots_;
-    u32 to = to_;
 
     if (from != to)
     {
-        s16 i, count;
-        struct ItemSlot firstSlot = itemSlots[from];
+        struct ItemSlot firstSlot = itemSlots_[from];
+        u32 size = (to > from) ? to - from : from - to;
+        memmove(&itemSlots_[to], &itemSlots_[from], size * sizeof(struct ItemSlot));
 
-        if (to > from)
-        {
-            to--;
-            for (i = from, count = to; i < count; i++)
-                itemSlots[i] = itemSlots[i + 1];
-        }
-        else
-        {
-            for (i = from, count = to; i > count; i--)
-                itemSlots[i] = itemSlots[i - 1];
-        }
-        itemSlots[to] = firstSlot;
+        itemSlots_[to] = firstSlot;
     }
 }
 
 void ClearBag(void)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < POCKETS_COUNT; i++)
     {
