@@ -288,7 +288,7 @@ static void AddAndFillMoveNamesWindow(void);
 static void SwapMovesNamesPP(u8, u8);
 static void PrintHMMovesCantBeForgotten(void);
 static void ResetSpriteIds(void);
-static void SetSpriteInvisibility(u8, bool8);
+static void SetSpriteInvisibility(u32, bool8);
 static void HidePageSpecificSprites(void);
 static void SetTypeIcons(void);
 static void CreateMoveTypeIcons(void);
@@ -3729,7 +3729,7 @@ static void DestroySpriteInArray(u8 spriteArrayId)
     }
 }
 
-static void SetSpriteInvisibility(u8 spriteArrayId, bool8 invisible)
+static void SetSpriteInvisibility(u32 spriteArrayId, bool8 invisible)
 {
     gSprites[sMonSummaryScreen->spriteIds[spriteArrayId]].invisible = invisible;
 }
