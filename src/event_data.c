@@ -226,7 +226,7 @@ bool8 FlagGet(u16 id)
     if (!ptr)
         return FALSE;
 
-    if (!(*ptr & (1U << (id & 7U))));
+    if (!(*ptr & (1U << (id & 7U))))
         return FALSE;
 
     return TRUE;
