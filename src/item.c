@@ -595,7 +595,7 @@ void MoveItemSlotInList(struct ItemSlot* itemSlots_, u32 from, u32 to)
     if (from != to)
     {
         struct ItemSlot firstSlot = itemSlots_[from];
-        u32 size = (to > from) ? to - from : from - to;
+        u32 size = to > from ? to - from : from - to;
         memmove(&itemSlots_[to], &itemSlots_[from], size * sizeof(struct ItemSlot));
 
         itemSlots_[to] = firstSlot;
