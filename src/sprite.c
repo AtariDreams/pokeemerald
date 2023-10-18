@@ -1379,8 +1379,8 @@ void ResetAffineAnimData(void)
 {
     u8 i;
 
-    gAffineAnimsDisabled = FALSE;
     gOamMatrixAllocBitmap = 0;
+    gAffineAnimsDisabled = FALSE;
 
     ResetOamMatrices();
 
@@ -1406,7 +1406,7 @@ u8 AllocOamMatrix(void)
 
 void FreeOamMatrix(u8 matrixNum)
 {
-    gOamMatrixAllocBitmap &= ~(1 << matrixNum);
+    gOamMatrixAllocBitmap &= ~(1U << matrixNum);
     SetOamMatrix(matrixNum, 0x100, 0, 0, 0x100);
 }
 
