@@ -445,7 +445,7 @@ struct PokemonStorageSystemData
     struct Sprite *nextBoxTitleSprites[2];
     struct Sprite *arrowSprites[2];
     u32 wallpaperPalBits;
-    // u8 filler2[80]; // Unused Debug
+    //u8 filler2[80]; // Unused Debug
     //u16 unkUnused1; // Never read.
     s16 wallpaperSetId;
     s16 wallpaperId;
@@ -474,7 +474,7 @@ struct PokemonStorageSystemData
     u8 iconScrollCurColumn;
     s8 iconScrollDirection; // Unnecessary duplicate of scrollDirection
     u8 iconScrollState;
-    u8 iconScrollToBoxId; // Unused duplicate of scrollToBoxId
+    // u8 iconScrollToBoxId; // Unused duplicate of scrollToBoxId
     struct WindowTemplate menuWindow;
     struct StorageMenu menuItems[7];
     u8 menuItemsCount;
@@ -4628,7 +4628,7 @@ static u8 CreateBoxMonIconsInColumn(u8 column, u16 distance, s16 speed)
 static void InitBoxMonIconScroll(u8 boxId, s8 direction)
 {
     sStorage->iconScrollState = 0;
-    sStorage->iconScrollToBoxId = boxId;
+    //sStorage->iconScrollToBoxId = boxId;
     sStorage->iconScrollDirection = direction;
     sStorage->iconScrollDistance = 32;
     sStorage->iconScrollSpeed = -(6 * direction);
