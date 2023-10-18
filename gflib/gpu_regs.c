@@ -8,8 +8,8 @@
 
 #define EMPTY_SLOT 0xFF
 
-static u8 sGpuRegBuffer[GPU_REG_BUF_SIZE];
-static u8 sGpuRegWaitingList[GPU_REG_BUF_SIZE];
+static ALIGNED(4) u8 sGpuRegBuffer[GPU_REG_BUF_SIZE];
+static ALIGNED(4) u8 sGpuRegWaitingList[GPU_REG_BUF_SIZE];
 static vbool8 sGpuRegBufferLocked;
 static vbool8 sShouldSyncRegIE;
 static vu16 sRegIE;
@@ -20,7 +20,7 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    memset(sGpuRegWaitingList, 0xFF, GPU_REG_BUF_SIZE);
+    CpuFastFill8(0xFF, sGpuRegWaitingList, GPU_REG_BUF_SIZE);
 
     // Memory already set to 0
     // for (i = 0; i < GPU_REG_BUF_SIZE; i++)
