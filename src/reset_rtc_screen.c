@@ -523,7 +523,7 @@ void CB2_InitResetRtcScreen(void)
     SetVBlankCallback(NULL);
     DmaClear16(3, PLTT, PLTT_SIZE);
     DmaFillLarge16(3, 0, (u8 *)VRAM, VRAM_SIZE, 0x1000);
-    ResetOamRange(0, 128);
+    ResetOam();
     LoadOam();
     ScanlineEffect_Stop();
     ScanlineEffect_Clear();
