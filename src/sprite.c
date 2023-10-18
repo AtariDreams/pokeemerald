@@ -295,7 +295,7 @@ EWRAM_DATA bool8 gAffineAnimsDisabled = FALSE;
 
 void ResetSpriteData(void)
 {
-    ResetOamRange(0, 128);
+    ResetOam();
     ResetAllSprites();
     ClearSpriteCopyRequests();
     ResetAffineAnimData();
@@ -614,10 +614,10 @@ void DestroySprite(struct Sprite *sprite)
     }
 }
 
-void ResetOamRange(u8 start, u8 end)
+void ResetOam(void)
 {
-    u8 i;
-    for (i = start; i < end; i++)
+    u32 i;
+    for (i = 0; i < 128; i++)
         gMain.oamBuffer[i] = gDummyOamData;
 }
 

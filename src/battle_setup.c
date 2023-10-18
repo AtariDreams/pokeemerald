@@ -601,7 +601,7 @@ void StartRegiBattle(void)
 static void CB2_EndWildBattle(void)
 {
     CpuFill16(0, (void *)(BG_PLTT), BG_PLTT_SIZE);
-    ResetOamRange(0, 128);
+    ResetOam();
 
     if (IsPlayerDefeated(gBattleOutcome) == TRUE && !InBattlePyramid() && !InBattlePike())
     {
@@ -617,7 +617,7 @@ static void CB2_EndWildBattle(void)
 static void CB2_EndScriptedWildBattle(void)
 {
     CpuFill16(0, (void *)(BG_PLTT), BG_PLTT_SIZE);
-    ResetOamRange(0, 128);
+    ResetOam();
 
     if (IsPlayerDefeated(gBattleOutcome) == TRUE)
     {
@@ -1870,9 +1870,9 @@ void ShouldTryGetTrainerScript(void)
     }
 }
 
-u16 CountBattledRematchTeams(u16 trainerId)
+u32 CountBattledRematchTeams(u16 trainerId)
 {
-    s32 i;
+    u32 i;
 
     if (HasTrainerBeenFought(gRematchTable[trainerId].trainerIds[0]) != TRUE)
         return 0;

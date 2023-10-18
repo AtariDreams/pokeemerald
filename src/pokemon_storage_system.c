@@ -5479,13 +5479,13 @@ static void InitBoxTitle(u8 boxId)
     sStorage->boxTitlePalOffset = OBJ_PLTT_ID(tagIndex) + 14;
     sStorage->wallpaperPalBits |= (1 << 16) << tagIndex;
 
-    // The below seems intended to have separately tracked
-    // the incoming wallpaper title's palette, but as they now
-    // share a palette tag, all colors (and fields in some cases)
-    // this is redundant along with the use of boxTitleAltPalOffset
-    tagIndex = IndexOfSpritePaletteTag(PALTAG_BOX_TITLE);
-    sStorage->boxTitleAltPalOffset = OBJ_PLTT_ID(tagIndex) + 14;
-    sStorage->wallpaperPalBits |= (1 << 16) << tagIndex;
+    // // The below seems intended to have separately tracked
+    // // the incoming wallpaper title's palette, but as they now
+    // // share a palette tag, all colors (and fields in some cases)
+    // // this is redundant along with the use of boxTitleAltPalOffset
+    // tagIndex = IndexOfSpritePaletteTag(PALTAG_BOX_TITLE);
+    // sStorage->boxTitleAltPalOffset = OBJ_PLTT_ID(tagIndex) + 14;
+    // sStorage->wallpaperPalBits |= (1 << 16) << tagIndex;
 
     StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), 0, BOX_NAME_LENGTH);
     DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 2);
@@ -9580,7 +9580,7 @@ u32 CountStorageNonEggMons(void)
 
 u32 CountAllStorageMons(void)
 {
-    s32 i, j;
+    u32 i, j;
     u32 count = 0;
 
     for (i = 0; i < TOTAL_BOXES_COUNT; i++)
