@@ -505,8 +505,8 @@ void AddSwitchPocketRotatingBallSprite(s16 rotationDirection)
 
 static void UpdateSwitchPocketRotatingBallCoords(struct Sprite *sprite)
 {
-    sprite->centerToCornerVecX = sprite->data[1] - ((sprite->data[3] + 1) & 1);
-    sprite->centerToCornerVecY = sprite->data[1] - ((sprite->data[3] + 1) & 1);
+    // TODO: bit clear the compiler is saying is happening here?
+    sprite->centerToCornerVecY = sprite->centerToCornerVecX = sprite->data[1] - ((sprite->data[3] & 1) ^ 1);
 }
 
 static void SpriteCB_SwitchPocketRotatingBallInit(struct Sprite *sprite)
