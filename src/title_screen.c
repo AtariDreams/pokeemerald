@@ -761,8 +761,8 @@ static void Task_TitleScreenPhase2(u8 taskId)
         gTasks[taskId].func = Task_TitleScreenPhase3;
     }
 
-    if (!(gTasks[taskId].tCounter & 3) && gTasks[taskId].tPointless != 0)
-        gTasks[taskId].tPointless++;
+    // if (!(gTasks[taskId].tCounter & 3) && gTasks[taskId].tPointless != 0)
+    //     gTasks[taskId].tPointless++;
     if (!(gTasks[taskId].tCounter & 1) && gTasks[taskId].tBg2Y != 0)
         gTasks[taskId].tBg2Y++;
 
