@@ -540,7 +540,7 @@ static u8 GetSaveValidStatus(const struct SaveBlockChunk *locations)
     {
         if ((saveSlot1Counter == -1 && saveSlot2Counter == 0) || (saveSlot1Counter == 0 && saveSlot2Counter == -1))
         {
-            if ((unsigned)(saveSlot1Counter + 1) < (unsigned)(saveSlot2Counter + 1))
+            if ((saveSlot1Counter + 1) < (saveSlot2Counter + 1))
                 gSaveCounter = saveSlot2Counter;
             else
                 gSaveCounter = saveSlot1Counter;
