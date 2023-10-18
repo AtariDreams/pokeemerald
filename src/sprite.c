@@ -18,15 +18,15 @@
 
 #define ALLOC_SPRITE_TILE(n)                             \
 {                                                        \
-    sSpriteTileAllocBitmap[(n) >> 3] |= (1u << ((n) & 7u)); \
+    sSpriteTileAllocBitmap[(n) / 8] |= (1u << ((n) % 8)); \
 }
 
 #define FREE_SPRITE_TILE(n)                               \
 {                                                         \
-    sSpriteTileAllocBitmap[(n) >> 3] &= ~(1u << ((n) & 7u)); \
+    sSpriteTileAllocBitmap[(n) / 8] &= ~(1u << ((n) % 8)); \
 }
 
-#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) >> 3] & (1u << ((n) & 7u)))
+#define SPRITE_TILE_IS_ALLOCATED(n) (sSpriteTileAllocBitmap[(n) / 8] & (1u << ((n) % 8)))
 
 
 struct SpriteCopyRequest
@@ -1388,25 +1388,20 @@ void ResetAffineAnimData(void)
         AffineAnimStateReset(i);
 }
 
+// TODO: Compile with clang
 u8 AllocOamMatrix(void)
 {
-    u8 i = 0;
-    u32 bit = 1;
-    u32 bitmap = gOamMatrixAllocBitmap;
+    u8 i;
 
-    while (i < OAM_MATRIX_COUNT)
+    if (gOamMatrixAllocBitmap == ~0)
     {
-        if (!(bitmap & bit))
-        {
-            gOamMatrixAllocBitmap |= bit;
-            return i;
-        }
-
-        i++;
-        bit <<= 1;
+        return OAM_MATRIX_COUNT;
     }
 
-    return 0xFF;
+    i = __builtin_ctz(~gOamMatrixAllocBitmap);
+
+    gOamMatrixAllocBitmap |= (1U << i);
+    return i;
 }
 
 void FreeOamMatrix(u8 matrixNum)
