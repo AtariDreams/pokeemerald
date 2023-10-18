@@ -2126,6 +2126,7 @@ static void CreateMinimizeSprite(struct Task *task, u8 taskId)
         if ((matrixNum = AllocOamMatrix()) == 0xFF)
         {
             DestroySpriteWithActiveSheet(&gSprites[spriteId]);
+            return;
         }
         else
         {
