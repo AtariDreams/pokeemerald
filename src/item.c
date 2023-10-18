@@ -429,7 +429,7 @@ u8 CountUsedPCItemSlots(void)
 
 bool8 CheckPCHasItem(u16 itemId, u16 count)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
