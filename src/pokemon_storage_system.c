@@ -440,7 +440,7 @@ struct PokemonStorageSystemData
     s8 wallpaperLoadDir;
     u16 boxTitlePal[16];
     u16 boxTitlePalOffset;
-    u16 boxTitleAltPalOffset;
+    // u16 boxTitleAltPalOffset;
     struct Sprite *curBoxTitleSprites[2];
     struct Sprite *nextBoxTitleSprites[2];
     struct Sprite *arrowSprites[2];
@@ -5518,7 +5518,7 @@ static void CreateIncomingBoxTitle(u8 boxId, s8 direction)
     struct SpriteSheet spriteSheet = {sStorage->boxTitleTiles, 0x200, GFXTAG_BOX_TITLE};
     struct SpriteTemplate template = sSpriteTemplate_BoxTitle;
 
-    sStorage->boxTitleCycleId = (sStorage->boxTitleCycleId == 0);
+    sStorage->boxTitleCycleId ^= 1;
     if (sStorage->boxTitleCycleId == 0)
     {
         spriteSheet.tag = GFXTAG_BOX_TITLE;
@@ -5602,11 +5602,7 @@ static void SpriteCB_OutgoingBoxTitle(struct Sprite *sprite)
 
 static void CycleBoxTitleColor(void)
 {
-    u8 wallpaperId = GetBoxWallpaper(StorageGetCurrentBox());
-    if (sStorage->boxTitleCycleId == 0)
-        CpuCopy16(sBoxTitleColors[wallpaperId], &gPlttBufferUnfaded[sStorage->boxTitlePalOffset], PLTT_SIZEOF(2));
-    else
-        CpuCopy16(sBoxTitleColors[wallpaperId], &gPlttBufferUnfaded[sStorage->boxTitleAltPalOffset], PLTT_SIZEOF(2));
+    CpuCopy16(sBoxTitleColors[GetBoxWallpaper(StorageGetCurrentBox())], &gPlttBufferUnfaded[sStorage->boxTitlePalOffset], PLTT_SIZEOF(2));
 }
 
 static s16 GetBoxTitleBaseX(const u8 *string)
