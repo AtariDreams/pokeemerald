@@ -1826,18 +1826,18 @@ static void ResetBiasFailure(void)
 // See sBiasSymbols for each bias's corresponding symbol.
 static u8 GetBiasSymbol(u8 machineBias)
 {
-    if (machineBias == 0)
-        return 0;
-    return sBiasSymbols[__builtin_ctz(machineBias)];
-    // u8 i;
+   // if (machineBias == 0)
+//    return 0;
+    //return sBiasSymbols[__builtin_ctz(machineBias)];
+    u8 i;
 
-    // for (i = 0; i < 8; i++)
-    // {
-    //     if (machineBias & 1)
-    //         return sBiasSymbols[i];
-    //     machineBias >>= 1;
-    // }
-    // return 0;
+    for (i = 0; i < 8; i++)
+    {
+        if (machineBias & 1)
+            return sBiasSymbols[i];
+        machineBias >>= 1;
+    }
+    return 0;
 }
 
 // Decides whether you will be given the opportunity to draw for a Special bias.
