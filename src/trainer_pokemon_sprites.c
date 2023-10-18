@@ -158,11 +158,13 @@ static u16 CreatePicSprite(u16 species, u32 otId, u32 personality, bool8 isFront
         Free(framePics);
         return 0xFFFF;
     }
-    if (DecompressPic(species, personality, isFrontPic, framePics, isTrainer, ignoreDeoxys))
-    {
-        // debug trap?
-        return 0xFFFF;
-    }
+    DecompressPic(species, personality, isFrontPic, framePics, isTrainer, ignoreDeoxys);
+
+    // if (DecompressPic(species, personality, isFrontPic, framePics, isTrainer, ignoreDeoxys))
+    // {
+    //     // debug trap?
+    //     return 0xFFFF;
+    // }
     for (j = 0; j < MAX_PIC_FRAMES; j ++)
     {
         images[j].data = framePics + PIC_SPRITE_SIZE * j;
@@ -227,11 +229,12 @@ u16 CreateMonPicSprite_Affine(u16 species, u32 otId, u32 personality, u8 flags, 
         Free(framePics);
         return 0xFFFF;
     }
-    if (DecompressPic(species, personality, flags, framePics, FALSE, FALSE))
-    {
-        // debug trap?
-        return 0xFFFF;
-    }
+    DecompressPic(species, personality, flags, framePics, FALSE, FALSE);
+    // if (DecompressPic(species, personality, flags, framePics, FALSE, FALSE))
+    // {
+    //     // debug trap?
+    //     return 0xFFFF;
+    // }
     for (j = 0; j < MAX_MON_PIC_FRAMES; j ++)
     {
         images[j].data = framePics + MON_PIC_SIZE * j;
