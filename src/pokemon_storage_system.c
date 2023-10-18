@@ -5356,7 +5356,7 @@ static void LoadWallpaperGfx(u8 boxId, s8 direction)
     sStorage->wallpaperLoadDir = direction;
     if (sStorage->wallpaperLoadDir != 0)
     {
-        sStorage->wallpaperOffset = (sStorage->wallpaperOffset == 0);
+        sStorage->wallpaperOffset ^=1;
         TrimOldWallpaper(sStorage->wallpaperBgTilemapBuffer);
     }
 
