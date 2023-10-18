@@ -393,7 +393,7 @@ u8 GetPocketByItemId(u16 itemId)
 
 void ClearItemSlots(struct ItemSlot *itemSlots, u8 itemCount)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < itemCount; i++)
     {
@@ -402,16 +402,16 @@ void ClearItemSlots(struct ItemSlot *itemSlots, u8 itemCount)
     }
 }
 
-static s32 FindFreePCItemSlot(void)
+static u32 FindFreePCItemSlot(void)
 {
-    s8 i;
+    u32 i;
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
         if (gSaveBlock1.pcItems[i].itemId == ITEM_NONE)
             return i;
     }
-    return -1;
+    return PC_ITEMS_COUNT;
 }
 
 u8 CountUsedPCItemSlots(void)
@@ -478,7 +478,7 @@ bool8 AddPCItem(u16 itemId, u16 count)
     if (count > 0)
     {
         freeSlot = FindFreePCItemSlot();
-        if (freeSlot == -1)
+        if (freeSlot == PC_ITEMS_COUNT)
         {
             Free(newItems);
             return FALSE;
@@ -556,7 +556,7 @@ static void SwapItemSlots(struct ItemSlot *a, struct ItemSlot *b)
 
 void CompactItemsInBagPocket(const struct BagPocket *bagPocket)
 {
-    u16 i, j;
+    u32 i, j;
 
     for (i = 0; i < bagPocket->capacity - 1; i++)
     {
@@ -570,7 +570,7 @@ void CompactItemsInBagPocket(const struct BagPocket *bagPocket)
 
 void SortBerriesOrTMHMs(const struct BagPocket *bagPocket)
 {
-    u16 i, j;
+    u32 i, j;
 
     for (i = 0; i < bagPocket->capacity - 1; i++)
     {
