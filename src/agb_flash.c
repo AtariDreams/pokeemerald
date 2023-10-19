@@ -7,9 +7,9 @@ static vu16 *sTimerReg;
 static u16 sSavedIme;
 
 u8 gFlashTimeoutFlag;
-u8 (*PollFlashStatus)(u8 *);
-u16 (*WaitForFlashWrite)(u8 phase, u8 *addr, u8 lastData);
-u16 (*ProgramFlashSector)(u16 sectorNum, u8 *src);
+u8 (*PollFlashStatus)(vu8 *);
+u16 (*WaitForFlashWrite)(u8 phase, vu8 *addr, u8 lastData);
+u16 (*ProgramFlashSector)(u16 sectorNum, vu8 *src);
 const struct FlashType *gFlash;
 u16 (*ProgramFlashByte)(u16 sectorNum, u32 offset, u8 data);
 u16 gFlashNumRemainingBytes;
@@ -17,7 +17,7 @@ u16 (*EraseFlashChip)();
 u16 (*EraseFlashSector)(u16 sectorNum);
 const u16 *gFlashMaxTime;
 
-void SetReadFlash1(u16 *dest);
+void SetReadFlash1(vu16 *dest);
 
 void SwitchFlashBank(u8 bankNum)
 {
@@ -29,7 +29,7 @@ void SwitchFlashBank(u8 bankNum)
 
 #define DELAY()                  \
 do {                             \
-    vu16 i;                      \
+    vu32 i;                      \
     for (i = 20000; i != 0; i--) \
         ;                        \
 } while (0)
@@ -38,10 +38,10 @@ u16 ReadFlashId(void)
 {
     u16 flashId;
     u16 readFlash1Buffer[0x20];
-    u8 (*readFlash1)(u8 *);
+    u8 (*readFlash1)(vu8 *);
 
     SetReadFlash1(readFlash1Buffer);
-    readFlash1 = (u8 (*)(u8 *))((u32)readFlash1Buffer + 1);
+    readFlash1 = (u8 (*)(vu8 *))((u32)readFlash1Buffer + 1);
 
     // Enter ID mode.
     FLASH_WRITE(0x5555, 0xAA);
@@ -49,8 +49,7 @@ u16 ReadFlashId(void)
     FLASH_WRITE(0x5555, 0x90);
     DELAY();
 
-    flashId = readFlash1(FLASH_BASE + 1) << 8;
-    flashId |= readFlash1(FLASH_BASE);
+    flashId = readFlash1(FLASH_BASE + 1) << 8 | readFlash1(FLASH_BASE);
 
     // Leave ID mode.
     FLASH_WRITE(0x5555, 0xAA);
@@ -103,17 +102,17 @@ void StopFlashTimer(void)
     REG_IME = sSavedIme;
 }
 
-u8 ReadFlash1(u8 *addr)
+u8 ReadFlash1(vu8 *addr)
 {
     return *addr;
 }
 
-void SetReadFlash1(u16 *dest)
+void SetReadFlash1(vu16 *dest)
 {
-    u16 *src;
-    u16 i;
+    vu16 *src;
+    u32 i;
 
-    PollFlashStatus = (u8 (*)(u8 *))((u32)dest + 1);
+    PollFlashStatus = (u8 (*)(vu8 *))((u32)dest + 1);
 
     src = (u16 *)ReadFlash1;
     src = (u16 *)((u32)src ^ 1);
@@ -132,7 +131,7 @@ void SetReadFlash1(u16 *dest)
 #define NAKED __attribute__((naked))
 
 // Using volatile here to make sure the flash memory will ONLY be read as bytes, to prevent any compiler optimizations.
-NAKED void ReadFlash_Core(vu8 *src, u8 *dest, u32 size)
+NAKED void ReadFlash_Core(vu8 *src, vu8 *dest, u32 size)
 {
     asm_unified("\
         cmp     r2, #0\n\
@@ -149,14 +148,14 @@ NAKED void ReadFlash_Core(vu8 *src, u8 *dest, u32 size)
         bx      lr\n");
 }
 
-void ReadFlash(u16 sectorNum, u32 offset, u8 *dest, u32 size)
+void ReadFlash(u16 sectorNum, u32 offset, vu8 *dest, u32 size)
 {
-    u8 *src;
-    u16 i;
+    vu8 *src;
+    u32 i;
     vu16 readFlash_Core_Buffer[0x40];
     vu16 *funcSrc;
     vu16 *funcDest;
-    void (*readFlash_Core)(vu8 *, u8 *, u32);
+    void (*readFlash_Core)(vu8 *, vu8 *, u32);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
@@ -178,14 +177,14 @@ void ReadFlash(u16 sectorNum, u32 offset, u8 *dest, u32 size)
         i--;
     }
 
-    readFlash_Core = (void (*)(vu8 *, u8 *, u32))((u32)readFlash_Core_Buffer + 1);
+    readFlash_Core = (void (*)(vu8 *, vu8 *, u32))((u32)readFlash_Core_Buffer + 1);
 
     src = FLASH_BASE + (sectorNum << gFlash->sector.shift) + offset;
 
     readFlash_Core(src, dest, size);
 }
 
-u32 VerifyFlashSector_Core(u8 *src, u8 *tgt, u32 size)
+u32 VerifyFlashSector_Core(vu8 *src, vu8 *tgt, u32 size)
 {
     while (size-- != 0)
     {
@@ -196,15 +195,15 @@ u32 VerifyFlashSector_Core(u8 *src, u8 *tgt, u32 size)
     return 0;
 }
 
-u32 VerifyFlashSector(u16 sectorNum, u8 *src)
+u32 VerifyFlashSector(u16 sectorNum, vu8 *src)
 {
-    u16 i;
+    u32 i;
     vu16 verifyFlashSector_Core_Buffer[0x80];
     vu16 *funcSrc;
     vu16 *funcDest;
-    u8 *tgt;
+    vu8 *tgt;
     u16 size;
-    u32 (*verifyFlashSector_Core)(u8 *, u8 *, u32);
+    u32 (*verifyFlashSector_Core)(vu8 *, vu8 *, u32);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
@@ -226,7 +225,7 @@ u32 VerifyFlashSector(u16 sectorNum, u8 *src)
         i--;
     }
 
-    verifyFlashSector_Core = (u32 (*)(u8 *, u8 *, u32))((u32)verifyFlashSector_Core_Buffer + 1);
+    verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))((u32)verifyFlashSector_Core_Buffer + 1);
 
     tgt = FLASH_BASE + (sectorNum << gFlash->sector.shift);
     size = gFlash->sector.size;
@@ -234,14 +233,14 @@ u32 VerifyFlashSector(u16 sectorNum, u8 *src)
     return verifyFlashSector_Core(src, tgt, size);
 }
 
-u32 VerifyFlashSectorNBytes(u16 sectorNum, u8 *src, u32 n)
+u32 VerifyFlashSectorNBytes(u16 sectorNum, vu8 *src, u32 n)
 {
-    u16 i;
+    u32 i;
     vu16 verifyFlashSector_Core_Buffer[0x80];
     vu16 *funcSrc;
     vu16 *funcDest;
-    u8 *tgt;
-    u32 (*verifyFlashSector_Core)(u8 *, u8 *, u32);
+    vu8 *tgt;
+    u32 (*verifyFlashSector_Core)(vu8 *, vu8 *, u32);
 
     if (gFlash->romSize == FLASH_ROM_SIZE_1M)
     {
@@ -263,14 +262,14 @@ u32 VerifyFlashSectorNBytes(u16 sectorNum, u8 *src, u32 n)
         i--;
     }
 
-    verifyFlashSector_Core = (u32 (*)(u8 *, u8 *, u32))((u32)verifyFlashSector_Core_Buffer + 1);
+    verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))((u32)verifyFlashSector_Core_Buffer + 1);
 
     tgt = FLASH_BASE + (sectorNum << gFlash->sector.shift);
 
     return verifyFlashSector_Core(src, tgt, n);
 }
 
-u32 ProgramFlashSectorAndVerify(u16 sectorNum, u8 *src)
+u32 ProgramFlashSectorAndVerify(u16 sectorNum, vu8 *src)
 {
     u32 i;
     u32 result;
@@ -289,9 +288,9 @@ u32 ProgramFlashSectorAndVerify(u16 sectorNum, u8 *src)
     return result;
 }
 
-u32 ProgramFlashSectorAndVerifyNBytes(u16 sectorNum, u8 *src, u32 n)
+u32 ProgramFlashSectorAndVerifyNBytes(u16 sectorNum, vu8 *src, u32 n)
 {
-    u8 i;
+    u32 i;
     u32 result;
 
     for (i = 0; i < 3; i++)
