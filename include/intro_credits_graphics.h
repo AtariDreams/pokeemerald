@@ -34,7 +34,6 @@ extern const struct SpriteSheet gSpriteSheet_CreditsRivalMay[];
 extern const struct SpritePalette gSpritePalettes_Credits[];
 
 void LoadIntroPart2Graphics(void);
-void SetIntroPart2BgCnt(u8 scenery);
 void LoadCreditsSceneGraphics(u8);
 void SetCreditsSceneBgCnt(u8);
 u8 CreateBicycleBgAnimationTask(u8 mode, u16 bg1Speed, u16 bg2Speed, u16 bg3Speed);
