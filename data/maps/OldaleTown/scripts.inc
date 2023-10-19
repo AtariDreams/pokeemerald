@@ -26,6 +26,7 @@ OldaleTown_EventScript_Girl::
 	end
 
 OldaleTown_EventScript_MartEmployee::
+	lock
 	faceplayer
 	goto_if_set FLAG_RECEIVED_POTION_OLDALE, OldaleTown_EventScript_ExplainPotion
 	msgbox OldaleTown_Text_IWorkAtPokemonMart, MSGBOX_DEFAULT
@@ -34,10 +35,12 @@ OldaleTown_EventScript_MartEmployee::
 	setflag FLAG_RECEIVED_POTION_OLDALE
 OldaleTown_EventScript_ExplainPotion::
 	msgbox OldaleTown_Text_PotionExplanation, MSGBOX_DEFAULT
+	release
 	end
 
 OldaleTown_EventScript_BagIsFull::
 	msgbox gText_TooBadBagIsFull, MSGBOX_DEFAULT
+	release
 	end
 
 OldaleTown_Movement_EmployeeEast:
