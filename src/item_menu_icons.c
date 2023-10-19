@@ -505,7 +505,6 @@ void AddSwitchPocketRotatingBallSprite(s16 rotationDirection)
 
 static void UpdateSwitchPocketRotatingBallCoords(struct Sprite *sprite)
 {
-    // TODO: bit clear the compiler is saying is happening here?
     sprite->centerToCornerVecY = sprite->centerToCornerVecX = sprite->data[1] - ((sprite->data[3] & 1) ^ 1);
 }
 
@@ -589,9 +588,9 @@ void UpdateItemMenuSwapLinePos(u8 y)
 
 static void ArrangeBerryGfx(void *src, void *dest)
 {
-    u8 i, j;
+    u32 i, j;
 
-    memset(dest, 0, 0x800);
+    CpuFastFill(0, dest, 0x800);
 
     // Create top margin
     dest += 0x100;
@@ -604,7 +603,7 @@ static void ArrangeBerryGfx(void *src, void *dest)
         // Copy one row of berry's icon
         for (j = 0; j < 6; j++)
         {
-            memcpy(dest, src, 0x20);
+            CpuFastCopy(src, dest, 0x20);
             dest += 0x20;
             src += 0x20;
         }
@@ -619,10 +618,10 @@ static void LoadBerryGfx(u8 berryId)
 {
     struct CompressedSpritePalette pal;
 
-    if (berryId == ITEM_TO_BERRY(ITEM_ENIGMA_BERRY) - 1 && IsEnigmaBerryValid())
-    {
-        // unknown empty if statement
-    }
+    // if (berryId == ITEM_TO_BERRY(ITEM_ENIGMA_BERRY) - 1 && IsEnigmaBerryValid())
+    // {
+    //     // unknown empty if statement
+    // }
 
     pal.data = sBerryPicTable[berryId].pal;
     pal.tag = TAG_BERRY_PIC_PAL;
