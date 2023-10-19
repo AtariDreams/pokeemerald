@@ -1407,7 +1407,30 @@ static void Task_Scene2_CreateSprites(u8 taskId)
     BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_WHITEALPHA);
     SetVBlankCallback(VBlankCB_Intro);
     gTasks[taskId].tBgAnimTaskId = CreateBicycleBgAnimationTask(1, 0x4000, 0x400, 0x10);
-    SetIntroPart2BgCnt(1);
+
+
+        SetGpuReg(REG_OFFSET_BG3CNT, BGCNT_PRIORITY(3)
+                                   | BGCNT_CHARBASE(0)
+                                   | BGCNT_16COLOR
+                                   | BGCNT_SCREENBASE(6)
+                                   | BGCNT_TXT256x256);
+        SetGpuReg(REG_OFFSET_BG2CNT, BGCNT_PRIORITY(2)
+                                   | BGCNT_CHARBASE(0)
+                                   | BGCNT_16COLOR
+                                   | BGCNT_SCREENBASE(7)
+                                   | BGCNT_TXT256x256);
+        SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(1)
+                                   | BGCNT_CHARBASE(1)
+                                   | BGCNT_16COLOR
+                                   | BGCNT_SCREENBASE(15)
+                                   | BGCNT_TXT256x256);
+        SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_MODE_0
+                                    | DISPCNT_OBJ_1D_MAP
+                                    | DISPCNT_BG1_ON
+                                    | DISPCNT_BG2_ON
+                                    | DISPCNT_BG3_ON
+                                    | DISPCNT_OBJ_ON);
+
     gTasks[taskId].func = Task_Scene2_BikeRide;
 }
 

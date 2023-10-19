@@ -225,12 +225,10 @@ void FillWindowTilesByRow(int windowId, int columnStart, int rowStart, int numFi
     fillSize = numFillTiles * TILE_SIZE_4BPP;
     windowRowSize = window->window.width * TILE_SIZE_4BPP;
     windowTileData = window->tileData + (rowStart * windowRowSize) + (columnStart * TILE_SIZE_4BPP);
-    if (numRows > 0)
+
+    for (i = numRows; i > 0; i--)
     {
-        for (i = numRows; i != 0; i--)
-        {
-            CpuFastFill8(0x11, windowTileData, fillSize);
-            windowTileData += windowRowSize;
-        }
+        CpuFastFill8(0x11, windowTileData, fillSize);
+        windowTileData += windowRowSize;
     }
 }
