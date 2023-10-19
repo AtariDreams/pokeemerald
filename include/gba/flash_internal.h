@@ -35,10 +35,10 @@ struct FlashType {
 struct FlashSetupInfo
 {
     u16 (*programFlashByte)(u16, u32, u8);
-    u16 (*programFlashSector)(u16, u8 *);
+    u16 (*programFlashSector)(u16, vu8 *);
     u16 (*eraseFlashChip)(void);
     u16 (*eraseFlashSector)(u16);
-    u16 (*WaitForFlashWrite)(u8, u8 *, u8);
+    u16 (*WaitForFlashWrite)(u8, vu8 *, u8);
     const u16 *maxTime;
     struct FlashType type;
 };
@@ -46,14 +46,14 @@ struct FlashSetupInfo
 extern u16 gFlashNumRemainingBytes;
 
 extern u16 (*ProgramFlashByte)(u16, u32, u8);
-extern u16 (*ProgramFlashSector)(u16, u8 *);
+extern u16 (*ProgramFlashSector)(u16, vu8 *);
 extern u16 (*EraseFlashChip)(void);
 extern u16 (*EraseFlashSector)(u16);
-extern u16 (*WaitForFlashWrite)(u8, u8 *, u8);
+extern u16 (*WaitForFlashWrite)(u8, vu8 *, u8);
 extern const u16 *gFlashMaxTime;
 extern const struct FlashType *gFlash;
 
-extern u8 (*PollFlashStatus)(u8 *);
+extern u8 (*PollFlashStatus)(vu8 *);
 extern u8 gFlashTimeoutFlag;
 
 extern const struct FlashSetupInfo MX29L010;
@@ -63,15 +63,15 @@ extern const struct FlashSetupInfo DefaultFlash;
 void SwitchFlashBank(u8 bankNum);
 u16 ReadFlashId(void);
 void StartFlashTimer(u8 phase);
-void SetReadFlash1(u16 *dest);
+void SetReadFlash1(vu16 *dest);
 void StopFlashTimer(void);
-void ReadFlash(u16 sectorNum, u32 offset, u8 *dest, u32 size);
+void ReadFlash(u16 sectorNum, u32 offset, vu8 *dest, u32 size);
 
-u16 WaitForFlashWrite_Common(u8 phase, u8 *addr, u8 lastData);
+u16 WaitForFlashWrite_Common(u8 phase, vu8 *addr, u8 lastData);
 
 u16 EraseFlashChip_MX(void);
 u16 EraseFlashSector_MX(u16 sectorNum);
 u16 ProgramFlashByte_MX(u16 sectorNum, u32 offset, u8 data);
-u16 ProgramFlashSector_MX(u16 sectorNum, u8 *src);
+u16 ProgramFlashSector_MX(u16 sectorNum, vu8 *src);
 
 #endif // GUARD_GBA_FLASH_INTERNAL_H
