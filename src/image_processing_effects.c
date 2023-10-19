@@ -235,7 +235,7 @@ static void ApplyImageEffect_PersonalityColor(u8 personality)
 
 static void ApplyImageEffect_BlackAndWhite(void)
 {
-    u8 i, j;
+    u32 i, j;
 
     for (j = 0; j < gCanvasRowEnd; j++)
     {
@@ -251,7 +251,7 @@ static void ApplyImageEffect_BlackAndWhite(void)
 
 static void ApplyImageEffect_BlackOutline(void)
 {
-    u8 i, j;
+    u32 i, j;
     u16 *pixel;
 
     // Handle top row of pixels first.
