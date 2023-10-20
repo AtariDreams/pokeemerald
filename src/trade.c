@@ -2133,9 +2133,9 @@ static void Task_DrawSelectionTrade(u8 taskId)
 
 static void QueueAction(u16 delay, u8 actionId)
 {
-    int i;
+    u32 i;
 
-    for (i = 0; i < (int)ARRAY_COUNT(sTradeMenu->queuedActions); i++)
+    for (i = 0; i < ARRAY_COUNT(sTradeMenu->queuedActions); i++)
     {
         // Find first available spot
         if (!sTradeMenu->queuedActions[i].active)
