@@ -38,11 +38,11 @@ void HideCoinsWindow(void)
     RemoveWindow(sCoinsWindowId);
 }
 
-bool8 AddCoins(u16 toAdd)
+bool16 AddCoins(u16 toAdd)
 {
     u16 ownedCoins = gSaveBlock1.coins;
     if (ownedCoins >= MAX_COINS)
-        return FALSE;
+        return TRUE;
     // check overflow, can't have less coins than previously
     if (ownedCoins > ownedCoins + toAdd)
     {
@@ -55,18 +55,18 @@ bool8 AddCoins(u16 toAdd)
             ownedCoins = MAX_COINS;
     }
     gSaveBlock1.coins = ownedCoins;
-    return TRUE;
+    return FALSE;
 }
 
-bool8 RemoveCoins(u16 toSub)
+bool16 RemoveCoins(u16 toSub)
 {
     if (gSaveBlock1.coins < toSub)
     {
         gSaveBlock1.coins = 0;
-        return FALSE;
+        return TRUE;
     }
     // TODO: What does the result of this do, and do we need it, if not can we optimize this by taking care of equals and removing return?
 
     gSaveBlock1.coins -= toSub;
-    return TRUE;
+    return FALSE;
 }
