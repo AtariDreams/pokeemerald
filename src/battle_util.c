@@ -3893,7 +3893,7 @@ u8 IsMonDisobedient(void)
 {
     s32 rnd;
     s32 calc;
-    u8 obedienceLevel = 0;
+    u8 obedienceLevel;
 
     if (gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK))
         return 0;
@@ -3919,6 +3919,7 @@ u8 IsMonDisobedient(void)
             obedienceLevel = 50;
         else if (FlagGet(FLAG_BADGE02_GET))
             obedienceLevel = 30;
+        else obedienceLevel = 10;
     }
 
     if (gBattleMons[gBattlerAttacker].level <= obedienceLevel)
