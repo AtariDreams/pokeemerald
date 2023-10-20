@@ -2806,7 +2806,7 @@ static bool8 Blackhole_Vibrate(struct Task *task)
 
 static bool8 BlackholePulsate_Main(struct Task *task)
 {
-    u16 index; // should be s16 I think
+    s16 index; // should be s16 I think
     s16 amplitude;
 
     sTransitionData->VBlank_DMA = FALSE;
