@@ -190,7 +190,7 @@ static const struct SpriteTemplate sSpriteTemplate_HeartIcon =
 // code
 bool8 CheckForTrainersWantingBattle(void)
 {
-    u8 i;
+    u32 i;
 
     gNoOfApproachingTrainers = 0;
     gApproachingTrainerId = 0;
@@ -223,12 +223,11 @@ bool8 CheckForTrainersWantingBattle(void)
         ConfigureAndSetUpOneTrainerBattle(gApproachingTrainers[gNoOfApproachingTrainers - 1].objectEventId,
                                           gApproachingTrainers[gNoOfApproachingTrainers - 1].trainerScriptPtr);
         gTrainerApproachedPlayer = TRUE;
-        return TRUE;
     }
     else if (gNoOfApproachingTrainers == 2)
     {
         ResetTrainerOpponentIds();
-        for (i = 0; i < gNoOfApproachingTrainers; i++, gApproachingTrainerId++)
+        for (i = 0; i < 2; i++, gApproachingTrainerId++)
         {
             ConfigureTwoTrainersBattle(gApproachingTrainers[i].objectEventId,
                                        gApproachingTrainers[i].trainerScriptPtr);
@@ -236,13 +235,12 @@ bool8 CheckForTrainersWantingBattle(void)
         SetUpTwoTrainersBattle();
         gApproachingTrainerId = 0;
         gTrainerApproachedPlayer = TRUE;
-        return TRUE;
     }
     else
     {
         gTrainerApproachedPlayer = FALSE;
-        return FALSE;
     }
+    return gTrainerApproachedPlayer;
 }
 
 static u8 CheckTrainer(u8 objectEventId)
@@ -795,7 +793,7 @@ void PlayerFaceTrainerAfterBattle(void)
 {
     struct ObjectEvent *objEvent;
 
-    if (gTrainerApproachedPlayer == TRUE)
+    if (gTrainerApproachedPlayer)
     {
         objEvent = &gObjectEvents[gApproachingTrainers[gWhichTrainerToFaceAfterBattle].objectEventId];
         gPostBattleMovementScript[0] = GetFaceDirectionMovementAction(GetOppositeDirection(objEvent->facingDirection));
