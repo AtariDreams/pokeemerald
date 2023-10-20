@@ -2116,10 +2116,8 @@ bool8 ScrCmd_addcoins(struct ScriptContext *ctx)
 {
     u16 coins = VarGet(ScriptReadHalfword(ctx));
 
-    if (AddCoins(coins) == TRUE)
-        gSpecialVar_Result = FALSE;
-    else
-        gSpecialVar_Result = TRUE;
+    gSpecialVar_Result = AddCoins(coins);
+
     return FALSE;
 }
 
@@ -2127,10 +2125,8 @@ bool8 ScrCmd_removecoins(struct ScriptContext *ctx)
 {
     u16 coins = VarGet(ScriptReadHalfword(ctx));
 
-    if (RemoveCoins(coins) == TRUE)
-        gSpecialVar_Result = FALSE;
-    else
-        gSpecialVar_Result = TRUE;
+    gSpecialVar_Result = RemoveCoins(coins);
+
     return FALSE;
 }
 
