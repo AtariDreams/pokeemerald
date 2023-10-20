@@ -18,7 +18,7 @@ static void AddPointsOnFainting(bool8 targetFainted);
 static void AddPointsBasedOnWeather(u16 weatherFlags, u16 moveId, u8 moveSlot);
 static bool8 ShouldCalculateDamage(u16 moveId, s32 *dmg, u16 *powerOverride);
 
-#define TABLE_END ((u16)-1)
+#define TABLE_END (~0)
 
 enum {
     PTS_MOVE_EFFECT,
