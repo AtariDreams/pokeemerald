@@ -341,12 +341,6 @@ static const u32 sFrontierSquares_Shrink1_Tileset[] = INCBIN_U32("graphics/battl
 static const u32 sFrontierSquares_Shrink2_Tileset[] = INCBIN_U32("graphics/battle_transitions/frontier_square_4.4bpp.lz");
 static const u32 sFrontierSquares_Tilemap[] = INCBIN_U32("graphics/battle_transitions/frontier_squares.bin");
 
-// All battle transitions use the same intro
-static const TaskFunc sTasks_Intro[B_TRANSITION_COUNT] =
-{
-    [0 ... B_TRANSITION_COUNT - 1] = &Task_Intro
-};
-
 // After the intro each transition has a unique main task.
 // This task will call the functions that do the transition effects.
 static const TaskFunc sTasks_Main[B_TRANSITION_COUNT] =
@@ -976,20 +970,15 @@ static bool8 Transition_StartIntro(struct Task *task)
 {
     SetWeatherScreenFadeOut();
     CpuFastCopy(gPlttBufferFaded, gPlttBufferUnfaded, PLTT_SIZE);
-    if (sTasks_Intro[task->tTransitionId] != NULL)
-    {
-        CreateTask(sTasks_Intro[task->tTransitionId], 4);
-        task->tState++;
-        return FALSE;
-    }
 
-    task->tState = 2;
-    return TRUE;
+    CreateTask(Task_Intro, 4);
+    task->tState++;
+    return FALSE;
 }
 
 static bool8 Transition_WaitForIntro(struct Task *task)
 {
-    if (FindTaskIdByFunc(sTasks_Intro[task->tTransitionId]) == TASK_NONE)
+    if (FindTaskIdByFunc(Task_Intro) == TASK_NONE)
     {
         task->tState++;
         return TRUE;
