@@ -117,7 +117,7 @@ static u8 GetMovementScriptIdFromObjectEventId(u8 taskId, u8 objEventId)
 
 static void LoadObjectEventIdPtrFromMovementScript(u8 taskId, u8 moveScrId, u8 **pObjEventId)
 {
-    u8 i;
+    u32 i;
 
     *pObjEventId = (u8 *)&gTasks[taskId].data[1];
     for (i = 0; i < moveScrId; i++, (*pObjEventId)++)
@@ -142,21 +142,17 @@ static void LoadObjectEventIdFromMovementScript(u8 taskId, u8 moveScrId, u8 *obj
 
 static void ClearMovementScriptFinished(u8 taskId, u8 moveScrId)
 {
-    u16 mask = ~gBitTable[moveScrId];
-
-    gTasks[taskId].data[0] &= mask;
+    gTasks[taskId].data[0] &= ~((u16)gBitTable[moveScrId]);
 }
 
 static void SetMovementScriptFinished(u8 taskId, u8 moveScrId)
 {
-    gTasks[taskId].data[0] |= gBitTable[moveScrId];
+    gTasks[taskId].data[0] |= (u16)gBitTable[moveScrId];
 }
 
 static bool8 IsMovementScriptFinished(u8 taskId, u8 moveScrId)
 {
-    u16 moveScriptFinished = (u16)gTasks[taskId].data[0] & gBitTable[moveScrId];
-
-    if (moveScriptFinished != 0)
+    if ((u16)gTasks[taskId].data[0] & (u16)gBitTable[moveScrId])
         return TRUE;
     else
         return FALSE;
@@ -182,7 +178,7 @@ static void ScriptMovement_AddNewMovement(u8 taskId, u8 moveScrId, u8 objEventId
 static void ScriptMovement_UnfreezeActiveObjects(u8 taskId)
 {
     u8 *pObjEventId;
-    u8 i;
+    u32 i;
 
     pObjEventId = (u8 *)&gTasks[taskId].data[1];
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++, pObjEventId++)
