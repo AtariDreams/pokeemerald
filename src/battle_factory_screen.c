@@ -2163,8 +2163,8 @@ static void Select_Task_OpenChosenMonPics(u8 taskId)
             return;
         break;
     default:
-        DestroyTask(taskId);
         Select_CreateChosenMonsSprites();
+        DestroyTask(taskId);
         return;
     }
     task->tState++;
@@ -2398,10 +2398,10 @@ static void Swap_Task_OpenSummaryScreen(u8 taskId)
         }
         break;
     case STATE_SUMMARY_SHOW:
-        DestroyTask(taskId);
         sFactorySwapScreen->fromSummaryScreen = TRUE;
         sFactorySwapScreen->speciesNameColorBackup = gPlttBufferUnfaded[BG_PLTT_ID(PALNUM_TEXT) + 4];
         ShowPokemonSummaryScreen(SUMMARY_MODE_NORMAL, gPlayerParty, sFactorySwapScreen->cursorPos, FRONTIER_PARTY_SIZE - 1, CB2_InitSwapScreen);
+        DestroyTask(taskId);
         break;
     }
 }
