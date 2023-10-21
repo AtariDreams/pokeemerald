@@ -785,8 +785,7 @@ void FishingWildEncounter(u8 rod)
     {
         u8 level = ChooseWildMonLevel(&sWildFeebas);
 
-        species = sWildFeebas.species;
-        CreateWildMon(species, level);
+        CreateWildMon(SPECIES_FEEBAS, level);
     }
     else
     {

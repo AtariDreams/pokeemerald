@@ -163,9 +163,9 @@ static void DisplayCannotDismountBikeMessage(u8 taskId, bool8 isUsingRegisteredK
 static void Task_CloseCantUseKeyItemMessage(u8 taskId)
 {
     ClearDialogWindowAndFrame(0, TRUE);
-    DestroyTask(taskId);
     ScriptUnfreezeObjectEvents();
     UnlockPlayerFieldControls();
+    DestroyTask(taskId);
 }
 
 u8 CheckIfItemIsTMHMOrEvolutionStone(u16 itemId)
