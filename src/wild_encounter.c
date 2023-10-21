@@ -134,7 +134,7 @@ static bool8 CheckFeebas(void)
             route119Section = 2;
 
         // 50% chance of encountering Feebas (assuming this is a Feebas spot)
-        if (Random() % 100 > 49)
+        if (Random() & 1)
             return FALSE;
 
         FeebasSeedRng(gSaveBlock1.dewfordTrends[0].rand);
