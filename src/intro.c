@@ -2614,8 +2614,8 @@ static void Task_Scene3_Rayquaza(u8 taskId)
 
 static void Task_EndIntroMovie(u8 taskId)
 {
-    DestroyTask(taskId);
     SetMainCallback2(MainCB2_EndIntro);
+    DestroyTask(taskId);
 }
 
 static void Task_RayquazaAttack(u8 taskId)

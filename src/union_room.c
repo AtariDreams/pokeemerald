@@ -1339,9 +1339,9 @@ static void Task_ListenToWireless(u8 taskId)
             data->state = 10;
         break;
     case 10:
-        DestroyTask(data->listenTaskId);
         Free(data->playerList);
         Free(data->incomingPlayerList);
+        DestroyTask(data->listenTaskId);
         LinkRfu_Shutdown();
         data->state++;
         break;
