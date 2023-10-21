@@ -5,14 +5,6 @@
 	.syntax unified
 
 	.text
-
-	arm_func_start umul3232H32
-umul3232H32:
-	umull r2, r3, r0, r1
-	add r0, r3, 0
-	bx lr
-	arm_func_end umul3232H32
-
 	thumb_func_start SoundMain
 SoundMain:
 	ldr r0, lt_SOUND_INFO_PTR
