@@ -531,6 +531,7 @@ static void Task_Hof_TrySaveData(u8 taskId)
         TRY_FREE_AND_SET_NULL(sHofMonPtr);
 
         DestroyTask(taskId);
+        return;
     }
     else
     {
@@ -760,6 +761,7 @@ static void Task_Hof_HandleExit(u8 taskId)
         }
 
         FreeAndDestroyTrainerPicSprite(gTasks[taskId].tPlayerSpriteID);
+         DestroyTask(taskId);
         HideBg(0);
         HideBg(1);
         HideBg(3);
@@ -767,7 +769,6 @@ static void Task_Hof_HandleExit(u8 taskId)
         UnsetBgTilemapBuffer(1);
         UnsetBgTilemapBuffer(3);
         ResetBgsAndClearDma3BusyFlags();
-        DestroyTask(taskId);
 
         TRY_FREE_AND_SET_NULL(sHofGfxPtr);
         TRY_FREE_AND_SET_NULL(sHofMonPtr);
@@ -1486,9 +1487,9 @@ static void Task_DoDomeConfetti(u8 taskId)
         if (!ConfettiUtil_Init(64))
         {
             // Init failed
-            DestroyTask(taskId);
             gSpecialVar_0x8004 = 0;
             gSpecialVar_0x8005 = 0xFFFF;
+            DestroyTask(taskId);
         }
         LoadCompressedSpriteSheet(sSpriteSheet_Confetti);
         LoadCompressedSpritePalette(sSpritePalette_Confetti);
