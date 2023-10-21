@@ -535,11 +535,16 @@ static void Task_UnionRoomListen(u8 taskId)
         if (rfu_UNI_setSendData(1 << gRfu.childSlot, gRfu.childSendBuffer, sizeof(gRfu.childSendBuffer)) == 0)
         {
             gRfu.parentChild = MODE_CHILD;
-            DestroyTask(taskId);
             if (gTasks[taskId].tConnectingForChat)
+            {
+                DestroyTask(taskId);
                 CreateTask(Task_PlayerExchangeChat, 1);
+            }
             else
+            {
+                DestroyTask(taskId);
                 CreateTask(Task_PlayerExchange, 5);
+            }
         }
         break;
     case RFUSTATE_UR_STOP_MANAGER:
