@@ -1290,7 +1290,7 @@ static void Task_ReadyStartLinkContest(u8 taskId)
     gTasks[taskId].data[0]--;
     if (gTasks[taskId].data[0] <= 0)
     {
-        GetMultiplayerId();  // unused return value
+        // GetMultiplayerId();  // unused return value
         DestroyTask(taskId);
         gTasks[eContest.mainTaskId].func = Task_WaitToRaiseCurtainAtStart;
         gRngValue = gContestRngValue;
@@ -4991,8 +4991,8 @@ static void Task_BlendAudienceBackground(u8 taskId)
 
         if (gTasks[taskId].tBlendCoeff == gTasks[taskId].tTargetBlendCoeff)
         {
-            DestroyTask(taskId);
             eContest.waitForAudienceBlend = FALSE;
+            DestroyTask(taskId);
         }
     }
 }

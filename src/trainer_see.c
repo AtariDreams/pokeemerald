@@ -421,17 +421,16 @@ static void InitTrainerApproachTask(struct ObjectEvent *trainerObj, u8 range)
 static void StartTrainerApproach(TaskFunc followupFunc)
 {
     u8 taskId;
-    TaskFunc taskFunc;
 
     if (gApproachingTrainerId == 0)
         taskId = gApproachingTrainers[0].taskId;
     else
         taskId = gApproachingTrainers[1].taskId;
 
-    taskFunc = Task_RunTrainerSeeFuncList;
-    SetTaskFuncWithFollowupFunc(taskId, taskFunc, followupFunc);
+    // Todo: is this nessecary? is the last function call also neccesary?
+    SetTaskFuncWithFollowupFunc(taskId, Task_RunTrainerSeeFuncList, followupFunc);
     gTasks[taskId].tFuncId = TRSEE_EXCLAMATION;
-    taskFunc(taskId);
+    Task_RunTrainerSeeFuncList(taskId);
 }
 
 static void Task_RunTrainerSeeFuncList(u8 taskId)
@@ -594,8 +593,7 @@ static bool8 JumpInPlaceBuriedTrainer(u8 taskId, struct Task *task, struct Objec
         trainerObj->fixedPriority = 0;
         trainerObj->triggerGroundEffectsOnMove = 1;
 
-        sprite = &gSprites[trainerObj->spriteId];
-        sprite->oam.priority = 2;
+        gSprites[trainerObj->spriteId].oam.priority = 2;
         ObjectEventClearHeldMovementIfFinished(trainerObj);
         ObjectEventSetHeldMovement(trainerObj, GetJumpInPlaceMovementAction(trainerObj->facingDirection));
         task->tFuncId++;
