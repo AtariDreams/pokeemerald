@@ -970,10 +970,10 @@ static void SpriteCB_Ball_MonShrink_Step(struct Sprite *sprite)
     default:
         if (gTasks[taskId].data[1] > 10)
         {
-            DestroyTask(taskId);
             StartSpriteAnim(sprite, 2);
             sprite->data[5] = 0;
             sprite->callback = SpriteCB_Ball_Bounce;
+            DestroyTask(taskId);
         }
         break;
     }
@@ -1793,6 +1793,7 @@ static void GreatBallOpenParticleAnimation(u8 taskId)
     if (gTasks[taskId].data[7])
     {
         gTasks[taskId].data[7]--;
+        return;
     }
     else
     {
