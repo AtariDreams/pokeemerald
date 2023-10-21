@@ -151,7 +151,7 @@ static bool8 CheckFeebas(void)
             // >= 4 to skip fishing spots 1-3, because these are inaccessible
             // spots at the top of the map, at (9,7), (7,13), and (15,16).
             // The first accessible fishing spot is spot 4 at (18,18).
-            if (feebasSpots[i] < 1 || feebasSpots[i] >= 4)
+            if (feebasSpots[i] >= 4)
                 i++;
         }
 
@@ -836,9 +836,7 @@ bool8 UpdateRepelCounter(void)
 {
     u16 steps;
 
-    if (InBattlePike() || InBattlePyramid())
-        return FALSE;
-    if (InUnionRoom() == TRUE)
+    if (InBattlePike() || InBattlePyramid() || InUnionRoom())
         return FALSE;
 
     steps = VarGet(VAR_REPEL_STEP_COUNT);
