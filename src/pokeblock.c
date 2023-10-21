@@ -1095,10 +1095,7 @@ static void Task_HandlePokeblocksSwapInput(u8 taskId)
             break;
         case LIST_CANCEL:
             PlaySE(SE_SELECT);
-            if (JOY_NEW(A_BUTTON)) // Pointless check, B Button has been pressed here
-                UpdatePokeblockSwapMenu(taskId, FALSE);
-            else
-                UpdatePokeblockSwapMenu(taskId, TRUE); // Canceled swapping
+            UpdatePokeblockSwapMenu(taskId, TRUE); // Canceled swapping
             break;
         default:
             // Swap items
