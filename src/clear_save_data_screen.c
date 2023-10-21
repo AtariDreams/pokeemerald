@@ -97,16 +97,16 @@ static void Task_ClearSaveDataScreenYesNoChoice(u8 taskId)
     case 1:
     case MENU_B_PRESSED:
         PlaySE(SE_SELECT);
-        DestroyTask(taskId);
         SetMainCallback2(CB2_FadeAndDoReset);
+        DestroyTask(taskId);
     }
 }
 
 static void Task_ClearSaveData(u8 taskId)
 {
     ClearSaveData();
-    DestroyTask(taskId);
     SetMainCallback2(CB2_FadeAndDoReset);
+    DestroyTask(taskId);
 }
 
 static void MainCB(void)

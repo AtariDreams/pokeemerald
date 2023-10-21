@@ -1852,10 +1852,11 @@ static void Task_ShowRankings(u8 taskId)
         ClearStdWindowAndFrameToTransparent(tWindowId, TRUE);
         ClearWindowTilemap(tWindowId);
         RemoveWindow(tWindowId);
-        DestroyTask(taskId);
+
         ScriptContext_Enable();
         UnlockPlayerFieldControls();
         tState = 0;
+        DestroyTask(taskId);
         return;
     }
     tState++;
