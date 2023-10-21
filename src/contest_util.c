@@ -1535,8 +1535,8 @@ static void Task_DrawFinalStandingNumber(u8 taskId)
             WriteSequenceToBgTilemapBuffer(2, firstTileNum, 1, gTasks[taskId].tMonIndex * 3 + 5, 2, 1, 17, 1);
             WriteSequenceToBgTilemapBuffer(2, firstTileNum + 0x10, 1, gTasks[taskId].tMonIndex * 3 + 6, 2, 1, 17, 1);
             sContestResults->data->numStandingsPrinted++;
-            DestroyTask(taskId);
             PlaySE(SE_CONTEST_PLACE);
+            DestroyTask(taskId);
         }
     }
 }
@@ -2143,8 +2143,8 @@ static void Task_StartShowContestResults(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
-        DestroyTask(taskId);
         SetMainCallback2(CB2_StartShowContestResults);
+        DestroyTask(taskId);
     }
 }
 
