@@ -691,10 +691,9 @@ static void Task_TitleScreenPhase1(u8 taskId)
 
     if (gTasks[taskId].tCounter != 0)
     {
-        u16 frameNum = gTasks[taskId].tCounter;
-        if (frameNum == 176)
+        if (gTasks[taskId].tCounter == 176)
             StartPokemonLogoShine(SHINE_MODE_DOUBLE);
-        else if (frameNum == 64)
+        else if (gTasks[taskId].tCounter == 64)
             StartPokemonLogoShine(SHINE_MODE_SINGLE);
 
         gTasks[taskId].tCounter--;
