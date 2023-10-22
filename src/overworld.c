@@ -1527,7 +1527,7 @@ void CB2_NewGame(void)
     gFieldCallback2 = NULL;
     DoMapLoadLoop(&gMain.state);
     SetFieldVBlankCallback();
-    SetMainCallback1(CB1_Overworld);
+    gMain.callback1 = CB1_Overworld;
     SetMainCallback2(CB2_Overworld);
 }
 

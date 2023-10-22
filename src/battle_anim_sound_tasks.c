@@ -135,12 +135,6 @@ void SoundTask_PlayCryHighPitch(u8 taskId)
     {
         if (gBattleAnimArgs[0] == ANIM_ATTACKER)
             species = gContestResources->moveAnim->species;
-    // Destroying the task twice (here and at end of function)
-    // results in an incorrect value for gAnimVisualTaskCount
-    #ifndef BUGFIX
-        else
-            DestroyAnimVisualTask(taskId);
-    #endif
     }
     else
     {
@@ -385,7 +379,7 @@ void SoundTask_AdjustPanningVar(u8 taskId)
     gTasks[taskId].data[11] = sourcePan;
 
     gTasks[taskId].func = SoundTask_AdjustPanningVar_Step;
-    gTasks[taskId].func(taskId);
+    SoundTask_AdjustPanningVar_Step(taskId);
 }
 
 static void SoundTask_AdjustPanningVar_Step(u8 taskId)

@@ -978,7 +978,7 @@ static u32 QuitBerryCrush(MainCallback exitCallback)
     {
         gTextFlags.autoScroll = TRUE;
         PlayNewMapMusic(MUS_POKE_CENTER);
-        SetMainCallback1(CB1_Overworld);
+        gMain.callback1 = CB1_Overworld;
     }
 
     return 0;
