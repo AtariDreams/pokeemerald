@@ -1223,13 +1223,11 @@ bool8 IsMultiBattle(void)
 
 static void SwapPartyPokemon(struct Pokemon *mon1, struct Pokemon *mon2)
 {
-    struct Pokemon *temp = Alloc(sizeof(struct Pokemon));
+    struct Pokemon temp = {0};
 
-    *temp = *mon1;
+    temp = *mon1;
     *mon1 = *mon2;
-    *mon2 = *temp;
-
-    Free(temp);
+    *mon2 = temp;
 }
 
 static void Task_ClosePartyMenu(u8 taskId)
