@@ -423,8 +423,3 @@ void DoSoftReset(void)
     SiiRtcProtect();
     SoftReset(RESET_ALL);
 }
-
-void ClearPokemonCrySongs(void)
-{
-    CpuFill16(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
-}
