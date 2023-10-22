@@ -111,7 +111,7 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
             sDma3Requests[cursor].dest = dest;
             sDma3Requests[cursor].size = size;
 
-            if (mode == 1)
+            if (mode)
                 sDma3Requests[cursor].mode = DMA_REQUEST_COPY32;
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_COPY16;
