@@ -254,7 +254,7 @@ static void PaletteStruct_Blend(struct PaletteStruct *palStruct, u32 *unkFlags)
                 if (palStruct->countdown1 != palStruct->template->time1)
                 {
                     u32 srcOffset = palStruct->srcIndex * palStruct->template->size;
-                    u8 i;
+                    u32 i;
 
                     for (i = 0; i < palStruct->template->size; i++)
                         gPlttBufferFaded[palStruct->baseDestOffset + i] = palStruct->template->src[srcOffset + i];

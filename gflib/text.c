@@ -261,7 +261,6 @@ u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 
     printerTemplate.currentY = y;
     printerTemplate.letterSpacing = gFonts[fontId].letterSpacing;
     printerTemplate.lineSpacing = gFonts[fontId].lineSpacing;
-    printerTemplate.unk = gFonts[fontId].unk;
     printerTemplate.fgColor = gFonts[fontId].fgColor;
     printerTemplate.bgColor = gFonts[fontId].bgColor;
     printerTemplate.shadowColor = gFonts[fontId].shadowColor;
@@ -271,7 +270,7 @@ u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 
 bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
     unsigned int i;
-    u16 j;
+    u32 j;
 
     if (!gFonts)
         return FALSE;
@@ -1592,9 +1591,6 @@ u8 GetFontAttribute(u8 fontId, u8 attributeId)
             break;
         case FONTATTR_LINE_SPACING:
             result = sFontInfos[fontId].lineSpacing;
-            break;
-        case FONTATTR_UNKNOWN:
-            result = sFontInfos[fontId].unk;
             break;
         case FONTATTR_COLOR_FOREGROUND:
             result = sFontInfos[fontId].fgColor;

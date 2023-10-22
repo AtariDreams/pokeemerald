@@ -101,7 +101,6 @@ struct FontInfo
     u8 maxLetterHeight;
     u8 letterSpacing;
     u8 lineSpacing;
-    u8 unk:4;
     u8 fgColor:4;
     u8 bgColor:4;
     u8 shadowColor:4;
