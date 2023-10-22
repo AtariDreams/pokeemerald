@@ -500,7 +500,7 @@ bool8 IsCryFinished(void)
     }
     else
     {
-        ClearPokemonCrySongs();
+        CpuFill32(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
         return TRUE;
     }
 }
@@ -508,7 +508,7 @@ bool8 IsCryFinished(void)
 void StopCryAndClearCrySongs(void)
 {
     m4aMPlayStop(gMPlay_PokemonCry);
-    ClearPokemonCrySongs();
+    CpuFill32(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
 }
 
 void StopCry(void)
@@ -524,7 +524,7 @@ bool8 IsCryPlayingOrClearCrySongs(void)
     }
     else
     {
-        ClearPokemonCrySongs();
+        CpuFill32(0, gPokemonCrySongs, MAX_POKEMON_CRIES * sizeof(struct PokemonCrySong));
         return FALSE;
     }
 }

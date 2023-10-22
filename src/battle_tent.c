@@ -391,12 +391,12 @@ static void GenerateOpponentMons(void)
         sRandMonId = monSet[Random() % numMons];
 
         // Ensure none of the opponent's pokemon are the same as the potential rental pokemon for the player
-        for (j = 0; j < (int)ARRAY_COUNT(gSaveBlock2.frontier.rentalMons); j++)
+        for (j = 0; j < ARRAY_COUNT(gSaveBlock2.frontier.rentalMons); j++)
         {
             if (gFacilityTrainerMons[sRandMonId].species == gFacilityTrainerMons[gSaveBlock2.frontier.rentalMons[j].monId].species)
                 break;
         }
-        if (j != (int)ARRAY_COUNT(gSaveBlock2.frontier.rentalMons))
+        if (j != ARRAY_COUNT(gSaveBlock2.frontier.rentalMons))
             continue;
 
         // Ensure this species hasn't already been chosen for the opponent
