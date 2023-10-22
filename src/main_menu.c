@@ -2022,7 +2022,7 @@ static void NewGameBirchSpeech_ClearGenderWindow(u8 windowId, bool8 copyToVram)
     CallWindowFunction(windowId, NewGameBirchSpeech_ClearGenderWindowTilemap);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
     ClearWindowTilemap(windowId);
-    if (copyToVram == TRUE)
+    if (copyToVram)
         CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
