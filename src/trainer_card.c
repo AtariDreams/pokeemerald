@@ -453,6 +453,7 @@ static void Task_TrainerCard(u8 taskId)
             if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
             {
                 sData->mainState = STATE_WAIT_LINK_PARTNER;
+                return;
             }
             else
             {
@@ -479,12 +480,13 @@ static void Task_TrainerCard(u8 taskId)
             {
                 BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, sData->blendColor);
                 sData->mainState = STATE_CLOSE_CARD;
+                return;
             }
             else
             {
                 FlipTrainerCard();
-                sData->mainState = STATE_WAIT_FLIP_TO_FRONT;
                 PlaySE(SE_RG_CARD_FLIP);
+                sData->mainState = STATE_WAIT_FLIP_TO_FRONT;
             }
         }
         else if (JOY_NEW(A_BUTTON))
@@ -492,6 +494,7 @@ static void Task_TrainerCard(u8 taskId)
            if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
            {
                sData->mainState = STATE_WAIT_LINK_PARTNER;
+               return;
            }
            else
            {
@@ -694,7 +697,7 @@ static u8 GetRubyTrainerStars(struct TrainerCard *trainerCard)
 static void SetPlayerCardData(struct TrainerCard *trainerCard, u8 cardType)
 {
     u32 playTime;
-    u8 i;
+    u32 i;
 
     trainerCard->gender = gSaveBlock2.playerGender;
     trainerCard->playTimeHours = gSaveBlock2.playTimeHours;
@@ -738,14 +741,14 @@ static void SetPlayerCardData(struct TrainerCard *trainerCard, u8 cardType)
         trainerCard->battleTowerWins = 0;
         trainerCard->battleTowerStraightWins = 0;
     // Seems like GF got CARD_TYPE_FRLG and CARD_TYPE_RS wrong.
-    case CARD_TYPE_FRLG:
+    case CARD_TYPE_RS:
         trainerCard->contestsWithFriends = GetCappedGameStat(GAME_STAT_WON_LINK_CONTEST, 999);
         trainerCard->pokeblocksWithFriends = GetCappedGameStat(GAME_STAT_POKEBLOCKS_WITH_FRIENDS, 0xFFFF);
         if (CountPlayerMuseumPaintings() >= CONTEST_CATEGORIES_COUNT)
             trainerCard->hasAllPaintings = TRUE;
         trainerCard->stars = GetRubyTrainerStars(trainerCard);
         break;
-    case CARD_TYPE_RS:
+    case CARD_TYPE_FRLG:
         trainerCard->battleTowerWins = 0;
         trainerCard->battleTowerStraightWins = 0;
         trainerCard->contestsWithFriends = 0;
@@ -774,7 +777,7 @@ static void TrainerCard_GenerateCardForPlayer(struct TrainerCard *trainerCard)
 
 void TrainerCard_GenerateCardForLinkPlayer(struct TrainerCard *trainerCard)
 {
-    memset(trainerCard, 0, 0x60);
+    memset(trainerCard, 0, sizeof(struct TrainerCard));
     trainerCard->version = GAME_VERSION;
     SetPlayerCardData(trainerCard, CARD_TYPE_EMERALD);
     trainerCard->linkHasAllFrontierSymbols = HasAllFrontierSymbols();
@@ -1641,8 +1644,7 @@ static bool8 Task_AnimateCardFlipDown(struct Task *task)
     r6 = -cardTop << 16;
     r5 = (DISPLAY_HEIGHT << 16) / cardHeight;
     r5 -= 1 << 16;
-    var_24 = r6;
-    var_24 += r5 * cardHeight;
+    var_24 = r6 + r5 * cardHeight;
     r10 = r5 / cardHeight;
     r5 *= 2;
 
@@ -1760,8 +1762,7 @@ static bool8 Task_AnimateCardFlipUp(struct Task *task)
     r6 = -cardTop << 16;
     r5 = (DISPLAY_HEIGHT << 16) / cardHeight;
     r5 -= 1 << 16;
-    var_24 = r6;
-    var_24 += r5 * cardHeight;
+    var_24 = r6 + r5 * cardHeight;
     r10 = r5 / cardHeight;
     r5 /= 2;
 
@@ -1825,7 +1826,7 @@ void ShowTrainerCardInLink(u8 cardId, void (*callback)(void))
 
 static void InitTrainerCardData(void)
 {
-    u8 i;
+    u32 i;
 
     sData->mainState = 0;
     sData->timeColonBlinkTimer = gSaveBlock2.playTimeVBlanks;
