@@ -290,10 +290,6 @@ void InitIntrHandlers(void)
 
     INTR_VECTOR = IntrMain_Buffer;
 
-    SetVBlankCallback(NULL);
-    SetHBlankCallback(NULL);
-    SetSerialCallback(NULL);
-
     REG_IME = 1;
 
     EnableInterrupts(INTR_FLAG_VBLANK);
