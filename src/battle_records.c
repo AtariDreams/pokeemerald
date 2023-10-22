@@ -227,18 +227,18 @@ void ClearPlayerLinkBattleRecords(void)
 
 static void IncTrainerCardWins(s32 battlerId)
 {
-    u16 *wins = &gTrainerCards[battlerId].linkBattleWins;
-    (*wins)++;
-    if (*wins > 9999)
-        *wins = 9999;
+    u16 wins = gTrainerCards[battlerId].basic.linkBattleWins + 1;
+    if (wins > 9999)
+        wins = 9999;
+    gTrainerCards[battlerId].basic.linkBattleWins = wins;
 }
 
 static void IncTrainerCardLosses(s32 battlerId)
 {
-    u16 *losses = &gTrainerCards[battlerId].linkBattleLosses;
-    (*losses)++;
-    if (*losses > 9999)
-        *losses = 9999;
+    u16 losses = gTrainerCards[battlerId].basic.linkBattleLosses + 1;
+    if (losses > 9999)
+        losses = 9999;
+    gTrainerCards[battlerId].basic.linkBattleLosses = losses;
 }
 
 static void UpdateTrainerCardWinsLosses(s32 battlerId)
@@ -263,8 +263,8 @@ void UpdatePlayerLinkBattleRecords(s32 battlerId)
         UpdateTrainerCardWinsLosses(battlerId);
         UpdateLinkBattleRecords(
             &gSaveBlock1.linkBattleRecords,
-            gTrainerCards[battlerId].playerName,
-            gTrainerCards[battlerId].trainerId,
+            gTrainerCards[battlerId].basic.playerName,
+            gTrainerCards[battlerId].basic.trainerId,
             gBattleOutcome,
             battlerId);
     }
