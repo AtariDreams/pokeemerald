@@ -67,8 +67,7 @@ static EWRAM_DATA u16 sTileNum = 0;
 static EWRAM_DATA u8 sPaletteNum = 0;
 static EWRAM_DATA u8 sYesNoWindowId = 0;
 static EWRAM_DATA u8 sHofPCTopBarWindowId = 0;
-static EWRAM_DATA u16 sFiller = 0;  // needed to align
-static EWRAM_DATA bool8 sScheduledBgCopiesToVram[4] = {FALSE};
+static EWRAM_DATA ALIGNED(4) bool8 sScheduledBgCopiesToVram[4] = {FALSE};
 static EWRAM_DATA u16 sTempTileDataBufferIdx = 0;
 static EWRAM_DATA void *sTempTileDataBuffer[0x20] = {NULL};
 
@@ -179,7 +178,6 @@ u16 AddTextPrinterParameterized2(u8 windowId, u8 fontId, const u8 *str, u8 speed
     printer.currentY = 1;
     printer.letterSpacing = 0;
     printer.lineSpacing = 0;
-    printer.unk = 0;
     printer.fgColor = fgColor;
     printer.bgColor = bgColor;
     printer.shadowColor = shadowColor;
@@ -481,7 +479,7 @@ u8 GetPlayerTextSpeedDelay(void)
 {
     u32 speed;
     if (gSaveBlock2.optionsTextSpeed > OPTIONS_TEXT_SPEED_FAST)
-        gSaveBlock2.optionsTextSpeed = OPTIONS_TEXT_SPEED_MID;
+        gSaveBlock2.optionsTextSpeed = OPTIONS_TEXT_SPEED_FAST;
     speed = GetPlayerTextSpeed();
     return sTextSpeedFrameDelays[speed];
 }
@@ -1699,7 +1697,10 @@ u8 InitMenuActionGrid(u8 windowId, u8 optionWidth, u8 columns, u8 rows, u8 initi
 
 void ClearScheduledBgCopiesToVram(void)
 {
-    memset(sScheduledBgCopiesToVram, 0, sizeof(sScheduledBgCopiesToVram));
+    sScheduledBgCopiesToVram[0] = 0;
+    sScheduledBgCopiesToVram[1] = 0;
+    sScheduledBgCopiesToVram[2] = 0;
+    sScheduledBgCopiesToVram[3] = 0;
 }
 
 void ScheduleBgCopyTilemapToVram(u8 bgId)
