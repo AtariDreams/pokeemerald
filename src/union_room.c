@@ -4447,40 +4447,40 @@ static void ViewURoomPartnerTrainerCard(u8 *unused, struct WirelessLink_URoom *d
     StringCopy(data->trainerCardStrBuffer[0], gTrainerClassNames[GetUnionRoomTrainerClass()]);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, data->trainerCardStrBuffer[0]);
 
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, trainerCard->playerName);
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, trainerCard->basic.playerName);
 
-    StringCopy(data->trainerCardColorStrBuffer, sCardColorTexts[trainerCard->stars]);
+    StringCopy(data->trainerCardColorStrBuffer, sCardColorTexts[trainerCard->basic.stars]);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(2, data->trainerCardColorStrBuffer);
 
-    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[2], trainerCard->caughtMonsCount, STR_CONV_MODE_LEFT_ALIGN, 3);
+    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[2], trainerCard->basic.caughtMonsCount, STR_CONV_MODE_LEFT_ALIGN, 3);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(3, data->trainerCardStrBuffer[2]);
 
-    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[3], trainerCard->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
-    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[4], trainerCard->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
+    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[3], trainerCard->basic.playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
+    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[4], trainerCard->basic.playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(4, data->trainerCardStrBuffer[3]);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(5, data->trainerCardStrBuffer[4]);
 
     DynamicPlaceholderTextUtil_ExpandPlaceholders(data->trainerCardMsgStrBuffer, sText_TrainerCardInfoPage1);
     StringCopy(gStringVar4, data->trainerCardMsgStrBuffer);
 
-    n = trainerCard->linkBattleWins;
+    n = trainerCard->basic.linkBattleWins;
     if (n > 9999)
         n = 9999;
     ConvertIntToDecimalStringN(data->trainerCardStrBuffer[0], n, STR_CONV_MODE_LEFT_ALIGN, 4);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, data->trainerCardStrBuffer[0]);
 
-    n = trainerCard->linkBattleLosses;
+    n = trainerCard->basic.linkBattleLosses;
     if (n > 9999)
         n = 9999;
     ConvertIntToDecimalStringN(data->trainerCardStrBuffer[1], n, STR_CONV_MODE_LEFT_ALIGN, 4);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(2, data->trainerCardStrBuffer[1]);
 
-    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[2], trainerCard->pokemonTrades, STR_CONV_MODE_LEFT_ALIGN, 5);
+    ConvertIntToDecimalStringN(data->trainerCardStrBuffer[2], trainerCard->basic.pokemonTrades, STR_CONV_MODE_LEFT_ALIGN, 5);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(3, data->trainerCardStrBuffer[2]);
 
     for (i = 0; i < TRAINER_CARD_PROFILE_LENGTH; i++)
     {
-        CopyEasyChatWord(data->trainerCardStrBuffer[i + 3], trainerCard->easyChatProfile[i]);
+        CopyEasyChatWord(data->trainerCardStrBuffer[i + 3], trainerCard->basic.easyChatProfile[i]);
         DynamicPlaceholderTextUtil_SetPlaceholderPtr(i + 4, data->trainerCardStrBuffer[i + 3]);
     }
 
@@ -4494,7 +4494,7 @@ static void ViewURoomPartnerTrainerCard(u8 *unused, struct WirelessLink_URoom *d
     }
     else if (isParent == FALSE)
     {
-        DynamicPlaceholderTextUtil_ExpandPlaceholders(data->trainerCardMsgStrBuffer, sGladToMeetYouTexts[trainerCard->gender]);
+        DynamicPlaceholderTextUtil_ExpandPlaceholders(data->trainerCardMsgStrBuffer, sGladToMeetYouTexts[trainerCard->basic.gender]);
         StringAppend(gStringVar4, data->trainerCardMsgStrBuffer);
     }
 }
