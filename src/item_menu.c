@@ -619,6 +619,7 @@ void GoToBagMenu(u8 location, u8 pocket, void ( *exitCallback)())
     {
         // Alloc failed, exit
         SetMainCallback2(exitCallback);
+        return;
     }
     else
     {
@@ -635,6 +636,7 @@ void GoToBagMenu(u8 location, u8 pocket, void ( *exitCallback)())
         gBagMenu->toSwapPos = NOT_SWAPPING;
         gBagMenu->pocketScrollArrowsTask = TASK_NONE;
         gBagMenu->pocketSwitchArrowsTask = TASK_NONE;
+
         memset(gBagMenu->spriteIds, SPRITE_NONE, sizeof(gBagMenu->spriteIds));
         memset(gBagMenu->windowIds, WINDOW_NONE, sizeof(gBagMenu->windowIds));
         SetMainCallback2(CB2_Bag);
@@ -1066,9 +1068,9 @@ static void DestroyPocketSwitchArrowPair(void)
 
 static void FreeBagMenu(void)
 {
+    FreeAllWindowBuffers();
     Free(sListBuffer2);
     Free(sListBuffer1);
-    FreeAllWindowBuffers();
     Free(gBagMenu);
 }
 
@@ -1100,9 +1102,9 @@ static void Task_CloseBagMenu(u8 taskId)
     }
 }
 
-void UpdatePocketItemList(u8 pocketId)
+void UpdatePocketItemList(u32 pocketId)
 {
-    u16 i;
+    u32 i;
     const struct BagPocket *pocket = &gBagPockets[pocketId];
     switch (pocketId)
     {
