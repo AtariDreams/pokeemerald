@@ -2566,7 +2566,7 @@ static void CB2_EndBlenderGame(void)
     if (sBerryBlender->gameEndState < 3)
         UpdateBlenderCenter();
 
-    GetMultiplayerId(); // unused return value
+    // GetMultiplayerId(); // unused return value
 
     switch (sBerryBlender->gameEndState)
     {
