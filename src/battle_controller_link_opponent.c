@@ -1836,7 +1836,7 @@ static void LinkOpponentHandleEndLinkBattle(void)
     RecordedBattle_RecordAllBattlerData(&gBattleBufferA[gActiveBattler][4]);
 
     if (gBattleBufferA[gActiveBattler][1] == B_OUTCOME_DREW)
-        gBattleOutcome = gBattleBufferA[gActiveBattler][1];
+        gBattleOutcome = B_OUTCOME_DREW;
     else
         gBattleOutcome = gBattleBufferA[gActiveBattler][1] ^ B_OUTCOME_DREW;
 
