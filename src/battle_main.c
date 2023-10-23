@@ -3949,6 +3949,9 @@ u8 IsRunningFromBattleImpossible(void)
     if (gBattleMons[gActiveBattler].type1 == TYPE_GHOST || gBattleMons[gActiveBattler].type2 == TYPE_GHOST)
         return BATTLE_RUN_SUCCESS;
 
+    if (gBattleMons[gActiveBattler].ability == ABILITY_RUN_AWAY)
+        return BATTLE_RUN_SUCCESS;
+    
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
         return BATTLE_RUN_SUCCESS;
 
