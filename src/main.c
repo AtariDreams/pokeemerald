@@ -62,7 +62,7 @@ u16 gKeyRepeatContinueDelay;
 bool8 gSoftResetDisabled;
 ALIGNED(4) IntrFunc gIntrTable[INTR_COUNT];
 u8 gLinkVSyncDisabled;
-u32 IntrMain_Buffer[0x200];
+ALIGNED(4) u32 IntrMain_Buffer[0x200];
 s8 gPcmDmaCounter;
 
 static EWRAM_DATA u16 sTrainerId = 0;
@@ -70,11 +70,9 @@ static EWRAM_DATA u16 sTrainerId = 0;
 //EWRAM_DATA void (**gFlashTimerIntrFunc)(void) = NULL;
 
 static void UpdateLinkAndCallCallbacks(void);
-static void InitMainCallbacks(void);
+//static void InitMainCallbacks(void);
 static void CallCallbacks(void);
-#ifdef BUGFIX
 static void SeedRngWithRtc(void);
-#endif
 static void ReadKeys(void);
 void InitIntrHandlers(void);
 static void WaitForVBlank(void);
@@ -82,7 +80,7 @@ void EnableVCountIntrAtLine150(void);
 
 #define AB_START_SELECT (A_BUTTON| B_BUTTON | START_BUTTON | SELECT_BUTTON)
 
-void AgbMain(void)
+_Noreturn void AgbMain(void) 
 {
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
 
@@ -98,12 +96,14 @@ void AgbMain(void)
     CheckForFlashMemory();
     // Works because of null initialization
     if (gFlashMemoryPresent)
-        SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
+        gMain.callback2 = CB2_InitCopyrightScreenAfterBootup;
 
     SeedRngWithRtc(); // see comment at SeedRngWithRtc definition below
-    InitMainCallbacks();
-    InitMapMusic();
-    ClearDma3Requests();
+
+    // 0 initialization
+    //InitMainCallbacks();
+   // InitMapMusic();
+    // ClearDma3Requests();
     ResetBgs();
     SetDefaultFontsPointer();
     InitHeap(gHeap, HEAP_SIZE);
@@ -167,13 +167,12 @@ static void UpdateLinkAndCallCallbacks(void)
         CallCallbacks();
 }
 
-static void InitMainCallbacks(void)
-{
-    gMain.vblankCounter1 = 0;
-    gMain.vblankCounter2 = 0;
-    gMain.callback1 = NULL;
-    SetMainCallback2(CB2_InitCopyrightScreenAfterBootup);
-}
+// static void InitMainCallbacks(void)
+// {
+//     gMain.vblankCounter1 = 0;
+//     gMain.vblankCounter2 = 0;
+//     gMain.callback1 = NULL;
+// }
 
 static void CallCallbacks(void)
 {
@@ -216,25 +215,24 @@ void EnableVCountIntrAtLine150(void)
 }
 
 // FRLG commented this out to remove RTC, however Emerald didn't undo this!
-#ifdef BUGFIX
 static void SeedRngWithRtc(void)
 {
     u32 seed = RtcGetMinuteCount();
     seed = (seed >> 16) ^ (seed & 0xFFFF);
     SeedRng(seed);
 }
-#endif
 
 void InitKeys(void)
 {
     gKeyRepeatContinueDelay = 5;
     gKeyRepeatStartDelay = 40;
 
-    gMain.heldKeys = 0;
-    gMain.newKeys = 0;
-    gMain.newAndRepeatedKeys = 0;
-    gMain.heldKeysRaw = 0;
-    gMain.newKeysRaw = 0;
+    // 0 Initialization
+    // gMain.heldKeys = 0;
+    // gMain.newKeys = 0;
+    // gMain.newAndRepeatedKeys = 0;
+    // gMain.heldKeysRaw = 0;
+    // gMain.newKeysRaw = 0;
 }
 
 static void ReadKeys(void)
