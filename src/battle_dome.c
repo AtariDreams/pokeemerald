@@ -5343,8 +5343,8 @@ static void Task_ShowTourneyTree(u8 taskId)
     switch (gTasks[taskId].tState)
     {
     case 0:
-        SetHBlankCallback(NULL);
         SetVBlankCallback(NULL);
+        SetHBlankCallback(NULL);
         EnableInterrupts(INTR_FLAG_HBLANK | INTR_FLAG_VBLANK);
         CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
         ResetBgsAndClearDma3BusyFlags();

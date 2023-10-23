@@ -23,7 +23,7 @@ static u8 sMapMusicState;
 static u8 sMapMusicFadeInSpeed;
 static u16 sFanfareCounter;
 
-bool8 gDisableMusic;
+//bool8 gDisableMusic;
 
 extern struct ToneData gCryTable[];
 extern struct ToneData gCryTable_Reverse[];
@@ -56,7 +56,7 @@ static const struct Fanfare sFanfares[] = {
 
 void InitMapMusic(void)
 {
-    gDisableMusic = FALSE;
+    //gDisableMusic = FALSE;
     ResetMapMusic();
 }
 
@@ -257,7 +257,7 @@ static void CreateFanfareTask(void)
 
 void FadeInNewBGM(u16 songNum, u8 speed)
 {
-    if (gDisableMusic || songNum == MUS_NONE)
+    if (songNum == MUS_NONE)
         songNum = 0;
     m4aSongNumStart(songNum);
     m4aMPlayImmInit(&gMPlayInfo_BGM);
@@ -560,7 +560,7 @@ static void RestoreBGMVolumeAfterPokemonCry(void)
 
 void PlayBGM(u16 songNum)
 {
-    if (gDisableMusic || songNum == MUS_NONE)
+    if (songNum == MUS_NONE)
         songNum = 0;
     m4aSongNumStart(songNum);
 }
