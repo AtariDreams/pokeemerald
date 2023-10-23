@@ -3903,13 +3903,10 @@ static void HighlightSubmenuScreenSelectBarItem(u8 a, u16 b)
         u8 row = i * 7 + 1;
         u32 newPalette;
 
-        do
-        {
-            if (i == a || i == 3)
-                newPalette = 0x2000;
-            else
-                newPalette = 0x4000;
-        } while (0);
+        if (i == a || i == 3)
+            newPalette = 0x2000;
+        else
+            newPalette = 0x4000;
 
         for (j = 0; j < 7; j++)
         {
@@ -4598,15 +4595,6 @@ static void DrawFootprint(u8 windowId, u16 dexNum)
         }
     }
     CopyToWindowPixelBuffer(windowId, footprint4bpp, sizeof(footprint4bpp), 0);
-}
-
-// Ruby/Sapphire function.
-static void UNUSED RS_DrawFootprint(u16 offset, u16 tileNum)
-{
-    *(u16 *)(VRAM + offset * 0x800 + 0x232) = 0xF000 + tileNum + 0;
-    *(u16 *)(VRAM + offset * 0x800 + 0x234) = 0xF000 + tileNum + 1;
-    *(u16 *)(VRAM + offset * 0x800 + 0x272) = 0xF000 + tileNum + 2;
-    *(u16 *)(VRAM + offset * 0x800 + 0x274) = 0xF000 + tileNum + 3;
 }
 
 static u16 GetNextPosition(u8 direction, u16 position, u16 min, u16 max)
