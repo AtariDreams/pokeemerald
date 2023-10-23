@@ -792,7 +792,7 @@ static void SpriteCallback_RotatingGate(struct Sprite *sprite)
 
 static void RotatingGate_HideGatesOutsideViewport(struct Sprite *sprite)
 {
-    u16 x, y;
+    s16 x, y;
     s16 x2, y2;
 
     sprite->invisible = FALSE;
@@ -802,12 +802,12 @@ static void RotatingGate_HideGatesOutsideViewport(struct Sprite *sprite)
     x2 = x + 64; // Dimensions of the rotating gate
     y2 = y + 64;
 
-    if ((s16)x > DISPLAY_WIDTH + 16 - 1 || x2 < -16)
+    if (x > DISPLAY_WIDTH + 16 - 1 || x2 < -16)
     {
         sprite->invisible = TRUE;
     }
 
-    if ((s16)y > DISPLAY_HEIGHT + 16 - 1 || y2 < -16)
+    else if (y > DISPLAY_HEIGHT + 16 - 1 || y2 < -16)
     {
         sprite->invisible = TRUE;
     }
@@ -877,12 +877,7 @@ static s32 RotatingGate_CanRotate(u8 gateId, s32 rotationDirection)
 
             if (sRotatingGate_ArmLayout[shape][2 * i + j])
             {
-            #ifdef BUGFIX
-                // Collision has a range 0-3, any value != 0 is impassable
                 if (MapGridGetCollisionAt(x + armPos[armIndex].x, y + armPos[armIndex].y))
-            #else
-                if (MapGridGetCollisionAt(x + armPos[armIndex].x, y + armPos[armIndex].y) == 1)
-            #endif
                     return FALSE;
             }
         }
