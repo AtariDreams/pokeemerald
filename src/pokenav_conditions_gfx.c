@@ -150,7 +150,6 @@ static void VBlankCB_PokenavConditionGraph(void);
 static void DoConditionGraphEnterTransition(void);
 static void DoConditionGraphExitTransition(void);
 static void SetExitVBlank(void);
-static void ToggleGraphData(bool8);
 
 bool32 OpenConditionGraphMenu(void)
 {
@@ -318,7 +317,7 @@ static u32 LoopedTask_OpenConditionGraphMenu(s32 state)
             return LT_PAUSE;
         return LT_INC_AND_PAUSE;
     case 19:
-        ToggleGraphData(TRUE);
+        ShowBg(2);
         return LT_INC_AND_PAUSE;
     case 20:
         if (!ConditionMenu_UpdateMonEnter(GetConditionGraphPtr(), &menu->monTransitionX))
@@ -348,7 +347,7 @@ static u32 LoopedTask_ExitConditionGraphMenu(s32 state)
     case 1:
         if (ConditionMenu_UpdateMonExit(GetConditionGraphPtr(), &menu->monTransitionX))
             return 2;
-        ToggleGraphData(FALSE);
+        HideBg(2);
         return LT_INC_AND_CONTINUE;
     case 2:
         PokenavFadeScreen(POKENAV_FADE_TO_BLACK);
@@ -849,14 +848,6 @@ static void VBlankCB_PokenavConditionGraph(void)
 static void SetExitVBlank(void)
 {
     SetPokenavVBlankCallback();
-}
-
-static void ToggleGraphData(bool8 showBg)
-{
-    if (showBg)
-        ShowBg(2);
-    else
-        HideBg(2);
 }
 
 static void DoConditionGraphEnterTransition(void)

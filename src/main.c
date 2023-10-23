@@ -75,7 +75,6 @@ static void CallCallbacks(void);
 static void SeedRngWithRtc(void);
 static void ReadKeys(void);
 void InitIntrHandlers(void);
-static void WaitForVBlank(void);
 void EnableVCountIntrAtLine150(void);
 
 #define AB_START_SELECT (A_BUTTON| B_BUTTON | START_BUTTON | SELECT_BUTTON)
@@ -157,7 +156,7 @@ _Noreturn void AgbMain(void)
 
         PlayTimeCounter_Update();
         MapMusicMain();
-        WaitForVBlank();
+        VBlankIntrWait();
     }
 }
 
@@ -350,7 +349,6 @@ static void VBlankIntr(void)
     UpdateWirelessStatusIndicatorSprite();
 
     INTR_CHECK |= INTR_FLAG_VBLANK;
-    gMain.intrCheck |= INTR_FLAG_VBLANK;
 }
 
 void InitFlashTimer(void)
@@ -364,7 +362,6 @@ static void HBlankIntr(void)
         gMain.hblankCallback();
 
     INTR_CHECK |= INTR_FLAG_HBLANK;
-    gMain.intrCheck |= INTR_FLAG_HBLANK;
 }
 
 static void VCountIntr(void)
@@ -374,7 +371,6 @@ static void VCountIntr(void)
 
     m4aSoundVSync();
     INTR_CHECK |= INTR_FLAG_VCOUNT;
-    gMain.intrCheck |= INTR_FLAG_VCOUNT;
 }
 
 static void SerialIntr(void)
@@ -383,18 +379,10 @@ static void SerialIntr(void)
         gMain.serialCallback();
 
     INTR_CHECK |= INTR_FLAG_SERIAL;
-    gMain.intrCheck |= INTR_FLAG_SERIAL;
 }
 
 static void IntrDummy(void)
 {}
-
-static void WaitForVBlank(void)
-{
-    gMain.intrCheck &= ~INTR_FLAG_VBLANK;
-
-    VBlankIntrWait();
-}
 
 void SetTrainerHillVBlankCounter(u32 *counter)
 {

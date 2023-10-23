@@ -3291,7 +3291,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
                     damage /= 2;
                     break;
                 case TYPE_WATER:
-                    damage = (15 * damage) / 10;
+                    damage += damage/2;
                     break;
                 }
             }
@@ -3306,7 +3306,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
                 switch (type)
                 {
                 case TYPE_FIRE:
-                    damage = (15 * damage) / 10;
+                    damage += damage/2;
                     break;
                 case TYPE_WATER:
                     damage /= 2;
