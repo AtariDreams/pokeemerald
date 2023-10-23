@@ -554,7 +554,7 @@ static void BuyMenuFreeMemory(void)
 
 static void BuyMenuBuildListMenuTemplate(void)
 {
-    u16 i;
+    u32 i;
 
     sListMenuItems = Alloc((sMartInfo.itemCount + 1) * sizeof(*sListMenuItems));
     sItemNames = Alloc((sMartInfo.itemCount + 1) * sizeof(*sItemNames));
@@ -618,7 +618,7 @@ static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, s
 
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
 {
-    u8 x;
+    s32 x;
 
     if (itemId != LIST_CANCEL)
     {
@@ -647,7 +647,7 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
 
 static void BuyMenuAddScrollIndicatorArrows(void)
 {
-    if (sShopData->scrollIndicatorsTaskId == TASK_NONE && sMartInfo.itemCount + 1 > MAX_ITEMS_SHOWN)
+    if (sShopData->scrollIndicatorsTaskId == TASK_NONE && sMartInfo.itemCount > MAX_ITEMS_SHOWN - 1)
     {
         sShopData->scrollIndicatorsTaskId = AddScrollIndicatorArrowPairParameterized(
             SCROLL_ARROW_UP,
@@ -817,22 +817,22 @@ static void BuyMenuDrawMapBg(void)
 
 static void BuyMenuDrawMapMetatile(s16 x, s16 y, const u16 *src, u8 metatileLayerType)
 {
-    s16 offset1 = x << 1;
-    s16 offset2 = y << 6;
+    x = x << 1;
+    y = y << 6;
 
     switch (metatileLayerType)
     {
     case METATILE_LAYER_TYPE_NORMAL:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 4);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], x, y, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], x, y, src + 4);
         break;
     case METATILE_LAYER_TYPE_COVERED:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src + 4);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], x, y, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], x, y, src + 4);
         break;
     case METATILE_LAYER_TYPE_SPLIT:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 4);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], x, y, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], x, y, src + 4);
         break;
     }
 }
@@ -911,7 +911,7 @@ static void BuyMenuDrawObjectEvents(void)
             gObjectEvents[sShopData->viewportObjects[i][OBJ_EVENT_ID]].graphicsId,
             SpriteCallbackDummy,
             (sShopData->viewportObjects[i][X_COORD] << 4) + 8,
-            (sShopData->viewportObjects[i][Y_COORD] << 8) + 48 - graphicsInfo->height / 2,
+            (sShopData->viewportObjects[i][Y_COORD] << 4) + 48 - graphicsInfo->height / 2,
             2);
 
         if (BuyMenuCheckIfObjectEventOverlapsMenuBg(sShopData->viewportObjects[i]) == TRUE)
