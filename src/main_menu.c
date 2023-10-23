@@ -1194,9 +1194,9 @@ static void Task_NewGameBirchSpeechSub_WaitForLotad(u8 taskId)
     case 1:
         if (gTasks[sBirchSpeechMainTaskId].tTimer < 96)
                     return;
-        DestroyTask(taskId);
         if (gTasks[sBirchSpeechMainTaskId].tTimer < 0x4000)
                     gTasks[sBirchSpeechMainTaskId].tTimer++;
+        DestroyTask(taskId);
         return;
     }
     tState++;
