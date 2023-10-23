@@ -9,8 +9,8 @@ void *gWindowBgTilemapBuffers[NUM_BACKGROUNDS];
 EWRAM_DATA struct Window gWindows[WINDOWS_MAX] = {0};
 
 
-static u8 GetNumActiveWindowsOnBg(u8 bgId);
-static u8 GetNumActiveWindowsOnBg8Bit(u8 bgId);
+static u32 GetNumActiveWindowsOnBg(u8 bgId);
+static u32 GetNumActiveWindowsOnBg8Bit(u8 bgId);
 
 static const struct WindowTemplate sDummyWindowTemplate = DUMMY_WIN_TEMPLATE;
 
@@ -528,9 +528,9 @@ u32 GetWindowAttribute(u8 windowId, u8 attributeId)
     }
 }
 
-static u8 GetNumActiveWindowsOnBg(u8 bgId)
+static u32 GetNumActiveWindowsOnBg(u8 bgId)
 {
-    u8 windowsNum = 0;
+    u32 windowsNum = 0;
     u32 i;
     for (i = 0; i < WINDOWS_MAX; i++)
     {
@@ -648,9 +648,9 @@ void CopyWindowToVram8Bit(u8 windowId, u8 mode)
     }
 }
 
-static u8 GetNumActiveWindowsOnBg8Bit(u8 bgId)
+static u32 GetNumActiveWindowsOnBg8Bit(u8 bgId)
 {
-    u8 windowsNum = 0;
+    u32 windowsNum = 0;
     u32 i;
     for (i = 0; i < WINDOWS_MAX; i++)
     {
