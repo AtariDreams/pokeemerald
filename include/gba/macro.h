@@ -253,6 +253,37 @@
     dmaRegs[5];                                                 \
 }
 
+#define	REG_IE_SET( v )							\
+	{											\
+	u16 Reg_IME_Backup;							\
+	Reg_IME_Backup = REG_IME;			\
+	REG_IME = 0;						\
+	REG_IE |= (v);						\
+	REG_IME = Reg_IME_Backup;			\
+	}
+
+
+#define	REG_IE_RESET( v )						\
+	{											\
+	u16 Reg_IME_Backup;							\
+	Reg_IME_Backup = REG_IME;			\
+	REG_IME = 0;						\
+	REG_IE &= ~(v);					\
+	REG_IME = Reg_IME_Backup;			\
+	}
+
+//	IEレジスタに指定したフラグをセット＆リセット
+#define REG_IE_CHG(set,reset)					\
+	{											\
+	u16 Reg_IME_Backup;							\
+	Reg_IME_Backup = REG_IME;			\
+	REG_IME = 0;						\
+	REG_IE &= ~(reset);				\
+	REG_IE |= (set);					\
+	REG_IME = Reg_IME_Backup;			\
+	}
+
+
 #define IntrEnable(flags)                                       \
 {                                                               \
     u16 imeTemp;                                                \
