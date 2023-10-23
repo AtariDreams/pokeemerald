@@ -1886,14 +1886,14 @@ static void HideTimer(struct BerryCrushGame_Gfx *gfx)
 {
     gfx->timerSprites[0]->invisible = TRUE;
     gfx->timerSprites[1]->invisible = TRUE;
-    DigitObjUtil_HideOrShow(2, TRUE);
-    DigitObjUtil_HideOrShow(1, TRUE);
-    DigitObjUtil_HideOrShow(0, TRUE);
+    DigitObjUtil_Hide(2);
+    DigitObjUtil_Hide(1);
+    DigitObjUtil_Hide(0);
 }
 
 static void CreatePlayerNameWindows(struct BerryCrushGame *game)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < game->playerCount; i++)
     {
         game->gfx.playerCoords[i] = &sPlayerCoords[sPlayerIdToPosId[game->playerCount - 2][i]];
