@@ -40,97 +40,92 @@ enum
 };
 
 static EWRAM_DATA u16 sSaveFailedType = {0};
-static EWRAM_DATA u16 sClockInfo[2] = {0};
-static EWRAM_DATA u8 sUnused1[12] = {0};
+static EWRAM_DATA u16 sClockInfo = 0;
 static EWRAM_DATA u8 sWindowIds[2] = {0};
-static EWRAM_DATA u8 sUnused2[4] = {0};
 
 static const struct OamData sClockOamData =
-{
-    .y = DISPLAY_HEIGHT,
-    .affineMode = ST_OAM_AFFINE_OFF,
-    .objMode = ST_OAM_OBJ_NORMAL,
-    .mosaic = FALSE,
-    .bpp = ST_OAM_4BPP,
-    .shape = SPRITE_SHAPE(16x16),
-    .x = 0,
-    .matrixNum = 0,
-    .size = SPRITE_SIZE(16x16),
-    .tileNum = 0,
-    .priority = 0,
-    .paletteNum = 0,
-    .affineParam = 0
-};
+    {
+        .y = DISPLAY_HEIGHT,
+        .affineMode = ST_OAM_AFFINE_OFF,
+        .objMode = ST_OAM_OBJ_NORMAL,
+        .mosaic = FALSE,
+        .bpp = ST_OAM_4BPP,
+        .shape = SPRITE_SHAPE(16x16),
+        .x = 0,
+        .matrixNum = 0,
+        .size = SPRITE_SIZE(16x16),
+        .tileNum = 0,
+        .priority = 0,
+        .paletteNum = 0,
+        .affineParam = 0};
 
 static const struct BgTemplate sBgTemplates[3] =
-{
     {
-        .bg = 0,
-        .charBaseIndex = 2,
-        .mapBaseIndex = 31,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 0,
-        .baseTile = 0,
-    },
-    {
-        .bg = 2,
-        .charBaseIndex = 0,
-        .mapBaseIndex = 14,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 2,
-        .baseTile = 0,
-    },
-    {
-        .bg = 3,
-        .charBaseIndex = 0,
-        .mapBaseIndex = 15,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 3,
-        .baseTile = 0,
-    },
+        {
+            .bg = 0,
+            .charBaseIndex = 2,
+            .mapBaseIndex = 31,
+            .screenSize = 0,
+            .paletteMode = 0,
+            .priority = 0,
+            .baseTile = 0,
+        },
+        {
+            .bg = 2,
+            .charBaseIndex = 0,
+            .mapBaseIndex = 14,
+            .screenSize = 0,
+            .paletteMode = 0,
+            .priority = 2,
+            .baseTile = 0,
+        },
+        {
+            .bg = 3,
+            .charBaseIndex = 0,
+            .mapBaseIndex = 15,
+            .screenSize = 0,
+            .paletteMode = 0,
+            .priority = 3,
+            .baseTile = 0,
+        },
 };
 
-static const struct WindowTemplate sDummyWindowTemplate[] = { DUMMY_WIN_TEMPLATE };
+static const struct WindowTemplate sDummyWindowTemplate[] = {DUMMY_WIN_TEMPLATE};
 
 static const struct WindowTemplate sWindowTemplate_Text[] =
-{
     {
-        .bg = 0,
-        .tilemapLeft = 1,
-        .tilemapTop = 13,
-        .width = 28,
-        .height = 6,
-        .paletteNum = 15,
-        .baseBlock = 1,
-    }
-};
+        {
+            .bg = 0,
+            .tilemapLeft = 1,
+            .tilemapTop = 13,
+            .width = 28,
+            .height = 6,
+            .paletteNum = 15,
+            .baseBlock = 1,
+        }};
 
 static const struct WindowTemplate sWindowTemplate_Clock[] =
-{
     {
-        .bg = 0,
-        .tilemapLeft = 14,
-        .tilemapTop = 9,
-        .width = 2,
-        .height = 2,
-        .paletteNum = 15,
-        .baseBlock = 169,
-    }
-};
+        {
+            .bg = 0,
+            .tilemapLeft = 14,
+            .tilemapTop = 9,
+            .width = 2,
+            .height = 2,
+            .paletteNum = 15,
+            .baseBlock = 169,
+        }};
 
 static const u8 sClockFrames[8][3] =
-{
-    { 1, 0, 0 },
-    { 5, 0, 0 },
-    { 9, 0, 0 },
-    { 5, 0, 1 },
-    { 1, 0, 1 },
-    { 5, 1, 1 },
-    { 9, 1, 0 },
-    { 5, 1, 0 },
+    {
+        {1, 0, 0},
+        {5, 0, 0},
+        {9, 0, 0},
+        {5, 0, 1},
+        {1, 0, 1},
+        {5, 1, 1},
+        {9, 1, 0},
+        {5, 1, 0},
 };
 
 static const u8 sSaveFailedClockPal[] = INCBIN_U8("graphics/misc/clock_small.gbapal");
@@ -160,8 +155,7 @@ void DoSaveFailedScreen(u8 saveType)
 {
     SetMainCallback2(CB2_SaveFailedScreen);
     sSaveFailedType = saveType;
-    sClockInfo[CLOCK_RUNNING] = FALSE;
-    sClockInfo[DEBUG_TIMER] = 0;
+    sClockInfo = FALSE;
     sWindowIds[TEXT_WIN_ID] = 0;
     sWindowIds[CLOCK_WIN_ID] = 0;
 }
@@ -248,7 +242,7 @@ static void CB2_WipeSave(void)
 {
     u8 wipeTries = 0;
 
-    sClockInfo[CLOCK_RUNNING] = TRUE;
+    sClockInfo = TRUE;
 
     while (gDamagedSaveSectors != 0 && wipeTries < 3)
     {
@@ -293,7 +287,7 @@ static void CB2_WipeSave(void)
 
 static void CB2_GameplayCannotBeContinued(void)
 {
-    sClockInfo[CLOCK_RUNNING] = FALSE;
+    sClockInfo = FALSE;
 
     if (JOY_NEW(A_BUTTON))
     {
@@ -306,7 +300,7 @@ static void CB2_GameplayCannotBeContinued(void)
 
 static void CB2_FadeAndReturnToTitleScreen(void)
 {
-    sClockInfo[CLOCK_RUNNING] = FALSE;
+    sClockInfo = FALSE;
 
     if (JOY_NEW(A_BUTTON))
     {
@@ -340,7 +334,7 @@ static void VBlankCB_UpdateClockGraphics(void)
     gMain.oamBuffer[0].x = 112;
     gMain.oamBuffer[0].y = (CLOCK_WIN_TOP + 1) * 8;
 
-    if (sClockInfo[CLOCK_RUNNING])
+    if (sClockInfo)
     {
         gMain.oamBuffer[0].tileNum = sClockFrames[n][0];
         gMain.oamBuffer[0].matrixNum = (sClockFrames[n][2] << 4) | (sClockFrames[n][1] << 3);
@@ -351,9 +345,6 @@ static void VBlankCB_UpdateClockGraphics(void)
     }
 
     CpuFastCopy(gMain.oamBuffer, (void *)OAM, 4);
-
-    if (sClockInfo[DEBUG_TIMER])
-        sClockInfo[DEBUG_TIMER]--;
 }
 
 static bool8 VerifySectorWipe(u16 sector)
@@ -373,19 +364,20 @@ static bool8 VerifySectorWipe(u16 sector)
 
 static bool8 WipeSector(u16 sector)
 {
-    u16 i, j;
-    bool8 failed = TRUE;
+    u16 j;
+    u32 i;
 
     // Attempt to wipe sector with an arbitrary attempt limit of 130
-    for (i = 0; failed && i < 130; i++)
+    for (i = 0; i < 130; i++)
     {
         for (j = 0; j < SECTOR_SIZE; j++)
             ProgramFlashByte(sector, j, 0);
 
-        failed = VerifySectorWipe(sector);
+        if (!VerifySectorWipe(sector))
+            return FALSE;
     }
 
-    return failed;
+    return TRUE;
 }
 
 static bool8 WipeSectors(u32 sectorBits)
@@ -393,8 +385,8 @@ static bool8 WipeSectors(u32 sectorBits)
     u16 i;
 
     for (i = 0; i < SECTORS_COUNT; i++)
-        if ((sectorBits & (1 << i)) && !WipeSector(i))
-            sectorBits &= ~(1 << i);
+        if ((sectorBits & (1U << i)) && !WipeSector(i))
+            sectorBits &= ~(1U << i);
 
     if (sectorBits == 0)
         return FALSE;
