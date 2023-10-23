@@ -484,7 +484,7 @@ static u32 LoopedTask_ExitRegionMap(s32 taskState)
 
 static void LoadCityZoomViewGfx(void)
 {
-    int i;
+    u32 i;
     for (i = 0; i < ARRAY_COUNT(sCityZoomTextSpriteSheet); i++)
         LoadCompressedSpriteSheet(&sCityZoomTextSpriteSheet[i]);
 
@@ -494,11 +494,11 @@ static void LoadCityZoomViewGfx(void)
 
 static void FreeCityZoomViewGfx(void)
 {
-    int i;
+    u32 i;
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
     FreeSpriteTilesByTag(GFXTAG_CITY_ZOOM);
     FreeSpritePaletteByTag(PALTAG_CITY_ZOOM);
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(state->cityZoomTextSprites); i++)
         DestroySprite(state->cityZoomTextSprites[i]);
 }
 
