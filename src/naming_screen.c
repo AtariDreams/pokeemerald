@@ -153,9 +153,9 @@ struct NamingScreenTemplate
 
 struct NamingScreenData
 {
-    u8 tilemapBuffer[3][0x800];
+    ALIGNED(4) u8 tilemapBuffer[3][0x800];
     u8 textBuffer[16];
-    u8 tileBuffer[0x600];
+    ALIGNED(4) u8 tileBuffer[0x600];
     u8 state;
     u8 windows[WIN_COUNT];
     s16 inputCharBaseXPos;
@@ -483,7 +483,7 @@ static void NamingScreen_Init(void)
 
 static void SetSpritesVisible(void)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < MAX_SPRITES; i++)
     {
         if (gSprites[i].inUse)
@@ -494,7 +494,7 @@ static void SetSpritesVisible(void)
 
 static void NamingScreen_InitBGs(void)
 {
-    u8 i;
+    u32 i;
 
     DmaClearLarge16(3, (void *)VRAM, VRAM_SIZE, 0x1000);
     DmaClear32(3, (void *)OAM, OAM_SIZE);
