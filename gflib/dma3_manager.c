@@ -19,13 +19,14 @@ struct Dma3Request
 
 static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
-//static vbool8 sDma3ManagerLocked;
+static vbool8 sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
     unsigned int i;
 
+    sDma3ManagerLocked = TRUE;
     sDma3RequestCursor = 0;
 
     for (i = 0; i < MAX_DMA_REQUESTS; i++)
@@ -34,11 +35,18 @@ void ClearDma3Requests(void)
         sDma3Requests[i].src = NULL;
         sDma3Requests[i].dest = NULL;
     }
+
+    sDma3ManagerLocked = FALSE;
 }
 
 void ProcessDma3Requests(void)
 {
-    u16 bytesTransferred = 0;
+    u16 bytesTransferred;
+
+    if (sDma3ManagerLocked)
+        return;
+
+    bytesTransferred = 0;
 
     // as long as there are DMA requests to process (unless size or vblank is an issue), do not exit
     while (sDma3Requests[sDma3RequestCursor].size != 0)
@@ -92,6 +100,7 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
     int cursor;
     int i = 0;
 
+    sDma3ManagerLocked = TRUE;
     cursor = sDma3RequestCursor;
 
     while (i < MAX_DMA_REQUESTS)
@@ -107,12 +116,14 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_COPY16;
 
+            sDma3ManagerLocked = FALSE;
             return cursor;
         }
         if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
             cursor = 0;
         i++;
     }
+    sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
 }
 
@@ -122,6 +133,7 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
     int i = 0;
 
     cursor = sDma3RequestCursor;
+    sDma3ManagerLocked = TRUE;
 
     while (i < MAX_DMA_REQUESTS)
     {
@@ -137,12 +149,14 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_FILL16;
 
+            sDma3ManagerLocked = FALSE;
             return cursor;
         }
         if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
             cursor = 0;
         i++;
     }
+    sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
 }
 

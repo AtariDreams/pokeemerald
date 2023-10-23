@@ -3104,7 +3104,7 @@ static bool8 WhiteBarsFade_Init(struct Task *task)
         gScanlineEffectRegBuffers[1][i + DISPLAY_HEIGHT] = DISPLAY_WIDTH;
     }
 
-    EnableInterrupts(INTR_FLAG_HBLANK);
+    EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_HBLANK);
     SetHBlankCallback(HBlankCB_WhiteBarsFade);
     SetVBlankCallback(VBlankCB_WhiteBarsFade);
 
