@@ -165,8 +165,7 @@ u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
     switch (mode)
     {
     default:
-        cursor = -1;
-        break;
+        return -1;
     case 0x1:
         offset = sGpuBgConfigs.configs[bg].charBaseIndex * BG_CHAR_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
@@ -351,33 +350,33 @@ u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
 
     cursor = LoadBgVram(bg, src, size, tileOffset, DISPCNT_MODE_1);
 
-    if (cursor == 0xFF)
+    if (cursor == -1)
     {
-        return 0xFFFF;
+        return -1;
     }
 
-    sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor % 0x20));
 
     return cursor;
 }
 
 u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
 {
-    u8 cursor = LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
+    s16 cursor = LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
 
-    if (cursor == 0xFF)
+    if (cursor == -1)
     {
         return -1;
     }
 
-    sDmaBusyBitfield[cursor / 0x20] |= (1 << (cursor % 0x20));
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
 
     return cursor;
 }
 
 u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset)
 {
-    s8 cursor;
+    s16 cursor;
 
     if (!IsInvalidBg32(bg))
     {
@@ -392,7 +391,7 @@ u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset)
         return -1;
     }
 
-    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor % 0x20));
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
 
     return (u8)cursor;
 }
@@ -408,8 +407,7 @@ bool8 IsDma3ManagerBusyWithBgCopy(void)
 
         if ((sDmaBusyBitfield[div] & (1U << mod)))
         {
-            s8 reqSpace = CheckForSpaceForDma3Request(i);
-            if (reqSpace == -1)
+            if (CheckForSpaceForDma3Request(i) == -1)
             {
                 return TRUE;
             }
