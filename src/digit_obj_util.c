@@ -361,7 +361,7 @@ void DigitObjUtil_DeletePrinter(u32 id)
     sOamWork->array[id].isActive = FALSE;
 }
 
-void DigitObjUtil_HideOrShow(u32 id, bool32 hide)
+void DigitObjUtil_Hide(u32 id)
 {
     u32 oamId, oamCount, i;
 
@@ -372,18 +372,8 @@ void DigitObjUtil_HideOrShow(u32 id, bool32 hide)
 
     oamCount = sOamWork->array[id].oamCount + 1;
     oamId = sOamWork->array[id].firstOamId;
-    if (hide)
-    {
-        for (i = 0; i < oamCount; i++, oamId++)
-            gMain.oamBuffer[oamId].affineMode = ST_OAM_AFFINE_ERASE;
-    }
-    else
-    {
-        for (i = 0; i < oamCount; i++, oamId++)
-            gMain.oamBuffer[oamId].affineMode = ST_OAM_AFFINE_OFF;
-
-        DigitObjUtil_PrintNumOn(id, sOamWork->array[id].lastPrinted);
-    }
+    for (i = 0; i < oamCount; i++, oamId++)
+        gMain.oamBuffer[oamId].affineMode = ST_OAM_AFFINE_ERASE;
 }
 
 static u8 GetFirstOamId(u8 oamCount)

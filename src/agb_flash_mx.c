@@ -87,8 +87,6 @@ u16 EraseFlashSector_MX(u16 sectorNum)
     SwitchFlashBank(sectorNum / SECTORS_PER_BANK);
     sectorNum %= SECTORS_PER_BANK;
 
-    numTries = 0;
-
     for (numTries = 0; numTries < 4; numTries++)
     {
         REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
