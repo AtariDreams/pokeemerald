@@ -624,12 +624,12 @@ void ResetOam(void)
 void LoadOam(void)
 {
     if (!gMain.oamLoadDisabled)
-        CpuCopy32(gMain.oamBuffer, (void *)OAM, sizeof(gMain.oamBuffer));
+        CpuFastCopy(gMain.oamBuffer, (void *)OAM, sizeof(gMain.oamBuffer));
 }
 
 void ClearSpriteCopyRequests(void)
 {
-    u8 i;
+    u32 i;
 
     sShouldProcessSpriteCopyRequests = FALSE;
     sSpriteCopyRequestCount = 0;
