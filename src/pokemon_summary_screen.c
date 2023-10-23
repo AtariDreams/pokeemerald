@@ -1797,8 +1797,8 @@ static void PssScrollRightEnd(u8 taskId) // display right
 {
     s16 *data = gTasks[taskId].data;
     sMonSummaryScreen->bgDisplayOrder ^= 1;
-    data[1] = 0;
     data[0] = 0;
+    data[1] = 0;
     DrawPagination();
     PutPageWindowTilemaps(sMonSummaryScreen->currPageIndex);
     SetTypeIcons();
