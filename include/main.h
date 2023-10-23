@@ -17,8 +17,6 @@ struct Main
     /*0x014*/ IntrCallback vcountCallback;
     /*0x018*/ IntrCallback serialCallback;
 
-    /*0x01C*/ vu16 intrCheck;
-
     /*0x020*/ u32 vblankCounter1;
     /*0x024*/ u32 vblankCounter2;
 
@@ -35,9 +33,9 @@ struct Main
 
     /*0x438*/ u8 state;
 
-    /*0x439*/ u8 oamLoadDisabled:1;
-    /*0x439*/ u8 inBattle:1;
-    /*0x439*/ u8 anyLinkBattlerHasFrontierPass:1;
+    /*0x439*/ u8 oamLoadDisabled;
+    /*0x439*/ u8 inBattle;
+    /*0x439*/ u8 anyLinkBattlerHasFrontierPass;
 };
 
 #define GAME_CODE_LENGTH 4
