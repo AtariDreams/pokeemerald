@@ -874,7 +874,7 @@ u8 GetMonMarkingsData(void)
 {
     struct Pokenav_ConditionMenuGfx *menu = GetSubstructPtr(POKENAV_SUBSTRUCT_CONDITION_GRAPH_MENU_GFX);
 
-    if (IsConditionMenuSearchMode() == 1)
+    if (IsConditionMenuSearchMode())
         return menu->marksMenu.markings;
     else
         return 0;
