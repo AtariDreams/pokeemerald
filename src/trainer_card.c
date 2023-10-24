@@ -349,7 +349,7 @@ static void HblankCb_TrainerCard(void)
 
     backup = REG_IME;
     REG_IME = 0;
-    bgVOffset = gScanlineEffectRegBuffers[1][REG_VCOUNT & 0xFF];
+    bgVOffset = gScanlineEffectRegBuffers[1][REG_VCOUNT];
     REG_BG0VOFS = bgVOffset;
     REG_IME = backup;
 }
