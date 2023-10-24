@@ -193,18 +193,18 @@ struct DodrioGame_Berries
 
 struct DodrioGame_PlayerCommData
 {
-    u8 pickState;
+    u8 ALIGNED(4) pickState;
     bool8 ALIGNED(4) ateBerry;
     bool8 ALIGNED(4) missedBerry;
 };
 
 struct DodrioGame_Player
 {
-    u8 name[16];
+    u8 name[PLAYER_NAME_LENGTH + 1];
     bool32 receivedGameStatePacket; // Never read
     struct DodrioGame_Berries berries;
     struct DodrioGame_PlayerCommData comm;
-    u32 unused;
+    // u32 unused;
 }; // size = 0x3C
 
 // Because Dodrio is required for this minigame,
@@ -212,12 +212,12 @@ struct DodrioGame_Player
 // Pokémon is whether or not it's shiny
 struct DodrioGame_MonInfo
 {
-    bool8 isShiny;
+    bool8 ALIGNED(4) isShiny;
 };
 
 struct DodrioGame_ScoreResults
 {
-    u8 ranking;
+    u8 ALIGNED(4) ranking;
     u32 score;
 };
 
@@ -230,14 +230,14 @@ struct DodrioGame
     /*0x0010*/ u8 ALIGNED(4) state;
     /*0x0014*/ u8 ALIGNED(4) timer;
     /*0x0018*/ u8 ALIGNED(4) funcId;
-    /*0x001C*/ u8 ALIGNED(4) prevFuncId; // Set, never read
+    /*0x001C*/ //u8 ALIGNED(4) prevFuncId; // Set, never read
     /*0x0020*/ bool8 ALIGNED(4) isLeader;
     /*0x0024*/ u8 ALIGNED(4) numPlayers;
     /*0x0028*/ u8 ALIGNED(4) multiplayerId;
-    /*0x0029*/ u8 unused1[7];
+    /*0x0029*/ // u8 unused1[7];
     /*0x0030*/ u8 ALIGNED(4) countdownEndDelay;
     /*0x0034*/ u8 ALIGNED(4) posToPlayerId[MAX_RFU_PLAYERS];
-    /*0x003C*/ u8 ALIGNED(4) unused2; // Set to 0, never read
+    /*0x003C*/ //u8 ALIGNED(4) unused2; // Set to 0, never read
     /*0x0040*/ u8 ALIGNED(4) numGraySquares;
     /*0x0044*/ u8 ALIGNED(4) berryColStart;
     /*0x0048*/ u8 ALIGNED(4) berryColEnd;
@@ -257,7 +257,7 @@ struct DodrioGame
     /*0x010C*/ u8 ALIGNED(4) playAgainStates[MAX_RFU_PLAYERS];
     /*0x0112*/ u16 berriesPickedInRow;
     /*0x0114*/ u16 maxBerriesPickedInRow;
-    /*0x0118*/ bool32 startCountdown; // Never read
+    /*0x0118*/ //bool32 startCountdown; // Never read
     /*0x011C*/ bool32 startGame;
     /*0x0120*/ bool32 berriesFalling;
     /*0x0124*/ u8 ALIGNED(4) clearRecvCmdTimer;
@@ -665,27 +665,30 @@ void StartDodrioBerryPicking(u16 partyId, void (*exitCallback)(void))
 {
     sExitingGame = FALSE;
 
-    if (gReceivedRemoteLinkPlayers && (sGame = AllocZeroed(sizeof(*sGame))))
+    if (gReceivedRemoteLinkPlayers)
     {
-        ResetTasksAndSprites();
-        InitDodrioGame(sGame);
-        sGame->exitCallback = exitCallback;
-        sGame->multiplayerId = GetMultiplayerId();
-        sGame->player = sGame->players[sGame->multiplayerId];
-        InitMonInfo(&sGame->monInfo[sGame->multiplayerId], &gPlayerParty[partyId]);
-        CreateTask(Task_StartDodrioGame, 1);
-        SetMainCallback2(CB2_DodrioGame);
-        SetRandomPrize();
-        GetActiveBerryColumns(sGame->numPlayers, &sGame->berryColStart, &sGame->berryColEnd);
-        StopMapMusic();
-        PlayNewMapMusic(MUS_RG_BERRY_PICK);
+        sGame = AllocZeroed(sizeof(*sGame));
+
+        if (sGame)
+        {
+            ResetTasksAndSprites();
+            InitDodrioGame(sGame);
+            sGame->exitCallback = exitCallback;
+            sGame->multiplayerId = GetMultiplayerId();
+            sGame->player = sGame->players[sGame->multiplayerId];
+            InitMonInfo(&sGame->monInfo[sGame->multiplayerId], &gPlayerParty[partyId]);
+            CreateTask(Task_StartDodrioGame, 1);
+            SetMainCallback2(CB2_DodrioGame);
+            SetRandomPrize();
+            GetActiveBerryColumns(sGame->numPlayers, &sGame->berryColStart, &sGame->berryColEnd);
+            StopMapMusic();
+            PlayNewMapMusic(MUS_RG_BERRY_PICK);
+            return;
+        }
     }
-    else
-    {
-        // Exit - Alloc failed, or players not connected
-        SetMainCallback2(exitCallback);
-        return;
-    }
+
+    // Exit - Alloc failed, or players not connected
+    SetMainCallback2(exitCallback);
 }
 
 static void ResetTasksAndSprites(void)
@@ -697,18 +700,18 @@ static void ResetTasksAndSprites(void)
 
 static void InitDodrioGame(struct DodrioGame * game)
 {
-    u8 i;
+    u32 i;
 
     game->startState = 0;
     game->state = 0;
     game->timer = 0;
     game->funcId = FUNC_INTRO;
-    game->prevFuncId = FUNC_INTRO;
+    //game->prevFuncId = FUNC_INTRO;
     game->startGame = FALSE;
     game->berriesFalling = FALSE;
     game->countdownEndDelay = 0;
     game->numGraySquares = 0;
-    game->unused2 = 0;
+    //game->unused2 = 0;
     game->allReadyToEnd = FALSE;
 
     for (i = 0; i < ARRAY_COUNT(game->pickStateQueue); i++)
@@ -736,7 +739,7 @@ static void InitDodrioGame(struct DodrioGame * game)
         game->playersAttemptingPick[i][1] = PLAYER_NONE;
     }
 
-    game->isLeader = GetMultiplayerId() == 0 ? TRUE : FALSE;
+    game->isLeader = GetMultiplayerId() == 0;
     game->numPlayers = GetLinkPlayerCount();
     game->posToPlayerId[0] = GetMultiplayerId();
     for (i = 1; i < game->numPlayers; i++)
@@ -862,7 +865,7 @@ static void InitCountdown(void)
         sGame->state++;
         break;
     default:
-        sGame->startCountdown = TRUE;
+        //sGame->startCountdown = TRUE;
         SetGameFunc(FUNC_COUNTDOWN);
         break;
     }
@@ -1164,7 +1167,7 @@ static void DoResults(void)
         {
             for (i = 0; i < sGame->numPlayers; i++)
             {
-                *(&sGame->playAgainStates[i]) = *(u8 *)gBlockRecvBuffer[i];
+                memcpy(&sGame->playAgainStates[i], gBlockRecvBuffer[i], 1);
                 sGame->playersReceived = sGame->numPlayers;
             }
         }
@@ -1240,7 +1243,7 @@ static void AskPlayAgain(void)
         {
             for (i = 0; i < sGame->numPlayers; i++)
             {
-                *(&sGame->playAgainStates[i]) = *(u8 *)gBlockRecvBuffer[i];
+                memcpy(&sGame->playAgainStates[i], gBlockRecvBuffer[i], 1);
                 sGame->playersReceived = sGame->numPlayers;
             }
         }
@@ -1427,7 +1430,7 @@ static void Task_NewGameIntro(u8 taskId)
 static void Task_CommunicateMonInfo(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
-    u8 i;
+    u32 i;
 
     switch (tState)
     {
@@ -1447,7 +1450,8 @@ static void Task_CommunicateMonInfo(u8 taskId)
         {
             for (i = 0; i < sGame->numPlayers; i++)
             {
-                *(u8 *)&sGame->monInfo[i] = *(u8 *)gBlockRecvBuffer[i];
+                // This is so stupid
+                memcpy(&sGame->monInfo[i].isShiny, gBlockRecvBuffer[i], 1);
                 sGame->playersReceived = sGame->numPlayers;
             }
         }
@@ -1815,7 +1819,7 @@ static void CreateDodrioGameTask(TaskFunc func)
 
 static void SetGameFunc(u8 funcId)
 {
-    sGame->prevFuncId = sGame->funcId;
+    //sGame->prevFuncId = sGame->funcId;
     sGame->funcId = funcId;
     sGame->state = 0;
     sGame->timer = 0;

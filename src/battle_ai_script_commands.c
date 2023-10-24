@@ -285,8 +285,7 @@ void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves)
     s32 i;
     u8 *data = (u8 *)BATTLE_HISTORY;
 
-    for (i = 0; i < sizeof(struct BattleHistory); i++)
-        data[i] = 0;
+    memset(gBattleResources->battleHistory, 0, sizeof(struct BattleHistory));
 
     // Items are allowed to use in ONLY trainer battles.
     if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER)
