@@ -140,14 +140,14 @@ u16 GetGpuReg(u8 regOffset)
 
 void SetGpuRegBits(u8 regOffset, u16 mask)
 {
-    u16 regValue = GPU_REG_BUF(regOffset);
-    SetGpuReg(regOffset, regValue | mask);
+    u16 regValue = GPU_REG_BUF(regOffset) | mask;
+    SetGpuReg(regOffset, regValue);
 }
 
 void ClearGpuRegBits(u8 regOffset, u16 mask)
 {
-    u16 regValue = GPU_REG_BUF(regOffset);
-    SetGpuReg(regOffset, regValue & ~mask);
+    u16 regValue = GPU_REG_BUF(regOffset) & ~mask;
+    SetGpuReg(regOffset, regValue);
 }
 void EnableInterrupts(u16 mask)
 {
