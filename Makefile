@@ -107,7 +107,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(shell $(PATH_MODERNCC) --print-prog-name=cc1) -quiet
-override CFLAGS += -mthumb -mthumb-interwork -O3 -mabi=aapcs -mcpu=arm7tdmi -Wno-pointer-to-int-cast -fno-toplevel-reorder
+override CFLAGS += -mthumb -mthumb-interwork -Ofast -mabi=aapcs -mcpu=arm7tdmi -Wno-pointer-to-int-cast -fno-toplevel-reorder
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
 LIBPATH := -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libc.a))"
@@ -297,15 +297,15 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(GFLIB_BUILDDIR)/malloc.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/dma3_manager.o: CFLAGS := -mthumb-interwork -O3 -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/gpu_regs.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/bg.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/blit.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/window.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/text.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/math_util.o: CFLAGS := -mthumb-interwork -O3 -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
+$(GFLIB_BUILDDIR)/malloc.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/dma3_manager.o: CFLAGS := -mthumb-interwork -Ofast -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/gpu_regs.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/bg.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/blit.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/window.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/text.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/math_util.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
 endif
 
 ifeq ($(DINFO),1)
