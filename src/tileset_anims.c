@@ -546,7 +546,7 @@ static const u16 *const sTilesetAnims_BattleDomeFloorLightPals[] = {
 static void ResetTilesetAnimBuffer(void)
 {
     sTilesetDMA3TransferBufferSize = 0;
-    CpuFastFill(0, sTilesetDMA3TransferBuffer, sizeof sTilesetDMA3TransferBuffer);
+    CpuFill32(0, sTilesetDMA3TransferBuffer, sizeof sTilesetDMA3TransferBuffer);
 }
 
 static void AppendTilesetAnimToBuffer(const u16 *src, u16 *dest, u16 size)
@@ -562,7 +562,7 @@ static void AppendTilesetAnimToBuffer(const u16 *src, u16 *dest, u16 size)
 
 void TransferTilesetAnimsBuffer(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < sTilesetDMA3TransferBufferSize; i ++)
         DmaCopy16(3, sTilesetDMA3TransferBuffer[i].src, sTilesetDMA3TransferBuffer[i].dest, sTilesetDMA3TransferBuffer[i].size);

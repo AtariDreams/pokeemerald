@@ -207,7 +207,7 @@ static void ShowContestPainting(void)
         break;
     case 1:
         ResetPaletteFade();
-        DmaFillLarge32(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
+        DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
         ResetSpriteData();
         gMain.state++;
         break;
@@ -224,7 +224,7 @@ static void ShowContestPainting(void)
     case 4:
         PrintContestPaintingCaption(gCurContestWinnerSaveIdx, gCurContestWinnerIsForArtist);
         SetBackdropFromPalette(sBgPalette);
-        DmaClear32(3, PLTT, PLTT_SIZE);
+        DmaClear16(3, PLTT, PLTT_SIZE);
         BeginFastPaletteFade(2);
         SetVBlankCallback(VBlankCB_ContestPainting);
         sHoldState = 0;
