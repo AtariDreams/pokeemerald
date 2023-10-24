@@ -198,14 +198,14 @@ static void ShowBgInternal(u8 bg)
 
         SetGpuReg(REG_OFFSET_BG0CNT + (bg * 2), value);
 
-        sGpuBgConfigs.bgVisibilityAndMode |= 1 << (bg + 8);
+        sGpuBgConfigs.bgVisibilityAndMode |= 1U << (bg + 8);
         sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
     }
 }
 
 static void HideBgInternal(u8 bg)
 {
-    sGpuBgConfigs.bgVisibilityAndMode &= ~(1 << (bg + 8));
+    sGpuBgConfigs.bgVisibilityAndMode &= ~(1U << (bg + 8));
     sGpuBgConfigs.bgVisibilityAndMode &= DISPCNT_ALL_BG_AND_MODE_BITS;
 }
 
@@ -258,14 +258,6 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
     SetGpuReg(REG_OFFSET_BG2X_H, (dest.dx >> 16) & 0xffff);
     SetGpuReg(REG_OFFSET_BG2Y_L, dest.dy & 0xffff);
     SetGpuReg(REG_OFFSET_BG2Y_H, (dest.dy >> 16) & 0xffff);
-}
-
-bool8 IsInvalidBg(u8 bg)
-{
-    if (bg >= NUM_BACKGROUNDS)
-        return TRUE;
-    else
-        return FALSE;
 }
 
 void ResetBgsAndClearDma3BusyFlags(void)
@@ -370,28 +362,6 @@ u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
     sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
 
     return cursor;
-}
-
-u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset)
-{
-    s16 cursor;
-
-    if (!IsInvalidBg32(bg))
-    {
-        u16 paletteOffset = PLTT_OFFSET_4BPP(sGpuBgConfigs2[bg].basePalette) + (destOffset * 2);
-        cursor = RequestDma3Copy(src, (void *)(paletteOffset + BG_PLTT), size, 0);
-
-        if (cursor == -1)
-            return -1;
-    }
-    else
-    {
-        return -1;
-    }
-
-    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
-
-    return (u8)cursor;
 }
 
 bool8 IsDma3ManagerBusyWithBgCopy(void)
@@ -832,7 +802,7 @@ void CopyToBgTilemapBufferRect(u8 bg, const void *src, u8 destX, u8 destY, u8 wi
     u16 destY16;
     u16 mode;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if (!IsTileMapOutsideWram(bg))
     {
         switch (GetBgType(bg))
         {
@@ -923,7 +893,7 @@ void FillBgTilemapBufferRect_Palette0(u8 bg, u16 tileNum, u8 x, u8 y, u8 width, 
     u16 y16;
     u16 mode;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if (!IsTileMapOutsideWram(bg))
     {
         switch (GetBgType(bg))
         {
@@ -963,7 +933,7 @@ void WriteSequenceToBgTilemapBuffer(u8 bg, u16 firstTileNum, u8 x, u8 y, u8 widt
     u16 mode3;
     u16 x16, y16;
 
-    if (!IsInvalidBg32(bg) && !IsTileMapOutsideWram(bg))
+    if (!IsTileMapOutsideWram(bg))
     {
         attribute = GetBgControlAttribute(bg, BG_CTRL_ATTR_SCREENSIZE);
         mode = GetBgMetricTextMode(bg, 0x1) * 0x20;
@@ -1151,14 +1121,6 @@ static u32 GetBgType(u8 bg)
     }
 
     return BG_TYPE_NONE;
-}
-
-bool32 IsInvalidBg32(u8 bg)
-{
-    if (bg >= NUM_BACKGROUNDS)
-        return TRUE;
-    else
-        return FALSE;
 }
 
 bool32 IsTileMapOutsideWram(u8 bg)
