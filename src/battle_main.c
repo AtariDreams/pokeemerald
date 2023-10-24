@@ -3138,9 +3138,7 @@ void SwitchInClearSetData(void)
     gActionSelectionCursor[gActiveBattler] = 0;
     gMoveSelectionCursor[gActiveBattler] = 0;
 
-    ptr = (u8 *)&gDisableStructs[gActiveBattler];
-    for (i = 0; i < sizeof(struct DisableStruct); i++)
-        ptr[i] = 0;
+    memset(&gDisableStructs[gActiveBattler], 0, sizeof(struct DisableStruct));
 
     if (gBattleMoves[gCurrentMove].effect == EFFECT_BATON_PASS)
     {

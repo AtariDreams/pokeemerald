@@ -253,7 +253,7 @@ static void CB2_LoadCableCar(void)
         SetVBlankCallback(NULL);
         SetBgRegs(FALSE);
         ScanlineEffect_Stop();
-        DmaFillLarge32(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
+        DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
         DmaFill32(3, 0, (void *)OAM, OAM_SIZE);
         DmaFill32(3, 0, (void *)PLTT, PLTT_SIZE);
         sCableCar = AllocZeroed(sizeof(*sCableCar));
@@ -373,7 +373,7 @@ static void CB2_CableCar(void)
 
 static void CB2_EndCableCar(void)
 {
-    u8 i = 0;
+    u32 i = 0;
 
     HideBg(0);
     HideBg(1);
@@ -400,8 +400,8 @@ static void CB2_EndCableCar(void)
     FREE_AND_SET_NULL(sCableCar->groundTilemap);
     FREE_AND_SET_NULL(sCableCar);
     DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
-    DmaFill32Defvars(3, 0, (void *)OAM, OAM_SIZE);
-    DmaFill16Defvars(3, 0, (void *)PLTT, PLTT_SIZE);
+    DmaFill32(3, 0, (void *)OAM, OAM_SIZE);
+    DmaFill16(3, 0, (void *)PLTT, PLTT_SIZE);
     WarpIntoMap();
     gFieldCallback = NULL;
     SetMainCallback2(CB2_LoadMap);
@@ -409,7 +409,7 @@ static void CB2_EndCableCar(void)
 
 static void Task_CableCar(u8 taskId)
 {
-    u8 i = 0;
+    u32 i = 0;
 
     sCableCar->timer++;
     switch (sCableCar->state)
