@@ -506,11 +506,13 @@ static void BeginFastPaletteFadeInternal(u8 submode)
     gPaletteFade.active = TRUE;
     gPaletteFade.mode = FAST_FADE;
 
-    if (submode == FAST_FADE_IN_FROM_BLACK)
-        CpuFill16(RGB_BLACK, gPlttBufferFaded, PLTT_SIZE);
+    if (submode == FAST_FADE_IN_FROM_WHITE) {
+        CpuFastFill16(RGB_WHITE, gPlttBufferFaded, PLTT_SIZE);
+    }
+    else if (submode == FAST_FADE_IN_FROM_BLACK) {
+        CpuFastFill16(RGB_BLACK, gPlttBufferFaded, PLTT_SIZE);
+    }
 
-    if (submode == FAST_FADE_IN_FROM_WHITE)
-        CpuFill16(RGB_WHITE, gPlttBufferFaded, PLTT_SIZE);
 
     UpdatePaletteFade();
 }
@@ -654,13 +656,13 @@ static u8 UpdateFastPaletteFade(void)
         {
         case FAST_FADE_IN_FROM_WHITE:
         case FAST_FADE_IN_FROM_BLACK:
-            CpuCopy32(gPlttBufferUnfaded, gPlttBufferFaded, PLTT_SIZE);
+            CpuFastCopy(gPlttBufferUnfaded, gPlttBufferFaded, PLTT_SIZE);
             break;
         case FAST_FADE_OUT_TO_WHITE:
-            CpuFill32(0xFFFFFFFF, gPlttBufferFaded, PLTT_SIZE);
+            CpuFastFill16(RGB_WHITE, gPlttBufferFaded, PLTT_SIZE);
             break;
         case FAST_FADE_OUT_TO_BLACK:
-            CpuFill32(0x00000000, gPlttBufferFaded, PLTT_SIZE);
+            CpuFastFill16(RGB_BLACK, gPlttBufferFaded, PLTT_SIZE);
             break;
         }
 

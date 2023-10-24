@@ -1920,7 +1920,7 @@ static void ClearPlaceDecorationGraphicsDataBuffer(struct PlaceDecorationGraphic
 
 static void CopyPalette(u16 *dest, u16 pal)
 {
-    CpuFastCopy(&((u16 *)gTilesetPointer_SecretBase->palettes)[pal * 16], dest, sizeof(u16) * 16);
+    CpuFastCopy(&(gTilesetPointer_SecretBase->palettes)[pal * 16], dest, sizeof(u16) * 16);
 }
 
 static void CopyTile(u8 *dest, u16 tile)
