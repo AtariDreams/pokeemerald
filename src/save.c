@@ -518,14 +518,14 @@ static u8 GetSaveValidStatus(const struct SaveBlockChunk *locations)
             if (gReadWriteSector->checksum == checksum)
             {
                 saveSlot2Counter = gReadWriteSector->counter;
-                validSectorFlags |= 1 << gReadWriteSector->id;
+                validSectorFlags |= 1U << gReadWriteSector->id;
             }
         }
     }
 
     if (signatureValid)
     {
-        if (validSectorFlags == (1 << NUM_SECTORS_PER_SLOT) - 1)
+        if (validSectorFlags == (1U << NUM_SECTORS_PER_SLOT) - 1)
             saveSlot2Status = SAVE_STATUS_OK;
         else
             saveSlot2Status = SAVE_STATUS_ERROR;
@@ -695,7 +695,7 @@ u8 HandleSavingData(u8 saveType)
 
 u8 TrySavingData(u8 saveType)
 {
-    if (gFlashMemoryPresent != TRUE)
+    if (gFlashMemoryPresent)
     {
         gSaveAttemptStatus = SAVE_STATUS_ERROR;
         return SAVE_STATUS_ERROR;
@@ -717,7 +717,7 @@ u8 TrySavingData(u8 saveType)
 
 bool8 LinkFullSave_Init(void)
 {
-    if (gFlashMemoryPresent != TRUE)
+    if (gFlashMemoryPresent)
         return TRUE;
     CopyPartyAndObjectsToSave();
     RestoreSaveBackupVarsAndIncrement(sSaveBlockChunks);
@@ -757,7 +757,7 @@ bool8 LinkFullSave_SetLastSectorSignature(void)
 
 u8 WriteSaveBlock2(void)
 {
-    if (gFlashMemoryPresent != TRUE)
+    if (gFlashMemoryPresent)
         return TRUE;
 
     CopyPartyAndObjectsToSave();
@@ -801,7 +801,7 @@ u8 LoadGameSave(u8 saveType)
 {
     u8 status;
 
-    if (gFlashMemoryPresent != TRUE)
+    if (gFlashMemoryPresent)
     {
         gSaveFileStatus = SAVE_STATUS_NO_FLASH;
         return SAVE_STATUS_ERROR;
