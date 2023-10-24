@@ -2876,7 +2876,7 @@ static void SpriteCB_MonHitFlash(struct Sprite *sprite)
 
 static void Gfx_ResetMonSpriteSubpriorities(struct PokemonJumpGfx *jumpGfx)
 {
-    int i;
+    u32 i;
     u16 numPlayers = GetNumPokeJumpPlayers();
     for (i = 0; i < numPlayers; i++)
         jumpGfx->monSprites[i]->subpriority = jumpGfx->monSpriteSubpriorities[i];
