@@ -4231,18 +4231,14 @@ const u8 *GetPokedexCategoryName(u16 dexNum) // unused
 {
     return gPokedexEntries[dexNum].categoryName;
 }
-
-u16 GetPokedexHeightWeight(u16 dexNum, u8 data)
+u16 GetPokedexHeight(u16 dexNum)
 {
-    switch (data)
-    {
-    case 0:  // height
-        return gPokedexEntries[dexNum].height;
-    case 1:  // weight
-        return gPokedexEntries[dexNum].weight;
-    default:
-        return 1;
-    }
+    return gPokedexEntries[dexNum].height;
+}
+
+u16 GetPokedexWeight(u16 dexNum)
+{
+    return gPokedexEntries[dexNum].weight;
 }
 
 s8 GetSetPokedexFlag(u16 nationalDexNo, u8 caseID)

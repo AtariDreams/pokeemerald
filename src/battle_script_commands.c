@@ -9370,10 +9370,10 @@ static void Cmd_trysetgrudge(void)
 
 static void Cmd_weightdamagecalculation(void)
 {
-    s32 i;
+    u32 i;
     for (i = 0; sWeightToDamageTable[i] != 0xFFFF; i += 2)
     {
-        if (sWeightToDamageTable[i] > GetPokedexHeightWeight(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species), 1))
+        if (sWeightToDamageTable[i] > GetPokedexWeight(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species)))
             break;
     }
 
