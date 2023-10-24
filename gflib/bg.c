@@ -40,7 +40,7 @@ struct BgConfig2
 
 static struct BgControl sGpuBgConfigs;
 static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
-static u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
+static ALIGNED(4) u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
 
 static const struct BgConfig sZeroedBgControlStruct = { 0 };
 
@@ -270,10 +270,8 @@ bool8 IsInvalidBg(u8 bg)
 
 void ResetBgsAndClearDma3BusyFlags(void)
 {
-    unsigned int i;
     ResetBgs();
-
-    memset(sDmaBusyBitfield, 0, sizeof(sDmaBusyBitfield));
+    CpuFastCopy(0, sDmaBusyBitfield, sizeof(sDmaBusyBitfield));
 }
 
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates)

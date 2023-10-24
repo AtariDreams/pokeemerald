@@ -983,7 +983,7 @@ void ClearBattleAnimBg(u32 bgId)
     struct BattleAnimBgData bgAnimData;
 
     GetBattleAnimBgData(&bgAnimData, bgId);
-    CpuFill32(0, bgAnimData.bgTiles, 0x2000);
+    CpuFastFill(0, bgAnimData.bgTiles, 0x2000);
     LoadBgTiles(bgAnimData.bgId, bgAnimData.bgTiles, 0x2000, bgAnimData.tilesOffset);
     FillBgTilemapBufferRect(bgAnimData.bgId, 0, 0, 0, 32, 64, 17);
     CopyBgTilemapBufferToVram(bgAnimData.bgId);
@@ -991,7 +991,7 @@ void ClearBattleAnimBg(u32 bgId)
 
 void AnimLoadCompressedBgGfx(u32 bgId, const u32 *src, u32 tilesOffset)
 {
-    CpuFill32(0, gBattleAnimBgTileBuffer, 0x2000);
+    CpuFastFill(0, gBattleAnimBgTileBuffer, 0x2000);
     LZ77UnCompWram(src, gBattleAnimBgTileBuffer);
     LoadBgTiles(bgId, gBattleAnimBgTileBuffer, 0x2000, tilesOffset);
 }

@@ -282,8 +282,7 @@ static const u16 sIgnoredPowerfulMoveEffects[] =
 
 void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves)
 {
-    s32 i;
-    u8 *data = (u8 *)BATTLE_HISTORY;
+    u32 i;
 
     memset(gBattleResources->battleHistory, 0, sizeof(struct BattleHistory));
 
@@ -310,13 +309,10 @@ void BattleAI_HandleItemUseBeforeAISetup(u8 defaultScoreMoves)
 
 void BattleAI_SetupAIData(u8 defaultScoreMoves)
 {
-    s32 i;
-    u8 *data = (u8 *)AI_THINKING_STRUCT;
+    u32 i;
     u8 moveLimitations;
 
-    // Clear AI data.
-    for (i = 0; i < sizeof(struct AI_ThinkingStruct); i++)
-        data[i] = 0;
+    memset(gBattleResources->ai, 0, sizeof(struct AI_ThinkingStruct));
 
     // Conditional score reset, unlike Ruby.
     for (i = 0; i < MAX_MON_MOVES; i++)
