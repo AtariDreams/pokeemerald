@@ -444,11 +444,7 @@ void SampleFreqSet(u32 freq)
 
     m4aSoundVSyncOn();
 
-    while (*(vu8 *)REG_ADDR_VCOUNT == 159)
-        ;
-
-    while (*(vu8 *)REG_ADDR_VCOUNT != 159)
-        ;
+    VBlankIntrWait();
 
     REG_TM0CNT_H = TIMER_ENABLE | TIMER_1CLK;
 }
@@ -1400,9 +1396,9 @@ void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lf
 
 #define MEMACC_COND_JUMP(cond) \
 if (cond)                      \
-    goto cond_true;            \
+    (gMPlayJumpTable[1])(mplayInfo, track);            \
 else                           \
-    goto cond_false;           \
+    track->cmdPtr += 4;           \
 
 void ply_memacc(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
@@ -1475,16 +1471,6 @@ void ply_memacc(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *trac
     default:
         return;
     }
-
-cond_true:
-    {
-        // *& is required for matching
-        (gMPlayJumpTable[1])(mplayInfo, track);
-        return;
-    }
-
-cond_false:
-    track->cmdPtr += 4;
 }
 
 void ply_xcmd(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)

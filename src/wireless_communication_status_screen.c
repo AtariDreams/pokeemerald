@@ -424,13 +424,10 @@ static u32 CountPlayersInGroupAndGetActivity(struct RfuPlayer * player, u32 * gr
 
 static bool32 HaveCountsChanged(u32 * currCounts, u32 * prevCounts)
 {
-    s32 i;
-    for (i = 0; i < NUM_GROUPTYPES; i++)
-    {
-        if (currCounts[i] != prevCounts[i])
-            return TRUE;
-    }
-    return FALSE;
+    if (memcmp(currCounts, prevCounts, NUM_GROUPTYPES * 4))
+        return FALSE;
+
+    return TRUE;
 }
 
 static bool32 UpdateCommunicationCounts(u32 * groupCounts, u32 * prevGroupCounts, u32 * activities, u8 taskId)

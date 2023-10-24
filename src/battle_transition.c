@@ -2689,9 +2689,10 @@ static void VBlankCB_Slice(void)
 
 static void HBlankCB_Slice(void)
 {
-    if (REG_VCOUNT < DISPLAY_HEIGHT)
+    u16 vcount = REG_VCOUNT;
+    if (vcount < DISPLAY_HEIGHT)
     {
-        u16 var = gScanlineEffectRegBuffers[1][REG_VCOUNT];
+        u16 var = gScanlineEffectRegBuffers[1][vcount];
         REG_BG1HOFS = var;
         REG_BG2HOFS = var;
         REG_BG3HOFS = var;
@@ -3894,8 +3895,7 @@ static void VBlankCB_FrontierLogoWave(void)
 
 static void HBlankCB_FrontierLogoWave(void)
 {
-    u16 var = gScanlineEffectRegBuffers[1][REG_VCOUNT];
-    REG_BG0VOFS = var;
+    REG_BG0VOFS = gScanlineEffectRegBuffers[1][REG_VCOUNT];
 }
 
 #undef tSinVal
