@@ -2426,7 +2426,6 @@ void AnimTask_SketchDrawMon(u8 taskId)
 
     params.dmaControl = SCANLINE_EFFECT_DMACNT_16BIT;
     params.initState = 1;
-    params.unused9 = 0;
     ScanlineEffect_SetParams(params);
     task->func = AnimTask_SketchDrawMon_Step;
 }
