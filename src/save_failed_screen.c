@@ -187,7 +187,7 @@ static void CB2_SaveFailedScreen(void)
         SetGpuReg(REG_OFFSET_BG1VOFS, 0);
         SetGpuReg(REG_OFFSET_BG0HOFS, 0);
         SetGpuReg(REG_OFFSET_BG0VOFS, 0);
-        DmaFill16(3, 0, VRAM, VRAM_SIZE);
+        DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
         DmaFill32(3, 0, OAM, OAM_SIZE);
         DmaFill16(3, 0, PLTT, PLTT_SIZE);
         LZ77UnCompVram(gBirchBagGrass_Gfx, (void *)VRAM);
