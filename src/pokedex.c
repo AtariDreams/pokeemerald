@@ -1593,9 +1593,9 @@ void CB2_OpenPokedex(void)
     case 0:
         SetVBlankCallback(NULL);
         ResetOtherVideoRegisters(0);
-        DmaFillLarge32(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
+        DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
         DmaClear32(3, OAM, OAM_SIZE);
-        DmaClear32(3, PLTT, PLTT_SIZE);
+        DmaClear16(3, PLTT, PLTT_SIZE);
         gMain.state = 1;
         break;
     case 1:
