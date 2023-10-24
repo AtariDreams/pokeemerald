@@ -56,14 +56,12 @@ void ResetBgControlStructs(void);
 void Unused_ResetBgControlStruct(u8 bg);
 u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode);
 void SetTextModeAndHideBgs(void);
-bool8 IsInvalidBg(u8 bg);
 void ResetBgsAndClearDma3BusyFlags(void);
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates);
 void InitBgFromTemplate(const struct BgTemplate *template);
 void SetBgMode(u8 bgMode);
 u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset);
 u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset);
-u16 Unused_LoadBgPalette(u8 bg, const void *src, u16 size, u16 destOffset);
 bool8 IsDma3ManagerBusyWithBgCopy(void);
 void ShowBg(u8 bg);
 void HideBg(u8 bg);
@@ -91,7 +89,6 @@ u16 GetBgMetricTextMode(u8 bg, u8 whichMetric);
 u32 GetBgMetricAffineMode(u8 bg, u8 whichMetric);
 u32 GetTileMapIndexFromCoords(s32 x, s32 y, s32 screenSize, u32 screenWidth, u32 screenHeight);
 void CopyTileMapEntry(const u16 *src, u16 *dest, s32 palette1, s32 tileOffset, s32 palette2);
-bool32 IsInvalidBg32(u8 bg);
 bool32 IsTileMapOutsideWram(u8 bg);
 
 #endif // GUARD_BG_H

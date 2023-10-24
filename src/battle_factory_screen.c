@@ -1234,11 +1234,7 @@ static void CB2_InitSelectScreen(void)
         gMain.state++;
         break;
     case 5:
-#ifdef UBFIX
         if (sFactorySelectScreen && sFactorySelectScreen->fromSummaryScreen)
-#else
-        if (sFactorySelectScreen->fromSummaryScreen == TRUE)
-#endif
             sFactorySelectScreen->cursorPos = gLastViewedMonIndex;
         Select_InitMonsData();
         Select_InitAllSprites();
@@ -3913,6 +3909,7 @@ static void Swap_PrintMonSpeciesForTransition(void)
     if (sFactorySwapScreen->cursorPos >= FRONTIER_PARTY_SIZE)
     {
         CopyWindowToVram(SWAP_WIN_SPECIES, COPYWIN_GFX);
+        return;
     }
     else
     {
