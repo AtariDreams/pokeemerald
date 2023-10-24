@@ -392,7 +392,7 @@ static void FlashSelectionOnWheel(u8);
 static void DrawGridBackground(u8);
 static u8 GetMultiplier(u8);
 static void UpdateWheelPosition(void);
-static void LoadOrFreeMiscSpritePalettesAndSheets(u8);
+static void LoadOrFreeMiscSpritePalettesAndSheets(void);
 static void CreateGridSprites(void);
 static void ShowHideGridIcons(bool8, u8);
 static void CreateGridBallSprites(void);
@@ -1207,7 +1207,7 @@ static void CB2_LoadRoulette(void)
         CopyToBgTilemapBuffer(2, sWheel_Tilemap, 0, 0);
         break;
     case 5:
-        LoadOrFreeMiscSpritePalettesAndSheets(FALSE);
+        LoadOrFreeMiscSpritePalettesAndSheets();
         CreateWheelBallSprites();
         CreateWheelCenterSprite();
         CreateInterfaceSprites();
@@ -3481,24 +3481,15 @@ void PlayRoulette(void)
     gTasks[taskId].tCoins = gSaveBlock1.coins;
 }
 
-static void LoadOrFreeMiscSpritePalettesAndSheets(bool8 free)
+static void LoadOrFreeMiscSpritePalettesAndSheets(void)
 {
-    if (!free)
-    {
+
         FreeAllSpritePalettes();
         LoadSpritePalettes(sSpritePalettes);
         LoadCompressedSpriteSheet(&sSpriteSheet_Ball);
         LoadCompressedSpriteSheet(&sSpriteSheet_ShroomishTaillow);
         LoadCompressedSpriteSheet(&sSpriteSheet_Shadow);
-    }
-    else
-    {
-        // Unused
-        FreeSpriteTilesByTag(GFXTAG_SHADOW);
-        FreeSpriteTilesByTag(GFXTAG_SHROOMISH_TAILLOW);
-        FreeSpriteTilesByTag(GFXTAG_BALL);
-        FreeAllSpritePalettes();
-    }
+    
 }
 
 static u8 CreateWheelIconSprite(const struct SpriteTemplate *template, u8 r1, u16 *angle)

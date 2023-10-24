@@ -827,10 +827,8 @@ void ResetAllSprites(void)
 void FreeSpriteTiles(struct Sprite *sprite)
 {
 // UB: template pointer may point to freed temporary storage
-#ifdef UBFIX
     if (!sprite || !sprite->template)
         return;
-#endif
 
     if (sprite->template->tileTag != TAG_NONE)
         FreeSpriteTilesByTag(sprite->template->tileTag);
@@ -839,10 +837,8 @@ void FreeSpriteTiles(struct Sprite *sprite)
 void FreeSpritePalette(struct Sprite *sprite)
 {
 // UB: template pointer may point to freed temporary storage
-#ifdef UBFIX
     if (!sprite || !sprite->template)
         return;
-#endif
 
     FreeSpritePaletteByTag(sprite->template->paletteTag);
 }
