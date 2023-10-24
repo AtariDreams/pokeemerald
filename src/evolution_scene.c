@@ -1533,10 +1533,7 @@ static void CreateBgAnimTask(bool8 isLink)
 {
     u8 taskId = CreateTask(Task_AnimateBg, 7);
 
-    if (!isLink)
-        gTasks[taskId].tIsLink = FALSE;
-    else
-        gTasks[taskId].tIsLink = TRUE;
+    gTasks[taskId].tIsLink = isLink;
 }
 
 static void Task_AnimateBg(u8 taskId)
