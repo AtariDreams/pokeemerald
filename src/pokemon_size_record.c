@@ -86,7 +86,7 @@ static u32 GetMonSize(u16 species, u16 b)
     u32 height;
     u32 var;
 
-    height = GetPokedexHeightWeight(SpeciesToNationalPokedexNum(species), 0);
+    height = GetPokedexHeight(SpeciesToNationalPokedexNum(species));
     var = TranslateBigMonSizeTableIndex(b);
     unk0 = sBigMonSizeTable[var].unk0;
     unk2 = sBigMonSizeTable[var].unk2;
