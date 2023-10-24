@@ -79,10 +79,11 @@ static u32 TranslateBigMonSizeTableIndex(u16 a)
 __attribute__((target("arm")))
 static u32 GetMonSize(u16 species, u16 b)
 {
-    u64 unk2;
-    u64 unk4;
-    u64 unk0;
+    u32 unk2;
+    u32 unk4;
+    u32 unk0;
     u64 size;
+    u64 ret;
     u32 height;
     u32 var;
 
@@ -92,7 +93,8 @@ static u32 GetMonSize(u16 species, u16 b)
     unk2 = sBigMonSizeTable[var].unk2;
     unk4 = sBigMonSizeTable[var].unk4;
     size = unk0 + (b - unk4) / unk2;
-    return height * size / 10;
+    ret = size * height;
+    return ret;
 }
 
 __attribute__((target("arm")))
