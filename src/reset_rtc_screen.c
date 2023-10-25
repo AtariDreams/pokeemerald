@@ -522,7 +522,7 @@ void CB2_InitResetRtcScreen(void)
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
     SetVBlankCallback(NULL);
     DmaClear16(3, PLTT, PLTT_SIZE);
-    DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
+    DmaClear16(3, VRAM, VRAM_SIZE);
     ResetOam();
     LoadOam();
     ScanlineEffect_Stop();

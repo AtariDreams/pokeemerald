@@ -135,9 +135,9 @@ void CB2_DoChangeMap(void)
     SetGpuReg(REG_OFFSET_BG1VOFS, 0);
     SetGpuReg(REG_OFFSET_BG0HOFS, 0);
     SetGpuReg(REG_OFFSET_BG0VOFS, 0);
-    DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
-    DmaFill32(3, 0, (void *)OAM, OAM_SIZE);
-    DmaFill16(3, 0, (void *)(PLTT + 2), PLTT_SIZE - 2);
+    DmaClear16(3, VRAM, VRAM_SIZE);
+    DmaClear32(3,(void *)OAM, OAM_SIZE);
+    DmaClear16(3, (void *)(PLTT + 2), PLTT_SIZE - 2);
     ResetPaletteFade();
     ResetTasks();
     ResetSpriteData();

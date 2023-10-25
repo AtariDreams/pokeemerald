@@ -1315,7 +1315,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         break;
     case 2:
         LZ77UnCompVram(gContestAudienceGfx, (void *)(BG_SCREEN_ADDR(4)));
-        DmaCopyLarge32(3, (void *)(BG_SCREEN_ADDR(4)), eUnzippedContestAudience_Gfx, 0x2000, 0x1000);
+        DmaCopy32(3, (void *)(BG_SCREEN_ADDR(4)), eUnzippedContestAudience_Gfx, 0x2000);
         break;
     case 3:
         CopyToBgTilemapBuffer(3, gContestAudienceTilemap, 0, 0);
