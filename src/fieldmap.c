@@ -97,11 +97,10 @@ static void InitMapLayoutData(struct MapHeader *mapHeader)
     gBackupMapLayout.map = sBackupMapData;
     gBackupMapLayout.width = mapLayout->width + MAP_OFFSET_W;
     gBackupMapLayout.height = mapLayout->height + MAP_OFFSET_H;
-    if (gBackupMapLayout.width * gBackupMapLayout.height <= MAX_MAP_DATA_SIZE)
-    {
-        InitBackupMapLayoutData(mapLayout->map, mapLayout->width, mapLayout->height);
-        InitBackupMapLayoutConnections(mapHeader);
-    }
+    if (gBackupMapLayout.width * gBackupMapLayout.height > MAX_MAP_DATA_SIZE)
+        return;
+    InitBackupMapLayoutData(mapLayout->map, mapLayout->width, mapLayout->height);
+    InitBackupMapLayoutConnections(mapHeader);
 }
 
 static void InitBackupMapLayoutData(const u16 *map, u16 width, u16 height)
