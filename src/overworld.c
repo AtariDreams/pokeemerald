@@ -2063,7 +2063,7 @@ static void ResetScreenForMapLoad(void)
     ScanlineEffect_Stop();
 
     DmaClear16(3, PLTT + 2, PLTT_SIZE - 2);
-    DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
+    DmaClear16(3, VRAM, VRAM_SIZE);
     ResetOam();
     LoadOam();
 }

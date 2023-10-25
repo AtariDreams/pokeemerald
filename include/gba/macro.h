@@ -63,7 +63,7 @@
     dmaRegs[2];                                   \
 }
 
-#if MODERN
+#if 0
 // NOTE: Assumes 16-bit DMAs.
 #define DmaSet(dmaNum, src, dest, control) \
     do \
@@ -168,9 +168,9 @@
     }                                                     \
 }
 
-#define DmaCopyLarge16(dmaNum, src, dest, size, block) DmaCopyLarge(dmaNum, src, dest, size, block, 16)
+#define DmaCopyLarge16(dmaNum, src, dest, size) DmaCopyLarge(dmaNum, src, dest, size, 0x20000, 16)
 
-#define DmaCopyLarge32(dmaNum, src, dest, size, block) DmaCopyLarge(dmaNum, src, dest, size, block, 32)
+#define DmaCopyLarge32(dmaNum, src, dest, size) DmaCopyLarge(dmaNum, src, dest, size, 0x40000, 32)
 
 #define DmaFillLarge(dmaNum, value, dest, size, block, bit) \
 {                                                           \
