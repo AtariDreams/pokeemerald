@@ -254,8 +254,8 @@ static void CB2_LoadCableCar(void)
         SetBgRegs(FALSE);
         ScanlineEffect_Stop();
         DmaClear16(3, VRAM, VRAM_SIZE);
-        DmaClear32(3,(void *)OAM, OAM_SIZE);
-        DmaClear32(3,(void *)PLTT, PLTT_SIZE);
+        DmaClear32(3, OAM, OAM_SIZE);
+        DmaClear32(3, PLTT, PLTT_SIZE);
         sCableCar = AllocZeroed(sizeof(*sCableCar));
         gMain.state++;
         break;
