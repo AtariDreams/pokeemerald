@@ -32,7 +32,7 @@ extern ScrCmdFunc gScriptCmdTableEnd[];
 
 void InitScriptContext(struct ScriptContext *ctx, void *cmdTable, void *cmdTableEnd)
 {
-    s32 i;
+    u32 i;
 
     ctx->mode = SCRIPT_MODE_STOPPED;
     ctx->scriptPtr = NULL;
@@ -41,10 +41,10 @@ void InitScriptContext(struct ScriptContext *ctx, void *cmdTable, void *cmdTable
     ctx->cmdTable = cmdTable;
     ctx->cmdTableEnd = cmdTableEnd;
 
-    for (i = 0; i < (int)ARRAY_COUNT(ctx->data); i++)
+    for (i = 0; i < ARRAY_COUNT(ctx->data); i++)
         ctx->data[i] = 0;
 
-    for (i = 0; i < (int)ARRAY_COUNT(ctx->stack); i++)
+    for (i = 0; i < ARRAY_COUNT(ctx->stack); i++)
         ctx->stack[i] = NULL;
 }
 
@@ -119,14 +119,13 @@ bool8 RunScriptCommand(struct ScriptContext *ctx)
 
 static bool8 ScriptPush(struct ScriptContext *ctx, const u8 *ptr)
 {
-    if (ctx->stackDepth + 1 >= (int)ARRAY_COUNT(ctx->stack))
+    if (ctx->stackDepth >= ARRAY_COUNT(ctx->stack) - 1)
     {
         return TRUE;
     }
     else
     {
-        ctx->stack[ctx->stackDepth] = ptr;
-        ctx->stackDepth++;
+        ctx->stack[ctx->stackDepth++] = ptr;
         return FALSE;
     }
 }
@@ -136,8 +135,7 @@ static const u8 *ScriptPop(struct ScriptContext *ctx)
     if (ctx->stackDepth == 0)
         return NULL;
 
-    ctx->stackDepth--;
-    return ctx->stack[ctx->stackDepth];
+    return ctx->stack[--ctx->stackDepth];
 }
 
 void ScriptJump(struct ScriptContext *ctx, const u8 *ptr)
@@ -159,8 +157,8 @@ void ScriptReturn(struct ScriptContext *ctx)
 u16 ScriptReadHalfword(struct ScriptContext *ctx)
 {
     u16 value = *(ctx->scriptPtr++);
-    value |= *(ctx->scriptPtr++) << 8;
-    return value;
+    u16 value2 = *(ctx->scriptPtr++);
+    return (value2 << 8) | value;
 }
 
 u32 ScriptReadWord(struct ScriptContext *ctx)
@@ -269,10 +267,8 @@ u8 *MapHeaderGetScriptTable(u8 tag)
     if (!mapScripts)
         return NULL;
 
-    while (1)
+    while (*mapScripts)
     {
-        if (!*mapScripts)
-            return NULL;
         if (*mapScripts == tag)
         {
             mapScripts++;
@@ -280,6 +276,8 @@ u8 *MapHeaderGetScriptTable(u8 tag)
         }
         mapScripts += 5;
     }
+
+    return NULL;
 }
 
 void MapHeaderRunScriptType(u8 tag)
