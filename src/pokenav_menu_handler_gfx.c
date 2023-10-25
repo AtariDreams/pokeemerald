@@ -828,7 +828,7 @@ static void CreateMenuOptionSprites(void)
 
 static void DestroyMenuOptionSprites(void)
 {
-    s32 i, j;
+    u32 i, j;
     struct Pokenav_MenuGfx * gfx = GetSubstructPtr(POKENAV_SUBSTRUCT_MENU_GFX);
 
     for (i = 0; i < MAX_POKENAV_MENUITEMS; i++)
