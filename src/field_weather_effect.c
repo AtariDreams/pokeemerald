@@ -1956,9 +1956,6 @@ void Sandstorm_InitVars(void)
         gWeatherPtr->sandstormXOffset = gWeatherPtr->sandstormYOffset = 0;
         gWeatherPtr->sandstormWaveIndex = 8;
         gWeatherPtr->sandstormWaveCounter = 0;
-        // Dead code. How does the compiler not optimize this out?
-        if (gWeatherPtr->sandstormWaveIndex >= 0x80 - MIN_SANDSTORM_WAVE_INDEX)
-            gWeatherPtr->sandstormWaveIndex = 0x80 - gWeatherPtr->sandstormWaveIndex;
 
         Weather_SetBlendCoeffs(0, 16);
     }
