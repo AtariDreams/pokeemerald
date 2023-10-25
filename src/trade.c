@@ -3164,8 +3164,8 @@ static void SetTradeSequenceBgGpuRegs(u8 state)
                                      BGCNT_SCREENBASE(18) |
                                      BGCNT_TXT512x256);
         LoadPalette(gTradeGba2_Pal, BG_PLTT_ID(1), 3 * PLTT_SIZE_4BPP);
-        DmaCopyLarge16(3, gTradeGba_Gfx, (void *) BG_CHAR_ADDR(1), 0x1420, 0x1000);
-        DmaCopy16Defvars(3, gTradePlatform_Tilemap, (void *) BG_SCREEN_ADDR(18), 0x1000);
+        DmaCopy16(3, gTradeGba_Gfx, (void *) BG_CHAR_ADDR(1), 0x1420);
+        DmaCopy16(3, gTradePlatform_Tilemap, (void *) BG_SCREEN_ADDR(18), 0x1000);
         break;
     case 1:
         sTradeAnim->bg1hofs = 0;
@@ -3184,14 +3184,14 @@ static void SetTradeSequenceBgGpuRegs(u8 state)
 
         if (sTradeAnim->isCableTrade)
         {
-            DmaCopy16Defvars(3, sGbaMapCable, (void *) BG_SCREEN_ADDR(5), 0x1000);
+            DmaCopy16(3, sGbaMapCable, (void *) BG_SCREEN_ADDR(5), 0x1000);
         }
         else
         {
-            DmaCopy16Defvars(3, sGbaMapWireless, (void *) BG_SCREEN_ADDR(5), 0x1000);
+            DmaCopy16(3, sGbaMapWireless, (void *) BG_SCREEN_ADDR(5), 0x1000);
         }
 
-        DmaCopyLarge16(3, gTradeGba_Gfx, (void *) BG_CHAR_ADDR(0), 0x1420, 0x1000);
+        DmaCopy16(3, gTradeGba_Gfx, (void *) BG_CHAR_ADDR(0), 0x1420);
         SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_MODE_0 |
                                       DISPCNT_OBJ_1D_MAP |
                                       DISPCNT_BG1_ON |
@@ -3246,15 +3246,15 @@ static void SetTradeSequenceBgGpuRegs(u8 state)
         sTradeAnim->gbaScale = 1024;
         sTradeAnim->alpha = 0;
 
-        DmaCopyLarge16(3, sGbaAffine_Gfx, (void *) BG_CHAR_ADDR(1), 0x2840, 0x1000);
+        DmaCopy16(3, sGbaAffine_Gfx, (void *) BG_CHAR_ADDR(1), 0x2840);
 
         if (sTradeAnim->isCableTrade)
         {
-            DmaCopy16Defvars(3, sGbaAffineMapCable, (void *) BG_SCREEN_ADDR(18), 0x100);
+            DmaCopy16(3, sGbaAffineMapCable, (void *) BG_SCREEN_ADDR(18), 0x100);
         }
         else
         {
-            DmaCopy16Defvars(3, sGbaAffineMapWireless, (void *) BG_SCREEN_ADDR(18), 0x100);
+            DmaCopy16(3, sGbaAffineMapWireless, (void *) BG_SCREEN_ADDR(18), 0x100);
         }
         break;
     case 5:
@@ -3279,15 +3279,15 @@ static void SetTradeSequenceBgGpuRegs(u8 state)
         sTradeAnim->scrY = 80;
         sTradeAnim->alpha = 0;
 
-        DmaCopyLarge16(3, sGbaAffine_Gfx, (void *) BG_CHAR_ADDR(1), 0x2840, 0x1000);
+        DmaCopy16(3, sGbaAffine_Gfx, (void *) BG_CHAR_ADDR(1), 0x2840);
 
         if (sTradeAnim->isCableTrade)
         {
-            DmaCopy16Defvars(3, sGbaAffineMapCable, (void *) BG_SCREEN_ADDR(18), 0x100);
+            DmaCopy16(3, sGbaAffineMapCable, (void *) BG_SCREEN_ADDR(18), 0x100);
         }
         else
         {
-            DmaCopy16Defvars(3, sGbaAffineMapWireless, (void *) BG_SCREEN_ADDR(18), 0x100);
+            DmaCopy16(3, sGbaAffineMapWireless, (void *) BG_SCREEN_ADDR(18), 0x100);
         }
         break;
     case 7:
@@ -3300,8 +3300,8 @@ static void SetTradeSequenceBgGpuRegs(u8 state)
                                      BGCNT_SCREENBASE(18) |
                                      BGCNT_TXT512x256);
         LoadPalette(gTradeGba2_Pal, BG_PLTT_ID(1), 3 * PLTT_SIZE_4BPP);
-        DmaCopyLarge16(3, gTradeGba_Gfx, (void *) BG_CHAR_ADDR(1), 0x1420, 0x1000);
-        DmaCopy16Defvars(3, gTradePlatform_Tilemap, (void *) BG_SCREEN_ADDR(18), 0x1000);
+        DmaCopy16(3, gTradeGba_Gfx, (void *) BG_CHAR_ADDR(1), 0x1420);
+        DmaCopy16(3, gTradePlatform_Tilemap, (void *) BG_SCREEN_ADDR(18), 0x1000);
         break;
     }
 }
