@@ -55,7 +55,7 @@ void ProcessDma3Requests(void)
 
         if (bytesTransferred > 40 * 1024)
             return; // don't transfer more than 40 KiB
-        if ((REG_VCOUNT & 0xFF) > 224)
+        if (REG_VCOUNT > 224)
             return; // we're about to leave vblank, stop
 
         switch (sDma3Requests[sDma3RequestCursor].mode)
@@ -98,12 +98,12 @@ void ProcessDma3Requests(void)
 s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
 {
     int cursor;
-    int i = 0;
+    u32 i;
 
     sDma3ManagerLocked = TRUE;
     cursor = sDma3RequestCursor;
 
-    while (i < MAX_DMA_REQUESTS)
+    for (i = 0; i < MAX_DMA_REQUESTS; i++)
     {
         if (sDma3Requests[cursor].size == 0) // an empty request was found.
         {
@@ -121,7 +121,6 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
         }
         if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
             cursor = 0;
-        i++;
     }
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
@@ -130,12 +129,12 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
 s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
 {
     int cursor;
-    u32 i = 0;
+    u32 i;
 
     cursor = sDma3RequestCursor;
     sDma3ManagerLocked = TRUE;
 
-    while (i < MAX_DMA_REQUESTS)
+    for (i = 0; i < MAX_DMA_REQUESTS; i++)
     {
         if (sDma3Requests[cursor].size == 0) // an empty request was found.
         {
@@ -154,7 +153,6 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
         }
         if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
             cursor = 0;
-        i++;
     }
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
@@ -162,15 +160,14 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
 
 s16 CheckForSpaceForDma3Request(s16 index)
 {
-    u32 i = 0;
+    u32 i;
 
     if (index == -1)  // check if all requests are free
     {
-        while (i < MAX_DMA_REQUESTS)
+        for (i = 0; i < MAX_DMA_REQUESTS; i++)
         {
             if (sDma3Requests[i].size != 0)
                 return -1;
-            i++;
         }
         return 0;
     }
