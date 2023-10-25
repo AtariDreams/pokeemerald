@@ -208,9 +208,11 @@ u16 GetGeneratedTrainerIdLower(void)
 
 void EnableVCountIntrAtLine150(void)
 {
-    u16 gpuReg = (150 << 8) | (REG_DISPSTAT & 0xFF);
-    SetGpuReg(REG_OFFSET_DISPSTAT, gpuReg | DISPSTAT_VCOUNT_INTR);
-    EnableInterrupts(INTR_FLAG_VCOUNT);
+    REG_IE_SET(INTR_FLAG_VCOUNT);
+    u16 gpuReg = (REG_DISPSTAT & 0xFF) | (150 << 8) | DISPSTAT_VCOUNT_INTR;
+    SetGpuReg(REG_OFFSET_DISPSTAT, gpuReg);
+
+    //EnableInterrupts(INTR_FLAG_VCOUNT);
 }
 
 // FRLG commented this out to remove RTC, however Emerald didn't undo this!
