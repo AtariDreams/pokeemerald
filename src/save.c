@@ -695,29 +695,28 @@ u8 HandleSavingData(u8 saveType)
 
 u8 TrySavingData(u8 saveType)
 {
-    if (gFlashMemoryPresent)
+    if (!gFlashMemoryPresent)
     {
-        gSaveAttemptStatus = SAVE_STATUS_ERROR;
-        return SAVE_STATUS_ERROR;
+        goto error;
     }
 
     HandleSavingData(saveType);
-    if (!gDamagedSaveSectors)
-    {
-        gSaveAttemptStatus = SAVE_STATUS_OK;
-        return SAVE_STATUS_OK;
-    }
-    else
+    if (gDamagedSaveSectors)
     {
         DoSaveFailedScreen(saveType);
-        gSaveAttemptStatus = SAVE_STATUS_ERROR;
-        return SAVE_STATUS_ERROR;
+        goto error;
     }
+
+    gSaveAttemptStatus = SAVE_STATUS_OK;
+    return SAVE_STATUS_OK;
+error:
+    gSaveAttemptStatus = SAVE_STATUS_ERROR;
+    return SAVE_STATUS_ERROR;
 }
 
 bool8 LinkFullSave_Init(void)
 {
-    if (gFlashMemoryPresent)
+    if (!gFlashMemoryPresent)
         return TRUE;
     CopyPartyAndObjectsToSave();
     RestoreSaveBackupVarsAndIncrement(sSaveBlockChunks);
@@ -757,7 +756,7 @@ bool8 LinkFullSave_SetLastSectorSignature(void)
 
 u8 WriteSaveBlock2(void)
 {
-    if (gFlashMemoryPresent)
+    if (!gFlashMemoryPresent)
         return TRUE;
 
     CopyPartyAndObjectsToSave();
@@ -801,7 +800,7 @@ u8 LoadGameSave(u8 saveType)
 {
     u8 status;
 
-    if (gFlashMemoryPresent)
+    if (!gFlashMemoryPresent)
     {
         gSaveFileStatus = SAVE_STATUS_NO_FLASH;
         return SAVE_STATUS_ERROR;
@@ -850,8 +849,8 @@ u32 TryReadSpecialSaveSector(u8 sector, u8 *dst)
 
 u32 TryWriteSpecialSaveSector(u8 sector, u8 *src)
 {
-    s32 i;
-    s32 size;
+    u32 i;
+    u32 size;
     u8 *savData;
     void *savDataBuffer;
 
