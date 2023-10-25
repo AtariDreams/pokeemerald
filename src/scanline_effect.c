@@ -73,9 +73,9 @@ void ScanlineEffect_InitHBlankDmaTransfer(void)
     }
     if (gScanlineEffect.state == 3)
     {
-        gScanlineEffect.state = 0;
-        DmaStop(0);
         sShouldStopWaveTask = TRUE;
+        DmaStop(0);
+        gScanlineEffect.state = 0;
         return;
     }
 
@@ -181,7 +181,7 @@ static void TaskFunc_UpdateWavePerFrame(u8 taskId)
 static void GenerateWave(u16 *buffer, u8 frequency, u8 amplitude)
 {
     u32 i;
-    u32 theta = 0;
+    u8 theta = 0;
 
     for (i = 0; i < 256; i++)
     {
