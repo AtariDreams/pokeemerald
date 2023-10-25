@@ -12,7 +12,7 @@ static EWRAM_DATA struct
 
 bool32 ConfettiUtil_Init(u8 count)
 {
-    u32 i = 0;
+    u8 i = 0;
 
     if (count == 0)
         return FALSE;
@@ -41,7 +41,7 @@ bool32 ConfettiUtil_Init(u8 count)
 
 bool32 ConfettiUtil_Free(void)
 {
-    u32 i = 0;
+    u8 i = 0;
 
     if (sWork == NULL)
         return FALSE;
@@ -49,9 +49,9 @@ bool32 ConfettiUtil_Free(void)
     for (i = 0; i < sWork->count; i++)
         memcpy(&gMain.oamBuffer[i + 64], &gDummyOamData, sizeof(struct OamData));
 
-    // memset(sWork->array, 0, sWork->count * sizeof(struct ConfettiUtil));
-    Free(sWork->array);
-    // memset(sWork, 0, sizeof(*sWork));
+    memset(sWork->array, 0, sWork->count * sizeof(struct ConfettiUtil));
+    FREE_AND_SET_NULL(sWork->array);
+    memset(sWork, 0, sizeof(*sWork));
     FREE_AND_SET_NULL(sWork);
 
     return TRUE;
@@ -107,9 +107,9 @@ static bool32 SetAnimAndTileNum(struct ConfettiUtil *structPtr, u8 animNum)
 
 u8 ConfettiUtil_SetCallback(u8 id, void (*func)(struct ConfettiUtil *))
 {
-    if (sWork == NULL || sWork->array || id >= sWork->count)
+    if (sWork == NULL || id >= sWork->count)
         return 0xFF;
-    if (!sWork->array[id].active)
+    else if (!sWork->array[id].active)
         return 0xFF;
 
     sWork->array[id].callback = func;
@@ -120,7 +120,7 @@ u8 ConfettiUtil_SetData(u8 id, u8 dataArrayId, s16 dataValue)
 {
     if (sWork == NULL || id >= sWork->count)
         return 0xFF;
-    if (!sWork->array[id].active || dataArrayId > ARRAY_COUNT(sWork->array[id].data) - 1) // - 1 b/c last slot is reserved for taskId
+    else if (!sWork->array[id].active || dataArrayId > ARRAY_COUNT(sWork->array[id].data) - 1) // - 1 b/c last slot is reserved for taskId
         return 0xFF;
 
     sWork->array[id].data[dataArrayId] = dataValue;
@@ -169,7 +169,7 @@ u8 ConfettiUtil_AddNew(const struct OamData *oam, u16 tileTag, u16 palTag, s16 x
 
 u8 ConfettiUtil_Remove(u8 id)
 {
-    if (sWork == NULL || !sWork->array || !sWork->array[id].active)
+    if (sWork == NULL || !sWork->array[id].active)
         return 0xFF;
 
     memset(&sWork->array[id], 0, sizeof(struct ConfettiUtil));

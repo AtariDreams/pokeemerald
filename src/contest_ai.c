@@ -812,7 +812,7 @@ static void ContestAICmd_if_move_effect_type_not_eq(void)
 
 static void ContestAICmd_check_most_appealing_move(void)
 {
-    u32 i;
+    int i;
     u16 move = gContestMons[eContestAI.contestantId].moves[eContestAI.nextMoveIndex];
     u8 appeal = gContestEffects[gContestMoves[move].effect].appeal;
 
