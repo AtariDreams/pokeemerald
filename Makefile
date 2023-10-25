@@ -298,10 +298,10 @@ $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
 $(GFLIB_BUILDDIR)/malloc.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
-$(GFLIB_BUILDDIR)/dma3_manager.o: CFLAGS := -mthumb-interwork -Ofast -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/gpu_regs.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/bg.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/blit.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
+$(GFLIB_BUILDDIR)/dma3_manager.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/window.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(GFLIB_BUILDDIR)/text.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t  -Wno-pointer-to-int-cast -mthumb
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
