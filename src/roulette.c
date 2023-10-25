@@ -1077,7 +1077,7 @@ static void VBlankCB_Roulette(void)
     case SELECT_STATE_ERASE:
         SetBgAttribute(0, BG_ATTR_CHARBASEINDEX, 2);
         ShowBg(0);
-        DmaFill16(3, 0, (void *)BG_SCREEN_ADDR(31) + 0x1C0, 0x340);
+        DmaClear16(3, (void *)BG_SCREEN_ADDR(31) + 0x1C0, 0x340);
         sRoulette->selectionRectDrawState = SELECT_STATE_WAIT;
     case SELECT_STATE_WAIT:
         break;

@@ -1242,9 +1242,9 @@ static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
 
 static void ClearVramOamPltt_LoadHofPal(void)
 {
-    DmaFillLarge16(3, 0, (void *)VRAM, VRAM_SIZE, 0x1000);
-    DmaFill32(3, 0, OAM, OAM_SIZE);
-    DmaFill16(3, 0, PLTT, PLTT_SIZE);
+    DmaClear16(3, VRAM, VRAM_SIZE);
+    DmaClear32(3,OAM, OAM_SIZE);
+    DmaClear16(3, PLTT, PLTT_SIZE);
 
     ResetPaletteFade();
     LoadPalette(sHallOfFame_Pal, BG_PLTT_ID(0), sizeof(sHallOfFame_Pal));
