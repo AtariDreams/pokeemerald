@@ -131,6 +131,7 @@ static void InitMultichoiceCheckWrap(bool8 ignoreBPress, u8 count, u8 windowId, 
         if (sLinkServicesMultichoiceIds[i] == multichoiceId)
         {
             sProcessInputDelay = 12;
+            break;
         }
     }
 
