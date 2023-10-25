@@ -54,6 +54,7 @@ static void StartDigFieldEffect(void)
     if (ShouldDoBrailleDigEffect())
     {
         DoBrailleDigEffect();
+        return;
     }
     else
     {

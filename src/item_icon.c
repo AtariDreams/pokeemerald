@@ -10,6 +10,10 @@
 EWRAM_DATA void *gItemIconDecompressionBuffer = NULL;
 EWRAM_DATA void *gItemIcon4x4Buffer = NULL;
 
+#define ITEM_ICON_DEC_SIZE 0x120
+#define ITEM_ICON_MAKE_SIZE 0x200
+
+
 // const rom data
 #include "data/item_icon_table.h"
 
@@ -55,11 +59,11 @@ const struct SpriteTemplate gItemIconSpriteTemplate =
 // code
 bool8 AllocItemIconTemporaryBuffers(void)
 {
-    gItemIconDecompressionBuffer = Alloc(0x120);
+    gItemIconDecompressionBuffer = Alloc(ITEM_ICON_DEC_SIZE);
     if (gItemIconDecompressionBuffer == NULL)
         return FALSE;
 
-    gItemIcon4x4Buffer = AllocZeroed(0x200);
+    gItemIcon4x4Buffer = AllocZeroed(ITEM_ICON_MAKE_SIZE);
     if (gItemIcon4x4Buffer == NULL)
     {
         Free(gItemIconDecompressionBuffer);
@@ -99,7 +103,7 @@ u8 AddItemIconSprite(u16 tilesTag, u16 paletteTag, u16 itemId)
         LZ77UnCompWram(GetItemIconPicOrPalette(itemId, 0), gItemIconDecompressionBuffer);
         CopyItemIconPicTo4x4Buffer(gItemIconDecompressionBuffer, gItemIcon4x4Buffer);
         spriteSheet.data = gItemIcon4x4Buffer;
-        spriteSheet.size = 0x200;
+        spriteSheet.size = ITEM_ICON_MAKE_SIZE;
         spriteSheet.tag = tilesTag;
         LoadSpriteSheet(&spriteSheet);
 
@@ -108,7 +112,7 @@ u8 AddItemIconSprite(u16 tilesTag, u16 paletteTag, u16 itemId)
         LoadCompressedSpritePalette(&spritePalette);
 
         spriteTemplate = Alloc(sizeof(*spriteTemplate));
-        CpuCopy16(&gItemIconSpriteTemplate, spriteTemplate, sizeof(*spriteTemplate));
+        CpuCopy32(&gItemIconSpriteTemplate, spriteTemplate, sizeof(*spriteTemplate));
         spriteTemplate->tileTag = tilesTag;
         spriteTemplate->paletteTag = paletteTag;
         spriteId = CreateSprite(spriteTemplate, 0, 0, 0);
@@ -136,7 +140,7 @@ u8 AddCustomItemIconSprite(const struct SpriteTemplate *customSpriteTemplate, u1
         LZ77UnCompWram(GetItemIconPicOrPalette(itemId, 0), gItemIconDecompressionBuffer);
         CopyItemIconPicTo4x4Buffer(gItemIconDecompressionBuffer, gItemIcon4x4Buffer);
         spriteSheet.data = gItemIcon4x4Buffer;
-        spriteSheet.size = 0x200;
+        spriteSheet.size = ITEM_ICON_MAKE_SIZE;
         spriteSheet.tag = tilesTag;
         LoadSpriteSheet(&spriteSheet);
 
@@ -145,7 +149,7 @@ u8 AddCustomItemIconSprite(const struct SpriteTemplate *customSpriteTemplate, u1
         LoadCompressedSpritePalette(&spritePalette);
 
         spriteTemplate = Alloc(sizeof(*spriteTemplate));
-        CpuCopy16(customSpriteTemplate, spriteTemplate, sizeof(*spriteTemplate));
+        CpuCopy32(customSpriteTemplate, spriteTemplate, sizeof(*spriteTemplate));
         spriteTemplate->tileTag = tilesTag;
         spriteTemplate->paletteTag = paletteTag;
         spriteId = CreateSprite(spriteTemplate, 0, 0, 0);

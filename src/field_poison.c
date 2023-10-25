@@ -28,7 +28,7 @@ static bool32 IsMonValidSpecies(struct Pokemon *pokemon)
 
 static bool32 AllMonsFainted(void)
 {
-    int i;
+    u32 i;
     struct Pokemon *pokemon = gPlayerParty;
 
     for (i = 0; i < PARTY_SIZE; i++, pokemon++)
