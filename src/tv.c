@@ -6576,12 +6576,12 @@ u8 SecretBaseSecrets_GetNumActionsTaken(TVShow *show)
 
 static u8 SecretBaseSecrets_GetStateByFlagNumber(TVShow *show, u8 flagId)
 {
-    u8 i;
-    u8 flagsSet;
+    u32 i;
+    u32 flagsSet;
 
     for (i = 0, flagsSet = 0; i < NUM_SECRET_BASE_FLAGS; i++)
     {
-        if ((show->secretBaseSecrets.flags >> i) & 1)
+        if (show->secretBaseSecrets.flags & (1u << i))
         {
             if (flagsSet == flagId)
                 return sTVSecretBaseSecretsActions[i];
