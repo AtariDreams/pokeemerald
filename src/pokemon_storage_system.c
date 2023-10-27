@@ -4491,7 +4491,7 @@ static void CreateBoxMonIconAtPos(u8 boxPosition)
 
 static void StartBoxMonIconsScrollOut(s16 speed)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < IN_BOX_COUNT; i++)
     {
@@ -4526,6 +4526,7 @@ static void SpriteCB_BoxMonIconScrollOut(struct Sprite *sprite)
     if (sprite->sDelay != 0)
     {
         sprite->sDelay--;
+        return;
     }
     else
     {
