@@ -429,8 +429,7 @@ static void TestBlockTransfer(u8 nothing, u8 is, u8 used)
     {
         for (i = 0; i < MAX_LINK_PLAYERS; i++)
         {
-            if ((status >> i) & 1)
-            {
+
                 gLinkTestBlockChecksums[i] = LinkTestCalcBlockChecksum(gBlockRecvBuffer[i], sBlockRecv[i].size);
                 ResetBlockReceivedFlag(i);
                 if (gLinkTestBlockChecksums[i] != 0x0342)
@@ -438,7 +437,6 @@ static void TestBlockTransfer(u8 nothing, u8 is, u8 used)
                     sLinkTestDebugValuesEnabled = FALSE;
                     sDummyFlag = FALSE;
                 }
-            }
         }
     }
 }
