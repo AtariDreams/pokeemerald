@@ -329,8 +329,7 @@ static void Task_EnterCaveTransition3(u8 taskId)
 
     if (count < 16)
     {
-        gTasks[taskId].data[2]++;
-        gTasks[taskId].data[2]++;
+        gTasks[taskId].data[2] += 2;
         LoadPalette(&sCaveTransitionPalette_Enter[15 - count], BG_PLTT_ID(14), PLTT_SIZEOF(count + 1));
     }
     else
