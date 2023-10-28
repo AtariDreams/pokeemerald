@@ -7872,13 +7872,13 @@ static void (*const sGroundEffectFuncs[])(struct ObjectEvent *objEvent, struct S
 
 static void DoFlaggedGroundEffects(struct ObjectEvent *objEvent, struct Sprite *sprite, u32 flags)
 {
-    u8 i;
+    u32 i;
 
     if (ObjectEventIsFarawayIslandMew(objEvent) == TRUE && !ShouldMewShakeGrass(objEvent))
         return;
 
-    for (i = 0; i < ARRAY_COUNT(sGroundEffectFuncs); i++, flags >>= 1)
-        if (flags & 1)
+    for (i = 0; i < ARRAY_COUNT(sGroundEffectFuncs); i++)
+        if (flags & (1u << i))
             sGroundEffectFuncs[i](objEvent, sprite);
 }
 
@@ -7973,7 +7973,7 @@ bool8 FreezeObjectEvent(struct ObjectEvent *objectEvent)
 
 void FreezeObjectEvents(void)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
         if (gObjectEvents[i].active && i != gPlayerAvatar.objectEventId)
             FreezeObjectEvent(&gObjectEvents[i]);
@@ -7981,7 +7981,7 @@ void FreezeObjectEvents(void)
 
 void FreezeObjectEventsExceptOne(u8 objectEventId)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
         if (i != objectEventId && gObjectEvents[i].active && i != gPlayerAvatar.objectEventId)
             FreezeObjectEvent(&gObjectEvents[i]);
@@ -8658,7 +8658,7 @@ u8 MovementAction_LockAnim_Step0(struct ObjectEvent *objectEvent, struct Sprite 
         }
     }
 
-    if (ableToStore == TRUE)
+    if (ableToStore)
     {
         objectEvent->inanimate = TRUE;
         objectEvent->facingDirectionLocked = TRUE;
@@ -8686,7 +8686,7 @@ u8 MovementAction_UnlockAnim_Step0(struct ObjectEvent *objectEvent, struct Sprit
         }
         if (sLockedAnimObjectEvents->count == 0)
             FREE_AND_SET_NULL(sLockedAnimObjectEvents);
-        if (ableToStore == TRUE)
+        if (ableToStore)
         {
             objectEvent->inanimate = GetObjectEventGraphicsInfo(objectEvent->graphicsId)->inanimate;
             objectEvent->facingDirectionLocked = FALSE;
