@@ -2446,12 +2446,7 @@ static void InitDomeTrainers(void)
             monTypesBits |= gBitTable[gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[1]];
         }
 
-        for (monTypesCount = 0, j = 0; j < 32; j++)
-        {
-            if (monTypesBits & 1)
-                monTypesCount++;
-            monTypesBits >>= 1;
-        }
+        monTypesCount = __builtin_popcount(monTypesBits);
         rankingScores[i] += (monTypesCount * monLevel) / 20;
     }
 
