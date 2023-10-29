@@ -3475,20 +3475,20 @@ static void BattleIntroDrawPartySummaryScreens(void)
         // wild battles don't show the party summary.
         // Still, there's no point in having dead code.
 
-        for (i = 0; i < PARTY_SIZE; i++)
-        {
-            if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG) == SPECIES_NONE
-             || GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG) == SPECIES_EGG)
-            {
-                hpStatus[i].hp = HP_EMPTY_SLOT;
-                hpStatus[i].status = 0;
-            }
-            else
-            {
-                hpStatus[i].hp = GetMonData(&gPlayerParty[i], MON_DATA_HP);
-                hpStatus[i].status = GetMonData(&gPlayerParty[i], MON_DATA_STATUS);
-            }
-        }
+        // for (i = 0; i < PARTY_SIZE; i++)
+        // {
+        //     if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG) == SPECIES_NONE
+        //      || GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG) == SPECIES_EGG)
+        //     {
+        //         hpStatus[i].hp = HP_EMPTY_SLOT;
+        //         hpStatus[i].status = 0;
+        //     }
+        //     else
+        //     {
+        //         hpStatus[i].hp = GetMonData(&gPlayerParty[i], MON_DATA_HP);
+        //         hpStatus[i].status = GetMonData(&gPlayerParty[i], MON_DATA_STATUS);
+        //     }
+        // }
 
         gBattleMainFunc = BattleIntroPrintWildMonAttacked;
     }
