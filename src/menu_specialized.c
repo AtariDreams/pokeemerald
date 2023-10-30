@@ -195,7 +195,7 @@ static const struct ListMenuTemplate sMoveRelearnerMovesListTemplate =
 
 bool8 MailboxMenu_Alloc(u8 count)
 {
-    u8 i;
+    u32 i;
 
     // + 1 to count for 'Cancel'
     sMailboxList = Alloc((count + 1) * sizeof(*sMailboxList));
@@ -291,7 +291,7 @@ u8 MailboxMenu_CreateList(struct PlayerPCItemPageStruct *page)
 
 static void MailboxMenu_MoveCursorFunc(s32 itemIndex, bool8 onInit, struct ListMenu *list)
 {
-    if (onInit != TRUE)
+    if (!onInit)
         PlaySE(SE_SELECT);
 }
 
@@ -304,6 +304,8 @@ void MailboxMenu_Free(void)
 {
     Free(sMailboxList);
 }
+
+// TODO: MOVE TO FILE ABOVE
 
 //---------------------------------------
 // Condition graph
@@ -320,7 +322,7 @@ void MailboxMenu_Free(void)
 
 void ConditionGraph_Init(struct ConditionGraph *graph)
 {
-    u8 i, j;
+    u32 i, j;
 
     for (j = 0; j < CONDITION_COUNT; j++)
     {
@@ -416,7 +418,7 @@ bool8 ConditionGraph_ResetScanline(struct ConditionGraph *graph)
 
 void ConditionGraph_Draw(struct ConditionGraph *graph)
 {
-    u16 i;
+    u32 i;
 
     if (!graph->needsDraw)
         return;
@@ -441,9 +443,6 @@ void ConditionGraph_InitWindow(u8 bg)
 {
     u32 flags;
 
-    if (bg >= NUM_BACKGROUNDS)
-        bg = 0;
-
     // Unset the WINOUT flag for the bg.
     flags = (WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ) & ~(1 << bg);
 
@@ -458,7 +457,7 @@ void ConditionGraph_InitWindow(u8 bg)
 
 void ConditionGraph_Update(struct ConditionGraph *graph)
 {
-    u16 i;
+    u32 i;
     for (i = 0; i < CONDITION_COUNT; i++)
         graph->curPositions[i] = graph->newPositions[graph->updateCounter][i];
 
@@ -509,10 +508,14 @@ static void ConditionGraph_CalcLine(struct ConditionGraph *graph, u16 *scanline,
     {
         overflowScanline += (top - CONDITION_GRAPH_TOP_Y) * 2;
         // Less readable than the other loops, but it has to be written this way to match.
-        for (i = 0; i < height; overflowScanline[dir] = SHIFT_RIGHT_ADJUSTED(x, 10) + dir, x += xIncrement, overflowScanline += 2, i++)
+        for (i = 0; i < height; i++)
         {
             if (x >= (CONDITION_GRAPH_CENTER_X << 10))
                 break;
+
+            overflowScanline[dir] = SHIFT_RIGHT_ADJUSTED(x, 10) + dir;
+            x += xIncrement;
+            overflowScanline += 2,
         }
 
         graph->bottom = top + i;
@@ -658,8 +661,8 @@ static void ConditionGraph_CalcLeftHalf(struct ConditionGraph *graph)
     {
         if (graph->scanlineLeft[i][0] >= graph->scanlineLeft[i][1])
         {
-            graph->scanlineLeft[i][1] = 0;
             graph->scanlineLeft[i][0] = 0;
+            graph->scanlineLeft[i][1] = 0;
         }
     }
 }
@@ -687,7 +690,7 @@ void ConditionGraph_CalcPositions(u8 *conditions, struct UCoords16 *positions)
             sinIdx++;
 
         lineLength = sConditionToLineLength[*(conditions++)];
-        positions[posIdx].x = CONDITION_GRAPH_CENTER_X + ((lineLength * gSineTable[64 + sinIdx]) >> 8);
+        positions[posIdx].x = CONDITION_GRAPH_CENTER_X + ((lineLength * gSineTable[sinIdx + 64]) >> 8);
         positions[posIdx].y = CONDITION_GRAPH_CENTER_Y - ((lineLength * gSineTable[sinIdx]) >> 8);
 
         if (posIdx <= GRAPH_CUTE && (lineLength != 32 || posIdx != GRAPH_CUTE))
@@ -701,7 +704,7 @@ void ConditionGraph_CalcPositions(u8 *conditions, struct UCoords16 *positions)
 
 void InitMoveRelearnerWindows(bool8 useContestWindow)
 {
-    u8 i;
+    u32 i;
 
     InitWindows(sMoveRelearnerWindowTemplates);
     DeactivateAllTextPrinters();
