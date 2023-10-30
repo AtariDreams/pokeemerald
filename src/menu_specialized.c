@@ -515,7 +515,7 @@ static void ConditionGraph_CalcLine(struct ConditionGraph *graph, u16 *scanline,
 
             overflowScanline[dir] = SHIFT_RIGHT_ADJUSTED(x, 10) + dir;
             x += xIncrement;
-            overflowScanline += 2,
+            overflowScanline += 2;
         }
 
         graph->bottom = top + i;
