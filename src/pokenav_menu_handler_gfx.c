@@ -82,7 +82,6 @@ static void DestroyRematchBlueLightSprite(void);
 static void AddOptionDescriptionWindow(void);
 static void PrintCurrentOptionDescription(void);
 static void PrintNoRibbonWinners(void);
-static bool32 IsDma3ManagerBusyWithBgCopy_(void);
 static void CreateMovingBgDotsTask(void);
 static void DestroyMovingDotsBgTask(void);
 static void Task_MoveBgDots(u8);
@@ -495,7 +494,7 @@ static u32 LoopedTask_OpenMenu(s32 state)
         DrawCurrentMenuOptionLabels();
         return LT_INC_AND_PAUSE;
     case 6:
-        if (IsDma3ManagerBusyWithBgCopy_())
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
         return LT_INC_AND_CONTINUE;
     case 7:
@@ -563,7 +562,7 @@ static u32 LoopedTask_MoveMenuCursor(s32 state)
     case 1:
         if (AreMenuOptionSpritesMoving())
             return LT_PAUSE;
-        if (IsDma3ManagerBusyWithBgCopy_())
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
         break;
     }
@@ -601,7 +600,7 @@ static u32 LoopedTask_OpenConditionMenu(s32 state)
             return LT_PAUSE;
         if (IsTaskActive_UpdateBgDotsPalette())
             return LT_PAUSE;
-        if (IsDma3ManagerBusyWithBgCopy_())
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
         InitMenuOptionGlow();
         break;
@@ -639,7 +638,7 @@ static u32 LoopedTask_ReturnToMainMenu(s32 state)
             return LT_PAUSE;
         if (IsTaskActive_UpdateBgDotsPalette())
             return LT_PAUSE;
-        if (IsDma3ManagerBusyWithBgCopy_())
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
         InitMenuOptionGlow();
         break;
@@ -1235,11 +1234,6 @@ static void PrintNoRibbonWinners(void)
     u32 width = GetStringWidth(FONT_NORMAL, s, -1);
     FillWindowPixelBuffer(gfx->optionDescWindowId, PIXEL_FILL(6));
     AddTextPrinterParameterized3(gfx->optionDescWindowId, FONT_NORMAL, (192 - width) / 2, 1, sOptionDescTextColors2, 0, s);
-}
-
-static bool32 IsDma3ManagerBusyWithBgCopy_(void)
-{
-    return IsDma3ManagerBusyWithBgCopy();
 }
 
 static void CreateMovingBgDotsTask(void)
