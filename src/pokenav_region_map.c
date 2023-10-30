@@ -59,7 +59,6 @@ static bool32 IsDecompressCityMapsActive(void);
 static void LoadPokenavRegionMapGfx(struct Pokenav_RegionMapGfx *);
 static bool32 TryFreeTempTileDataBuffers(void);
 static void UpdateMapSecInfoWindow(struct Pokenav_RegionMapGfx *);
-static bool32 IsDma3ManagerBusyWithBgCopy_(struct Pokenav_RegionMapGfx *);
 static void ChangeBgYForZoom(bool32);
 static bool32 IsChangeBgYForZoomActive(void);
 static void CreateCityZoomTextSprites(void);
@@ -352,7 +351,7 @@ static u32 LoopedTask_OpenRegionMap(s32 taskState)
         FadeToBlackExceptPrimary();
         return LT_INC_AND_PAUSE;
     case 5:
-        if (IsDma3ManagerBusyWithBgCopy_(state))
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
 
         ShowBg(1);
@@ -387,7 +386,7 @@ static u32 LoopedTask_UpdateInfoAfterCursorMove(s32 taskState)
         UpdateMapSecInfoWindow(state);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy_(state))
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
         break;
     }
@@ -431,7 +430,7 @@ static u32 LoopedTask_RegionMapZoomIn(s32 taskState)
         UpdateMapSecInfoWindow(state);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy_(state))
+        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
 
         ChangeBgYForZoom(TRUE);
@@ -566,11 +565,6 @@ static void UpdateMapSecInfoWindow(struct Pokenav_RegionMapGfx *state)
         SetCityZoomTextInvisibility(TRUE);
         break;
     }
-}
-
-static bool32 IsDma3ManagerBusyWithBgCopy_(struct Pokenav_RegionMapGfx *state)
-{
-    return IsDma3ManagerBusyWithBgCopy();
 }
 
 #define tZoomIn data[0]
