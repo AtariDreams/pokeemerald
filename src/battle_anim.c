@@ -1183,14 +1183,10 @@ static void LoadMoveBg(u16 bgId)
     if (IsContest())
     {
         const u32 *tilemap = gBattleAnimBackgroundTable[bgId].tilemap;
-        void *dmaSrc;
-        void *dmaDest;
 
         LZ77UnCompWram(tilemap, gDecompressionBuffer);
         RelocateBattleBgPal(GetBattleBgPaletteNum(), (void *)gDecompressionBuffer, 0x100, FALSE);
-        dmaSrc = gDecompressionBuffer;
-        dmaDest = (void *)BG_SCREEN_ADDR(26);
-        DmaCopy32(3, dmaSrc, dmaDest, 0x800);
+        DmaCopy32(3, gDecompressionBuffer, (void *)BG_SCREEN_ADDR(26), 0x800);
         LZ77UnCompVram(gBattleAnimBackgroundTable[bgId].image, (void *)BG_SCREEN_ADDR(4));
         LoadCompressedPalette(gBattleAnimBackgroundTable[bgId].palette, BG_PLTT_ID(GetBattleBgPaletteNum()), PLTT_SIZE_4BPP);
     }
