@@ -370,7 +370,7 @@ static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8 taskId)
             SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) ^ DISPCNT_OBJWIN_ON);
             SetGpuReg(REG_OFFSET_BLDCNT, 0);
             SetGpuReg(REG_OFFSET_BLDALPHA, 0);
-            sprite = &gSprites[GetAnimBattlerSpriteId(0)]; // unused
+            // sprite = &gSprites[GetAnimBattlerSpriteId(0)]; // unused
             sprite = &gSprites[gTasks[taskId].data[0]];
             DestroySprite(sprite);
 

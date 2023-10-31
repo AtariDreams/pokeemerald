@@ -2277,9 +2277,9 @@ static void MoveBattleBarGraphically(u8 battlerId, u8 whichBar)
                             &gBattleSpritesDataPtr->battleBars[battlerId].currValue,
                             array, B_HEALTHBAR_PIXELS / 8);
 
-        if (filledPixelsCount > (B_HEALTHBAR_PIXELS * 50 / 100)) // more than 50 % hp
+        if (filledPixelsCount > (B_HEALTHBAR_PIXELS/2)) // more than 50 % hp
             barElementId = HEALTHBOX_GFX_HP_BAR_GREEN;
-        else if (filledPixelsCount > (B_HEALTHBAR_PIXELS * 20 / 100)) // more than 20% hp
+        else if (filledPixelsCount > (B_HEALTHBAR_PIXELS/5)) // more than 20% hp
             barElementId = HEALTHBOX_GFX_HP_BAR_YELLOW;
         else
             barElementId = HEALTHBOX_GFX_HP_BAR_RED; // 20 % or less
@@ -2522,9 +2522,9 @@ u8 GetHPBarLevel(s16 hp, s16 maxhp)
     else
     {
         u8 fraction = GetScaledHPFraction(hp, maxhp, B_HEALTHBAR_PIXELS);
-        if (fraction > (B_HEALTHBAR_PIXELS * 50 / 100)) // more than 50 % hp
+        if (fraction > (B_HEALTHBAR_PIXELS/2)) // more than 50 % hp
             result = HP_BAR_GREEN;
-        else if (fraction > (B_HEALTHBAR_PIXELS * 20 / 100)) // more than 20% hp
+        else if (fraction > (B_HEALTHBAR_PIXELS/5)) // more than 20% hp
             result = HP_BAR_YELLOW;
         else if (fraction > 0)
             result = HP_BAR_RED;
