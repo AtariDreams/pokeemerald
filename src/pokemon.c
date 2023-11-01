@@ -5563,6 +5563,42 @@ void EvolutionRenameMon(struct Pokemon *mon, u16 oldSpecies, u16 newSpecies)
         SetMonData(mon, MON_DATA_NICKNAME, gSpeciesNames[newSpecies]);
 }
 
+u32		PIDGet(u32 id)
+{
+	u32	i;
+	u32	rnd;
+	u16	rnd_low;
+	u16	rnd_high;
+
+	id=(((id&0xffff0000)>>16)^(id&0xffff))>>3;
+
+	rnd_low=Random()&0x07;
+	rnd_high=Random()&0x07;
+
+	for(i=0;i<13;i++){
+		//Bit:1
+		if(id & (1U << i)){
+			if(Random()&1){
+				rnd_low|=1U << (i+3);
+			}
+			else{
+				rnd_high|=1U <<(i+3);
+			}
+		}
+		//Bit:0
+		else{
+			if(Random()&1){
+				rnd_low|=1<<(i+3);
+				rnd_high|=1<<(i+3);
+			}
+		}
+	}
+
+	rnd=rnd_low|(rnd_high<<16);
+
+	return rnd;
+}
+
 // The below two functions determine which side of a multi battle the trainer battles on
 // 0 is the left (top in  party menu), 1 is right (bottom in party menu)
 u8 GetPlayerFlankId(void)
