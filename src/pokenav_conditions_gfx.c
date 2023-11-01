@@ -597,14 +597,13 @@ static bool32 UpdateConditionGraphMenuWindows(u8 mode, u16 bufferIndex, bool8 wi
             else
                 CopyWindowToVram(menu->nameGenderWindowId, COPYWIN_GFX);
 
-            if (IsConditionMenuSearchMode() == TRUE)
+            if (IsConditionMenuSearchMode())
             {
-                menu->windowModeState++;
+                menu->windowModeState = 1;
                 return FALSE;
             }
             else
             {
-                menu->windowModeState = 0;
                 return TRUE;
             }
         case 1:
