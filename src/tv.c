@@ -3089,7 +3089,7 @@ static u16 GetRandomDifferentSpeciesSeenByPlayer(u16 excludedSpecies)
     u16 species = Random() % (NUM_SPECIES - 1) + 1;
     u16 initSpecies = species;
 
-    while (GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN) != TRUE || species == excludedSpecies)
+    while (!GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN) || species == excludedSpecies)
     {
         if (species == SPECIES_NONE + 1)
             species = NUM_SPECIES - 1;
