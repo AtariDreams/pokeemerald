@@ -1678,7 +1678,7 @@ u8 DoBattlerEndTurnEffects(void)
             case ENDTURN_DISABLE:  // disable
                 if (gDisableStructs[gActiveBattler].disableTimer != 0)
                 {
-                    s32 i;
+                    u32 i;
                     for (i = 0; i < MAX_MON_MOVES; i++)
                     {
                         if (gDisableStructs[gActiveBattler].disabledMove == gBattleMons[gActiveBattler].moves[i])
