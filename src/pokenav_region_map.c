@@ -643,7 +643,7 @@ static void DrawCityMap(struct Pokenav_RegionMapGfx *state, int mapSecId, int po
 
 static void PrintLandmarkNames(struct Pokenav_RegionMapGfx *state, int mapSecId, int pos)
 {
-    int i = 0;
+    u32 i = 0;
     while (1)
     {
         const u8 *landmarkName = GetLandmarkName(mapSecId, pos, i);
