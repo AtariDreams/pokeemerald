@@ -43,7 +43,6 @@ static u16 sLastTextBgColor;
 static u16 sLastTextFgColor;
 static u16 sLastTextShadowColor;
 
-const struct FontInfo *gFonts;
 bool8 gDisableTextPrinters;
 struct TextGlyph gCurGlyph;
 TextFlags gTextFlags;
@@ -116,7 +115,7 @@ struct
 
 static const u8 sKeypadIconTiles[] = INCBIN_U8("graphics/fonts/keypad_icons.4bpp");
 
-static const struct FontInfo sFontInfos[] =
+const struct FontInfo gFonts[] =
 {
     [FONT_SMALL] = {
         .fontFunction = FontFunc_Small,
@@ -236,11 +235,6 @@ static const u8 sMenuCursorDimensions[][2] =
 
 static const u16 sFontBoldJapaneseGlyphs[] = INCBIN_U16("graphics/fonts/bold.hwjpnfont");
 
-static void SetFontsPointer(const struct FontInfo *fonts)
-{
-    gFonts = fonts;
-}
-
 void DeactivateAllTextPrinters(void)
 {
     unsigned int printer;
@@ -271,9 +265,6 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
 {
     unsigned int i;
     u32 j;
-
-    if (!gFonts)
-        return FALSE;
 
     sTempTextPrinter.active = TRUE;
     sTempTextPrinter.state = RENDER_STATE_HANDLE_CHAR;
@@ -1274,7 +1265,7 @@ u32 GetStringWidth(u8 fontId, const u8 *str, s16 letterSpacing)
         return 0;
 
     if (letterSpacing < 0)
-        spc_x = GetFontAttribute(fontId, FONTATTR_LETTER_SPACING);
+        spc_x = gFonts[fontId].letterSpacing;
     else
         spc_x = letterSpacing;
 
@@ -1570,36 +1561,31 @@ u8 GetKeypadIconHeight(u8 keypadIconId)
     return sKeypadIcons[keypadIconId].height;
 }
 
-void SetDefaultFontsPointer(void)
-{
-    SetFontsPointer(sFontInfos);
-}
-
 u8 GetFontAttribute(u8 fontId, u8 attributeId)
 {
     u8 result = 0;
     switch (attributeId)
     {
         case FONTATTR_MAX_LETTER_WIDTH:
-            result = sFontInfos[fontId].maxLetterWidth;
+            result = gFonts[fontId].maxLetterWidth;
             break;
         case FONTATTR_MAX_LETTER_HEIGHT:
-            result = sFontInfos[fontId].maxLetterHeight;
+            result = gFonts[fontId].maxLetterHeight;
             break;
         case FONTATTR_LETTER_SPACING:
-            result = sFontInfos[fontId].letterSpacing;
+            result = gFonts[fontId].letterSpacing;
             break;
         case FONTATTR_LINE_SPACING:
-            result = sFontInfos[fontId].lineSpacing;
+            result = gFonts[fontId].lineSpacing;
             break;
         case FONTATTR_COLOR_FOREGROUND:
-            result = sFontInfos[fontId].fgColor;
+            result = gFonts[fontId].fgColor;
             break;
         case FONTATTR_COLOR_BACKGROUND:
-            result = sFontInfos[fontId].bgColor;
+            result = gFonts[fontId].bgColor;
             break;
         case FONTATTR_COLOR_SHADOW:
-            result = sFontInfos[fontId].shadowColor;
+            result = gFonts[fontId].shadowColor;
             break;
     }
     return result;
