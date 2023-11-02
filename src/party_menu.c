@@ -2540,7 +2540,7 @@ static u8 DisplaySelectionWindow(u8 windowType)
     if (windowType == SELECTWINDOW_MOVES)
         return sPartyMenuInternal->windowId[0];
     cursorDimension = GetMenuCursorDimensionByFont(FONT_NORMAL, 0);
-    letterSpacing = GetFontAttribute(FONT_NORMAL, FONTATTR_LETTER_SPACING);
+    letterSpacing = gFonts[FONT_NORMAL].letterSpacing;
 
     for (i = 0; i < sPartyMenuInternal->numActions; i++)
     {

@@ -410,7 +410,7 @@ static void CreateLilycoveSSTidalMultichoice(void)
         sLilycoveSSTidalSelections[i] = 0xFF;
     }
 
-    GetFontAttribute(FONT_NORMAL, FONTATTR_MAX_LETTER_WIDTH);
+   // GetFontAttribute(FONT_NORMAL, FONTATTR_MAX_LETTER_WIDTH);
 
     if (gSpecialVar_0x8004 == 0)
     {
