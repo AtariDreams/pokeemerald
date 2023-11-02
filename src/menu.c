@@ -165,7 +165,7 @@ u16 RunTextPrintersAndIsPrinter0Active(void)
     return IsTextPrinterActive(0);
 }
 
-u16 AddTextPrinterParameterized2(u8 windowId, u8 fontId, const u8 *str, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16), u8 fgColor, u8 bgColor, u8 shadowColor)
+void AddTextPrinterParameterized2(u8 windowId, u8 fontId, const u8 *str, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16), u8 fgColor, u8 bgColor, u8 shadowColor)
 {
     struct TextPrinterTemplate printer;
 
@@ -183,7 +183,7 @@ u16 AddTextPrinterParameterized2(u8 windowId, u8 fontId, const u8 *str, u8 speed
     printer.shadowColor = shadowColor;
 
     gTextFlags.useAlternateDownArrow = 0;
-    return AddTextPrinter(&printer, speed, callback);
+    AddTextPrinter(&printer, speed, callback);
 }
 
 void AddTextPrinterForMessage(bool8 allowSkippingDelayWithButtonPress)
