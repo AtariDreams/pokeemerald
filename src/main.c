@@ -104,7 +104,6 @@ _Noreturn void AgbMain(void)
    // InitMapMusic();
     // ClearDma3Requests();
     ResetBgs();
-    SetDefaultFontsPointer();
     InitHeap(gHeap, HEAP_SIZE);
 
     // TODO: redundant?
