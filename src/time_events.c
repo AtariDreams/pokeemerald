@@ -30,7 +30,7 @@ void InitMirageRnd(void)
 
 void UpdateMirageRnd(u16 days)
 {
-    s32 rnd = GetMirageRnd();
+    u32 rnd = GetMirageRnd();
     while (days)
     {
         rnd = ISO_RANDOMIZE2(rnd);
@@ -41,14 +41,12 @@ void UpdateMirageRnd(u16 days)
 
 bool8 IsMirageIslandPresent(void)
 {
-    u16 rnd = GetMirageRnd() >> 16;
-    u32 i;
+    u16 rnd = (GetMirageRnd() >> 16) & 7;
 
-    for (i = 0; i < gPlayerPartyCount; i++)
-        if ((GetMonData(&gPlayerParty[i], MON_DATA_PERSONALITY) & 0xFFFF) == rnd)
-            return TRUE;
+    if (rnd)
+        return FALSE;
 
-    return FALSE;
+    return TRUE;
 }
 
 void UpdateShoalTideFlag(void)
