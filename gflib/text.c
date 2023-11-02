@@ -242,26 +242,61 @@ void DeactivateAllTextPrinters(void)
         sTextPrinters[printer].active = FALSE;
 }
 
-u16 AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 y, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
+void AddTextPrinterParameterized(u8 windowId, u8 fontId, const u8 *str, u8 x, u8 y, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
-    struct TextPrinterTemplate printerTemplate;
+    sTempTextPrinter.printerTemplate.currentChar = str;
+    sTempTextPrinter.printerTemplate.windowId = windowId;
+    sTempTextPrinter.printerTemplate.fontId = fontId;
+    sTempTextPrinter.printerTemplate.x = x;
+    sTempTextPrinter.printerTemplate.y = y;
+    sTempTextPrinter.printerTemplate.currentX = x;
+    sTempTextPrinter.printerTemplate.currentY = y;
 
-    printerTemplate.currentChar = str;
-    printerTemplate.windowId = windowId;
-    printerTemplate.fontId = fontId;
-    printerTemplate.x = x;
-    printerTemplate.y = y;
-    printerTemplate.currentX = x;
-    printerTemplate.currentY = y;
-    printerTemplate.letterSpacing = gFonts[fontId].letterSpacing;
-    printerTemplate.lineSpacing = gFonts[fontId].lineSpacing;
-    printerTemplate.fgColor = gFonts[fontId].fgColor;
-    printerTemplate.bgColor = gFonts[fontId].bgColor;
-    printerTemplate.shadowColor = gFonts[fontId].shadowColor;
-    return AddTextPrinter(&printerTemplate, speed, callback);
+    // TODO: are these fields redundant when we have the fontID?
+    sTempTextPrinter.printerTemplate.letterSpacing = gFonts[fontId].letterSpacing;
+    sTempTextPrinter.printerTemplate.lineSpacing = gFonts[fontId].lineSpacing;
+    sTempTextPrinter.printerTemplate.fgColor = gFonts[fontId].fgColor;
+    sTempTextPrinter.printerTemplate.bgColor = gFonts[fontId].bgColor;
+    sTempTextPrinter.printerTemplate.shadowColor = gFonts[fontId].shadowColor;
+
+    sTempTextPrinter.active = TRUE;
+    sTempTextPrinter.state = RENDER_STATE_HANDLE_CHAR;
+    sTempTextPrinter.textSpeed = speed;
+    sTempTextPrinter.delayCounter = 0;
+    sTempTextPrinter.scrollDistance = 0;
+
+    memset(&sTempTextPrinter.subStruct, 0, sizeof(sTempTextPrinter.subStruct));
+
+    sTempTextPrinter.callback = callback;
+    sTempTextPrinter.minLetterSpacing = 0;
+    sTempTextPrinter.japanese = 0;
+
+    GenerateFontHalfRowLookupTable(sTempTextPrinter.printerTemplate.fgColor, sTempTextPrinter.printerTemplate.bgColor, sTempTextPrinter.printerTemplate.shadowColor);
+    if (speed != TEXT_SKIP_DRAW && speed != 0)
+    {
+        sTempTextPrinter.textSpeed--;
+        sTextPrinters[windowId] = sTempTextPrinter;
+    }
+    else
+    {
+        sTempTextPrinter.textSpeed = 0;
+
+        // Render all text (up to limit) at once
+        for (u32 j = 0; j < 0x400; ++j)
+        {
+            if (RenderFont(&sTempTextPrinter) == RENDER_FINISH)
+                break;
+        }
+
+        // All the text is rendered to the window but don't draw it yet.
+        if (speed != TEXT_SKIP_DRAW)
+            CopyWindowToVram(windowId, COPYWIN_GFX);
+        sTextPrinters[windowId].active = FALSE;
+    }
+    gDisableTextPrinters = FALSE;
 }
 
-bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
+void AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, void (*callback)(struct TextPrinterTemplate *, u16))
 {
     unsigned int i;
     u32 j;
@@ -302,7 +337,6 @@ bool16 AddTextPrinter(struct TextPrinterTemplate *printerTemplate, u8 speed, voi
         sTextPrinters[printerTemplate->windowId].active = FALSE;
     }
     gDisableTextPrinters = FALSE;
-    return TRUE;
 }
 
 void RunTextPrinters(void)
