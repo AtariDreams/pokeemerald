@@ -290,8 +290,6 @@ void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
 
     for (trackCount = mplayInfo->trackCount, track = mplayInfo->tracks; trackCount > 0; trackCount--, track++)
     {
-        if (!track->flags & MPT_FLG_EXIST)
-            continue;
         if (track->flags & MPT_FLG_START)
         {
             Clear64byte(track);
@@ -502,7 +500,7 @@ void m4aSoundMode(u32 mode)
         m4aSoundVSyncOff();
         SampleFreqSet(temp);
     }
-
+    asm volatile ("" : : : "memory");
     soundInfo->ident = ID_NUMBER;
 }
 
