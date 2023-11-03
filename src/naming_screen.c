@@ -2012,8 +2012,8 @@ static void CB2_NamingScreen(void)
 
 static void ResetVHBlank(void)
 {
-    SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
+    SetVBlankCallback(NULL);
 }
 
 static void SetVBlank(void)
