@@ -1134,7 +1134,7 @@ void FreeAndDestroyMonIconSprite(struct Sprite *sprite)
 
 void LoadMonIconPalettes(void)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < ARRAY_COUNT(gMonIconPaletteTable); i++)
         LoadSpritePalette(&gMonIconPaletteTable[i]);
 }
