@@ -1479,30 +1479,26 @@ static void SpriteCB_Ball_Release_Step(struct Sprite *sprite)
 
 static void SpriteCB_Ball_Release_Wait(struct Sprite *sprite)
 {
-    bool8 released = FALSE;
-
     if (sprite->animEnded)
         sprite->invisible = TRUE;
 
     if (gSprites[gBattlerSpriteIds[gBattleAnimTarget]].affineAnimEnded)
     {
         StartSpriteAffineAnim(&gSprites[gBattlerSpriteIds[gBattleAnimTarget]], BATTLER_AFFINE_NORMAL);
-        released = TRUE;
+        if (sprite->animEnded)
+        {
+            gSprites[gBattlerSpriteIds[gBattleAnimTarget]].y2 = 0;
+            gSprites[gBattlerSpriteIds[gBattleAnimTarget]].invisible = gBattleSpritesDataPtr->animationData->wildMonInvisible;
+            sprite->sFrame = 0;
+            sprite->callback = DestroySpriteAfterOneFrame;
+            gDoingBattleAnim = 0;
+            UpdateOamPriorityInAllHealthboxes(1);
+        }
     }
     else
     {
         gSprites[gBattlerSpriteIds[gBattleAnimTarget]].sOffsetY -= 288;
         gSprites[gBattlerSpriteIds[gBattleAnimTarget]].y2 = gSprites[gBattlerSpriteIds[gBattleAnimTarget]].sOffsetY >> 8;
-    }
-
-    if (sprite->animEnded && released)
-    {
-        gSprites[gBattlerSpriteIds[gBattleAnimTarget]].y2 = 0;
-        gSprites[gBattlerSpriteIds[gBattleAnimTarget]].invisible = gBattleSpritesDataPtr->animationData->wildMonInvisible;
-        sprite->sFrame = 0;
-        sprite->callback = DestroySpriteAfterOneFrame;
-        gDoingBattleAnim = 0;
-        UpdateOamPriorityInAllHealthboxes(1);
     }
 }
 
