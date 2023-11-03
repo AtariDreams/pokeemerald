@@ -98,7 +98,7 @@ void MPlayContinue(struct MusicPlayerInfo *mplayInfo)
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
     asm volatile ("" : : : "memory");
     mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
     asm volatile ("" : : : "memory");
@@ -110,7 +110,7 @@ void MPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed)
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
     asm volatile ("" : : : "memory");
     mplayInfo->fadeOI = mplayInfo->fadeOC = speed;
     mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT);
@@ -259,7 +259,7 @@ void m4aMPlayFadeOutTemporarily(struct MusicPlayerInfo *mplayInfo, u16 speed)
 {
     if (mplayInfo->ident == ID_NUMBER)
     {
-        mplayInfo->ident++;
+        mplayInfo->ident = ID_NUMBER + 1;
         mplayInfo->fadeOC = speed;
         mplayInfo->fadeOI = speed;
         mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT) | TEMPORARY_FADE;
@@ -272,7 +272,7 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
 {
     if (mplayInfo->ident == ID_NUMBER)
     {
-        mplayInfo->ident++;
+        mplayInfo->ident = ID_NUMBER + 1;
 
         mplayInfo->fadeOI = speed;
         mplayInfo->fadeOC = speed;
@@ -317,7 +317,7 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     if (ident != ID_NUMBER)
         return;
 
-    soundInfo->ident++;
+    soundInfo->ident = ID_NUMBER + 1;
 
     REG_SOUNDCNT_X = SOUND_MASTER_ENABLE
                    | SOUND_4_ON
@@ -465,7 +465,7 @@ void m4aSoundMode(u32 mode)
     if (soundInfo->ident != ID_NUMBER)
         return;
 
-    soundInfo->ident++;
+    soundInfo->ident = ID_NUMBER + 1;
     asm volatile ("" : : : "memory");
     temp = mode & (SOUND_MODE_REVERB_SET | SOUND_MODE_REVERB_VAL);
 
@@ -515,7 +515,7 @@ void SoundClear(void)
     if (soundInfo->ident != ID_NUMBER)
         return;
 
-    soundInfo->ident++;
+    soundInfo->ident = ID_NUMBER + 1;
 
     for (i = MAX_DIRECTSOUND_CHANNELS, chan = soundInfo->chans; i > 0; i--, chan++)
         chan->statusFlags = 0;
@@ -585,7 +585,7 @@ void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
     if (soundInfo->ident != ID_NUMBER)
         return;
 
-    soundInfo->ident++;
+    soundInfo->ident = ID_NUMBER + 1;
 
     Clear64byte(mplayInfo);
 
@@ -629,7 +629,7 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
                 || (mplayInfo->status & MUSICPLAYER_STATUS_PAUSE)))
         || (mplayInfo->priority <= songHeader->priority))
     {
-        mplayInfo->ident++;
+        mplayInfo->ident = ID_NUMBER + 1;
         mplayInfo->status = 0;
         mplayInfo->songHeader = songHeader;
         mplayInfo->tone = songHeader->tone;
@@ -669,7 +669,7 @@ void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
     asm volatile ("" : : : "memory");
     mplayInfo->status |= MUSICPLAYER_STATUS_PAUSE;
 
@@ -1224,7 +1224,7 @@ void m4aMPlayTempoControl(struct MusicPlayerInfo *mplayInfo, u16 tempo)
 {
     if (mplayInfo->ident != ID_NUMBER)
         return;
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
     mplayInfo->tempoU = tempo;
     mplayInfo->tempoI = (mplayInfo->tempoD * mplayInfo->tempoU) >> 8;
     mplayInfo->ident = ID_NUMBER;
@@ -1239,7 +1239,7 @@ void m4aMPlayVolumeControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u16
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
 
     i = mplayInfo->trackCount;
     track = mplayInfo->tracks;
@@ -1273,7 +1273,7 @@ void m4aMPlayPitchControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, s16 
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
 
     i = mplayInfo->trackCount;
     track = mplayInfo->tracks;
@@ -1308,7 +1308,7 @@ void m4aMPlayPanpotControl(struct MusicPlayerInfo *mplayInfo, u16 trackBits, s8 
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
 
     i = mplayInfo->trackCount;
     track = mplayInfo->tracks;
@@ -1353,7 +1353,7 @@ void m4aMPlayModDepthSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 mo
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
 
     for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)
     {
@@ -1382,7 +1382,7 @@ void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lf
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
 
     for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)
     {
@@ -1609,7 +1609,7 @@ struct MusicPlayerInfo *SetPokemonCryTone(struct ToneData *tone)
 
 start_song:
     mplayInfo = &gPokemonCryMusicPlayers[i];
-    mplayInfo->ident++;
+    mplayInfo->ident = ID_NUMBER + 1;
 
     gPokemonCrySongs[i] = gPokemonCrySong;
 
