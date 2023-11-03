@@ -151,6 +151,7 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_FILL16;
 
+            asm volatile ("" : : : "memory");
             sDma3ManagerLocked = FALSE;
             return cursor;
         }
