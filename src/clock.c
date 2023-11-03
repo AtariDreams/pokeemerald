@@ -38,7 +38,7 @@ static void UpdatePerDay(struct Time *localTime)
     u16 *days = GetVarPointer(VAR_DAYS);
     u16 daysSince;
 
-    if (*days != localTime->days && *days <= localTime->days)
+    if (*days < localTime->days)
     {
         daysSince = localTime->days - *days;
         ClearDailyFlags();

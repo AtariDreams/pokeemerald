@@ -2781,7 +2781,7 @@ static bool8 Blackhole_Vibrate(struct Task *task)
     sTransitionData->VBlank_DMA = FALSE;
     if (task->tFlag == FALSE)
     {
-        task->tFlag++;
+        task->tFlag = TRUE;
         task->tRadius = 48;
         task->tVibrateId = 0;
     }
