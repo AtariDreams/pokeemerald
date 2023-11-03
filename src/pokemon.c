@@ -2347,7 +2347,7 @@ void CreateWallyRalts(void)
     while (GetGenderFromSpeciesAndPersonality(SPECIES_RALTS, personality) != MON_MALE);
 
     // Shiny Lock
-    if (GET_SHINY_VALUE(otId, personality) < SHINY_ODDS)
+    if (__builtin_expect_with_probability((GET_SHINY_VALUE(otId, personality) < SHINY_ODDS), 0, 0.999755859375))
         personality ^= 0x10000000;
     
     CreateMon(&gEnemyParty[0], SPECIES_RALTS, 5, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
@@ -6301,10 +6301,7 @@ const struct CompressedSpritePalette *GetMonSpritePalStruct(struct Pokemon *mon)
 
 const struct CompressedSpritePalette *GetMonSpritePalStructFromOtIdPersonality(u16 species, u32 otId , u32 personality)
 {
-    u32 shinyValue;
-
-    shinyValue = GET_SHINY_VALUE(otId, personality);
-    if (shinyValue < SHINY_ODDS)
+    if (__builtin_expect_with_probability((GET_SHINY_VALUE(otId, personality) < SHINY_ODDS), 0, 0.999755859375))
         return &gMonShinyPaletteTable[species];
     else
         return &gMonPaletteTable[species];
