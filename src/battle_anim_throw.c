@@ -1973,7 +1973,7 @@ static void PremierBallOpenParticleAnimation_Step1(struct Sprite *sprite)
 
 static void DestroyBallOpenAnimationParticle(struct Sprite *sprite)
 {
-    s32 i, j;
+    u32 i, j;
 
     if (!gMain.inBattle)
     {
@@ -2001,13 +2001,8 @@ static void DestroyBallOpenAnimationParticle(struct Sprite *sprite)
                     FreeSpritePaletteByTag(sBallParticlePalettes[j].tag);
                 }
             }
-
-            DestroySprite(sprite);
         }
-        else
-        {
-            DestroySprite(sprite);
-        }
+        DestroySprite(sprite);
     }
 }
 
