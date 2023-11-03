@@ -1180,8 +1180,8 @@ static s32 ShowGameDisplay(void)
     switch (game->cmdState)
     {
     case 0:
-        SetVBlankCallback(NULL);
         SetHBlankCallback(NULL);
+        SetVBlankCallback(NULL);
         SetGpuReg(REG_OFFSET_DISPCNT, 0);
         ScanlineEffect_Stop();
         ResetTempTileDataBuffers();
