@@ -1462,9 +1462,9 @@ static bool32 ExitFrontierMap(void)
         HideBg(2);
         break;
     case 2:
-        SetVBlankCallback(NULL);
         ScanlineEffect_Stop();
-        SetVBlankHBlankCallbacksToNull();
+        SetHBlankCallback(NULL);
+        SetVBlankCallback(NULL);
         break;
     case 3:
         if (sMapData->cursorSprite != NULL)
