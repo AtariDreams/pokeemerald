@@ -1738,7 +1738,7 @@ void CB2_ContinueSavedGame(void)
 
 static void FieldClearVBlankHBlankCallbacks(void)
 {
-    if (UsedPokemonCenterWarp() == TRUE)
+    if (UsedPokemonCenterWarp())
         CloseLink();
 
     if (gWirelessCommType != 0)
@@ -1748,11 +1748,7 @@ static void FieldClearVBlankHBlankCallbacks(void)
     }
     else
     {
-        u16 savedIme = REG_IME;
-        REG_IME = 0;
-        REG_IE &= ~INTR_FLAG_HBLANK;
-        REG_IE |= INTR_FLAG_VBLANK;
-        REG_IME = savedIme;
+        REG_IE_CHG(INTR_FLAG_VBLANK, INTR_FLAG_HBLANK);
     }
 
     SetVBlankCallback(NULL);

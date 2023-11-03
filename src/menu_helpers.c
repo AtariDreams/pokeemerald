@@ -117,8 +117,9 @@ void ResetAllBgsCoordinates(void)
 
 void SetVBlankHBlankCallbacksToNull(void)
 {
-    SetVBlankCallback(NULL);
+
     SetHBlankCallback(NULL);
+    SetVBlankCallback(NULL);
 }
 
 void DisplayMessageAndContinueTask(u8 taskId, u8 windowId, u16 tileNum, u8 paletteNum, u8 fontId, u8 textSpeed, const u8 *string, void *taskFunc)
