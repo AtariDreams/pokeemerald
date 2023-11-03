@@ -431,10 +431,9 @@ void DoMirageTowerCeilingCrumble(void)
 
 static void WaitCeilingCrumble(u8 taskId)
 {
-    u16 *data = (u16*)gTasks[taskId].data;
-    data[1]++;
+    s16 *data = gTasks[taskId].data;
     // Either wait 1000 frames, or until all 16 crumble sprites and the one screen-shake task are completed.
-    if (data[1] == 1000 || data[0] == 17)
+    if (++data[1] == 1000 || data[0] == 17)
         gTasks[taskId].func = FinishCeilingCrumbleTask;
 }
 
@@ -479,7 +478,7 @@ static void SpriteCB_CeilingCrumble(struct Sprite *sprite)
 
 static void SetInvisibleMirageTowerMetatiles(void)
 {
-    u8 i;
+    u32 i;
     for (i = 0; i < ARRAY_COUNT(sInvisibleMirageTowerMetatiles); i++)
         MapGridSetMetatileIdAt(sInvisibleMirageTowerMetatiles[i].x + MAP_OFFSET,
                                sInvisibleMirageTowerMetatiles[i].y + MAP_OFFSET,
