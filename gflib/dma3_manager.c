@@ -19,7 +19,7 @@ struct Dma3Request
 
 static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
-static vbool8 sDma3ManagerLocked;
+static volatile int sDma3ManagerLocked;
 static u8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
@@ -27,6 +27,7 @@ void ClearDma3Requests(void)
     unsigned int i;
 
     sDma3ManagerLocked = TRUE;
+    asm volatile ("" : : : "memory");
     sDma3RequestCursor = 0;
 
     for (i = 0; i < MAX_DMA_REQUESTS; i++)
@@ -35,7 +36,6 @@ void ClearDma3Requests(void)
         sDma3Requests[i].src = NULL;
         sDma3Requests[i].dest = NULL;
     }
-
     sDma3ManagerLocked = FALSE;
 }
 
@@ -88,9 +88,8 @@ void ProcessDma3Requests(void)
         sDma3Requests[sDma3RequestCursor].size = 0;
         sDma3Requests[sDma3RequestCursor].mode = 0;
         sDma3Requests[sDma3RequestCursor].value = 0;
-        sDma3RequestCursor++;
 
-        if (sDma3RequestCursor >= MAX_DMA_REQUESTS) // loop back to the first DMA request
+        if (++sDma3RequestCursor >= MAX_DMA_REQUESTS) // loop back to the first DMA request
             sDma3RequestCursor = 0;
     }
 }
@@ -101,6 +100,7 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
     u32 i;
 
     sDma3ManagerLocked = TRUE;
+    asm volatile ("" : : : "memory");
     cursor = sDma3RequestCursor;
 
     for (i = 0; i < MAX_DMA_REQUESTS; i++)
@@ -116,6 +116,7 @@ s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_COPY16;
 
+            asm volatile ("" : : : "memory");
             sDma3ManagerLocked = FALSE;
             return cursor;
         }
@@ -131,8 +132,10 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
     int cursor;
     u32 i;
 
-    cursor = sDma3RequestCursor;
     sDma3ManagerLocked = TRUE;
+    asm volatile ("" : : : "memory");
+    cursor = sDma3RequestCursor;
+
 
     for (i = 0; i < MAX_DMA_REQUESTS; i++)
     {
