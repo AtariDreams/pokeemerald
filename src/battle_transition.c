@@ -1735,7 +1735,7 @@ static void SpriteCB_FldEffPokeballTrail(struct Sprite *sprite)
         if (posX != sprite->sPrevX)
         {
             u16 var;
-            u16 *ptr;
+            vu16 *ptr;
 
             sprite->sPrevX = posX;
             var = ((REG_BG0CNT >> 8) & 0x1F);
