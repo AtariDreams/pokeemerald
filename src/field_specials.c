@@ -251,7 +251,7 @@ u16 GetRecordedCyclingRoadResults(void)
 {
     u16 low = VarGet(VAR_CYCLING_ROAD_RECORD_TIME_L);
     u16 high = VarGet(VAR_CYCLING_ROAD_RECORD_TIME_H);
-    u32 framesRecord = low + (high << 16);
+    u32 framesRecord = low | (high << 16);
 
     if (framesRecord == 0)
         return FALSE;
