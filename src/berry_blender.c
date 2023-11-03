@@ -1126,8 +1126,8 @@ static void CB2_LoadBerryBlender(void)
         {
             // Go to bag menu to choose berry, set callback to StartBlender
             FreeAllWindowBuffers();
-            UnsetBgTilemapBuffer(2);
             UnsetBgTilemapBuffer(1);
+            UnsetBgTilemapBuffer(2);
             SetVBlankCallback(NULL);
             ChooseBerryForMachine(StartBlender);
 
