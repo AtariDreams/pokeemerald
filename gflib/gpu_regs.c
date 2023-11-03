@@ -18,7 +18,7 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    CpuFastFill8(0xFF, sGpuRegWaitingList, GPU_REG_BUF_SIZE);
+    CpuFastFill8(EMPTY_SLOT, sGpuRegWaitingList, GPU_REG_BUF_SIZE);
 
     // Memory already set to 0
     // for (i = 0; i < GPU_REG_BUF_SIZE; i++)
@@ -83,7 +83,7 @@ void SetGpuReg(u8 regOffset, u16 value)
             unsigned int i;
 
             sGpuRegBufferLocked = TRUE;
-
+            asm volatile ("" : : : "memory");
             for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
             {
                 if (sGpuRegWaitingList[i] == regOffset)
@@ -93,6 +93,8 @@ void SetGpuReg(u8 regOffset, u16 value)
             }
 
            sGpuRegWaitingList[i] = regOffset;
+
+           asm volatile ("" : : : "memory");
 end:
            sGpuRegBufferLocked = FALSE;
         }
@@ -117,6 +119,7 @@ void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
             unsigned int i;
 
             sGpuRegBufferLocked = TRUE;
+            asm volatile ("" : : : "memory");
 
             for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
             {
@@ -127,6 +130,7 @@ void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
             }
 
             sGpuRegWaitingList[i] = regOffset;
+            asm volatile ("" : : : "memory");
 end:
             sGpuRegBufferLocked = FALSE;
         }
