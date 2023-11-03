@@ -2804,28 +2804,27 @@ static bool8 BlackholePulsate_Main(struct Task *task)
 {
     s16 index; // should be s16 I think
     s16 amplitude;
-
-    sTransitionData->VBlank_DMA = FALSE;
-    if (task->tFlag == FALSE)
-    {
-        task->tFlag++;
-        task->tSinIndex = 2;
-        task->tAmplitude = 2;
-    }
-
-    if (task->tRadius > DISPLAY_HEIGHT)
-        task->tRadius = DISPLAY_HEIGHT;
-
-    SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
-    if (task->tRadius == DISPLAY_HEIGHT)
+    
+    if (task->tRadius >= DISPLAY_HEIGHT)
     {
         DmaStop(0);
         FadeScreenBlack();
         DestroyTask(FindTaskIdByFunc(task->func));
+        return FALSE;
     }
 
+    sTransitionData->VBlank_DMA = FALSE;
+    if (task->tFlag == FALSE)
+    {
+        task->tFlag = TRUE;
+        task->tSinIndex = 2;
+        task->tAmplitude = 2;
+    }
+
+    SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
+
     index = task->tSinIndex;
-    if ((task->tSinIndex & 0xFF) <= 128)
+    if ((index & 0xFF) <= 128)
     {
         amplitude = task->tAmplitude;
         task->tSinIndex += 8;
