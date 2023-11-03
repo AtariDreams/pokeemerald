@@ -99,7 +99,9 @@ void MPlayContinue(struct MusicPlayerInfo *mplayInfo)
         return;
 
     mplayInfo->ident++;
+    asm volatile ("" : : : "memory");
     mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
+    asm volatile ("" : : : "memory");
     mplayInfo->ident = ID_NUMBER;
 }
 
@@ -109,8 +111,10 @@ void MPlayFadeOut(struct MusicPlayerInfo *mplayInfo, u16 speed)
         return;
 
     mplayInfo->ident++;
+    asm volatile ("" : : : "memory");
     mplayInfo->fadeOI = mplayInfo->fadeOC = speed;
     mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT);
+    asm volatile ("" : : : "memory");
     mplayInfo->ident = ID_NUMBER;
 }
 
@@ -259,6 +263,7 @@ void m4aMPlayFadeOutTemporarily(struct MusicPlayerInfo *mplayInfo, u16 speed)
         mplayInfo->fadeOC = speed;
         mplayInfo->fadeOI = speed;
         mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT) | TEMPORARY_FADE;
+        asm volatile ("" : : : "memory");
         mplayInfo->ident = ID_NUMBER;
     }
 }
@@ -273,6 +278,7 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
         mplayInfo->fadeOC = speed;
         mplayInfo->fadeOV = (0 << FADE_VOL_SHIFT) | FADE_IN;
         mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
+        asm volatile ("" : : : "memory");
         mplayInfo->ident = ID_NUMBER;
     }
 }
@@ -303,6 +309,16 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     struct SoundInfo *soundInfo;
     u32 ident;
 
+
+    soundInfo = SOUND_INFO_PTR;
+
+    ident = soundInfo->ident;
+
+    if (ident != ID_NUMBER)
+        return;
+
+    soundInfo->ident++;
+
     REG_SOUNDCNT_X = SOUND_MASTER_ENABLE
                    | SOUND_4_ON
                    | SOUND_3_ON
@@ -317,15 +333,6 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     REG_NR44 = 0x80;
     REG_NR30 = 0;
     REG_NR50 = 0x77;
-
-    soundInfo = SOUND_INFO_PTR;
-
-    ident = soundInfo->ident;
-
-    if (ident != ID_NUMBER)
-        return;
-
-    soundInfo->ident++;
 
     gMPlayJumpTable[8] = ply_memacc;
     gMPlayJumpTable[17] = ply_lfos;
@@ -354,6 +361,7 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     cgbChans[3].type = 4;
     cgbChans[3].panMask = 0x88;
 
+    asm volatile ("" : : : "memory");
     soundInfo->ident = ident;
 }
 
@@ -425,13 +433,13 @@ void SampleFreqSet(u32 freq)
 {
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
 
-    freq = (freq & 0xF0000) >> 16;
-    soundInfo->freq = (u8)freq;
+    freq = (freq >> 16) & 0xF;
+    soundInfo->freq = freq;
     soundInfo->pcmSamplesPerVBlank = gPcmSamplesPerVBlankTable[freq - 1];
     soundInfo->pcmDmaPeriod = PCM_DMA_BUF_SIZE / soundInfo->pcmSamplesPerVBlank;
 
     // LCD refresh rate 59.7275Hz
-    soundInfo->pcmFreq = (597275 * soundInfo->pcmSamplesPerVBlank + 5000) / 10000;
+    soundInfo->pcmFreq = (soundInfo->pcmSamplesPerVBlank * 597275 + 5000) / 10000;
 
     // CPU frequency 16.78Mhz
     soundInfo->divFreq = (0x01000000 / soundInfo->pcmFreq + 1) >> 1;
@@ -440,7 +448,7 @@ void SampleFreqSet(u32 freq)
     REG_TM0CNT_H = 0;
 
     // cycles per LCD fresh 280896
-    REG_TM0CNT_L = 0x10000 -(280896 / soundInfo->pcmSamplesPerVBlank);
+    REG_TM0CNT_L = 0x10000 - (280896 / soundInfo->pcmSamplesPerVBlank);
 
     m4aSoundVSyncOn();
 
@@ -458,7 +466,7 @@ void m4aSoundMode(u32 mode)
         return;
 
     soundInfo->ident++;
-
+    asm volatile ("" : : : "memory");
     temp = mode & (SOUND_MODE_REVERB_SET | SOUND_MODE_REVERB_VAL);
 
     if (temp)
@@ -662,6 +670,7 @@ void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
         return;
 
     mplayInfo->ident++;
+    asm volatile ("" : : : "memory");
     mplayInfo->status |= MUSICPLAYER_STATUS_PAUSE;
 
     for (i = mplayInfo->trackCount, track = mplayInfo->tracks; i > 0; i--, track++)

@@ -340,7 +340,7 @@ struct MusicPlayerInfo
     u16 fadeOV;
     struct MusicPlayerTrack *tracks;
     struct ToneData *tone;
-    u32 ident;
+    vu32 ident;
     MPlayMainFunc MPlayMainNext;
     struct MusicPlayerInfo *musicPlayerNext;
 };
