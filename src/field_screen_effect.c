@@ -1084,8 +1084,9 @@ static void LoadOrbEffectPalette(bool8 blueOrb)
 
 static bool8 UpdateOrbEffectBlend(u16 shakeDir)
 {
-    u8 lo = REG_BLDALPHA & 0xFF;
-    u8 hi = REG_BLDALPHA >> 8;
+    u16 reg = GetGpuReg(REG_OFFSET_BLDALPHA);
+    u8 lo = reg & 0xFF;
+    u8 hi = reg >> 8;
 
     if (shakeDir != 0)
     {
