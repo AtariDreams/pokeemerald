@@ -261,7 +261,7 @@ EWRAM_DATA static struct MirageTowerPulseBlend *sMirageTowerPulseBlend = NULL;
 
 // Holds data about the disintegration effect for Mirage Tower / the unchosen fossil.
 // Never read, presumably for debugging
-static u16 sDebug_DisintegrationData[8];
+//static u16 sDebug_DisintegrationData[8];
 
 bool8 IsMirageTowerVisible(void)
 {
@@ -526,8 +526,6 @@ static void UpdateBgShake(u8 taskId)
 
 static void InitMirageTowerShake(u8 taskId)
 {
-    u8 zero;
-
     switch (gTasks[taskId].tState)
     {
     case 0:
@@ -536,8 +534,8 @@ static void InitMirageTowerShake(u8 taskId)
         gTasks[taskId].tState++;
         break;
     case 1:
-        sMirageTowerGfxBuffer = (u8 *)AllocZeroed(MIRAGE_TOWER_GFX_LENGTH);
-        sMirageTowerTilemapBuffer = (u8 *)AllocZeroed(BG_SCREEN_SIZE);
+        sMirageTowerGfxBuffer = __builtin_assume_aligned((u8 *)AllocZeroed(MIRAGE_TOWER_GFX_LENGTH), 4);
+        sMirageTowerTilemapBuffer = __builtin_assume_aligned((u8 *)AllocZeroed(BG_SCREEN_SIZE), 4);
         ChangeBgX(0, 0, BG_COORD_SET);
         ChangeBgY(0, 0, BG_COORD_SET);
         gTasks[taskId].tState++;
@@ -563,9 +561,8 @@ static void InitMirageTowerShake(u8 taskId)
         break;
     case 6:
         sBgShakeOffsets = Alloc(sizeof(*sBgShakeOffsets));
-        zero = 0;
         sBgShakeOffsets->bgHOFS = 2;
-        sBgShakeOffsets->bgVOFS = zero;
+        sBgShakeOffsets->bgVOFS = 0;
         CreateTask(UpdateBgShake, 10);
         DestroyTask(taskId);
         ScriptContext_Enable();
@@ -577,7 +574,7 @@ static void InitMirageTowerShake(u8 taskId)
 #define INNER_BUFFER_LENGTH 0x30
 static void DoMirageTowerDisintegration(u8 taskId)
 {
-    u8 bgShakeTaskId, j;
+    u8 bgShakeTaskId;
     u16 i;
     u8 index;
 
@@ -614,12 +611,9 @@ static void DoMirageTowerDisintegration(u8 taskId)
         index = gTasks[taskId].data[3];
         for (i = (u8)(gTasks[taskId].data[2]); i < index; i++)
         {
-            for (j = 0; j < 1; j++)
-            {
-                UpdateDisintegrationEffect(sMirageTowerGfxBuffer,
+            UpdateDisintegrationEffect(sMirageTowerGfxBuffer,
                             (OUTER_BUFFER_LENGTH - 1 - i) * INNER_BUFFER_LENGTH + sFallingTower[i].disintegrateRand[sFallingTower[i].disintegrateIdx++],
                             0, INNER_BUFFER_LENGTH, 1);
-            }
             if (sFallingTower[i].disintegrateIdx > (INNER_BUFFER_LENGTH - 1))
             {
                 FREE_AND_SET_NULL(sFallingTower[i].disintegrateRand);
@@ -759,27 +753,27 @@ static void UpdateDisintegrationEffect(u8 *tiles, u16 randId, u8 c, u8 size, u8 
     u8 flag, tileMask;
 
     height = randId / size;
-    sDebug_DisintegrationData[0] = height;
+    //sDebug_DisintegrationData[0] = height;
 
     width = randId % size;
-    sDebug_DisintegrationData[1] = width;
+   // sDebug_DisintegrationData[1] = width;
 
     row = height & 7;
     col = width & 7;
-    sDebug_DisintegrationData[2] = height & 7;
-    sDebug_DisintegrationData[3] = width & 7;
+    //sDebug_DisintegrationData[2] = height & 7;
+    //sDebug_DisintegrationData[3] = width & 7;
 
     widthTiles = width / 8;
     heightTiles = height / 8;
-    sDebug_DisintegrationData[4] = width / 8;
-    sDebug_DisintegrationData[5] = height / 8;
+    //sDebug_DisintegrationData[4] = width / 8;
+    //sDebug_DisintegrationData[5] = height / 8;
 
     var = (size / 8) * (heightTiles * 64) + (widthTiles * 64);
-    sDebug_DisintegrationData[6] = var;
+    //sDebug_DisintegrationData[6] = var;
 
     baseOffset = var + ((row * 8) + col);
     baseOffset /= 2;
-    sDebug_DisintegrationData[7] = var + ((row * 8) + col);
+    //sDebug_DisintegrationData[7] = var + ((row * 8) + col);
 
     flag = ((randId % 2) ^ 1);
     tileMask = (c << (flag << 2)) | 15 << (((flag ^ 1) << 2));
