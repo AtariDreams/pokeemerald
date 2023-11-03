@@ -84,7 +84,7 @@ static EWRAM_DATA u16 sLilycoveDeptStore_NeverRead = 0;
 static EWRAM_DATA u16 sLilycoveDeptStore_DefaultFloorChoice = 0;
 static EWRAM_DATA struct ListMenuItem *sScrollableMultichoice_ListMenuItem = NULL;
 static EWRAM_DATA u16 sScrollableMultichoice_ScrollOffset = 0;
-static EWRAM_DATA u16 sFrontierExchangeCorner_NeverRead = 0;
+//static EWRAM_DATA u16 sFrontierExchangeCorner_NeverRead = 0;
 static EWRAM_DATA u8 sScrollableMultichoice_ItemSpriteId = 0;
 static EWRAM_DATA u8 sBattlePointsWindowId = 0;
 static EWRAM_DATA u8 sFrontierExchangeCorner_ItemIconWindowId = 0;
@@ -113,13 +113,13 @@ static void Task_MoveElevator(u8);
 static void MoveElevatorWindowLights(u16, bool8);
 static void Task_MoveElevatorWindowLights(u8);
 static void Task_ShowScrollableMultichoice(u8);
-static void FillFrontierExchangeCornerWindowAndItemIcon(u16, u16);
+static void FillFrontierExchangeCornerWindowAndItemIcon(s16, u16);
 static void ShowBattleFrontierTutorWindow(u8, u16);
 static void InitScrollableMultichoice(void);
 static void ScrollableMultichoice_ProcessInput(u8);
 static void ScrollableMultichoice_UpdateScrollArrows(u8);
 static void ScrollableMultichoice_MoveCursor(s32, bool8, struct ListMenu *);
-static void HideFrontierExchangeCornerItemIcon(u16, u16);
+static void HideFrontierExchangeCornerItemIcon(s16);
 static void ShowBattleFrontierTutorMoveDescription(u8, u16);
 static void CloseScrollableMultichoice(u8);
 static void ScrollableMultichoice_RemoveScrollArrows(u8);
@@ -2538,7 +2538,7 @@ static void Task_ShowScrollableMultichoice(u8 taskId)
     FillFrontierExchangeCornerWindowAndItemIcon(task->tScrollMultiId, 0);
     ShowBattleFrontierTutorWindow(task->tScrollMultiId, 0);
     sScrollableMultichoice_ListMenuItem = AllocZeroed(task->tNumItems * 8);
-    sFrontierExchangeCorner_NeverRead = 0;
+    //sFrontierExchangeCorner_NeverRead = 0;
     InitScrollableMultichoice();
 
     for (width = 0, i = 0; i < task->tNumItems; i++)
@@ -2609,10 +2609,10 @@ static void ScrollableMultichoice_MoveCursor(s32 itemIndex, bool8 onInit, struct
         ListMenuGetScrollAndRow(task->tListTaskId, &selection, NULL);
         sScrollableMultichoice_ScrollOffset = selection;
         ListMenuGetCurrentItemArrayId(task->tListTaskId, &selection);
-        HideFrontierExchangeCornerItemIcon(task->tScrollMultiId, sFrontierExchangeCorner_NeverRead);
+        HideFrontierExchangeCornerItemIcon(task->tScrollMultiId);
         FillFrontierExchangeCornerWindowAndItemIcon(task->tScrollMultiId, selection);
         ShowBattleFrontierTutorMoveDescription(task->tScrollMultiId, selection);
-        sFrontierExchangeCorner_NeverRead = selection;
+        //sFrontierExchangeCorner_NeverRead = selection;
     }
 }
 
@@ -2658,7 +2658,7 @@ static void CloseScrollableMultichoice(u8 taskId)
     u16 selection;
     struct Task *task = &gTasks[taskId];
     ListMenuGetCurrentItemArrayId(task->tListTaskId, &selection);
-    HideFrontierExchangeCornerItemIcon(task->tScrollMultiId, selection);
+    HideFrontierExchangeCornerItemIcon(task->tScrollMultiId);
     ScrollableMultichoice_RemoveScrollArrows(taskId);
     DestroyListMenuTask(task->tListTaskId, NULL, NULL);
     Free(sScrollableMultichoice_ListMenuItem);
@@ -2960,7 +2960,7 @@ void CloseFrontierExchangeCornerItemIconWindow(void)
     RemoveWindow(sFrontierExchangeCorner_ItemIconWindowId);
 }
 
-static void FillFrontierExchangeCornerWindowAndItemIcon(u16 menu, u16 selection)
+static void FillFrontierExchangeCornerWindowAndItemIcon(s16 menu, u16 selection)
 {
     #include "data/battle_frontier/battle_frontier_exchange_corner.h"
 
@@ -3021,7 +3021,7 @@ static void ShowFrontierExchangeCornerItemIcon(u16 item)
     }
 }
 
-static void HideFrontierExchangeCornerItemIcon(u16 menu, u16 unused)
+static void HideFrontierExchangeCornerItemIcon(s16 menu)
 {
     if (sScrollableMultichoice_ItemSpriteId != MAX_SPRITES)
     {
