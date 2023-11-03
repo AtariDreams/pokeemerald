@@ -140,7 +140,7 @@ bool8 SiiRtcReset(void)
     bool8 result;
     struct SiiRtcInfo rtc;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -168,7 +168,7 @@ bool8 SiiRtcGetStatus(struct SiiRtcInfo *rtc)
 {
     u8 statusData;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -201,7 +201,7 @@ bool8 SiiRtcSetStatus(struct SiiRtcInfo *rtc)
 {
     u8 statusData;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -230,9 +230,9 @@ bool8 SiiRtcSetStatus(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    u32 i;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -248,8 +248,9 @@ bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 
     for (i = 0; i < DATETIME_BUF_LEN; i++)
         DATETIME_BUF(rtc, i) = ReadData();
-
+        
     INFO_BUF(rtc, OFFSET_HOUR) &= 0x7F;
+    asm volatile ("" : : : "memory");
 
     GPIO_PORT_DATA = SCK_HI;
     GPIO_PORT_DATA = SCK_HI;
@@ -261,9 +262,9 @@ bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    u32 i;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -288,9 +289,9 @@ bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    u32 i;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -308,6 +309,7 @@ bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
         TIME_BUF(rtc, i) = ReadData();
 
     INFO_BUF(rtc, OFFSET_HOUR) &= 0x7F;
+    asm volatile ("" : : : "memory");
 
     GPIO_PORT_DATA = SCK_HI;
     GPIO_PORT_DATA = SCK_HI;
@@ -319,9 +321,9 @@ bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    u32 i;
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
@@ -346,13 +348,14 @@ bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 
 bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
 {
-    u8 i;
+    u32 i;
     u8 alarmData[2];
 
-    if (sLocked == TRUE)
+    if (sLocked)
         return FALSE;
 
     sLocked = TRUE;
+    asm volatile ("" : : : "memory");
 
     // Decode BCD.
     alarmData[0] = (rtc->alarmHour & 0xF) + 10 * ((rtc->alarmHour >> 4) & 0xF);
