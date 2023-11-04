@@ -86,10 +86,10 @@ _Noreturn void AgbMain(void)
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
 
     InitGpuRegManager();
-    InitKeys();
     InitIntrHandlers();
+   // EnableVCountIntrAtLine150();
     m4aSoundInit();
-    EnableVCountIntrAtLine150();
+    InitKeys();
     InitRFU();
     RtcInit();
     CheckForFlashMemory();
@@ -124,8 +124,8 @@ _Noreturn void AgbMain(void)
     {
         ReadKeys();
 
-        if (!gSoftResetDisabled
-         && JOY_HELD_RAW(AB_START_SELECT) == AB_START_SELECT)
+        if (__builtin_expect_with_probability(!gSoftResetDisabled, 1, 0.99999999)
+         && __builtin_expect_with_probability(JOY_HELD_RAW(AB_START_SELECT) == AB_START_SELECT, 0, 0.99999999))
         {
             rfu_REQ_stopMode();
             rfu_waitREQComplete();
@@ -208,8 +208,7 @@ u16 GetGeneratedTrainerIdLower(void)
 void EnableVCountIntrAtLine150(void)
 {
     REG_IE_SET(INTR_FLAG_VCOUNT);
-    u16 gpuReg = (REG_DISPSTAT & 0xFF) | (150 << 8) | DISPSTAT_VCOUNT_INTR;
-    SetGpuReg(REG_OFFSET_DISPSTAT, gpuReg);
+    SetGpuReg(REG_OFFSET_DISPSTAT, (150 << 8) | DISPSTAT_VCOUNT_INTR);
 
     //EnableInterrupts(INTR_FLAG_VCOUNT);
 }
@@ -288,7 +287,8 @@ void InitIntrHandlers(void)
 
     INTR_VECTOR = IntrMain_Buffer;
 
-    REG_IME = 1;
+    REG_IE_SETS(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
+    SetGpuReg(REG_OFFSET_DISPSTAT, (150 << 8) | DISPSTAT_VCOUNT_INTR | INTR_FLAG_VBLANK);
 
     EnableInterrupts(INTR_FLAG_VBLANK);
 }
