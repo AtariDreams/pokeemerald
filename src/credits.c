@@ -80,7 +80,7 @@ struct CreditsEntry
     const u8 *text;
 };
 
-static EWRAM_DATA s16 UNUSED sUnkVar = 0; // Never read, only set to 0
+// static EWRAM_DATA s16 UNUSED sUnkVar = 0; // Never read, only set to 0
 static EWRAM_DATA u16 sSavedTaskId = 0;
 EWRAM_DATA bool8 gHasHallOfFameRecords = 0;
 static EWRAM_DATA bool8 sUsedSpeedUp = 0; // Never read
@@ -435,7 +435,7 @@ void CB2_StartCreditsSequence(void)
     bikeTaskId = gTasks[taskId].tTaskId_BikeScene;
     gTasks[bikeTaskId].tState = 40;
 
-    SetGpuReg(REG_OFFSET_BG0VOFS, 0xFFFC);
+    SetGpuReg(REG_OFFSET_BG0VOFS, -4);
 
     pageTaskId = CreateTask(Task_UpdatePage, 0);
 
@@ -467,33 +467,30 @@ static void Task_WaitPaletteFade(u8 taskId)
 
 static void Task_CreditsMain(u8 taskId)
 {
-    u16 mode;
-
     if (gTasks[taskId].tEndCredits)
     {
-        s16 bikeTaskId = gTasks[taskId].tTaskId_BikeScene;
-        gTasks[bikeTaskId].tState = 30;
+        gTasks[gTasks[taskId].tTaskId_BikeScene].tState = 30;
 
         gTasks[taskId].tTheEndDelay = 256;
         gTasks[taskId].func = Task_CreditsTheEnd1;
         return;
     }
 
-    sUnkVar = 0;
-    mode = gTasks[taskId].tNextMode;
+//  sUnkVar = 0;
 
     if (gTasks[taskId].tNextMode == MODE_BIKE_SCENE)
     {
         // Start a bike cutscene
-        gTasks[taskId].tCurrentMode = mode;
+        gTasks[taskId].tCurrentMode = MODE_BIKE_SCENE;
         gTasks[taskId].tNextMode = MODE_NONE;
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
         gTasks[taskId].func = Task_ReadyBikeScene;
+        return;
     }
-    else if (gTasks[taskId].tNextMode == MODE_SHOW_MONS)
+    if (gTasks[taskId].tNextMode == MODE_SHOW_MONS)
     {
         // Start a Pokémon interlude
-        gTasks[taskId].tCurrentMode = mode;
+        gTasks[taskId].tCurrentMode = MODE_SHOW_MONS;
         gTasks[taskId].tNextMode = MODE_NONE;
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
         gTasks[taskId].func = Task_ReadyShowMons;
@@ -540,7 +537,7 @@ static void Task_LoadShowMons(u8 taskId)
     default:
     case 0:
     {
-        u16 i;
+        u32 i;
         u16 *temp;
 
         ResetSpriteData();
@@ -567,7 +564,7 @@ static void Task_LoadShowMons(u8 taskId)
         LoadSpriteSheet(sSpriteSheet_MonBg);
         LoadSpritePalette(sSpritePalette_MonBg);
 
-        gMain.state++;
+        gMain.state = 1;
         break;
     }
     case 1:
@@ -724,22 +721,18 @@ static void ResetGpuAndVram(void)
 
 static void Task_UpdatePage(u8 taskId)
 {
-    int i;
+    u32 i;
 
     switch (gTasks[taskId].tState)
     {
     case 0:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
     default:
         if (!gPaletteFade.active)
         {
             gTasks[taskId].tState = 1;
             gTasks[taskId].tDelay = 72;
             gTasks[gTasks[taskId].tMainTaskId].tPrintedPage = FALSE;
-            sUnkVar = 0;
+            //sUnkVar = 0;
         }
         return;
     case 1:
@@ -759,7 +752,7 @@ static void Task_UpdatePage(u8 taskId)
                 for (i = 0; i < ENTRIES_PER_PAGE; i++)
                     PrintCreditsText(
                         sCreditsEntryPointerTable[gTasks[taskId].tCurrentPage][i]->text,
-                         5 + i * 16,
+                         i * 16 + 5,
                          sCreditsEntryPointerTable[gTasks[taskId].tCurrentPage][i]->isTitle);
                 CopyWindowToVram(0, COPYWIN_GFX);
 
@@ -795,7 +788,7 @@ static void Task_UpdatePage(u8 taskId)
             return;
         }
 
-        if (CheckChangeScene((u8)gTasks[taskId].tCurrentPage, (u8)gTasks[taskId].tMainTaskId))
+        if (CheckChangeScene(gTasks[taskId].tCurrentPage, gTasks[taskId].tMainTaskId))
         {
             gTasks[taskId].tState++;
             return;
@@ -832,7 +825,7 @@ static u8 CheckChangeScene(u8 page, u8 taskId)
 {
     // Starts with bike + ocean + morning (SCENE_OCEAN_MORNING)
 
-    if (page == PAGE_INTERVAL * 1)
+    if (page == PAGE_INTERVAL)
     {
         // Pokémon interlude
         gTasks[taskId].tNextMode = MODE_SHOW_MONS;
@@ -901,12 +894,13 @@ static void Task_ShowMons(u8 taskId)
 
     switch (gTasks[taskId].tState)
     {
+    default:
     case 0:
         break;
     case 1:
         if (sCreditsData->nextImgPos == POS_LEFT && gTasks[gTasks[taskId].tMainTaskId].tPrintedPage == FALSE)
             break;
-        gTasks[taskId].tState++;
+        gTasks[taskId].tState = 2;
         break;
     case 2:
         if (sCreditsData->imgCounter == NUM_MON_SLIDES || gTasks[gTasks[taskId].tMainTaskId].func != Task_CreditsMain)
@@ -1066,7 +1060,7 @@ static void Task_CycleSceneryPalette(u8 taskId)
             bikeTaskId = gTasks[gTasks[taskId].tMainTaskId].tTaskId_BikeScene;
 
             // Floor to multiple of 128
-            if ((gTasks[bikeTaskId].tSinIdx & -128) == 640)
+            if ((gTasks[bikeTaskId].tSinIdx & ~0x7F) == 640)
             {
                 gTasks[bikeTaskId].tState = 1;
                 gTasks[taskId].tTimer = TIMER_STOP;
@@ -1204,7 +1198,7 @@ static bool8 LoadBikeScene(u8 scene, u8 taskId)
         gIntroCredits_MovingSceneryVBase = 34;
         gIntroCredits_MovingSceneryVOffset = 0;
         LoadCreditsSceneGraphics(scene);
-        gMain.state++;
+        gMain.state = 2;
         break;
     case 2:
         if (gSaveBlock2.playerGender == MALE)
@@ -1241,7 +1235,7 @@ static bool8 LoadBikeScene(u8 scene, u8 taskId)
             gSprites[spriteId].callback = SpriteCB_Rival;
             gSprites[spriteId].anims = sAnims_Rival;
         };
-        gMain.state++;
+        gMain.state = 3;
         break;
     case 3:
         SetBikeScene(scene, taskId);
@@ -1288,7 +1282,7 @@ static void ResetCreditsTasks(u8 taskId)
 static void LoadTheEndScreen(u16 tileOffsetLoad, u16 tileOffsetWrite, u16 palOffset)
 {
     u16 baseTile;
-    u16 i;
+    u32 i;
 
     LZ77UnCompVram(sCreditsCopyrightEnd_Gfx, (void *)(VRAM + tileOffsetLoad));
     LoadPalette(gIntroCopyright_Pal, palOffset, sizeof(gIntroCopyright_Pal));
@@ -1296,7 +1290,7 @@ static void LoadTheEndScreen(u16 tileOffsetLoad, u16 tileOffsetWrite, u16 palOff
     baseTile = (palOffset / 16) << 12;
 
     for (i = 0; i < 32 * 32; i++)
-        ((u16 *) (VRAM + tileOffsetWrite))[i] = baseTile + 1;
+        ((vu16 *) (VRAM + tileOffsetWrite))[i] = baseTile + 1;
 }
 
 static u16 GetLetterMapTile(u8 baseTiles)
@@ -1316,23 +1310,23 @@ static u16 GetLetterMapTile(u8 baseTiles)
 
 static void DrawLetterMapTiles(const u8 baseTiles[], u8 baseX, u8 baseY, u16 offset, u16 palette)
 {
-    u8 y, x;
+    u32 y, x;
     const u16 tileOffset = (palette / 16) << 12;
 
     for (y = 0; y < 5; y++)
     {
         for (x = 0; x < 3; x++)
-            ((u16 *) (VRAM + offset + (baseY + y) * 64))[baseX + x] = tileOffset + GetLetterMapTile(baseTiles[y * 3 + x]);
+            ((vu16 *) (VRAM + offset + (baseY + y) * 64))[baseX + x] =  GetLetterMapTile(baseTiles[y * 3 + x]) + tileOffset;
     }
 }
 
 static void DrawTheEnd(u16 offset, u16 palette)
 {
-    u16 pos;
+    u32 pos;
     u16 baseTile = (palette / 16) << 12;
 
     for (pos = 0; pos < 32 * 32; pos++)
-        ((u16 *) (VRAM + offset))[pos] = baseTile + 1;
+        ((vu16 *) (VRAM + offset))[pos] = baseTile + 1;
 
     DrawLetterMapTiles(sTheEnd_LetterMap_T, 3, 7, offset, palette);
     DrawLetterMapTiles(sTheEnd_LetterMap_H, 7, 7, offset, palette);
@@ -1484,12 +1478,8 @@ static void SpriteCB_CreditsMon(struct Sprite *sprite)
     case 3:
         if (sprite->data[3] != 0)
         {
-            int data3;
-
             sprite->data[3]--;
-
-            data3 = 16 - sprite->data[3];
-            SetGpuReg(REG_OFFSET_BLDALPHA, (data3 << 8) + sprite->data[3]);
+            SetGpuReg(REG_OFFSET_BLDALPHA, ((16 - sprite->data[3]) * 0x100) + sprite->data[3]);
         }
         else
         {
@@ -1551,9 +1541,9 @@ static void SpriteCB_CreditsMonBg(struct Sprite *sprite)
 static void DeterminePokemonToShow(void)
 {
     u16 starter = SpeciesToNationalPokedexNum(GetStarterPokemon(VarGet(VAR_STARTER_MON)));
-    u16 page;
+    u32 page;
     u16 dexNum;
-    u16 j;
+    u32 j;
 
     // Go through the Pokedex, and anything that has gotten caught we put into our massive array.
     // This basically packs all of the caught pokemon into the front of the array
