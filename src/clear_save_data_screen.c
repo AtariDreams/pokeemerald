@@ -150,10 +150,10 @@ static bool8 SetupClearSaveDataScreen(void)
         gPlttBufferUnfaded[1] = RGB(5, 10, 14);
         gPlttBufferFaded[1] = RGB(5, 10, 14);
         for (i = 0; i < 0x10; i++)
-            ((u16 *)(VRAM + 0x20))[i] = 0x1111;
+            ((vu16 *)(VRAM + 0x20))[i] = 0x1111;
 
         for (i = 0; i < 0x400; i++)
-            ((u16 *)(BG_SCREEN_ADDR(30)))[i] = 0x0001;
+            ((vu16 *)(BG_SCREEN_ADDR(30)))[i] = 0x0001;
         ResetTasks();
         ResetSpriteData();
         ResetBgsAndClearDma3BusyFlags();
