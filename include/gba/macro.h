@@ -262,6 +262,13 @@
 	REG_IME = Reg_IME_Backup;			\
 	}
 
+#define	REG_IE_SETS( v )							\
+	{											\
+	REG_IME = 0;						\
+	REG_IE |= (v);						\
+	REG_IME = 1;			\
+	}
+
 
 #define	REG_IE_RESET( v )						\
 	{											\
