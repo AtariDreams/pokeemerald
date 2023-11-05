@@ -395,7 +395,7 @@ void ClearTrainerHillVBlankCounter(void)
     gTrainerHillVBlankCounter = NULL;
 }
 
-void __attribute__((noreturn)) DoSoftReset(void)
+_Noreturn void DoSoftReset(void)
 {
     REG_IME = 0;
     m4aSoundVSyncOff();
