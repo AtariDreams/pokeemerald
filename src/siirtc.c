@@ -12,6 +12,10 @@
 #define STATUS_24HOUR 0x40 // 0: 12-hour mode, 1: 24-hour mode
 #define STATUS_POWER  0x80 // power on or power failure occurred
 
+#define	RTC_POWER_FLAG		0x80
+#define	RTC_BKUP_FLAG		0x40
+#define	RTC_FLAGS			0xC0
+
 #define TEST_MODE 0x80 // flag in the "second" byte
 
 #define ALARM_AM 0x00
@@ -28,7 +32,7 @@
 #define OFFSET_ALARM_HOUR   offsetof(struct SiiRtcInfo, alarmHour)
 #define OFFSET_ALARM_MINUTE offsetof(struct SiiRtcInfo, alarmMinute)
 
-#define INFO_BUF(info, index) (*((u8 *)(info) + (index)))
+#define INFO_BUF(info, index) ((u8 *)(info))[index]
 
 #define DATETIME_BUF(info, index) INFO_BUF(info, OFFSET_YEAR + index)
 #define DATETIME_BUF_LEN (OFFSET_SECOND - OFFSET_YEAR + 1)
@@ -39,6 +43,16 @@
 #define WR 0 // command for writing data
 #define RD 1 // command for reading data
 
+#define	RTC_COM_RESET		0x60	//リセット
+#define	RTC_COM_READ_STAT	0x63	//ステータスレジスタ
+#define	RTC_COM_WRITE_STAT	0x62
+#define	RTC_COM_READ_DATE	0x65	//年～秒データレジスタ
+#define	RTC_COM_WRITE_DATE	0x64
+#define	RTC_COM_READ_TIME	0x67	//時～秒データレジスタ
+#define	RTC_COM_WRITE_TIME	0x66
+#define	RTC_COM_READ_ALARM	0x69	//アラームデータレジスタ
+#define	RTC_COM_WRITE_ALARM	0x68
+
 #define CMD(n) (0x60 | (n << 1))
 
 #define CMD_RESET    CMD(0)
@@ -47,9 +61,13 @@
 #define CMD_TIME     CMD(3)
 #define CMD_ALARM    CMD(4)
 
+#define SIO_LO      0
+#define SCK_LO      0
+#define CS_LO       0
 #define SCK_HI      1
 #define SIO_HI      2
 #define CS_HI       4
+
 
 #define DIR_0_IN    0
 #define DIR_0_OUT   1
@@ -57,6 +75,7 @@
 #define DIR_1_OUT   2
 #define DIR_2_IN    0
 #define DIR_2_OUT   4
+#define DIR_3_IN    0
 #define DIR_ALL_IN  (DIR_0_IN | DIR_1_IN | DIR_2_IN)
 #define DIR_ALL_OUT (DIR_0_OUT | DIR_1_OUT | DIR_2_OUT)
 
@@ -64,17 +83,68 @@
 #define GPIO_PORT_DIRECTION   (*(vu16 *)0x80000C6)
 #define GPIO_PORT_READ_ENABLE (*(vu16 *)0x80000C8)
 
-extern vu16 GPIOPortDirection;
+#define	GPIO_P3_IN			0
+#define	GPIO_P2_IN			0
+#define	GPIO_P1_IN			0
+#define	GPIO_P0_IN			0
 
-static u16 sDummy; // unused variable
+#define	GPIO_P3_SHIFT		3
+#define	GPIO_P3_OUT			(1 << GPIO_P3_SHIFT)
+#define	GPIO_P2_SHIFT		2
+#define	GPIO_P2_OUT			(1 << GPIO_P2_SHIFT)
+#define	GPIO_P1_SHIFT		1
+#define	GPIO_P1_OUT			(1 << GPIO_P1_SHIFT)
+#define	GPIO_P0_SHIFT		0
+#define	GPIO_P0_OUT			(1 << GPIO_P0_SHIFT)
+
+#define	GPIO_P3_DATA_SHIFT	3
+#define	GPIO_P3_DATA_MASK	0x0008
+#define	GPIO_P2_DATA_SHIFT	2
+#define	GPIO_P2_DATA_MASK	0x0004
+#define	GPIO_P1_DATA_SHIFT	1
+#define	GPIO_P1_DATA_MASK	0x0002
+#define	GPIO_P0_DATA_SHIFT	0
+#define	GPIO_P0_DATA_MASK	0x0001
+
+#define rtc_write_enable_macro() {						\
+	GPIO_PORT_DIRECTION = GPIO_P3_IN | GPIO_P2_OUT |	\
+						  GPIO_P1_OUT | GPIO_P0_OUT;	\
+}
+
+#define rtc_read_enable_macro() {						\
+	GPIO_PORT_DIRECTION = GPIO_P3_IN | GPIO_P2_OUT |	\
+						  GPIO_P1_IN | GPIO_P0_OUT;	\
+}
+
+static u16 sDummy;
 static bool8 sLocked;
 
-static int WriteCommand(u8 value);
-static int WriteData(u8 value);
-static u8 ReadData();
+#define	rtc_lock_macro() {								\
+	if( sLocked == TRUE) {							\
+		return FALSE;\
+	}													\
+	sLocked = TRUE;\
+}
 
-static void EnableGpioPortRead();
-static void DisableGpioPortRead();
+#define rtc_unlock_macro() {							\
+	sLocked = FALSE;\
+}
+
+#define	rtc_access_header_macro()	{					\
+    GPIO_PORT_DATA = CS_LO | SCK_HI;\
+    GPIO_PORT_DATA = CS_HI | SCK_HI;\
+}
+#define	rtc_access_footer_macro() {						\
+    GPIO_PORT_DATA = CS_LO | SCK_HI;\
+    GPIO_PORT_DATA = CS_LO | SCK_HI;\
+}
+
+static void EnableGpioPortRead(void);
+static void DisableGpioPortRead(void);
+
+static void WriteCommand(u8 value);
+static void WriteData(u8 value);
+static u8 ReadData(void);
 
 static const char AgbLibRtcVersion[] = "SIIRTC_V001";
 
@@ -95,18 +165,18 @@ u8 SiiRtcProbe(void)
     u8 errorCode;
     struct SiiRtcInfo rtc;
 
-    if (!SiiRtcGetStatus(&rtc))
+    if (SiiRtcGetStatus(&rtc) == 0) {
         return 0;
+    }
 
     errorCode = 0;
 
 #ifdef BUGFIX
-    if (!(rtc.status & SIIRTCINFO_24HOUR) || (rtc.status & SIIRTCINFO_POWER))
+    if (!(rtc.status & SIIRTCINFO_24HOUR) || (rtc.status & SIIRTCINFO_POWER)) {
 #else
-    if ((rtc.status & (SIIRTCINFO_POWER | SIIRTCINFO_24HOUR)) == SIIRTCINFO_POWER
-     || (rtc.status & (SIIRTCINFO_POWER | SIIRTCINFO_24HOUR)) == 0)
+    if (((rtc.status & RTC_FLAGS) == SIIRTCINFO_POWER) ||
+        ((rtc.status & RTC_FLAGS) == 0)) {
 #endif
-    {
         // The RTC is in 12-hour mode. Reset it and switch to 24-hour mode.
 
         // Note that the conditions are redundant and equivalent to simply
@@ -114,51 +184,40 @@ u8 SiiRtcProbe(void)
         // was also intended to handle resetting the clock after power failure
         // but a mistake was made.
 
-        if (!SiiRtcReset())
+        if (SiiRtcReset() == 0) {
             return 0;
-
+        }
         errorCode++;
     }
 
     SiiRtcGetTime(&rtc);
-
-    if (rtc.second & TEST_MODE)
-    {
+    if ((rtc.second & TEST_MODE) == TEST_MODE) {
         // The RTC is in test mode. Reset it to leave test mode.
-
-        if (!SiiRtcReset())
-            return (errorCode << 4) & 0xF0;
-
+        if (SiiRtcReset() == 0) {
+            return ((errorCode << 4) & 0xF0);
+        }
         errorCode++;
     }
 
-    return (errorCode << 4) | 1;
+    return ((errorCode << 4) | 0x01);
 }
 
 bool8 SiiRtcReset(void)
 {
     bool8 result;
+
     struct SiiRtcInfo rtc;
 
-    if (sLocked == TRUE)
-        return FALSE;
+	rtc_lock_macro();
+	rtc_access_header_macro();
+	
+	rtc_write_enable_macro();			//GPIO入出力切換
+    WriteCommand(RTC_COM_RESET);
 
-    sLocked = TRUE;
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
-
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_RESET | WR);
-
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
-    rtc.status = SIIRTCINFO_24HOUR;
-
+    rtc.status = RTC_BKUP_FLAG;
     result = SiiRtcSetStatus(&rtc);
 
     return result;
@@ -168,32 +227,19 @@ bool8 SiiRtcGetStatus(struct SiiRtcInfo *rtc)
 {
     u8 statusData;
 
-    if (sLocked == TRUE)
-        return FALSE;
+	rtc_lock_macro();
+	rtc_access_header_macro();
 
-    sLocked = TRUE;
-
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
-
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_STATUS | RD);
-
-    GPIO_PORT_DIRECTION = DIR_0_OUT | DIR_1_IN | DIR_2_OUT;
-
+	rtc_write_enable_macro();			//GPIO入出力切換
+    WriteCommand(RTC_COM_READ_STAT);
+    rtc_read_enable_macro();
     statusData = ReadData();
 
-    rtc->status = (statusData & (STATUS_POWER | STATUS_24HOUR))
-                | ((statusData & STATUS_INTAE) >> 3)
-                | ((statusData & STATUS_INTME) >> 2)
-                | ((statusData & STATUS_INTFE) >> 1);
+    rtc->status = (statusData & RTC_FLAGS) | ((statusData & STATUS_INTAE) >> 3) |
+                   ((statusData & STATUS_INTME) >> 2) | ((statusData & STATUS_INTFE) >> 1);
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
     return TRUE;
 }
 
@@ -201,29 +247,18 @@ bool8 SiiRtcSetStatus(struct SiiRtcInfo *rtc)
 {
     u8 statusData;
 
-    if (sLocked == TRUE)
-        return FALSE;
+	rtc_lock_macro();
+	rtc_access_header_macro();
 
-    sLocked = TRUE;
+    statusData = STATUS_24HOUR | (((rtc->status) & SIIRTCINFO_INTAE) << 3) |
+               (((rtc->status) & SIIRTCINFO_INTME) << 2) | (((rtc->status) & SIIRTCINFO_INTFE) << 1);
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
-
-    statusData = STATUS_24HOUR
-               | ((rtc->status & SIIRTCINFO_INTAE) << 3)
-               | ((rtc->status & SIIRTCINFO_INTME) << 2)
-               | ((rtc->status & SIIRTCINFO_INTFE) << 1);
-
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_STATUS | WR);
-
+    rtc_write_enable_macro();	
+    WriteCommand(RTC_COM_WRITE_STAT);
     WriteData(statusData);
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
 
     return TRUE;
 }
@@ -232,30 +267,20 @@ bool8 SiiRtcGetDateTime(struct SiiRtcInfo *rtc)
 {
     u8 i;
 
-    if (sLocked == TRUE)
-        return FALSE;
+	rtc_lock_macro();
+	rtc_access_header_macro();
 
-    sLocked = TRUE;
+	rtc_write_enable_macro();	
+    WriteCommand(RTC_COM_READ_DATE);
+    rtc_read_enable_macro();
+    for (i = 0; i < 7; i++) {
+        INFO_BUF(rtc, i) = ReadData();
+    }
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
+    INFO_BUF(rtc, 4) &= 0x7F;
 
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_DATETIME | RD);
-
-    GPIO_PORT_DIRECTION = DIR_0_OUT | DIR_1_IN | DIR_2_OUT;
-
-    for (i = 0; i < DATETIME_BUF_LEN; i++)
-        DATETIME_BUF(rtc, i) = ReadData();
-
-    INFO_BUF(rtc, OFFSET_HOUR) &= 0x7F;
-
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
     return TRUE;
 }
 
@@ -263,26 +288,17 @@ bool8 SiiRtcSetDateTime(struct SiiRtcInfo *rtc)
 {
     u8 i;
 
-    if (sLocked == TRUE)
-        return FALSE;
+	rtc_lock_macro();
+	rtc_access_header_macro();
 
-    sLocked = TRUE;
+	rtc_write_enable_macro();	
+    WriteCommand(RTC_COM_WRITE_DATE);
+    for (i = 0; i < 7; i++) {
+        WriteData(INFO_BUF(rtc, i));
+    }
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
-
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_DATETIME | WR);
-
-    for (i = 0; i < DATETIME_BUF_LEN; i++)
-        WriteData(DATETIME_BUF(rtc, i));
-
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
     return TRUE;
 }
 
@@ -290,30 +306,19 @@ bool8 SiiRtcGetTime(struct SiiRtcInfo *rtc)
 {
     u8 i;
 
-    if (sLocked == TRUE)
-        return FALSE;
+	rtc_lock_macro();
+	rtc_access_header_macro();
+	
+	rtc_write_enable_macro();	
+    WriteCommand(RTC_COM_READ_TIME);
+    rtc_read_enable_macro();
+    for (i = 0; i < 3; i++)
+        INFO_BUF(rtc, 4 + i) = ReadData();
 
-    sLocked = TRUE;
+    INFO_BUF(rtc, 4) &= 0x7F;
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
-
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_TIME | RD);
-
-    GPIO_PORT_DIRECTION = DIR_0_OUT | DIR_1_IN | DIR_2_OUT;
-
-    for (i = 0; i < TIME_BUF_LEN; i++)
-        TIME_BUF(rtc, i) = ReadData();
-
-    INFO_BUF(rtc, OFFSET_HOUR) &= 0x7F;
-
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
     return TRUE;
 }
 
@@ -321,143 +326,112 @@ bool8 SiiRtcSetTime(struct SiiRtcInfo *rtc)
 {
     u8 i;
 
-    if (sLocked == TRUE)
-        return FALSE;
+    rtc_lock_macro();
+    rtc_access_header_macro();
 
-    sLocked = TRUE;
+    rtc_write_enable_macro();
+    WriteCommand(RTC_COM_WRITE_TIME);
+    for (i = 0; i < 3; i++) {
+        WriteData(INFO_BUF(rtc, 4 + i));
+    }
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
-
-    GPIO_PORT_DIRECTION = DIR_ALL_OUT;
-
-    WriteCommand(CMD_TIME | WR);
-
-    for (i = 0; i < TIME_BUF_LEN; i++)
-        WriteData(TIME_BUF(rtc, i));
-
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
+    rtc_access_footer_macro();
+    rtc_unlock_macro();
     return TRUE;
 }
 
+static vu16 * const GPIOPortDirection = &GPIO_PORT_DATA;
+
 bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
 {
-    u8 i;
-    u8 alarmData[2];
+    u8 i, alarmData[2];
 
-    if (sLocked == TRUE)
-        return FALSE;
-
-    sLocked = TRUE;
-
+    rtc_lock_macro();
     // Decode BCD.
-    alarmData[0] = (rtc->alarmHour & 0xF) + 10 * ((rtc->alarmHour >> 4) & 0xF);
+    alarmData[0] = (rtc->alarmHour & 0xF) +
+                   (((rtc->alarmHour >> 4) & 0xF) * 10);
 
     // The AM/PM flag must be set correctly even in 24-hour mode.
 
     if (alarmData[0] < 12)
-        alarmData[0] = rtc->alarmHour | ALARM_AM;
+    {   alarmData[0] = rtc->alarmHour;}
     else
-        alarmData[0] = rtc->alarmHour | ALARM_PM;
-
+    {   alarmData[0] = ALARM_PM | rtc->alarmHour;}
     alarmData[1] = rtc->alarmMinute;
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI | CS_HI;
+	rtc_access_header_macro();
 
-    GPIOPortDirection = DIR_ALL_OUT; // Why is this the only instance that uses a symbol?
-
-    WriteCommand(CMD_ALARM | WR);
-
-    for (i = 0; i < 2; i++)
+	rtc_write_enable_macro();	
+    WriteCommand(RTC_COM_WRITE_ALARM);
+    for (i = 0; i < 2; i++) {
         WriteData(alarmData[i]);
+    }
 
-    GPIO_PORT_DATA = SCK_HI;
-    GPIO_PORT_DATA = SCK_HI;
-
-    sLocked = FALSE;
-
+	rtc_access_footer_macro();
+	rtc_unlock_macro();
     return TRUE;
 }
 
-static int WriteCommand(u8 value)
+static void WriteCommand(u8 value)
 {
-    u8 i;
-    u8 temp;
+    u8 i, temp;
 
-    for (i = 0; i < 8; i++)
-    {
-        temp = ((value >> (7 - i)) & 1);
-        GPIO_PORT_DATA = (temp << 1) | CS_HI;
-        GPIO_PORT_DATA = (temp << 1) | CS_HI;
-        GPIO_PORT_DATA = (temp << 1) | CS_HI;
-        GPIO_PORT_DATA = (temp << 1) | SCK_HI | CS_HI;
+    for (i = 0; i < 8; i++) {
+        temp = (value>>(7-i))&1;
+
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_LO;
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_LO;
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_LO;
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_HI;
     }
-
-    // Nothing uses the returned value from this function,
-    // so the undefined behavior is harmless in the vanilla game.
-#ifdef UBFIX
-    return 0;
-#endif
 }
 
-static int WriteData(u8 value)
+static void WriteData(u8 value)
 {
-    u8 i;
-    u8 temp;
+    u8 i, temp;
 
-    for (i = 0; i < 8; i++)
-    {
-        temp = ((value >> i) & 1);
-        GPIO_PORT_DATA = (temp << 1) | CS_HI;
-        GPIO_PORT_DATA = (temp << 1) | CS_HI;
-        GPIO_PORT_DATA = (temp << 1) | CS_HI;
-        GPIO_PORT_DATA = (temp << 1) | SCK_HI | CS_HI;
+    for (i = 0; i < 8; i++) {
+        temp = (value >> i) & 1;
+
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_LO;
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_LO;
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_LO;
+        GPIO_PORT_DATA = CS_HI | (temp << 1) |
+                         SCK_HI;
     }
-
-    // Nothing uses the returned value from this function,
-    // so the undefined behavior is harmless in the vanilla game.
-#ifdef UBFIX
-    return 0;
-#endif
 }
 
-static u8 ReadData()
+static u8 ReadData(void)
 {
-    u8 i;
-    u8 temp;
-    u8 value;
+    u8 i, temp, value = 0;
 
-#ifdef UBFIX
-    value = 0;
-#endif
+    for (i = 0; i < 8; i++) {
+        GPIO_PORT_DATA = CS_HI| SCK_LO;
+        GPIO_PORT_DATA = CS_HI| SCK_LO;
+        GPIO_PORT_DATA = CS_HI| SCK_LO;
+        GPIO_PORT_DATA = CS_HI| SCK_LO;
+        GPIO_PORT_DATA = CS_HI| SCK_LO;
 
-    for (i = 0; i < 8; i++)
-    {
-        GPIO_PORT_DATA = CS_HI;
-        GPIO_PORT_DATA = CS_HI;
-        GPIO_PORT_DATA = CS_HI;
-        GPIO_PORT_DATA = CS_HI;
-        GPIO_PORT_DATA = CS_HI;
-        GPIO_PORT_DATA = SCK_HI | CS_HI;
-
+        GPIO_PORT_DATA = CS_HI| SCK_HI;
         temp = ((GPIO_PORT_DATA & SIO_HI) >> 1);
         value = (value >> 1) | (temp << 7);
     }
-
     return value;
 }
 
-static void EnableGpioPortRead()
+static void EnableGpioPortRead(void)
 {
     GPIO_PORT_READ_ENABLE = TRUE;
 }
 
-static void DisableGpioPortRead()
+static void DisableGpioPortRead(void)
 {
     GPIO_PORT_READ_ENABLE = FALSE;
 }

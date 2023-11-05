@@ -40,10 +40,7 @@ RomHeaderReserved2:
 	.word 0
 
 GPIOPortData::
-	.2byte 0
-
-GPIOPortDirection::
-	.2byte 0
+	.word 0
 
 GPIOPortReadEnable::
 	.2byte 0
