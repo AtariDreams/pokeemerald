@@ -1344,9 +1344,9 @@ static bool32 MatchCall_PrintMessage(u8 taskId)
 
 static bool32 MatchCall_SlideWindowOut(u8 taskId)
 {
-    s16 *data = gTasks[taskId].data;
     if (ChangeBgY(0, 0x600, BG_COORD_SUB) <= -0x2000)
     {
+        s16 *data = gTasks[taskId].data;
         FillBgTilemapBufferRect_Palette0(0, 0, 0, 14, 30, 6);
         DestroyTask(tIconTaskId);
         RemoveWindow(tWindowId);

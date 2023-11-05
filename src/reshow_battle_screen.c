@@ -30,7 +30,7 @@ void ReshowBattleScreenDummy(void)
 
 void ReshowBattleScreenAfterMenu(void)
 {
-    gPaletteFade.bufferTransferDisabled = 1;
+    gPaletteFade.bufferTransferDisabled = TRUE;
     SetHBlankCallback(NULL);
     SetVBlankCallback(NULL);
     SetGpuReg(REG_OFFSET_MOSAIC, 0);
@@ -160,7 +160,7 @@ static void CB2_ReshowBattleScreenAfterMenu(void)
         SetVBlankCallback(VBlankCB_Battle);
         ClearBattleBgCntBaseBlocks();
         BeginHardwarePaletteFade(0xFF, 0, 0x10, 0, 1);
-        gPaletteFade.bufferTransferDisabled = 0;
+        gPaletteFade.bufferTransferDisabled = FALSE;
         SetMainCallback2(BattleMainCB2);
         FillAroundBattleWindows();
         break;
