@@ -1151,11 +1151,7 @@ static void CB2_InitSelectScreen(void)
         break;
     case 1:
         sSelectMenuTilesetBuffer = Alloc(sizeof(gFrontierFactoryMenu_Gfx));
-#ifdef BUGFIX
         sSelectMonPicBgTilesetBuffer = AllocZeroed(sizeof(sMonPicBg_Gfx));
-#else
-        sSelectMonPicBgTilesetBuffer = AllocZeroed(sizeof(gFrontierFactoryMenu_Gfx)); // Incorrect size
-#endif
         sSelectMenuTilemapBuffer = Alloc(BG_SCREEN_SIZE);
         sSelectMonPicBgTilemapBuffer = AllocZeroed(BG_SCREEN_SIZE);
         ChangeBgX(0, 0, BG_COORD_SET);
