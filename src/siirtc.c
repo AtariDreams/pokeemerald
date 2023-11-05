@@ -358,7 +358,7 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     asm volatile ("" : : : "memory");
 
     // Decode BCD.
-    alarmData[0] = (rtc->alarmHour & 0xF) + 10 * ((rtc->alarmHour >> 4) & 0xF);
+    alarmData[0] = (rtc->alarmHour & 0xF) + ((rtc->alarmHour >> 4) & 0xF) * 10;
 
     // The AM/PM flag must be set correctly even in 24-hour mode.
 
@@ -377,9 +377,6 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     GPIO_PORT_DIRECTION = DIR_ALL_OUT;
 
     WriteCommand(CMD_ALARM | WR);
-
-    for (i = 0; i < 2; i++)
-        WriteData(alarmData[i]);
 
     WriteData(alarmData[0]);
     WriteData(alarmData[1]);
@@ -426,11 +423,7 @@ static u8 ReadData()
 {
     u32 i;
     u8 temp;
-    u8 value;
-
-#ifdef UBFIX
-    value = 0;
-#endif
+    u8 value = 0;
 
     for (i = 0; i < 8; i++)
     {
