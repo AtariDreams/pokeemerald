@@ -967,62 +967,56 @@ void CgbSound(void)
         /* 2. calculate envelope volume */
         if (channels->statusFlags & SOUND_CHANNEL_SF_START)
         {
-            if (!(channels->statusFlags & SOUND_CHANNEL_SF_STOP))
+            if ((channels->statusFlags & SOUND_CHANNEL_SF_STOP)) goto oscillator_off;
+            channels->statusFlags = SOUND_CHANNEL_SF_ENV_ATTACK;
+            channels->modify = CGB_CHANNEL_MO_PIT | CGB_CHANNEL_MO_VOL;
+            CgbModVol(channels);
+            switch (ch)
             {
-                channels->statusFlags = SOUND_CHANNEL_SF_ENV_ATTACK;
-                channels->modify = CGB_CHANNEL_MO_PIT | CGB_CHANNEL_MO_VOL;
-                CgbModVol(channels);
-                switch (ch)
+            case 1:
+                *nrx0ptr = channels->sweep;
+                // fallthrough
+            case 2:
+                *nrx1ptr = ((u32)channels->wavePointer << 6) + channels->length;
+                goto init_env_step_time_dir;
+            case 3:
+                if (channels->wavePointer != channels->currentPointer)
                 {
-                case 1:
-                    *nrx0ptr = channels->sweep;
-                    // fallthrough
-                case 2:
-                    *nrx1ptr = ((u32)channels->wavePointer << 6) + channels->length;
-                    goto init_env_step_time_dir;
-                case 3:
-                    if (channels->wavePointer != channels->currentPointer)
-                    {
-                        *nrx0ptr = 0x40;
-                        REG_WAVE_RAM0 = channels->wavePointer[0];
-                        REG_WAVE_RAM1 = channels->wavePointer[1];
-                        REG_WAVE_RAM2 = channels->wavePointer[2];
-                        REG_WAVE_RAM3 = channels->wavePointer[3];
-                        channels->currentPointer = channels->wavePointer;
-                    }
-                    *nrx0ptr = 0;
-                    *nrx1ptr = channels->length;
-                    if (channels->length)
-                        channels->n4 = 0xC0;
-                    else
-                        channels->n4 = 0x80;
-                    break;
-                default:
-                    *nrx1ptr = channels->length;
-                    *nrx3ptr = (u32)channels->wavePointer << 3;
-                init_env_step_time_dir:
-                    envelopeStepTimeAndDir = channels->attack + CGB_NRx2_ENV_DIR_INC;
-                    if (channels->length)
-                        channels->n4 = 0x40;
-                    else
-                        channels->n4 = 0x00;
-                    break;
+                    *nrx0ptr = 0x40;
+                    REG_WAVE_RAM0 = channels->wavePointer[0];
+                    REG_WAVE_RAM1 = channels->wavePointer[1];
+                    REG_WAVE_RAM2 = channels->wavePointer[2];
+                    REG_WAVE_RAM3 = channels->wavePointer[3];
+                    channels->currentPointer = channels->wavePointer;
                 }
-                channels->envelopeCounter = channels->attack;
-                if ((s8)(channels->attack & mask))
-                {
-                    channels->envelopeVolume = 0;
-                    goto envelope_step_complete;
-                }
+                *nrx0ptr = 0;
+                *nrx1ptr = channels->length;
+                if (channels->length)
+                    channels->n4 = 0xC0;
                 else
-                {
-                    // skip attack phase if attack is instantaneous (=0)
-                    goto envelope_decay_start;
-                }
+                    channels->n4 = 0x80;
+                break;
+            default:
+                *nrx1ptr = channels->length;
+                *nrx3ptr = (u32)channels->wavePointer << 3;
+            init_env_step_time_dir:
+                envelopeStepTimeAndDir = channels->attack + CGB_NRx2_ENV_DIR_INC;
+                if (channels->length)
+                    channels->n4 = 0x40;
+                else
+                    channels->n4 = 0x00;
+                break;
+            }
+            channels->envelopeCounter = channels->attack;
+            if ((s8)(channels->attack & mask))
+            {
+                channels->envelopeVolume = 0;
+                goto envelope_step_complete;
             }
             else
             {
-                goto oscillator_off;
+                // skip attack phase if attack is instantaneous (=0)
+                goto envelope_decay_start;
             }
         }
         else if (channels->statusFlags & SOUND_CHANNEL_SF_IEC)
