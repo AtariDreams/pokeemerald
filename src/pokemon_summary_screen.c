@@ -1168,7 +1168,7 @@ static bool8 LoadGraphics(void)
         break;
     case 2:
         ResetPaletteFade();
-        gPaletteFade.bufferTransferDisabled = 1;
+        gPaletteFade.bufferTransferDisabled = TRUE;
         gMain.state++;
         break;
     case 3:
@@ -1268,7 +1268,7 @@ static bool8 LoadGraphics(void)
         break;
     case 24:
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
-        gPaletteFade.bufferTransferDisabled = 0;
+        gPaletteFade.bufferTransferDisabled = FALSE;
         gMain.state++;
         break;
     default:
