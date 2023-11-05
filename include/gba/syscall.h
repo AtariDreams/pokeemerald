@@ -11,7 +11,7 @@
 #define RESET_REGS       0x80
 #define RESET_ALL        0xFF
 
-void SoftReset(u32 resetFlags);
+void __attribute__((noreturn)) SoftReset(u32 resetFlags);
 
 void RegisterRamReset(u32 resetFlags);
 
