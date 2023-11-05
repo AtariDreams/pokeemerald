@@ -384,7 +384,7 @@ bool8 SiiRtcSetAlarm(struct SiiRtcInfo *rtc)
     WriteData(alarmData[0]);
     WriteData(alarmData[1]);
 
-    // GPIO_PORT_DATA = SCK_HI;
+    GPIO_PORT_DATA = SCK_HI;
     GPIO_PORT_DATA = SCK_HI;
 
     sLocked = FALSE;
