@@ -1233,6 +1233,7 @@ static s32 ShowGameDisplay(void)
         CreatePlayerNameWindows(game);
         DrawPlayerNameWindows(game);
         gPaletteFade.bufferTransferDisabled = TRUE;
+        asm volatile ("" : : : "memory");
         break;
     case 7:
         LoadPalette(gBerryCrush_Crusher_Pal, BG_PLTT_ID(0), 12 * PLTT_SIZE_4BPP);
@@ -1283,11 +1284,7 @@ static s32 HideGameDisplay(void)
     case 1:
         if (!IsLinkTaskFinished())
             return 0;
-        // fall through
-        // This will call BeginNormalPaletteFade() twice.
-#ifdef BUGFIX
         break;
-#endif
     case 2:
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
         UpdatePaletteFade();
