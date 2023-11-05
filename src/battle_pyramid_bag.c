@@ -477,6 +477,7 @@ static bool8 LoadPyramidBagMenu(void)
         case 3:
             ResetPaletteFade();
             gPaletteFade.bufferTransferDisabled = TRUE;
+            asm volatile ("" : : : "memory");
             gMain.state++;
             break;
         case 4:
@@ -534,6 +535,7 @@ static bool8 LoadPyramidBagMenu(void)
         case 16:
             BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
             gPaletteFade.bufferTransferDisabled = FALSE;
+            asm volatile ("" : : : "memory");
             gMain.state++;
             break;
         default:
