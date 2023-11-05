@@ -2400,7 +2400,7 @@ static void AttemptPutAwayDecoration_(u8 taskId)
 
 static void ContinuePuttingAwayDecorationsPrompt(u8 taskId)
 {
-    if (JOY_NEW(A_BUTTON) || JOY_NEW(B_BUTTON))
+    if (JOY_NEW(A_BUTTON | B_BUTTON))
         ContinuePuttingAwayDecorations(taskId);
 }
 
