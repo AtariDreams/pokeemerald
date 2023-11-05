@@ -242,28 +242,3 @@ u32 CalcByteArraySum(const u8 *data, u32 length)
         sum += data[i];
     return sum;
 }
-
-void BlendPalette(u16 palOffset, u16 numEntries, u8 coeff, u16 blendColor)
-{
-    union colorWork
-    {
-        struct PlttData data;
-        u16 raw;
-    };
-
-    u32 i, index;
-    for (i = 0; i < numEntries; i++)
-    {
-        index = i + palOffset;
-        union colorWork data1;
-        data1.raw = gPlttBufferUnfaded[index];
-        s8 r = data1.data.r;
-        s8 g = data1.data.g;
-        s8 b = data1.data.b;
-        union colorWork data2;
-        data2.raw = blendColor;
-        gPlttBufferFaded[index] = RGB(r + (((data2.data.r - r) * coeff) >> 4),
-                                      g + (((data2.data.g - g) * coeff) >> 4),
-                                      b + (((data2.data.b - b) * coeff) >> 4));
-    }
-}

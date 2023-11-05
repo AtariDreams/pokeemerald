@@ -49,8 +49,8 @@ struct Window
 };
 
 bool16 InitWindows(const struct WindowTemplate *templates);
-u16 AddWindow(const struct WindowTemplate *template);
-int AddWindowWithoutTileMap(const struct WindowTemplate *template);
+u8 AddWindow(const struct WindowTemplate *template);
+u8 AddWindowWithoutTileMap(const struct WindowTemplate *template);
 void RemoveWindow(u8 windowId);
 void FreeAllWindowBuffers(void);
 void CopyWindowToVram(u8 windowId, u8 mode);
