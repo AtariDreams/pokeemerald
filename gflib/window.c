@@ -19,14 +19,25 @@ static void DummyWindowBgTilemap(void)
 
 }
 
+//---------------------------------------------------------------------------------------------
+/**
+ * System Initialization
+ *
+ * @param data bitmap usage setting header pointer
+ *
+ * @retval TRUE Successful completion
+ * @retval FALSE FAILED
+ *
+ * Specify the frame to be used at the initialization of each process to secure screen area.
+ * * To be done after setting the Tilemap (for various parameters, refer to the tilemap)
+ **/
 bool16 InitWindows(const struct WindowTemplate *templates)
 {
-    int i;
+    u32 i;
     void *bgTilemapBuffer;
     u8 bgLayer;
     u16 attrib;
     u8 *allocatedTilemapBuffer;
-    int allocatedBaseBlock;
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {
@@ -43,7 +54,6 @@ bool16 InitWindows(const struct WindowTemplate *templates)
     }
 
     i = 0;
-    allocatedBaseBlock = 0;
 
     while ((bgLayer = templates[i].bg) != 0xFF)
     {
@@ -88,11 +98,10 @@ bool16 InitWindows(const struct WindowTemplate *templates)
     return TRUE;
 }
 
-u16 AddWindow(const struct WindowTemplate *template)
+u8 AddWindow(const struct WindowTemplate *template)
 {
-    u16 win;
+    u32 win;
     u8 bgLayer;
-    int allocatedBaseBlock;
     u16 attrib;
     u8 *allocatedTilemapBuffer;
 
@@ -102,11 +111,10 @@ u16 AddWindow(const struct WindowTemplate *template)
             break;
     }
 
-    if (win == WINDOWS_MAX)
+    if (__builtin_expect(win == WINDOWS_MAX, 0))
         return WINDOW_NONE;
 
     bgLayer = template->bg;
-    allocatedBaseBlock = 0;
 
     if (gWindowBgTilemapBuffers[bgLayer] == NULL)
     {
@@ -139,13 +147,12 @@ u16 AddWindow(const struct WindowTemplate *template)
     gWindows[win].tileData = allocatedTilemapBuffer;
     gWindows[win].window = *template;
 
-    return win;
+    return (u8)win;
 }
 
-int AddWindowWithoutTileMap(const struct WindowTemplate *template)
+u8 AddWindowWithoutTileMap(const struct WindowTemplate *template)
 {
-    u16 win;
-    u8 bgLayer;
+    u32 win;
 
     for (win = 0; win < WINDOWS_MAX; ++win)
     {
@@ -156,10 +163,9 @@ int AddWindowWithoutTileMap(const struct WindowTemplate *template)
     if (win == WINDOWS_MAX)
         return WINDOW_NONE;
 
-    bgLayer = template->bg;
     gWindows[win].window = *template;
 
-    return win;
+    return (u8)win;
 }
 
 void RemoveWindow(u8 windowId)
@@ -186,7 +192,7 @@ void RemoveWindow(u8 windowId)
 
 void FreeAllWindowBuffers(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {
