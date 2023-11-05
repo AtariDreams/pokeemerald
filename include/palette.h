@@ -41,8 +41,8 @@ struct PaletteFadeControl
     u16 blendColor:15;
     u16 active:1;
     u8 multipurpose2:6;
-    bool8 yDec:1; // whether blend coefficient is decreasing
-    vbool8 bufferTransferDisabled:1;
+    bool8 yDec:2; // whether blend coefficient is decreasing
+    vbool8 bufferTransferDisabled;
     u8 mode:2;
     bool8 shouldResetBlendRegisters:1;
     bool8  hardwareFadeFinishing:1;
