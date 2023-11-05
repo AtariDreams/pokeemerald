@@ -684,99 +684,99 @@ static bool8 SetupBagMenu(void)
     case 0:
         SetVBlankHBlankCallbacksToNull();
         ClearScheduledBgCopiesToVram();
-        gMain.state++;
+        gMain.state = 1;
         break;
     case 1:
         ScanlineEffect_Stop();
-        gMain.state++;
+        gMain.state = 2;
         break;
     case 2:
         FreeAllSpritePalettes();
-        gMain.state++;
+        gMain.state = 3;
         break;
     case 3:
         ResetPaletteFade();
         gPaletteFade.bufferTransferDisabled = TRUE;
-        gMain.state++;
+        gMain.state = 4;
         break;
     case 4:
         ResetSpriteData();
-        gMain.state++;
+        gMain.state = 5;
         break;
     case 5:
-        gMain.state++;
+        gMain.state = 6;
         break;
     case 6:
         if (!MenuHelpers_IsLinkActive())
             ResetTasks();
-        gMain.state++;
+        gMain.state = 7;
         break;
     case 7:
         BagMenu_InitBGs();
         gBagMenu->graphicsLoadState = 0;
-        gMain.state++;
+        gMain.state = 8;
         break;
     case 8:
         if (!LoadBagMenu_Graphics())
             break;
-        gMain.state++;
+        gMain.state = 9;
         break;
     case 9:
         LoadBagMenuTextWindows();
-        gMain.state++;
+        gMain.state = 10;
         break;
     case 10:
         UpdatePocketItemLists();
         InitPocketListPositions();
         InitPocketScrollPositions();
-        gMain.state++;
+        gMain.state = 11;
         break;
     case 11:
         AllocateBagItemListBuffers();
-        gMain.state++;
+        gMain.state = 12;
         break;
     case 12:
         LoadBagItemListBuffers(gBagPosition.pocket);
-        gMain.state++;
+        gMain.state = 13;
         break;
     case 13:
         PrintPocketNames(gPocketNamesStringsTable[gBagPosition.pocket], 0);
         CopyPocketNameToWindow(0);
         DrawPocketIndicatorSquare(gBagPosition.pocket, TRUE);
-        gMain.state++;
+        gMain.state = 14;
         break;
     case 14:
         taskId = CreateBagInputHandlerTask(gBagPosition.location);
         gTasks[taskId].tListTaskId = ListMenuInit(&gMultiuseListMenuTemplate, gBagPosition.scrollPosition[gBagPosition.pocket], gBagPosition.cursorPosition[gBagPosition.pocket]);
-        gTasks[taskId].tNeverRead = 0;
+        //gTasks[taskId].tNeverRead = 0;
         gTasks[taskId].tItemCount = 0;
-        gMain.state++;
+        gMain.state = 15;
         break;
     case 15:
         AddBagVisualSprite(gBagPosition.pocket);
-        gMain.state++;
+        gMain.state = 16;
         break;
     case 16:
         CreateItemMenuSwapLine();
-        gMain.state++;
+        gMain.state = 17;
         break;
     case 17:
         CreatePocketScrollArrowPair();
         CreatePocketSwitchArrowPair();
-        gMain.state++;
+        gMain.state = 18;
         break;
     case 18:
         PrepareTMHMMoveWindow();
-        gMain.state++;
+        gMain.state = 19;
         break;
     case 19:
         BlendPalettes(PALETTES_ALL, 16, 0);
-        gMain.state++;
+        gMain.state = 20;
         break;
     case 20:
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
         gPaletteFade.bufferTransferDisabled = FALSE;
-        gMain.state++;
+        gMain.state = 21;
         break;
     default:
         SetVBlankCallback(VBlankCB_BagMenuRun);
