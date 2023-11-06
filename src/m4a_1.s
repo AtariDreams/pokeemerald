@@ -173,6 +173,8 @@ _081DCF6A:
 	strb r6, [r4, o_SoundChannel_statusFlags]
 	adds r0, r3, 0
 	adds r0, o_WaveData_data
+	ldr r1, [r4, o_SoundChannel_count]
+	adds r0, r1
 	str r0, [r4, o_SoundChannel_currentPointer]
 	ldr r0, [r3, o_WaveData_size]
 	subs r0, r1
@@ -1258,17 +1260,17 @@ ply_note:
 	ldr r3, [r5, o_MusicPlayerTrack_cmdPtr]
 	ldrb r0, [r3]
 	cmp r0, 0x80
-	bhs _081DDB46
+	bcs _081DDB46
 	strb r0, [r5, o_MusicPlayerTrack_key]
 	adds r3, 0x1
 	ldrb r0, [r3]
 	cmp r0, 0x80
-	bhs _081DDB44
+	bcs _081DDB44
 	strb r0, [r5, o_MusicPlayerTrack_velocity]
 	adds r3, 0x1
 	ldrb r0, [r3]
 	cmp r0, 0x80
-	bhs _081DDB44
+	bcs _081DDB44
 	ldrb r1, [r5, o_MusicPlayerTrack_gateTime]
 	adds r1, r0
 	strb r1, [r5, o_MusicPlayerTrack_gateTime]
@@ -1521,7 +1523,7 @@ ply_endtie:
 	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
 	ldrb r3, [r2]
 	cmp r3, 0x80
-	bhs _081DDD16
+	bcs _081DDD16
 	strb r3, [r1, o_MusicPlayerTrack_key]
 	adds r2, 0x1
 	str r2, [r1, o_MusicPlayerTrack_cmdPtr]
