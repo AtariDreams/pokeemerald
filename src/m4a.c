@@ -448,9 +448,8 @@ void SampleFreqSet(u32 freq)
     // cycles per LCD fresh 280896
     REG_TM0CNT_L = 0x10000 - (280896 / soundInfo->pcmSamplesPerVBlank);
 
-    m4aSoundVSyncOn();
-
-    VBlankIntrWait();
+	while ( REG_VCOUNT == 159 ) {};
+	while ( REG_VCOUNT != 159 ) {};
 
     REG_TM0CNT_H = TIMER_ENABLE | TIMER_1CLK;
 }
@@ -465,14 +464,12 @@ void m4aSoundMode(u32 mode)
 
     soundInfo->ident = ID_NUMBER + 1;
     asm volatile ("" : : : "memory");
-    temp = mode & (SOUND_MODE_REVERB_SET | SOUND_MODE_REVERB_VAL);
+    
 
-    if (temp)
+    if (temp = (mode & (SOUND_MODE_REVERB_SET | SOUND_MODE_REVERB_VAL)))
         soundInfo->reverb = temp & SOUND_MODE_REVERB_VAL;
 
-    temp = mode & SOUND_MODE_MAXCHN;
-
-    if (temp)
+	if ( temp=(mode & SOUND_MODE_MAXCHN) )
     {
         struct SoundChannel *chan;
 
