@@ -5686,7 +5686,7 @@ static void VblankCb_TourneyInfoCard(void)
 
 static void HblankCb_TourneyTree(void)
 {
-    u16 vCount = REG_VCOUNT;
+    u8 vCount = REG_VCOUNT;
 
     if (vCount < 42)
     {
