@@ -429,7 +429,10 @@ void SoundInit(struct SoundInfo *soundInfo)
 
 void SampleFreqSet(u32 freq)
 {
-    struct SoundInfo *soundInfo = SOUND_INFO_PTR;
+    struct SoundInfo *soundInfo;
+    m4aSoundVSyncOff();
+    
+    soundInfo = SOUND_INFO_PTR;
 
     freq = (freq >> 16) & 0xF;
     soundInfo->freq = freq;
@@ -442,16 +445,7 @@ void SampleFreqSet(u32 freq)
     // CPU frequency 16.78Mhz
     soundInfo->divFreq = (0x01000000 / soundInfo->pcmFreq + 1) >> 1;
 
-    // Turn off timer 0.
-    REG_TM0CNT_H = 0;
-
-    // cycles per LCD fresh 280896
-    REG_TM0CNT_L = 0x10000 - (280896 / soundInfo->pcmSamplesPerVBlank);
-
-	while ( REG_VCOUNT == 159 ) {};
-	while ( REG_VCOUNT != 159 ) {};
-
-    REG_TM0CNT_H = TIMER_ENABLE | TIMER_1CLK;
+    m4aSoundVSyncOn();
 }
 
 void m4aSoundMode(u32 mode)
