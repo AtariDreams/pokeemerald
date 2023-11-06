@@ -464,13 +464,11 @@ SoundMainRAM_Unk1:
 	strb r0, [r4, o_SoundChannel_statusFlags]
 	ldrb r0, [r4, o_SoundChannel_type]
 	tst r0, TONEDATA_TYPE_REV
-	beq _081DD29C
-	ldr r1, [r6, o_WaveData_size]
-	add r1, r1, r6, lsl 1
-	add r1, r1, 0x20
-	sub r3, r1, r3
-	str r3, [r4, o_SoundChannel_currentPointer]
-_081DD29C:
+	ldrne r1, [r6, o_WaveData_size]
+	addne r1, r1, r6, lsl 1
+	addne r1, r1, 0x20
+	subne r3, r1, r3
+	strne r3, [r4, o_SoundChannel_currentPointer]
 	ldrh r0, [r6, o_WaveData_type]
 	cmp r0, 0
 	beq _081DD2B4
