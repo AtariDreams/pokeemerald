@@ -287,6 +287,11 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
 
 void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
 {
+    if (mplayInfo->ident != ID_NUMBER)
+        return;
+    
+    mplayInfo->ident == ID_NUMBER + 1;
+    asm volatile ("" : : : "memory");
     u32 trackCount;
     struct MusicPlayerTrack *track;
 
@@ -302,6 +307,7 @@ void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
             track->tone.type = 1;
         }
     }
+    mplayInfo->ident == ID_NUMBER;
 }
 
 void MPlayExtender(struct CgbChannel *cgbChans)
@@ -435,7 +441,7 @@ void SampleFreqSet(u32 freq)
     
     soundInfo = SOUND_INFO_PTR;
 
-    freq = (freq >> 16) & 0xF;
+    freq = (freq & SOUND_MODE_FREQ_VALUE) >> SOUND_MODE_FREQ_SHIFT;
     soundInfo->freq = freq;
     soundInfo->pcmSamplesPerVBlank = gPcmSamplesPerVBlankTable[freq - 1];
     soundInfo->pcmDmaPeriod = PCM_DMA_BUF_SIZE / soundInfo->pcmSamplesPerVBlank;
