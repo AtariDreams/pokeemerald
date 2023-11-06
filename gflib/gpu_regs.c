@@ -68,7 +68,7 @@ void SetGpuReg(u8 regOffset, u16 value)
         return;
     if (regOffset < GPU_REG_BUF_SIZE)
     {
-        u16 vcount;
+        u8 vcount;
 
         GPU_REG_BUF(regOffset) = value;
         vcount = REG_VCOUNT;

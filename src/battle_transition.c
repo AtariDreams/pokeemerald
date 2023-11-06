@@ -2684,7 +2684,7 @@ static void VBlankCB_Slice(void)
 
 static void HBlankCB_Slice(void)
 {
-    u16 vcount = REG_VCOUNT;
+    u8 vcount = REG_VCOUNT;
     if (vcount < DISPLAY_HEIGHT)
     {
         u16 var = gScanlineEffectRegBuffers[1][vcount];
