@@ -18,7 +18,7 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    DmaFill32(3, EMPTY_SLOT, sGpuRegWaitingList, GPU_REG_BUF_SIZE);
+    DmaFill32(3, 0xFFFFFFFF, sGpuRegWaitingList, GPU_REG_BUF_SIZE);
 
     // Memory already set to 0
     // for (i = 0; i < GPU_REG_BUF_SIZE; i++)
