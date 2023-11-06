@@ -473,31 +473,29 @@ void m4aSoundMode(u32 mode)
     {
         struct SoundChannel *chan;
 
+        soundInfo->maxChans = temp >> SOUND_MODE_MAXCHN_SHIFT;
+
         for (temp = MAX_DIRECTSOUND_CHANNELS, soundInfo->chans; temp > 0; temp--, chan++)
             chan->statusFlags = 0;
     }
 
-    temp = mode & SOUND_MODE_MASVOL;
+    if ( temp=(mode & SOUND_MODE_MASVOL) )
+	{
+        soundInfo->masterVolume = (u8)(temp >> SOUND_MODE_MASVOL_SHIFT);
+    }
 
-    if (temp)
-        soundInfo->masterVolume = temp >> SOUND_MODE_MASVOL_SHIFT;
-
-    temp = mode & SOUND_MODE_DA_BIT;
-
-    if (temp)
-    {
-        temp = (temp & 0x300000) >> 14;
+	if ( temp=(mode & (SOUND_MODE_DA_BIT_VAL | SOUND_MODE_DA_BIT_SET)) )
+	{
+		temp = (temp & SOUND_MODE_DA_BIT_VAL) >> (SOUND_MODE_DA_BIT_SHIFT - 6);
         REG_SOUNDBIAS_H = (REG_SOUNDBIAS_H & 0x3F) | temp;
     }
 
-    temp = mode & SOUND_MODE_FREQ;
-
-    if (temp)
-    {
+	if ( temp=(mode & SOUND_MODE_FREQ_VALUE) )
+	{
         m4aSoundVSyncOff();
         SampleFreqSet(temp);
     }
-    asm volatile ("" : : : "memory");
+
     soundInfo->ident = ID_NUMBER;
 }
 
