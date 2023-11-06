@@ -531,11 +531,12 @@ void SoundClear(void)
 void m4aSoundVSyncOff(void)
 {
     struct SoundInfo *soundInfo = SOUND_INFO_PTR;
+    u32 ident = soundInfo->ident;
 
-    if (soundInfo->ident != ID_NUMBER && soundInfo->ident != ID_NUMBER + 1)
+    if (ident != ID_NUMBER && ident != ID_NUMBER + 1)
         return;
 
-    soundInfo->ident += 10;
+    soundInfo->ident = ident + 10;
 
     REG_TM0CNT_H = 0;
 
