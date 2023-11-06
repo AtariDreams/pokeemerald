@@ -260,6 +260,7 @@ void m4aMPlayFadeOutTemporarily(struct MusicPlayerInfo *mplayInfo, u16 speed)
     if (mplayInfo->ident == ID_NUMBER)
     {
         mplayInfo->ident = ID_NUMBER + 1;
+         asm volatile ("" : : : "memory");
         mplayInfo->fadeOC = speed;
         mplayInfo->fadeOI = speed;
         mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT) | TEMPORARY_FADE;
@@ -273,6 +274,7 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
     if (mplayInfo->ident == ID_NUMBER)
     {
         mplayInfo->ident = ID_NUMBER + 1;
+            asm volatile ("" : : : "memory");
 
         mplayInfo->fadeOI = speed;
         mplayInfo->fadeOC = speed;
@@ -766,7 +768,7 @@ void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *tr
     {
         vw = ((u32)track->vol * track->volX) >> 5;
 
-        if (track->modT == 1) vw += (s32)track->modM;
+        if (track->modT == 1) vw = (vw * (track->modM + 128)) >> 7;
 
         pw = (s32)(track->pan << 1) + track->panX;
         if (track->modT == 2) pw += (s32)track->modM;
@@ -1339,14 +1341,15 @@ void ClearModM(struct MusicPlayerTrack *track)
 
 void m4aMPlayModDepthSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 modDepth)
 {
-    s32 i;
+    u32 i;
     u32 bit;
     struct MusicPlayerTrack *track;
 
     if (mplayInfo->ident != ID_NUMBER)
         return;
-
+    
     mplayInfo->ident = ID_NUMBER + 1;
+    asm volatile ("" : : : "memory");
 
     bit = 1U;
 
@@ -1378,6 +1381,7 @@ void m4aMPlayLFOSpeedSet(struct MusicPlayerInfo *mplayInfo, u16 trackBits, u8 lf
         return;
 
     mplayInfo->ident = ID_NUMBER + 1;
+    asm volatile ("" : : : "memory");
 
     bit = 1U;
 
