@@ -307,16 +307,6 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     struct SoundInfo *soundInfo;
     u32 ident;
 
-
-    soundInfo = SOUND_INFO_PTR;
-
-    ident = soundInfo->ident;
-
-    if (ident != ID_NUMBER)
-        return;
-
-    soundInfo->ident = ID_NUMBER + 1;
-
     REG_SOUNDCNT_X = SOUND_MASTER_ENABLE
                    | SOUND_4_ON
                    | SOUND_3_ON
@@ -331,6 +321,15 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     REG_NR44 = 0x80;
     REG_NR30 = 0;
     REG_NR50 = 0x77;
+
+    soundInfo = SOUND_INFO_PTR;
+
+    ident = soundInfo->ident;
+
+    if (ident != ID_NUMBER)
+        return;
+
+    soundInfo->ident = ID_NUMBER + 1;
 
     gMPlayJumpTable[8] = ply_memacc;
     gMPlayJumpTable[17] = ply_lfos;
