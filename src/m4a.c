@@ -744,44 +744,35 @@ void FadeOutBody(struct MusicPlayerInfo *mplayInfo)
 
 void TrkVolPitSet(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
+    u32 vw, vc;
+	s32 pw;
     if (track->flags & MPT_FLG_VOLSET)
     {
-        s32 x;
-        s32 y;
+        vw = ((u32)track->vol * track->volX) >> 5;
 
-        x = (u32)(track->vol * track->volX) >> 5;
+        if (track->modT == 1) vw += (s32)track->modM;
 
-        if (track->modT == 1)
-            x = (u32)(x * (track->modM + 128)) >> 7;
+        pw = (s32)(track->pan << 1) + track->panX;
+        if (track->modT == 2) pw += (s32)track->modM;
+        if ( pw < -128 ) pw = -128; else if ( pw > 127 ) pw = 127;
 
-        y = 2 * track->pan + track->panX;
+		if ( (vc=(u8)((vw*(u32)(pw+128))>>8)) > 255 ) vc = 255;
+		track->volMR = vc;
 
-        if (track->modT == 2)
-            y += track->modM;
-
-        if (y < -128)
-            y = -128;
-        else if (y > 127)
-            y = 127;
-
-        track->volMR = (u32)((y + 128) * x) >> 8;
-        track->volML = (u32)((127 - y) * x) >> 8;
+		if ( (vc=(u8)((vw*(u32)(127-pw))>>8)) > 255 ) vc = 255;
+		track->volML = vc;
     }
 
     if (track->flags & MPT_FLG_PITSET)
     {
-        s32 bend = track->bend * track->bendRange;
-        s32 x = (track->tune + bend)
-              * 4
-              + (track->keyShift << 8)
-              + (track->keyShiftX << 8)
-              + track->pitX;
+        pw = (((s32)track->bend * track->bendRange) << 2)
+              + ((s32)track->tune << 2) + ((s32)track->keyShift << 8)
+              + ((s32)track->keyShiftX << 8) + (u32)track->pitX;
 
-        if (track->modT == 0)
-            x += 16 * track->modM;
+        if (track->modT == 0) pw += ((s32)track->modM << 4);
 
-        track->keyM = x >> 8;
-        track->pitM = x;
+        track->keyM = pw >> 8;
+        track->pitM = (u8)pw;
     }
 
     track->flags &= ~(MPT_FLG_PITSET | MPT_FLG_VOLSET);
