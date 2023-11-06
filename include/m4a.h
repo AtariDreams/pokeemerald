@@ -4,7 +4,6 @@
 #include "gba/m4a_internal.h"
 
 void m4aSoundVSync(void);
-void m4aSoundVSyncOn(void);
 
 void m4aSoundInit(void);
 void m4aSoundMain(void);
