@@ -3062,7 +3062,7 @@ static void Task_ShowTourneyInfoCard(u8 taskId)
         SetHBlankCallback(NULL);
         SetVBlankCallback(NULL);
         EnableInterrupts(INTR_FLAG_VBLANK);
-        CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
+        DmaFill32(3, 0, VRAM, VRAM_SIZE);
         ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sInfoCardBgTemplates, ARRAY_COUNT(sInfoCardBgTemplates));
         InitWindows(sInfoCardWindowTemplates);
