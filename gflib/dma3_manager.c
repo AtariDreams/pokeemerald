@@ -20,7 +20,7 @@ struct Dma3Request
 static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 static volatile int sDma3ManagerLocked;
-static u8 sDma3RequestCursor;
+static unsigned int sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
@@ -94,7 +94,7 @@ void ProcessDma3Requests(void)
     }
 }
 
-s16 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
+int RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
 {
     int cursor;
     u32 i;
