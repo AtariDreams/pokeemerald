@@ -186,7 +186,7 @@ static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations
     size = locations[sectorId].size;
 
     // Clear temp save sector
-    memset(gReadWriteSector, 0, SECTOR_SIZE);
+    CpuFastFill(0, gReadWriteSector, sizeof(gReadWriteSector));
 
     // Set footer data
     gReadWriteSector->id = sectorId;
@@ -203,10 +203,8 @@ static u8 HandleWriteSector(u16 sectorId, const struct SaveBlockChunk *locations
 
 static u8 HandleWriteSectorNBytes(u8 sectorId, u8 *data, u16 size)
 {
-    struct SaveSector *sector = &gSaveDataBuffer;
-
     // Clear temp save sector
-    CpuFastCopy(0, gSaveDataBuffer, sizeof(gSaveDataBuffer));
+    CpuFastFill(0, &gSaveDataBuffer, sizeof(gSaveDataBuffer));
 
     gSaveDataBuffer.signature = SECTOR_SIGNATURE;
 
