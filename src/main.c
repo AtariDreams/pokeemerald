@@ -128,32 +128,10 @@ _Noreturn void AgbMain(void)
     // Loop forever
     for (;;)
     {
+        VBlankIntrWait();
         ReadKeys();
-
-        if (Overworld_SendKeysToLinkIsRunning())
-        {
-            gLinkTransferringData = TRUE;
-            UpdateLinkAndCallCallbacks();
-            gLinkTransferringData = FALSE;
-        }
-        else
-        {
-            gLinkTransferringData = FALSE;
-            UpdateLinkAndCallCallbacks();
-
-            if (Overworld_RecvKeysFromLinkIsRunning())
-            {
-                gMain.newKeys = 0;
-                ClearSpriteCopyRequests();
-                gLinkTransferringData = TRUE;
-                UpdateLinkAndCallCallbacks();
-                gLinkTransferringData = FALSE;
-            }
-        }
-
         PlayTimeCounter_Update();
         MapMusicMain();
-        VBlankIntrWait();
     }
 }
 
