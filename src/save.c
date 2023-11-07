@@ -206,8 +206,7 @@ static u8 HandleWriteSectorNBytes(u8 sectorId, u8 *data, u16 size)
     struct SaveSector *sector = &gSaveDataBuffer;
 
     // Clear temp save sector
-
-    memset(&gSaveDataBuffer, 0, SECTOR_SIZE);
+    CpuFastCopy(0, gSaveDataBuffer, sizeof(gSaveDataBuffer));
 
     gSaveDataBuffer.signature = SECTOR_SIGNATURE;
 
