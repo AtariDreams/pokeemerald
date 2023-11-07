@@ -83,12 +83,12 @@ _Noreturn void AgbMain(void)
 {
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
 
-    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
-
     DmaCopy32(3, gIntrTableTemplate, gIntrTable, sizeof(gIntrTableTemplate));
     DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
 
     INTR_VECTOR = IntrMain_Buffer;
+
+    *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
     InitGpuRegManager();
 
     InitIntrHandlers();
@@ -127,7 +127,6 @@ _Noreturn void AgbMain(void)
     // Loop forever
     for (;;)
     {
-        VBlankIntrWait();
         ReadKeys();
         if (__builtin_expect_with_probability(!gSoftResetDisabled, 1, 0.99999999)
          && __builtin_expect_with_probability(JOY_HELD_RAW(AB_START_SELECT) == AB_START_SELECT, 0, 0.99999999))
@@ -137,7 +136,7 @@ _Noreturn void AgbMain(void)
             DoSoftReset();
         }
 
-        if (Overworld_SendKeysToLinkIsRunning() == TRUE)
+        if (Overworld_SendKeysToLinkIsRunning())
         {
             gLinkTransferringData = TRUE;
             UpdateLinkAndCallCallbacks();
@@ -148,7 +147,7 @@ _Noreturn void AgbMain(void)
             gLinkTransferringData = FALSE;
             UpdateLinkAndCallCallbacks();
 
-            if (Overworld_RecvKeysFromLinkIsRunning() == TRUE)
+            if (Overworld_RecvKeysFromLinkIsRunning())
             {
                 gMain.newKeys = 0;
                 ClearSpriteCopyRequests();
@@ -160,7 +159,7 @@ _Noreturn void AgbMain(void)
 
         PlayTimeCounter_Update();
         MapMusicMain();
-
+        VBlankIntrWait();
     }
 }
 

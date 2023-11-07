@@ -2825,20 +2825,10 @@ static void ExpandBattleTextBuffPlaceholders(const u8 *src, u8 *dst)
 void BattlePutTextOnWindow(const u8 *text, u8 windowId)
 {
     const struct BattleWindowText *textInfo = sBattleTextOnWindowsInfo[gBattleScripting.windowsType];
-    bool32 copyToVram;
     struct TextPrinterTemplate printerTemplate;
     u8 speed;
 
-    if (windowId & B_WIN_COPYTOVRAM)
-    {
-        windowId &= ~B_WIN_COPYTOVRAM;
-        copyToVram = FALSE;
-    }
-    else
-    {
-        FillWindowPixelBuffer(windowId, textInfo[windowId].fillValue);
-        copyToVram = TRUE;
-    }
+    FillWindowPixelBuffer(windowId, textInfo[windowId].fillValue);
 
     printerTemplate.currentChar = text;
     printerTemplate.windowId = windowId;
@@ -2890,11 +2880,8 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
 
     AddTextPrinter(&printerTemplate, speed, NULL);
 
-    if (copyToVram)
-    {
-        PutWindowTilemap(windowId);
-        CopyWindowToVram(windowId, COPYWIN_FULL);
-    }
+    PutWindowTilemap(windowId);
+    CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
 void SetPpNumbersPaletteInMoveSelection(void)
