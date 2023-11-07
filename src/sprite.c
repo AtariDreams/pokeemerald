@@ -629,17 +629,10 @@ void LoadOam(void)
 
 void ClearSpriteCopyRequests(void)
 {
-    u32 i;
-
     sShouldProcessSpriteCopyRequests = FALSE;
     sSpriteCopyRequestCount = 0;
 
-    for (i = 0; i < MAX_SPRITE_COPY_REQUESTS; i++)
-    {
-        sSpriteCopyRequests[i].src = 0;
-        sSpriteCopyRequests[i].dest = 0;
-        sSpriteCopyRequests[i].size = 0;
-    }
+    CpuCopy16(0, sSpriteCopyRequests, sizeof(sSpriteCopyRequests));
 }
 
 void ResetOamMatrices(void)
