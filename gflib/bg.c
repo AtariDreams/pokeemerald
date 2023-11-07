@@ -263,7 +263,7 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
 void ResetBgsAndClearDma3BusyFlags(void)
 {
     ResetBgs();
-    CpuFastFill(0, sDmaBusyBitfield, sizeof(sDmaBusyBitfield));
+    DmaFill32(3, 0, sDmaBusyBitfield, sizeof(sDmaBusyBitfield));
 }
 
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates)
