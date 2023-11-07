@@ -766,7 +766,7 @@ void ProcessSpriteCopyRequests(void)
 {
     if (sShouldProcessSpriteCopyRequests)
     {
-        u8 i = 0;
+        u32 i = 0;
 
         while (sSpriteCopyRequestCount > 0)
         {
@@ -821,7 +821,7 @@ void ResetAllSprites(void)
         sSpriteOrder[i] = i;
     }
 
-    ResetSprite(&gSprites[i]);
+    ResetSprite(&gSprites[MAX_SPRITES]);
 }
 
 void FreeSpriteTiles(struct Sprite *sprite)

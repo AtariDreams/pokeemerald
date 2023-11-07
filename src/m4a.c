@@ -932,9 +932,6 @@ void CgbSound(void)
     u8 sp00;
     s32 envelopeStepTimeAndDir;
 
-    // Most comparision operations that cast to s8 perform 'and' by 0xFF.
-    int mask = 0xff;
-
     if (soundInfo->c15)
         soundInfo->c15--;
     else
