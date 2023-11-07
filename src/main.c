@@ -83,8 +83,8 @@ _Noreturn void AgbMain(void)
 {
     REG_WAITCNT = WAITCNT_PREFETCH_ENABLE | WAITCNT_WS0_S_1 | WAITCNT_WS0_N_3;
 
-    DmaCopy32(3, gIntrTableTemplate, gIntrTable, sizeof(gIntrTableTemplate));
-    DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
+    DmaCopy32(1, gIntrTableTemplate, gIntrTable, sizeof(gIntrTableTemplate));
+    DmaCopy32(1, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
 
     INTR_VECTOR = IntrMain_Buffer;
 

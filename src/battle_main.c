@@ -618,7 +618,7 @@ static void CB2_InitBattleInternal(void)
     SetHBlankCallback(NULL);
     SetVBlankCallback(NULL);
 
-    CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
+    DmaFill16(3, 0, VRAM, VRAM_SIZE);
 
     SetGpuReg(REG_OFFSET_MOSAIC, 0);
     SetGpuReg(REG_OFFSET_WIN0H, DISPLAY_WIDTH);
