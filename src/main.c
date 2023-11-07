@@ -75,7 +75,6 @@ static void CallCallbacks(void);
 static void SeedRngWithRtc(void);
 static void ReadKeys(void);
 void InitIntrHandlers(void);
-void EnableVCountIntrAtLine150(void);
 
 #define AB_START_SELECT (A_BUTTON| B_BUTTON | START_BUTTON | SELECT_BUTTON)
 
@@ -202,14 +201,6 @@ void SeedRngAndSetTrainerId(void)
 u16 GetGeneratedTrainerIdLower(void)
 {
     return sTrainerId;
-}
-
-void EnableVCountIntrAtLine150(void)
-{
-    REG_IE_SET(INTR_FLAG_VCOUNT);
-    SetGpuReg(REG_OFFSET_DISPSTAT, (150 << 8) | DISPSTAT_VCOUNT_INTR);
-
-    //EnableInterrupts(INTR_FLAG_VCOUNT);
 }
 
 // FRLG commented this out to remove RTC, however Emerald didn't undo this!
