@@ -5,6 +5,7 @@
 	.syntax unified
 
 	.text
+
 	thumb_func_start SoundMain
 SoundMain:
 	ldr r0, lt_SOUND_INFO_PTR
@@ -464,11 +465,13 @@ SoundMainRAM_Unk1:
 	strb r0, [r4, o_SoundChannel_statusFlags]
 	ldrb r0, [r4, o_SoundChannel_type]
 	tst r0, TONEDATA_TYPE_REV
-	ldrne r1, [r6, o_WaveData_size]
-	addne r1, r1, r6, lsl 1
-	addne r1, r1, 0x20
-	subne r3, r1, r3
-	strne r3, [r4, o_SoundChannel_currentPointer]
+	beq _081DD29C
+	ldr r1, [r6, o_WaveData_size]
+	add r1, r1, r6, lsl 1
+	add r1, r1, 0x20
+	sub r3, r1, r3
+	str r3, [r4, o_SoundChannel_currentPointer]
+_081DD29C:
 	ldrh r0, [r6, o_WaveData_type]
 	cmp r0, 0
 	beq _081DD2B4
@@ -661,8 +664,6 @@ SoundMainRAM_Unk2:
 	cmp r0, r1
 	beq _081DD594
 	str r0, [r4, o_SoundChannel_xpi]
-	@ mov r1, 0x21
-	@ mul r2, r1, r0
 	add r2, r0, r0, lsl 5
 	ldr r1, [r4, o_SoundChannel_wav]
 	add r2, r2, r1
