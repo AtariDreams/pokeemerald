@@ -20,8 +20,7 @@ struct Main
     /*0x020*/ u32 vblankCounter1;
     /*0x024*/ u32 vblankCounter2;
 
-    /*0x028*/ u16 heldKeysRaw;           // held keys without L=A remapping
-    /*0x02A*/ u16 newKeysRaw;            // newly pressed keys without L=A remapping
+              u16 oldKeys;
     /*0x02C*/ u16 heldKeys;              // held keys with L=A remapping
     /*0x02E*/ u16 newKeys;               // newly pressed keys with L=A remapping
     /*0x030*/ u16 newAndRepeatedKeys;    // newly pressed keys plus key repeat

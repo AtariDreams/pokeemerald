@@ -588,8 +588,8 @@ static void ResetGpuRegsAndBgs(void)
     SetGpuReg(REG_OFFSET_WIN1V, 0);
     SetGpuReg(REG_OFFSET_WININ, 0);
     SetGpuReg(REG_OFFSET_WINOUT, 0);
-    CpuFill16(0, (void *)VRAM, VRAM_SIZE);
-    CpuFastFill(0, (void *)OAM, OAM_SIZE);
+    DmaFill16(3, 0, (void *)VRAM, VRAM_SIZE);
+    DmaFill32(3, 0, (void *)OAM, OAM_SIZE);
 }
 
 void ShowFrontierPass(void (*callback)(void))
