@@ -85,7 +85,12 @@ _Noreturn void AgbMain(void)
 
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
 
+    DmaCopy32(3, gIntrTableTemplate, gIntrTable, sizeof(gIntrTableTemplate));
+    DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
+
+    INTR_VECTOR = IntrMain_Buffer;
     InitGpuRegManager();
+
     InitIntrHandlers();
    // EnableVCountIntrAtLine150();
     m4aSoundInit();
@@ -122,8 +127,8 @@ _Noreturn void AgbMain(void)
     // Loop forever
     for (;;)
     {
+        VBlankIntrWait();
         ReadKeys();
-
         if (__builtin_expect_with_probability(!gSoftResetDisabled, 1, 0.99999999)
          && __builtin_expect_with_probability(JOY_HELD_RAW(AB_START_SELECT) == AB_START_SELECT, 0, 0.99999999))
         {
@@ -155,7 +160,7 @@ _Noreturn void AgbMain(void)
 
         PlayTimeCounter_Update();
         MapMusicMain();
-        VBlankIntrWait();
+
     }
 }
 
@@ -277,16 +282,7 @@ static void ReadKeys(void)
 }
 
 void InitIntrHandlers(void)
-{
-    unsigned int i;
-
-    for (i = 0; i < INTR_COUNT; i++)
-        gIntrTable[i] = gIntrTableTemplate[i];
-
-    DmaCopy32(3, IntrMain, IntrMain_Buffer, sizeof(IntrMain_Buffer));
-
-    INTR_VECTOR = IntrMain_Buffer;
-
+{ 
     REG_IE_SETS(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
     SetGpuReg(REG_OFFSET_DISPSTAT, (150 << 8) | DISPSTAT_VCOUNT_INTR | INTR_FLAG_VBLANK);
 
