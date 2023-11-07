@@ -91,8 +91,10 @@ _Noreturn void AgbMain(void)
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
     InitGpuRegManager();
 
-    InitIntrHandlers();
-   // EnableVCountIntrAtLine150();
+    REG_DISPSTAT = (REG_DISPSTAT & 0xFF) | (150 << 8) | DISPSTAT_VCOUNT_INTR | DISPSTAT_VBLANK_INTR;
+
+    REG_IE_SETS(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
+
     m4aSoundInit();
     InitKeys();
     InitRFU();
@@ -128,13 +130,6 @@ _Noreturn void AgbMain(void)
     for (;;)
     {
         ReadKeys();
-        if (__builtin_expect_with_probability(!gSoftResetDisabled, 1, 0.99999999)
-         && __builtin_expect_with_probability(JOY_HELD_RAW(AB_START_SELECT) == AB_START_SELECT, 0, 0.99999999))
-        {
-            rfu_REQ_stopMode();
-            rfu_waitREQComplete();
-            DoSoftReset();
-        }
 
         if (Overworld_SendKeysToLinkIsRunning())
         {
@@ -241,39 +236,43 @@ void InitKeys(void)
 static void ReadKeys(void)
 {
     u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;
-    gMain.newKeysRaw = keyInput & ~gMain.heldKeysRaw;
-    gMain.newKeys = gMain.newKeysRaw;
-    gMain.newAndRepeatedKeys = gMain.newKeysRaw;
 
-    if (keyInput != 0 && gMain.heldKeysRaw == keyInput)
+    if (__builtin_expect_with_probability(!gSoftResetDisabled, 1, 0.99999999) && __builtin_expect_with_probability((keyInput & AB_START_SELECT) == AB_START_SELECT, 0, 0.99999999))
     {
-        gMain.keyRepeatCounter--;
+        rfu_REQ_stopMode();
+        rfu_waitREQComplete();
+        DoSoftReset();
+    }
 
-        if (gMain.keyRepeatCounter == 0)
-        {
-            gMain.newAndRepeatedKeys = keyInput;
-            if ((keyInput & L_BUTTON) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
-                gMain.newAndRepeatedKeys |= A_BUTTON;
-            gMain.keyRepeatCounter = gKeyRepeatContinueDelay;
-        }
+    u16 oldKeys = gMain.oldKeys;
+    u16 newKeys = keyInput & ~oldKeys;
+
+    gMain.oldKeys = keyInput;
+    gMain.heldKeys = oldKeys;
+    gMain.newKeys = newKeys;
+    gMain.newAndRepeatedKeys = newKeys;
+
+    if (keyInput == 0 || keyInput != oldKeys) {
+        gMain.keyRepeatCounter = gKeyRepeatStartDelay;
     }
     else
     {
-        // If there is no input or the input has changed, reset the counter.
-        gMain.keyRepeatCounter = gKeyRepeatStartDelay;
+        if (--gMain.keyRepeatCounter == 0)
+        {
+            gMain.newAndRepeatedKeys = keyInput;
+            gMain.keyRepeatCounter = gKeyRepeatContinueDelay;
+        }
     }
-
-    gMain.heldKeysRaw = keyInput;
-    gMain.heldKeys = keyInput;
 
     // Remap L to A if the L=A option is enabled.
     if (gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
     {
         if (JOY_NEW(L_BUTTON))
             gMain.newKeys |= A_BUTTON;
-
         if (JOY_HELD(L_BUTTON))
             gMain.heldKeys |= A_BUTTON;
+        if (JOY_REPEAT(L_BUTTON))
+            gMain.newAndRepeatedKeys |= A_BUTTON;
     }
 
     if (JOY_NEW(gMain.watchedKeysMask))
