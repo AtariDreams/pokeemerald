@@ -54,6 +54,10 @@ OBJS := librfu_stwi.o librfu_intr.o librfu_rfu.o librfu_sio32id.o
 
 LIB := librfu.a
 
+CFLAGS := -mthumb -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+
+librfu_intr.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast
+
 .PHONY: all clean 
 
 all: $(LIB)
