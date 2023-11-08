@@ -5,7 +5,6 @@
 	.syntax unified
 
 	.text
-
 	thumb_func_start SoundMain
 SoundMain:
 	ldr r0, lt_SOUND_INFO_PTR
