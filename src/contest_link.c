@@ -2,7 +2,7 @@
 #include "contest.h"
 #include "decompress.h"
 #include "event_data.h"
-#include "link.h"
+
 #include "pokemon.h"
 #include "random.h"
 #include "task.h"

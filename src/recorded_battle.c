@@ -7,7 +7,7 @@
 #include "pokemon.h"
 #include "random.h"
 #include "event_data.h"
-#include "link.h"
+
 #include "string_util.h"
 #include "palette.h"
 #include "save.h"

@@ -163,7 +163,6 @@ static void Cmd_trainerslidein(void);
 static void Cmd_playse(void);
 static void Cmd_fanfare(void);
 static void Cmd_playfaintcry(void);
-static void Cmd_endlinkbattle(void);
 static void Cmd_returntoball(void);
 static void Cmd_handlelearnnewmove(void);
 static void Cmd_yesnoboxlearnmove(void);
@@ -415,7 +414,6 @@ void (* const gBattleScriptingCommandsTable[])(void) =
     Cmd_playse,                                  //0x54
     Cmd_fanfare,                                 //0x55
     Cmd_playfaintcry,                            //0x56
-    Cmd_endlinkbattle,                           //0x57
     Cmd_returntoball,                            //0x58
     Cmd_handlelearnnewmove,                      //0x59
     Cmd_yesnoboxlearnmove,                       //0x5A
@@ -5298,15 +5296,6 @@ static void Cmd_playfaintcry(void)
     MarkBattlerForControllerExec(gActiveBattler);
 
     gBattlescriptCurrInstr += 2;
-}
-
-static void Cmd_endlinkbattle(void)
-{
-    gActiveBattler = GetBattlerAtPosition(B_POSITION_PLAYER_LEFT);
-    BtlController_EmitEndLinkBattle(BUFFER_A, gBattleOutcome);
-    MarkBattlerForControllerExec(gActiveBattler);
-
-    gBattlescriptCurrInstr += 1;
 }
 
 static void Cmd_returntoball(void)

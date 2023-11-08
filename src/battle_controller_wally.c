@@ -10,7 +10,7 @@
 #include "data.h"
 #include "item.h"
 #include "item_menu.h"
-#include "link.h"
+
 #include "main.h"
 #include "m4a.h"
 #include "palette.h"
@@ -404,17 +404,7 @@ static void CompleteOnFinishedBattleAnimation(void)
 static void WallyBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = WallyBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
-
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
-    {
-        gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
-    }
+    gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
 }
 
 static void UNUSED CompleteOnFinishedStatusAnimation(void)
@@ -1547,17 +1537,6 @@ static void WallyHandleLinkStandbyMsg(void)
 static void WallyHandleResetActionMoveSelection(void)
 {
     WallyBufferExecCompleted();
-}
-
-static void WallyHandleEndLinkBattle(void)
-{
-    gBattleOutcome = gBattleBufferA[gActiveBattler][1];
-    FadeOutMapMusic(5);
-    BeginFastPaletteFade(3);
-    WallyBufferExecCompleted();
-
-    if (!(gBattleTypeFlags & BATTLE_TYPE_IS_MASTER) && gBattleTypeFlags & BATTLE_TYPE_LINK)
-        gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void WallyCmdEnd(void)

@@ -22,7 +22,7 @@
 #include "battle_ai_script_commands.h"
 #include "battle_controllers.h"
 #include "event_data.h"
-#include "link.h"
+
 #include "field_weather.h"
 #include "constants/abilities.h"
 #include "constants/battle_anim.h"
@@ -845,10 +845,7 @@ static void UNUSED MarkAllBattlersForControllerExec(void)
 
 void MarkBattlerForControllerExec(u8 battlerId)
 {
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-        gBattleControllerExecFlags |= gBitTable[battlerId] << (32 - MAX_BATTLERS_COUNT);
-    else
-        gBattleControllerExecFlags |= gBitTable[battlerId];
+    gBattleControllerExecFlags |= gBitTable[battlerId];
 }
 
 void MarkBattlerReceivedLinkData(u8 battlerId)

@@ -24,7 +24,7 @@
 #include "gpu_regs.h"
 #include "heal_location.h"
 #include "io_reg.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "load_save.h"
 #include "main.h"
@@ -1738,9 +1738,6 @@ void CB2_ContinueSavedGame(void)
 
 static void FieldClearVBlankHBlankCallbacks(void)
 {
-    if (UsedPokemonCenterWarp())
-        CloseLink();
-
     if (gWirelessCommType != 0)
     {
         DisableInterrupts(INTR_FLAG_HBLANK);

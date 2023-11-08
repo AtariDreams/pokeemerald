@@ -2,7 +2,7 @@
 #include "battle_records.h"
 #include "bg.h"
 #include "window.h"
-#include "link.h"
+
 #include "battle.h"
 #include "overworld.h"
 #include "text.h"

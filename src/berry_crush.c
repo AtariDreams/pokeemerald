@@ -11,7 +11,7 @@
 #include "international_string_util.h"
 #include "item_icon.h"
 #include "item_menu.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "main.h"
 #include "malloc.h"

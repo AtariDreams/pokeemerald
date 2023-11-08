@@ -2,7 +2,7 @@
 #include "dewford_trend.h"
 #include "easy_chat.h"
 #include "event_data.h"
-#include "link.h"
+
 #include "malloc.h"
 #include "random.h"
 #include "text.h"

@@ -11,7 +11,7 @@
 #include "bg.h"
 #include "data.h"
 #include "item_use.h"
-#include "link.h"
+
 #include "main.h"
 #include "m4a.h"
 #include "palette.h"
@@ -500,14 +500,6 @@ static void CompleteOnFinishedBattleAnimation(void)
 static void RecordedOpponentBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = RecordedOpponentBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
-
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
     {
         gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
     }
@@ -1763,19 +1755,6 @@ static void RecordedOpponentHandleLinkStandbyMsg(void)
 static void RecordedOpponentHandleResetActionMoveSelection(void)
 {
     RecordedOpponentBufferExecCompleted();
-}
-
-static void RecordedOpponentHandleEndLinkBattle(void)
-{
-    if (gBattleBufferA[gActiveBattler][1] == B_OUTCOME_DREW)
-        gBattleOutcome = gBattleBufferA[gActiveBattler][1];
-    else
-        gBattleOutcome = gBattleBufferA[gActiveBattler][1] ^ B_OUTCOME_DREW;
-
-    FadeOutMapMusic(5);
-    BeginFastPaletteFade(3);
-    RecordedOpponentBufferExecCompleted();
-    gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void RecordedOpponentCmdEnd(void)

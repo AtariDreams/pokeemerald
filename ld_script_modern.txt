@@ -70,10 +70,6 @@ SECTIONS {
         src/agb_flash_1m.o(.text);
         src/agb_flash_mx.o(.text);
         src/siirtc.o(.text);
-        src/librfu_stwi.o(.text);
-        src/librfu_intr.o(.text);
-        src/librfu_rfu.o(.text);
-        src/librfu_sio32id.o(.text);
         *libagbsyscall.a:*.o(.text*);
         *libgcc.a:*.o(.text*);
         *libc.a:*.o(.text*);
@@ -104,20 +100,10 @@ SECTIONS {
         src/agb_flash_mx.o(.rodata);
         src/agb_flash_le.o(.rodata);
         src/siirtc.o(.rodata);
-        src/librfu_rfu.o(.rodata);
-        src/librfu_sio32id.o(.rodata);
         *libgcc.a:*.o(.rodata*);
         *libc.a:*.o(.rodata*);
         *libc.a:*.o(.data*);
         src/libisagbprn.o(.rodata);
-    } =0
-
-    multiboot_data :
-    ALIGN(4)
-    {
-        data/multiboot_ereader.o(.rodata);
-        data/multiboot_berry_glitch_fix.o(.rodata);
-        data/multiboot_pokemon_colosseum.o(.rodata);
     } =0
 
     anim_mon_front_pic_data :

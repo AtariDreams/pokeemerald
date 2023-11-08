@@ -8,7 +8,7 @@
 #include "evolution_scene.h"
 #include "evolution_graphics.h"
 #include "gpu_regs.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "m4a.h"
 #include "main.h"

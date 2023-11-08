@@ -1,6 +1,6 @@
 #include "global.h"
 #include "decompress.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "sound.h"
 #include "task.h"

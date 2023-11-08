@@ -612,16 +612,6 @@
       "blockdata_filepath": "data/layouts/PokemonCenter_1F/map.bin"
     },
     {
-      "id": "LAYOUT_POKEMON_CENTER_2F",
-      "name": "PokemonCenter_2F_Layout",
-      "width": 14,
-      "height": 10,
-      "primary_tileset": "gTileset_Building",
-      "secondary_tileset": "gTileset_PokemonCenter",
-      "border_filepath": "data/layouts/PokemonCenter_2F/border.bin",
-      "blockdata_filepath": "data/layouts/PokemonCenter_2F/map.bin"
-    },
-    {
       "id": "LAYOUT_MART",
       "name": "Mart_Layout",
       "width": 11,
@@ -3920,16 +3910,6 @@
       "secondary_tileset": "gTileset_Mauville",
       "border_filepath": "data/layouts/Route111_NoMirageTower/border.bin",
       "blockdata_filepath": "data/layouts/Route111_NoMirageTower/map.bin"
-    },
-    {
-      "id": "LAYOUT_UNION_ROOM",
-      "name": "UnionRoom_Layout",
-      "width": 15,
-      "height": 12,
-      "primary_tileset": "gTileset_Building",
-      "secondary_tileset": "gTileset_UnionRoom",
-      "border_filepath": "data/layouts/UnionRoom/border.bin",
-      "blockdata_filepath": "data/layouts/UnionRoom/map.bin"
     },
     {
       "id": "LAYOUT_SAFARI_ZONE_NORTHEAST",

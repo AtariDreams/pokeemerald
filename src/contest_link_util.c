@@ -2,7 +2,7 @@
 #include "contest.h"
 #include "contest_link.h"
 #include "event_data.h"
-#include "link.h"
+
 #include "random.h"
 #include "task.h"
 

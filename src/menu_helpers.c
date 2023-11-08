@@ -8,7 +8,7 @@
 #include "main.h"
 #include "text.h"
 #include "graphics.h"
-#include "link.h"
+
 #include "string_util.h"
 #include "sound.h"
 #include "mail.h"

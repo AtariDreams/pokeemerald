@@ -7,7 +7,7 @@
 #include "libgcnmultiboot.h"
 #include "malloc.h"
 #include "gpu_regs.h"
-#include "link.h"
+
 #include "multiboot_pokemon_colosseum.h"
 #include "load_save.h"
 #include "save.h"

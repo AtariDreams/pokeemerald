@@ -17,7 +17,7 @@
 #include "fldeff_misc.h"
 #include "international_string_util.h"
 #include "item_menu.h"
-#include "link.h"
+
 #include "list_menu.h"
 #include "main.h"
 #include "map_name_popup.h"

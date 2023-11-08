@@ -11,7 +11,7 @@
 #include "gpu_regs.h"
 #include "graphics.h"
 #include "international_string_util.h"
-#include "link.h"
+
 #include "main.h"
 #include "menu.h"
 #include "list_menu.h"
@@ -36,7 +36,7 @@
 #include "text_window.h"
 #include "title_screen.h"
 #include "window.h"
-#include "mystery_gift_menu.h"
+
 
 /*
  * Main menu state machine
@@ -632,9 +632,6 @@ static void Task_MainMenuCheckSaveFile(u8 taskId)
     SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_EFFECT_DARKEN | BLDCNT_TGT1_BG0);
     SetGpuReg(REG_OFFSET_BLDALPHA, 0);
     SetGpuReg(REG_OFFSET_BLDY, 7);
-
-    if (IsWirelessAdapterConnected())
-        tWirelessAdapterConnected = TRUE;
     switch (gSaveFileStatus)
     {
     case SAVE_STATUS_OK:
@@ -895,7 +892,6 @@ static void Task_HandleMainMenuAPressed(u8 taskId)
     ClearStdWindowAndFrame(5, TRUE);
     ClearStdWindowAndFrame(6, TRUE);
     ClearStdWindowAndFrame(7, TRUE);
-    wirelessAdapterConnected = IsWirelessAdapterConnected();
 
     if (gTasks[taskId].tMenuType == HAS_SAVED_GAME)
     {

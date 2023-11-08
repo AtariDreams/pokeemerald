@@ -17,7 +17,7 @@
 #include "battle_tower.h"
 #include "contest.h"
 #include "item.h"
-#include "link.h"
+
 #include "main.h"
 #include "event_scripts.h"
 #include "shop.h"

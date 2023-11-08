@@ -5,7 +5,7 @@
 #include "battle_controllers.h"
 #include "battle_message.h"
 #include "cable_club.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "party_menu.h"
 #include "recorded_battle.h"
@@ -25,19 +25,6 @@ static void SetBattlePartyIds(void);
 static void Task_HandleSendLinkBuffersData(u8 taskId);
 static void Task_HandleCopyReceivedLinkBuffersData(u8 taskId);
 
-void HandleLinkBattleSetup(void)
-{
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        if (gWirelessCommType)
-            SetWirelessCommType1();
-        if (!gReceivedRemoteLinkPlayers)
-            OpenLink();
-        CreateTask(Task_WaitForLinkPlayerConnection, 0);
-        CreateTasksForSendRecvLinkBuffers();
-    }
-}
-
 void SetUpBattleVarsAndBirchZigzagoon(void)
 {
     u32 i;
@@ -52,7 +39,6 @@ void SetUpBattleVarsAndBirchZigzagoon(void)
         gMoveSelectionCursor[i] = 0;
     }
 
-    HandleLinkBattleSetup();
     gBattleControllerExecFlags = 0;
     ClearBattleAnimationVars();
     ClearBattleMonForms();

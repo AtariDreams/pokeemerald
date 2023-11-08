@@ -9,8 +9,6 @@
 		.align 2
 gSpecials::
 	def_special HealPlayerParty
-	def_special SetCableClubWarp
-	def_special DoCableClubWarp
 	def_special ReturnFromLinkRoom
 	def_special CleanupLinkRoomState
 	def_special ExitLinkRoom
@@ -40,11 +38,9 @@ gSpecials::
 	def_special TryTradeLinkup
 	def_special TryRecordMixLinkup
 	def_special ValidateMixingGameLanguage
-	def_special CloseLink
 	def_special ColosseumPlayerSpotTriggered
 	def_special PlayerEnteredTradeSeat
 	def_special Script_StartWiredTrade
-	def_special CableClubSaveGame
 	def_special TryBerryBlenderLinkup
 	def_special GetLinkPartnerNames
 	def_special SpawnLinkPartnerObjectEvent
@@ -422,17 +418,6 @@ gSpecials::
 	def_special SetMirageTowerVisibility
 	def_special StartPlayerDescendMirageTower
 	def_special BufferTMHMMoveName
-	def_special IsWirelessAdapterConnected
-	def_special TryBecomeLinkLeader
-	def_special TryJoinLinkGroup
-	def_special RunUnionRoom
-	def_special ShowWirelessCommunicationScreen
-	def_special InitUnionRoom
-	def_special BufferUnionRoomPlayerName
-	def_special WonderNews_GetRewardInfo
-	def_special ChooseMonForWirelessMinigame
-	def_special Script_ResetUnionRoomTrade
-	def_special ValidateSavedWonderCard
 	def_special HasAtLeastOneBerry
 	def_special IsPokemonJumpSpeciesInParty
 	def_special ShowPokemonJumpRecords

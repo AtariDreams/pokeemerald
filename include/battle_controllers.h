@@ -194,7 +194,6 @@ enum
 extern struct UnusedControllerStruct gUnusedControllerStruct;
 
 // general functions
-void HandleLinkBattleSetup(void);
 void SetUpBattleVarsAndBirchZigzagoon(void);
 void InitBattleControllers(void);
 void TryReceiveLinkBattleData(void);
@@ -248,7 +247,6 @@ void BtlController_EmitEndLinkBattle(u8 bufferId, u8 battleOutcome);
 void SetControllerToPlayer(void);
 void BattleControllerDummy(void);
 void PlayerHandleGetRawMonData(void);
-void SetBattleEndCallbacks(void);
 void SpriteCB_FreePlayerSpriteLoadMonSprite(struct Sprite *sprite);
 void CB2_SetUpReshowBattleScreenAfterMenu(void);
 void CB2_SetUpReshowBattleScreenAfterMenu2(void);

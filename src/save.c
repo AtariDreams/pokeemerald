@@ -10,7 +10,7 @@
 #include "pokemon_storage_system.h"
 #include "main.h"
 #include "trainer_hill.h"
-#include "link.h"
+
 #include "constants/game_stat.h"
 
 static u16 CalculateChecksum(void *, u16);

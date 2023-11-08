@@ -10,7 +10,7 @@
 #include "bg.h"
 #include "data.h"
 #include "item_use.h"
-#include "link.h"
+
 #include "main.h"
 #include "m4a.h"
 #include "palette.h"
@@ -580,17 +580,7 @@ static void SwitchIn_TryShinyAnim(void)
 static void PlayerPartnerBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = PlayerPartnerBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
-
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
-    {
-        gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
-    }
+    gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
 }
 
 static void CompleteOnFinishedStatusAnimation(void)
@@ -1914,15 +1904,6 @@ static void PlayerPartnerHandleLinkStandbyMsg(void)
 static void PlayerPartnerHandleResetActionMoveSelection(void)
 {
     PlayerPartnerBufferExecCompleted();
-}
-
-static void PlayerPartnerHandleEndLinkBattle(void)
-{
-    gBattleOutcome = gBattleBufferA[gActiveBattler][1];
-    FadeOutMapMusic(5);
-    BeginFastPaletteFade(3);
-    PlayerPartnerBufferExecCompleted();
-    gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void PlayerPartnerCmdEnd(void)

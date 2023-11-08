@@ -9,7 +9,7 @@
 #include "load_save.h"
 #include "pokemon.h"
 #include "cable_club.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "tv.h"
 #include "battle_tower.h"

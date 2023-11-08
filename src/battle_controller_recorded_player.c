@@ -8,7 +8,7 @@
 #include "bg.h"
 #include "data.h"
 #include "item_use.h"
-#include "link.h"
+
 #include "main.h"
 #include "m4a.h"
 #include "palette.h"
@@ -80,7 +80,6 @@ static void RecordedPlayerHandleSpriteInvisibility(void);
 static void RecordedPlayerHandleBattleAnimation(void);
 static void RecordedPlayerHandleLinkStandbyMsg(void);
 static void RecordedPlayerHandleResetActionMoveSelection(void);
-static void RecordedPlayerHandleEndLinkBattle(void);
 static void RecordedPlayerCmdEnd(void);
 
 static void RecordedPlayerBufferRunCommand(void);
@@ -151,7 +150,6 @@ static void (*const sRecordedPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(void) 
     [CONTROLLER_BATTLEANIMATION]          = RecordedPlayerHandleBattleAnimation,
     [CONTROLLER_LINKSTANDBYMSG]           = RecordedPlayerHandleLinkStandbyMsg,
     [CONTROLLER_RESETACTIONMOVESELECTION] = RecordedPlayerHandleResetActionMoveSelection,
-    [CONTROLLER_ENDLINKBATTLE]            = RecordedPlayerHandleEndLinkBattle,
     [CONTROLLER_TERMINATOR_NOP]           = RecordedPlayerCmdEnd
 };
 
@@ -308,16 +306,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     {
         if (!gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored)
         {
-            if ((gBattleTypeFlags & BATTLE_TYPE_LINK) && (gBattleTypeFlags & BATTLE_TYPE_MULTI))
-            {
-                if (GetBattlerPosition(gActiveBattler) == B_POSITION_PLAYER_LEFT)
-                    m4aMPlayContinue(&gMPlayInfo_BGM);
-            }
-            else
-            {
-                m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
-            }
-
+            m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
         }
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored = TRUE;
         bgmRestored = TRUE;
@@ -1186,17 +1175,7 @@ static void RecordedPlayerHandleDrawTrainerPic(void)
     s16 xPos, yPos;
     u32 trainerPicId;
 
-    if (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK)
-    {
-        if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
-            trainerPicId = GetActiveBattlerLinkPlayerGender();
-        else
-            trainerPicId = gLinkPlayers[gRecordedBattleMultiplayerId].gender;
-    }
-    else
-    {
-        trainerPicId = gLinkPlayers[0].gender;
-    }
+    trainerPicId = gSaveBlock2.gender;
 
     if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
     {
@@ -1668,10 +1647,7 @@ static void RecordedPlayerHandleIntroTrainerBallThrow(void)
     StartSpriteAnim(&gSprites[gBattlerSpriteIds[gActiveBattler]], 1);
 
     paletteNum = AllocSpritePalette(0xD6F9);
-    if (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK)
-        trainerPicId = gLinkPlayers[GetBattlerMultiplayerId(gActiveBattler)].gender;
-    else
-        trainerPicId = gSaveBlock2.playerGender;
+    trainerPicId = gSaveBlock2.playerGender;
 
     LoadCompressedPalette(gTrainerBackPicPaletteTable[trainerPicId].data, OBJ_PLTT_ID(paletteNum), PLTT_SIZE_4BPP);
 
@@ -1791,15 +1767,6 @@ static void RecordedPlayerHandleLinkStandbyMsg(void)
 static void RecordedPlayerHandleResetActionMoveSelection(void)
 {
     RecordedPlayerBufferExecCompleted();
-}
-
-static void RecordedPlayerHandleEndLinkBattle(void)
-{
-    gBattleOutcome = gBattleBufferA[gActiveBattler][1];
-    FadeOutMapMusic(5);
-    BeginFastPaletteFade(3);
-    RecordedPlayerBufferExecCompleted();
-    gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void RecordedPlayerCmdEnd(void)

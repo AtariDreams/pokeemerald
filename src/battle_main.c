@@ -23,7 +23,7 @@
 #include "gpu_regs.h"
 #include "international_string_util.h"
 #include "item.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "load_save.h"
 #include "main.h"
@@ -596,7 +596,6 @@ void CB2_InitBattle(void)
         }
         else if (!(gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER))
         {
-            HandleLinkBattleSetup();
             SetMainCallback2(CB2_PreInitMultiBattle);
         }
         else

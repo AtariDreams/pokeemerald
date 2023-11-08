@@ -5,7 +5,7 @@
 #include "main.h"
 #include "window.h"
 #include "malloc.h"
-#include "link.h"
+
 #include "bg.h"
 #include "sound.h"
 #include "frontier_pass.h"
@@ -421,11 +421,6 @@ static void Task_TrainerCard(u8 taskId)
         break;
     // Fade in
     case 7:
-        if (gWirelessCommType == 1 && gReceivedRemoteLinkPlayers == TRUE)
-        {
-            LoadWirelessStatusIndicatorSpriteGfx();
-            CreateWirelessStatusIndicatorSprite(DISPLAY_WIDTH - 10, DISPLAY_HEIGHT - 10);
-        }
         BlendPalettes(PALETTES_ALL, 16, sData->blendColor);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, sData->blendColor);
         SetVBlankCallback(VblankCb_TrainerCard);
@@ -444,7 +439,7 @@ static void Task_TrainerCard(u8 taskId)
         break;
     case STATE_HANDLE_INPUT_FRONT:
         // Blink the : in play time
-        if (!gReceivedRemoteLinkPlayers && sData->timeColonNeedDraw)
+        if (sData->timeColonNeedDraw)
         {
             PrintTimeOnCard();
             DrawTrainerCardWindow(WIN_CARD_TEXT);
@@ -458,20 +453,13 @@ static void Task_TrainerCard(u8 taskId)
         }
         else if (JOY_NEW(B_BUTTON))
         {
-            if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
-            {
-                sData->mainState = STATE_WAIT_LINK_PARTNER;
-                return;
-            }
-            else
-            {
-                BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, sData->blendColor);
-                sData->mainState = STATE_CLOSE_CARD;
-            }
+
+            BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, sData->blendColor);
+            sData->mainState = STATE_CLOSE_CARD;
         }
         break;
     case STATE_WAIT_FLIP_TO_BACK:
-        if (IsCardFlipTaskActive() && Overworld_IsRecvQueueAtMax() != TRUE)
+        if (IsCardFlipTaskActive())
         {
             PlaySE(SE_RG_CARD_OPEN);
             sData->mainState = STATE_HANDLE_INPUT_BACK;
@@ -480,47 +468,12 @@ static void Task_TrainerCard(u8 taskId)
     case STATE_HANDLE_INPUT_BACK:
         if (JOY_NEW(B_BUTTON))
         {
-            if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
-            {
-                sData->mainState = STATE_WAIT_LINK_PARTNER;
-            }
-            else if (gReceivedRemoteLinkPlayers)
-            {
-                BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, sData->blendColor);
-                sData->mainState = STATE_CLOSE_CARD;
-                return;
-            }
-            else
-            {
                 FlipTrainerCard();
                 PlaySE(SE_RG_CARD_FLIP);
                 sData->mainState = STATE_WAIT_FLIP_TO_FRONT;
-            }
             break;
         }
         else if (JOY_NEW(A_BUTTON))
-        {
-           if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
-           {
-               sData->mainState = STATE_WAIT_LINK_PARTNER;
-               return;
-           }
-           else
-           {
-               BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, sData->blendColor);
-               sData->mainState = STATE_CLOSE_CARD;
-           }
-        }
-        break;
-    case STATE_WAIT_LINK_PARTNER:
-        SetCloseLinkCallback();
-        DrawDialogueFrame(WIN_MSG, TRUE);
-        AddTextPrinterParameterized(WIN_MSG, FONT_NORMAL, gText_WaitingTrainerFinishReading, 0, 1, 255, 0);
-        CopyWindowToVram(WIN_MSG, COPYWIN_FULL);
-        sData->mainState = STATE_CLOSE_CARD_LINK;
-        break;
-    case STATE_CLOSE_CARD_LINK:
-        if (!gReceivedRemoteLinkPlayers)
         {
             BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, sData->blendColor);
             sData->mainState = STATE_CLOSE_CARD;
@@ -533,8 +486,6 @@ static void Task_TrainerCard(u8 taskId)
     case STATE_WAIT_FLIP_TO_FRONT:
         if (IsCardFlipTaskActive())
         {
-            if (Overworld_IsRecvQueueAtMax() == TRUE)
-                return;
             PlaySE(SE_RG_CARD_OPEN);
             sData->mainState = STATE_HANDLE_INPUT_FRONT;
         }
@@ -1688,8 +1639,6 @@ static bool8 Task_AnimateCardFlipDown(struct Task *task)
 static bool8 Task_DrawFlippedCardSide(struct Task *task)
 {
     sData->allowDMACopy = FALSE;
-    if (Overworld_IsRecvQueueAtMax() == TRUE)
-        return FALSE;
 
     do
     {

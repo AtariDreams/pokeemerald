@@ -12,7 +12,7 @@
 #include "battle_setup.h"
 #include "roamer.h"
 #include "tv.h"
-#include "link.h"
+
 #include "script.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"

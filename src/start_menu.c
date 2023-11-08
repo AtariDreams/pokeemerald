@@ -18,7 +18,7 @@
 #include "gpu_regs.h"
 #include "international_string_util.h"
 #include "item_menu.h"
-#include "link.h"
+
 #include "load_save.h"
 #include "main.h"
 #include "menu.h"

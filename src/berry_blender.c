@@ -15,7 +15,7 @@
 #include "text_window.h"
 #include "event_data.h"
 #include "main.h"
-#include "link.h"
+
 #include "link_rfu.h"
 #include "item_menu_icons.h"
 #include "berry.h"

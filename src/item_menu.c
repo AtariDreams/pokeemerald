@@ -22,7 +22,7 @@
 #include "item_use.h"
 #include "lilycove_lady.h"
 #include "list_menu.h"
-#include "link.h"
+
 #include "mail.h"
 #include "main.h"
 #include "malloc.h"

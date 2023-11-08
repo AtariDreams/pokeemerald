@@ -545,24 +545,14 @@ BerryBlender_Movement_BlendLeaderWalkInPlace:
 
 BerryBlender_EventScript_BerryBlenderLink::
 	lockall
-	specialvar VAR_RESULT, PlayerHasBerries
-	goto_if_eq VAR_RESULT, FALSE, BerryBlender_EventScript_LinkBlenderNoBerries
-	checkitem ITEM_POKEBLOCK_CASE
-	goto_if_eq VAR_RESULT, FALSE, BerryBlender_EventScript_LinkBlenderNoCase
-	specialvar VAR_RESULT, GetFirstFreePokeblockSlot
-	goto_if_ne VAR_RESULT, 65535, BerryBlender_EventScript_LinkBlenderSaveGame
-	goto_if_eq VAR_RESULT, 65535, BerryBlender_EventScript_LinkBlenderCaseFull
 	end
 
 BerryBlender_EventScript_LinkBlenderSaveGame:
-	msgbox BerryBlender_Text_SaveGameBeforeBerryBlenderLink, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, BerryBlender_EventScript_TryDoLinkBlender
-	goto_if_eq VAR_RESULT, NO, BerryBlender_EventScript_CancelLinkBlender
+	msgbox BerryBlender_Text_NoBerriesLink, MSGBOX_DEFAULT
 	end
 
 BerryBlender_EventScript_LinkBlenderNoBerries:
 	msgbox BerryBlender_Text_NoBerriesLink, MSGBOX_DEFAULT
-	releaseall
 	end
 
 BerryBlender_EventScript_TryDoLinkBlender:
@@ -582,18 +572,12 @@ BerryBlender_EventScript_TryDoLinkBlender:
 	end
 
 BerryBlender_EventScript_TwoPlayerLink:
-	msgbox BerryBlender_Text_Player1Arrived, MSGBOX_DEFAULT
-	goto BerryBlender_EventScript_DoLinkBerryBlending
 	end
 
 BerryBlender_EventScript_ThreePlayerLink:
-	msgbox BerryBlender_Text_Player1And2Arrived, MSGBOX_DEFAULT
-	goto BerryBlender_EventScript_DoLinkBerryBlending
 	end
 
 BerryBlender_EventScript_FourPlayerLink:
-	msgbox BerryBlender_Text_AllPlayersArrived, MSGBOX_DEFAULT
-	goto BerryBlender_EventScript_DoLinkBerryBlending
 	end
 
 BerryBlender_EventScript_DoLinkBerryBlending:

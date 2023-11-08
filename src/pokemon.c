@@ -14,7 +14,7 @@
 #include "evolution_scene.h"
 #include "field_specials.h"
 #include "item.h"
-#include "link.h"
+
 #include "main.h"
 #include "overworld.h"
 #include "m4a.h"
@@ -2671,7 +2671,7 @@ static u16 GetDeoxysStat(struct Pokemon *mon, s32 statId)
     s32 ivVal, evVal;
     u16 statValue = 0;
 
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK_IN_BATTLE || GetMonData(mon, MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS)
+    if (GetMonData(mon, MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS)
         return 0;
 
     ivVal = GetMonData(mon, MON_DATA_HP_IV + statId, NULL);

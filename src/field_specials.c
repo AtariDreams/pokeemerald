@@ -19,7 +19,7 @@
 #include "graphics.h"
 #include "international_string_util.h"
 #include "item_icon.h"
-#include "link.h"
+
 #include "list_menu.h"
 #include "main.h"
 #include "mystery_gift.h"
