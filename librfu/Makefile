@@ -50,10 +50,10 @@ endif
 ASFLAGS := -mcpu=arm7tdmi
 ARFLAGS := rc
 
-ASM_SRCS := m4a.s m4a_1.s m4a_tables.s
-ASM_OBJS := m4a.o m4a_1.o m4a_tables.o
+ASM_SRCS := librfu_stwi.s librfu_intr.s librfu_rfu.s librfu_sio32id.s
+ASM_OBJS := librfu_stwi.o librfu_intr.o librfu_rfu.o librfu_sio32id.o
 
-LIB := libm4a.a
+LIB := librfu.a
 
 .PHONY: all clean 
 
