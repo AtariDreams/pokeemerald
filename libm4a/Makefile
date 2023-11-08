@@ -55,6 +55,7 @@ OBJS := m4a.o m4a_1.o m4a_tables.o
 LIB := libm4a.a
 
 CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder
+
 .PHONY: all clean 
 
 all: $(LIB)
