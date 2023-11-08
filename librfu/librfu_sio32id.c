@@ -1,4 +1,4 @@
-#include "librfu.h"
+#include "../include/librfu.h"
 
 static void Sio32IDIntr(void);
 static void Sio32IDInit(void);

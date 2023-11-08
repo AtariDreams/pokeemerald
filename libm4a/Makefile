@@ -47,14 +47,19 @@ else
   CPP := $(PREFIX)cpp
 endif
 
-ASFLAGS := -mcpu=arm7tdmi
+
+CC := $(PREFIX)gcc
+CPP := $(PREFIX)cpp
+
+
+ASFLAGS := -mcpu=arm7tdmi -I ../include -I ..
 ARFLAGS := rcs
 
 OBJS := m4a.o m4a_1.o m4a_tables.o
 
 LIB := libm4a.a
 
-CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder
+CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder -I ../include -I ..
 
 .PHONY: all clean 
 

@@ -1,5 +1,5 @@
 #include <limits.h>
-#include "librfu.h"
+#include "../include/librfu.h"
 
 // If expanding the length of the player name and wireless link functionality is
 // desired, ensure that the name string is limited in size when it's copied from the

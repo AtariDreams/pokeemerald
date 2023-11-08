@@ -2,6 +2,9 @@
 
 	.syntax unified
 
+	.EXTERN     gIntrTable
+	.EXTERN		gSTWIStatus
+
 	.arm
 
 	.align 2, 0

@@ -1,5 +1,6 @@
 #ifndef GUARD_GBA_SYSCALL_H
 #define GUARD_GBA_SYSCALL_H
+#include "gba/gba.h"
 
 #define RESET_EWRAM      0x01
 #define RESET_IWRAM      0x02
