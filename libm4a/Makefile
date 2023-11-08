@@ -61,7 +61,7 @@ all: $(LIB)
 	@:
 
 clean:
-	rm -f $(LIB) $(OBJS)
+  rm -f $(LIB) $(OBJS)
 
 $(LIB): $(OBJS)
   $(AR) $(ARFLAGS) $@ $^
