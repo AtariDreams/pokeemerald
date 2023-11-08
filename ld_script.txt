@@ -38,7 +38,7 @@ SECTIONS {
         data/*.o(.bss);
 
         /* .bss.code starts at 0x3001AA8 */
-        src/m4a.o(.bss.code);
+        *libm4a.a:m4a.o(.bss.code);
 
         /* COMMON starts at 0x30022A8 */
         INCLUDE "sym_common.ld"
@@ -359,16 +359,11 @@ SECTIONS {
     ALIGN(4)
     {
         src/libgcnmultiboot.o(.text);
-        src/m4a_1.o(.text);
-        src/m4a.o(.text);
+        *libm4a.a:*.o(.text);
         src/agb_flash.o(.text);
         src/agb_flash_1m.o(.text);
         src/agb_flash_mx.o(.text);
         src/siirtc.o(.text);
-        src/librfu_stwi.o(.text);
-        src/librfu_intr.o(.text);
-        src/librfu_rfu.o(.text);
-        src/librfu_sio32id.o(.text);
         src/libisagbprn.o(.text);
         *libagbsyscall.a:ArcTan2.o(.text);
         *libagbsyscall.a:BgAffineSet.o(.text);
@@ -1242,14 +1237,12 @@ SECTIONS {
     lib_rodata :
     SUBALIGN(4)
     {
-        src/m4a.o(.rodata);
+        *libm4a.a:m4a.o(.rodata);
         src/agb_flash.o(.rodata);
         src/agb_flash_1m.o(.rodata);
         src/agb_flash_mx.o(.rodata);
         src/agb_flash_le.o(.rodata);
         src/siirtc.o(.rodata);
-        src/librfu_rfu.o(.rodata);
-        src/librfu_sio32id.o(.rodata);
         *libgcc.a:_divdi3.o(.rodata);
         *libgcc.a:_udivdi3.o(.rodata);
         *libc.a:memcpy.o(.rodata);

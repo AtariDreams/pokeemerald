@@ -71,8 +71,8 @@ gReservedSpritePaletteCount:
 	.space 0x44
 
 	.include "ereader_screen.o"
-	.include "m4a.o"
+	.include "*libm4a.a:m4a.o"
+	.include "*libm4a.a:librfu_stwi.o"
+	.include "*libm4a.a:librfu_rfu.o"
+	.include "*libm4a.a:librfu_sio32id.o"
 	.include "agb_flash.o"
-	.include "librfu_stwi.o"
-	.include "librfu_rfu.o"
-	.include "librfu_sio32id.o"
