@@ -39,9 +39,9 @@ ALIGNED(4) const IntrFunc gIntrTableTemplate[] =
 {
     VCountIntr, // V-count interrupt
     SerialIntr, // Serial interrupt
-    Timer3Intr, // Timer 3 interrupt
     HBlankIntr, // H-blank interrupt
     VBlankIntr, // V-blank interrupt
+    IntrDummy,  // V-count interrupt
     IntrDummy,  // Timer 0 interrupt
     IntrDummy,  // Timer 1 interrupt
     IntrDummy,  // Timer 2 interrupt
@@ -96,7 +96,6 @@ _Noreturn void AgbMain(void)
 
     m4aSoundInit();
     InitKeys();
-    InitRFU();
     RtcInit();
     CheckForFlashMemory();
     // Works because of null initialization
@@ -208,8 +207,6 @@ static void ReadKeys(void)
 
     if (__builtin_expect_with_probability(!gSoftResetDisabled, 1, 0.99999999) && __builtin_expect_with_probability((keyInput & AB_START_SELECT) == AB_START_SELECT, 0, 0.99999999))
     {
-        rfu_REQ_stopMode();
-        rfu_waitREQComplete();
         DoSoftReset();
     }
 
