@@ -48,7 +48,7 @@ else
 endif
 
 ASFLAGS := -mcpu=arm7tdmi
-ARFLAGS := rc
+ARFLAGS := rcs
 
 SYSCALLS := IntrWait \
             RegisterRamReset \

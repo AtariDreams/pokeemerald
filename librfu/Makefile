@@ -48,7 +48,7 @@ else
 endif
 
 ASFLAGS := -mcpu=arm7tdmi
-ARFLAGS := rc
+ARFLAGS := rcs
 
 ASM_SRCS := librfu_stwi.s librfu_intr.s librfu_rfu.s librfu_sio32id.s
 ASM_OBJS := librfu_stwi.o librfu_intr.o librfu_rfu.o librfu_sio32id.o

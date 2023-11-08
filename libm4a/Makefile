@@ -48,7 +48,7 @@ else
 endif
 
 ASFLAGS := -mcpu=arm7tdmi
-ARFLAGS := rc
+ARFLAGS := rcs
 
 ASM_SRCS := m4a.s m4a_1.s m4a_tables.s
 ASM_OBJS := m4a.o m4a_1.o m4a_tables.o
@@ -63,8 +63,8 @@ all: $(LIB)
 clean:
 	rm -f $(LIB) $(ASM_OBJS)
 
-$(LIB): $(ASM_OBJS)
-	$(AR) $(ARFLAGS) $@ $^
-
 $(ASM_OBJS): $(ASM_SRCS)
 	$(AS) $(ASFLAGS) -o $@ $<
+
+$(LIB): $(ASM_OBJS)
+	$(AR) $(ARFLAGS) $@ $^

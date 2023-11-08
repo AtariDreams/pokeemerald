@@ -12,8 +12,8 @@ SECTIONS {
 
         src/*.o(ewram_data);
         gflib/*.o(ewram_data);
-        *libm4a.a:*.o(.ewram_data);
-        *librfu.a:*.o(.ewram_data);
+        *libm4a.a:*.o(ewram_data);
+        *librfu.a:*.o(ewram_data);
 
         . = 0x40000;
     }
@@ -74,8 +74,8 @@ SECTIONS {
         src/agb_flash_1m.o(.text);
         src/agb_flash_mx.o(.text);
         src/siirtc.o(.text);
-        *libm4a.a:*.o(.text);
-        *librfu.a:*.o(.text);
+        *libm4a.a:*.o(.text*);
+        *librfu.a:*.o(.text*);
         *libagbsyscall.a:*.o(.text*);
         *libgcc.a:*.o(.text*);
         *libc.a:*.o(.text*);

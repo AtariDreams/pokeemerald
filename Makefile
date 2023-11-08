@@ -111,7 +111,7 @@ override CFLAGS += -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=a
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
 LIBPATH := -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(PATH_MODERNCC) -mthumb -print-file-name=libc.a))"
-LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libagbsyscall -lagbsyscall -L../../libm4a -lm4a -L../../librfu -lrfu
+LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libm4a -lm4a -L../../librfu -lrfu -L../../libagbsyscall -lagbsyscall
 endif
 
 CPPFLAGS := -iquote include -iquote $(GFLIB_SUBDIR) -Wno-trigraphs -DMODERN=$(MODERN)
