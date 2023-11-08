@@ -64,11 +64,11 @@ clean:
 	rm -f $(LIB) $(OBJS)
 
 $(LIB): $(OBJS)
-    $(AR) $(ARFLAGS) $@ $^
-    ranlib $@
+  $(AR) $(ARFLAGS) $@ $^
+  ranlib $@
 
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+  $(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.s
-	$(AS) $(ASFLAGS) -o $@ $<
+  $(AS) $(ASFLAGS) -o $@ $<
