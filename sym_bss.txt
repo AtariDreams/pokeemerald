@@ -8,6 +8,7 @@
 	.include "src/link.o"
 	.include "src/AgbRfu_LinkManager.o"
 	.include "*libm4a.a:*.o"
+	.include "*librfu.a:*.o"
 	.include "src/union_room.o"
 	.include "src/wireless_communication_status_screen.o"
 	.include "src/union_room_battle.o"
