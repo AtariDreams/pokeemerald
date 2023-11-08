@@ -74,4 +74,4 @@ $(LIB): $(OBJS)
   $(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.s
-	$(AS) $(ASFLAGS) -o $@ $<
+  $(AS) $(ASFLAGS) -o $@ $<
