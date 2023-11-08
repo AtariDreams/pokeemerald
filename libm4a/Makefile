@@ -50,10 +50,10 @@ endif
 ASFLAGS := -mcpu=arm7tdmi
 ARFLAGS := rcs
 
-ASM_SRCS := m4a.s m4a_1.s m4a_tables.s
 ASM_OBJS := m4a.o m4a_1.o m4a_tables.o
 
 LIB := libm4a.a
+
 
 .PHONY: all clean 
 
@@ -63,8 +63,12 @@ all: $(LIB)
 clean:
 	rm -f $(LIB) $(ASM_OBJS)
 
-$(ASM_OBJS): $(ASM_SRCS)
-	$(AS) $(ASFLAGS) -o $@ $<
+$(LIB): $(OBJS)
+    $(AR) $(ARFLAGS) $@ $^
+    ranlib $@
 
-$(LIB): $(ASM_OBJS)
-	$(AR) $(ARFLAGS) $@ $^
+%.o: %.c
+    $(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.s
+	$(AS) $(ASFLAGS) -o $@ $<

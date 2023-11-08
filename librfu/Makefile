@@ -50,8 +50,7 @@ endif
 ASFLAGS := -mcpu=arm7tdmi
 ARFLAGS := rcs
 
-ASM_SRCS := librfu_stwi.s librfu_intr.s librfu_rfu.s librfu_sio32id.s
-ASM_OBJS := librfu_stwi.o librfu_intr.o librfu_rfu.o librfu_sio32id.o
+OBJS := librfu_stwi.o librfu_intr.o librfu_rfu.o librfu_sio32id.o
 
 LIB := librfu.a
 
@@ -61,10 +60,14 @@ all: $(LIB)
 	@:
 
 clean:
-	rm -f $(LIB) $(ASM_OBJS)
+	rm -f $(LIB) $(OBJS)
 
-$(LIB): $(ASM_OBJS)
-	$(AR) $(ARFLAGS) $@ $^
+$(LIB): $(OBJS)
+    $(AR) $(ARFLAGS) $@ $^
+    ranlib $@
 
-$(ASM_OBJS): $(ASM_SRCS)
+%.o: %.c
+    $(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.s
 	$(AS) $(ASFLAGS) -o $@ $<
