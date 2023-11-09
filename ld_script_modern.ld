@@ -72,6 +72,7 @@ SECTIONS {
         src/m4a.o(.text.SoundClear);
         src/m4a.o(.text.m4aSoundVSyncOff);
         src/m4a.o(.text.m4aSoundVSyncOn);
+        src/m4a.o(.text.m4aSoundVSync);
         src/m4a.o(.text.MPlayOpen);
         src/m4a.o(.text.MPlayStart);
         src/m4a.o(.text.m4aMPlayStop);
