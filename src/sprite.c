@@ -624,7 +624,7 @@ void ResetOam(void)
 void LoadOam(void)
 {
     if (!gMain.oamLoadDisabled)
-        CpuFastCopy(gMain.oamBuffer, (void *)OAM, sizeof(gMain.oamBuffer));
+        DmaCopy32(3, gMain.oamBuffer, (void *)OAM, sizeof(gMain.oamBuffer));
 }
 
 void ClearSpriteCopyRequests(void)
@@ -759,13 +759,9 @@ void ProcessSpriteCopyRequests(void)
 {
     if (sShouldProcessSpriteCopyRequests)
     {
-        u32 i = 0;
-
-        while (sSpriteCopyRequestCount > 0)
+        for (u32 i = 0; sSpriteCopyRequestCount > 0; sSpriteCopyRequestCount--, i++)
         {
-            CpuCopy16(sSpriteCopyRequests[i].src, sSpriteCopyRequests[i].dest, sSpriteCopyRequests[i].size);
-            sSpriteCopyRequestCount--;
-            i++;
+            DmaCopy16(3, sSpriteCopyRequests[i].src, sSpriteCopyRequests[i].dest, sSpriteCopyRequests[i].size);
         }
 
         sShouldProcessSpriteCopyRequests = FALSE;
@@ -1420,15 +1416,13 @@ u16 LoadSpriteSheet(const struct SpriteSheet *sheet)
     {
         return 0;
     }
-    else
+
+    if (!AllocSpriteTileRange(sheet->tag, (u16)tileStart, sheet->size / TILE_SIZE_4BPP))
     {
-        if (!AllocSpriteTileRange(sheet->tag, (u16)tileStart, sheet->size / TILE_SIZE_4BPP))
-        {
-            return 0;
-        }
-        CpuCopy16(sheet->data, (u8 *)OBJ_VRAM0 + TILE_SIZE_4BPP * tileStart, sheet->size);
-        return (u16)tileStart;
+        return 0;
     }
+    DmaCopy16(3, sheet->data, (u8 *)OBJ_VRAM0 + TILE_SIZE_4BPP * tileStart, sheet->size);
+    return (u16)tileStart;
 }
 
 void LoadSpriteSheets(const struct SpriteSheet *sheets)
