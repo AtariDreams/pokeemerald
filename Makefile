@@ -23,7 +23,7 @@ OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
 AS := clang --sysroot $(DEVKITARM)/arm-none-eabi -c
 
-LD := $(PREFIX)ld
+LD := clang
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
