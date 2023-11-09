@@ -12,14 +12,6 @@
 	special CallVerdanturfTentFunction
 	.endm
 
-	@ Unused. Set the prize item to be given
-	.macro verdanturftent_setprize unusedArg:req, itemId:req
-	setvar VAR_0x8004, VERDANTURF_TENT_FUNC_SET_PRIZE
-	setvar VAR_0x8005, \unusedArg
-	setvar VAR_0x8006, \itemId
-	special CallVerdanturfTentFunction
-	.endm
-
 	@ Unused. Set the opponent trainer and gfx. SetNextBattleTentOpponent is used through tower_setopponent instead
 	.macro verdanturftent_setopponentgfx
 	setvar VAR_0x8004, VERDANTURF_TENT_FUNC_SET_OPPONENT_GFX
