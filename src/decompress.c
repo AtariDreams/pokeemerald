@@ -5,6 +5,7 @@
 #include "pokemon.h"
 #include "text.h"
 
+EWRAM_DATA ALIGNED(4) u8 gHeap[0x1C000] = {0};
 EWRAM_DATA ALIGNED(4) u8 gDecompressionBuffer[0x4000] = {0};
 
 static void DuplicateDeoxysTiles(void *pointer, s32 species);

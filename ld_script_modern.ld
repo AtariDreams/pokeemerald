@@ -15,30 +15,27 @@ SECTIONS {
     ewram 0x2000000 (NOLOAD) :
     ALIGN(4)
     {
-        gHeap = .;
-
-        . = 0x1C000;
-
-        gDecompressionBuffer = .;
-        . = 0x20000;
-
-        src/*.o(ewram_data);
+        gflib/malloc.o(ewram_data);
+        src/decompress.o(ewram_data);
         gflib/*.o(ewram_data);
+        src/*.o(ewram_data);
     } > EWRAM
 
     iwram 0x3000000 (NOLOAD) :
     ALIGN(4)
     {
-        src/*.o(.bss);
+        /* .bss starts at 0x3000000 */
         gflib/*.o(.bss);
+        src/*.o(.bss);
         data/*.o(.bss);
         *libc.a:*.o(.bss*);
         *libnosys.a:*.o(.bss*);
 
         src/m4a.o(.bss.code);
 
-        src/*.o(COMMON);
+        /* COMMON starts at 0x30022A8 */
         gflib/*.o(COMMON);
+        src/*.o(COMMON);
         *libc.a:*.o(COMMON);
         *libnosys.a:*.o(COMMON);
     } > IWRAM

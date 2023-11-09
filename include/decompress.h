@@ -5,8 +5,6 @@
 
 extern u8 ALIGNED(4) gDecompressionBuffer[0x4000];
 
-
-
 u16 LoadCompressedSpriteSheet(const struct SpriteSheet *src);
 void LoadCompressedSpriteSheetOverrideBuffer(const struct SpriteSheet *src, void *buffer);
 bool8 LoadCompressedSpriteSheetUsingHeap(const struct SpriteSheet *src);
