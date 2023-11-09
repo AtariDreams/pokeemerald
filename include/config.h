@@ -46,10 +46,13 @@
 
 // Uncomment to fix some identified minor bugs
 #define BUGFIX
+#ifndef MODERN
+#define MODERN
+#endif
 
 // Various undefined behavior bugs may or may not prevent compilation with
 // newer compilers. So always fix them when using a modern compiler.
-#if MODERN || defined(BUGFIX)
+#if 1
 #ifndef UBFIX
 #define UBFIX
 #endif
