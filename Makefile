@@ -410,7 +410,11 @@ ifeq ($(NODEP),1)
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
 	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
 else
-$(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
+define DATA_DEP
+$1: $2 $$(shell $(SCANINC) -I include -I "" $2)
+	$$(PREPROC) $$< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $$@
+endef
+$(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
 endif
 

@@ -1,7 +1,7 @@
 STD_REVERB = 50
 
 $(MID_BUILDDIR)/%.o: $(MID_SUBDIR)/%.s
-	$(AS) $(ASFLAGS) -I sound -o $@ $<
+	arm-none-eabi-as -mcpu=arm7tdmi -I sound -o $@ $<
 
 $(MID_SUBDIR)/mus_aqua_magma_hideout.s: %.s: %.mid
 	$(MID) $< $@ -E -R$(STD_REVERB) -G076 -V084
