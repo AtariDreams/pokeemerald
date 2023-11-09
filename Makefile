@@ -107,7 +107,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(MODERNCC) -S
-override CFLAGS += -target arm-none-eabi -fshort-enums  -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
+override CFLAGS += -target arm-none-eabi   -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -299,20 +299,12 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/librfu_intr.o: MODERNCC:= arm-none-eabi-gcc
-$(C_BUILDDIR)/librfu_intr.o: PATH_MODERNCC := PATH="$(PATH)" $(MODERNCC)
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast -masm-syntax-unified
-$(C_BUILDDIR)/librfu_intr.o: AS:= arm-none-eabi-as
-$(C_BUILDDIR)/librfu_intr.o: ASFLAGS:= -mcpu=arm7tdmi
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -ffunction-sections
 
 
 
-$(C_BUILDDIR)/math_util.o: CFLAGS := -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/m4a.o: MODERNCC:= arm-none-eabi-gcc
-$(C_BUILDDIR)/m4a.o: PATH_MODERNCC := PATH="$(PATH)" $(MODERNCC)
-$(C_BUILDDIR)/m4a.o: CFLAGS := -fshort-enums -masm-syntax-unified -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder
-$(C_BUILDDIR)/m4a.o: AS:= arm-none-eabi-as
-$(C_BUILDDIR)/m4a.o: ASFLAGS:= -mcpu=arm7tdmi
+$(C_BUILDDIR)/math_util.o: CFLAGS := -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/m4a.o: CFLAGS := -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder -ffunction-sections
 endif
 
 ifeq ($(DINFO),1)

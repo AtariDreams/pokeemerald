@@ -260,6 +260,7 @@ void m4aMPlayFadeOutTemporarily(struct MusicPlayerInfo *mplayInfo, u16 speed)
     if (mplayInfo->ident == ID_NUMBER)
     {
         mplayInfo->ident = ID_NUMBER + 1;
+        asm volatile ("" : : : "memory");
         mplayInfo->fadeOC = speed;
         mplayInfo->fadeOI = speed;
         mplayInfo->fadeOV = (64 << FADE_VOL_SHIFT) | TEMPORARY_FADE;
@@ -273,9 +274,9 @@ void m4aMPlayFadeIn(struct MusicPlayerInfo *mplayInfo, u16 speed)
     if (mplayInfo->ident == ID_NUMBER)
     {
         mplayInfo->ident = ID_NUMBER + 1;
-
-        mplayInfo->fadeOI = speed;
+        asm volatile ("" : : : "memory");
         mplayInfo->fadeOC = speed;
+        mplayInfo->fadeOI = speed;
         mplayInfo->fadeOV = (0 << FADE_VOL_SHIFT) | FADE_IN;
         mplayInfo->status &= ~MUSICPLAYER_STATUS_PAUSE;
         asm volatile ("" : : : "memory");
