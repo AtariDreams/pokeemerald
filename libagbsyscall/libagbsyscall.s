@@ -6,7 +6,6 @@
 	.set SOFT_RESET_DIRECT_BUF, 0x03007FFA
 	.set RESET_EX_WRAM_FLAG,           0x1
 
-	.ifdef NO_GRANULAR_AGBSYSCALL
 	.set L_IntrWait, 1
 	.set L_RegisterRamReset, 1
 	.set L_Sqrt, 1
@@ -50,7 +49,6 @@
 	.set L_MusicPlayerContinue, 1
 	.set L_SoftReset, 1
 	.set L_RLUnCompVram, 1
-	.endif
 
 	.ifdef L_IntrWait
 	thumb_func_start IntrWait
