@@ -3,6 +3,8 @@
 static void *sHeapStart;
 static u32 sHeapSize;
 
+EWRAM_DATA ALIGNED(4) u8 gHeap[0x1C000] = {0};
+
 #define MALLOC_SYSTEM_ID 0xA3A3
 
 struct MemBlock {
