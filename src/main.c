@@ -128,6 +128,7 @@ _Noreturn void AgbMain(void)
     // Loop forever
     for (;;)
     {
+        VBlankIntrWait();
         ReadKeys();
 
         if (Overworld_SendKeysToLinkIsRunning())
@@ -153,7 +154,6 @@ _Noreturn void AgbMain(void)
 
         PlayTimeCounter_Update();
         MapMusicMain();
-        VBlankIntrWait();
     }
 }
 
