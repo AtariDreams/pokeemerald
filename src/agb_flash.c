@@ -126,7 +126,7 @@ void SetReadFlash1(vu16 *dest)
     }
 }
 
-#define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
+#define asm_unified(x) asm(".syntax unified\n" x "\n")
 
 #define NAKED __attribute__((naked))
 

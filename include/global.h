@@ -20,7 +20,7 @@
 #define BLOCK_CROSS_JUMP asm("");
 
 // to help in decompiling
-#define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
+#define asm_unified(x) asm(".syntax unified\n" x "\n")
 #define NAKED __attribute__((naked))
 
 /// IDE support

@@ -21,13 +21,13 @@ endif
 PREFIX := arm-none-eabi-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := clang -c
+AS := clang --sysroot $(DEVKITARM)/arm-none-eabi -c
 
 LD := $(PREFIX)ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := clang -c
+MODERNCC := clang --sysroot $(DEVKITARM)/arm-none-eabi -isystem $(DEVKITARM)/arm-none-eabi/include
 PATH_MODERNCC := PATH="$(PATH)" arm-none-eabi-gcc
 
 ifeq ($(OS),Windows_NT)
@@ -96,7 +96,7 @@ DATA_ASM_BUILDDIR = $(OBJ_DIR)/$(DATA_ASM_SUBDIR)
 SONG_BUILDDIR = $(OBJ_DIR)/$(SONG_SUBDIR)
 MID_BUILDDIR = $(OBJ_DIR)/$(MID_SUBDIR)
 
-ASFLAGS := -target arm-none-eabi -mcpu=arm7tdmi --defsym MODERN=$(MODERN)
+ASFLAGS := -target arm-none-eabi -mcpu=arm7tdmi -D MODERN=$(MODERN)
 
 ifeq ($(MODERN),0)
 CC1             := tools/agbcc/bin/agbcc$(EXE)
@@ -106,8 +106,8 @@ OBJ_DIR := $(OBJ_DIR_NAME)
 LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
-CC1              = $(MODERNCC)
-override CFLAGS += -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb -isystem $(DEVKITARM)/arm-none-eabi/include
+CC1              = $(MODERNCC) -S
+override CFLAGS += -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -323,7 +323,7 @@ ifeq (,$(KEEP_TEMPS))
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(C_BUILDDIR)/$*.i
 	@$(PREPROC) $(C_BUILDDIR)/$*.i charmap.txt >> $(C_BUILDDIR)/$*.tmp.i
-	@$(CC1) $(CFLAGS) -o $(C_BUILDDIR)/$*.s $(C_BUILDDIR)/$*.tmp.i
+	@$(CC1) $(CFLAGS) -S $(C_BUILDDIR)/$*.s $(C_BUILDDIR)/$*.tmp.i
 	@echo -e ".text\n\t.align\t2, 0\n" >> $(C_BUILDDIR)/$*.s
 	$(AS) $(ASFLAGS) -o $@ $(C_BUILDDIR)/$*.s
 	@rm -f $(C_BUILDDIR)/$*.tmp.i
@@ -353,7 +353,7 @@ ifeq (,$(KEEP_TEMPS))
 	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) $< charmap.txt -i | $(CC1) $(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $(AS) $(ASFLAGS) -o $@ -
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(GFLIB_BUILDDIR)/$*.i
-	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt | $(CC1) $(CFLAGS) -o $(GFLIB_BUILDDIR)/$*.s
+	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt | $(CC1) $(CFLAGS) -S $(GFLIB_BUILDDIR)/$*.s
 	@echo -e ".text\n\t.align\t2, 0\n" >> $(GFLIB_BUILDDIR)/$*.s
 	$(AS) $(ASFLAGS) -o $@ $(GFLIB_BUILDDIR)/$*.s
 endif
