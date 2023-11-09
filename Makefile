@@ -300,12 +300,17 @@ else
 $(C_BUILDDIR)/librfu_intr.o: MODERNCC:= arm-none-eabi-gcc
 $(C_BUILDDIR)/librfu_intr.o: PATH_MODERNCC := PATH="$(PATH)" $(MODERNCC)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -fno-toplevel-reorder -Wno-pointer-to-int-cast -masm-syntax-unified
+$(C_BUILDDIR)/librfu_intr.o: AS:= arm-none-eabi-as
+$(C_BUILDDIR)/librfu_intr.o: ASFLAGS:= -mcpu=arm7tdmi
+
 
 
 $(C_BUILDDIR)/math_util.o: CFLAGS := -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
 $(C_BUILDDIR)/m4a.o: MODERNCC:= arm-none-eabi-gcc
 $(C_BUILDDIR)/m4a.o: PATH_MODERNCC := PATH="$(PATH)" $(MODERNCC)
 $(C_BUILDDIR)/m4a.o: CFLAGS := -masm-syntax-unified -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder
+$(C_BUILDDIR)/m4a.o: AS:= arm-none-eabi-as
+$(C_BUILDDIR)/m4a.o: ASFLAGS:= -mcpu=arm7tdmi
 endif
 
 ifeq ($(DINFO),1)
@@ -355,9 +360,11 @@ ifeq (,$(KEEP_TEMPS))
 	@$(CPP) $(CPPFLAGS) $< | $(PREPROC) $< charmap.txt -i | $(CC1) $(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $(AS) $(ASFLAGS) -o $@ -
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(GFLIB_BUILDDIR)/$*.i
-	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt | $(CC1) $(CFLAGS) -S $(GFLIB_BUILDDIR)/$*.s
+	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt >> $(GFLIB_BUILDDIR)/$*.tmp.i
+	@$(CC1) $(CFLAGS) -S $(GFLIB_BUILDDIR)/$*.s $(GFLIB_BUILDDIR)/$*.tmp.i
 	@echo -e ".text\n\t.align\t2, 0\n" >> $(GFLIB_BUILDDIR)/$*.s
 	$(AS) $(ASFLAGS) -o $@ $(GFLIB_BUILDDIR)/$*.s
+	@rm -f $(GFLIB_BUILDDIR)/$*.tmp.i
 endif
 else
 define GFLIB_DEP
@@ -367,9 +374,11 @@ ifeq (,$$(KEEP_TEMPS))
 	@$$(CPP) $$(CPPFLAGS) $$< | $$(PREPROC) $$< charmap.txt -i | $$(CC1) $$(CFLAGS) -o - - | cat - <(echo -e ".text\n\t.align\t2, 0") | $$(AS) $$(ASFLAGS) -o $$@ -
 else
 	@$$(CPP) $$(CPPFLAGS) $$< -o $$(GFLIB_BUILDDIR)/$3.i
-	@$$(PREPROC) $$(GFLIB_BUILDDIR)/$3.i charmap.txt | $$(CC1) $$(CFLAGS) -o $$(GFLIB_BUILDDIR)/$3.s
+	@$$(PREPROC) $$(GFLIB_BUILDDIR)/$3.i charmap.txt >> $$(GFLIB_BUILDDIR)/$3.tmp.i
+	@$$(CC1) $$(CFLAGS) -o $$(GFLIB_BUILDDIR)/$3.s $$(GFLIB_BUILDDIR)/$3.tmp.i
 	@echo -e ".text\n\t.align\t2, 0\n" >> $$(GFLIB_BUILDDIR)/$3.s
 	$$(AS) $$(ASFLAGS) -o $$@ $$(GFLIB_BUILDDIR)/$3.s
+	@rm -f $$(GFLIB_BUILDDIR)/$3.tmp.i
 endif
 endef
 $(foreach src, $(GFLIB_SRCS), $(eval $(call GFLIB_DEP,$(patsubst $(GFLIB_SUBDIR)/%.c,$(GFLIB_BUILDDIR)/%.o, $(src)),$(src),$(patsubst $(GFLIB_SUBDIR)/%.c,%, $(src)))))
@@ -377,36 +386,36 @@ endif
 
 ifeq ($(NODEP),1)
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.s
-	$(PREPROC) $< charmap.txt | $(CPP) -I include - | $(AS) $(ASFLAGS) -o $@
+	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
 else
 define SRC_ASM_DATA_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
-	$$(PREPROC) $$< charmap.txt | $$(CPP) -I include - | $$(AS) $$(ASFLAGS) -o $$@
+	$$(PREPROC) $$< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $$@
 endef
 $(foreach src, $(C_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(C_SUBDIR)/%.s,$(C_BUILDDIR)/%.o, $(src)),$(src))))
 endif
 
 ifeq ($(NODEP),1)
 $(ASM_BUILDDIR)/%.o: $(ASM_SUBDIR)/%.s
-	$(AS) $(ASFLAGS) -o $@ $<
+	arm-none-eabi-as -mcpu=arm7tdmi -o $@ $<
 else
 define ASM_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
-	$$(AS) $$(ASFLAGS) -o $$@ $$<
+	arm-none-eabi-as -mcpu=arm7tdmi -o $$@ $$<
 endef
 $(foreach src, $(ASM_SRCS), $(eval $(call ASM_DEP,$(patsubst $(ASM_SUBDIR)/%.s,$(ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
 
 ifeq ($(NODEP),1)
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
-	$(PREPROC) $< charmap.txt | $(CPP) -I include - | $(AS) $(ASFLAGS) -o $@
+	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
 else
 $(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
 endif
 
 $(SONG_BUILDDIR)/%.o: $(SONG_SUBDIR)/%.s
-	$(AS) $(ASFLAGS) -I sound -o $@ $<
+	arm-none-eabi-as -mcpu=arm7tdmi -I sound -o $@ $<
 
 $(OBJ_DIR)/sym_bss.ld: sym_bss.txt
 	$(RAMSCRGEN) .bss $< ENGLISH > $@
