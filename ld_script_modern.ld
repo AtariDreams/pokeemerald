@@ -15,26 +15,23 @@ SECTIONS {
     ewram 0x2000000 (NOLOAD) :
     ALIGN(4)
     {
-        src/*.o(ewram_data);
-        gflib/*.o(ewram_data);
-    } > EWRAM
+        gflib/malloc.o(ewram_data);
+        src/decompress.o(ewram_data);
+        *.o(ewram_data);
+        *(.data)
+		*(.data.*)
 
     iwram 0x3000000 (NOLOAD) :
     ALIGN(4)
     {
-        src/*.o(.bss);
-        gflib/*.o(.bss);
-        data/*.o(.bss);
-        *libc.a:*.o(.bss*);
-        *libnosys.a:*.o(.bss*);
-
-        src/m4a.o(.bss.code);
-
-        src/*.o(COMMON);
-        gflib/*.o(COMMON);
-        *libc.a:*.o(COMMON);
-        *libnosys.a:*.o(COMMON);
-    } > IWRAM
+        /* .bss starts at 0x3000000 */
+		*(.dynbss)
+		*(.bss)
+		*(.bss.*)
+		*(COMMON)	
+        end = .;
+        . = 0x8000;
+    }
 
     /* BEGIN ROM DATA */
     . = 0x8000000;
@@ -46,10 +43,8 @@ SECTIONS {
         src/rom_header_gf.o(.text.*);
         src/crt0.o(.text);
         src/main.o(.text);
-        gflib/*.o(.text*);
-        src/*.o(.text*);
-        asm/*.o(.text*);
-    } > ROM =0
+        *.o(.text);
+    } =0
 
     script_data :
     ALIGN(4)
