@@ -95,8 +95,7 @@ SYSCALLS := IntrWait \
             RLUnCompVram
 
 ASM_SRCS := libagbsyscall.s
-ASM_OBJS := $(foreach syscall, $(SYSCALLS), $(syscall).o)
-
+ASM_OBJS := libagbsyscall.o
 LIB := libagbsyscall.a
 
 .PHONY: all clean
@@ -111,4 +110,4 @@ $(LIB): $(ASM_OBJS)
 	$(AR) $(ARFLAGS) $@ $^
 
 $(ASM_OBJS): libagbsyscall.s
-	$(AS) $(ASFLAGS) --defsym L_$(*F)=1 -o $@ $<
+	arm-none-eabi-as -mcpu=arm7tdmi --defsym L_$(*F)=1 -o $@ $<
