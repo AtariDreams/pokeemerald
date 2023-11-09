@@ -335,7 +335,7 @@ GameCubeMultiBoot_SetInterruptHandler:
 
 GameCubeMultiBoot_ReadVCount:
 	ldr r3, pool_RegDispstat
-	ldrh r1, [r3, OFFSET_REG_VCOUNT - OFFSET_REG_DISPSTAT]
+	ldrh r1, [r3, 0x2]
 	strb r1, [r0, 0x3]
 
 GameCubeMultiBoot_HandleSerialInterruptDone:
