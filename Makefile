@@ -397,11 +397,11 @@ endif
 
 ifeq ($(NODEP),1)
 $(ASM_BUILDDIR)/%.o: $(ASM_SUBDIR)/%.s
-	arm-none-eabi-as -mcpu=arm7tdmi -o $@ $<
+	$(AS) $(ASFLAGS) -o $@ $<
 else
 define ASM_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
-	arm-none-eabi-as -mcpu=arm7tdmi -o $$@ $$<
+	$$(AS) $$(ASFLAGS) -o $$@ $$<
 endef
 $(foreach src, $(ASM_SRCS), $(eval $(call ASM_DEP,$(patsubst $(ASM_SUBDIR)/%.s,$(ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
@@ -415,7 +415,7 @@ endif
 endif
 
 $(SONG_BUILDDIR)/%.o: $(SONG_SUBDIR)/%.s
-	arm-none-eabi-as -mcpu=arm7tdmi -I sound -o $@ $<
+	$(AS) $(ASFLAGS) -I sound -o $@ $<
 
 $(OBJ_DIR)/sym_bss.ld: sym_bss.txt
 	$(RAMSCRGEN) .bss $< ENGLISH > $@
