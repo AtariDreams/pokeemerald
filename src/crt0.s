@@ -46,44 +46,44 @@ IntrMain::
 	ands r0, r1, #0x80
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_TIMER3
+	ands r0, r1, #0x40
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_HBLANK
+	ands r0, r1, #0x2
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_VBLANK
+	ands r0, r1, #0x1
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_TIMER0
+	ands r0, r1, #0x8
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_TIMER1
+	ands r0, r1, #0x10
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_TIMER2
+	ands r0, r1, #0x20
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_DMA0
+	ands r0, r1, #0x100
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_DMA1
+	ands r0, r1, #0x200
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_DMA2
+	ands r0, r1, #0x400
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_DMA3
+	ands r0, r1, #800
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #INTR_FLAG_KEYPAD
+	ands r0, r1, #0x1000
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
-	ands r0, r1, #1 << 13
-	strbne r0, [r3, #REG_SOUNDCNT_X - REG_IE]
+	ands r0, r1, #0x2000
+	strbne r0, [r3, #-0x17c]
 	bne . @ spin
 IntrMain_FoundIntr:
-	strh r0, [r3, #REG_IF - REG_IE]
+	strh r0, [r3, 0x2]
 	bic r2, r2, r0
 	ldr r0, =gSTWIStatus
 	ldr r0, [r0]
@@ -107,7 +107,7 @@ IntrMain_RetAddr:
 	pop {lr}
 	mrs r3, cpsr
 	bic r3, r3, #0xdf
-	orr r3, r3, #0xx92
+	orr r3, r3, #0x92
 	msr cpsr_cf, r3
 	pop {r0-r3,lr}
 	strh r2, [r3]
