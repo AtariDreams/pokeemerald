@@ -77,10 +77,9 @@ SoundMainRAM:
 	ldrb r3, [r0, 0x5]
 	cmp r3, 0
 	beq SoundMainRAM_NoReverb
-	adr r1, SoundMainRAM_Reverb
-	bx r1
+	bx pc
+	nop
 	.arm
-SoundMainRAM_Reverb:
 	cmp r4, 0x2
 	addeq r7, r0, 0x350
 	addne r7, r5, r8
@@ -278,8 +277,8 @@ _081DD03A:
 	ldr r5, [sp, 0x8]
 	ldr r2, [r4, 0x18]
 	ldr r3, [r4, 0x28]
-	adr r0, _081DD044
-	bx r0
+	bx pc
+	nop
 	.arm
 _081DD044:
 	str r8, [sp]
