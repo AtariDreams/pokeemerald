@@ -88,9 +88,9 @@ IntrMain_FoundIntr:
 	ldr r0, =gSTWIStatus
 	ldr r0, [r0]
 	ldrb r0, [r0, 0xA]
-	mov r1, #INTR_FLAG_TIMER0
+	mov r1, #0x8
 	lsl r0, r1, r0
-	orr r0, r0, #1 << 13
+	orr r0, r0, #0x2000
 	orr r1, r0, #0xc6
 	and r1, r1, r2
 	strh r1, [r3]
