@@ -1,8 +1,11 @@
-	.equiv TRACK_SIZE, 0x50
-	.equiv NUM_TRACKS_BGM, 10
-	.equiv NUM_TRACKS_SE1, 3
-	.equiv NUM_TRACKS_SE2, 9
-	.equiv NUM_TRACKS_SE3, 1
+#ifndef GUARD_CONSTANTS_M4A_TABLE_INC
+#define GUARD_CONSTANTS_M4A_TABLE_INC
+	
+	.set TRACK_SIZE, 0x50
+	.set NUM_TRACKS_BGM, 10
+	.set NUM_TRACKS_SE1, 3
+	.set NUM_TRACKS_SE2, 9
+	.set NUM_TRACKS_SE3, 1
 
     .bss
 
@@ -30,3 +33,5 @@ gMPlayTable::
 	music_player gMPlayInfo_SE1, gMPlayTrack_SE1, NUM_TRACKS_SE1, 1
 	music_player gMPlayInfo_SE2, gMPlayTrack_SE2, NUM_TRACKS_SE2, 1
 	music_player gMPlayInfo_SE3, gMPlayTrack_SE3, NUM_TRACKS_SE3, 0
+
+#endif

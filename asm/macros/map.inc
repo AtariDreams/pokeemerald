@@ -1,3 +1,5 @@
+#ifndef GUARD_CONSTANTS_MAP_CONSTANTS_INC
+#define GUARD_CONSTANTS_MAP_CONSTANTS_INC
 @ Most of the macros in this file are for arranging map event data, and are output by mapjson using data from each map's JSON file.
 
 	@ Takes a MAP constant and outputs the map group and map number as separate bytes
@@ -134,12 +136,12 @@
 
 	@ Directions for connecting maps
 	@ The map.json files will only have e.g. "down" as direction data, and this will be appended to "connection_" by the connection macro
-	.equiv connection_down, CONNECTION_SOUTH
-	.equiv connection_up, CONNECTION_NORTH
-	.equiv connection_left, CONNECTION_WEST
-	.equiv connection_right, CONNECTION_EAST
-	.equiv connection_dive, CONNECTION_DIVE
-	.equiv connection_emerge, CONNECTION_EMERGE
+	.set connection_down, CONNECTION_SOUTH
+	.set connection_up, CONNECTION_NORTH
+	.set connection_left, CONNECTION_WEST
+	.set connection_right, CONNECTION_EAST
+	.set connection_dive, CONNECTION_DIVE
+	.set connection_emerge, CONNECTION_EMERGE
 
 	@ Defines a map connection. Mirrors the struct layout of MapConnection in include/global.fieldmap.h
 	.macro connection direction:req, offset:req, map:req
@@ -154,3 +156,4 @@
 	.macro map_header_flags allow_cycling:req, allow_escaping:req, allow_running:req, show_map_name:req
 	.byte ((\show_map_name & 1) << 3) | ((\allow_running & 1) << 2) | ((\allow_escaping & 1) << 1) | \allow_cycling
 	.endm
+#endif
