@@ -15,6 +15,13 @@ SECTIONS {
     ewram 0x2000000 (NOLOAD) :
     ALIGN(4)
     {
+        gHeap = .;
+
+        . = 0x1C000;
+
+        gDecompressionBuffer = .;
+        . = 0x20000;
+
         src/*.o(ewram_data);
         gflib/*.o(ewram_data);
     } > EWRAM

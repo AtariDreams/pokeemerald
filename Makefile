@@ -23,7 +23,7 @@ OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
 AS := clang --sysroot $(DEVKITARM)/arm-none-eabi -c
 
-LD := $(PREFIX)ld
+LD := ld.lld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
@@ -107,7 +107,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(MODERNCC) -S
-override CFLAGS += -target arm-none-eabi -fshort-enums -fno-integrated-as -fuse-ld=ld -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
+override CFLAGS += -target arm-none-eabi -fshort-enums  -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -120,6 +120,8 @@ CPPFLAGS := -iquote include -iquote $(GFLIB_SUBDIR) -Wno-trigraphs -isystem $(DE
 ifneq ($(MODERN),1)
 CPPFLAGS += -I tools/agbcc/include -I tools/agbcc -nostdinc -undef
 endif
+
+LDFLAGS = -Wl,-Map=../../$(MAP)
 
 SHA1 := $(shell { command -v sha1sum || command -v shasum; } 2>/dev/null) -c
 GFX := tools/gbagfx/gbagfx$(EXE)
@@ -305,7 +307,7 @@ $(C_BUILDDIR)/librfu_intr.o: ASFLAGS:= -mcpu=arm7tdmi
 
 
 
-$(C_BUILDDIR)/math_util.o: CFLAGS := -fshort-enums -fno-integrated-as -fuse-ld=ld -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/math_util.o: CFLAGS := -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
 $(C_BUILDDIR)/m4a.o: MODERNCC:= arm-none-eabi-gcc
 $(C_BUILDDIR)/m4a.o: PATH_MODERNCC := PATH="$(PATH)" $(MODERNCC)
 $(C_BUILDDIR)/m4a.o: CFLAGS := -fshort-enums -masm-syntax-unified -mthumb-interwork -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -fno-toplevel-reorder
