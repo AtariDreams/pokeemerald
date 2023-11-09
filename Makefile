@@ -380,17 +380,17 @@ endif
 
 ifeq ($(NODEP),1)
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.s
-	@$(CPP) -I include $< -o $(C_BUILDDIR)/$*.is
-	@$(PREPROC) $(C_BUILDDIR)/$*.is charmap.txt >> $(C_BUILDDIR)/$*.tmp.s
-	$(AS) $(ASFLAGS) -o $@ $(C_BUILDDIR)/$*.tmp.s
-	@rm -f $(C_BUILDDIR)/$*.tmp.s
+	@$(CPP) -I include $< -o $(C_BUILDDIR)/$*.tmp.s
+	@$(PREPROC) $(C_BUILDDIR)/$*.tmp.s charmap.txt >> $(C_BUILDDIR)/$*.tmp2.s
+	$(AS) $(ASFLAGS) -o $@ $(C_BUILDDIR)/$*.tmp2.s
+	@rm -f $(C_BUILDDIR)/$*.tmp2.s
 else
 define SRC_ASM_DATA_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
-	@$$(CPP) -I include $$< -o $$(C_BUILDDIR)/$3.is
-	@$$(PREPROC) $$(C_BUILDDIR)/$3.is charmap.txt >> $$(C_BUILDDIR)/$3.tmp.s
-	$$(AS) $$(ASFLAGS) -o $@ $$(C_BUILDDIR)/$3.tmp.s
-	@rm -f $$(C_BUILDDIR)/$3.tmp.s
+	@$$(CPP) -I include $$< -o $$(C_BUILDDIR)/$3.tmp.s
+	@$$(PREPROC) $$(C_BUILDDIR)/$3.tmp.s charmap.txt >> $$(C_BUILDDIR)/$3.tmp2.s
+	$$(AS) $$(ASFLAGS) -o $@ $$(C_BUILDDIR)/$3.tmp2.s
+	@rm -f $$(C_BUILDDIR)/$3.tmp2.s
 endef
 $(foreach src, $(C_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(C_SUBDIR)/%.s,$(C_BUILDDIR)/%.o, $(src)),$(src))))
 endif
@@ -408,10 +408,10 @@ endif
 
 ifeq ($(NODEP),1)
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
-	@$(CPP) -I include $< -o $(DATA_ASM_BUILDDIR)/$*.is
-	@$(PREPROC) $(DATA_ASM_BUILDDIR)/$*.is charmap.txt >> $(DATA_ASM_BUILDDIR)/$*.tmp.i
-	$(AS) $(ASFLAGS) -o $@ $(DATA_ASM_BUILDDIR)/$*.tmp.i
-	@rm -f $(DATA_ASM_BUILDDIR)/$*.tmp.i
+	@$(CPP) -I include $< -o $(DATA_ASM_BUILDDIR)/$*.tmp.s
+	@$(PREPROC) $(DATA_ASM_BUILDDIR)/$*.tmp.s charmap.txt >> $(DATA_ASM_BUILDDIR)/$*.tmp2.s
+	$(AS) $(ASFLAGS) -o $@ $(DATA_ASM_BUILDDIR)/$*.tmp2.s
+	@rm -f $(DATA_ASM_BUILDDIR)/$*.tmp2.s
 else
 $(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
