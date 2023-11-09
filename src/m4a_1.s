@@ -4,7 +4,7 @@
 
 	.syntax unified
 
-	.text
+	.section .text
 
 	thumb_func_start SoundMain
 SoundMain:
