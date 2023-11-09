@@ -389,7 +389,7 @@ define SRC_ASM_DATA_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
 	@$$(CPP) -I include $$< -o $$(C_BUILDDIR)/$3.tmp.s
 	@$$(PREPROC) $$(C_BUILDDIR)/$3.tmp.s charmap.txt >> $$(C_BUILDDIR)/$3.tmp2.s
-	$$(AS) $$(ASFLAGS) -o $@ $$(C_BUILDDIR)/$3.tmp2.s
+	$$(AS) $$(ASFLAGS) -o $$@ $$(C_BUILDDIR)/$3.tmp2.s
 	@rm -f $$(C_BUILDDIR)/$3.tmp2.s
 endef
 $(foreach src, $(C_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(C_SUBDIR)/%.s,$(C_BUILDDIR)/%.o, $(src)),$(src))))
