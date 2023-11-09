@@ -411,7 +411,7 @@ $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
 	@$(CPP) $(CPPFLAGS) $< -o $(DATA_ASM_BUILDDIR)/$*.i
 	@$(PREPROC) $(DATA_ASM_BUILDDIR)/$*.i charmap.txt >> $(DATA_ASM_BUILDDIR)/$*.tmp.i
 	$(AS) $(ASFLAGS) -o $@ $(DATA_ASM_BUILDDIR)/$*.tmp.i
-	@rm -f $(DATA_ASM_BUILDDIR)/$3.tmp.i
+	@rm -f $(DATA_ASM_BUILDDIR)/$*.tmp.i
 else
 $(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
