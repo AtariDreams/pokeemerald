@@ -220,13 +220,13 @@ static u8 TryWriteSector(u8 sector, u8 *data)
     if (ProgramFlashSectorAndVerify(sector, data)) // is damaged?
     {
         // Failed
-        gDamagedSaveSectors |= (1 << sector);
+        gDamagedSaveSectors |= (1U << sector);
         return SAVE_STATUS_ERROR;
     }
     else
     {
         // Succeeded
-        gDamagedSaveSectors &= ~(1 << sector);
+        gDamagedSaveSectors &= ~(1U << sector);
         return SAVE_STATUS_OK;
     }
 }
@@ -343,10 +343,10 @@ static u8 HandleReplaceSector(u16 sectorId, const struct SaveBlockChunk *locatio
         }
     }
 
-    gDamagedSaveSectors &= ~(1 << sectorId);
+    gDamagedSaveSectors &= ~(1U << sectorId);
     return SAVE_STATUS_OK;
 error:
-    gDamagedSaveSectors |= (1 << sectorId);
+    gDamagedSaveSectors |= (1U << sectorId);
     return SAVE_STATUS_ERROR;
 }
 
@@ -362,7 +362,7 @@ static u8 WriteSectorSignatureByte_NoOffset(u16 sectorId, const struct SaveBlock
     if (ProgramFlashByte(sector, SECTOR_SIGNATURE_OFFSET, SECTOR_SIGNATURE & 0xFF))
     {
         // Sector is damaged, so enable the bit in gDamagedSaveSectors and restore the last written sector and save counter.
-        gDamagedSaveSectors |= (1 << sectorId);
+        gDamagedSaveSectors |= (1U << sectorId);
         gLastWrittenSector = gLastKnownGoodSector;
         gSaveCounter = gLastSaveCounter;
         return SAVE_STATUS_ERROR;
@@ -370,7 +370,7 @@ static u8 WriteSectorSignatureByte_NoOffset(u16 sectorId, const struct SaveBlock
     else
     {
         // Succeeded
-        gDamagedSaveSectors &= ~(1 << sectorId);
+        gDamagedSaveSectors &= ~(1U << sectorId);
         return SAVE_STATUS_OK;
     }
 }
@@ -386,7 +386,7 @@ static u8 CopySectorSignatureByte(u16 sectorId, const struct SaveBlockChunk *loc
     if (ProgramFlashByte(sector, SECTOR_SIGNATURE_OFFSET, ((u8 *)gReadWriteSector)[SECTOR_SIGNATURE_OFFSET]))
     {
         // Sector is damaged, so enable the bit in gDamagedSaveSectors and restore the last written sector and save counter.
-        gDamagedSaveSectors |= (1 << sectorId);
+        gDamagedSaveSectors |= (1U << sectorId);
         gLastWrittenSector = gLastKnownGoodSector;
         gSaveCounter = gLastSaveCounter;
         return SAVE_STATUS_ERROR;
@@ -394,7 +394,7 @@ static u8 CopySectorSignatureByte(u16 sectorId, const struct SaveBlockChunk *loc
     else
     {
         // Succeeded
-        gDamagedSaveSectors &= ~(1 << sectorId);
+        gDamagedSaveSectors &= ~(1U << sectorId);
         return SAVE_STATUS_OK;
     }
 }
