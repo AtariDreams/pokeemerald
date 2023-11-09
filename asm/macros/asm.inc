@@ -7,6 +7,6 @@
 	.endm
 
 	.macro enum constant:req
-	.equiv \constant, __enum__
+	.set \constant, __enum__
 	inc __enum__
 	.endm

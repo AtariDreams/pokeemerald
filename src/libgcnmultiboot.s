@@ -4,36 +4,36 @@
 	.include "asm/macros.inc"
 	.include "constants/constants.inc"
 
-	.equiv GCMB_STRUCT_COUNTER1,            0x00
-	.equiv GCMB_STRUCT_COUNTER2,            0x01
-	.equiv GCMB_STRUCT_MBPROGRESS,          0x02
-	.equiv GCMB_STRUCT_SAVEDVCOUNT,         0x03
-	.equiv GCMB_STRUCT_KEYA,                0x04
-	.equiv GCMB_STRUCT_KEYB,                0x08
-	.equiv GCMB_STRUCT_KEYC,                0x0C
-	.equiv GCMB_STRUCT_BOOT_KEY,            0x10
-	.equiv GCMB_STRUCT_IMAGE_SIZE,          0x12
-	.equiv GCMB_STRUCT_SESSION_KEY,         0x14
-	.equiv GCMB_STRUCT_HASH_VAL,            0x18
-	.equiv GCMB_STRUCT_KEYC_DERIVATION,     0x1C
-	.equiv GCMB_STRUCT_BASE_DEST_PTR,       0x20
-	.equiv GCMB_STRUCT_CUR_DEST_PTR,        0x24
-	.equiv GCMB_STRUCT_SERIAL_INTR_HANDLER, 0x28
+	.set GCMB_STRUCT_COUNTER1,            0x00
+	.set GCMB_STRUCT_COUNTER2,            0x01
+	.set GCMB_STRUCT_MBPROGRESS,          0x02
+	.set GCMB_STRUCT_SAVEDVCOUNT,         0x03
+	.set GCMB_STRUCT_KEYA,                0x04
+	.set GCMB_STRUCT_KEYB,                0x08
+	.set GCMB_STRUCT_KEYC,                0x0C
+	.set GCMB_STRUCT_BOOT_KEY,            0x10
+	.set GCMB_STRUCT_IMAGE_SIZE,          0x12
+	.set GCMB_STRUCT_SESSION_KEY,         0x14
+	.set GCMB_STRUCT_HASH_VAL,            0x18
+	.set GCMB_STRUCT_KEYC_DERIVATION,     0x1C
+	.set GCMB_STRUCT_BASE_DEST_PTR,       0x20
+	.set GCMB_STRUCT_CUR_DEST_PTR,        0x24
+	.set GCMB_STRUCT_SERIAL_INTR_HANDLER, 0x28
 
-	.equiv ROM_HEADER_NINTENDO_LOGO_OFFSET, 0x04
-	.equiv ROM_HEADER_NINTENDO_LOGO_LENGTH, 0x98
-	.equiv ROM_HEADER_NINTENDO_LOGO_END,    0xA0
+	.set ROM_HEADER_NINTENDO_LOGO_OFFSET, 0x04
+	.set ROM_HEADER_NINTENDO_LOGO_LENGTH, 0x98
+	.set ROM_HEADER_NINTENDO_LOGO_END,    0xA0
 
-	.equiv MBPROGRESS_NONE,                 0x00
-	.equiv MBPROGRESS_LOGO_CORRECT,         0x01
-	.equiv MBPROGRESS_READY_TO_BOOT,        0x02
+	.set MBPROGRESS_NONE,                 0x00
+	.set MBPROGRESS_LOGO_CORRECT,         0x01
+	.set MBPROGRESS_READY_TO_BOOT,        0x02
 
-	.equiv GCMB_MAGIC_BOOTKEY_HASHVAL,      0xBB
-	.equiv GCMB_MAGIC_BOOTKEY,              0xBB
-	.equiv GCMB_MAGIC_COUNTER2,             0xCC
-	.equiv GCMB_MAGIC_KEYA,                 0xDD
-	.equiv GCMB_MAGIC_KEYB,                 0xEE
-	.equiv GCMB_MAGIC_KEYCDERIVATION,       0xFF
+	.set GCMB_MAGIC_BOOTKEY_HASHVAL,      0xBB
+	.set GCMB_MAGIC_BOOTKEY,              0xBB
+	.set GCMB_MAGIC_COUNTER2,             0xCC
+	.set GCMB_MAGIC_KEYA,                 0xDD
+	.set GCMB_MAGIC_KEYB,                 0xEE
+	.set GCMB_MAGIC_KEYCDERIVATION,       0xFF
 
 	.syntax unified
 

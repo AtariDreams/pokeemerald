@@ -134,12 +134,12 @@
 
 	@ Directions for connecting maps
 	@ The map.json files will only have e.g. "down" as direction data, and this will be appended to "connection_" by the connection macro
-	.equiv connection_down, CONNECTION_SOUTH
-	.equiv connection_up, CONNECTION_NORTH
-	.equiv connection_left, CONNECTION_WEST
-	.equiv connection_right, CONNECTION_EAST
-	.equiv connection_dive, CONNECTION_DIVE
-	.equiv connection_emerge, CONNECTION_EMERGE
+	.set connection_down, CONNECTION_SOUTH
+	.set connection_up, CONNECTION_NORTH
+	.set connection_left, CONNECTION_WEST
+	.set connection_right, CONNECTION_EAST
+	.set connection_dive, CONNECTION_DIVE
+	.set connection_emerge, CONNECTION_EMERGE
 
 	@ Defines a map connection. Mirrors the struct layout of MapConnection in include/global.fieldmap.h
 	.macro connection direction:req, offset:req, map:req
