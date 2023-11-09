@@ -307,6 +307,7 @@ void m4aMPlayImmInit(struct MusicPlayerInfo *mplayInfo)
             track->tone.type = 1;
         }
     }
+    asm volatile ("" : : : "memory");
     mplayInfo->ident == ID_NUMBER;
 }
 
@@ -332,11 +333,9 @@ void MPlayExtender(struct CgbChannel *cgbChans)
 
     soundInfo = SOUND_INFO_PTR;
 
-    ident = soundInfo->ident;
-
-    if (ident != ID_NUMBER)
+    if (soundInfo->ident != ID_NUMBER)
         return;
-
+    asm volatile ("" : : : "memory");
     soundInfo->ident = ID_NUMBER + 1;
 
     gMPlayJumpTable[8] = ply_memacc;
@@ -367,7 +366,7 @@ void MPlayExtender(struct CgbChannel *cgbChans)
     cgbChans[3].panMask = 0x88;
 
     asm volatile ("" : : : "memory");
-    soundInfo->ident = ident;
+    soundInfo->ident = ID_NUMBER;
 }
 
 void MusicPlayerJumpTableCopy(void)
