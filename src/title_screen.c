@@ -780,6 +780,7 @@ static void Task_TitleScreenPhase3(u8 taskId)
     if (JOY_NEW(A_BUTTON | START_BUTTON))
     {
         FadeOutBGM(4);
+        //TODO: BUG: Why won't this play when there is no saved game?
         PlayCry_Normal(SPECIES_RAYQUAZA, 0);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_WHITEALPHA);
         SetMainCallback2(CB2_GoToMainMenu);
