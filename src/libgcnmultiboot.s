@@ -1,6 +1,6 @@
 @ This library can be used to download and execute a multi-boot image from
 @ a GameCube using the JOY Bus protocol over the link cable.
-
+	.include "asm/macros.inc"
 	.syntax unified
 
 	.text
