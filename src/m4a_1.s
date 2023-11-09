@@ -24,7 +24,7 @@ SoundMain_1:
 	mov r4, r11
 	push {r0-r4}
 	sub sp, 0x18
-	ldrb r1, [r0, o_SoundInfo_maxLines]
+	ldrb r1, [r0, 0xc]
 	cmp r1, 0 @ if maxLines is 0, there is no maximum
 	beq SoundMain_3
 	ldr r2, lt_REG_VCOUNT
@@ -53,7 +53,7 @@ SoundMain_4:
 	ldrb r4, [r0, 0x4]
 	subs r7, r4, 1
 	bls SoundMain_5
-	ldrb r1, [r0, o_SoundInfo_pcmDmaPeriod]
+	ldrb r1, [r0, 0xb]
 	subs r1, r7
 	mov r2, r8
 	muls r2, r1
@@ -69,13 +69,13 @@ lt_SOUND_INFO_PTR:        .word 0x3007FF0
 lt_ID_NUMBER:             .word 0x68736d53
 lt_SoundMainRAM_Buffer:   .word SoundMainRAM_Buffer + 1
 lt_REG_VCOUNT:            .word 0x0800153c
-lt_o_SoundInfo_pcmBuffer: .word o_SoundInfo_pcmBuffer
-lt_PCM_DMA_BUF_SIZE:      .word PCM_DMA_BUF_SIZE
+lt_o_SoundInfo_pcmBuffer: .word 0x350
+lt_PCM_DMA_BUF_SIZE:      .word 1584
 	thumb_func_end SoundMain
 
 	thumb_func_start SoundMainRAM
 SoundMainRAM:
-	ldrb r3, [r0, o_SoundInfo_reverb]
+	ldrb r3, [r0, 0x5]
 	cmp r3, 0
 	beq SoundMainRAM_NoReverb
 	adr r1, SoundMainRAM_Reverb
@@ -83,7 +83,7 @@ SoundMainRAM:
 	.arm
 SoundMainRAM_Reverb:
 	cmp r4, 0x2
-	addeq r7, r0, o_SoundInfo_pcmBuffer
+	addeq r7, r0, 0x350
 	addne r7, r5, r8
 	mov r4, r8
 _081DCEC4:
@@ -133,14 +133,14 @@ SoundMainRAM_NoReverb_Loop:
 	bgt SoundMainRAM_NoReverb_Loop
 _081DCF36:
 	ldr r4, [sp, 0x18]
-	ldr r0, [r4, o_SoundInfo_divFreq]
+	ldr r0, [r4, 0x18]
 	mov r12, r0
-	ldrb r0, [r4, o_SoundInfo_maxChans]
-	adds r4, o_SoundInfo_chans
+	ldrb r0, [r4, #0x6]
+	adds r4, 0x50
 
 SoundMainRAM_ChanLoop:
 	str r0, [sp, 0x4]
-	ldr r3, [r4, o_SoundChannel_wav]
+	ldr r3, [r4, 0x24]
 	ldr r0, [sp, 0x14]
 	cmp r0, 0
 	beq _081DCF60
@@ -157,69 +157,69 @@ _081DCF54:
 	.pool
 
 _081DCF60:
-	ldrb r6, [r4, o_SoundChannel_statusFlags]
-	movs r0, SOUND_CHANNEL_SF_ON
+	ldrb r6, [r4, 0x0]
+	movs r0, 0xc7
 	tst r0, r6
 	bne _081DCF6A
 	b _081DD240
 _081DCF6A:
-	movs r0, SOUND_CHANNEL_SF_START
+	movs r0, 0x80
 	tst r0, r6
 	beq _081DCFA0
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	tst r0, r6
 	bne _081DCFB0
-	movs r6, SOUND_CHANNEL_SF_ENV_ATTACK
-	strb r6, [r4, o_SoundChannel_statusFlags]
+	movs r6, 0x3
+	strb r6, [r4, 0x0]
 	adds r0, r3, 0
-	adds r0, o_WaveData_data
-	ldr r1, [r4, o_SoundChannel_count]
+	adds r0, 0x10
+	ldr r1, [r4, 0x18]
 	adds r0, r1
-	str r0, [r4, o_SoundChannel_currentPointer]
-	ldr r0, [r3, o_WaveData_size]
+	str r0, [r4, 0x28]
+	ldr r0, [r3, 0xc]
 	subs r0, r1
-	str r0, [r4, o_SoundChannel_count]
+	str r0, [r4, 0x18]
 	movs r5, 0
-	strb r5, [r4, o_SoundChannel_envelopeVolume]
-	str r5, [r4, o_SoundChannel_fw]
-	ldrb r2, [r3, o_WaveData_flags]
-	movs r0, WAVE_DATA_FLAG_LOOP
+	strb r5, [r4, 0x9]
+	str r5, [r4, 0x1c]
+	ldrb r2, [r3, 0x3]
+	movs r0, 0xc0
 	tst r0, r2
 	beq _081DCFF8
-	movs r0, SOUND_CHANNEL_SF_LOOP
+	movs r0, 0x10
 	orrs r6, r0
-	strb r6, [r4, o_SoundChannel_statusFlags]
+	strb r6, [r4, 0x0]
 	b _081DCFF8
 _081DCFA0:
-	ldrb r5, [r4, o_SoundChannel_envelopeVolume]
-	movs r0, SOUND_CHANNEL_SF_IEC
+	ldrb r5, [r4, 0x9]
+	movs r0, 0x4
 	tst r0, r6
 	beq _081DCFB6
-	ldrb r0, [r4, o_SoundChannel_pseudoEchoLength]
+	ldrb r0, [r4, 0xd]
 	subs r0, 1
-	strb r0, [r4, o_SoundChannel_pseudoEchoLength]
+	strb r0, [r4, 0xd]
 	bhi _081DD006
 _081DCFB0:
 	movs r0, 0
-	strb r0, [r4, o_SoundChannel_statusFlags]
+	strb r0, [r4, 0x0]
 	b _081DD240
 _081DCFB6:
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	tst r0, r6
 	beq _081DCFD6
-	ldrb r0, [r4, o_SoundChannel_release]
+	ldrb r0, [r4, 0x7]
 	muls r5, r0
 	lsrs r5, 8
-	ldrb r0, [r4, o_SoundChannel_pseudoEchoVolume]
+	ldrb r0, [r4, 0xc]
 	cmp r5, r0
 	bhi _081DD006
 _081DCFC8:
-	ldrb r5, [r4, o_SoundChannel_pseudoEchoVolume]
+	ldrb r5, [r4, 0xc]
 	cmp r5, 0
 	beq _081DCFB0
-	movs r0, SOUND_CHANNEL_SF_IEC
+	movs r0, 0x4
 	orrs r6, r0
-	strb r6, [r4, o_SoundChannel_statusFlags]
+	strb r6, [r4, 0x0]
 	b _081DD006
 _081DCFD6:
 	movs r2, SOUND_CHANNEL_SF_ENV
@@ -235,10 +235,10 @@ _081DCFD6:
 	adds r5, r0, 0
 	beq _081DCFC8
 	subs r6, 0x1
-	strb r6, [r4, o_SoundChannel_statusFlags]
+	strb r6, [r4, 0x0]
 	b _081DD006
 _081DCFF4:
-	cmp r2, SOUND_CHANNEL_SF_ENV_ATTACK
+	cmp r2, 0x3
 	bne _081DD006
 _081DCFF8:
 	ldrb r0, [r4, o_SoundChannel_attack]
@@ -247,55 +247,55 @@ _081DCFF8:
 	bcc _081DD006
 	movs r5, 0xFF
 	subs r6, 0x1
-	strb r6, [r4, o_SoundChannel_statusFlags]
+	strb r6, [r4, 0x0]
 _081DD006:
-	strb r5, [r4, o_SoundChannel_envelopeVolume]
+	strb r5, [r4, 0x9]
 	ldr r0, [sp, 0x18]
-	ldrb r0, [r0, o_SoundChannel_release]
+	ldrb r0, [r0, 0x7]
 	adds r0, 0x1
 	muls r0, r5
 	lsrs r5, r0, 4
-	ldrb r0, [r4, o_SoundChannel_rightVolume]
+	ldrb r0, [r4, 0x2]
 	muls r0, r5
 	lsrs r0, 8
-	strb r0, [r4, o_SoundChannel_envelopeVolumeRight]
-	ldrb r0, [r4, o_SoundChannel_leftVolume]
+	strb r0, [r4, 0xa]
+	ldrb r0, [r4, 0x3]
 	muls r0, r5
 	lsrs r0, 8
-	strb r0, [r4, o_SoundChannel_envelopeVolumeLeft]
-	movs r0, SOUND_CHANNEL_SF_LOOP
+	strb r0, [r4, 0xb]
+	movs r0, 0x10
 	ands r0, r6
 	str r0, [sp, 0x10]
 	beq _081DD03A
 	adds r0, r3, 0
-	adds r0, o_WaveData_data
-	ldr r1, [r3, o_WaveData_loopStart]
+	adds r0, 0x10
+	ldr r1, [r3, 0x8]
 	adds r0, r1
 	str r0, [sp, 0xC]
-	ldr r0, [r3, o_WaveData_size]
+	ldr r0, [r3, 0xc]
 	subs r0, r1
 	str r0, [sp, 0x10]
 _081DD03A:
 	ldr r5, [sp, 0x8]
-	ldr r2, [r4, o_SoundChannel_count]
-	ldr r3, [r4, o_SoundChannel_currentPointer]
+	ldr r2, [r4, 0x18]
+	ldr r3, [r4, 0x28]
 	adr r0, _081DD044
 	bx r0
 	.arm
 _081DD044:
 	str r8, [sp]
-	ldr r9, [r4, o_SoundChannel_fw]
-	ldrb r10, [r4, o_SoundChannel_envelopeVolumeRight]
-	ldrb r11, [r4, o_SoundChannel_envelopeVolumeLeft]
-	ldrb r0, [r4, o_SoundChannel_type]
-	tst r0, TONEDATA_TYPE_CMP | TONEDATA_TYPE_REV
+	ldr r9, [r4, 0x1c]
+	ldrb r10, [r4, 0xa]
+	ldrb r11, [r4, 0xb]
+	ldrb r0, [r4, 0x1]
+	tst r0, 0x30
 	beq _081DD068
 	bl SoundMainRAM_Unk1
 	b _081DD228
 _081DD068:
 	mov r10, r10, lsl 16
 	mov r11, r11, lsl 16
-	ldrb r0, [r4, o_SoundChannel_type]
+	ldrb r0, [r4, 0x1]
 	tst r0, 0x8
 	beq _081DD19C
 _081DD07C:
@@ -312,7 +312,7 @@ _081DD07C:
 	moveq r2, 0x4
 _081DD0A8:
 	ldr r6, [r5]
-	ldr r7, [r5, PCM_DMA_BUF_SIZE]
+	ldr r7, [r5, 1584]
 _081DD0B0:
 	ldrsb r0, [r3], 0x1
 	mul r1, r10, r0
@@ -323,7 +323,7 @@ _081DD0B0:
 	add r7, r1, r7, ror 8
 	adds r5, r5, 0x40000000
 	bcc _081DD0B0
-	str r7, [r5, PCM_DMA_BUF_SIZE]
+	str r7, [r5, 1584]
 	str r6, [r5], 0x4
 	subs r8, r8, 0x4
 	bgt _081DD0A8
@@ -331,7 +331,7 @@ _081DD0B0:
 	beq _081DD22C
 _081DD0EC:
 	ldr r6, [r5]
-	ldr r7, [r5, PCM_DMA_BUF_SIZE]
+	ldr r7, [r5, 1584]
 _081DD0F4:
 	ldrsb r0, [r3], 0x1
 	mul r1, r10, r0
@@ -345,7 +345,7 @@ _081DD0F4:
 _081DD118:
 	adds r5, r5, 0x40000000
 	bcc _081DD0F4
-	str r7, [r5, PCM_DMA_BUF_SIZE]
+	str r7, [r5, 1584]
 	str r6, [r5], 0x4
 	subs r8, r8, 0x4
 	bgt _081DD07C
@@ -371,26 +371,26 @@ _081DD164:
 	ldrne r3, [sp, 0xC]
 	bne _081DD118
 _081DD174:
-	strb r2, [r4, o_SoundChannel_statusFlags]
+	strb r2, [r4, 0x0]
 	mov r0, r5, lsr 30
 	bic r5, r5, 0xC0000000
 	rsb r0, r0, 0x3
 	mov r0, r0, lsl 3
 	mov r6, r6, ror r0
 	mov r7, r7, ror r0
-	str r7, [r5, PCM_DMA_BUF_SIZE]
+	str r7, [r5, 1584]
 	str r6, [r5], 0x4
 	b _081DD234
 _081DD19C:
 	push {r4,r12}
-	ldr r1, [r4, o_SoundChannel_frequency]
+	ldr r1, [r4, 0x20]
 	mul r4, r12, r1
 	ldrsb r0, [r3]
 	ldrsb r1, [r3, 0x1]!
 	sub r1, r1, r0
 _081DD1B4:
 	ldr r6, [r5]
-	ldr r7, [r5, PCM_DMA_BUF_SIZE]
+	ldr r7, [r5, 1584]
 _081DD1BC:
 	mul lr, r9, r1
 	add lr, r0, lr, asr 23
@@ -415,17 +415,17 @@ _081DD1FC:
 _081DD208:
 	adds r5, r5, 0x40000000
 	bcc _081DD1BC
-	str r7, [r5, PCM_DMA_BUF_SIZE]
+	str r7, [r5, 1584]
 	str r6, [r5], 0x4
 	subs r8, r8, 0x4
 	bgt _081DD1B4
 	sub r3, r3, 0x1
 	pop {r4,r12}
 _081DD228:
-	str r9, [r4, o_SoundChannel_fw]
+	str r9, [r4, 0x1c]
 _081DD22C:
-	str r2, [r4, o_SoundChannel_count]
-	str r3, [r4, o_SoundChannel_currentPointer]
+	str r2, [r4, 0x18]
+	str r3, [r4, 0x28]
 _081DD234:
 	ldr r8, [sp]
 	add r0, pc, 0x1
@@ -456,43 +456,43 @@ _081DD25E:
 @ Not present in GBA SDK 3.0
 	arm_func_start SoundMainRAM_Unk1
 SoundMainRAM_Unk1:
-	ldr r6, [r4, o_SoundChannel_wav]
-	ldrb r0, [r4, o_SoundChannel_statusFlags]
-	tst r0, SOUND_CHANNEL_SF_SPECIAL
+	ldr r6, [r4, 0x24]
+	ldrb r0, [r4, 0x0]
+	tst r0, 0x20
 	bne _081DD2B4
-	orr r0, r0, SOUND_CHANNEL_SF_SPECIAL
-	strb r0, [r4, o_SoundChannel_statusFlags]
-	ldrb r0, [r4, o_SoundChannel_type]
-	tst r0, TONEDATA_TYPE_REV
+	orr r0, r0, 0x20
+	strb r0, [r4, 0x0]
+	ldrb r0, [r4, 0x1]
+	tst r0, 0x10
 	beq _081DD29C
-	ldr r1, [r6, o_WaveData_size]
+	ldr r1, [r6, 0xc]
 	add r1, r1, r6, lsl 1
 	add r1, r1, 0x20
 	sub r3, r1, r3
-	str r3, [r4, o_SoundChannel_currentPointer]
+	str r3, [r4, 0x28]
 _081DD29C:
-	ldrh r0, [r6, o_WaveData_type]
+	ldrh r0, [r6, 0x0]
 	cmp r0, 0
 	beq _081DD2B4
 	sub r3, r3, r6
 	sub r3, r3, 0x10
-	str r3, [r4, o_SoundChannel_currentPointer]
+	str r3, [r4, 0x28]
 _081DD2B4:
 	push {r8,r12,lr}
 	mov r10, r10, lsl 16
 	mov r11, r11, lsl 16
-	ldr r1, [r4, o_SoundChannel_frequency]
-	ldrb r0, [r4, o_SoundChannel_type]
-	tst r0, TONEDATA_TYPE_FIX
+	ldr r1, [r4, 0x20]
+	ldrb r0, [r4, 0x1]
+	tst r0, 0x8
 	movne r8, 0x800000
 	muleq r8, r12, r1
-	ldrh r0, [r6, o_WaveData_type]
+	ldrh r0, [r6, 0x0]
 	cmp r0, 0
 	beq _081DD468
 	mov r0, 0xFF000000
-	str r0, [r4, o_SoundChannel_xpi]
-	ldrb r0, [r4, o_SoundChannel_type]
-	tst r0, TONEDATA_TYPE_REV
+	str r0, [r4, 0x3c]
+	ldrb r0, [r4, 0x1]
+	tst r0, 0x10
 	bne _081DD3C0
 	bl SoundMainRAM_Unk2
 	mov r0, r1
@@ -501,7 +501,7 @@ _081DD2B4:
 	sub r1, r1, r0
 _081DD308:
 	ldr r6, [r5]
-	ldr r7, [r5, PCM_DMA_BUF_SIZE]
+	ldr r7, [r5, 1584]
 _081DD310:
 	mul lr, r9, r1
 	add lr, r0, lr, asr 23
@@ -532,7 +532,7 @@ _081DD364:
 _081DD370:
 	adds r5, r5, 0x40000000
 	bcc _081DD310
-	str r7, [r5, PCM_DMA_BUF_SIZE]
+	str r7, [r5, 1584]
 	str r6, [r5], 0x4
 	ldr r6, [sp]
 	subs r6, r6, 0x4
@@ -544,8 +544,8 @@ _081DD398:
 	ldr r0, [sp, 0x1C]
 	cmp r0, 0
 	beq _081DD4F4
-	ldr r3, [r4, o_SoundChannel_wav]
-	ldr r3, [r3, o_WaveData_loopStart]
+	ldr r3, [r4, 0x24]
+	ldr r3, [r3, 0x8]
 	rsb lr, r2, 0
 _081DD3B0:
 	adds r2, r2, r0
@@ -561,7 +561,7 @@ _081DD3C0:
 	sub r1, r1, r0
 _081DD3D8:
 	ldr r6, [r5]
-	ldr r7, [r5, PCM_DMA_BUF_SIZE]
+	ldr r7, [r5, 1584]
 _081DD3E0:
 	mul lr, r9, r1
 	add lr, r0, lr, asr 23
@@ -592,7 +592,7 @@ _081DD434:
 _081DD440:
 	adds r5, r5, 0x40000000
 	bcc _081DD3E0
-	str r7, [r5, PCM_DMA_BUF_SIZE]
+	str r7, [r5, 1584]
 	str r6, [r5], 0x4
 	ldr r6, [sp]
 	subs r6, r6, 0x4
@@ -601,8 +601,8 @@ _081DD440:
 	add r3, r3, 0x2
 	b _081DD4F0
 _081DD468:
-	ldrb r0, [r4, o_SoundChannel_type]
-	tst r0, TONEDATA_TYPE_REV
+	ldrb r0, [r4, 0x1]
+	tst r0, 0x10
 	beq _081DD4F0
 	ldrsb r0, [r3, -0x1]!
 	ldrsb r1, [r3, -0x1]
@@ -642,7 +642,7 @@ _081DD4F0:
 	pop {r8,r12,pc}
 _081DD4F4:
 	mov r2, 0
-	strb r2, [r4, o_SoundChannel_statusFlags]
+	strb r2, [r4, 0x0]
 	mov r0, r5, lsr 30
 	bic r5, r5, 0xC0000000
 	rsb r0, r0, 0x3
@@ -659,14 +659,14 @@ _081DD4F4:
 SoundMainRAM_Unk2:
 	push {r0,r2,r5-r7,lr}
 	mov r0, r3, lsr 6
-	ldr r1, [r4, o_SoundChannel_xpi]
+	ldr r1, [r4, 0x3c]
 	cmp r0, r1
 	beq _081DD594
-	str r0, [r4, o_SoundChannel_xpi]
+	str r0, [r4, 0x3c]
 	@ mov r1, 0x21
 	@ mul r2, r1, r0
 	add r2, r0, r0, lsl 5
-	ldr r1, [r4, o_SoundChannel_wav]
+	ldr r1, [r4, 0x24]
 	add r2, r2, r1
 	add r2, r2, 0x10
 	ldr r5, =sDecodingBuffer
@@ -714,24 +714,24 @@ SoundMainBTM:
 
 	thumb_func_start RealClearChain
 RealClearChain:
-	ldr r3, [r0, o_SoundChannel_track]
+	ldr r3, [r0, 0x2c]
 	cmp r3, 0
 	beq _081DD5E2
-	ldr r1, [r0, o_SoundChannel_nextChannelPointer]
-	ldr r2, [r0, o_SoundChannel_prevChannelPointer]
+	ldr r1, [r0, 0x34]
+	ldr r2, [r0, 0x30]
 	cmp r2, 0
 	beq _081DD5D6
-	str r1, [r2, o_SoundChannel_nextChannelPointer]
+	str r1, [r2, 0x34]
 	b _081DD5D8
 _081DD5D6:
-	str r1, [r3, o_MusicPlayerTrack_chan]
+	str r1, [r3, 0x20]
 _081DD5D8:
 	cmp r1, 0
 	beq _081DD5DE
-	str r2, [r1, o_SoundChannel_prevChannelPointer]
+	str r2, [r1, 0x30]
 _081DD5DE:
 	movs r1, 0
-	str r1, [r0, o_SoundChannel_track]
+	str r1, [r0, 0x2c]
 _081DD5E2:
 	bx lr
 	thumb_func_end RealClearChain
@@ -740,21 +740,21 @@ _081DD5E2:
 ply_fine:
 	push {r4,r5,lr}
 	adds r5, r1, 0
-	ldr r4, [r5, o_MusicPlayerTrack_chan]
+	ldr r4, [r5, 0x20]
 	cmp r4, 0
 	beq ply_fine_done
 ply_fine_loop:
-	ldrb r1, [r4, o_SoundChannel_statusFlags]
-	movs r0, SOUND_CHANNEL_SF_ON
+	ldrb r1, [r4, 0x0]
+	movs r0, 0xc7
 	tst r0, r1
 	beq ply_fine_ok
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	orrs r1, r0
-	strb r1, [r4, o_SoundChannel_statusFlags]
+	strb r1, [r4, 0x0]
 ply_fine_ok:
 	adds r0, r4, 0
 	bl RealClearChain
-	ldr r4, [r4, o_SoundChannel_nextChannelPointer]
+	ldr r4, [r4, 0x34]
 	cmp r4, 0
 	bne ply_fine_loop
 ply_fine_done:
@@ -809,10 +809,10 @@ lt_MPlayJumpTableTemplate: .word gMPlayJumpTableTemplate
 
 	thumb_func_start ld_r3_tp_adr_i
 ld_r3_tp_adr_i:
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 _081DD64A:
 	adds r3, r2, 0x1
-	str r3, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r3, [r1, 0x40]
 	ldrb r3, [r2]
 	b chk_adr_r2
 	thumb_func_end ld_r3_tp_adr_i
@@ -821,7 +821,7 @@ _081DD64A:
 ply_goto:
 	push {lr}
 ply_goto_1:
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	ldrb r0, [r2, 0x3]
 	lsls r0, 8
 	ldrb r3, [r2, 0x2]
@@ -832,24 +832,24 @@ ply_goto_1:
 	lsls r0, 8
 	bl ldrb_r3_r2
 	orrs r0, r3
-	str r0, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r0, [r1, 0x40]
 	pop {r0}
 	bx r0
 	thumb_func_end ply_goto
 
 	thumb_func_start ply_patt
 ply_patt:
-	ldrb r2, [r1, o_MusicPlayerTrack_patternLevel]
+	ldrb r2, [r1, 0x2]
 	cmp r2, 3
 	bhs ply_patt_done
 	lsls r2, 2
 	adds r3, r1, r2
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	adds r2, 0x4
-	str r2, [r3, o_MusicPlayerTrack_patternStack]
-	ldrb r2, [r1, o_MusicPlayerTrack_patternLevel]
+	str r2, [r3, 0x44]
+	ldrb r2, [r1, 0x2]
 	adds r2, 1
-	strb r2, [r1, o_MusicPlayerTrack_patternLevel]
+	strb r2, [r1, 0x2]
 	b ply_goto
 ply_patt_done:
 	b ply_fine
@@ -857,15 +857,15 @@ ply_patt_done:
 
 	thumb_func_start ply_pend
 ply_pend:
-	ldrb r2, [r1, o_MusicPlayerTrack_patternLevel]
+	ldrb r2, [r1, 0x2]
 	cmp r2, 0
 	beq ply_pend_done
 	subs r2, 1
-	strb r2, [r1, o_MusicPlayerTrack_patternLevel]
+	strb r2, [r1, 0x2]
 	lsls r2, 2
 	adds r3, r1, r2
-	ldr r2, [r3, o_MusicPlayerTrack_patternStack]
-	str r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r3, 0x44]
+	str r2, [r1, 0x40]
 ply_pend_done:
 	bx lr
 	thumb_func_end ply_pend
@@ -873,17 +873,17 @@ ply_pend_done:
 	thumb_func_start ply_rept
 ply_rept:
 	push {lr}
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	ldrb r3, [r2]
 	cmp r3, 0
 	bne ply_rept_1
 	adds r2, 1
-	str r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r2, [r1, 0x40]
 	b ply_goto_1
 ply_rept_1:
-	ldrb r3, [r1, o_MusicPlayerTrack_repN]
+	ldrb r3, [r1, 0x3]
 	adds r3, 1
-	strb r3, [r1, o_MusicPlayerTrack_repN]
+	strb r3, [r1, 0x3]
 	mov r12, r3
 	bl ld_r3_tp_adr_i
 	cmp r12, r3
@@ -891,9 +891,9 @@ ply_rept_1:
 	b ply_goto_1
 ply_rept_2:
 	movs r3, 0
-	strb r3, [r1, o_MusicPlayerTrack_repN]
+	strb r3, [r1, 0x3]
 	adds r2, 5
-	str r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r2, [r1, 0x40]
 	pop {r0}
 	bx r0
 	thumb_func_end ply_rept
@@ -902,7 +902,7 @@ ply_rept_2:
 ply_prio:
 	mov r12, lr
 	bl ld_r3_tp_adr_i
-	strb r3, [r1, o_MusicPlayerTrack_priority]
+	strb r3, [r1, 0x1d]
 	bx r12
 	thumb_func_end ply_prio
 
@@ -934,10 +934,10 @@ ply_keysh:
 	thumb_func_start ply_voice
 ply_voice:
 	mov r12, lr
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	ldrb r3, [r2]
 	adds r2, 1
-	str r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r2, [r1, 0x40]
 	lsls r2, r3, 1
 	adds r2, r3
 	lsls r2, 2
@@ -987,7 +987,7 @@ ply_bend:
 	subs r3, 0x40
 	strb r3, [r1, o_MusicPlayerTrack_bend]
 	ldrb r3, [r1, 0x0]
-	movs r2, MPT_FLG_PITCHG
+	movs r2, 0xc
 	orrs r3, r2
 	strb r3, [r1, 0x0]
 	bx r12
@@ -997,9 +997,9 @@ ply_bend:
 ply_bendr:
 	mov r12, lr
 	bl ld_r3_tp_adr_i
-	strb r3, [r1, o_MusicPlayerTrack_bendRange]
+	strb r3, [r1, 0xf]
 	ldrb r3, [r1, 0x0]
-	movs r2, MPT_FLG_PITCHG
+	movs r2, 0xc
 	orrs r3, r2
 	strb r3, [r1, 0x0]
 	bx r12
@@ -1017,12 +1017,12 @@ ply_lfodl:
 ply_modt:
 	mov r12, lr
 	bl ld_r3_tp_adr_i
-	ldrb r0, [r1, o_MusicPlayerTrack_modT]
+	ldrb r0, [r1, 0x18]
 	cmp r0, r3
 	beq _081DD7AA
-	strb r3, [r1, o_MusicPlayerTrack_modT]
+	strb r3, [r1, 0x18]
 	ldrb r3, [r1, 0x0]
-	movs r2, 0xc | MPT_FLG_PITCHG
+	movs r2, 0xc | 0xc
 	orrs r3, r2
 	strb r3, [r1, 0x0]
 _081DD7AA:
@@ -1034,9 +1034,9 @@ ply_tune:
 	mov r12, lr
 	bl ld_r3_tp_adr_i
 	subs r3, 0x40
-	strb r3, [r1, o_MusicPlayerTrack_tune]
+	strb r3, [r1, 0xc]
 	ldrb r3, [r1, 0x0]
-	movs r2, MPT_FLG_PITCHG
+	movs r2, 0xc
 	orrs r3, r2
 	strb r3, [r1, 0x0]
 	bx r12
@@ -1045,7 +1045,7 @@ ply_tune:
 	thumb_func_start ply_port
 ply_port:
 	mov r12, lr
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	ldrb r3, [r2]
 	adds r2, 1
 	ldr r0, =REG_SOUND1CNT_L @ sound register base address
@@ -1075,7 +1075,7 @@ m4aSoundVSync:
 	bgt m4aSoundVSync_Done
 
 	@ Reload the PCM DMA counter.
-	ldrb r1, [r0, o_SoundInfo_pcmDmaPeriod]
+	ldrb r1, [r0, 0xb]
 	strb r1, [r0, 0x4]
 
 	ldr r2, =REG_DMA1
@@ -1174,12 +1174,12 @@ _081DD886:
 	mov r10, r3
 	orrs r4, r3
 	mov r11, r4
-	ldr r4, [r5, o_MusicPlayerTrack_chan]
+	ldr r4, [r5, 0x20]
 	cmp r4, 0
 	beq _081DD8BA
 _081DD892:
-	ldrb r1, [r4, o_SoundChannel_statusFlags]
-	movs r0, SOUND_CHANNEL_SF_ON
+	ldrb r1, [r4, 0x0]
+	movs r0, 0xc7
 	tst r0, r1
 	beq _081DD8AE
 	ldrb r0, [r4, o_SoundChannel_gateTime]
@@ -1188,54 +1188,54 @@ _081DD892:
 	subs r0, 0x1
 	strb r0, [r4, o_SoundChannel_gateTime]
 	bne _081DD8B4
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	orrs r1, r0
-	strb r1, [r4, o_SoundChannel_statusFlags]
+	strb r1, [r4, 0x0]
 	b _081DD8B4
 _081DD8AE:
 	adds r0, r4, 0
 	bl ClearChain
 _081DD8B4:
-	ldr r4, [r4, o_SoundChannel_nextChannelPointer]
+	ldr r4, [r4, 0x34]
 	cmp r4, 0
 	bne _081DD892
 _081DD8BA:
 	ldrb r3, [r5, 0x0]
-	movs r0, MPT_FLG_START
+	movs r0, 0x40
 	tst r0, r3
 	beq _081DD938
 	adds r0, r5, 0
 	bl Clear64byte
-	movs r0, MPT_FLG_EXIST
+	movs r0, 0x80
 	strb r0, [r5, 0x0]
 	movs r0, 0x2
-	strb r0, [r5, o_MusicPlayerTrack_bendRange]
+	strb r0, [r5, 0xf]
 	movs r0, 0x40
-	strb r0, [r5, o_MusicPlayerTrack_volX]
+	strb r0, [r5, 0x13]
 	movs r0, 0x16
-	strb r0, [r5, o_MusicPlayerTrack_lfoSpeed]
+	strb r0, [r5, 0x19]
 	movs r0, 0x1
 	adds r1, r5, 0x6
 	strb r0, [r1, 0x24 - 0x6]
 	b _081DD938
 _081DD8E0:
-	ldr r2, [r5, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r5, 0x40]
 	ldrb r1, [r2]
 	cmp r1, 0x80
 	bhs _081DD8EC
-	ldrb r1, [r5, o_MusicPlayerTrack_runningStatus]
+	ldrb r1, [r5, 0x7]
 	b _081DD8F6
 _081DD8EC:
 	adds r2, 0x1
-	str r2, [r5, o_MusicPlayerTrack_cmdPtr]
+	str r2, [r5, 0x40]
 	cmp r1, 0xBD
 	bcc _081DD8F6
-	strb r1, [r5, o_MusicPlayerTrack_runningStatus]
+	strb r1, [r5, 0x7]
 _081DD8F6:
 	cmp r1, 0xCF
 	bcc _081DD90C
 	mov r0, r8
-	ldr r3, [r0, o_SoundInfo_plynote]
+	ldr r3, [r0, 0x38]
 	adds r0, r1, 0
 	subs r0, 0xCF
 	adds r1, r7, 0
@@ -1247,9 +1247,9 @@ _081DD90C:
 	bls _081DD92E
 	adds r0, r1, 0
 	subs r0, 0xB1
-	strb r0, [r7, o_MusicPlayerInfo_cmd]
+	strb r0, [r7, 0xa]
 	mov r3, r8
-	ldr r3, [r3, o_SoundInfo_MPlayJumpTable]
+	ldr r3, [r3, 0x34]
 	lsls r0, 2
 	ldr r3, [r3, r0]
 	adds r0, r7, 0
@@ -1264,29 +1264,29 @@ _081DD92E:
 	adds r1, r0
 	subs r1, 0x80
 	ldrb r0, [r1]
-	strb r0, [r5, o_MusicPlayerTrack_wait]
+	strb r0, [r5, 0x1]
 _081DD938:
-	ldrb r0, [r5, o_MusicPlayerTrack_wait]
+	ldrb r0, [r5, 0x1]
 	cmp r0, 0
 	beq _081DD8E0
 	subs r0, 0x1
-	strb r0, [r5, o_MusicPlayerTrack_wait]
-	ldrb r1, [r5, o_MusicPlayerTrack_lfoSpeed]
+	strb r0, [r5, 0x1]
+	ldrb r1, [r5, 0x19]
 	cmp r1, 0
 	beq _081DD994
-	ldrb r0, [r5, o_MusicPlayerTrack_mod]
+	ldrb r0, [r5, 0x17]
 	cmp r0, 0
 	beq _081DD994
-	ldrb r0, [r5, o_MusicPlayerTrack_lfoDelayC]
+	ldrb r0, [r5, 0x1C]
 	cmp r0, 0
 	beq _081DD95A
 	subs r0, 0x1
-	strb r0, [r5, o_MusicPlayerTrack_lfoDelayC]
+	strb r0, [r5, 0x1C]
 	b _081DD994
 _081DD95A:
-	ldrb r0, [r5, o_MusicPlayerTrack_lfoSpeedC]
+	ldrb r0, [r5, 0x1A]
 	adds r0, r1
-	strb r0, [r5, o_MusicPlayerTrack_lfoSpeedC]
+	strb r0, [r5, 0x1A]
 	adds r1, r0, 0
 	subs r0, 0x40
 	lsls r0, 24
@@ -1298,19 +1298,19 @@ _081DD96E:
 	movs r0, 0x80
 	subs r2, r0, r1
 _081DD972:
-	ldrb r0, [r5, o_MusicPlayerTrack_mod]
+	ldrb r0, [r5, 0x17]
 	muls r0, r2
 	asrs r2, r0, 6
-	ldrb r0, [r5, o_MusicPlayerTrack_modM]
+	ldrb r0, [r5, 0x16]
 	eors r0, r2
 	lsls r0, 24
 	beq _081DD994
-	strb r2, [r5, o_MusicPlayerTrack_modM]
+	strb r2, [r5, 0x16]
 	ldrb r0, [r5]
-	ldrb r1, [r5, o_MusicPlayerTrack_modT]
+	ldrb r1, [r5, 0x18]
 	cmp r1, 0
 	bne _081DD98E
-	movs r1, MPT_FLG_PITCHG
+	movs r1, 0xc
 	b _081DD990
 _081DD98E:
 	movs r1, 0xc
@@ -1354,26 +1354,26 @@ _081DD9C8:
 	movs r1, 0x80
 	tst r1, r0
 	beq _081DDA62
-	movs r1, 0xc | MPT_FLG_PITCHG
+	movs r1, 0xc | 0xc
 	tst r1, r0
 	beq _081DDA62
 	mov r9, r2
 	adds r0, r7, 0
 	adds r1, r5, 0
 	bl TrkVolPitSet
-	ldr r4, [r5, o_MusicPlayerTrack_chan]
+	ldr r4, [r5, 0x20]
 	cmp r4, 0
 	beq _081DDA58
 _081DD9E6:
-	ldrb r1, [r4, o_SoundChannel_statusFlags]
-	movs r0, SOUND_CHANNEL_SF_ON
+	ldrb r1, [r4, 0x0]
+	movs r0, 0xc7
 	tst r0, r1
 	bne _081DD9F6
 	adds r0, r4, 0
 	bl ClearChain
 	b _081DDA52
 _081DD9F6:
-	ldrb r0, [r4, o_SoundChannel_type]
+	ldrb r0, [r4, 0x1]
 	movs r6, TONEDATA_TYPE_CGB
 	ands r6, r0
 	ldrb r3, [r5, 0x0]
@@ -1389,7 +1389,7 @@ _081DD9F6:
 	strb r0, [r4, o_CgbChannel_modify]
 _081DDA14:
 	ldrb r3, [r5, 0x0]
-	movs r0, MPT_FLG_PITCHG
+	movs r0, 0xc
 	tst r0, r3
 	beq _081DDA52
 	ldrb r1, [r4, o_SoundChannel_key]
@@ -1416,11 +1416,11 @@ _081DDA28:
 _081DDA46:
 	adds r1, r2, 0
 	ldrb r2, [r5, o_MusicPlayerTrack_pitM]
-	ldr r0, [r4, o_SoundChannel_wav]
+	ldr r0, [r4, 0x24]
 	bl MidiKeyToFreq
-	str r0, [r4, o_SoundChannel_frequency]
+	str r0, [r4, 0x20]
 _081DDA52:
-	ldr r4, [r4, o_SoundChannel_nextChannelPointer]
+	ldr r4, [r4, 0x34]
 	cmp r4, 0
 	bne _081DD9E6
 _081DDA58:
@@ -1462,15 +1462,15 @@ TrackStop:
 	movs r0, MPT_FLG_EXIST
 	tst r0, r1
 	beq TrackStop_Done
-	ldr r4, [r5, o_MusicPlayerTrack_chan]
+	ldr r4, [r5, 0x20]
 	cmp r4, 0
 	beq TrackStop_3
 	movs r6, 0
 TrackStop_Loop:
-	ldrb r0, [r4, o_SoundChannel_statusFlags]
+	ldrb r0, [r4, 0x0]
 	cmp r0, 0
 	beq TrackStop_2
-	ldrb r0, [r4, o_SoundChannel_type]
+	ldrb r0, [r4, 0x1]
 	movs r3, TONEDATA_TYPE_CGB
 	ands r0, r3
 	beq TrackStop_1
@@ -1479,14 +1479,14 @@ TrackStop_Loop:
 	ldr r3, [r3, o_SoundInfo_CgbOscOff]
 	bl call_r3
 TrackStop_1:
-	strb r6, [r4, o_SoundChannel_statusFlags]
+	strb r6, [r4, 0x0]
 TrackStop_2:
-	str r6, [r4, o_SoundChannel_track]
-	ldr r4, [r4, o_SoundChannel_nextChannelPointer]
+	str r6, [r4, 0x2c]
+	ldr r4, [r4, 0x34]
 	cmp r4, 0
 	bne TrackStop_Loop
 TrackStop_3:
-	str r4, [r5, o_MusicPlayerTrack_chan]
+	str r4, [r5, 0x20]
 TrackStop_Done:
 	pop {r4-r6}
 	pop {r0}
@@ -1509,7 +1509,7 @@ ChnVolSetAsm:
 	bls _081DDAE8
 	movs r0, 0xFF
 _081DDAE8:
-	strb r0, [r4, o_SoundChannel_rightVolume]
+	strb r0, [r4, 0x2]
 	movs r3, 0x7F
 	subs r3, r2
 	muls r3, r1
@@ -1520,7 +1520,7 @@ _081DDAE8:
 	bls _081DDAFC
 	movs r0, 0xFF
 _081DDAFC:
-	strb r0, [r4, o_SoundChannel_leftVolume]
+	strb r0, [r4, 0x3]
 	bx lr
 	thumb_func_end ChnVolSetAsm
 
@@ -1542,7 +1542,7 @@ ply_note:
 	adds r0, r1
 	ldrb r0, [r0]
 	strb r0, [r5, o_MusicPlayerTrack_gateTime]
-	ldr r3, [r5, o_MusicPlayerTrack_cmdPtr]
+	ldr r3, [r5, 0x40]
 	ldrb r0, [r3]
 	cmp r0, 0x80
 	bhs _081DDB46
@@ -1561,7 +1561,7 @@ ply_note:
 	strb r1, [r5, o_MusicPlayerTrack_gateTime]
 	adds r3, 0x1
 _081DDB44:
-	str r3, [r5, o_MusicPlayerTrack_cmdPtr]
+	str r3, [r5, 0x40]
 _081DDB46:
 	movs r0, 0
 	str r0, [sp, 0x14]
@@ -1606,7 +1606,7 @@ _081DDB80:
 	lsls r1, 1
 	str r1, [sp, 0x14]
 _081DDB94:
-	ldrb r3, [r6, o_SoundChannel_type]
+	ldrb r3, [r6, 0x1]
 	b _081DDB9C
 _081DDB98:
 	mov r9, r4
@@ -1615,7 +1615,7 @@ _081DDB9C:
 	str r3, [sp, 0x8]
 	ldr r6, [sp]
 	ldrb r1, [r6, o_MusicPlayerInfo_priority]
-	ldrb r0, [r5, o_MusicPlayerTrack_priority]
+	ldrb r0, [r5, 0x1d]
 	adds r0, r1
 	cmp r0, 0xFF
 	bls _081DDBAC
@@ -1638,10 +1638,10 @@ _081DDBC4:
 	lsls r0, r6, 6
 	adds r4, r0
 	ldrb r1, [r4, o_CgbChannel_statusFlags]
-	movs r0, SOUND_CHANNEL_SF_ON
+	movs r0, 0xc7
 	tst r0, r1
 	beq _081DDC40
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	tst r0, r1
 	bne _081DDC40
 	ldrb r1, [r4, o_CgbChannel_priority]
@@ -1661,21 +1661,21 @@ _081DDBEC:
 	movs r2, 0
 	mov r8, r2
 	ldr r4, [sp, 0x4]
-	ldrb r3, [r4, o_SoundInfo_maxChans]
-	adds r4, o_SoundInfo_chans
+	ldrb r3, [r4, #0x6]
+	adds r4, 0x50
 _081DDBFA:
-	ldrb r1, [r4, o_SoundChannel_statusFlags]
-	movs r0, SOUND_CHANNEL_SF_ON
+	ldrb r1, [r4, 0x0]
+	movs r0, 0xc7
 	tst r0, r1
 	beq _081DDC40
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	tst r0, r1
 	beq _081DDC14
 	cmp r2, 0
 	bne _081DDC18
 	adds r2, 0x1
 	ldrb r6, [r4, o_SoundChannel_priority]
-	ldr r7, [r4, o_SoundChannel_track]
+	ldr r7, [r4, 0x2c]
 	b _081DDC32
 _081DDC14:
 	cmp r2, 0
@@ -1685,11 +1685,11 @@ _081DDC18:
 	cmp r0, r6
 	bcs _081DDC24
 	adds r6, r0, 0
-	ldr r7, [r4, o_SoundChannel_track]
+	ldr r7, [r4, 0x2c]
 	b _081DDC32
 _081DDC24:
 	bhi _081DDC34
-	ldr r0, [r4, o_SoundChannel_track]
+	ldr r0, [r4, 0x2c]
 	cmp r0, r7
 	bls _081DDC30
 	adds r7, r0, 0
@@ -1709,17 +1709,17 @@ _081DDC40:
 	adds r0, r4, 0
 	bl ClearChain
 	movs r1, 0
-	str r1, [r4, o_SoundChannel_prevChannelPointer]
-	ldr r3, [r5, o_MusicPlayerTrack_chan]
-	str r3, [r4, o_SoundChannel_nextChannelPointer]
+	str r1, [r4, 0x30]
+	ldr r3, [r5, 0x20]
+	str r3, [r4, 0x34]
 	cmp r3, 0
 	beq _081DDC54
-	str r4, [r3, o_SoundChannel_prevChannelPointer]
+	str r4, [r3, 0x30]
 _081DDC54:
-	str r4, [r5, o_MusicPlayerTrack_chan]
-	str r5, [r4, o_SoundChannel_track]
+	str r4, [r5, 0x20]
+	str r5, [r4, 0x2c]
 	ldrb r0, [r5, o_MusicPlayerTrack_lfoDelay]
-	strb r0, [r5, o_MusicPlayerTrack_lfoDelayC]
+	strb r0, [r5, 0x1C]
 	cmp r0, r1
 	beq _081DDC66
 	adds r1, r5, 0
@@ -1738,13 +1738,13 @@ _081DDC66:
 	strb r0, [r4, o_SoundChannel_rhythmPan]
 	mov r6, r9
 	ldrb r0, [r6, o_ToneData_type]
-	strb r0, [r4, o_SoundChannel_type]
+	strb r0, [r4, 0x1]
 	ldr r7, [r6, 0x4]
-	str r7, [r4, o_SoundChannel_wav]
+	str r7, [r4, 0x24]
 	ldr r0, [r6, 0x8]
 	str r0, [r4, o_SoundChannel_attack]
 	ldrh r0, [r5, o_MusicPlayerTrack_pseudoEchoVolume]
-	strh r0, [r4, o_SoundChannel_pseudoEchoVolume]
+	strh r0, [r4, 0xc]
 	bl ChnVolSetAsm
 	ldrb r1, [r4, o_SoundChannel_key]
 	movs r0, o_MusicPlayerTrack_keyM
@@ -1779,15 +1779,15 @@ _081DDCBC:
 	b _081DDCDC
 _081DDCCE:
 	ldr r0, [r5, o_MusicPlayerTrack_unk_3C]
-	str r0, [r4, o_SoundChannel_count]
+	str r0, [r4, 0x18]
 	ldrb r2, [r5, o_MusicPlayerTrack_pitM]
 	adds r1, r3, 0
 	adds r0, r7, 0
 	bl MidiKeyToFreq
 _081DDCDC:
-	str r0, [r4, o_SoundChannel_frequency]
-	movs r0, SOUND_CHANNEL_SF_START
-	strb r0, [r4, o_SoundChannel_statusFlags]
+	str r0, [r4, 0x20]
+	movs r0, 0x80
+	strb r0, [r4, 0x0]
 	ldrb r1, [r5, 0x0]
 	movs r0, 0xF0
 	ands r0, r1
@@ -1807,24 +1807,24 @@ _081DDCEA:
 	thumb_func_start ply_endtie
 ply_endtie:
 	push {r4,r5}
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	ldrb r3, [r2]
 	cmp r3, 0x80
 	bhs _081DDD16
 	strb r3, [r1, o_MusicPlayerTrack_key]
 	adds r2, 0x1
-	str r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r2, [r1, 0x40]
 	b _081DDD18
 _081DDD16:
 	ldrb r3, [r1, o_MusicPlayerTrack_key]
 _081DDD18:
-	ldr r1, [r1, o_MusicPlayerTrack_chan]
+	ldr r1, [r1, 0x20]
 	cmp r1, 0
 	beq _081DDD40
-	movs r4, SOUND_CHANNEL_SF_START | SOUND_CHANNEL_SF_ENV
-	movs r5, SOUND_CHANNEL_SF_STOP
+	movs r4, 0x80 | SOUND_CHANNEL_SF_ENV
+	movs r5, 0x40
 _081DDD22:
-	ldrb r2, [r1, o_SoundChannel_statusFlags]
+	ldrb r2, [r1, 0x0]
 	tst r2, r4
 	beq _081DDD3A
 	tst r2, r5
@@ -1832,12 +1832,12 @@ _081DDD22:
 	ldrb r0, [r1, o_SoundChannel_midiKey]
 	cmp r0, r3
 	bne _081DDD3A
-	movs r0, SOUND_CHANNEL_SF_STOP
+	movs r0, 0x40
 	orrs r2, r0
-	strb r2, [r1, o_SoundChannel_statusFlags]
+	strb r2, [r1, 0x0]
 	b _081DDD40
 _081DDD3A:
-	ldr r1, [r1, o_SoundChannel_nextChannelPointer]
+	ldr r1, [r1, 0x34]
 	cmp r1, 0
 	bne _081DDD22
 _081DDD40:
@@ -1848,12 +1848,12 @@ _081DDD40:
 	thumb_func_start clear_modM
 clear_modM:
 	movs r2, 0
-	strb r2, [r1, o_MusicPlayerTrack_modM]
-	strb r2, [r1, o_MusicPlayerTrack_lfoSpeedC]
-	ldrb r2, [r1, o_MusicPlayerTrack_modT]
+	strb r2, [r1, 0x16]
+	strb r2, [r1, 0x1A]
+	ldrb r2, [r1, 0x18]
 	cmp r2, 0
 	bne _081DDD54
-	movs r2, MPT_FLG_PITCHG
+	movs r2, 0xc
 	b _081DDD56
 _081DDD54:
 	movs r2, 0xc
@@ -1866,9 +1866,9 @@ _081DDD56:
 
 	thumb_func_start ld_r3_tp_adr_i
 ld_r3_tp_adr_i_unchecked:
-	ldr r2, [r1, o_MusicPlayerTrack_cmdPtr]
+	ldr r2, [r1, 0x40]
 	adds r3, r2, 1
-	str r3, [r1, o_MusicPlayerTrack_cmdPtr]
+	str r3, [r1, 0x40]
 	ldrb r3, [r2]
 	bx lr
 	thumb_func_end ld_r3_tp_adr_i
@@ -1877,7 +1877,7 @@ ld_r3_tp_adr_i_unchecked:
 ply_lfos:
 	mov r12, lr
 	bl ld_r3_tp_adr_i_unchecked
-	strb r3, [r1, o_MusicPlayerTrack_lfoSpeed]
+	strb r3, [r1, 0x19]
 	cmp r3, 0
 	bne _081DDD7C
 	bl clear_modM
@@ -1889,7 +1889,7 @@ _081DDD7C:
 ply_mod:
 	mov r12, lr
 	bl ld_r3_tp_adr_i_unchecked
-	strb r3, [r1, o_MusicPlayerTrack_mod]
+	strb r3, [r1, 0x17]
 	cmp r3, 0
 	bne _081DDD90
 	bl clear_modM
