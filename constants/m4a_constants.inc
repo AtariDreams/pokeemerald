@@ -1,45 +1,45 @@
 #ifndef GUARD_CONSTANTS_M4A_CONSTANTS_INC
 #define GUARD_CONSTANTS_M4A_CONSTANTS_INC
 
-	.set ID_NUMBER, 0x68736d53
+	.equiv ID_NUMBER, 0x68736d53
 
-	.set PCM_DMA_BUF_SIZE, 1584
-	.set MAX_DIRECTSOUND_CHANNELS, 12
+	.equiv PCM_DMA_BUF_SIZE, 1584
+	.equiv MAX_DIRECTSOUND_CHANNELS, 12
 
-	.set C_V, 0x40
+	.equiv C_V, 0x40
 
-	.set TONEDATA_TYPE_CGB, 0x07
-	.set TONEDATA_TYPE_FIX, 0x08
-	.set TONEDATA_TYPE_REV, 0x10
-	.set TONEDATA_TYPE_CMP, 0x20
-	.set TONEDATA_TYPE_SPL, 0x40 @ key split
-	.set TONEDATA_TYPE_RHY, 0x80 @ rhythm
+	.equiv TONEDATA_TYPE_CGB, 0x07
+	.equiv TONEDATA_TYPE_FIX, 0x08
+	.equiv TONEDATA_TYPE_REV, 0x10
+	.equiv TONEDATA_TYPE_CMP, 0x20
+	.equiv TONEDATA_TYPE_SPL, 0x40 @ key split
+	.equiv TONEDATA_TYPE_RHY, 0x80 @ rhythm
 
-	.set TONEDATA_P_S_PAN,  0xc0
+	.equiv TONEDATA_P_S_PAN,  0xc0
 
-	.set SOUND_CHANNEL_SF_START,       0x80
-	.set SOUND_CHANNEL_SF_STOP,        0x40
-	.set SOUND_CHANNEL_SF_SPECIAL,     0x20
-	.set SOUND_CHANNEL_SF_LOOP,        0x10
-	.set SOUND_CHANNEL_SF_IEC,         0x04
-	.set SOUND_CHANNEL_SF_ENV,         0x03
-	.set SOUND_CHANNEL_SF_ENV_ATTACK,  0x03
-	.set SOUND_CHANNEL_SF_ENV_DECAY,   0x02
-	.set SOUND_CHANNEL_SF_ENV_SUSTAIN, 0x01
-	.set SOUND_CHANNEL_SF_ENV_RELEASE, 0x00
-	.set SOUND_CHANNEL_SF_ON, (SOUND_CHANNEL_SF_START | SOUND_CHANNEL_SF_STOP | SOUND_CHANNEL_SF_IEC | SOUND_CHANNEL_SF_ENV)
+	.equiv SOUND_CHANNEL_SF_START,       0x80
+	.equiv SOUND_CHANNEL_SF_STOP,        0x40
+	.equiv SOUND_CHANNEL_SF_SPECIAL,     0x20
+	.equiv SOUND_CHANNEL_SF_LOOP,        0x10
+	.equiv SOUND_CHANNEL_SF_IEC,         0x04
+	.equiv SOUND_CHANNEL_SF_ENV,         0x03
+	.equiv SOUND_CHANNEL_SF_ENV_ATTACK,  0x03
+	.equiv SOUND_CHANNEL_SF_ENV_DECAY,   0x02
+	.equiv SOUND_CHANNEL_SF_ENV_SUSTAIN, 0x01
+	.equiv SOUND_CHANNEL_SF_ENV_RELEASE, 0x00
+	.equiv SOUND_CHANNEL_SF_ON, (SOUND_CHANNEL_SF_START | SOUND_CHANNEL_SF_STOP | SOUND_CHANNEL_SF_IEC | SOUND_CHANNEL_SF_ENV)
 
-	.set CGB_CHANNEL_MO_PIT, 0x02
-	.set CGB_CHANNEL_MO_VOL, 0x01
+	.equiv CGB_CHANNEL_MO_PIT, 0x02
+	.equiv CGB_CHANNEL_MO_VOL, 0x01
 
-	.set WAVE_DATA_FLAG_LOOP, 0xC0
+	.equiv WAVE_DATA_FLAG_LOOP, 0xC0
 
-	.set MPT_FLG_VOLSET, 0x01
-	.set MPT_FLG_VOLCHG, 0x03
-	.set MPT_FLG_PITSET, 0x04
-	.set MPT_FLG_PITCHG, 0x0C
-	.set MPT_FLG_START,  0x40
-	.set MPT_FLG_EXIST,  0x80
+	.equiv MPT_FLG_VOLSET, 0x01
+	.equiv MPT_FLG_VOLCHG, 0x03
+	.equiv MPT_FLG_PITSET, 0x04
+	.equiv MPT_FLG_PITCHG, 0x0C
+	.equiv MPT_FLG_START,  0x40
+	.equiv MPT_FLG_EXIST,  0x80
 
 	.macro struct_begin
 	.struct 0
@@ -187,7 +187,7 @@
 	struct_field o_MusicPlayerTrack_patternStack, 12
 	struct_field MusicPlayerTrack_size, 0
 
-	.set o_MusicPlayerTrack_ToneData_keySplitTable, o_MusicPlayerTrack_ToneData_attack
+	.equiv o_MusicPlayerTrack_ToneData_keySplitTable, o_MusicPlayerTrack_ToneData_attack
 
 	struct_begin
 	struct_field o_MusicPlayerInfo_songHeader, 4

@@ -1,8 +1,8 @@
-	.set TRACK_SIZE, 0x50
-	.set NUM_TRACKS_BGM, 10
-	.set NUM_TRACKS_SE1, 3
-	.set NUM_TRACKS_SE2, 9
-	.set NUM_TRACKS_SE3, 1
+	.equiv TRACK_SIZE, 0x50
+	.equiv NUM_TRACKS_BGM, 10
+	.equiv NUM_TRACKS_SE1, 3
+	.equiv NUM_TRACKS_SE2, 9
+	.equiv NUM_TRACKS_SE3, 1
 
     .bss
 
