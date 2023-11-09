@@ -380,14 +380,14 @@ endif
 
 ifeq ($(NODEP),1)
 $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.s
-	@$(CPP) $(CPPFLAGS) $< -o $(GFLIB_BUILDDIR)/$*.i
+	@$(CPP) $(CPPFLAGS) $< -o $(C_BUILDDIR)/$*.i
 	@$(PREPROC) $(C_BUILDDIR)/$*.i charmap.txt >> $(C_BUILDDIR)/$*.tmp.i
 	$(AS) $(ASFLAGS) -o $@ $(C_BUILDDIR)/$*.tmp.i
 	@rm -f $(C_BUILDDIR)/$*.tmp.i
 else
 define SRC_ASM_DATA_DEP
 $1: $2 $$(shell $(SCANINC) -I include -I "" $2)
-	@$$(CPP) $$(CPPFLAGS) $$< -o $$(GFLIB_BUILDDIR)/$3.i
+	@$$(CPP) $$(CPPFLAGS) $$< -o $$(C_BUILDDIR)/$3.i
 	@$$(PREPROC) $$(C_BUILDDIR)/$3.i charmap.txt >> $$(C_BUILDDIR)/$3.tmp.i
 	$$(AS) $$(ASFLAGS) -o $@ $$(C_BUILDDIR)/$3.tmp.i
 	@rm -f $$(C_BUILDDIR)/$3.tmp.i
@@ -408,7 +408,10 @@ endif
 
 ifeq ($(NODEP),1)
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
-	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
+	@$(CPP) $(CPPFLAGS) $< -o $(DATA_ASM_BUILDDIR)/$*.i
+	@$(PREPROC) $(DATA_ASM_BUILDDIR)/$*.i charmap.txt >> $(DATA_ASM_BUILDDIR)/$*.tmp.i
+	$(AS) $(ASFLAGS) -o $@ $(DATA_ASM_BUILDDIR)/$*.tmp.i
+	@rm -f $$(DATA_ASM_BUILDDIR)/$3.tmp.i
 else
 $(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
