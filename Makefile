@@ -21,9 +21,9 @@ endif
 PREFIX := arm-none-eabi-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := clang --sysroot $(DEVKITARM)/arm-none-eabi -c
+AS := arm-none-eabi-as
 
-LD := clang
+LD := $(PREFIX)ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
@@ -96,7 +96,7 @@ DATA_ASM_BUILDDIR = $(OBJ_DIR)/$(DATA_ASM_SUBDIR)
 SONG_BUILDDIR = $(OBJ_DIR)/$(SONG_SUBDIR)
 MID_BUILDDIR = $(OBJ_DIR)/$(MID_SUBDIR)
 
-ASFLAGS := -target arm-none-eabi -mcpu=arm7tdmi -D MODERN=$(MODERN)
+ASFLAGS := -mcpu=arm7tdmi -D MODERN=$(MODERN)
 
 ifeq ($(MODERN),0)
 CC1             := tools/agbcc/bin/agbcc$(EXE)
