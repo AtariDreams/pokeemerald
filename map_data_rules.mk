@@ -11,7 +11,7 @@ MAP_HEADERS := $(patsubst $(MAPS_DIR)/%/,$(MAPS_DIR)/%/header.inc,$(MAP_DIRS))
 $(DATA_ASM_BUILDDIR)/maps.o: $(DATA_ASM_SUBDIR)/maps.s $(LAYOUTS_DIR)/layouts.inc $(LAYOUTS_DIR)/layouts_table.inc $(MAPS_DIR)/headers.inc $(MAPS_DIR)/groups.inc $(MAPS_DIR)/connections.inc $(MAP_CONNECTIONS) $(MAP_HEADERS)
 	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
 $(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_DIR)/events.inc $(MAP_EVENTS)
-	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi-o $@
+	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
 
 $(MAPS_DIR)/%/header.inc: $(MAPS_DIR)/%/map.json
 	$(MAPJSON) map emerald $< $(LAYOUTS_DIR)/layouts.json
