@@ -94,7 +94,7 @@ _081DCEC4:
 	ldrsb r1, [r7], 0x1
 	add r0, r0, r1
 	mul r1, r0, r3
-	mov r0, r1, asr 9
+	asr r0, r1, #9
 	tst r0, 0x80
 	addne r0, r0, 0x1
 	strb r0, [r5, r6]
@@ -292,8 +292,8 @@ _081DD044:
 	bl SoundMainRAM_Unk1
 	b _081DD228
 _081DD068:
-	mov r10, r10, lsl 16
-	mov r11, r11, lsl 16
+	mov r10, r10, lsl #16
+	mov r11, r11, lsl #16
 	ldrb r0, [r4, 0x1]
 	tst r0, 0x8
 	beq _081DD19C
@@ -316,10 +316,10 @@ _081DD0B0:
 	ldrsb r0, [r3], 0x1
 	mul r1, r10, r0
 	bic r1, r1, 0xFF0000
-	add r6, r1, r6, ror 8
+	add r6, r1, r6, ror #8
 	mul r1, r11, r0
 	bic r1, r1, 0xFF0000
-	add r7, r1, r7, ror 8
+	add r7, r1, r7, ror #8
 	adds r5, r5, 0x40000000
 	bcc _081DD0B0
 	str r7, [r5, 1584]
@@ -335,10 +335,10 @@ _081DD0F4:
 	ldrsb r0, [r3], 0x1
 	mul r1, r10, r0
 	bic r1, r1, 0xFF0000
-	add r6, r1, r6, ror 8
+	add r6, r1, r6, ror #8
 	mul r1, r11, r0
 	bic r1, r1, 0xFF0000
-	add r7, r1, r7, ror 8
+	add r7, r1, r7, ror #8
 	subs r2, r2, 0x1
 	beq _081DD164
 _081DD118:
@@ -371,10 +371,10 @@ _081DD164:
 	bne _081DD118
 _081DD174:
 	strb r2, [r4, 0x0]
-	mov r0, r5, lsr 30
+	mov r0, r5, lsr #30
 	bic r5, r5, 0xC0000000
 	rsb r0, r0, 0x3
-	mov r0, r0, lsl 3
+	mov r0, r0, lsl #3
 	mov r6, r6, ror r0
 	mov r7, r7, ror r0
 	str r7, [r5, 1584]
@@ -392,15 +392,15 @@ _081DD1B4:
 	ldr r7, [r5, 1584]
 _081DD1BC:
 	mul lr, r9, r1
-	add lr, r0, lr, asr 23
+	add lr, r0, lr, asr #23
 	mul r12, r10, lr
 	bic r12, r12, 0xFF0000
-	add r6, r12, r6, ror 8
+	add r6, r12, r6, ror #8
 	mul r12, r11, lr
 	bic r12, r12, 0xFF0000
-	add r7, r12, r7, ror 8
+	add r7, r12, r7, ror #8
 	add r9, r9, r4
-	movs lr, r9, lsr 23
+	movs lr, r9, lsr #23
 	beq _081DD208
 	bic r9, r9, 0x3F800000
 	subs r2, r2, lr
@@ -465,7 +465,7 @@ SoundMainRAM_Unk1:
 	tst r0, 0x10
 	beq _081DD29C
 	ldr r1, [r6, 0xc]
-	add r1, r1, r6, lsl 1
+	add r1, r1, r6, lsl #1
 	add r1, r1, 0x20
 	sub r3, r1, r3
 	str r3, [r4, 0x28]
@@ -478,8 +478,8 @@ _081DD29C:
 	str r3, [r4, 0x28]
 _081DD2B4:
 	push {r8,r12,lr}
-	mov r10, r10, lsl 16
-	mov r11, r11, lsl 16
+	mov r10, r10, lsl #16
+	mov r11, r11, lsl #16
 	ldr r1, [r4, 0x20]
 	ldrb r0, [r4, 0x1]
 	tst r0, 0x8
@@ -503,15 +503,15 @@ _081DD308:
 	ldr r7, [r5, 1584]
 _081DD310:
 	mul lr, r9, r1
-	add lr, r0, lr, asr 23
+	add lr, r0, lr, asr #23
 	mul r12, r10, lr
 	bic r12, r12, 0xFF0000
-	add r6, r12, r6, ror 8
+	add r6, r12, r6, ror #8
 	mul r12, r11, lr
 	bic r12, r12, 0xFF0000
-	add r7, r12, r7, ror 8
+	add r7, r12, r7, ror #8
 	add r9, r9, r8
-	movs lr, r9, lsr 23
+	movs lr, r9, lsr #23
 	beq _081DD370
 	bic r9, r9, 0x3F800000
 	subs r2, r2, lr
@@ -563,15 +563,15 @@ _081DD3D8:
 	ldr r7, [r5, 1584]
 _081DD3E0:
 	mul lr, r9, r1
-	add lr, r0, lr, asr 23
+	add lr, r0, lr, asr #23
 	mul r12, r10, lr
 	bic r12, r12, 0xFF0000
-	add r6, r12, r6, ror 8
+	add r6, r12, r6, ror #8
 	mul r12, r11, lr
 	bic r12, r12, 0xFF0000
-	add r7, r12, r7, ror 8
+	add r7, r12, r7, ror #8
 	add r9, r9, r8
-	movs lr, r9, lsr 23
+	movs lr, r9, lsr #23
 	beq _081DD440
 	bic r9, r9, 0x3F800000
 	subs r2, r2, lr
@@ -603,29 +603,29 @@ _081DD468:
 	ldrb r0, [r4, 0x1]
 	tst r0, 0x10
 	beq _081DD4F0
-	ldrsb r0, [r3, -0x1]!
-	ldrsb r1, [r3, -0x1]
+	ldrsb r0, [r3, #-0x1]!
+	ldrsb r1, [r3, #-0x1]
 	sub r1, r1, r0
 _081DD480:
 	ldr r6, [r5]
 	ldr r7, [r5, 0x630]
 _081DD488:
 	mul lr, r9, r1
-	add lr, r0, lr, asr 23
+	add lr, r0, lr, asr #23
 	mul r12, r10, lr
 	bic r12, r12, 0xFF0000
-	add r6, r12, r6, ror 8
+	add r6, r12, r6, ror #8
 	mul r12, r11, lr
 	bic r12, r12, 0xFF0000
-	add r7, r12, r7, ror 8
+	add r7, r12, r7, ror #8
 	add r9, r9, r8
-	movs lr, r9, lsr 23
+	movs lr, r9, lsr #23
 	beq _081DD4CC
 	bic r9, r9, 0x3F800000
 	subs r2, r2, lr
 	ble _081DD4F4
 	ldrsb r0, [r3, -lr]!
-	ldrsb r1, [r3, -0x1]
+	ldrsb r1, [r3, #-0x1]
 	sub r1, r1, r0
 _081DD4CC:
 	adds r5, r5, 0x40000000
@@ -642,10 +642,10 @@ _081DD4F0:
 _081DD4F4:
 	mov r2, 0
 	strb r2, [r4, 0x0]
-	mov r0, r5, lsr 30
+	mov r0, r5, lsr #30
 	bic r5, r5, 0xC0000000
 	rsb r0, r0, 0x3
-	mov r0, r0, lsl 3
+	mov r0, r0, lsl #3
 	mov r6, r6, ror r0
 	mov r7, r7, ror r0
 	str r7, [r5, 0x630]
@@ -657,14 +657,14 @@ _081DD4F4:
 	arm_func_start SoundMainRAM_Unk2
 SoundMainRAM_Unk2:
 	push {r0,r2,r5-r7,lr}
-	mov r0, r3, lsr 6
+	mov r0, r3, lsr #6
 	ldr r1, [r4, 0x3c]
 	cmp r0, r1
 	beq _081DD594
 	str r0, [r4, 0x3c]
 	@ mov r1, 0x21
 	@ mul r2, r1, r0
-	add r2, r0, r0, lsl 5
+	add r2, r0, r0, lsl #5
 	ldr r1, [r4, 0x24]
 	add r2, r2, r1
 	add r2, r2, 0x10
@@ -677,7 +677,7 @@ SoundMainRAM_Unk2:
 	b _081DD57C
 _081DD568:
 	ldrb r1, [r2], 1
-	mov r0, r1, lsr 4
+	mov r0, r1, lsr #4
 	ldrsb r0, [r6, r0]
 	add lr, lr, r0
 	strb lr, [r5], 1
