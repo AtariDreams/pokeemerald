@@ -408,17 +408,14 @@ endif
 
 ifeq ($(NODEP),1)
 $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
-	@$(CPP) -I include $< -o $(DATA_ASM_BUILDDIR)/$*.tmp.s
-	@$(PREPROC) $(DATA_ASM_BUILDDIR)/$*.tmp.s charmap.txt >> $(DATA_ASM_BUILDDIR)/$*.tmp2.s
-	$(AS) $(ASFLAGS) -o $@ $(DATA_ASM_BUILDDIR)/$*.tmp2.s
-	@rm -f $(DATA_ASM_BUILDDIR)/$*.tmp2.s
+	$(PREPROC) $< charmap.txt | arm-none-eabi-cpp -I include - | arm-none-eabi-as -mcpu=arm7tdmi -o $@
 else
 $(foreach src, $(REGULAR_DATA_ASM_SRCS), $(eval $(call SRC_ASM_DATA_DEP,$(patsubst $(DATA_ASM_SUBDIR)/%.s,$(DATA_ASM_BUILDDIR)/%.o, $(src)),$(src))))
 endif
 endif
 
 $(SONG_BUILDDIR)/%.o: $(SONG_SUBDIR)/%.s
-	$(AS) $(ASFLAGS) -I sound -o $@ $<
+	arm-none-eabi-as -mcpu=arm7tdmi -I sound -o $@ $<
 
 $(OBJ_DIR)/sym_bss.ld: sym_bss.txt
 	$(RAMSCRGEN) .bss $< ENGLISH > $@
