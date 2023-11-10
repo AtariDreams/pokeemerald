@@ -4931,8 +4931,8 @@ static void Task_OpenCenterWhiteColumn(u8 taskId)
                                     WININ_WIN0_OBJ);
     }
 
-    SetGpuReg(REG_OFFSET_WIN0H, WIN_RANGE2(sTradeAnim->wirelessWinLeft, sTradeAnim->wirelessWinRight));
-    SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE2(sTradeAnim->wirelessWinTop, sTradeAnim->wirelessWinBottom));
+    SetGpuReg(REG_OFFSET_WIN0H, WIN_RANGE(sTradeAnim->wirelessWinLeft, sTradeAnim->wirelessWinRight));
+    SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE(sTradeAnim->wirelessWinTop, sTradeAnim->wirelessWinBottom));
 
     data[0]++;
     sTradeAnim->wirelessWinLeft -= 5;
@@ -4956,8 +4956,8 @@ static void Task_CloseCenterWhiteColumn(u8 taskId)
                                     WININ_WIN0_OBJ);
     }
 
-    SetGpuReg(REG_OFFSET_WIN0H, WIN_RANGE2(sTradeAnim->wirelessWinLeft, sTradeAnim->wirelessWinRight));
-    SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE2(sTradeAnim->wirelessWinTop, sTradeAnim->wirelessWinBottom));
+    SetGpuReg(REG_OFFSET_WIN0H, WIN_RANGE(sTradeAnim->wirelessWinLeft, sTradeAnim->wirelessWinRight));
+    SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE(sTradeAnim->wirelessWinTop, sTradeAnim->wirelessWinBottom));
 
     if (sTradeAnim->wirelessWinLeft != DISPLAY_WIDTH / 2)
     {
