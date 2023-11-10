@@ -1352,6 +1352,7 @@ static void SpriteCB_HofConfetti(struct Sprite *sprite)
     if (sprite->y2 > 120)
     {
         DestroySprite(sprite);
+        return;
     }
     else
     {
