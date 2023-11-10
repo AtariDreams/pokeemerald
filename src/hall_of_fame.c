@@ -1458,7 +1458,7 @@ static void UpdateDomeConfetti(struct ConfettiUtil *util)
 static void Task_DoDomeConfetti(u8 taskId)
 {
     u32 id = 0;
-    u16 *data = gTasks[taskId].data;
+    s16 *data = gTasks[taskId].data;
 
     switch (tState)
     {
@@ -1472,10 +1472,10 @@ static void Task_DoDomeConfetti(u8 taskId)
         }
         LoadCompressedSpriteSheet(sSpriteSheet_Confetti);
         LoadCompressedSpritePalette(sSpritePalette_Confetti);
-        tState++;
+        tState = 1;
         break;
     case 1:
-        if (tTimer != 0 && tTimer % 3 == 0)
+        if (tTimer > 0 && tTimer % 3 == 0)
         {
             // Create new confetti every 3 frames
             id = ConfettiUtil_AddNew(&sOamData_Confetti,
@@ -1499,7 +1499,7 @@ static void Task_DoDomeConfetti(u8 taskId)
         }
 
         ConfettiUtil_Update();
-        if (tTimer != 0)
+        if (tTimer > 0)
             tTimer--;
         else if (tConfettiCount == 0)
             tState = 0xFF;
