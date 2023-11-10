@@ -1,12 +1,12 @@
 #include "gba/gba.h"
 #include "gba/flash_internal.h"
 
-const u16 mxMaxTime[] =
+static const u16 mxMaxTime[][3] =
 {
-      10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
-      10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
-    2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
-    2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK,
+      {10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
+      {10, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
+    {2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
+    {2000, 65469, TIMER_ENABLE | TIMER_INTR_ENABLE | TIMER_256CLK},
 };
 
 const struct FlashSetupInfo MX29L010 =
@@ -58,16 +58,16 @@ u16 EraseFlashChip_MX(void)
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
 
-    FLASH_WRITE(0x5555, 0xAA);
-    FLASH_WRITE(0x2AAA, 0x55);
-    FLASH_WRITE(0x5555, 0x80);
-    FLASH_WRITE(0x5555, 0xAA);
-    FLASH_WRITE(0x2AAA, 0x55);
-    FLASH_WRITE(0x5555, 0x10);
+	*(vu8 *)COM_ADR1=0xaa;
+	*(vu8 *)COM_ADR2=0x55;
+	*(vu8 *)COM_ADR1=0x80;
+	*(vu8 *)COM_ADR1=0xaa;
+	*(vu8 *)COM_ADR2=0x55;
+	*(vu8 *)COM_ADR1=0x10;
 
     SetReadFlash1(readFlash1Buffer);
 
-    result = WaitForFlashWrite(3, FLASH_BASE, 0xFF);
+    result = WaitForFlashWrite(3, (vu8*)FLASH_ADR, 0xFF);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
@@ -76,37 +76,41 @@ u16 EraseFlashChip_MX(void)
 
 u16 EraseFlashSector_MX(u16 sectorNum)
 {
-    u16 numTries;
-    u16 result;
     vu8 *addr;
-    u16 readFlash1Buffer[0x20];
+    u16 readFlash1Buffer[0x20], result;
+
+    u32 numTries;
 
     if (sectorNum >= gFlash->sector.count)
-        return 0x80FF;
+        return RESULT_ERROR | PHASE_PARAMETER_CHECK;
 
-    SwitchFlashBank(sectorNum / SECTORS_PER_BANK);
-    sectorNum %= SECTORS_PER_BANK;
+    SwitchFlashBank(sectorNum >> 4);
+    sectorNum &= 0xf;
 
-    for (numTries = 0; numTries < 4; numTries++)
+    numTries = 0;
+
+erase_again:
+    REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
+
+    addr = (vu8*)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
+
+    *(vu8 *)COM_ADR1 = 0xaa;
+    *(vu8 *)COM_ADR2 = 0x55;
+    *(vu8 *)COM_ADR1 = 0x80;
+    *(vu8 *)COM_ADR1 = 0xaa;
+    *(vu8 *)COM_ADR2 = 0x55;
+    *addr = 0x30;
+
+    SetReadFlash1(readFlash1Buffer);
+
+    result = WaitForFlashWrite(2, addr, 0xFF);
+
+    if ((result & (RESULT_ERROR | RESULT_Q5TIMEOUT)) != 0 && (numTries < 3))
     {
-        REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
-
-        addr = FLASH_BASE + (sectorNum << gFlash->sector.shift);
-
-        FLASH_WRITE(0x5555, 0xAA);
-        FLASH_WRITE(0x2AAA, 0x55);
-        FLASH_WRITE(0x5555, 0x80);
-        FLASH_WRITE(0x5555, 0xAA);
-        FLASH_WRITE(0x2AAA, 0x55);
-        *addr = 0x30;
-
-        SetReadFlash1(readFlash1Buffer);
-
-        result = WaitForFlashWrite(2, addr, 0xFF);
-
-        if (result & 0xA000)
-            break;
+        numTries++;
+        goto erase_again;
     }
+
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
     return result;
@@ -118,20 +122,20 @@ u16 ProgramFlashByte_MX(u16 sectorNum, u32 offset, u8 data)
     u16 readFlash1Buffer[0x20];
 
     if (offset >= gFlash->sector.size)
-        return 0x8000;
+        return RESULT_ERROR|PHASE_PARAMETER_CHECK;
 
-    SwitchFlashBank(sectorNum / SECTORS_PER_BANK);
-    sectorNum %= SECTORS_PER_BANK;
+    SwitchFlashBank(sectorNum >> 4);
+    sectorNum &= 0xF;
 
-    addr = FLASH_BASE + (sectorNum << gFlash->sector.shift) + offset;
+    addr = (vu8*)(FLASH_ADR + (sectorNum << gFlash->sector.shift) + offset);
 
     SetReadFlash1(readFlash1Buffer);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
 
-    FLASH_WRITE(0x5555, 0xAA);
-    FLASH_WRITE(0x2AAA, 0x55);
-    FLASH_WRITE(0x5555, 0xA0);
+    *(vu8 *)COM_ADR1 = 0xaa;
+    *(vu8 *)COM_ADR2 = 0x55;
+    *(vu8 *)COM_ADR1 = 0xa0;
     *addr = data;
 
     return WaitForFlashWrite(1, addr, data);
@@ -139,9 +143,9 @@ u16 ProgramFlashByte_MX(u16 sectorNum, u32 offset, u8 data)
 
 static u16 ProgramByte(vu8 *src, vu8 *dest)
 {
-    FLASH_WRITE(0x5555, 0xAA);
-    FLASH_WRITE(0x2AAA, 0x55);
-    FLASH_WRITE(0x5555, 0xA0);
+	*(vu8 *)COM_ADR1=0xaa;
+	*(vu8 *)COM_ADR2=0x55;
+	*(vu8 *)COM_ADR1=0xa0;
     *dest = *src;
 
     return WaitForFlashWrite(1, dest, *src);
@@ -149,29 +153,26 @@ static u16 ProgramByte(vu8 *src, vu8 *dest)
 
 u16 ProgramFlashSector_MX(u16 sectorNum, vu8 *src)
 {
-    u16 result;
     vu8 *dest;
-    u16 readFlash1Buffer[0x20];
+    u16 result, readFlash1Buffer[0x20];
 
     if (sectorNum >= gFlash->sector.count)
-        return 0x80FF;
+        return RESULT_ERROR|PHASE_PARAMETER_CHECK;
 
-    result = EraseFlashSector_MX(sectorNum);
+	if((result=EraseFlashSector_MX(sectorNum)))
+		return result;
 
-    if (result != 0)
-        return result;
-
-    SwitchFlashBank(sectorNum / SECTORS_PER_BANK);
-    sectorNum %= SECTORS_PER_BANK;
+    SwitchFlashBank(sectorNum >> 4);
+    sectorNum &= 0xF;
 
     SetReadFlash1(readFlash1Buffer);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
 
     gFlashNumRemainingBytes = gFlash->sector.size;
-    dest = FLASH_BASE + (sectorNum << gFlash->sector.shift);
+    dest = (vu8*)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
 
-    while (gFlashNumRemainingBytes > 0)
+    while (gFlashNumRemainingBytes)
     {
         result = ProgramByte(src, dest);
 

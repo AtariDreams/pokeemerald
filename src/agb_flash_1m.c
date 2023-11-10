@@ -12,8 +12,7 @@ static const struct FlashSetupInfo * const sSetupInfos[] =
 
 u16 IdentifyFlash(void)
 {
-    u16 result;
-    u16 flashId;
+    u16 result, flashId;
     const struct FlashSetupInfo * const *setupInfo;
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
@@ -23,11 +22,8 @@ u16 IdentifyFlash(void)
     setupInfo = sSetupInfos;
     result = 1;
 
-    for (;;)
+    while((*setupInfo)->type.ids.separate.makerId)
     {
-        if ((*setupInfo)->type.ids.separate.makerId == 0)
-            break;
-
         if (flashId == (*setupInfo)->type.ids.joined)
         {
             result = 0;
@@ -55,8 +51,11 @@ u16 WaitForFlashWrite_Common(u8 phase, vu8 *addr, u8 lastData)
 
     StartFlashTimer(phase);
 
-    while ((status = PollFlashStatus(addr)) != lastData)
+    for (;;)
     {
+        status = PollFlashStatus(addr);
+        if (status == lastData)
+            break;
         if (status & 0x20)
         {
             // The write operation exceeded the flash chip's time limit.
@@ -64,8 +63,8 @@ u16 WaitForFlashWrite_Common(u8 phase, vu8 *addr, u8 lastData)
             if (PollFlashStatus(addr) == lastData)
                 break;
 
-            FLASH_WRITE(0x5555, 0xF0);
-            result = phase | 0xA000u;
+            *(vu8 *)COM_ADR1=0xf0; // command reset
+            result=RESULT_ERROR|RESULT_Q5TIMEOUT|phase;
             break;
         }
 
@@ -74,8 +73,8 @@ u16 WaitForFlashWrite_Common(u8 phase, vu8 *addr, u8 lastData)
             if (PollFlashStatus(addr) == lastData)
                 break;
 
-            FLASH_WRITE(0x5555, 0xF0);
-            result = phase | 0xC000u;
+            *(vu8 *)COM_ADR1=0xf0; // command reset
+            result=RESULT_ERROR|RESULT_TIMEOUT|phase;
             break;
         }
     }
