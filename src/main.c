@@ -306,6 +306,7 @@ void SetSerialCallback(IntrCallback callback)
 
 static void VBlankIntr(void)
 {
+    m4aSoundVSync();
     if (gWirelessCommType != 0)
         RfuVSync();
     else if (gLinkVSyncDisabled == FALSE)
@@ -324,15 +325,16 @@ static void VBlankIntr(void)
     CopyBufferedValuesToGpuRegs();
     ProcessDma3Requests();
 
-    gPcmDmaCounter = gSoundInfo.pcmDmaCounter;
-
-    m4aSoundMain();
     TryReceiveLinkBattleData();
 
     if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
         Random();
 
     UpdateWirelessStatusIndicatorSprite();
+
+    gPcmDmaCounter = gSoundInfo.pcmDmaCounter;
+
+    m4aSoundMain();
 
     INTR_CHECK |= INTR_FLAG_VBLANK;
 }
@@ -355,7 +357,7 @@ static void VCountIntr(void)
     if (gMain.vcountCallback)
         gMain.vcountCallback();
 
-    m4aSoundVSync();
+
     INTR_CHECK |= INTR_FLAG_VCOUNT;
 }
 
