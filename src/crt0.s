@@ -1,4 +1,5 @@
 	.syntax unified
+	.include "constants/gba_constants.inc"
 
 	.arm
 
