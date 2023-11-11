@@ -2,6 +2,8 @@
 	.include "asm/macros/function.inc"
 	.include "constants/gba_constants.inc"
 
+	.set ID_NUMBER, 0x68736d53
+
 	.syntax unified
 
 	.text
