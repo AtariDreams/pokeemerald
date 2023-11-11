@@ -2708,7 +2708,7 @@ static void FieldMoveShowMonOutdoorsEffect_RestoreBg(struct Task *task)
 static void FieldMoveShowMonOutdoorsEffect_End(struct Task *task)
 {
     IntrCallback callback;
-    LoadWordFromTwoHalfwords((u16 *)&task->data[13], (u32 *)&callback);
+    LoadWordFromTwoHalfwords(&task->data[13], (u32 *)&callback);
     SetVBlankCallback(callback);
     InitTextBoxGfxAndPrinters();
     FreeResourcesAndDestroySprite(&gSprites[task->tMonSpriteId], task->tMonSpriteId);
@@ -2720,7 +2720,7 @@ static void VBlankCB_FieldMoveShowMonOutdoors(void)
 {
     IntrCallback callback;
     struct Task *task = &gTasks[FindTaskIdByFunc(Task_FieldMoveShowMonOutdoors)];
-    LoadWordFromTwoHalfwords((u16 *)&task->data[13], (u32 *)&callback);
+    LoadWordFromTwoHalfwords(&task->data[13], (u32 *)&callback);
     callback();
     SetGpuReg(REG_OFFSET_WIN0H, task->tWinHoriz);
     SetGpuReg(REG_OFFSET_WIN0V, task->tWinVert);
@@ -2789,8 +2789,8 @@ static void FieldMoveShowMonIndoorsEffect_LoadGfx(struct Task *task)
     offset = ((REG_BG0CNT >> 2) << 14);
     delta = ((REG_BG0CNT >> 8) << 11);
     task->data[12] = delta;
-    CpuCopy16(sFieldMoveStreaksIndoors_Gfx, (void *)(VRAM + offset), 0x80);
-    CpuFill32(0, (void *)(VRAM + delta), 0x800);
+    CpuFastCopy(sFieldMoveStreaksIndoors_Gfx, (void *)(VRAM + offset), 0x80);
+    CpuFastFill(0, (void *)(VRAM + delta), 0x800);
     LoadPalette(sFieldMoveStreaksIndoors_Pal, BG_PLTT_ID(15), sizeof(sFieldMoveStreaksIndoors_Pal));
     task->tState++;
 }
@@ -2836,8 +2836,8 @@ static void FieldMoveShowMonIndoorsEffect_End(struct Task *task)
     IntrCallback intrCallback;
     u16 bg0cnt;
     bg0cnt = (REG_BG0CNT >> 8) << 11;
-    CpuFill32(0, (void *)VRAM + bg0cnt, 0x800);
-    LoadWordFromTwoHalfwords((u16 *)&task->data[13], (u32 *)&intrCallback);
+    CpuFastFill(0, (void *)BG_VRAM + bg0cnt, 0x800);
+    LoadWordFromTwoHalfwords(&task->data[13], &intrCallback);
     SetVBlankCallback(intrCallback);
     InitTextBoxGfxAndPrinters();
     FreeResourcesAndDestroySprite(&gSprites[task->tMonSpriteId], task->tMonSpriteId);
@@ -2850,7 +2850,7 @@ static void VBlankCB_FieldMoveShowMonIndoors(void)
     IntrCallback intrCallback;
     struct Task *task;
     task = &gTasks[FindTaskIdByFunc(Task_FieldMoveShowMonIndoors)];
-    LoadWordFromTwoHalfwords((u16 *)&task->data[13], (u32 *)&intrCallback);
+    LoadWordFromTwoHalfwords(&task->data[13], (u32 *)&intrCallback);
     intrCallback();
     SetGpuReg(REG_OFFSET_BG0HOFS, task->tBgHoriz);
     SetGpuReg(REG_OFFSET_BG0VOFS, task->tBgVert);
@@ -2864,7 +2864,7 @@ static void AnimateIndoorShowMonBg(struct Task *task)
 
 static bool8 SlideIndoorBannerOnscreen(struct Task *task)
 {
-    u16 i;
+    u32 i;
     u16 srcOffs;
     u16 dstOffs;
     u16 *dest;
@@ -2877,14 +2877,11 @@ static bool8 SlideIndoorBannerOnscreen(struct Task *task)
     {
         dstOffs = (32 - dstOffs) & 0x1f;
         srcOffs = (32 - task->tBgOffset) & 0x1f;
-        dest = (u16 *)(VRAM + 0x140 + (u16)task->data[12]);
+        dest = (u16 *)(BG_VRAM + 0x140 + (u16)task->data[12]);
         for (i = 0; i < 10; i++)
         {
-            dest[dstOffs + i * 32] = sFieldMoveStreaksIndoors_Tilemap[srcOffs + i * 32];
-            dest[dstOffs + i * 32] |= 0xf000;
-
-            dest[((dstOffs + 1) & 0x1f) + i * 32] = sFieldMoveStreaksIndoors_Tilemap[((srcOffs + 1) & 0x1f) + i * 32] | 0xf000;
-            dest[((dstOffs + 1) & 0x1f) + i * 32] |= 0xf000;
+            dest[(i << 5) + dstOffs] = sFieldMoveStreaksIndoors_Tilemap[srcOffs + (i << 5)] | 0xf000;
+            dest[(i << 5) + ((dstOffs + 1) & 31)] = sFieldMoveStreaksIndoors_Tilemap[((srcOffs + 1) & 31) + (i << 5)] | 0xf000;
         }
         task->tBgOffset += 2;
     }
@@ -2904,11 +2901,11 @@ static bool8 SlideIndoorBannerOffscreen(struct Task *task)
     if (dstOffs >= task->tBgOffset)
     {
         dstOffs = (task->tBgHoriz >> 3) & 0x1f;
-        dest = (u16 *)(VRAM + 0x140 + (u16)task->data[12]);
+        dest = (u16 *)(BG_VRAM + 0x140 + (u16)task->data[12]);
         for (i = 0; i < 10; i++)
         {
-            dest[dstOffs + i * 32] = 0xf000;
-            dest[((dstOffs + 1) & 0x1f) + i * 32] = 0xf000;
+            dest[(i << 5) + dstOffs] = 0xf000;
+            dest[(i << 5) + ((dstOffs + 1) & 0x1f)] = 0xf000;
         }
         task->tBgOffset += 2;
     }
@@ -3787,7 +3784,7 @@ static const struct SpriteTemplate sSpriteTemplate_DeoxysRockFragment =
 
 static void CreateDeoxysRockFragments(struct Sprite *sprite)
 {
-    u8 i;
+    u32 i;
     s16 xPos = gTotalCameraPixelOffsetX + sprite->x + sprite->x2;
     s16 yPos = gTotalCameraPixelOffsetY + sprite->y + sprite->y2 - 4;
 
@@ -3874,8 +3871,8 @@ static void Task_MoveDeoxysRock(u8 taskId)
         case 0:
             tCurX = sprite->x << 4;
             tCurY = sprite->y << 4;
-            tVelocityX = SAFE_DIV(tTargetX * 16 - tCurX, tMoveSteps);
-            tVelocityY = SAFE_DIV(tTargetY * 16 - tCurY, tMoveSteps);
+            tVelocityX = SAFE_DIV((tTargetX << 4) - tCurX, tMoveSteps);
+            tVelocityY = SAFE_DIV((tTargetY << 4) - tCurY, tMoveSteps);
             tState++;
             // fallthrough
         case 1:
