@@ -1240,6 +1240,7 @@ static void Task_HandleDaycareLevelMenuInput(u8 taskId)
         {
         case 0:
             gSpecialVar_Result = 0;
+            break;
         case 1:
             gSpecialVar_Result = 1;
             break;
