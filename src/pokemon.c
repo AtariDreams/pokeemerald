@@ -5914,12 +5914,12 @@ void RandomlyGivePartyPokerus(struct Pokemon *party)
 
 u8 CheckPartyHasHadPokerus(struct Pokemon *mon)
 {
-    return GetMonData(mon, MON_DATA_POKERUS, 0) != 0;
+    return GetMonData(mon, MON_DATA_POKERUS, 0);
 }
 
 u8 CheckPartyPokerus(struct Pokemon *mon)
 {
-    return (GetMonData(mon, MON_DATA_POKERUS, 0) & 0xF) != 0;
+    return (GetMonData(mon, MON_DATA_POKERUS, 0) & 0xF);
 }
 
 void UpdatePartyPokerusTime(u16 days)
