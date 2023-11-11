@@ -5104,17 +5104,14 @@ static void Task_SearchCompleteWaitForInput(u8 taskId)
 static void Task_SelectSearchMenuItem(u8 taskId)
 {
     u8 menuItem;
-    u16 *cursorPos;
-    u16 *scrollOffset;
 
     DrawOrEraseSearchParameterBox(FALSE);
     menuItem = gTasks[taskId].tMenuItem;
-    cursorPos = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataCursorPos];
-    scrollOffset = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
-    gTasks[taskId].tCursorPos = *cursorPos;
-    gTasks[taskId].tScrollOffset = *scrollOffset;
+    gTasks[taskId].tCursorPos = gTasks[taskId].data[sSearchOptions[menuItem].taskDataCursorPos];
+    gTasks[taskId].tScrollOffset = gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+
     PrintSearchParameterText(taskId);
-    PrintSelectorArrow(*cursorPos);
+    PrintSelectorArrow(gTasks[taskId].tCursorPos & 0xFFFF);
     gTasks[taskId].func = Task_HandleSearchParameterInput;
     CopyWindowToVram(0, COPYWIN_GFX);
     CopyBgTilemapBufferToVram(3);
@@ -5440,24 +5437,24 @@ static void DrawOrEraseSearchParameterBox(bool8 erase)
 static void PrintSearchParameterText(u8 taskId)
 {
     const struct SearchOptionText *texts = sSearchOptions[gTasks[taskId].tMenuItem].texts;
-    const u16 *cursorPos = &gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataCursorPos];
-    const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataScrollOffset];
-    u16 i;
+    const u16 cursorPos = gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataCursorPos] & 0xFFFF;
+    const u16 scrollOffset = gTasks[taskId].data[sSearchOptions[gTasks[taskId].tMenuItem].taskDataScrollOffset] & 0xFFFF;
+    u32 i;
     u32 j;
 
     ClearSearchParameterBoxText();
 
-    for (i = 0, j = *scrollOffset; i < MAX_SEARCH_PARAM_ON_SCREEN && texts[j].title != NULL; i++, j++)
+    for (i = 0, j = scrollOffset; i < MAX_SEARCH_PARAM_ON_SCREEN && texts[j].title != NULL; i++, j++)
         PrintSearchParameterTitle(i, texts[j].title);
 
-    EraseAndPrintSearchTextBox(texts[*cursorPos + *scrollOffset].description);
+    EraseAndPrintSearchTextBox(texts[cursorPos + scrollOffset].description);
 }
 
 static u8 GetSearchModeSelection(u8 taskId, u8 option)
 {
     const u16 *cursorPos = &gTasks[taskId].data[sSearchOptions[option].taskDataCursorPos];
     const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[option].taskDataScrollOffset];
-    u16 id = *cursorPos + *scrollOffset;
+    u16 id = (gTasks[taskId].data[sSearchOptions[option].taskDataCursorPos] + gTasks[taskId].data[sSearchOptions[option].taskDataScrollOffset]) & 0xFFFF;
 
     switch (option)
     {
@@ -5527,10 +5524,10 @@ static void SetDefaultSearchModeAndOrder(u8 taskId)
 static bool8 SearchParamCantScrollUp(u8 taskId)
 {
     u8 menuItem = gTasks[taskId].tMenuItem;
-    const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+    const u16 scrollOffset = gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset] & 0xFFFF;
     u16 lastOption = sSearchOptions[menuItem].numOptions;
 
-    if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS + 1 && *scrollOffset != 0)
+    if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS + 1 && scrollOffset != 0)
         return FALSE;
     else
         return TRUE;
@@ -5539,10 +5536,10 @@ static bool8 SearchParamCantScrollUp(u8 taskId)
 static bool8 SearchParamCantScrollDown(u8 taskId)
 {
     u8 menuItem = gTasks[taskId].tMenuItem;
-    const u16 *scrollOffset = &gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset];
+    const u16 scrollOffset = gTasks[taskId].data[sSearchOptions[menuItem].taskDataScrollOffset] & 0xFFFF;
     u16 lastOption = sSearchOptions[menuItem].numOptions;
 
-    if (lastOption > MAX_SEARCH_PARAM_CURSOR_POS + 1 && *scrollOffset < lastOption - MAX_SEARCH_PARAM_CURSOR_POS)
+    if ((lastOption > MAX_SEARCH_PARAM_CURSOR_POS + 1) && scrollOffset < (lastOption - MAX_SEARCH_PARAM_CURSOR_POS))
         return FALSE;
     else
         return TRUE;
