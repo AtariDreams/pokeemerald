@@ -79,36 +79,30 @@ u16 EraseFlashSector_MX(u16 sectorNum)
     vu8 *addr;
     u32 readFlash1Buffer[4], result;
 
-    u32 numTries;
-
     if (sectorNum >= gFlash->sector.count)
         return RESULT_ERROR | PHASE_PARAMETER_CHECK;
 
     SwitchFlashBank(sectorNum >> 4);
     sectorNum &= 0xf;
 
-    numTries = 0;
-
-erase_again:
-    REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
-
-    addr = (vu8*)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
-
-    *(vu8 *)COM_ADR1 = 0xaa;
-    *(vu8 *)COM_ADR2 = 0x55;
-    *(vu8 *)COM_ADR1 = 0x80;
-    *(vu8 *)COM_ADR1 = 0xaa;
-    *(vu8 *)COM_ADR2 = 0x55;
-    *addr = 0x30;
-
-    SetReadFlash1(readFlash1Buffer);
-
-    result = WaitForFlashWrite(2, addr, 0xFF);
-
-    if ((result & (RESULT_ERROR | RESULT_Q5TIMEOUT)) != 0 && (numTries < 3))
+    for (u32 numTries = 0; numTries <= 3; numTries++)
     {
-        numTries++;
-        goto erase_again;
+        REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
+
+        addr = (vu8 *)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
+
+        *(vu8 *)COM_ADR1 = 0xaa;
+        *(vu8 *)COM_ADR2 = 0x55;
+        *(vu8 *)COM_ADR1 = 0x80;
+        *(vu8 *)COM_ADR1 = 0xaa;
+        *(vu8 *)COM_ADR2 = 0x55;
+        *addr = 0x30;
+
+        SetReadFlash1(readFlash1Buffer);
+
+        result = WaitForFlashWrite(2, addr, 0xFF);
+        if ((result & (RESULT_ERROR | RESULT_Q5TIMEOUT)) == 0)
+            break;
     }
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
