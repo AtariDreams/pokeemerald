@@ -157,7 +157,7 @@ static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
     return 0xFF;
 }
 
-u8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
+s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 {
     u16 offset;
     s8 cursor;
