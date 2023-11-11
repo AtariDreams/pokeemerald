@@ -4573,8 +4573,8 @@ void AnimTask_SkullBashPosition(u8 taskId)
         gTasks[taskId].data[3] = 8;
         gTasks[taskId].data[4] = 0;
         gTasks[taskId].data[5] = 3;
-        if (side == B_SIDE_PLAYER)
-            gTasks[taskId].data[5] *= -1;
+        if (gTasks[taskId].data[1] == B_SIDE_PLAYER)
+            gTasks[taskId].data[5] = -3;
 
         gTasks[taskId].func = AnimTask_SkullBashPositionSet;
         break;
@@ -4582,10 +4582,10 @@ void AnimTask_SkullBashPosition(u8 taskId)
         gTasks[taskId].data[3] = 8;
         gTasks[taskId].data[4] = 0x600;
         gTasks[taskId].data[5] = 0xC0;
-        if (side == B_SIDE_PLAYER)
+        if (gTasks[taskId].data[1] == B_SIDE_PLAYER)
         {
-            gTasks[taskId].data[4] *= -1;
-            gTasks[taskId].data[5] *= -1;
+            gTasks[taskId].data[4] = -0x600;
+            gTasks[taskId].data[5] = -0xC0;
         }
 
         gTasks[taskId].func = AnimTask_SkullBashPositionReset;
