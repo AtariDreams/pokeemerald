@@ -106,7 +106,7 @@ OBJ_DIR := $(OBJ_DIR_NAME)
 LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
-CC1              = $(MODERNCC) -S
+CC1              = clang -cc1 -S -fno-integrated-as
 override CFLAGS += -target arm-none-eabi  -fshort-enums -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
