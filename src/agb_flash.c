@@ -239,7 +239,6 @@ u32 VerifyFlashSectorNBytes(u16 sectorNum, vu8 *src, u32 n)
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
     CpuFastCopy((void *)((u32)VerifyFlashSector_Core), verifyFlashSector_Core_Buffer, sizeof(verifyFlashSector_Core_Buffer));
-
     verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))(verifyFlashSector_Core_Buffer);
 
     tgt = (vu8 *)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
