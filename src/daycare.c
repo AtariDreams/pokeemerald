@@ -1232,15 +1232,16 @@ static void DaycarePrintMonInfo(u8 windowId, u32 daycareSlotId, u8 y)
 
 static void Task_HandleDaycareLevelMenuInput(u8 taskId)
 {
-    u32 input = ListMenu_ProcessInput(gTasks[taskId].tMenuListTaskId);
+    s32 input = ListMenu_ProcessInput(gTasks[taskId].tMenuListTaskId);
 
     if (JOY_NEW(A_BUTTON))
     {
         switch (input)
         {
         case 0:
+            gSpecialVar_Result = 0;
         case 1:
-            gSpecialVar_Result = input;
+            gSpecialVar_Result = 1;
             break;
         case DAYCARE_LEVEL_MENU_EXIT:
             gSpecialVar_Result = DAYCARE_EXITED_LEVEL_MENU;
