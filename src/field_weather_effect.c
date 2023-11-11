@@ -259,7 +259,7 @@ void Drought_Main(void)
         gWeatherPtr->initStep++;
         break;
     case 2:
-        if (LoadDroughtWeatherPalettes() == FALSE)
+        //if (LoadDroughtWeatherPalettes() == FALSE)
             gWeatherPtr->initStep++;
         break;
     case 3:

@@ -156,7 +156,7 @@ void UpdateSpritePaletteWithWeather(u8 spritePaletteIndex);
 void ApplyWeatherColorMapToPal(u8 paletteIndex);
 void LoadCustomWeatherSpritePalette(const u16 *palette);
 void ResetDroughtWeatherPaletteLoading(void);
-bool8 LoadDroughtWeatherPalettes(void);
+//bool8 LoadDroughtWeatherPalettes(void);
 void DroughtStateInit(void);
 void DroughtStateRun(void);
 void Weather_SetBlendCoeffs(u8 eva, u8 evb);
