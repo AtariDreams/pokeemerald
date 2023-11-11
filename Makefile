@@ -444,7 +444,7 @@ $(OBJ_DIR)/ld_script.ld: $(LD_SCRIPT) $(LD_SCRIPT_DEPS)
 
 LDFLAGS = -Map ../../$(MAP)
 $(ELF): $(OBJ_DIR)/ld_script.ld $(OBJS) libagbsyscall
-	@echo "cd $(OBJ_DIR) && $(LD) -T ld_script.ld -o ../../$@ <objects> <lib>"
+	@echo "cd $(OBJ_DIR) && arm-none-eabi-ld -T ld_script.ld -o ../../$@ <objects> <lib>"
 	@cd $(OBJ_DIR) && $(MODERNCC) -o ../../$@ $(OBJS_REL) $(LIB) -Wl,-Tld_script.ld 
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 
