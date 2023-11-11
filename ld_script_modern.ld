@@ -44,7 +44,22 @@ SECTIONS {
         src/rom_header_gf.o(.text.*);
         src/crt0.o(.text);
         src/main.o(.text);
+        gflib/*.o(.text*);
+        src/*.o(.text*);
+        asm/*.o(.text*);
+    } =0
 
+    script_data :
+    ALIGN(4)
+    {
+		data/*.o(script_data);
+    } =0
+
+    lib_text :
+    ALIGN(4)
+    {
+        src/libgcnmultiboot.o(.text);
+        src/m4a_1.o(.text);
         src/m4a.o(.text.MidiKeyToFreq);
         src/m4a.o(.text.UnusedDummyFunc);
         src/m4a.o(.text.MPlayContinue);
@@ -114,6 +129,27 @@ SECTIONS {
         src/m4a.o(.text.SetPokemonCryChorus);
         src/m4a.o(.text.SetPokemonCryStereo);
         src/m4a.o(.text.SetPokemonCryPriority);
+
+        src/agb_flash.o(.text.SwitchFlashBank);
+        src/agb_flash.o(.text.ReadFlashId);
+        src/agb_flash.o(.text.FlashTimerIntr);
+        src/agb_flash.o(.text.SetFlashTimerIntr);
+        src/agb_flash.o(.text.StartFlashTimer);
+        src/agb_flash.o(.text.StopFlashTimer);
+        src/agb_flash.o(.text.ReadFlash1);
+        src/agb_flash.o(.text.SetReadFlash1);
+        src/agb_flash.o(.text.ReadFlash_Core);
+        src/agb_flash.o(.text.ReadFlash);
+        src/agb_flash.o(.text.VerifyFlashSector_Core);
+        src/agb_flash.o(.text.VerifyFlashSector);
+        src/agb_flash.o(.text.VerifyFlashSectorNBytes);
+        src/agb_flash.o(.text.ProgramFlashSectorAndVerify);
+        src/agb_flash.o(.text.ProgramFlashSectorAndVerifyNBytes);
+
+        src/agb_flash_1m.o(.text);
+        src/agb_flash_mx.o(.text);
+        src/siirtc.o(.text);
+        src/librfu_stwi.o(.text);
         src/librfu_intr.o(.text.IntrSIO32);
         src/librfu_intr.o(.text.sio32intr_clock_master);
         src/librfu_intr.o(.text.sio32intr_clock_slave);
@@ -124,31 +160,6 @@ SECTIONS {
         src/librfu_intr.o(.text.Callback_Dummy_M);
         src/librfu_intr.o(.text.Callback_Dummy_S);
         src/librfu_intr.o(.text.Callback_Dummy_ID);
-
-
-        gflib/*.o(.text*);
-        src/*.o(.text*);
-        asm/*.o(.text*);
-    } > ROM =0
-
-    script_data :
-    ALIGN(4)
-    {
-		data/*.o(script_data);
-    } > ROM =0
-
-    lib_text :
-    ALIGN(4)
-    {
-        src/libgcnmultiboot.o(.text);
-        src/m4a_1.o(.text);
-        src/m4a.o(.text);
-        src/agb_flash.o(.text);
-        src/agb_flash_1m.o(.text);
-        src/agb_flash_mx.o(.text);
-        src/siirtc.o(.text);
-        src/librfu_stwi.o(.text);
-        src/librfu_intr.o(.text);
         src/librfu_rfu.o(.text);
         src/librfu_sio32id.o(.text);
         *libagbsyscall.a:*.o(.text*);
