@@ -258,7 +258,7 @@ static void MailboxMenu_ItemPrintFunc(u8 windowId, u32 itemId, u8 y)
 
 u8 MailboxMenu_CreateList(struct PlayerPCItemPageStruct *page)
 {
-    u16 i;
+    u32 i;
     for (i = 0; i < page->count; i++)
     {
         sMailboxList[i].name = sEmptyItemName;
