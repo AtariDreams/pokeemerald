@@ -625,7 +625,7 @@ static void ItemStorage_Toss(u8 taskId)
 
 static void ItemStorage_Enter(u8 taskId, bool8 toss)
 {
-    u16 *data = gTasks[taskId].data;
+    s16 *data = gTasks[taskId].data;
 
     tInTossMenu = toss;
     ItemStorage_EraseMainMenu(taskId);
@@ -705,7 +705,7 @@ static void Mailbox_DrawMailboxMenu(u8 taskId)
 
 static void Mailbox_ProcessInput(u8 taskId)
 {
-    u16 *data = gTasks[taskId].data;
+    s16 *data = gTasks[taskId].data;
 
     if (!gPaletteFade.active)
     {
@@ -1420,7 +1420,7 @@ static void ItemStorage_HandleQuantityRolling(u8 taskId)
                 ItemStorage_DoItemToss(taskId);
             return;
         }
-        else if (JOY_NEW(B_BUTTON))
+        if (JOY_NEW(B_BUTTON))
         {
             // Canceled action
             PlaySE(SE_SELECT);
