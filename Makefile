@@ -27,7 +27,7 @@ LD := ld.lld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := clang -no-integrated-as --sysroot $(DEVKITARM)/arm-none-eabi -isystem $(DEVKITARM)/arm-none-eabi/include
+MODERNCC := clang --sysroot $(DEVKITARM)/arm-none-eabi --rtlib=libgcc -isystem $(DEVKITARM)/arm-none-eabi/include -fno-integrated-as
 PATH_MODERNCC := PATH="$(PATH)" arm-none-eabi-gcc
 
 ifeq ($(OS),Windows_NT)
