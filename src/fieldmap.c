@@ -761,13 +761,13 @@ const struct MapConnection *GetMapConnectionAtPos(s16 x, s16 y)
     return NULL;
 }
 
-void SetCameraFocusCoords(u16 x, u16 y)
+void SetCameraFocusCoords(s16 x, s16 y)
 {
     gSaveBlock1.pos.x = x - MAP_OFFSET;
     gSaveBlock1.pos.y = y - MAP_OFFSET;
 }
 
-void GetCameraFocusCoords(u16 *x, u16 *y)
+void GetCameraFocusCoords(s16 *x, s16 *y)
 {
     *x = gSaveBlock1.pos.x + MAP_OFFSET;
     *y = gSaveBlock1.pos.y + MAP_OFFSET;
@@ -779,7 +779,7 @@ static void UNUSED SetCameraCoords(u16 x, u16 y)
     gSaveBlock1.pos.y = y;
 }
 
-void GetCameraCoords(u16 *x, u16 *y)
+static void UNUSED GetCameraCoords(s16 *x, s16 *y)
 {
     *x = gSaveBlock1.pos.x;
     *y = gSaveBlock1.pos.y;
