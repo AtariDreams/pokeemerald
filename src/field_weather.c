@@ -864,7 +864,7 @@ void LoadCustomWeatherSpritePalette(const u16 *palette)
     UpdateSpritePaletteWithWeather(gWeatherPtr->weatherPicSpritePalIndex);
 }
 
-static void LoadDroughtWeatherPalette(u8 *palsIndex, u8 *palsOffset)
+static void LoadDroughtWeatherPalette(s8 *palsIndex, s8 *palsOffset)
 {
     *palsIndex = 0x20;
     *palsOffset = 0x20;
@@ -876,16 +876,16 @@ void ResetDroughtWeatherPaletteLoading(void)
     gWeatherPtr->loadDroughtPalsOffset = 1;
 }
 
-bool8 LoadDroughtWeatherPalettes(void)
-{
-    if (gWeatherPtr->loadDroughtPalsIndex < 32)
-    {
-        LoadDroughtWeatherPalette(&gWeatherPtr->loadDroughtPalsIndex, &gWeatherPtr->loadDroughtPalsOffset);
-        if (gWeatherPtr->loadDroughtPalsIndex < 32)
-            return TRUE;
-    }
-    return FALSE;
-}
+// bool8 LoadDroughtWeatherPalettes(void)
+// {
+//     if (gWeatherPtr->loadDroughtPalsIndex < 32)
+//     {
+//         LoadDroughtWeatherPalette(&gWeatherPtr->loadDroughtPalsIndex, &gWeatherPtr->loadDroughtPalsOffset);
+//         if (gWeatherPtr->loadDroughtPalsIndex < 32)
+//             return TRUE;
+//     }
+//     return FALSE;
+// }
 
 static void SetDroughtColorMap(s8 colorMapIndex)
 {
