@@ -945,11 +945,7 @@ void ClearEnigmaBerries(void)
 
 void SetEnigmaBerry(u8 *src)
 {
-    u32 i;
-    u8 *dest = (u8 *)&gSaveBlock1.enigmaBerry;
-
-    for (i = 0; i < sizeof(gSaveBlock1.enigmaBerry); i++)
-        dest[i] = src[i];
+    memcpy(&gSaveBlock1.enigmaBerry, src, sizeof(gSaveBlock1.enigmaBerry));
 }
 
 static u32 GetEnigmaBerryChecksum(struct EnigmaBerry *enigmaBerry)
@@ -1037,7 +1033,7 @@ bool8 TryToWaterBerryTree(void)
 
 void ClearBerryTrees(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < BERRY_TREES_COUNT; i++)
         gSaveBlock1.berryTrees[i] = gBlankBerryTree;
@@ -1075,7 +1071,7 @@ static bool32 BerryTreeGrow(struct BerryTree *tree)
 
 void BerryTreeTimeUpdate(s32 minutes)
 {
-    int i;
+    u32 i;
     struct BerryTree *tree;
 
     for (i = 0; i < BERRY_TREES_COUNT; i++)
@@ -1092,7 +1088,7 @@ void BerryTreeTimeUpdate(s32 minutes)
             {
                 s32 time = minutes;
 
-                while (time != 0)
+                while (time > 0)
                 {
                     if (tree->minutesUntilNextStage > time)
                     {
@@ -1148,22 +1144,18 @@ u8 GetStageByBerryTreeId(u8 id)
 
 u8 ItemIdToBerryType(u16 item)
 {
-    u16 berry = item - FIRST_BERRY_INDEX;
-
-    if (berry > LAST_BERRY_INDEX - FIRST_BERRY_INDEX)
-        return ITEM_TO_BERRY(FIRST_BERRY_INDEX);
+    if (item < FIRST_BERRY_INDEX || item > LAST_BERRY_INDEX)
+        return 1;
     else
-        return ITEM_TO_BERRY(item);
+        return item - (FIRST_BERRY_INDEX - 1);
 }
 
 static u16 BerryTypeToItemId(u16 berry)
 {
-    u16 item = berry - 1;
-
-    if (item > LAST_BERRY_INDEX - FIRST_BERRY_INDEX)
+    if (!berry || berry > LAST_BERRY_INDEX - FIRST_BERRY_INDEX)
         return FIRST_BERRY_INDEX;
     else
-        return berry + FIRST_BERRY_INDEX - 1;
+        return (FIRST_BERRY_INDEX - 1) + berry;
 }
 
 void GetBerryNameByBerryType(u8 berry, u8 *string)
@@ -1217,22 +1209,23 @@ static u8 CalcBerryYieldInternal(u16 max, u16 min, u8 water)
     u32 randMax;
     u32 rand;
     u32 extraYield;
+    u32 diff;
 
     if (water == 0)
         return min;
-    else
-    {
-        randMin = (max - min) * (water - 1);
-        randMax = (max - min) * (water);
-        rand = randMin + Random() % (randMax - randMin + 1);
 
-        // Round upwards
-        if ((rand % NUM_WATER_STAGES) >= NUM_WATER_STAGES / 2)
-            extraYield = rand / NUM_WATER_STAGES + 1;
-        else
-            extraYield = rand / NUM_WATER_STAGES;
-        return extraYield + min;
-    }
+    diff = max - min;
+
+    randMin = diff * (water - 1);
+    randMax = diff * (water);
+    rand = randMin + Random() % (randMax - randMin + 1);
+
+    // Round upwards
+    if ((rand % NUM_WATER_STAGES) >= NUM_WATER_STAGES / 2)
+        extraYield = rand / NUM_WATER_STAGES + 1;
+    else
+        extraYield = rand / NUM_WATER_STAGES;
+    return extraYield + min;
 }
 
 static u8 CalcBerryYield(struct BerryTree *tree)
@@ -1333,9 +1326,11 @@ void SetBerryTreesSeen(void)
     s16 top;
     s16 right;
     s16 bottom;
-    int i;
+    u32 i;
 
-    GetCameraCoords(&cam_left, &cam_top);
+    cam_left = gSaveBlock1.pos.x;
+    cam_top = gSaveBlock1.pos.y;
+
     left = cam_left;
     top = cam_top + 3;
     right = cam_left + 14;
