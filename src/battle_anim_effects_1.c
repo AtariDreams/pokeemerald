@@ -5172,7 +5172,7 @@ void AnimTask_DoubleTeam(u8 taskId)
 
     BlendPalette(r3, 16, 11, RGB_BLACK);
     task->data[3] = 0;
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < 2; i++)
     {
         obj =  CloneBattlerSpriteWithBlend(0);
         if (obj < 0) break;
