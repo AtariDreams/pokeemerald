@@ -5919,7 +5919,7 @@ u8 CheckPartyHasHadPokerus(struct Pokemon *mon)
 
 u8 CheckPartyPokerus(struct Pokemon *mon)
 {
-    return GetMonData(mon, MON_DATA_POKERUS, 0) & 0xF != 0;
+    return (GetMonData(mon, MON_DATA_POKERUS, 0) & 0xF) != 0;
 }
 
 void UpdatePartyPokerusTime(u16 days)
