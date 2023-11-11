@@ -278,8 +278,8 @@ void EndTruckSequence(u8 taskId)
 
 bool32 TrySetPortholeWarpDestination(void)
 {
-    s8 mapGroup, mapNum;
-    s16 x, y;
+    u8 mapGroup, mapNum;
+    u16 x, y;
 
     if (GetSSTidalLocation(&mapGroup, &mapNum, &x, &y) != SS_TIDAL_LOCATION_CURRENTS)
     {
@@ -287,6 +287,7 @@ bool32 TrySetPortholeWarpDestination(void)
     }
     else
     {
+        // TODO: resolve pointer type confusion issue
         SetWarpDestination(mapGroup, mapNum, WARP_ID_NONE, x, y);
         return TRUE;
     }
