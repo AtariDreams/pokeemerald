@@ -59,7 +59,6 @@ u16 WaitForFlashWrite_Common(u8 phase, vu8 *addr, u8 lastData)
         if (status & 0x20)
         {
             // The write operation exceeded the flash chip's time limit.
-
             if (PollFlashStatus(addr) == lastData)
                 break;
 
