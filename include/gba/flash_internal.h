@@ -88,9 +88,9 @@ extern const struct FlashSetupInfo DefaultFlash;
 void SwitchFlashBank(u8 bankNum);
 u16 ReadFlashId(void);
 void StartFlashTimer(u8 phase);
-void SetReadFlash1(vu16 *dest);
+void SetReadFlash1(u32 *dest);
 void StopFlashTimer(void);
-void ReadFlash(u16 sectorNum, u32 offset, vu8 *dest, u32 size);
+void ReadFlash(u16 sectorNum, u32 offset, volatile void *dest, u32 size);
 
 u16 WaitForFlashWrite_Common(u8 phase, vu8 *addr, u8 lastData);
 
