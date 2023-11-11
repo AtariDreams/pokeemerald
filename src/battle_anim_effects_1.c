@@ -5338,7 +5338,7 @@ static void AnimWavyMusicNotes_Step(struct Sprite *sprite)
     sprite->y = sprite->sY >> 4;
     sprite->y2 = Sin(trigIdx, 15);
 
-    if (sprite->x < -16 || sprite->x > DISPLAY_WIDTH + 16 || y < -16 || y > DISPLAY_HEIGHT - 32)
+    if (sprite->x < -16 || sprite->x > DISPLAY_WIDTH + 16 || sprite->y < -16 || sprite->y > DISPLAY_HEIGHT - 32)
     {
         DestroySpriteAndMatrix(sprite);
         return;
