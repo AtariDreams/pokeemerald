@@ -121,7 +121,7 @@ ifneq ($(MODERN),1)
 CPPFLAGS += -I tools/agbcc/include -I tools/agbcc -nostdinc -undef
 endif
 
-LDFLAGS = -Wl,-Map=../../$(MAP)
+LDFLAGS = -Map=../../$(MAP)
 
 SHA1 := $(shell { command -v sha1sum || command -v shasum; } 2>/dev/null) -c
 GFX := tools/gbagfx/gbagfx$(EXE)
@@ -445,7 +445,7 @@ $(OBJ_DIR)/ld_script.ld: $(LD_SCRIPT) $(LD_SCRIPT_DEPS)
 LDFLAGS = -Map ../../$(MAP)
 $(ELF): $(OBJ_DIR)/ld_script.ld $(OBJS) libagbsyscall
 	@echo "cd $(OBJ_DIR) && arm-none-eabi-ld $(LDFLAGS) -T ld_script.ld -o ../../$@ <objects> <lib>"
-	@cd $(OBJ_DIR) && arm-none-eabi-ld -T ld_script.ld -o ../../$@ $(OBJS_REL) $(LIB)
+	@cd $(OBJ_DIR) && arm-none-eabi-ld $(LDFLAGS) -Tld_script.ld -o ../../$@ $(OBJS_REL) $(LIB)
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 
 $(ROM): $(ELF)
