@@ -54,7 +54,7 @@ const struct FlashSetupInfo DefaultFlash =
 u16 EraseFlashChip_MX(void)
 {
     u16 result;
-    u16 readFlash1Buffer[0x20];
+    u32 readFlash1Buffer[4];
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | gFlash->wait[0];
 
@@ -77,7 +77,7 @@ u16 EraseFlashChip_MX(void)
 u16 EraseFlashSector_MX(u16 sectorNum)
 {
     vu8 *addr;
-    u16 readFlash1Buffer[0x20], result;
+    u32 readFlash1Buffer[4], result;
 
     u32 numTries;
 
@@ -119,7 +119,7 @@ erase_again:
 u16 ProgramFlashByte_MX(u16 sectorNum, u32 offset, u8 data)
 {
     vu8 *addr;
-    u16 readFlash1Buffer[0x20];
+    u32 readFlash1Buffer[4];
 
     if (offset >= gFlash->sector.size)
         return RESULT_ERROR|PHASE_PARAMETER_CHECK;
@@ -154,7 +154,8 @@ static u16 ProgramByte(vu8 *src, vu8 *dest)
 u16 ProgramFlashSector_MX(u16 sectorNum, vu8 *src)
 {
     vu8 *dest;
-    u16 result, readFlash1Buffer[0x20];
+    u16 result;
+    u32 readFlash1Buffer[4];
 
     if (sectorNum >= gFlash->sector.count)
         return RESULT_ERROR|PHASE_PARAMETER_CHECK;

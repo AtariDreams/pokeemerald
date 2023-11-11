@@ -17,7 +17,7 @@ u16 (*EraseFlashChip)();
 u16 (*EraseFlashSector)(u16 sectorNum);
 const u16 (*gFlashMaxTime)[3];
 
-void SetReadFlash1(vu16 *dest);
+void SetReadFlash1(u32 *dest);
 
 void SwitchFlashBank(u8 bankNum)
 {
@@ -38,11 +38,11 @@ u16 ReadFlashId(void)
 {
     vu32 i;
     u16 flashId;
-    u16 readFlash1Buffer[0x20];
+    u32 readFlash1Buffer[4];
     u8 (*readFlash1)(vu8 *);
 
     SetReadFlash1(readFlash1Buffer);
-    readFlash1 = (u8 (*)(vu8 *))((u8 *)readFlash1Buffer + 1);
+    readFlash1 = (u8 (*)(vu8 *))((u8 *)readFlash1Buffer);
 
 	// read flashID
 	*(vu8 *)COM_ADR1=0xaa;
@@ -109,38 +109,51 @@ void StopFlashTimer(void)
     REG_IME = sSavedIme;
 }
 
+__attribute__((target("arm")))
 u8 ReadFlash1(vu8 *addr)
 {
     return *addr;
 }
 
-void SetReadFlash1(vu16 *dest)
+void SetReadFlash1(u32 *dest)
 {
-    vu16 *src;
+    u32 *src;
     u32 i;
 
-    PollFlashStatus = (u8 (*)(vu8 *))((u8 *)dest + 1);
+    PollFlashStatus = (u8 (*)(vu8 *))((u8 *)dest);
 
-    src = (u16 *)((u32)ReadFlash1 & ~1);
+    src = (u32 *)((u32)ReadFlash1);
 
-    for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>1; i;i--)
+    for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>2; i;i--)
     {
         *dest++ = *src++;
     }
 }
 
 // Using volatile here to make sure the flash memory will ONLY be read as bytes, to prevent any compiler optimizations.
-void ReadFlash_Core(vu8 *src, vu8 *dest, u32 size)
+
+#define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
+#define NAKED __attribute__((naked))
+
+__attribute__((target("arm")))
+NAKED void ReadFlash_Core(vu8 *dest, vu8 *src, u32 size)
 {
-	for (; size; size--)
-		*dest++=*src++;
+    asm_unified("\
+        cmp     r2, #0\n\
+        bxeq    lr\n\
+.LBB0_1:\n\
+        ldrb    r3, [r1], #1\n\
+        subs    r2, r2, #1\n\
+        strb    r3, [r0], #1\n\
+        bne     .LBB0_1\n\
+        bx      lr\n");
 }
 
-void ReadFlash(u16 sectorNum, u32 offset, vu8 *dest, u32 size)
+void ReadFlash(u16 sectorNum, u32 offset, volatile void *dest, u32 size)
 {
     vu8 *src;
     u32 i;
-    vu16 readFlash_Core_Buffer[0x40], *funcSrc, *funcDest;
+    u32 readFlash_Core_Buffer[0x10];
     void (*readFlash_Core)(vu8 *, vu8 *, u32);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
@@ -151,40 +164,47 @@ void ReadFlash(u16 sectorNum, u32 offset, vu8 *dest, u32 size)
         sectorNum &= 0xf;
     }
 
-    funcSrc = (vu16 *)((u32)ReadFlash_Core & ~1);
-    funcDest = readFlash_Core_Buffer;
+    CpuFastCopy((void *)((u32)ReadFlash_Core), readFlash_Core_Buffer, sizeof(readFlash_Core_Buffer));
 
-    for (i = ((u32)ReadFlash - (u32)ReadFlash_Core) >> 1; i; i--)
-    {
-        *funcDest++ = *funcSrc++;
-    }
-
-    readFlash_Core = (void (*)(vu8 *, vu8 *, u32))((u32)readFlash_Core_Buffer + 1);
+    readFlash_Core = (void (*)(vu8 *, vu8 *, u32))((u32)readFlash_Core_Buffer);
 
     src = (vu8*)(FLASH_ADR + (sectorNum << gFlash->sector.shift) + offset);
 
-    readFlash_Core(src, dest, size);
+    readFlash_Core(dest, src, size);
 }
 
-u32 VerifyFlashSector_Core(vu8 *src, vu8 *tgt, u32 size)
+__attribute__((target("arm")))
+NAKED u32 VerifyFlashSector_Core(vu8 *dest, vu8 *src, u32 size)
 {
-    for (; size; size--)
-    {
-        if (*tgt++ != *src++)
-            return (u32)(tgt - 1);
-    }
-
-    return 0;
+    asm_unified("\
+        push    {r4, lr}\n\
+        cmp     r2, #0\n\
+        beq     .Ld\n\
+        adds    r2, r0, r2\n\
+        b       .Lb\n\
+.La:\n\
+        adds    r0, r0, #1\n\
+        adds    r1, r1, #1\n\
+        cmp     r0, r2\n\
+        beq     .Ld\n\
+.Lb:\n\
+        ldrb    r4, [r0]\n\
+        ldrb    r3, [r1]\n\
+        cmp     r4, r3\n\
+        beq     .La\n\
+.Lc:\n\
+        pop     {r4}\n\
+        pop     {r1}\n\
+        bx      r1\n\
+.Ld:\n\
+        movs    r0, #0\n\
+        b       .Lc\n");
 }
 
 u32 VerifyFlashSector(u16 sectorNum, vu8 *src)
 {
-    u32 i;
-    vu16 verifyFlashSector_Core_Buffer[0x80];
-    vu16 *funcSrc;
-    vu16 *funcDest;
+    u32 verifyFlashSector_Core_Buffer[0x18];
     vu8 *tgt;
-    u16 size;
     u32 (*verifyFlashSector_Core)(vu8 *, vu8 *, u32);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
@@ -195,28 +215,18 @@ u32 VerifyFlashSector(u16 sectorNum, vu8 *src)
         sectorNum &= 0xf;
     }
 
-    funcSrc = (vu16 *)((u32)VerifyFlashSector_Core & ~1);
-    funcDest = verifyFlashSector_Core_Buffer;
-
-    for(i=((u32)VerifyFlashSector-(u32)VerifyFlashSector_Core)>>1;i;i--)
-    {
-        *funcDest++ = *funcSrc++;
-    }
-
-    verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))((u8 *)verifyFlashSector_Core_Buffer + 1);
+    CpuFastCopy((void *)((u32)VerifyFlashSector_Core), verifyFlashSector_Core_Buffer, sizeof(verifyFlashSector_Core_Buffer));
+    verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))((u8 *)verifyFlashSector_Core_Buffer);
 
     tgt = (vu8 *)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
-    size = gFlash->sector.size;
 
-    return verifyFlashSector_Core(src, tgt, size);
+    return verifyFlashSector_Core(tgt, src, gFlash->sector.size);
 }
 
 u32 VerifyFlashSectorNBytes(u16 sectorNum, vu8 *src, u32 n)
 {
     u32 i;
-    vu16 verifyFlashSector_Core_Buffer[0x80];
-    vu16 *funcSrc;
-    vu16 *funcDest;
+    u32 verifyFlashSector_Core_Buffer[0x18];
     vu8 *tgt;
     u32 (*verifyFlashSector_Core)(vu8 *, vu8 *, u32);
 
@@ -228,19 +238,13 @@ u32 VerifyFlashSectorNBytes(u16 sectorNum, vu8 *src, u32 n)
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 
-    funcSrc = (vu16 *)((u32)VerifyFlashSector_Core & ~1);
-    funcDest = verifyFlashSector_Core_Buffer;
+    CpuFastCopy((void *)((u32)VerifyFlashSector_Core), verifyFlashSector_Core_Buffer, sizeof(verifyFlashSector_Core_Buffer));
 
-    for(i=((u32)VerifyFlashSector-(u32)VerifyFlashSector_Core)>>1;i;i--)
-    {
-        *funcDest++ = *funcSrc++;
-    }
-
-    verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))((u8 *)verifyFlashSector_Core_Buffer + 1);
+    verifyFlashSector_Core = (u32 (*)(vu8 *, vu8 *, u32))(verifyFlashSector_Core_Buffer);
 
     tgt = (vu8 *)(FLASH_ADR + (sectorNum << gFlash->sector.shift));
 
-    return verifyFlashSector_Core(src, tgt, n);
+    return verifyFlashSector_Core(tgt, src, n);
 }
 
 u32 ProgramFlashSectorAndVerify(u16 sectorNum, vu8 *src)
