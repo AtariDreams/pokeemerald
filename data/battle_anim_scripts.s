@@ -3318,15 +3318,14 @@ Move_MILK_DRINK:
 Move_MAGNITUDE:
 	createvisualtask AnimTask_IsPowerOver99, 2
 	waitforvisualfinish
-	jumpargeq 15, FALSE, MagnitudeRegular
-	jumpargeq 15, TRUE, MagnitudeIntense
-MagnitudeEnd:
-	end
+	jumpretfalse MagnitudeRegular
+	goto MagnitudeIntense
+
 MagnitudeRegular:
 	createvisualtask AnimTask_HorizontalShake, 5, (MAX_BATTLERS_COUNT + 1), 0, 50
 	createvisualtask AnimTask_HorizontalShake, 5, MAX_BATTLERS_COUNT, 0, 50
 	loopsewithpan SE_M_STRENGTH, SOUND_PAN_TARGET, 8, 10
-	goto MagnitudeEnd
+	end
 MagnitudeIntense:
 	createvisualtask AnimTask_HorizontalShake, 5, (MAX_BATTLERS_COUNT + 1), 0, 50
 	createvisualtask AnimTask_HorizontalShake, 5, MAX_BATTLERS_COUNT, 0, 50
@@ -3335,7 +3334,7 @@ MagnitudeIntense:
 	createsprite gComplexPaletteBlendSpriteTemplate, ANIM_ATTACKER, 2, F_PAL_BG, 3, 1, RGB_BLACK, 14, RGB_WHITE, 14
 	delay 16
 	createsprite gComplexPaletteBlendSpriteTemplate, ANIM_ATTACKER, 2, F_PAL_BG, 3, 1, RGB_BLACK, 14, RGB_WHITE, 14
-	goto MagnitudeEnd
+	end
 
 Move_RAPID_SPIN:
 	loadspritegfx ANIM_TAG_IMPACT
@@ -10358,7 +10357,6 @@ General_TurnTrap:
 	jumpargeq 0, TRAP_ANIM_WHIRLPOOL, Status_Whirlpool
 	jumpargeq 0, TRAP_ANIM_CLAMP,     Status_Clamp
 	jumpargeq 0, TRAP_ANIM_SAND_TOMB, Status_SandTomb
-	goto Status_BindWrap
 Status_BindWrap:
 	loadspritegfx ANIM_TAG_TENDRILS
 	loopsewithpan SE_M_SCRATCH, SOUND_PAN_TARGET, 6, 2
