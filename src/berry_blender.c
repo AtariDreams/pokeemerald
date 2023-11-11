@@ -173,8 +173,8 @@ struct BerryBlender
     u16 progressBarValue;
     u16 maxProgressBarValue;
     u16 centerScale;
-    u16 bg_X;
-    u16 bg_Y;
+    s16 bg_X;
+    s16 bg_Y;
     u8 opponentTaskIds[BLENDER_MAX_PLAYERS - 1];
     u8 perfectOpponents; // for debugging, NPCs will always hit Best
     u16 scores[BLENDER_MAX_PLAYERS][NUM_SCORE_TYPES];
@@ -1795,7 +1795,7 @@ static void CB2_StartBlenderLocal(void)
         break;
     }
 
-    Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    //Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2238,7 +2238,7 @@ static void CB2_PlayBlender(void)
         SetMainCallback2(CB2_EndBlenderGame);
     }
 
-    Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    //Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2765,7 +2765,7 @@ static void CB2_EndBlenderGame(void)
     RestoreBgCoords();
     UpdateRPM(sBerryBlender->speed);
     ProcessLinkPlayerCmds();
-    Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    //Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2939,7 +2939,7 @@ static void CB2_CheckPlayAgainLink(void)
     }
 
     ProcessLinkPlayerCmds();
-    Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+    //Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -2994,7 +2994,7 @@ static void CB2_CheckPlayAgainLocal(void)
     }
 
     ProcessLinkPlayerCmds();
-    Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
+   // Blender_DummiedOutFunc(sBerryBlender->bg_X, sBerryBlender->bg_Y);
     RunTasks();
     AnimateSprites();
     BuildOamBuffer();
@@ -3405,7 +3405,7 @@ static void RestoreBgCoords(void)
 
 static void BlenderLandShakeBgCoord(s16 *coord, u16 timer)
 {
-    s32 strength;
+    u32 strength;
 
     if (timer < 10)
         strength = 16;
@@ -3414,7 +3414,10 @@ static void BlenderLandShakeBgCoord(s16 *coord, u16 timer)
 
     if (*coord == 0)
     {
-        *coord = (Random() % strength) - (strength / 2);
+        if (timer < 10)
+            *coord = (Random() & 15) - 8;
+        else
+            *coord = (Random() & 7) - 4;
     }
     else
     {
