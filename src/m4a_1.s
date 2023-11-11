@@ -79,8 +79,8 @@ SoundMainRAM:
 	ldrb r3, [r0, o_SoundInfo_reverb]
 	cmp r3, 0
 	beq SoundMainRAM_NoReverb
-	adr r1, SoundMainRAM_Reverb
-	bx r1
+	bx pc
+	nop
 	.arm
 SoundMainRAM_Reverb:
 	cmp r4, 0x2
@@ -280,10 +280,9 @@ _081DD03A:
 	ldr r5, [sp, 0x8]
 	ldr r2, [r4, o_SoundChannel_count]
 	ldr r3, [r4, o_SoundChannel_currentPointer]
-	adr r0, _081DD044
-	bx r0
+	bx pc
+	nop
 	.arm
-_081DD044:
 	str r8, [sp]
 	ldr r9, [r4, o_SoundChannel_fw]
 	ldrb r10, [r4, o_SoundChannel_envelopeVolumeRight]
