@@ -5158,7 +5158,7 @@ static void AnimHornHit_Step(struct Sprite *sprite)
 
 void AnimTask_DoubleTeam(u8 taskId)
 {
-    u16 i;
+    u32 i;
     s16 obj;
     u16 r3;
     u16 r4;
