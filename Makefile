@@ -107,7 +107,7 @@ LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
 CC1              = $(MODERNCC) -S
-override CFLAGS += -target arm-none-eabi   -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
+override CFLAGS += -target arm-none-eabi -fshort-enums -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -303,9 +303,9 @@ $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -target arm-none-eabi -Ofast -mabi=aapcs 
 
 
 
-$(C_BUILDDIR)/math_util.o: CFLAGS := -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/m4a.o: CFLAGS := -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
-$(C_BUILDDIR)/agb_flash.o CFLAGS := -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
+$(C_BUILDDIR)/math_util.o: CFLAGS := -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/m4a.o: CFLAGS := -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
+$(C_BUILDDIR)/agb_flash.o CFLAGS := -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
 endif
 
 ifeq ($(DINFO),1)
