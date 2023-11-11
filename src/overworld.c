@@ -2141,17 +2141,21 @@ static void InitObjectEventsLink(void)
 
 static void InitObjectEventsLocal(void)
 {
-    u16 x, y;
+    s16 x, y;
     struct InitialPlayerAvatarState *player;
+
+    ResetObjectEvents();
 
     gTotalCameraPixelOffsetX = 0;
     gTotalCameraPixelOffsetY = 0;
-    ResetObjectEvents();
-    GetCameraFocusCoords(&x, &y);
+    x = gSaveBlock1.pos.x + MAP_OFFSET;
+    y = gSaveBlock1.pos.y + MAP_OFFSET;
+    
     player = GetInitialPlayerAvatarState();
     InitPlayerAvatar(x, y, player->direction, gSaveBlock2.playerGender);
-    SetPlayerAvatarTransitionFlags(player->transitionFlags);
     ResetInitialPlayerAvatarState();
+    SetPlayerAvatarTransitionFlags(player->transitionFlags);
+
     TrySpawnObjectEvents(0, 0);
     TryRunOnWarpIntoMapScript();
 }
@@ -2182,7 +2186,7 @@ static void SetCameraToTrackGuestPlayer_2(void)
 
 static void OffsetCameraFocusByLinkPlayerId(void)
 {
-    u16 x, y;
+    s16 x, y;
     GetCameraFocusCoords(&x, &y);
 
     // This is a hack of some kind; it's undone in SpawnLinkPlayers, which is called
@@ -2192,8 +2196,8 @@ static void OffsetCameraFocusByLinkPlayerId(void)
 
 static void SpawnLinkPlayers(void)
 {
-    u16 i;
-    u16 x, y;
+    int i;
+    s16 x, y;
 
     GetCameraFocusCoords(&x, &y);
     x -= gLocalLinkPlayerId;
@@ -2209,7 +2213,7 @@ static void SpawnLinkPlayers(void)
 
 static void CreateLinkPlayerSprites(void)
 {
-    u16 i;
+    u32 i;
     for (i = 0; i < gFieldLinkPlayerCount; i++)
         CreateLinkPlayerSprite(i, gLinkPlayers[i].version);
 }
