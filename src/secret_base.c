@@ -519,7 +519,7 @@ bool8 CurMapIsSecretBase(void)
 void InitSecretBaseAppearance(bool8 hidePC)
 {
     u16 secretBaseIdx;
-    u16 x, y;
+    s16 x, y;
     u8 *decorations;
     u8 *decorPos;
 
@@ -971,7 +971,7 @@ static void BuildRegistryMenuItems(u8 taskId)
 
 static void RegistryMenu_OnCursorMove(s32 unused, bool8 flag, struct ListMenu *menu)
 {
-    if (flag != TRUE)
+    if (flag)
         PlaySE(SE_SELECT);
 }
 
@@ -1407,7 +1407,7 @@ static s16 GetSecretBaseIndexFromId(u8 secretBaseId)
 
 static u8 FindAvailableSecretBaseIndex(void)
 {
-    s16 i;
+    u8 i;
     for (i = 1; i < SECRET_BASES_COUNT; i++)
     {
         if (gSaveBlock1.secretBases[i].secretBaseId == 0)
@@ -1419,7 +1419,7 @@ static u8 FindAvailableSecretBaseIndex(void)
 
 static u8 FindUnregisteredSecretBaseIndex(void)
 {
-    s16 i;
+    u8 i;
     for (i = 1; i < SECRET_BASES_COUNT; i++)
     {
         if (gSaveBlock1.secretBases[i].registryStatus == UNREGISTERED && gSaveBlock1.secretBases[i].toRegister == FALSE)
@@ -1731,7 +1731,7 @@ static void SaveRecordMixBases(struct SecretBaseRecordMixer *mixers)
 void ReceiveSecretBasesData(void *secretBases, size_t recordSize, u8 linkIdx)
 {
     struct SecretBaseRecordMixer mixers[3];
-    u16 i;
+    u32 i;
 
     if (FlagGet(FLAG_RECEIVED_SECRET_POWER))
     {
@@ -2063,7 +2063,7 @@ void CheckInteractedWithFriendsSandOrnament(void)
     s16 x, y;
 
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
-    switch ((int)MapGridGetMetatileIdAt(x, y))
+    switch (MapGridGetMetatileIdAt(x, y))
     {
         case METATILE_SecretBase_SandOrnament_Base1:
         case METATILE_SecretBase_SandOrnament_Base2:
