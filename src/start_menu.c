@@ -260,7 +260,7 @@ static bool8 SaveSuccesTimer(void);
 static bool8 SaveErrorTimer(void);
 static void InitBattlePyramidRetire(void);
 static void VBlankCB_LinkBattleSave(void);
-static bool32 InitSaveWindowAfterLinkBattle(u8 *par1);
+static bool32 InitSaveWindowAfterLinkBattle(void);
 static void CB2_SaveAfterLinkBattle(void);
 static void ShowSaveInfoWindow(void);
 static void RemoveSaveInfoWindow(void);
@@ -1206,9 +1206,9 @@ static void VBlankCB_LinkBattleSave(void)
     TransferPlttBuffer();
 }
 
-static bool32 InitSaveWindowAfterLinkBattle(u8 *state)
+static bool32 InitSaveWindowAfterLinkBattle(void)
 {
-    switch (*state)
+    switch (gMain.state)
     {
     case 0:
         SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_MODE_0);
@@ -1216,12 +1216,14 @@ static bool32 InitSaveWindowAfterLinkBattle(u8 *state)
         ScanlineEffect_Stop();
         DmaClear16(3, PLTT, PLTT_SIZE);
         DmaClear16(3, VRAM, VRAM_SIZE);
+        gMain.state = 1;
         break;
     case 1:
         ResetSpriteData();
         ResetTasks();
         ResetPaletteFade();
         ScanlineEffect_Clear();
+        gMain.state = 2;
         break;
     case 2:
         ResetBgsAndClearDma3BusyFlags();
@@ -1229,24 +1231,25 @@ static bool32 InitSaveWindowAfterLinkBattle(u8 *state)
         InitWindows(sWindowTemplates_LinkBattleSave);
         LoadUserWindowBorderGfx_(0, 8, BG_PLTT_ID(14));
         Menu_LoadStdPalAt(BG_PLTT_ID(15));
+        gMain.state = 3;
         break;
     case 3:
         ShowBg(0);
         BlendPalettes(PALETTES_ALL, 16, RGB_BLACK);
         SetVBlankCallback(VBlankCB_LinkBattleSave);
         EnableInterrupts(1);
+        gMain.state = 4;
         break;
-    case 4:
+    default:
         return TRUE;
     }
 
-    (*state)++;
     return FALSE;
 }
 
 void CB2_SetUpSaveAfterLinkBattle(void)
 {
-    if (InitSaveWindowAfterLinkBattle(&gMain.state))
+    if (InitSaveWindowAfterLinkBattle())
     {
         CreateTask(Task_SaveAfterLinkBattle, 0x50);
         SetMainCallback2(CB2_SaveAfterLinkBattle);
