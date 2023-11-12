@@ -27,7 +27,7 @@ LD := ld.lld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := clang --sysroot $(DEVKITARM)/arm-none-eabi --rtlib=libgcc -isystem $(DEVKITARM)/arm-none-eabi/include -fno-integrated-as
+MODERNCC := clang --sysroot $(DEVKITARM)/arm-none-eabi --rtlib=libgcc -isystem $(DEVKITARM)/arm-none-eabi/include -no-integrated-as
 PATH_MODERNCC := PATH="$(PATH)" arm-none-eabi-gcc
 
 ifeq ($(OS),Windows_NT)
@@ -106,8 +106,8 @@ OBJ_DIR := $(OBJ_DIR_NAME)
 LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
-CC1              = clang -cc1 -S -fno-integrated-as
-override CFLAGS += -target arm-none-eabi  -fshort-enums -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
+CC1              = clang -no-integrated-as
+override CFLAGS += -target arm-none-eabi -fshort-enums -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -356,7 +356,7 @@ ifeq (,$(KEEP_TEMPS))
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(GFLIB_BUILDDIR)/$*.i
 	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt >> $(GFLIB_BUILDDIR)/$*.tmp.i
-	@$(CC1) $(CFLAGS) -S $(GFLIB_BUILDDIR)/$*.s $(GFLIB_BUILDDIR)/$*.tmp.i
+	@$(CC1) $(CFLAGS) $(GFLIB_BUILDDIR)/$*.s $(GFLIB_BUILDDIR)/$*.tmp.i
 	@echo -e ".text\n\t.align\t2, 0\n" >> $(GFLIB_BUILDDIR)/$*.s
 	$(AS) $(ASFLAGS) -o $@ $(GFLIB_BUILDDIR)/$*.s
 	@rm -f $(GFLIB_BUILDDIR)/$*.tmp.i
