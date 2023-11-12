@@ -109,7 +109,7 @@ static void Task_SendPacket(u8);
 static void Task_CopyReceiveBuffer(u8);
 static void Task_SendPacket_SwitchToReceive(u8);
 static void *LoadPtrFromTaskData(const u16 *);
-static void StorePtrInTaskData(void *, u16 *);
+static void StorePtrInTaskData(void *, s16 *);
 static u8 GetMultiplayerId_(void);
 static void *GetPlayerRecvBuffer(u8);
 static void ReceiveOldManData(OldMan *, size_t, u8);
@@ -585,10 +585,10 @@ static void *LoadPtrFromTaskData(const u16 *asShort)
     return (void *)(asShort[0] | (asShort[1] << 16));
 }
 
-static void StorePtrInTaskData(void *records, u16 *asShort)
+static void StorePtrInTaskData(void *records, s16 *asShort)
 {
-    asShort[0] = (u32)records;
-    asShort[1] = ((u32)records >> 16);
+	asShort[0] = (s16)((uintptr_t)records & 0xffff);
+	asShort[1] = (s16)( ((uintptr_t)records >> 16) & 0xffff );
 }
 
 static u8 GetMultiplayerId_(void)
