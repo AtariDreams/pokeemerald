@@ -153,6 +153,7 @@ void ClearGpuRegBits(u8 regOffset, u16 mask)
     u16 regValue = GPU_REG_BUF(regOffset) & ~mask;
     SetGpuReg(regOffset, regValue);
 }
+
 void EnableInterrupts(u16 mask)
 {
     REG_IE_SET(mask);
