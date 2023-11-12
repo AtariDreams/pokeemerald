@@ -519,7 +519,7 @@ bool8 CurMapIsSecretBase(void)
 void InitSecretBaseAppearance(bool8 hidePC)
 {
     u16 secretBaseIdx;
-    u16 x, y;
+    s16 x, y;
     u8 *decorations;
     u8 *decorPos;
 
