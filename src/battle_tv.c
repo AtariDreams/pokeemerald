@@ -953,19 +953,12 @@ void BattleTv_SetDataBasedOnString(u16 stringId)
 
 static bool8 IsNotSpecialBattleString(u16 stringId)
 {
-    s32 i = 0;
-
-    do
+    for (u32 i = 0; sSpecialBattleStrings[i] != TABLE_END; i++)
     {
         if (sSpecialBattleStrings[i] == stringId)
-            break;
-        i++;
-    } while (sSpecialBattleStrings[i] != TABLE_END);
-
-    if (sSpecialBattleStrings[i] == TABLE_END)
-        return TRUE;
-    else
-        return FALSE;
+            return FALSE;
+    }
+    return TRUE;
 }
 
 void BattleTv_SetDataBasedOnMove(u16 move, u16 weatherFlags, struct DisableStruct *disableStructPtr)
