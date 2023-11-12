@@ -264,9 +264,6 @@ static void ReadKeys(void)
         if (JOY_REPEAT(L_BUTTON))
             gMain.newAndRepeatedKeys |= A_BUTTON;
     }
-
-    if (JOY_NEW(gMain.watchedKeysMask))
-        gMain.watchedKeysPressed = TRUE;
 }
 
 void SetVBlankCallback(IntrCallback callback)
