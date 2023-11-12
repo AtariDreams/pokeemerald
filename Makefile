@@ -21,13 +21,13 @@ endif
 PREFIX := arm-none-eabi-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := arm-none-eabi-as
+AS := clang -fno-integrated-as --sysroot $(DEVKITARM)/arm-none-eabi -c
 
-LD := ld.lld
+LD := arm-none-eabi-ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := clang --sysroot $(DEVKITARM)/arm-none-eabi --rtlib=libgcc -isystem $(DEVKITARM)/arm-none-eabi/include -no-integrated-as
+MODERNCC := clang --sysroot $(DEVKITARM)/arm-none-eabi -isystem $(DEVKITARM)/arm-none-eabi/include --rtlib=libgcc
 PATH_MODERNCC := PATH="$(PATH)" arm-none-eabi-gcc
 
 ifeq ($(OS),Windows_NT)
@@ -96,7 +96,7 @@ DATA_ASM_BUILDDIR = $(OBJ_DIR)/$(DATA_ASM_SUBDIR)
 SONG_BUILDDIR = $(OBJ_DIR)/$(SONG_SUBDIR)
 MID_BUILDDIR = $(OBJ_DIR)/$(MID_SUBDIR)
 
-ASFLAGS := -mcpu=arm7tdmi --defsym MODERN=$(MODERN)
+ASFLAGS := -target arm-none-eabi -mcpu=arm7tdmi -D MODERN=$(MODERN)
 
 ifeq ($(MODERN),0)
 CC1             := tools/agbcc/bin/agbcc$(EXE)
@@ -106,8 +106,8 @@ OBJ_DIR := $(OBJ_DIR_NAME)
 LIBPATH := -L ../../tools/agbcc/lib
 LIB := $(LIBPATH) -lgcc -lc -L../../libagbsyscall -lagbsyscall
 else
-CC1              = clang -no-integrated-as
-override CFLAGS += -target arm-none-eabi -fshort-enums -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
+CC1              = $(MODERNCC) -S
+override CFLAGS += -target arm-none-eabi -no-integrated-as -fshort-enums -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -mthumb
 
 ROM := $(MODERN_ROM_NAME)
 OBJ_DIR := $(MODERN_OBJ_DIR_NAME)
@@ -299,13 +299,13 @@ $(C_BUILDDIR)/record_mixing.o: CFLAGS += -ffreestanding
 $(C_BUILDDIR)/librfu_intr.o: CC1 := tools/agbcc/bin/agbcc_arm$(EXE)
 $(C_BUILDDIR)/librfu_intr.o: CFLAGS := -O2 -mthumb-interwork -quiet
 else
-$(C_BUILDDIR)/librfu_intr.o: CFLAGS :=  -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -ffunction-sections
+$(C_BUILDDIR)/librfu_intr.o: CFLAGS := -no-integrated-as -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -ffunction-sections
 
 
 
-$(C_BUILDDIR)/math_util.o: CFLAGS :=  -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
-$(C_BUILDDIR)/m4a.o: CFLAGS :=  -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
-$(C_BUILDDIR)/agb_flash.o CFLAGS :=  -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
+$(C_BUILDDIR)/math_util.o: CFLAGS := -no-integrated-as -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast
+$(C_BUILDDIR)/m4a.o: CFLAGS := -no-integrated-as -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
+$(C_BUILDDIR)/agb_flash.o CFLAGS := -no-integrated-as -fshort-enums -target arm-none-eabi -Ofast -mabi=aapcs -mtune=arm7tdmi -march=armv4t -mthumb -ffunction-sections
 endif
 
 ifeq ($(DINFO),1)
@@ -356,7 +356,7 @@ ifeq (,$(KEEP_TEMPS))
 else
 	@$(CPP) $(CPPFLAGS) $< -o $(GFLIB_BUILDDIR)/$*.i
 	@$(PREPROC) $(GFLIB_BUILDDIR)/$*.i charmap.txt >> $(GFLIB_BUILDDIR)/$*.tmp.i
-	@$(CC1) $(CFLAGS) $(GFLIB_BUILDDIR)/$*.s $(GFLIB_BUILDDIR)/$*.tmp.i
+	@$(CC1) $(CFLAGS) -S $(GFLIB_BUILDDIR)/$*.s $(GFLIB_BUILDDIR)/$*.tmp.i
 	@echo -e ".text\n\t.align\t2, 0\n" >> $(GFLIB_BUILDDIR)/$*.s
 	$(AS) $(ASFLAGS) -o $@ $(GFLIB_BUILDDIR)/$*.s
 	@rm -f $(GFLIB_BUILDDIR)/$*.tmp.i
