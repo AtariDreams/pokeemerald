@@ -90,9 +90,9 @@ _Noreturn void AgbMain(void)
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
     InitGpuRegManager();
 
+    REG_IE_SETS(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
     REG_DISPSTAT = (REG_DISPSTAT & 0xFF) | (150 << 8) | DISPSTAT_VCOUNT_INTR | DISPSTAT_VBLANK_INTR;
 
-    REG_IE_SETS(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
 
     m4aSoundInit();
     InitKeys();
