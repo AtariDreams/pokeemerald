@@ -28,7 +28,7 @@ struct Main
 
     /*0x038*/ struct OamData oamBuffer[128];
 
-    /*0x438*/ u8 state;
+    /*0x438*/ u32 state;
 
     /*0x439*/ u8 oamLoadDisabled;
     /*0x439*/ u8 inBattle;
