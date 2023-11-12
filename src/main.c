@@ -28,7 +28,6 @@
 static void VBlankIntr(void);
 static void HBlankIntr(void);
 static void VCountIntr(void);
-static void SerialIntr(void);
 static void IntrDummy(void);
 
 const u8 gGameVersion = GAME_VERSION;
@@ -287,13 +286,8 @@ void SetVCountCallback(IntrCallback callback)
 
 void RestoreSerialTimer3IntrHandlers(void)
 {
-    gIntrTable[1] = SerialIntr;
+    gIntrTable[1] = SerialCB;
     gIntrTable[2] = Timer3Intr;
-}
-
-void SetSerialCallback(IntrCallback callback)
-{
-    gMain.serialCallback = callback;
 }
 
 static void VBlankIntr(void)
@@ -351,14 +345,6 @@ static void VCountIntr(void)
 
 
     INTR_CHECK |= INTR_FLAG_VCOUNT;
-}
-
-static void SerialIntr(void)
-{
-    if (gMain.serialCallback)
-        gMain.serialCallback();
-
-    INTR_CHECK |= INTR_FLAG_SERIAL;
 }
 
 static void IntrDummy(void)

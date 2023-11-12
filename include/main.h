@@ -15,7 +15,7 @@ struct Main
     /*0x00C*/ IntrCallback vblankCallback;
     /*0x010*/ IntrCallback hblankCallback;
     /*0x014*/ IntrCallback vcountCallback;
-    /*0x018*/ IntrCallback serialCallback;
+    /*0x018*/ //IntrCallback serialCallback;
 
     /*0x020*/ u32 vblankCounter1;
     /*0x024*/ u32 vblankCounter2;
