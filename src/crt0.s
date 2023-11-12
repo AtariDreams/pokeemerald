@@ -22,6 +22,7 @@ Init::
 	ldr r0, =AgbMain + 1
 	mov lr, pc
 	bx r0
+	b Init
 
 	.align 2, 0
 sp_sys: .word IWRAM_END - 0x1c0
@@ -90,8 +91,8 @@ IntrMain_FoundIntr:
 	strh r0, [r3, #REG_IF - REG_IE]
 	bic r2, r2, r0
 	ldr r0, =gSTWIStatus
-	ldr r0, [r0]
-	ldrb r0, [r0, 0xA]
+	ldr r0, [r0, #0]
+	ldrb r0, [r0, #10]
 	mov r1, #INTR_FLAG_TIMER0
 	lsl r0, r1, r0
 	orr r0, r0, #INTR_FLAG_GAMEPAK
