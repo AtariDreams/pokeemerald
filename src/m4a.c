@@ -579,30 +579,6 @@ void m4aSoundVSyncOn(void)
     REG_TM0CNT_H = TIMER_ENABLE | TIMER_1CLK;
 }
 
-void m4aSoundVSync(void) {
-    struct SoundInfo *soundInfo = SOUND_INFO_PTR;
-
-    u32 ident = soundInfo->ident;
-    if (ident != ID_NUMBER && ident != ID_NUMBER + 1)
-        return;
-    {
-        if ((s8)(--soundInfo->pcmDmaCounter) <= 0) {
-            soundInfo->pcmDmaCounter = soundInfo->pcmDmaPeriod;
-
-            if (REG_DMA1CNT & (DMA_REPEAT << 16))
-                REG_DMA1CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
-
-            if (REG_DMA2CNT & (DMA_REPEAT << 16))
-                REG_DMA2CNT = ((DMA_ENABLE | DMA_START_NOW | DMA_32BIT | DMA_SRC_INC | DMA_DEST_FIXED) << 16) | 4;
-
-            REG_DMA1CNT_H = DMA_32BIT;
-            REG_DMA2CNT_H = DMA_32BIT;
-            REG_DMA1CNT_H = DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT;
-            REG_DMA2CNT_H = DMA_ENABLE | DMA_START_SPECIAL | DMA_32BIT | DMA_REPEAT;
-        }
-    }
-}
-
 void MPlayOpen(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *tracks, u8 trackCount)
 {
     struct SoundInfo *soundInfo;
