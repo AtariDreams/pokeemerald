@@ -1084,7 +1084,7 @@ static u8 SetUpCopyrightScreen(void)
                                    | BGCNT_SCREENBASE(7)
                                    | BGCNT_16COLOR
                                    | BGCNT_TXT256x256);
-        EnableInterrupts(INTR_FLAG_VBLANK);
+        //EnableInterrupts(INTR_FLAG_VBLANK);
         SetVBlankCallback(VBlankCB_Intro);
         SetGpuReg(REG_OFFSET_DISPCNT,DISPCNT_MODE_0 | DISPCNT_OBJ_1D_MAP | DISPCNT_BG0_ON);
         // REG_DISPCNT = DISPCNT_MODE_0 | DISPCNT_OBJ_1D_MAP | DISPCNT_BG0_ON;
@@ -1185,7 +1185,7 @@ static void Task_Scene1_Load(u8 taskId)
     LoadCompressedSpriteSheet(sSpriteSheet_Sparkle);
     LoadSpritePalettes(sSpritePalette_Sparkle);
     CpuCopy16(&gPlttBufferUnfaded[OBJ_PLTT_ID(0)], &gPlttBufferUnfaded[OBJ_PLTT_ID(15) + 0], PLTT_SIZEOF(16 - 0));
-    CpuCopy16(&gPlttBufferUnfaded[OBJ_PLTT_ID(0)], &gPlttBufferUnfaded[OBJ_PLTT_ID(14) + 1], PLTT_SIZEOF(16 - 1) + 1); // Copying an extra half color?
+    CpuCopy16(&gPlttBufferUnfaded[OBJ_PLTT_ID(0)], &gPlttBufferUnfaded[OBJ_PLTT_ID(14) + 1], PLTT_SIZEOF(16 - 1));
     CpuCopy16(&gPlttBufferUnfaded[OBJ_PLTT_ID(0)], &gPlttBufferUnfaded[OBJ_PLTT_ID(13) + 2], PLTT_SIZEOF(16 - 2));
     CpuCopy16(&gPlttBufferUnfaded[OBJ_PLTT_ID(0)], &gPlttBufferUnfaded[OBJ_PLTT_ID(12) + 3], PLTT_SIZEOF(16 - 3));
     CpuCopy16(&gPlttBufferUnfaded[OBJ_PLTT_ID(0)], &gPlttBufferUnfaded[OBJ_PLTT_ID(11) + 4], PLTT_SIZEOF(16 - 4));
