@@ -2169,6 +2169,7 @@ void SerialCB(void)
     {
         gLastRecvQueueCount = gLink.recvQueue.count;
     }
+    INTR_CHECK |= INTR_FLAG_SERIAL;
 }
 
 static void StartTransfer(void)

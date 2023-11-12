@@ -38,7 +38,7 @@ const u8 gGameLanguage = GAME_LANGUAGE; // English
 ALIGNED(4) const IntrFunc gIntrTableTemplate[] =
 {
     VCountIntr, // V-count interrupt
-    SerialIntr, // Serial interrupt
+    SerialCB, // Serial interrupt
     Timer3Intr, // Timer 3 interrupt
     HBlankIntr, // H-blank interrupt
     VBlankIntr, // V-blank interrupt
