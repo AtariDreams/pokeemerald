@@ -90,6 +90,7 @@ _Noreturn void AgbMain(void)
     *(vu16 *)BG_PLTT = RGB_WHITE; // Set the backdrop to white on startup
     InitGpuRegManager();
 
+    REG_IME = 0;
     REG_IE |= INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK;
     REG_DISPSTAT = (REG_DISPSTAT & 0xFF) | (150 << 8) | DISPSTAT_VCOUNT_INTR | DISPSTAT_VBLANK_INTR;
     REG_IME = 1;
@@ -272,7 +273,7 @@ static void ReadKeys(void)
 
 void InitIntrHandlers(void)
 { 
-    REG_IE_SETS(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
+    REG_IE_SET(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
     SetGpuReg(REG_OFFSET_DISPSTAT, (150 << 8) | DISPSTAT_VCOUNT_INTR | INTR_FLAG_VBLANK);
 
     EnableInterrupts(INTR_FLAG_VBLANK);
