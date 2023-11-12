@@ -74,7 +74,6 @@ static void UpdateLinkAndCallCallbacks(void);
 static void CallCallbacks(void);
 static void SeedRngWithRtc(void);
 static void ReadKeys(void);
-void InitIntrHandlers(void);
 
 #define AB_START_SELECT (A_BUTTON| B_BUTTON | START_BUTTON | SELECT_BUTTON)
 
@@ -269,14 +268,6 @@ static void ReadKeys(void)
 
     if (JOY_NEW(gMain.watchedKeysMask))
         gMain.watchedKeysPressed = TRUE;
-}
-
-void InitIntrHandlers(void)
-{ 
-    REG_IE_SET(INTR_FLAG_VCOUNT | INTR_FLAG_VBLANK);
-    SetGpuReg(REG_OFFSET_DISPSTAT, (150 << 8) | DISPSTAT_VCOUNT_INTR | INTR_FLAG_VBLANK);
-
-    EnableInterrupts(INTR_FLAG_VBLANK);
 }
 
 void SetVBlankCallback(IntrCallback callback)
