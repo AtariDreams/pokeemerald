@@ -19,9 +19,9 @@ Init::
 	mov r0, #255 @ RESET_ALL
 	svc #1 << 16
 	.endif @ MODERN
-	ldr r0, =AgbMain + 1
-	mov lr, pc
-	bx r0
+	ldr r1, =AgbMain
+	mov     lr, pc
+	bx r1
 	b Init
 
 	.align 2, 0
