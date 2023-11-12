@@ -2,7 +2,7 @@
 #include "malloc.h"
 
 static void *sHeapStart;
-static u32 sHeapSize;
+//static u32 sHeapSize;
 
 EWRAM_DATA u8 gHeap[HEAP_SIZE] = {0};
 
@@ -172,7 +172,7 @@ bool32 CheckMemBlockInternal(void *heapStart, void *pointer)
 void InitHeap(void *heapStart, u32 heapSize)
 {
     sHeapStart = heapStart;
-    sHeapSize = heapSize;
+    //sHeapSize = heapSize;
     PutFirstMemBlockHeader(heapStart, heapSize);
 }
 
