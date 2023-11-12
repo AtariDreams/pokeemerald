@@ -1704,8 +1704,8 @@ static void PrintCrushingResults(struct BerryCrushGame *game)
 
     // Print pressing speed value
     for (i = 0; i < 8; i++)
-        if (((u8)game->pressingSpeed >> (7 - i)) & 1)
-            pressingSpeedFrac += *(i + sPressingSpeedConversionTable); // It's accessed in a different way here for unknown reason
+        if ((game->pressingSpeed >> (7 - i)) & 1)
+            pressingSpeedFrac += sPressingSpeedConversionTable[i]; // It's accessed in a different way here for unknown reason
     ConvertIntToDecimalStringN(gStringVar1, game->pressingSpeed >> 8, STR_CONV_MODE_RIGHT_ALIGN, 3);
     ConvertIntToDecimalStringN(gStringVar2, pressingSpeedFrac / 1000000, STR_CONV_MODE_LEADING_ZEROS, 2);
     StringExpandPlaceholders(gStringVar4, gText_XDotY3);
@@ -1944,7 +1944,7 @@ static void DrawPlayerNameWindows(struct BerryCrushGame *game)
 // Each player name window border uses a color that corresponds to a slot of the crusher lid
 static void CopyPlayerNameWindowGfxToBg(struct BerryCrushGame *game)
 {
-    u8 i = 0;
+    u32 i = 0;
     u8 * windowGfx;
 
     LZ77UnCompWram(gBerryCrush_TextWindows_Tilemap, gDecompressionBuffer);
@@ -1965,7 +1965,7 @@ static void CopyPlayerNameWindowGfxToBg(struct BerryCrushGame *game)
 
 static void CreateGameSprites(struct BerryCrushGame *game)
 {
-    u8 i = 0;
+    u32 i = 0;
     u8 spriteId;
 
     game->depth = CRUSHER_START_Y;
