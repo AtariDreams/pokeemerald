@@ -1639,7 +1639,7 @@ static void ErrorMsg_MoveCloserToPartner(void)
 {
     LoadBgTiles(0, sCommErrorBg_Gfx, 0x20, 0);
     DecompressAndLoadBgGfxUsingHeap(1, sWirelessLinkDisplayGfx, FALSE, 0, 0);
-    CopyToBgTilemapBuffer(1, sWirelessLinkDisplayTilemap, 0, 0);
+    ExtractToBgTilemapBuffer(1, sWirelessLinkDisplayTilemap, 0);
     CopyBgTilemapBufferToVram(1);
     LoadPalette(sWirelessLinkDisplayPal, BG_PLTT_ID(0), sizeof(sWirelessLinkDisplayPal));
     FillWindowPixelBuffer(WIN_LINK_ERROR_TOP, PIXEL_FILL(0));
@@ -1648,7 +1648,7 @@ static void ErrorMsg_MoveCloserToPartner(void)
     AddTextPrinterParameterized3(WIN_LINK_ERROR_BOTTOM, FONT_SHORT_COPY_1, 2, 1, sTextColors, 0, gText_MoveCloserToLinkPartner);
     PutWindowTilemap(WIN_LINK_ERROR_TOP);
     PutWindowTilemap(WIN_LINK_ERROR_BOTTOM);
-    CopyWindowToVram(WIN_LINK_ERROR_TOP, COPYWIN_NONE); // Does nothing
+    //CopyWindowToVram(WIN_LINK_ERROR_TOP, COPYWIN_NONE); // Does nothing
     CopyWindowToVram(WIN_LINK_ERROR_BOTTOM, COPYWIN_FULL);
 }
 
@@ -1660,7 +1660,7 @@ static void ErrorMsg_CheckConnections(void)
     AddTextPrinterParameterized3(WIN_LINK_ERROR_MID, FONT_SHORT_COPY_1, 2, 0, sTextColors, 0, gText_CommErrorCheckConnections);
     PutWindowTilemap(WIN_LINK_ERROR_MID);
     PutWindowTilemap(WIN_LINK_ERROR_BOTTOM);
-    CopyWindowToVram(WIN_LINK_ERROR_MID, COPYWIN_NONE); // Does nothing
+    //CopyWindowToVram(WIN_LINK_ERROR_MID, COPYWIN_NONE); // Does nothing
     CopyWindowToVram(WIN_LINK_ERROR_BOTTOM, COPYWIN_FULL);
 }
 

@@ -1884,7 +1884,7 @@ static void LoadPalettes(void)
 
 static void DrawBgTilemap(u8 bg, const void *src)
 {
-    CopyToBgTilemapBuffer(bg, src, 0, 0);
+    ExtractToBgTilemapBuffer(bg, src, 0);
 }
 
 static void NamingScreen_Dummy(u8 bg, u8 page)

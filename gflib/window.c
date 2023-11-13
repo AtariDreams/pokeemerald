@@ -37,7 +37,7 @@ bool16 InitWindows(const struct WindowTemplate *templates)
     void *bgTilemapBuffer;
     u8 bgLayer;
     u16 attrib;
-    u8 *allocatedTilemapBuffer;
+    void *allocatedTilemapBuffer;
 
     for (i = 0; i < NUM_BACKGROUNDS; ++i)
     {

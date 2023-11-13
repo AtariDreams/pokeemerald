@@ -430,7 +430,7 @@ static u32 LoopedTask_OpenConditionSearchResults(s32 state)
         InitBgTemplates(sConditionSearchResultBgTemplates, ARRAY_COUNT(sConditionSearchResultBgTemplates));
         DecompressAndCopyTileDataToVram(1, sConditionSearchResultTiles, 0, 0, 0);
         SetBgTilemapBuffer(1, gfx->buff);
-        CopyToBgTilemapBuffer(1, sConditionSearchResultTilemap, 0, 0);
+        ExtractToBgTilemapBuffer(1, sConditionSearchResultTilemap, 0);
         CopyBgTilemapBufferToVram(1);
         CopyPaletteIntoBufferUnfaded(sConditionSearchResultFramePal, BG_PLTT_ID(1), sizeof(sConditionSearchResultFramePal));
         CopyBgTilemapBufferToVram(1);

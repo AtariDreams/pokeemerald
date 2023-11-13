@@ -1605,8 +1605,8 @@ static void StartBgAnimation(bool8 isLink)
     LoadPalette(sBgAnim_Intro_Pal, BG_PLTT_ID(10), PLTT_SIZE_4BPP);
 
     DecompressAndLoadBgGfxUsingHeap(1, sBgAnim_Gfx, FALSE, 0, 0);
-    CopyToBgTilemapBuffer(innerBgId, sBgAnim_Inner_Tilemap, 0, 0);
-    CopyToBgTilemapBuffer(outerBgId, sBgAnim_Outer_Tilemap, 0, 0);
+    ExtractToBgTilemapBuffer(innerBgId, sBgAnim_Inner_Tilemap, 0);
+    ExtractToBgTilemapBuffer(outerBgId, sBgAnim_Outer_Tilemap, 0);
     CopyBgTilemapBufferToVram(innerBgId);
     CopyBgTilemapBufferToVram(outerBgId);
 

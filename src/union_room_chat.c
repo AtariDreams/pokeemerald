@@ -3067,7 +3067,7 @@ static void LoadKeyboardWindowGfx(void)
     LoadPalette(gUnionRoomChat_Keyboard_Pal, BG_PLTT_ID(7), PLTT_SIZE_4BPP);
     LoadPalette(gUnionRoomChat_InputText_Pal, BG_PLTT_ID(12), PLTT_SIZE_4BPP);
     DecompressAndCopyTileDataToVram(1, gUnionRoomChat_Keyboard_Gfx, 0, 0, 0);
-    CopyToBgTilemapBuffer(1, gUnionRoomChat_Keyboard_Tilemap, 0, 0);
+    ExtractToBgTilemapBuffer(1, gUnionRoomChat_Keyboard_Tilemap, 0);
     CopyBgTilemapBufferToVram(1);
 }
 
@@ -3087,7 +3087,7 @@ static void LoadChatWindowGfx(void)
         CpuFastCopy(&ptr[0x21 * TILE_SIZE_4BPP], &sDisplay->textEntryTiles[TILE_SIZE_4BPP * 1], TILE_SIZE_4BPP);
     }
 
-    CopyToBgTilemapBuffer(2, gUnionRoomChat_Background_Tilemap, 0, 0);
+    ExtractToBgTilemapBuffer(2, gUnionRoomChat_Background_Tilemap, 0);
     CopyBgTilemapBufferToVram(2);
 }
 

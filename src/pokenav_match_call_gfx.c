@@ -331,7 +331,7 @@ static u32 LoopedTask_OpenMatchCall(s32 state)
         ChangeBgY(2, 0, BG_COORD_SET);
         DecompressAndCopyTileDataToVram(2, sMatchCallUI_Gfx, 0, 0, 0);
         SetBgTilemapBuffer(2, gfx->bgTilemapBuffer2);
-        CopyToBgTilemapBuffer(2, sMatchCallUI_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(2, sMatchCallUI_Tilemap, 0);
         CopyBgTilemapBufferToVram(2);
         CopyPaletteIntoBufferUnfaded(sMatchCallUI_Pal, BG_PLTT_ID(2), sizeof(sMatchCallUI_Pal));
         CopyBgTilemapBufferToVram(2);
