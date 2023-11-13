@@ -451,9 +451,9 @@ static void LoadContestResultsBgGfx(void)
     u16 tile1, tile2;
 
     LZ77UnCompVram(gContestResults_Gfx, (void *)BG_CHAR_ADDR(0));
-    CopyToBgTilemapBuffer(3, gContestResults_Bg_Tilemap, 0, 0);
-    CopyToBgTilemapBuffer(2, gContestResults_Interface_Tilemap, 0, 0);
-    CopyToBgTilemapBuffer(0, gContestResults_WinnerBanner_Tilemap, 0, 0);
+    ExtractToBgTilemapBuffer(3, gContestResults_Bg_Tilemap, 0);
+    ExtractToBgTilemapBuffer(2, gContestResults_Interface_Tilemap, 0);
+    ExtractToBgTilemapBuffer(0, gContestResults_WinnerBanner_Tilemap, 0);
     LoadContestResultsTitleBarTilemaps();
     LoadCompressedPalette(gContestResults_Pal, BG_PLTT_OFFSET, BG_PLTT_SIZE);
     LoadPalette(sResultsTextWindow_Pal, BG_PLTT_ID(15), sizeof(sResultsTextWindow_Pal));

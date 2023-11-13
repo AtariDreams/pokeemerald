@@ -859,7 +859,7 @@ void DrawMainBattleBackground(void)
 void LoadBattleTextboxAndBackground(void)
 {
     LZ77UnCompVram(gBattleTextboxTiles, (void *)(BG_CHAR_ADDR(0)));
-    CopyToBgTilemapBuffer(0, gBattleTextboxTilemap, 0, 0);
+    ExtractToBgTilemapBuffer(0, gBattleTextboxTilemap, 0);
     CopyBgTilemapBufferToVram(0);
     LoadCompressedPalette(gBattleTextboxPalette, BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
     LoadBattleMenuWindowGfx();
@@ -1130,8 +1130,9 @@ void DrawBattleEntryBackground(void)
         LoadCompressedPalette(gBattleVSFrame_Pal, BG_PLTT_ID(6), PLTT_SIZE_4BPP);
         SetBgAttribute(1, BG_ATTR_SCREENSIZE, 1);
         SetGpuReg(REG_OFFSET_BG1CNT, 0x5C04);
-        CopyToBgTilemapBuffer(1, gBattleVSFrame_Tilemap, 0, 0);
-        CopyToBgTilemapBuffer(2, gBattleVSFrame_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(1, gBattleVSFrame_Tilemap, 0);
+        // TODO: Would be nice to do a copy from bg 1 as opposed to extraction all over again
+        ExtractToBgTilemapBuffer(2, gBattleVSFrame_Tilemap, 0);
         CopyBgTilemapBufferToVram(1);
         CopyBgTilemapBufferToVram(2);
         SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG1 | WININ_WIN0_BG2 | WININ_WIN0_OBJ | WININ_WIN0_CLR);
@@ -1153,8 +1154,8 @@ void DrawBattleEntryBackground(void)
             // Note Steven's multi battle (which has a dedicated back pic) is excluded above.
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 2);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 2);
-            CopyToBgTilemapBuffer(1, gMultiBattleIntroBg_Opponent_Tilemap, 0, 0);
-            CopyToBgTilemapBuffer(2, gMultiBattleIntroBg_Player_Tilemap, 0, 0);
+            ExtractToBgTilemapBuffer(1, gMultiBattleIntroBg_Opponent_Tilemap, 0);
+            ExtractToBgTilemapBuffer(2, gMultiBattleIntroBg_Player_Tilemap, 0);
             CopyBgTilemapBufferToVram(1);
             CopyBgTilemapBufferToVram(2);
         }
@@ -1216,7 +1217,7 @@ bool8 LoadChosenBattleElement(u8 caseId)
         LZ77UnCompVram(gBattleTextboxTiles, (void *)(BG_CHAR_ADDR(0)));
         break;
     case 1:
-        CopyToBgTilemapBuffer(0, gBattleTextboxTilemap, 0, 0);
+        ExtractToBgTilemapBuffer(0, gBattleTextboxTilemap, 0);
         CopyBgTilemapBufferToVram(0);
         break;
     case 2:

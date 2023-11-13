@@ -999,7 +999,7 @@ void AnimLoadCompressedBgGfx(u32 bgId, const u32 *src, u32 tilesOffset)
 static void InitAnimBgTilemapBuffer(u32 bgId, const void *src)
 {
     FillBgTilemapBufferRect(bgId, 0, 0, 0, 32, 64, 17);
-    CopyToBgTilemapBuffer(bgId, src, 0, 0);
+    ExtractToBgTilemapBuffer(bgId, src, 0);
 }
 
 void AnimLoadCompressedBgTilemap(u32 bgId, const void *src)

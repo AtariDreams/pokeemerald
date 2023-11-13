@@ -1292,7 +1292,7 @@ static void UpdateAreaHighlight(u8 cursorArea, u8 previousCursorArea)
 
 static void DrawFrontierPassBg(void)
 {
-    CopyToBgTilemapBuffer(1, gFrontierPassBg_Tilemap, 0, 0);
+    ExtractToBgTilemapBuffer(1, gFrontierPassBg_Tilemap, 0);
     UpdateAreaHighlight(sPassData->cursorArea, sPassData->previousCursorArea);
     ShowHideZoomingArea(TRUE, sPassData->areaToShow); // If returning to frontier pass from map/card (areaToShow will be != 0)
     ShowAndPrintWindows();
@@ -1422,7 +1422,7 @@ static bool32 InitFrontierMap(void)
             return FALSE;
         LoadPalette(gFrontierPassBg_Pal, BG_PLTT_ID(0), NUM_BG_PAL_SLOTS * PLTT_SIZE_4BPP);
         LoadPalette(GetTextWindowPalette(0), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
-        CopyToBgTilemapBuffer(2, sMapScreen_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(2, sMapScreen_Tilemap, 0);
         CopyBgTilemapBufferToVram(2);
         break;
     case 6:

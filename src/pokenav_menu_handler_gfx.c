@@ -452,7 +452,7 @@ static u32 LoopedTask_OpenMenu(s32 state)
         InitBgTemplates(sPokenavMainMenuBgTemplates, ARRAY_COUNT(sPokenavMainMenuBgTemplates));
         DecompressAndCopyTileDataToVram(1, gPokenavMessageBox_Gfx, 0, 0, 0);
         SetBgTilemapBuffer(1, gfx->bg1TilemapBuffer);
-        CopyToBgTilemapBuffer(1, gPokenavMessageBox_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(1, gPokenavMessageBox_Tilemap, 0);
         CopyBgTilemapBufferToVram(1);
         CopyPaletteIntoBufferUnfaded(gPokenavMessageBox_Pal, BG_PLTT_ID(1), PLTT_SIZE_4BPP);
         ChangeBgX(1, 0, BG_COORD_SET);

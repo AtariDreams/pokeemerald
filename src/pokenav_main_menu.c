@@ -350,7 +350,7 @@ static u32 LoopedTask_InitPokenavMenu(s32 state)
         menu = GetSubstructPtr(POKENAV_SUBSTRUCT_MAIN_MENU);
         DecompressAndCopyTileDataToVram(0, &gPokenavHeader_Gfx, 0, 0, 0);
         SetBgTilemapBuffer(0, menu->tilemapBuffer);
-        CopyToBgTilemapBuffer(0, &gPokenavHeader_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(0, &gPokenavHeader_Tilemap, 0);
         CopyPaletteIntoBufferUnfaded(gPokenavHeader_Pal, BG_PLTT_ID(0), PLTT_SIZE_4BPP);
         CopyBgTilemapBufferToVram(0);
         return LT_INC_AND_PAUSE;

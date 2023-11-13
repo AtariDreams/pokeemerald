@@ -1204,7 +1204,7 @@ static void CB2_LoadRoulette(void)
             return;
 
         InitRouletteTableData();
-        CopyToBgTilemapBuffer(2, sWheel_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(2, sWheel_Tilemap, 0);
         break;
     case 5:
         LoadOrFreeMiscSpritePalettesAndSheets();

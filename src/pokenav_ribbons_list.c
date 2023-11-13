@@ -425,7 +425,7 @@ static u32 LoopedTask_OpenRibbonsMonList(s32 state)
         InitBgTemplates(sMonRibbonListBgTemplates, ARRAY_COUNT(sMonRibbonListBgTemplates));
         DecompressAndCopyTileDataToVram(1, sMonRibbonListFrameTiles, 0, 0, 0);
         SetBgTilemapBuffer(1, menu->buff);
-        CopyToBgTilemapBuffer(1, sMonRibbonListFrameTilemap, 0, 0);
+        ExtractToBgTilemapBuffer(1, sMonRibbonListFrameTilemap, 0);
         CopyPaletteIntoBufferUnfaded(sMonRibbonListFramePal, BG_PLTT_ID(1), sizeof(sMonRibbonListFramePal));
         CopyBgTilemapBufferToVram(1);
         return LT_INC_AND_PAUSE;
