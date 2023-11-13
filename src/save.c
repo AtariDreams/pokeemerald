@@ -111,27 +111,6 @@ void Save_ResetSaveCounters(void)
     gDamagedSaveSectors = 0;
 }
 
-static bool32 SetDamagedSectorBits(u8 op, u8 sectorId)
-{
-    bool32 retVal = FALSE;
-
-    switch (op)
-    {
-    case ENABLE:
-        gDamagedSaveSectors |= (1 << sectorId);
-        break;
-    case DISABLE:
-        gDamagedSaveSectors &= ~(1 << sectorId);
-        break;
-    case CHECK: // unused
-        if (gDamagedSaveSectors & (1 << sectorId))
-            retVal = TRUE;
-        break;
-    }
-
-    return retVal;
-}
-
 static u8 WriteSaveSectorOrSlot(u16 sectorId, const struct SaveBlockChunk *locations)
 {
     u32 status;
