@@ -1592,9 +1592,8 @@ static void PlayerHandleGetMonData(void)
         monToCheck = gBattleBufferA[gActiveBattler][2];
         for (i = 0; i < PARTY_SIZE; i++)
         {
-            if (monToCheck & 1)
+            if (monToCheck & (1U << i))
                 size += CopyPlayerMonData(i, monData + size);
-            monToCheck >>= 1;
         }
     }
     BtlController_EmitDataTransfer(BUFFER_B, size, monData);
