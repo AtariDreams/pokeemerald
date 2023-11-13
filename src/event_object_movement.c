@@ -5936,7 +5936,7 @@ bool8 MovementAction_StartAnimInDirection_Step0(struct ObjectEvent *objectEvent,
 
 bool8 MovementAction_WaitSpriteAnim(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
-    if (SpriteAnimEnded(sprite))
+    if (sprite->animEnded)
     {
         sprite->sActionFuncId = 2;
         return TRUE;
@@ -6376,7 +6376,7 @@ bool8 MovementAction_RockSmashBreak_Step0(struct ObjectEvent *objectEvent, struc
 
 bool8 MovementAction_RockSmashBreak_Step1(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
-    if (SpriteAnimEnded(sprite))
+    if (sprite->animEnded)
     {
         SetMovementDelay(sprite, 32);
         sprite->sActionFuncId = 2;
@@ -6404,7 +6404,7 @@ bool8 MovementAction_CutTree_Step0(struct ObjectEvent *objectEvent, struct Sprit
 
 bool8 MovementAction_CutTree_Step1(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
-    if (SpriteAnimEnded(sprite))
+    if (sprite->animEnded)
     {
         SetMovementDelay(sprite, 32);
         sprite->sActionFuncId = 2;
@@ -8364,14 +8364,6 @@ void SetAndStartSpriteAnim(struct Sprite *sprite, u8 animNum, u8 animCmdIndex)
     sprite->animNum = animNum;
     sprite->animPaused = FALSE;
     SeekSpriteAnim(sprite, animCmdIndex);
-}
-
-bool8 SpriteAnimEnded(struct Sprite *sprite)
-{
-    if (sprite->animEnded)
-        return TRUE;
-    else
-        return FALSE;
 }
 
 void UpdateObjectEventSpriteInvisibility(struct Sprite *sprite, bool8 invisible)
