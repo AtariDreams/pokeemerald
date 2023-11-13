@@ -28,6 +28,8 @@ enum {
     BG_COORD_SUB,
 };
 
+#define FRAME_NULL -1
+
 // Modes for Unused_AdjustBgMosaic
 enum {
     BG_MOSAIC_SET_HV,
@@ -60,8 +62,8 @@ void ResetBgsAndClearDma3BusyFlags(void);
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates);
 void InitBgFromTemplate(const struct BgTemplate *template);
 void SetBgMode(u8 bgMode);
-u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset);
-u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset);
+s8 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset);
+s8 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset);
 bool8 IsDma3ManagerBusyWithBgCopy(void);
 void ShowBg(u8 bg);
 void HideBg(u8 bg);

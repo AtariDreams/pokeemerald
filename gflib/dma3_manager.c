@@ -20,7 +20,7 @@ struct Dma3Request
 static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 static volatile int sDma3ManagerLocked;
-static unsigned int sDma3RequestCursor;
+static s8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
@@ -88,15 +88,16 @@ void ProcessDma3Requests(void)
         sDma3Requests[sDma3RequestCursor].size = 0;
         sDma3Requests[sDma3RequestCursor].mode = 0;
         sDma3Requests[sDma3RequestCursor].value = 0;
-
-        if (++sDma3RequestCursor >= MAX_DMA_REQUESTS) // loop back to the first DMA request
-            sDma3RequestCursor = 0;
+        if (sDma3RequestCursor == MAX_DMA_REQUESTS - 1) // loop back to the first DMA request
+             sDma3RequestCursor = 0;
+        else
+             sDma3RequestCursor++;
     }
 }
 
-int RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
+s8 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
 {
-    int cursor;
+    s8 cursor;
     u32 i;
 
     sDma3ManagerLocked = TRUE;
@@ -120,16 +121,19 @@ int RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
             sDma3ManagerLocked = FALSE;
             return cursor;
         }
-        if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
+        // loop back to start.
+        if (cursor == MAX_DMA_REQUESTS - 1)
             cursor = 0;
+        else
+            cursor++;
     }
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
 }
 
-s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
+s8 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
 {
-    int cursor;
+    s8 cursor;
     u32 i;
 
     sDma3ManagerLocked = TRUE;
@@ -155,14 +159,16 @@ s16 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
             sDma3ManagerLocked = FALSE;
             return cursor;
         }
-        if (++cursor >= MAX_DMA_REQUESTS) // loop back to start.
+        if (cursor == MAX_DMA_REQUESTS - 1) // loop back to start.
             cursor = 0;
+        else
+            cursor++;
     }
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
 }
 
-s16 CheckForSpaceForDma3Request(s16 index)
+s8 CheckForSpaceForDma3Request(s8 index)
 {
     u32 i;
 

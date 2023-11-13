@@ -1810,7 +1810,7 @@ void *malloc_and_decompress(const void *src, u32 *size)
     return ptr;
 }
 
-u16 copy_decompressed_tile_data_to_vram(u8 bgId, const void *src, u16 size, u16 offset, u8 mode)
+s8 copy_decompressed_tile_data_to_vram(u8 bgId, const void *src, u16 size, u16 offset, u8 mode)
 {
     switch (mode)
     {
