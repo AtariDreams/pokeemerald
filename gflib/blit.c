@@ -34,11 +34,8 @@ void BlitBitmapRect4Bit(const struct Bitmap *src, struct Bitmap *dst, u16 srcX, 
             pixelsSrc = src->pixels + ((loopSrcX >> 1) & 3) + ((loopSrcX >> 3) << 5) + (((loopSrcY >> 3) * multiplierSrcY) << 5) + ((u32)(loopSrcY << 29) >> 27);
             pixelsDst = dst->pixels + ((loopDstX >> 1) & 3) + ((loopDstX >> 3) << 5) + (((loopDstY >> 3) * multiplierDstY) << 5) + ((u32)(loopDstY << 29) >> 27);
             toOrr = (*pixelsSrc >> ((loopSrcX & 1) * 4)) & 0xF;
-            if (toOrr != 0)
-            {
-                toShift = (loopDstX & 1) * 4;
-                *pixelsDst = (toOrr << toShift) | (*pixelsDst & (0xF0 >> toShift));
-            }
+            toShift = (loopDstX & 1) * 4;
+            *pixelsDst = (toOrr << toShift) | (*pixelsDst & (0xF0 >> toShift));
         }
     }
 }
@@ -108,22 +105,15 @@ void BlitBitmapRect4BitTo8Bit(const struct Bitmap *src, struct Bitmap *dst, u16 
         pixelsSrc = src->pixels + ((srcX >> 1) & 3) + ((srcX >> 3) << 5) + (((loopSrcY >> 3) * multiplierSrcY) << 5) + ((u32)(loopSrcY << 29) >> 27);
         for (loopSrcX = srcX, loopDstX = dstX; loopSrcX < xEnd; loopSrcX++, loopDstX++)
         {
+            pixelsDst = dst->pixels + (loopDstX & 7) + ((loopDstX >> 3) << 6) + (((loopDstY >> 3) * multiplierDstY) << 6) + ((u32)(loopDstY << 29) >> 26);
             if (loopSrcX & 1)
             {
-                if ((*pixelsSrc & 0xF0) != 0)
-                {
-                    pixelsDst = dst->pixels + (loopDstX & 7) + ((loopDstX >> 3) << 6) + (((loopDstY >> 3) * multiplierDstY) << 6) + ((u32)(loopDstY << 29) >> 26);
-                    *pixelsDst = paletteOffset + (*pixelsSrc >> 4);
-                }
+                *pixelsDst = paletteOffset + (*pixelsSrc >> 4);
             }
             else
             {
                 pixelsSrc = src->pixels + ((loopSrcX >> 1) & 3) + ((loopSrcX >> 3) << 5) + (((loopSrcY >> 3) * multiplierSrcY) << 5) + ((u32)(loopSrcY << 29) >> 27);
-                if ((*pixelsSrc & 0xF) != 0)
-                {
-                    pixelsDst = dst->pixels + (loopDstX & 7) + ((loopDstX >> 3) << 6) + (((loopDstY >> 3) * multiplierDstY) << 6) + ((u32)(loopDstY << 29) >> 26);
-                    *pixelsDst = paletteOffset + (*pixelsSrc & 0xF);
-                }
+                *pixelsDst = paletteOffset + (*pixelsSrc & 0xF);
             }
         }
     }
