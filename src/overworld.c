@@ -103,11 +103,11 @@ static void CB2_LoadMap2(void);
 static void VBlankCB_Field(void);
 static void SpriteCB_LinkPlayer(struct Sprite *);
 static void ChooseAmbientCrySpecies(void);
-static void DoMapLoadLoop(u8 *);
-static bool32 LoadMapInStepsLocal(u8 *, bool32);
-static bool32 LoadMapInStepsLink(u8 *);
-static bool32 ReturnToFieldLocal(u8 *);
-static bool32 ReturnToFieldLink(u8 *);
+static void DoMapLoadLoop(u32 *);
+static bool32 LoadMapInStepsLocal(u32 *, bool32);
+static bool32 LoadMapInStepsLink(void);
+static bool32 ReturnToFieldLocal(void);
+static bool32 ReturnToFieldLink(u32 *);
 static void InitObjectEventsLink(void);
 static void InitObjectEventsLocal(void);
 static void InitOverworldGraphicsRegisters(void);
@@ -1532,7 +1532,7 @@ void CB2_NewGame(void)
 
 void CB2_WhiteOut(void)
 {
-    u8 state;
+    u32 state;
 
     if (++gMain.state >= 120)
     {
@@ -1596,7 +1596,7 @@ void CB2_ReturnToFieldCableClub(void)
 
 static void CB2_LoadMapOnReturnToFieldCableClub(void)
 {
-    if (LoadMapInStepsLink(&gMain.state))
+    if (LoadMapInStepsLink())
     {
         SetFieldVBlankCallback();
         SetMainCallback1(CB1_OverworldLink);
@@ -1620,7 +1620,7 @@ void CB2_ReturnToField(void)
 
 static void CB2_ReturnToFieldLocal(void)
 {
-    if (ReturnToFieldLocal(&gMain.state))
+    if (ReturnToFieldLocal())
     {
         SetFieldVBlankCallback();
         SetMainCallback2(CB2_Overworld);
@@ -1786,9 +1786,9 @@ static void InitCurrentFlashLevelScanlineEffect(void)
     }
 }
 
-static bool32 LoadMapInStepsLink(u8 *state)
+static bool32 LoadMapInStepsLink(void)
 {
-    switch (*state)
+    switch (gMain.state)
     {
     case 0:
         InitOverworldBgs();
@@ -1796,55 +1796,53 @@ static bool32 LoadMapInStepsLink(u8 *state)
         UnlockPlayerFieldControls();
         ResetMirageTowerAndSaveBlockPtrs();
         ResetScreenForMapLoad();
-        (*state)++;
+        gMain.state = 1;
         break;
     case 1:
         LoadMapFromWarp(TRUE);
-        (*state)++;
+        gMain.state = 2;
         break;
     case 2:
         ResumeMap(TRUE);
-        (*state)++;
+        gMain.state = 3;
         break;
     case 3:
         OffsetCameraFocusByLinkPlayerId();
         InitObjectEventsLink();
         SpawnLinkPlayers();
         SetCameraToTrackGuestPlayer();
-        (*state)++;
+        gMain.state = 4;
         break;
     case 4:
         InitCurrentFlashLevelScanlineEffect();
         InitOverworldGraphicsRegisters();
         InitTextBoxGfxAndPrinters();
-        (*state)++;
+        gMain.state = 5;
         break;
     case 5:
         ResetFieldCamera();
-        (*state)++;
+        gMain.state = 6;
         break;
     case 6:
         CopyPrimaryTilesetToVram(gMapHeader.mapLayout);
-        (*state)++;
+        gMain.state = 7;
         break;
     case 7:
         CopySecondaryTilesetToVram(gMapHeader.mapLayout);
-        (*state)++;
+        gMain.state = 8;
         break;
     case 8:
-        if (FreeTempTileDataBuffersIfPossible() != TRUE)
-        {
-            LoadMapTilesetPalettes(gMapHeader.mapLayout);
-            (*state)++;
-        }
+        if (FreeTempTileDataBuffersIfPossible()) break;
+        LoadMapTilesetPalettes(gMapHeader.mapLayout);
+        gMain.state = 9;
         break;
     case 9:
         DrawWholeMapView();
-        (*state)++;
+        gMain.state = 10;
         break;
     case 10:
         InitTilesetAnimations();
-        (*state)++;
+         gMain.state = 11;
         break;
     case 11:
         if (gWirelessCommType != 0)
@@ -1852,11 +1850,11 @@ static bool32 LoadMapInStepsLink(u8 *state)
             LoadWirelessStatusIndicatorSpriteGfx();
             CreateWirelessStatusIndicatorSprite(0, 0);
         }
-        (*state)++;
+        gMain.state = 12;
         break;
     case 12:
-        if (RunFieldCallback())
-            (*state)++;
+        if (!RunFieldCallback()) break;
+        gMain.state = 13;
         break;
     case 13:
         return TRUE;
@@ -1865,7 +1863,7 @@ static bool32 LoadMapInStepsLink(u8 *state)
     return FALSE;
 }
 
-static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
+static bool32 LoadMapInStepsLocal(u32 *state, bool32 a2)
 {
     switch (*state)
     {
@@ -1937,9 +1935,9 @@ static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
     return FALSE;
 }
 
-static bool32 ReturnToFieldLocal(u8 *state)
+static bool32 ReturnToFieldLocal(void)
 {
-    switch (*state)
+    switch (gMain.state)
     {
     case 0:
         ResetMirageTowerAndSaveBlockPtrs();
@@ -1947,16 +1945,16 @@ static bool32 ReturnToFieldLocal(u8 *state)
         ResumeMap(FALSE);
         InitObjectEventsReturnToField();
         SetCameraToTrackPlayer();
-        (*state)++;
+        gMain.state = 1;
         break;
     case 1:
         InitViewGraphics();
         TryLoadTrainerHillEReaderPalette();
-        (*state)++;
+        gMain.state = 2;
         break;
     case 2:
         if (RunFieldCallback())
-            (*state)++;
+            gMain.state = 3;
         break;
     case 3:
         return TRUE;
@@ -1965,7 +1963,7 @@ static bool32 ReturnToFieldLocal(u8 *state)
     return FALSE;
 }
 
-static bool32 ReturnToFieldLink(u8 *state)
+static bool32 ReturnToFieldLink(u32 *state)
 {
     switch (*state)
     {
@@ -2042,7 +2040,7 @@ static bool32 ReturnToFieldLink(u8 *state)
     return FALSE;
 }
 
-static void DoMapLoadLoop(u8 *state)
+static void DoMapLoadLoop(u32 *state)
 {
     while (!LoadMapInStepsLocal(state, FALSE));
 }
