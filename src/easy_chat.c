@@ -3034,7 +3034,7 @@ static bool8 LoadEasyChatScreen(void)
         break;
     case 1:
         DecompressAndLoadBgGfxUsingHeap(3, gEasyChatWindow_Gfx, 0, 0, 0);
-        CopyToBgTilemapBuffer(3, gEasyChatWindow_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(3, gEasyChatWindow_Tilemap, 0);
         AdjustBgTilemapForFooter();
         BufferFrameTilemap(sScreenControl->bg1TilemapBuffer);
         AddPhraseWindow();

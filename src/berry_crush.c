@@ -1237,9 +1237,9 @@ static s32 ShowGameDisplay(void)
         break;
     case 7:
         LoadPalette(gBerryCrush_Crusher_Pal, BG_PLTT_ID(0), 12 * PLTT_SIZE_4BPP);
-        CopyToBgTilemapBuffer(1, sCrusherTop_Tilemap, 0, 0);
-        CopyToBgTilemapBuffer(2, sContainerCap_Tilemap, 0, 0);
-        CopyToBgTilemapBuffer(3, sBg_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(1, sCrusherTop_Tilemap, 0);
+        ExtractToBgTilemapBuffer(2, sContainerCap_Tilemap, 0);
+        ExtractToBgTilemapBuffer(3, sBg_Tilemap, 0);
         CopyPlayerNameWindowGfxToBg(game);
         CopyBgTilemapBufferToVram(1);
         CopyBgTilemapBufferToVram(2);

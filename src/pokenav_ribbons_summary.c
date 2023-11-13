@@ -572,7 +572,7 @@ static u32 LoopedTask_OpenRibbonsSummaryMenu(s32 state)
         InitBgTemplates(sBgTemplates, ARRAY_COUNT(sBgTemplates));
         DecompressAndCopyTileDataToVram(2, gPokenavRibbonsSummaryBg_Gfx, 0, 0, 0);
         SetBgTilemapBuffer(2, menu->tilemapBuffers[0]);
-        CopyToBgTilemapBuffer(2, gPokenavRibbonsSummaryBg_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(2, gPokenavRibbonsSummaryBg_Tilemap, 0);
         CopyPaletteIntoBufferUnfaded(gPokenavRibbonsSummaryBg_Pal, BG_PLTT_ID(1), PLTT_SIZE_4BPP);
         CopyBgTilemapBufferToVram(2);
         return LT_INC_AND_PAUSE;

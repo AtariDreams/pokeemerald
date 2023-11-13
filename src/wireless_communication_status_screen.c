@@ -205,7 +205,7 @@ static void CB2_InitWirelessCommunicationScreen(void)
     SetBgTilemapBuffer(1, Alloc(BG_SCREEN_SIZE));
     SetBgTilemapBuffer(0, Alloc(BG_SCREEN_SIZE));
     DecompressAndLoadBgGfxUsingHeap(1, sBgTiles_Gfx, 0, 0, 0);
-    CopyToBgTilemapBuffer(1, sBgTiles_Tilemap, 0, 0);
+    ExtractToBgTilemapBuffer(1, sBgTiles_Tilemap, 0);
     InitWindows(sWindowTemplates);
     DeactivateAllTextPrinters();
     ResetPaletteFade();

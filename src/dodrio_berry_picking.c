@@ -4590,13 +4590,13 @@ static void LoadGfx(void)
         sGfx->state++;
         break;
     case 1:
-        if (LoadBgGfx() == TRUE)
+        if (LoadBgGfx())
             sGfx->state++;
         break;
     case 2:
-        CopyToBgTilemapBuffer(BG_SCENERY, sBg_Tilemap, 0, 0);
-        CopyToBgTilemapBuffer(BG_TREE_LEFT, sTreeBorderLeft_Tilemap, 0, 0);
-        CopyToBgTilemapBuffer(BG_TREE_RIGHT, sTreeBorderRight_Tilemap, 0, 0);
+        ExtractToBgTilemapBuffer(BG_SCENERY, sBg_Tilemap, 0);
+        ExtractToBgTilemapBuffer(BG_TREE_LEFT, sTreeBorderLeft_Tilemap, 0);
+        ExtractToBgTilemapBuffer(BG_TREE_RIGHT, sTreeBorderRight_Tilemap, 0);
         CopyBgTilemapBufferToVram(BG_SCENERY);
         CopyBgTilemapBufferToVram(BG_TREE_LEFT);
         CopyBgTilemapBufferToVram(BG_TREE_RIGHT);

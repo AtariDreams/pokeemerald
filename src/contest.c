@@ -1027,11 +1027,11 @@ static void SetupContestGpuRegs(void)
 
 void LoadContestBgAfterMoveAnim(void)
 {
-    s32 i;
+    u32 i;
 
     LZ77UnCompVram(gContestInterfaceGfx, (void *)VRAM);
     LZ77UnCompVram(gContestAudienceGfx, (void *)(BG_SCREEN_ADDR(4)));
-    CopyToBgTilemapBuffer(3, gContestAudienceTilemap, 0, 0);
+    ExtractToBgTilemapBuffer(3, gContestAudienceTilemap, 0);
     CopyBgTilemapBufferToVram(3);
     LoadCompressedPalette(gContestInterfaceAudiencePalette, BG_PLTT_OFFSET, BG_PLTT_SIZE);
     LoadContestPalettes();
@@ -1318,11 +1318,11 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         DmaCopy32(3, (void *)(BG_SCREEN_ADDR(4)), eUnzippedContestAudience_Gfx, 0x2000);
         break;
     case 3:
-        CopyToBgTilemapBuffer(3, gContestAudienceTilemap, 0, 0);
+        ExtractToBgTilemapBuffer(3, gContestAudienceTilemap, 0);
         CopyBgTilemapBufferToVram(3);
         break;
     case 4:
-        CopyToBgTilemapBuffer(2, gContestInterfaceTilemap, 0, 0);
+        ExtractToBgTilemapBuffer(2, gContestInterfaceTilemap, 0);
         CopyBgTilemapBufferToVram(2);
         // This is a bug, and copies random junk. savedJunk is never read.
         DmaCopy32Defvars(3, gContestResources->contestBgTilemaps[2], eContestTempSave.savedJunk, sizeof(eContestTempSave.savedJunk));
@@ -5083,7 +5083,7 @@ static void SetBgForCurtainDrop(void)
 
     CpuFill32(0, gContestResources->contestBgTilemaps[1], 0x1000);
 
-    CopyToBgTilemapBuffer(1, gContestCurtainTilemap, 0, 0);
+    ExtractToBgTilemapBuffer(1, gContestCurtainTilemap, 0);
     Contest_SetBgCopyFlags(1);
 
     for (i = 0; i < CONTESTANT_COUNT; i++)
