@@ -68,7 +68,6 @@ void HideBg(u8 bg);
 void SetBgAttribute(u8 bg, u8 attributeId, u8 value);
 u16 GetBgAttribute(u8 bg, u8 attributeId);
 s32 ChangeBgX(u8 bg, s32 value, u8 op);
-s32 GetBgX(u8 bg);
 s32 ChangeBgY(u8 bg, s32 value, u8 op);
 s32 ChangeBgY_ScreenOff(u8 bg, s32 value, u8 op);
 s32 GetBgY(u8 bg);

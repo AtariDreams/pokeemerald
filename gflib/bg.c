@@ -19,9 +19,6 @@ struct BgControl
         u8 charBaseIndex:2;
         u8 mapBaseIndex:5;
         u8 paletteMode:1;
-
-        u8 unknown_2; // Assigned to but never read
-        u8 unknown_3; // Assigned to but never read
     } configs[NUM_BACKGROUNDS];
 
     u16 bgVisibilityAndMode;
@@ -122,9 +119,6 @@ static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 
         {
             sGpuBgConfigs.configs[bg].wraparound = wraparound;
         }
-
-        sGpuBgConfigs.configs[bg].unknown_2 = 0;
-        sGpuBgConfigs.configs[bg].unknown_3 = 0;
 
         sGpuBgConfigs.configs[bg].visible = 1;
 }
@@ -526,11 +520,6 @@ s32 ChangeBgX(u8 bg, s32 value, u8 op)
         break;
     }
 
-    return sGpuBgConfigs2[bg].bg_x;
-}
-
-s32 GetBgX(u8 bg)
-{
     return sGpuBgConfigs2[bg].bg_x;
 }
 
