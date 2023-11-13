@@ -494,7 +494,6 @@ void m4aSoundMode(u32 mode)
 
 	if ( temp=(mode & SOUND_MODE_FREQ_VALUE) )
 	{
-        //m4aSoundVSyncOff();
         SampleFreqSet(temp);
     }
 
@@ -646,7 +645,8 @@ void MPlayStart(struct MusicPlayerInfo *mplayInfo, struct SongHeader *songHeader
         mplayInfo->tone = songHeader->tone;
         mplayInfo->priority = songHeader->priority;
         mplayInfo->clock = 0;
-        mplayInfo->tempoI = mplayInfo->tempoD = 150;
+        mplayInfo->tempoI = 150;
+        mplayInfo->tempoD = 150;
         mplayInfo->tempoU = 0x100;
         mplayInfo->tempoC = 0;
         mplayInfo->fadeOI = 0;
@@ -1593,6 +1593,7 @@ struct MusicPlayerInfo *SetPokemonCryTone(struct ToneData *tone)
 start_song:
     mplayInfo = &gPokemonCryMusicPlayers[i];
     mplayInfo->ident = ID_NUMBER + 1;
+    asm volatile ("" : : : "memory");
 
     gPokemonCrySongs[i] = gPokemonCrySong;
 
@@ -1601,6 +1602,7 @@ start_song:
     gPokemonCrySongs[i].part[1] = &gPokemonCrySongs[i].part1;
     gPokemonCrySongs[i].gotoTarget = (u32)&gPokemonCrySongs[i].cont;
 
+    asm volatile ("" : : : "memory");
     mplayInfo->ident = ID_NUMBER;
 
     MPlayStart(mplayInfo, (struct SongHeader *)(&gPokemonCrySongs[i]));
