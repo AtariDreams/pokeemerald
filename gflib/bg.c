@@ -156,7 +156,7 @@ s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 {
     // TODO: Does not happen in game normally, but maybe just in case keep it?
     if (!sGpuBgConfigs.configs[bg].visible)
-        return 0xFF;
+        return -1;
 
     u16 offset;
     s8 cursor;
@@ -164,7 +164,7 @@ s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
     switch (mode)
     {
     default:
-        return 0xFF;
+        return -1;
     case 0x1:
         offset = sGpuBgConfigs.configs[bg].charBaseIndex * BG_CHAR_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
@@ -175,7 +175,7 @@ s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
         offset = sGpuBgConfigs.configs[bg].mapBaseIndex * BG_SCREEN_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
         if (cursor == -1)
-            return 0xFF;
+            return -1;
         break;
     }
 
@@ -273,26 +273,25 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigne
     SetBgModeInternal(bgMode);
     ResetBgControlStructs();
 
-    for (i = 0; i < numTemplates; i++)
+    for (i = 0; i < numTemplates; templates++, i++)
     {
-        bg = templates[i].bg;
-
-        SetBgControlAttributes(bg,
-                               templates[i].charBaseIndex,
-                               templates[i].mapBaseIndex,
-                               templates[i].screenSize,
-                               templates[i].paletteMode,
-                               templates[i].priority,
-                               0,
-                               0);
-
-        sGpuBgConfigs2[bg].baseTile = templates[i].baseTile;
-        sGpuBgConfigs2[bg].basePalette = 0;
-        sGpuBgConfigs2[bg].unk_3 = 0;
-
-        sGpuBgConfigs2[bg].tilemap = NULL;
-        sGpuBgConfigs2[bg].bg_x = 0;
-        sGpuBgConfigs2[bg].bg_y = 0;
+        struct BgConfig *bg = &sGpuBgConfigs.configs[templates->bg];
+        bg->charBaseIndex = templates->charBaseIndex;
+        bg->mapBaseIndex = templates->mapBaseIndex;
+        bg->screenSize = templates->screenSize;
+        bg->paletteMode = templates->paletteMode;
+        bg->priority = templates->priority;
+        bg->mosaic = 0;
+        bg->wraparound = 0;
+        bg->visible = 1;
+        
+        struct BgConfig2 *config = &sGpuBgConfigs2[templates->bg];
+        config->baseTile = templates->baseTile;
+        config->basePalette = 0;
+        config->unk_3=0;
+        config->tilemap=NULL;
+        config->bg_x=0;
+        config->bg_y=0;
     }
 }
 
