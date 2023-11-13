@@ -39,6 +39,7 @@ struct BgConfig2
 static struct BgControl sGpuBgConfigs;
 static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
 static ALIGNED(4) u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
+static u32 GetTileMapIndexFromCoords(u32 x, u32 y, u32 screenSize, u32 screenWidth, u32 screenHeight);
 
 static const struct BgConfig sZeroedBgControlStruct = { 0 };
 
@@ -223,7 +224,7 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
     struct BgAffineSrcData src;
     struct BgAffineDstData dest;
 
-    switch (sGpuBgConfigs.bgVisibilityAndMode & 0x7)
+    switch (sGpuBgConfigs.bgVisibilityAndMode & FRMSYS_REG_MODEMASK)
     {
     default:
     case 0:
@@ -918,13 +919,13 @@ void FillBgTilemapBufferRect(u8 bg, u16 tileNum, u8 x, u8 y, u8 width, u8 height
     WriteSequenceToBgTilemapBuffer(bg, tileNum, x, y, width, height, palette, 0);
 }
 
-void WriteSequenceToBgTilemapBuffer(u8 bg, u16 firstTileNum, u8 x, u8 y, u8 width, u8 height, u8 paletteSlot, s16 tileNumDelta)
+void WriteSequenceToBgTilemapBuffer(u8 bg, u16 firstTileNum, u8 x, u8 y, u8 width, u8 height, u8 paletteSlot, u32 tileNumDelta)
 {
-    u16 mode;
-    u16 mode2;
-    u16 attribute;
-    u16 mode3;
-    u16 x16, y16;
+    u32 mode;
+    u32 mode2;
+    u32 attribute;
+    u32 mode3;
+    u32 x16, y16;
 
     if (!IsTileMapOutsideWram(bg))
     {
@@ -938,7 +939,8 @@ void WriteSequenceToBgTilemapBuffer(u8 bg, u16 firstTileNum, u8 x, u8 y, u8 widt
             {
                 for (x16 = x; x16 < (x + width); x16++)
                 {
-                    CopyTileMapEntry(&firstTileNum, &((u16 *)sGpuBgConfigs2[bg].tilemap)[(u16)GetTileMapIndexFromCoords(x16, y16, attribute, mode, mode2)], paletteSlot, 0, 0);
+                    u32 index = GetTileMapIndexFromCoords(x16, y16, attribute, mode, mode2);
+                    CopyTileMapEntry(&firstTileNum, &((u16 *)sGpuBgConfigs2[bg].tilemap)[index], paletteSlot, 0, 0);
                     firstTileNum = (firstTileNum & 0xFC00) + ((firstTileNum + tileNumDelta) & 0x3FF);
                 }
             }
@@ -1030,7 +1032,7 @@ u32 GetBgMetricAffineMode(u8 bg, u8 whichMetric)
     return 0;
 }
 
-u32 GetTileMapIndexFromCoords(s32 x, s32 y, s32 screenSize, u32 screenWidth, u32 screenHeight)
+u32 GetTileMapIndexFromCoords(u32 x, u32 y, u32 screenSize, u32 screenWidth, u32 screenHeight)
 {
     x = x & (screenWidth - 1);
     y = y & (screenHeight - 1);
@@ -1061,7 +1063,7 @@ void CopyTileMapEntry(const u16 *src, u16 *dest, s32 palette1, s32 tileOffset, s
     switch (palette1)
     {
     case 0 ... 15:
-        var = ((*src + tileOffset) & 0xFFF) | ((palette1 + palette2) << 12);
+        var = ((*src + tileOffset) & 0xFFF) + ((palette1 + palette2) << 12);
         break;
     case 16:
         var = *dest;
@@ -1069,8 +1071,8 @@ void CopyTileMapEntry(const u16 *src, u16 *dest, s32 palette1, s32 tileOffset, s
         var += palette2 << 12;
         var |= (*src + tileOffset) & 0x3FF;
         break;
-    default:
     case 17:
+    default:
         var = (*src + tileOffset) + (palette2 << 12);
         break;
     }
