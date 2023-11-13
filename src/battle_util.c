@@ -1806,15 +1806,11 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
                 return TRUE;
             }
         }
-        // Why do I have to keep doing this to match?
-        {
-            u8 *state = &gBattleStruct->wishPerishSongState;
-            *state = 1;
-            gBattleStruct->wishPerishSongBattlerId = 0;
-        }
+        gBattleStruct->wishPerishSongState = 1;
+        gBattleStruct->wishPerishSongBattlerId = 0;
         // fall through
     case 1:
-        while (gBattleStruct->wishPerishSongBattlerId < gBattlersCount)
+        do 
         {
             gActiveBattler = gBattlerAttacker = gBattlerByTurnOrder[gBattleStruct->wishPerishSongBattlerId];
             if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
@@ -1840,13 +1836,11 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
                 BattleScriptExecute(gBattlescriptCurrInstr);
                 return TRUE;
             }
-        }
-        // Hm...
-        {
-            u8 *state = &gBattleStruct->wishPerishSongState;
-            *state = 2;
-            gBattleStruct->wishPerishSongBattlerId = 0;
-        }
+        } while (gBattleStruct->wishPerishSongBattlerId < gBattlersCount);
+
+        gBattleStruct->wishPerishSongState = 2;
+        gBattleStruct->wishPerishSongBattlerId = 0;
+
         // fall through
     case 2:
         if ((gBattleTypeFlags & BATTLE_TYPE_ARENA)

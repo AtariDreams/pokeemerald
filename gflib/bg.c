@@ -4,7 +4,8 @@
 #include "dma3.h"
 #include "gpu_regs.h"
 
-#define DISPCNT_ALL_BG_AND_MODE_BITS    (DISPCNT_BG_ALL_ON | 0x7)
+#define FRMSYS_REG_MODEMASK 7
+#define DISPCNT_ALL_BG_AND_MODE_BITS    (DISPCNT_BG_ALL_ON | FRMSYS_REG_MODEMASK)
 
 struct BgControl
 {
@@ -52,13 +53,13 @@ void ResetBgs(void)
 
 static void SetBgModeInternal(u8 bgMode)
 {
-    sGpuBgConfigs.bgVisibilityAndMode &= ~0x7;
+    sGpuBgConfigs.bgVisibilityAndMode &= ~FRMSYS_REG_MODEMASK;
     sGpuBgConfigs.bgVisibilityAndMode |= bgMode;
 }
 
 u8 GetBgMode(void)
 {
-    return sGpuBgConfigs.bgVisibilityAndMode & 0x7;
+    return sGpuBgConfigs.bgVisibilityAndMode & FRMSYS_REG_MODEMASK;
 }
 
 void ResetBgControlStructs(void)
@@ -125,27 +126,27 @@ static void SetBgControlAttributes(u8 bg, u8 charBaseIndex, u8 mapBaseIndex, u8 
 
 static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
 {
-    if (sGpuBgConfigs.configs[bg].visible)
+    if (!sGpuBgConfigs.configs[bg].visible)
+        return 0xFF;
+
+    switch (attributeId)
     {
-        switch (attributeId)
-        {
-        case BG_CTRL_ATTR_VISIBLE:
-            return sGpuBgConfigs.configs[bg].visible;
-        case BG_CTRL_ATTR_CHARBASEINDEX:
-            return sGpuBgConfigs.configs[bg].charBaseIndex;
-        case BG_CTRL_ATTR_MAPBASEINDEX:
-            return sGpuBgConfigs.configs[bg].mapBaseIndex;
-        case BG_CTRL_ATTR_SCREENSIZE:
-            return sGpuBgConfigs.configs[bg].screenSize;
-        case BG_CTRL_ATTR_PALETTEMODE:
-            return sGpuBgConfigs.configs[bg].paletteMode;
-        case BG_CTRL_ATTR_PRIORITY:
-            return sGpuBgConfigs.configs[bg].priority;
-        case BG_CTRL_ATTR_MOSAIC:
-            return sGpuBgConfigs.configs[bg].mosaic;
-        case BG_CTRL_ATTR_WRAPAROUND:
-            return sGpuBgConfigs.configs[bg].wraparound;
-        }
+    case BG_CTRL_ATTR_VISIBLE:
+        return sGpuBgConfigs.configs[bg].visible;
+    case BG_CTRL_ATTR_CHARBASEINDEX:
+        return sGpuBgConfigs.configs[bg].charBaseIndex;
+    case BG_CTRL_ATTR_MAPBASEINDEX:
+        return sGpuBgConfigs.configs[bg].mapBaseIndex;
+    case BG_CTRL_ATTR_SCREENSIZE:
+        return sGpuBgConfigs.configs[bg].screenSize;
+    case BG_CTRL_ATTR_PALETTEMODE:
+        return sGpuBgConfigs.configs[bg].paletteMode;
+    case BG_CTRL_ATTR_PRIORITY:
+        return sGpuBgConfigs.configs[bg].priority;
+    case BG_CTRL_ATTR_MOSAIC:
+        return sGpuBgConfigs.configs[bg].mosaic;
+    case BG_CTRL_ATTR_WRAPAROUND:
+        return sGpuBgConfigs.configs[bg].wraparound;
     }
 
     return 0xFF;
@@ -153,13 +154,17 @@ static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
 
 s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 {
+    // TODO: Does not happen in game normally, but maybe just in case keep it?
+    if (!sGpuBgConfigs.configs[bg].visible)
+        return 0xFF;
+
     u16 offset;
     s8 cursor;
 
     switch (mode)
     {
     default:
-        return -1;
+        return 0xFF;
     case 0x1:
         offset = sGpuBgConfigs.configs[bg].charBaseIndex * BG_CHAR_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
@@ -170,7 +175,7 @@ s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
         offset = sGpuBgConfigs.configs[bg].mapBaseIndex * BG_SCREEN_SIZE + destOffset;
         cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
         if (cursor == -1)
-            return -1;
+            return 0xFF;
         break;
     }
 
@@ -318,10 +323,10 @@ void SetBgMode(u8 bgMode)
     SetBgModeInternal(bgMode);
 }
 
-u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
+s8 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
 {
     u16 tileOffset;
-    u8 cursor;
+    s8 cursor;
 
     if (sGpuBgConfigs.configs[bg].paletteMode == 0)
     {
@@ -339,14 +344,14 @@ u16 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
         return -1;
     }
 
-    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor % 0x20));
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
 
     return cursor;
 }
 
-u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
+s8 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
 {
-    s16 cursor = LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
+    s8 cursor = LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
 
     if (cursor == -1)
     {
@@ -360,12 +365,12 @@ u16 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
 
 bool8 IsDma3ManagerBusyWithBgCopy(void)
 {
-    u32 i;
+    s16 i;
 
     for (i = 0; i < 0x80; i++)
     {
         u8 div = i / 0x20;
-        u8 mod = i % 0x20;
+        u8 mod = i & 31;
 
         if ((sDmaBusyBitfield[div] & (1U << mod)))
         {
