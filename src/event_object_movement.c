@@ -8300,7 +8300,7 @@ static u8 DoJumpSpriteMovement(struct Sprite *sprite)
     if (sprite->sTimer == distanceToTime[sprite->sDistance] >> 1)
         result = JUMP_HALFWAY;
 
-    if (sprite->sTimer >= distanceToTime[sprite->sDistance])
+    else if (sprite->sTimer >= distanceToTime[sprite->sDistance])
     {
         sprite->y2 = 0;
         result = JUMP_FINISHED;
