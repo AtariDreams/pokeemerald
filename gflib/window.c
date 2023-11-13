@@ -363,22 +363,6 @@ void BlitBitmapRectToWindow(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u
     BlitBitmapRect4Bit(&sourceRect, &destRect, srcX, srcY, destX, destY, rectWidth, rectHeight, 0);
 }
 
-static void UNUSED BlitBitmapRectToWindowWithColorKey(u8 windowId, const u8 *pixels, u16 srcX, u16 srcY, u16 srcWidth, u16 srcHeight, u16 destX, u16 destY, u16 rectWidth, u16 rectHeight, u8 colorKey)
-{
-    struct Bitmap sourceRect;
-    struct Bitmap destRect;
-
-    sourceRect.pixels = (u8 *)pixels;
-    sourceRect.width = srcWidth;
-    sourceRect.height = srcHeight;
-
-    destRect.pixels = gWindows[windowId].tileData;
-    destRect.width = gWindows[windowId].window.width * 8;
-    destRect.height = gWindows[windowId].window.height * 8;
-
-    BlitBitmapRect4Bit(&sourceRect, &destRect, srcX, srcY, destX, destY, rectWidth, rectHeight, colorKey);
-}
-
 void FillWindowPixelRect(u8 windowId, u8 fillValue, u16 x, u16 y, u16 width, u16 height)
 {
     struct Bitmap pixelRect;
@@ -629,15 +613,13 @@ void BlitBitmapRectToWindow4BitTo8Bit(u8 windowId, const u8 *pixels, u16 srcX, u
     destRect.width = gWindows[windowId].window.width * 8;
     destRect.height = gWindows[windowId].window.height * 8;
 
-    BlitBitmapRect4BitTo8Bit(&sourceRect, &destRect, srcX, srcY, destX, destY, rectWidth, rectHeight, 0, paletteNum);
+    BlitBitmapRect4BitTo8Bit(&sourceRect, &destRect, srcX, srcY, destX, destY, rectWidth, rectHeight, paletteNum);
 }
 
 void CopyWindowToVram8Bit(u8 windowId, u8 mode)
 {
-    static EWRAM_DATA struct Window* sWindowPtr = NULL;
-    static EWRAM_DATA u16 sWindowSize = 0;
-    sWindowPtr = &gWindows[windowId];
-    sWindowSize = sWindowPtr->window.width * sWindowPtr->window.height * 64;
+    struct Window* sWindowPtr = &gWindows[windowId];
+    u16 sWindowSize = sWindowPtr->window.width * sWindowPtr->window.height * 64;
 
     switch (mode)
     {
