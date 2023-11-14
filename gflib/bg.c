@@ -267,14 +267,15 @@ void ResetBgsAndClearDma3BusyFlags(void)
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates)
 {
     unsigned int i;
-    u8 bg;
+    u8 bgNum;
 
     SetBgModeInternal(bgMode);
     ResetBgControlStructs();
 
     for (i = 0; i < numTemplates; templates++, i++)
     {
-        struct BgConfig *bg = &sGpuBgConfigs.configs[templates->bg];
+        bgNum = templates->bg;
+        struct BgConfig *bg = &sGpuBgConfigs.configs[bgNum];
         bg->charBaseIndex = templates->charBaseIndex;
         bg->mapBaseIndex = templates->mapBaseIndex;
         bg->screenSize = templates->screenSize;
@@ -284,7 +285,7 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigne
         bg->wraparound = 0;
         bg->visible = 1;
         
-        struct BgConfig2 *config = &sGpuBgConfigs2[templates->bg];
+        struct BgConfig2 *config = &sGpuBgConfigs2[bgNum];
         config->baseTile = templates->baseTile;
         config->basePalette = 0;
         config->unk_3=0;
@@ -296,24 +297,25 @@ void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigne
 
 void InitBgFromTemplate(const struct BgTemplate *template)
 {
-    u8 bg = template->bg;
+    u8 bgNum = template->bg;
 
-    SetBgControlAttributes(bg,
-                           template->charBaseIndex,
-                           template->mapBaseIndex,
-                           template->screenSize,
-                           template->paletteMode,
-                           template->priority,
-                           0,
-                           0);
+    struct BgConfig *bg = &sGpuBgConfigs.configs[bgNum];
+    bg->charBaseIndex = template->charBaseIndex;
+    bg->mapBaseIndex = template->mapBaseIndex;
+    bg->screenSize = template->screenSize;
+    bg->paletteMode = template->paletteMode;
+    bg->priority = template->priority;
+    bg->mosaic = 0;
+    bg->wraparound = 0;
+    bg->visible = 1;
 
-    sGpuBgConfigs2[bg].baseTile = template->baseTile;
-    sGpuBgConfigs2[bg].basePalette = 0;
-    sGpuBgConfigs2[bg].unk_3 = 0;
-
-    sGpuBgConfigs2[bg].tilemap = NULL;
-    sGpuBgConfigs2[bg].bg_x = 0;
-    sGpuBgConfigs2[bg].bg_y = 0;
+    struct BgConfig2 *config = &sGpuBgConfigs2[bgNum];
+    config->baseTile = template->baseTile;
+    config->basePalette = 0;
+    config->unk_3 = 0;
+    config->tilemap = NULL;
+    config->bg_x = 0;
+    config->bg_y = 0;
 }
 
 void SetBgMode(u8 bgMode)
@@ -457,7 +459,7 @@ u16 GetBgAttribute(u8 bg, u8 attributeId)
     case BG_ATTR_BASETILE:
         return sGpuBgConfigs2[bg].baseTile;
     default:
-        return -1;
+        return 0xFFFF;
     }
 }
 
