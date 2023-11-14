@@ -132,8 +132,6 @@ static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
 
     switch (attributeId)
     {
-    case BG_CTRL_ATTR_VISIBLE:
-        return sGpuBgConfigs.configs[bg].visible;
     case BG_CTRL_ATTR_CHARBASEINDEX:
         return sGpuBgConfigs.configs[bg].charBaseIndex;
     case BG_CTRL_ATTR_MAPBASEINDEX:
