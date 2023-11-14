@@ -64,77 +64,70 @@ void CopyBufferedValuesToGpuRegs(void)
 
 void SetGpuReg(u8 regOffset, u16 value)
 {
-    if (sGpuRegBufferLocked)
-        return;
-    if (regOffset < GPU_REG_BUF_SIZE)
+        //if (sGpuRegBufferLocked)
+    //    return;
+    // if (regOffset >= GPU_REG_BUF_SIZE) return;
+    u8 vcount;
+
+    GPU_REG_BUF(regOffset) = value;
+    vcount = REG_VCOUNT;
+
+    if ((vcount > 160 && vcount < 226) || (REG_DISPCNT & DISPCNT_FORCED_BLANK))
     {
-        u8 vcount;
+        CopyBufferedValueToGpuReg(regOffset);
+        return;
+    }
 
-        GPU_REG_BUF(regOffset) = value;
-        vcount = REG_VCOUNT;
+    unsigned int i;
 
-        if ((vcount > 160 && vcount < 226) || (REG_DISPCNT & DISPCNT_FORCED_BLANK))
+    sGpuRegBufferLocked = TRUE;
+    asm volatile("" : : : "memory");
+    for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
+    {
+        if (sGpuRegWaitingList[i] == regOffset)
         {
-            CopyBufferedValueToGpuReg(regOffset);
-            return;
-        }
-        else
-        {
-            unsigned int i;
-
-            sGpuRegBufferLocked = TRUE;
-            asm volatile ("" : : : "memory");
-            for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
-            {
-                if (sGpuRegWaitingList[i] == regOffset)
-                {
-                   goto end;
-                }
-            }
-
-           sGpuRegWaitingList[i] = regOffset;
-
-           asm volatile ("" : : : "memory");
-end:
-           sGpuRegBufferLocked = FALSE;
+            goto end;
         }
     }
+
+    sGpuRegWaitingList[i] = regOffset;
+
+    asm volatile("" : : : "memory");
+end:
+    sGpuRegBufferLocked = FALSE;
 }
 
 void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
 {
-    if (sGpuRegBufferLocked)
-        return;
-    if (regOffset < GPU_REG_BUF_SIZE)
+    //if (sGpuRegBufferLocked)
+    //    return;
+    // if (regOffset >= GPU_REG_BUF_SIZE) return;
+
+    GPU_REG_BUF(regOffset) = value;
+
+    if (REG_DISPCNT & DISPCNT_FORCED_BLANK)
     {
-        GPU_REG_BUF(regOffset) = value;
+        CopyBufferedValueToGpuReg(regOffset);
+        return;
+    }
 
-        if (REG_DISPCNT & DISPCNT_FORCED_BLANK)
+    unsigned int i;
+
+    sGpuRegBufferLocked = TRUE;
+    asm volatile("" : : : "memory");
+
+    for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
+    {
+        if (sGpuRegWaitingList[i] == regOffset)
         {
-            CopyBufferedValueToGpuReg(regOffset);
-            return;
-        }
-        else
-        {
-            unsigned int i;
-
-            sGpuRegBufferLocked = TRUE;
-            asm volatile ("" : : : "memory");
-
-            for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
-            {
-                if (sGpuRegWaitingList[i] == regOffset)
-                {
-                   goto end;
-                }
-            }
-
-            sGpuRegWaitingList[i] = regOffset;
-            asm volatile ("" : : : "memory");
-end:
-            sGpuRegBufferLocked = FALSE;
+            goto end;
         }
     }
+
+    sGpuRegWaitingList[i] = regOffset;
+    asm volatile("" : : : "memory");
+end:
+    sGpuRegBufferLocked = FALSE;
 }
 
 u16 GetGpuReg(u8 regOffset)
