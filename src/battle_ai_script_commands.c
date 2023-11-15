@@ -1313,23 +1313,23 @@ static void Cmd_count_usable_party_mons(void)
 
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
     {
-        for (i = 0; i < gPlayerPartyCount; i++)
+        for (i = 0; i < gPlayerParty.count; i++)
         {
             if (i == battlerOnField1 || i == battlerOnField2)
                 continue;
 
-            if (canPokeFight(&gPlayerParty[i]))
+            if (canPokeFight(&gPlayerParty.party[i]))
                 AI_THINKING_STRUCT->funcResult++;
         }
     }
     else
     {
-        for (i = 0; i < gEnemyPartyCount; i++)
+        for (i = 0; i < gEnemyParty.count; i++)
         {
             if (i == battlerOnField1 || i == battlerOnField2)
                 continue;
 
-            if (canPokeFight(&gEnemyParty[i]))
+            if (canPokeFight(&gEnemyParty.party[i]))
                 AI_THINKING_STRUCT->funcResult++;
         }
     }
@@ -1589,11 +1589,11 @@ static void Cmd_if_status_in_party(void)
 
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
     {
-        for (i = 0; i < gPlayerPartyCount; i++)
+        for (i = 0; i < gPlayerParty.count; i++)
         {
-            if (!canPokeFight(&gPlayerParty[i]))
+            if (!canPokeFight(&gPlayerParty.party[i]))
                 continue;
-            status = GetMonData(&gPlayerParty[i], MON_DATA_STATUS);
+            status = GetMonData(&gPlayerParty.party[i], MON_DATA_STATUS);
             if (status == statusToCompareTo)
             {
                 gAIScriptPtr = T1_READ_PTR(gAIScriptPtr + 6);
@@ -1603,12 +1603,12 @@ static void Cmd_if_status_in_party(void)
     }
     else
     {
-        for (i = 0; i < gEnemyPartyCount; i++)
+        for (i = 0; i < gEnemyParty.count; i++)
         {
-            if (!canPokeFight(&gEnemyParty[i]))
+            if (!canPokeFight(&gEnemyParty.party[i]))
                 continue;
 
-            status = GetMonData(&gEnemyParty[i], MON_DATA_STATUS);
+            status = GetMonData(&gEnemyParty.party[i], MON_DATA_STATUS);
 
             if (status == statusToCompareTo)
             {
@@ -1638,7 +1638,7 @@ static void Cmd_if_status_not_in_party(void)
         break;
     }
 
-    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty : gEnemyParty;
+    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty.party : gEnemyParty.party;
 
     statusToCompareTo = T1_READ_32(gAIScriptPtr + 2);
 

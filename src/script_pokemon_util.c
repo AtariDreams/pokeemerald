@@ -34,9 +34,9 @@ void HealPlayerParty(void)
     u8 arg;
 
     // restore HP.
-    for(i = 0; i < gPlayerPartyCount; i++)
+    for(i = 0; i < gPlayerParty.count; i++)
     {
-        struct Pokemon *mon = &gPlayerParty[i];
+        struct Pokemon *mon = &gPlayerParty.party[i];
 
         mon->hp = mon->maxHP;
 
@@ -113,8 +113,8 @@ static bool8 CheckPartyMonHasHeldItem(u16 item)
 
     for(i = 0; i < PARTY_SIZE; i++)
     {
-        u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG);
-        if (species != SPECIES_NONE && species != SPECIES_EGG && GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == item)
+        u16 species = GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES_OR_EGG);
+        if (species != SPECIES_NONE && species != SPECIES_EGG && GetMonData(&gPlayerParty.party[i], MON_DATA_HELD_ITEM) == item)
             return TRUE;
     }
     return FALSE;
@@ -134,12 +134,12 @@ void CreateScriptedWildMon(u16 species, u8 level, u16 item)
     u8 heldItem[2];
 
     ZeroEnemyPartyMons();
-    CreateMon(&gEnemyParty[0], species, level, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
+    CreateMon(&gEnemyParty.party[0], species, level, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
     if (item)
     {
         heldItem[0] = item;
         heldItem[1] = item >> 8;
-        SetMonData(&gEnemyParty[0], MON_DATA_HELD_ITEM, heldItem);
+        SetMonData(&gEnemyParty.party[0], MON_DATA_HELD_ITEM, heldItem);
     }
 }
 
@@ -151,9 +151,9 @@ void ScriptSetMonMoveSlot(u8 monIndex, u16 move, u8 slot)
 #else
     if (monIndex > PARTY_SIZE)
 #endif
-        monIndex = gPlayerPartyCount - 1;
+        monIndex = gPlayerParty.count - 1;
 
-    SetMonMoveSlot(&gPlayerParty[monIndex], move, slot);
+    SetMonMoveSlot(&gPlayerParty.party[monIndex], move, slot);
 }
 
 // Note: When control returns to the event script, gSpecialVar_Result will be
@@ -211,13 +211,13 @@ void ReducePlayerPartyToSelectedMons(void)
     // copy the selected Pokémon according to the order.
     for (i = 0; i < MAX_FRONTIER_PARTY_SIZE; i++)
         if (gSelectedOrderFromParty[i]) // as long as the order keeps going (did the player select 1 mon? 2? 3?), do not stop
-            party[i] = gPlayerParty[gSelectedOrderFromParty[i] - 1]; // index is 0 based, not literal
+            party[i] = gPlayerParty.party[gSelectedOrderFromParty[i] - 1]; // index is 0 based, not literal
 
-    CpuFill32(0, gPlayerParty, sizeof gPlayerParty);
+    CpuFill32(0, gPlayerParty.party, sizeof gPlayerParty.party);
 
     // overwrite the first 4 with the order copied to.
     for (i = 0; i < MAX_FRONTIER_PARTY_SIZE; i++)
-        gPlayerParty[i] = party[i];
+        gPlayerParty.party[i] = party[i];
 
     CalculatePlayerPartyCount();
 }
