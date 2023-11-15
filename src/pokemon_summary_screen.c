@@ -196,8 +196,8 @@ static bool8 LoadGraphics(void);
 static void CB2_InitSummaryScreen(void);
 static void InitBGs(void);
 static bool8 DecompressGraphics(void);
-static void CopyMonToSummaryStruct(struct Pokemon *);
-static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *);
+static void CopyMonToSummaryStruct(void);
+static bool8 ExtractMonDataToSummaryStruct(void);
 static void SetDefaultTilemaps(void);
 static void CloseSummaryScreen(u8);
 static void Task_HandleInput(u8);
@@ -302,7 +302,7 @@ static u8 CreateMonSprite(struct Pokemon *);
 static void SpriteCB_Pokemon(struct Sprite *);
 static void StopPokemonAnimations(void);
 static void CreateMonMarkingsSprite(struct Pokemon *);
-static void RemoveAndCreateMonMarkingsSprite(struct Pokemon *);
+static void RemoveAndCreateMonMarkingsSprite(void);
 static void CreateCaughtBallSprite(struct Pokemon *);
 static void CreateSetStatusSprite(void);
 static void CreateMoveSelectorSprites(u8);
@@ -1119,9 +1119,9 @@ void ShowPokemonSummaryScreen(u8 mode, void *mons, u8 monIndex, u8 maxMonIndex, 
     SetMainCallback2(CB2_InitSummaryScreen);
 }
 
-void ShowSelectMovePokemonSummaryScreen(struct Pokemon *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void), u16 newMove)
+void ShowSelectMovePokemonSummaryScreen(u8 monIndex, u8 maxMonIndex, void (*callback)(void), u16 newMove)
 {
-    ShowPokemonSummaryScreen(SUMMARY_MODE_SELECT_MOVE, mons, monIndex, maxMonIndex, callback);
+    ShowPokemonSummaryScreen(SUMMARY_MODE_SELECT_MOVE, gPlayerParty.party, monIndex, maxMonIndex, callback);
     sMonSummaryScreen->newMove = newMove;
 }
 
@@ -1197,12 +1197,12 @@ static bool8 LoadGraphics(void)
         gMain.state++;
         break;
     case 9:
-        CopyMonToSummaryStruct(&sMonSummaryScreen->currentMon);
+        CopyMonToSummaryStruct();
         sMonSummaryScreen->switchCounter = 0;
         gMain.state++;
         break;
     case 10:
-        if (ExtractMonDataToSummaryStruct(&sMonSummaryScreen->currentMon) != 0)
+        if (ExtractMonDataToSummaryStruct() != 0)
             gMain.state++;
         break;
     case 11:
@@ -1363,8 +1363,9 @@ static bool8 DecompressGraphics(void)
     return FALSE;
 }
 
-static void CopyMonToSummaryStruct(struct Pokemon *mon)
+static void CopyMonToSummaryStruct(void)
 {
+    struct Pokemon *mon = &sMonSummaryScreen->currentMon;
     if (!sMonSummaryScreen->isBoxMon)
     {
         struct Pokemon *partyMon = sMonSummaryScreen->monList.mons;
@@ -1377,9 +1378,10 @@ static void CopyMonToSummaryStruct(struct Pokemon *mon)
     }
 }
 
-static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
+static bool8 ExtractMonDataToSummaryStruct(void)
 {
     u32 i;
+    struct Pokemon * mon = &sMonSummaryScreen->currentMon;
     struct PokeSummary *sum = &sMonSummaryScreen->summary;
     // Spread the data extraction over multiple frames.
     switch (sMonSummaryScreen->switchCounter)
@@ -1405,7 +1407,7 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
         break;
     case 2:
-        if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
+        if (sMonSummaryScreen->monList.mons == gPlayerParty.party || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
         {
             sum->nature = GetNature(mon);
             sum->currentHP = GetMonData(mon, MON_DATA_HP);
@@ -1623,15 +1625,15 @@ static void Task_ChangeSummaryMon(u8 taskId)
         DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_BALL]]);
         break;
     case 3:
-        CopyMonToSummaryStruct(&sMonSummaryScreen->currentMon);
+        CopyMonToSummaryStruct();
         sMonSummaryScreen->switchCounter = 0;
         break;
     case 4:
-        if (ExtractMonDataToSummaryStruct(&sMonSummaryScreen->currentMon) == FALSE)
+        if (ExtractMonDataToSummaryStruct() == FALSE)
             return;
         break;
     case 5:
-        RemoveAndCreateMonMarkingsSprite(&sMonSummaryScreen->currentMon);
+        RemoveAndCreateMonMarkingsSprite();
         break;
     case 6:
         CreateCaughtBallSprite(&sMonSummaryScreen->currentMon);
@@ -2079,7 +2081,7 @@ static void ExitMovePositionSwitchMode(u8 taskId, bool8 swapMoves)
             struct BoxPokemon *boxMon = sMonSummaryScreen->monList.boxMons;
             SwapBoxMonMoves(&boxMon[sMonSummaryScreen->curMonIndex], sMonSummaryScreen->firstMoveIndex, sMonSummaryScreen->secondMoveIndex);
         }
-        CopyMonToSummaryStruct(&sMonSummaryScreen->currentMon);
+        CopyMonToSummaryStruct();
         SwapMovesNamesPP(sMonSummaryScreen->firstMoveIndex, sMonSummaryScreen->secondMoveIndex);
         SwapMovesTypeSprites(sMonSummaryScreen->firstMoveIndex, sMonSummaryScreen->secondMoveIndex);
         sMonSummaryScreen->firstMoveIndex = sMonSummaryScreen->secondMoveIndex;
@@ -3163,7 +3165,7 @@ static bool8 DoesMonOTMatchOwner(void)
     u32 trainerId;
     u8 gender;
 
-    if (sMonSummaryScreen->monList.mons == gEnemyParty)
+    if (sMonSummaryScreen->monList.mons == gEnemyParty.party)
     {
         u8 multiID = GetMultiplayerId() ^ 1;
         trainerId = gLinkPlayers[multiID].trainerId & 0xFFFF;
@@ -3895,7 +3897,7 @@ static u8 LoadMonGfxAndSprite(struct Pokemon *mon, s16 *state)
         {
             if (gMonSpritesGfxPtr != NULL)
             {
-                if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
+                if (sMonSummaryScreen->monList.mons == gPlayerParty.party || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
                     HandleLoadSpecialPokePic_2(&gMonFrontPicTable[summary->species2],
                                                gMonSpritesGfxPtr->sprites.ptr[B_POSITION_OPPONENT_LEFT],
                                                summary->species2,
@@ -3908,7 +3910,7 @@ static u8 LoadMonGfxAndSprite(struct Pokemon *mon, s16 *state)
             }
             else
             {
-                if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
+                if (sMonSummaryScreen->monList.mons == gPlayerParty.party || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
                     HandleLoadSpecialPokePic_2(&gMonFrontPicTable[summary->species2],
                                                 MonSpritesGfxManager_GetSpritePtr(MON_SPR_GFX_MANAGER_A, B_POSITION_OPPONENT_LEFT),
                                                 summary->species2,
@@ -4030,11 +4032,11 @@ static void CreateMonMarkingsSprite(struct Pokemon *mon)
     }
 }
 
-static void RemoveAndCreateMonMarkingsSprite(struct Pokemon *mon)
+static void RemoveAndCreateMonMarkingsSprite(void)
 {
     DestroySprite(sMonSummaryScreen->markingsSprite);
     FreeSpriteTilesByTag(TAG_MON_MARKINGS);
-    CreateMonMarkingsSprite(mon);
+    CreateMonMarkingsSprite(&sMonSummaryScreen->currentMon);
 }
 
 static void CreateCaughtBallSprite(struct Pokemon *mon)

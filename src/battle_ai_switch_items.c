@@ -77,9 +77,9 @@ static bool8 ShouldSwitchIfWonderGuard(void)
     }
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     // Find a Pokémon in the party that has a super effective move.
     for (i = firstId; i < lastId; i++)
@@ -173,9 +173,9 @@ static bool8 FindMonThatAbsorbsOpponentsMove(void)
     }
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     for (i = firstId; i < lastId; i++)
     {
@@ -371,9 +371,9 @@ static bool8 FindMonWithFlagsAndSuperEffective(u8 flags, u8 moduloPercent)
     }
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     for (i = firstId; i < lastId; i++)
     {
@@ -480,9 +480,9 @@ static bool8 ShouldSwitch(void)
     }
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     for (i = firstId; i < lastId; i++)
     {
@@ -534,9 +534,9 @@ void AI_TrySwitchOrUseItem(void)
     u8 battlerIdentity = GetBattlerPosition(gActiveBattler);
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
@@ -681,9 +681,9 @@ u8 GetMostSuitableMonToSwitchInto(void)
     }
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     invalidMons = 0;
 
@@ -816,9 +816,9 @@ static bool8 ShouldUseItem(void)
         return FALSE;
 
     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {

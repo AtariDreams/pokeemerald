@@ -61,8 +61,8 @@ void SetUpBattleVarsAndBirchZigzagoon(void)
     if (gBattleTypeFlags & BATTLE_TYPE_FIRST_BATTLE)
     {
         ZeroEnemyPartyMons();
-        CreateMon(&gEnemyParty[0], SPECIES_ZIGZAGOON, 2, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
-        gEnemyParty[0].box.substruct0.heldItem = 0; // Item none
+        CreateMon(&gEnemyParty.party[0], SPECIES_ZIGZAGOON, 2, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
+        gEnemyParty.party[0].box.substruct0.heldItem = 0; // Item none
     }
 }
 
@@ -581,10 +581,10 @@ static void SetBattlePartyIds(void)
                 {
                     if (GET_BATTLER_SIDE2(i) == B_SIDE_PLAYER)
                     {
-                        if (GetMonData(&gPlayerParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
-                         && !GetMonData(&gPlayerParty[j], MON_DATA_IS_EGG))
+                        if (GetMonData(&gPlayerParty.party[j], MON_DATA_HP) != 0
+                         && GetMonData(&gPlayerParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
+                         && GetMonData(&gPlayerParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
+                         && !GetMonData(&gPlayerParty.party[j], MON_DATA_IS_EGG))
                         {
                             gBattlerPartyIndexes[i] = j;
                             break;
@@ -592,10 +592,10 @@ static void SetBattlePartyIds(void)
                     }
                     else
                     {
-                        if (GetMonData(&gEnemyParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
-                         && !GetMonData(&gEnemyParty[j], MON_DATA_IS_EGG))
+                        if (GetMonData(&gEnemyParty.party[j], MON_DATA_HP) != 0
+                         && GetMonData(&gEnemyParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
+                         && GetMonData(&gEnemyParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
+                         && !GetMonData(&gEnemyParty.party[j], MON_DATA_IS_EGG))
                         {
                             gBattlerPartyIndexes[i] = j;
                             break;
@@ -607,10 +607,10 @@ static void SetBattlePartyIds(void)
                     if (GET_BATTLER_SIDE2(i) == B_SIDE_PLAYER)
                     {
 
-                        if (GetMonData(&gPlayerParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
-                         && GetMonData(&gPlayerParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
-                         && !GetMonData(&gPlayerParty[j], MON_DATA_IS_EGG)
+                        if (GetMonData(&gPlayerParty.party[j], MON_DATA_HP) != 0
+                         && GetMonData(&gPlayerParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
+                         && GetMonData(&gPlayerParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
+                         && !GetMonData(&gPlayerParty.party[j], MON_DATA_IS_EGG)
                          && gBattlerPartyIndexes[i - 2] != j)
                         {
                             gBattlerPartyIndexes[i] = j;
@@ -619,10 +619,10 @@ static void SetBattlePartyIds(void)
                     }
                     else
                     {
-                        if (GetMonData(&gEnemyParty[j], MON_DATA_HP) != 0
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
-                         && GetMonData(&gEnemyParty[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
-                         && !GetMonData(&gEnemyParty[j], MON_DATA_IS_EGG)
+                        if (GetMonData(&gEnemyParty.party[j], MON_DATA_HP) != 0
+                         && GetMonData(&gEnemyParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE
+                         && GetMonData(&gEnemyParty.party[j], MON_DATA_SPECIES_OR_EGG) != SPECIES_EGG
+                         && !GetMonData(&gEnemyParty.party[j], MON_DATA_IS_EGG)
                          && gBattlerPartyIndexes[i - 2] != j)
                         {
                             gBattlerPartyIndexes[i] = j;
