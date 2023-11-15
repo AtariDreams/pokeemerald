@@ -1400,12 +1400,7 @@ void GenerateBattlePyramidWildMon(void)
     for (i = 0; i < MAX_MON_MOVES; i++)
         SetMonMoveSlot(&gEnemyParty.party[0], wildMons[id].moves[i], i);
 
-    // UB: Reading outside the array as lvl was used for mon level instead of frontier lvl mode.
-    #ifndef UBFIX
-    if (gSaveBlock2.frontier.pyramidWinStreaks[lvl] >= 140)
-    #else
     if (gSaveBlock2.frontier.pyramidWinStreaks[gSaveBlock2.frontier.lvlMode] >= 140)
-    #endif
     {
         id = (Random() % 17) + 15;
         for (i = 0; i < NUM_STATS; i++)
