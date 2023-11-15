@@ -2400,8 +2400,8 @@ static s32 CalcNewBarValue(s32 maxValue, s32 oldValue, s32 receivedValue, s32 *c
 
 static u8 CalcBarFilledPixels(s32 maxValue, s32 oldValue, s32 receivedValue, s32 *currValue, u8 *pixelsArray, u8 scale)
 {
-    u8 pixels, filledPixels, totalPixels;
-    u8 i;
+    u32 pixels, filledPixels, totalPixels;
+    u32 i;
 
     s32 newValue = oldValue - receivedValue;
     if (newValue < 0)
@@ -2433,13 +2433,13 @@ static u8 CalcBarFilledPixels(s32 maxValue, s32 oldValue, s32 receivedValue, s32
             if (pixels >= 8)
             {
                 pixelsArray[i] = 8;
+                pixels -= 8;
             }
             else
             {
                 pixelsArray[i] = pixels;
                 break;
             }
-            pixels -= 8;
         }
     }
 
