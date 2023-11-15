@@ -284,7 +284,7 @@ void PutWindowRectTilemapOverridePalette(u8 windowId, u8 x, u8 y, u8 width, u8 h
 {
     struct Window windowLocal = gWindows[windowId];
     u16 currentRow = windowLocal.window.baseBlock + (y * windowLocal.window.width) + x + GetBgAttribute(windowLocal.window.bg, BG_ATTR_BASETILE);
-    int i;
+    u32 i;
 
     for (i = 0; i < height; ++i)
     {
