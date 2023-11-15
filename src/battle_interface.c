@@ -2486,9 +2486,8 @@ static u8 GetScaledExpFraction(s32 oldValue, s32 receivedValue, s32 maxValue, u8
 {
     s32 newVal, result;
     s8 oldToMax, newToMax;
-    s32 scaleMax = scale * 8;
+    u8 scaleMax = scale * 8;
 
-    scale *= 8;
     newVal = oldValue - receivedValue;
 
     if (newVal < 0)
