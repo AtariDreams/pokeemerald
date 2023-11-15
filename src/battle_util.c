@@ -2259,9 +2259,9 @@ bool8 HasNoMonsToSwitch(u8 battler, u8 partyIdBattlerOn1, u8 partyIdBattlerOn2)
     if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
     {
         if (GetBattlerSide(battler) == B_SIDE_PLAYER)
-            party = gPlayerParty;
+            party = gPlayerParty.party;
         else
-            party = gEnemyParty;
+            party = gEnemyParty.party;
 
         playerId = ((battler & BIT_FLANK) / 2);
         for (i = playerId * MULTI_PARTY_SIZE; i < playerId * MULTI_PARTY_SIZE + MULTI_PARTY_SIZE; i++)
@@ -2277,13 +2277,13 @@ bool8 HasNoMonsToSwitch(u8 battler, u8 partyIdBattlerOn1, u8 partyIdBattlerOn2)
         {
             if (GetBattlerSide(battler) == B_SIDE_PLAYER)
             {
-                party = gPlayerParty;
+                party = gPlayerParty.party;
                 flankId = GetBattlerMultiplayerId(battler);
                 playerId = GetLinkTrainerFlankId(flankId);
             }
             else
             {
-                party = gEnemyParty;
+                party = gEnemyParty.party;
                 if (battler == 1)
                     playerId = 0;
                 else
@@ -2295,9 +2295,9 @@ bool8 HasNoMonsToSwitch(u8 battler, u8 partyIdBattlerOn1, u8 partyIdBattlerOn2)
             flankId = GetBattlerMultiplayerId(battler);
 
             if (GetBattlerSide(battler) == B_SIDE_PLAYER)
-                party = gPlayerParty;
+                party = gPlayerParty.party;
             else
-                party = gEnemyParty;
+                party = gEnemyParty.party;
 
             playerId = GetLinkTrainerFlankId(flankId);
         }
@@ -2311,7 +2311,7 @@ bool8 HasNoMonsToSwitch(u8 battler, u8 partyIdBattlerOn1, u8 partyIdBattlerOn2)
     }
     else if ((gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS) && GetBattlerSide(battler) == B_SIDE_OPPONENT)
     {
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
         if (battler == 1)
             playerId = 0;
@@ -2331,13 +2331,13 @@ bool8 HasNoMonsToSwitch(u8 battler, u8 partyIdBattlerOn1, u8 partyIdBattlerOn2)
         {
             flankId = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
             playerId = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
-            party = gEnemyParty;
+            party = gEnemyParty.party;
         }
         else
         {
             flankId = GetBattlerAtPosition(B_POSITION_PLAYER_LEFT);
             playerId = GetBattlerAtPosition(B_POSITION_PLAYER_RIGHT);
-            party = gPlayerParty;
+            party = gPlayerParty.party;
         }
 
         if (partyIdBattlerOn1 == PARTY_SIZE)
@@ -2406,17 +2406,17 @@ u8 AbilityBattleEffects(u8 caseID, u8 battler, u8 ability, u8 special, u16 moveA
         gBattlerAttacker = battler;
 
     if (GetBattlerSide(gBattlerAttacker) == B_SIDE_PLAYER)
-        pokeAtk = &gPlayerParty[gBattlerPartyIndexes[gBattlerAttacker]];
+        pokeAtk = &gPlayerParty.party[gBattlerPartyIndexes[gBattlerAttacker]];
     else
-        pokeAtk = &gEnemyParty[gBattlerPartyIndexes[gBattlerAttacker]];
+        pokeAtk = &gEnemyParty.party[gBattlerPartyIndexes[gBattlerAttacker]];
 
     if (gBattlerTarget >= gBattlersCount)
         gBattlerTarget = battler;
 
     if (GetBattlerSide(gBattlerTarget) == B_SIDE_PLAYER)
-        pokeDef = &gPlayerParty[gBattlerPartyIndexes[gBattlerTarget]];
+        pokeDef = &gPlayerParty.party[gBattlerPartyIndexes[gBattlerTarget]];
     else
-        pokeDef = &gEnemyParty[gBattlerPartyIndexes[gBattlerTarget]];
+        pokeDef = &gEnemyParty.party[gBattlerPartyIndexes[gBattlerTarget]];
 
     speciesAtk = GetMonData(pokeAtk, MON_DATA_SPECIES);
     pidAtk = GetMonData(pokeAtk, MON_DATA_PERSONALITY);
@@ -3316,9 +3316,9 @@ u8 ItemBattleEffects(u8 caseID, u8 battlerId, bool8 moveTurn)
                     u16 move;
 
                     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
-                        mon = &gPlayerParty[gBattlerPartyIndexes[battlerId]];
+                        mon = &gPlayerParty.party[gBattlerPartyIndexes[battlerId]];
                     else
-                        mon = &gEnemyParty[gBattlerPartyIndexes[battlerId]];
+                        mon = &gEnemyParty.party[gBattlerPartyIndexes[battlerId]];
                     for (i = 0; i < MAX_MON_MOVES; i++)
                     {
                         move = GetMonData(mon, MON_DATA_MOVE1 + i);
@@ -3872,10 +3872,10 @@ static bool32 IsBattlerModernFatefulEncounter(u8 battlerId)
 {
     if (GetBattlerSide(battlerId) == B_SIDE_OPPONENT)
         return TRUE;
-    if (GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS
-        && GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_SPECIES, NULL) != SPECIES_MEW)
+    if (GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_SPECIES, NULL) != SPECIES_DEOXYS
+        && GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_SPECIES, NULL) != SPECIES_MEW)
             return TRUE;
-    return GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_MODERN_FATEFUL_ENCOUNTER, NULL);
+    return GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_MODERN_FATEFUL_ENCOUNTER, NULL);
 }
 
 u8 IsMonDisobedient(void)

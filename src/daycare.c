@@ -190,7 +190,7 @@ static void StorePokemonInEmptyDaycareSlot(struct Pokemon *mon, struct DayCare *
 void StoreSelectedPokemonInDaycare(void)
 {
     u8 monId = GetCursorSelectionMonId();
-    StorePokemonInEmptyDaycareSlot(&gPlayerParty[monId], &gSaveBlock1.daycare);
+    StorePokemonInEmptyDaycareSlot(&gPlayerParty.party[monId], &gSaveBlock1.daycare);
 }
 
 // Shifts the second daycare pokemon slot into the first slot.
@@ -257,10 +257,10 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
         ApplyDaycareExperience(&pokemon);
     }
 
-    gPlayerParty[PARTY_SIZE - 1] = pokemon;
+    gPlayerParty.party[PARTY_SIZE - 1] = pokemon;
     if (daycareMon->mail.message.itemId)
     {
-        GiveMailToMon(&gPlayerParty[PARTY_SIZE - 1], &daycareMon->mail.message);
+        GiveMailToMon(&gPlayerParty.party[PARTY_SIZE - 1], &daycareMon->mail.message);
         ClearDaycareMonMail(&daycareMon->mail);
     }
 
@@ -819,7 +819,7 @@ static void _GiveEggFromDaycare(struct DayCare *daycare)
 
     isEgg = TRUE;
     SetMonData(&egg, MON_DATA_IS_EGG, &isEgg);
-    gPlayerParty[PARTY_SIZE - 1] = egg;
+    gPlayerParty.party[PARTY_SIZE - 1] = egg;
     CompactPartySlots();
     CalculatePlayerPartyCount();
     RemoveEggFromDayCare(daycare);
@@ -900,12 +900,12 @@ static bool8 TryProduceOrHatchEgg(struct DayCare *daycare)
         u32 eggCycles;
         u8 toSub = GetEggCyclesToSubtract();
 
-        for (i = 0; i < gPlayerPartyCount; i++)
+        for (i = 0; i < gPlayerParty.count; i++)
         {
-            if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+            if (!GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG))
                 continue;
 
-            eggCycles = GetMonData(&gPlayerParty[i], MON_DATA_FRIENDSHIP);
+            eggCycles = GetMonData(&gPlayerParty.party[i], MON_DATA_FRIENDSHIP);
             if (eggCycles != 0)
             {
                 if (eggCycles >= toSub)
@@ -913,7 +913,7 @@ static bool8 TryProduceOrHatchEgg(struct DayCare *daycare)
                 else
                     eggCycles -= 1;
 
-                SetMonData(&gPlayerParty[i], MON_DATA_FRIENDSHIP, &eggCycles);
+                SetMonData(&gPlayerParty.party[i], MON_DATA_FRIENDSHIP, &eggCycles);
             }
             else
             {
@@ -957,8 +957,8 @@ static void _GetDaycareMonNicknames(struct DayCare *daycare)
 
 u16 GetSelectedMonNicknameAndSpecies(void)
 {
-    GetBoxMonNickname(&gPlayerParty[GetCursorSelectionMonId()].box, gStringVar1);
-    return GetBoxMonData(&gPlayerParty[GetCursorSelectionMonId()].box, MON_DATA_SPECIES);
+    GetBoxMonNickname(&gPlayerParty.party[GetCursorSelectionMonId()].box, gStringVar1);
+    return GetBoxMonData(&gPlayerParty.party[GetCursorSelectionMonId()].box, MON_DATA_SPECIES);
 }
 
 void GetDaycareMonNicknames(void)

@@ -135,7 +135,7 @@ static u32 OpenMarkingsMenu(struct Pokenav_ConditionMenu *menu)
         markings = menu->monMarks[menu->loadId];
 
         if (boxId == TOTAL_BOXES_COUNT)
-            SetMonData(&gPlayerParty[monId], MON_DATA_MARKINGS, &markings);
+            SetMonData(&gPlayerParty.party[monId], MON_DATA_MARKINGS, &markings);
         else
             SetBoxMonDataAt(boxId, monId, MON_DATA_MARKINGS, &markings);
 
@@ -365,8 +365,8 @@ static u8 *CopyConditionMonNameGender(u8 *str, u16 listId, bool8 skipPadding)
     species = GetBoxOrPartyMonData(boxId, monId, MON_DATA_SPECIES, NULL);
     if (boxId == TOTAL_BOXES_COUNT)
     {
-        level = GetMonData(&gPlayerParty[monId], MON_DATA_LEVEL);
-        gender = GetMonGender(&gPlayerParty[monId]);
+        level = GetMonData(&gPlayerParty.party[monId], MON_DATA_LEVEL);
+        gender = GetMonGender(&gPlayerParty.party[monId]);
     }
     else
     {
@@ -475,9 +475,9 @@ static void InitPartyConditionListParameters(void)
 
     menu->inSearchMode = FALSE;
 
-    for (i = 0, count = 0; i < gPlayerPartyCount; i++)
+    for (i = 0, count = 0; i < gPlayerParty.count; i++)
     {
-        if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+        if (!GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG))
         {
             monListPtr->monData[count].boxId = TOTAL_BOXES_COUNT;
             monListPtr->monData[count].monId = i;

@@ -2322,13 +2322,13 @@ static void InitDomeTrainers(void)
     // Store the data used to display party information on the player's tourney page
     for (i = 0; i < FRONTIER_PARTY_SIZE; i++)
     {
-        DOME_MONS[0][i] = GetMonData(&gPlayerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_SPECIES, NULL);
+        DOME_MONS[0][i] = GetMonData(&gPlayerParty.party[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_SPECIES, NULL);
         for (j = 0; j < MAX_MON_MOVES; j++)
-            gSaveBlock2.frontier.domePlayerPartyData[i].moves[j] = GetMonData(&gPlayerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_MOVE1 + j, NULL);
+            gSaveBlock2.frontier.domePlayerPartyData[i].moves[j] = GetMonData(&gPlayerParty.party[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_MOVE1 + j, NULL);
         for (j = 0; j < NUM_STATS; j++)
-            gSaveBlock2.frontier.domePlayerPartyData[i].evs[j] = GetMonData(&gPlayerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_HP_EV + j, NULL);
+            gSaveBlock2.frontier.domePlayerPartyData[i].evs[j] = GetMonData(&gPlayerParty.party[gSaveBlock2.frontier.selectedPartyMons[i] - 1], MON_DATA_HP_EV + j, NULL);
 
-        gSaveBlock2.frontier.domePlayerPartyData[i].nature = GetNature(&gPlayerParty[gSaveBlock2.frontier.selectedPartyMons[i] - 1]);
+        gSaveBlock2.frontier.domePlayerPartyData[i].nature = GetNature(&gPlayerParty.party[gSaveBlock2.frontier.selectedPartyMons[i] - 1]);
     }
 
     // Populate the tourney roster with random frontier trainers (dependent on streak)
@@ -2399,14 +2399,14 @@ static void InitDomeTrainers(void)
     {
         // trainerId var re-used here as index of selected mons
         trainerId = gSaveBlock2.frontier.selectedPartyMons[i] - 1;
-        rankingScores[0] += GetMonData(&gPlayerParty[trainerId], MON_DATA_ATK, NULL);
-        rankingScores[0] += GetMonData(&gPlayerParty[trainerId], MON_DATA_DEF, NULL);
-        rankingScores[0] += GetMonData(&gPlayerParty[trainerId], MON_DATA_SPATK, NULL);
-        rankingScores[0] += GetMonData(&gPlayerParty[trainerId], MON_DATA_SPDEF, NULL);
-        rankingScores[0] += GetMonData(&gPlayerParty[trainerId], MON_DATA_SPEED, NULL);
-        rankingScores[0] += GetMonData(&gPlayerParty[trainerId], MON_DATA_MAX_HP, NULL);
-        monTypesBits |= gBitTable[gSpeciesInfo[GetMonData(&gPlayerParty[trainerId], MON_DATA_SPECIES, NULL)].types[0]];
-        monTypesBits |= gBitTable[gSpeciesInfo[GetMonData(&gPlayerParty[trainerId], MON_DATA_SPECIES, NULL)].types[1]];
+        rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_ATK, NULL);
+        rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_DEF, NULL);
+        rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPATK, NULL);
+        rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPDEF, NULL);
+        rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPEED, NULL);
+        rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_MAX_HP, NULL);
+        monTypesBits |= gBitTable[gSpeciesInfo[GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPECIES, NULL)].types[0]];
+        monTypesBits |= gBitTable[gSpeciesInfo[GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPECIES, NULL)].types[1]];
     }
 
     // Count the number of types in the players party, to factor into the ranking
@@ -2572,8 +2572,8 @@ static void BufferDomeOpponentName(void)
 static void InitDomeOpponentParty(void)
 {
     gPlayerPartyLostHP = 0;
-    sPlayerPartyMaxHP =  GetMonData(&gPlayerParty[0], MON_DATA_MAX_HP, NULL);
-    sPlayerPartyMaxHP += GetMonData(&gPlayerParty[1], MON_DATA_MAX_HP, NULL);
+    sPlayerPartyMaxHP =  GetMonData(&gPlayerParty.party[0], MON_DATA_MAX_HP, NULL);
+    sPlayerPartyMaxHP += GetMonData(&gPlayerParty.party[1], MON_DATA_MAX_HP, NULL);
     CalculatePlayerPartyCount();
     CreateDomeOpponentMons(TrainerIdToTournamentId(gTrainerBattleOpponent_A));
 }
@@ -2588,7 +2588,7 @@ static void CreateDomeOpponentMon(u8 monPartyId, u16 tournamentTrainerId, u8 tou
     u8 fixedIv = GetDomeTrainerMonIvs(tournamentTrainerId); // BUG: Using the wrong ID. As a result, all Pokemon have ivs of 3.
     #endif
     u8 level = SetFacilityPtrsGetLevel();
-    CreateMonWithEVSpreadNatureOTID(&gEnemyParty[monPartyId],
+    CreateMonWithEVSpreadNatureOTID(&gEnemyParty.party[monPartyId],
                                          gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][tournamentMonId]].species,
                                          level,
                                          gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][tournamentMonId]].nature,
@@ -2598,14 +2598,14 @@ static void CreateDomeOpponentMon(u8 monPartyId, u16 tournamentTrainerId, u8 tou
     friendship = MAX_FRIENDSHIP;
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        SetMonMoveSlot(&gEnemyParty[monPartyId],
+        SetMonMoveSlot(&gEnemyParty.party[monPartyId],
                        gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][tournamentMonId]].moves[i], i);
         if (gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][tournamentMonId]].moves[i] == MOVE_FRUSTRATION)
             friendship = 0;
     }
 
-    SetMonData(&gEnemyParty[monPartyId], MON_DATA_FRIENDSHIP, &friendship);
-    SetMonData(&gEnemyParty[monPartyId], MON_DATA_HELD_ITEM,
+    SetMonData(&gEnemyParty.party[monPartyId], MON_DATA_FRIENDSHIP, &friendship);
+    SetMonData(&gEnemyParty.party[monPartyId], MON_DATA_HELD_ITEM,
                &gBattleFrontierHeldItems[gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][tournamentMonId]].itemTableId]);
 }
 
@@ -2688,12 +2688,12 @@ static int SelectOpponentMons_Good(u16 tournamentTrainerId, bool8 allowRandom)
                 if (DOME_TRAINERS[tournamentTrainerId].trainerId == TRAINER_FRONTIER_BRAIN)
                 {
                     partyMovePoints[i] += GetTypeEffectivenessPoints(GetFrontierBrainMonMove(i, moveId),
-                                            GetMonData(&gPlayerParty[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_GOOD);
+                                            GetMonData(&gPlayerParty.party[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_GOOD);
                 }
                 else
                 {
                     partyMovePoints[i] += GetTypeEffectivenessPoints(gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][i]].moves[moveId],
-                                            GetMonData(&gPlayerParty[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_GOOD);
+                                            GetMonData(&gPlayerParty.party[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_GOOD);
                 }
             }
         }
@@ -2717,12 +2717,12 @@ static int SelectOpponentMons_Bad(u16 tournamentTrainerId, bool8 allowRandom)
                 if (DOME_TRAINERS[tournamentTrainerId].trainerId == TRAINER_FRONTIER_BRAIN)
                 {
                     partyMovePoints[i] += GetTypeEffectivenessPoints(GetFrontierBrainMonMove(i, moveId),
-                                            GetMonData(&gPlayerParty[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_BAD);
+                                            GetMonData(&gPlayerParty.party[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_BAD);
                 }
                 else
                 {
                     partyMovePoints[i] += GetTypeEffectivenessPoints(gFacilityTrainerMons[DOME_MONS[tournamentTrainerId][i]].moves[moveId],
-                                            GetMonData(&gPlayerParty[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_BAD);
+                                            GetMonData(&gPlayerParty.party[playerMonId], MON_DATA_SPECIES, NULL), EFFECTIVENESS_MODE_BAD);
                 }
             }
         }
@@ -5790,15 +5790,15 @@ static void ResetSketchedMoves(void)
             count = 0;
             while (count < MAX_MON_MOVES)
             {
-                if (GetMonData(&gSaveBlock1.playerParty[playerMonId], MON_DATA_MOVE1 + count, NULL) == GetMonData(&gPlayerParty[i], MON_DATA_MOVE1 + moveSlot, NULL))
+                if (GetMonData(&gSaveBlock1.playerParty[playerMonId], MON_DATA_MOVE1 + count, NULL) == GetMonData(&gPlayerParty.party[i], MON_DATA_MOVE1 + moveSlot, NULL))
                     break;
                 count++;
             }
             if (count == MAX_MON_MOVES)
-                SetMonMoveSlot(&gPlayerParty[i], MOVE_SKETCH, moveSlot);
+                SetMonMoveSlot(&gPlayerParty.party[i], MOVE_SKETCH, moveSlot);
         }
 
-        gSaveBlock1.playerParty[playerMonId] = gPlayerParty[i];
+        gSaveBlock1.playerParty[playerMonId] = gPlayerParty.party[i];
     }
 }
 
@@ -5810,7 +5810,7 @@ static void RestoreDomePlayerPartyHeldItems(void)
     {
         int playerMonId = gSaveBlock2.frontier.selectedPartyMons[gSelectedOrderFromParty[i] - 1] - 1;
         u16 item = GetMonData(&gSaveBlock1.playerParty[playerMonId], MON_DATA_HELD_ITEM, NULL);
-        SetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, &item);
+        SetMonData(&gPlayerParty.party[i], MON_DATA_HELD_ITEM, &item);
     }
 }
 

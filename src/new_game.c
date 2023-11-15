@@ -174,7 +174,7 @@ void NewGameInitData(void)
     ClearPlayerLinkBattleRecords();
     InitSeedotSizeRecord();
     InitLotadSizeRecord();
-    gPlayerPartyCount = 0;
+    gPlayerParty.count = 0;
     ZeroPlayerPartyMons();
     ResetPokemonStorageSystem();
     ClearRoamerData();

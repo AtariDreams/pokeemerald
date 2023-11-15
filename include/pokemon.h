@@ -355,6 +355,12 @@ struct Evolution
     u16 targetSpecies;
 };
 
+struct PokemonParty
+{
+    struct Pokemon party[PARTY_SIZE];
+    u32 count;
+};
+
 #define NUM_UNOWN_FORMS 28
 
 #define GET_UNOWN_LETTER(personality) ((   \
@@ -366,10 +372,8 @@ struct Evolution
 
 #define GET_SHINY_VALUE(otId, personality) (HIHALF(otId) ^ LOHALF(otId) ^ HIHALF(personality) ^ LOHALF(personality))
 
-extern u8 gPlayerPartyCount;
-extern struct Pokemon gPlayerParty[PARTY_SIZE];
-extern u8 gEnemyPartyCount;
-extern struct Pokemon gEnemyParty[PARTY_SIZE];
+extern struct PokemonParty gPlayerParty;
+extern struct PokemonParty gEnemyParty;
 extern struct SpriteTemplate gMultiuseSpriteTemplate;
 
 extern const struct BattleMove gBattleMoves[];
@@ -492,11 +496,11 @@ u16 ModifyStatByNature(u16 n, u8 nature, u32 statIndex);
 void AdjustFriendship(struct Pokemon *mon, u8 event);
 void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies);
 u16 GetMonEVCount(struct Pokemon *mon);
-void RandomlyGivePartyPokerus(struct Pokemon *party);
+void RandomlyGivePartyPokerus(void);
 u8 CheckPartyPokerus(struct Pokemon *party);
 u8 CheckPartyHasHadPokerus(struct Pokemon *party);
 void UpdatePartyPokerusTime(u16 days);
-void PartySpreadPokerus(struct Pokemon *party);
+void PartySpreadPokerus(void);
 bool8 TryIncrementMonLevel(struct Pokemon *mon);
 u32 CanMonLearnTMHM(struct Pokemon *mon, u8 tm);
 u32 CanSpeciesLearnTMHM(u16 species, u8 tm);
