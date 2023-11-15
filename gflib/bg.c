@@ -41,8 +41,6 @@ static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
 static ALIGNED(4) u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
 static u32 GetTileMapIndexFromCoords(u32 x, u32 y, u32 screenSize, u32 screenWidth, u32 screenHeight);
 
-static const struct BgConfig sZeroedBgControlStruct = { 0 };
-
 static u32 GetBgType(u8 bg);
 
 void ResetBgs(void)
@@ -65,12 +63,7 @@ u8 GetBgMode(void)
 
 void ResetBgControlStructs(void)
 {
-    unsigned int i;
-
-    for (i = 0; i < NUM_BACKGROUNDS; i++)
-    {
-        sGpuBgConfigs.configs[i] = sZeroedBgControlStruct;
-    }
+    memset(sGpuBgConfigs.configs, 0, sizeof(sGpuBgConfigs.configs));
 }
 
 enum
