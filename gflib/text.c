@@ -589,7 +589,7 @@ static u8 UNUSED GetLastTextColor(u8 colorType)
     }
 }
 
-inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u32 *glyphPixels, s32 width, s32 height)
+inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u32 *glyphPixels, u32 width, u32 height)
 {
     u32 xAdd, yAdd, pixelData, bits, toOrr, dummyX;
     u8 *dst;
@@ -604,7 +604,7 @@ inline static void GLYPH_COPY(u8 *windowTiles, u32 widthOffset, u32 j, u32 i, u3
         {
             if ((toOrr = pixelData & 0xF))
             {
-                dst = windowTiles + ((j / 8) * 32) + ((j % 8) / 2) + ((i / 8) * widthOffset) + ((i % 8) * 4);
+                dst = windowTiles + (j / 8) * 32 + (j % 8) / 2 + (i / 8) * widthOffset + (i % 8) * 4;
                 bits = ((j & 1) * 4);
                 *dst = (toOrr << bits) | (*dst & (0xF0 >> bits));
             }
@@ -619,7 +619,7 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
     struct WindowTemplate *template;
     u32 *glyphPixels;
     u32 currX, currY, widthOffset;
-    s32 glyphWidth, glyphHeight;
+    u32 glyphWidth, glyphHeight;
     u8 *windowTiles;
 
     window = &gWindows[textPrinter->printerTemplate.windowId];
@@ -637,9 +637,9 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
     windowTiles = window->tileData;
     widthOffset = template->width * 32;
 
-    if (glyphWidth < 9)
+    if (glyphWidth <= 8)
     {
-        if (glyphHeight < 9)
+        if (glyphHeight <= 8)
         {
             GLYPH_COPY(windowTiles, widthOffset, currX, currY, glyphPixels, glyphWidth, glyphHeight);
         }
@@ -651,7 +651,7 @@ void CopyGlyphToWindow(struct TextPrinter *textPrinter)
     }
     else
     {
-        if (glyphHeight < 9)
+        if (glyphHeight <= 8)
         {
             GLYPH_COPY(windowTiles, widthOffset, currX, currY, glyphPixels, 8, glyphHeight);
             GLYPH_COPY(windowTiles, widthOffset, currX + 8, currY, glyphPixels + 8, glyphWidth - 8, glyphHeight);
