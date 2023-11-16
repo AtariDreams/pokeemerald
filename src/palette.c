@@ -18,6 +18,13 @@ enum
 
 #define NUM_PALETTE_STRUCTS 16
 
+struct PaletteWork
+{
+    u16 tDelay;
+    u16 tCoeffDelta;
+    u16 tCoeffTarget;
+};
+
 struct PaletteStructTemplate
 {
     u16 id;
@@ -99,13 +106,13 @@ void FillPalette(u16 value, u16 offset, u16 size)
 
 void TransferPlttBuffer(void)
 {
-    if (!gPaletteFade.bufferTransferDisabled)
-    {
-        DmaCopy16(3, gPlttBufferFaded, (void *)PLTT, PLTT_SIZE);
-        sPlttBufferTransferPending = FALSE;
-        if (gPaletteFade.mode == HARDWARE_FADE && gPaletteFade.active)
-            UpdateBlendRegisters();
-    }
+    if (gPaletteFade.bufferTransferDisabled)
+        return;
+
+    DmaCopy16(3, gPlttBufferFaded, (void *)PLTT, PLTT_SIZE);
+    sPlttBufferTransferPending = FALSE;
+    if (gPaletteFade.mode == HARDWARE_FADE && gPaletteFade.active)
+        UpdateBlendRegisters();
 }
 
 u8 UpdatePaletteFade(void)
@@ -150,7 +157,7 @@ bool8 BeginNormalPaletteFade(u32 selectedPalettes, s8 delay, u8 startY, u8 targe
 
     if (delay < 0)
     {
-        gPaletteFade.deltaY += -delay;
+        gPaletteFade.deltaY -= delay;
         delay = 0;
     }
 
@@ -172,6 +179,7 @@ bool8 BeginNormalPaletteFade(u32 selectedPalettes, s8 delay, u8 startY, u8 targe
 
     temp = gPaletteFade.bufferTransferDisabled;
     gPaletteFade.bufferTransferDisabled = FALSE;
+
     CpuFastCopy(gPlttBufferFaded, (void *)PLTT, PLTT_SIZE);
     sPlttBufferTransferPending = FALSE;
     if (gPaletteFade.mode == HARDWARE_FADE && gPaletteFade.active)
