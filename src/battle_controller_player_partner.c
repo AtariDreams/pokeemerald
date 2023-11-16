@@ -182,7 +182,7 @@ void SetControllerToPlayerPartner(void)
 
 static void PlayerPartnerBufferRunCommand(void)
 {
-    if (gBattleControllerExecFlags & gBitTable[gActiveBattler])
+    if (gBattleControllerExecFlags & (1U << gActiveBattler))
     {
         if (gBattleBufferA[gActiveBattler][0] < ARRAY_COUNT(sPlayerPartnerBufferCommands))
             sPlayerPartnerBufferCommands[gBattleBufferA[gActiveBattler][0]]();
@@ -589,7 +589,7 @@ static void PlayerPartnerBufferExecCompleted(void)
     }
     else
     {
-        gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
+        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
     }
 }
 
@@ -1518,7 +1518,7 @@ static void PlayerPartnerHandleChooseMove(void)
     if (gBattleMoves[moveInfo->moves[chosenMoveId]].target & MOVE_TARGET_BOTH)
     {
         gBattlerTarget = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
-        if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+        if (gAbsentBattlerFlags & (1U << gBattlerTarget))
             gBattlerTarget = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
     }
 
