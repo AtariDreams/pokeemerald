@@ -3073,7 +3073,7 @@ static void BattleStartClearSetData(void)
 
     gRandomTurnNumber = Random();
 
-    memset(&gBattleResults, 0, sizeof(struct BattleResults));
+    memset(&gBattleResults, 0, sizeof(gBattleResults));
 
     gBattleResults.shinyWildMon = IsMonShiny(&gEnemyParty.party[0]);
 
