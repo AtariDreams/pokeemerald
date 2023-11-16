@@ -462,6 +462,7 @@ static void PlayerPC_Mailbox(u8 taskId)
     {
         // Mailbox cannot be opened if no mail is in PC
         DisplayItemMessageOnField(taskId, gText_NoMailHere, ReshowPlayerPC);
+        return;
     }
     else
     {
