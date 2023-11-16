@@ -52,7 +52,7 @@ void *AllocInternal(void *heapStart, u32 size)
     u32 foundBlockSize;
 
     // Alignment
-    size += (-size & 3);
+    size = (size + 3) & ~3;
 
     for (;;) {
         // Loop through the blocks looking for unused block that's big enough.
