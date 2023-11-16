@@ -13,16 +13,12 @@ s16 Sin(s16 index, s16 amplitude)
 {
     asm_unified("\
     lsls    r0, r0, #1\n\
-    ldr     r2, .LCPI0_0 \n\
-.LPC0_0:\n\
-    add     r2, pc\n\
+    ldr     r2, =gSineTable\n\
     ldrsh   r0, [r2, r0]\n\
     muls    r0, r1, r0\n\
     lsls    r0, r0, #8\n\
     asrs    r0, r0, #16\n\
-    bx      lr\n\
-    .LCPI0_0:\n\
-    .long   gSineTable-(.LPC0_0+4)\n");
+    bx      lr\n");
 }
 
 // amplitude * cos(index*(π/128))
@@ -36,18 +32,14 @@ s16 Cos(s16 index, s16 amplitude)
 {
     asm_unified("\
     lsls    r0, r0, #1\n\
-    ldr     r2, .LCPI1_0 \n\
-.LPC1_0:\n\
-    add     r2, pc\n\
+    ldr     r2, = gSineTable\n\
     adds    r0, r0, r2\n\
     movs    r2, #128\n\
     ldrsh   r0, [r0, r2]\n\
     muls    r0, r1, r0\n\
     lsls    r0, r0, #8\n\
     asrs    r0, r0, #16\n\
-    bx      lr\n\
-    .LCPI1_0:\n\
-    .long   gSineTable-(.LPC1_0+4)\n");
+    bx      lr");
 }
 
 // angle in degrees
@@ -65,7 +57,7 @@ NAKED
 s16 Sin2(u16 angle)
 {
     asm_unified("\
-    ldr     r1, .LCPI2_0\n\
+    ldr     r1, =11651\n\
     muls    r1, r0, r1\n\
     lsrs    r1, r1, #21\n\
     lsls    r2, r1, #31\n\
@@ -77,9 +69,7 @@ s16 Sin2(u16 angle)
     @ lsls    r0, r1, #1\n\
     lsls    r0, r0, #16\n\
     lsrs    r0, r0, #15\n\
-    ldr     r1, .LCPI2_2\n\
-.LPC2_0:\n\
-    add     r1, pc\n\
+    ldr     r1, =gSineDegreeTable\n\
     ldrh    r0, [r1, r0]\n\
     cmp     r2, #0\n\
     beq     .LBB2_2\n\
@@ -87,12 +77,7 @@ s16 Sin2(u16 angle)
 .LBB2_2:\n\
     lsls    r0, r0, #16\n\
     asrs    r0, r0, #16\n\
-    bx      lr\n\
-    .align\n\
-    .LCPI2_0:\n\
-    .long   11651\n\
-    .LCPI2_2:\n\
-    .long   gSineDegreeTable-(.LPC2_0+4)\n");
+    bx      lr\n");
 }
 
 // // angle in degrees
@@ -108,10 +93,10 @@ NAKED s16 Cos2(u16 angle)
     asm_unified("\
     push    {r4, lr}\n\
     adds    r0, #90\n\
-    ldr     r1, .LCPI3_0\n\
+    ldr     r1, =0xFFFF\n\
     movs    r2, r0\n\
     ands    r2, r1\n\
-    ldr     r3, .LCPI3_1\n\
+    ldr     r3, =11651\n\
     muls    r3, r2, r3\n\
     lsrs    r2, r3, #21\n\
     lsls    r3, r2, #31\n\
@@ -120,9 +105,7 @@ NAKED s16 Cos2(u16 angle)
     subs    r0, r0, r4\n\
     ands    r0, r1\n\
     lsls    r0, r0, #1\n\
-    ldr     r1, .LCPI3_2\n\
-.LPC3_0:\n\
-    add     r1, pc\n\
+    ldr     r1, =gSineDegreeTable\n\
     ldrh    r0, [r1, r0]\n\
     cmp     r3, #0\n\
     beq     .LBB3_2\n\
@@ -132,14 +115,7 @@ NAKED s16 Cos2(u16 angle)
     asrs    r0, r0, #16\n\
     pop     {r4}\n\
     pop     {r1}\n\
-    bx      r1\n\
-    .align\n\
-    .LCPI3_0:\n\
-    .long   65535\n\
-    .LCPI3_1:\n\
-    .long   11651\n\
-    .LCPI3_2:\n\
-    .long   gSineDegreeTable-(.LPC3_0+4)\n");
+    bx      r1\n");
 }
 
 // Values of sin(x*(π/128)) as Q8.8 fixed-point numbers from x = 0 to x = 319
