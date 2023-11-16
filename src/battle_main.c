@@ -3007,7 +3007,7 @@ static void BattleStartClearSetData(void)
     gSideStatuses[0] = 0;
     gSideStatuses[1] = 0;
 
-    memset(&gSideTimers, 0, sizeof(struct SideTimer));
+    memset(&gSideTimers, 0, sizeof(gSideTimers));
 
     gBattlerAttacker = 0;
     gBattlerTarget = 0;
