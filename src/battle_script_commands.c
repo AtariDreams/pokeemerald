@@ -4429,18 +4429,9 @@ static void Cmd_moveend(void)
                 && !(gHitMarker & HITMARKER_FAINTED(gBattlerTarget))
                 && !(gMoveResultFlags & MOVE_RESULT_NO_EFFECT))
             {
-                u8 target, attacker;
+                gBattleStruct->lastTakenMove[gBattlerTarget] = gChosenMove;
+                gBattleStruct->lastTakenMoveFrom[gBattlerTarget][gBattlerAttacker] = gChosenMove;
 
-                *(gBattleStruct->lastTakenMove + gBattlerTarget * 2 + 0) = gChosenMove;
-                *(gBattleStruct->lastTakenMove + gBattlerTarget * 2 + 1) = gChosenMove >> 8;
-
-                target = gBattlerTarget;
-                attacker = gBattlerAttacker;
-                *(attacker * 2 + target * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 0) = gChosenMove;
-
-                target = gBattlerTarget;
-                attacker = gBattlerAttacker;
-                *(attacker * 2 + target * 8 + (u8 *)(gBattleStruct->lastTakenMoveFrom) + 1) = gChosenMove >> 8;
             }
             gBattleScripting.moveendState++;
             break;
@@ -6629,7 +6620,7 @@ static void Cmd_trymirrormove(void)
     {
         if (i != gBattlerAttacker)
         {
-            move = T1_READ_16(i * 2 + gBattlerAttacker * 8 + gBattleStruct->lastTakenMoveFrom);
+            move = gBattleStruct->lastTakenMoveFrom[gBattlerAttacker][i];
 
             if (move != MOVE_NONE && move != MOVE_UNAVAILABLE)
             {
