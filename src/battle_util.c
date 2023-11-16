@@ -82,7 +82,7 @@ void HandleAction_UseMove(void)
 
     gBattlerAttacker = gBattlerByTurnOrder[gCurrentTurnActionNumber];
 
-    if (*(&gBattleStruct->absentBattlerFlags) & gBitTable[gBattlerAttacker])
+    if (gBattleStruct->absentBattlerFlags & (1U << gBattlerAttacker))
     {
         gCurrentActionFuncId = B_ACTION_FINISHED;
         return;
@@ -102,7 +102,7 @@ void HandleAction_UseMove(void)
         gProtectStructs[gBattlerAttacker].noValidMoves = FALSE;
         gCurrentMove = gChosenMove = MOVE_STRUGGLE;
         gHitMarker |= HITMARKER_NO_PPDEDUCT;
-        *(gBattleStruct->moveTarget + gBattlerAttacker) = GetMoveTarget(MOVE_STRUGGLE, NO_TARGET_OVERRIDE);
+        gBattleStruct->moveTarget[gBattlerAttacker] = GetMoveTarget(MOVE_STRUGGLE, NO_TARGET_OVERRIDE);
     }
     else if (gBattleMons[gBattlerAttacker].status2 & STATUS2_MULTIPLETURNS || gBattleMons[gBattlerAttacker].status2 & STATUS2_RECHARGE)
     {
@@ -196,7 +196,7 @@ void HandleAction_UseMove(void)
                 gBattlerTarget = *(gBattleStruct->moveTarget + gBattlerAttacker);
             }
 
-            if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+            if (gAbsentBattlerFlags & (1U << gBattlerTarget))
             {
                 if (GetBattlerSide(gBattlerAttacker) != GetBattlerSide(gBattlerTarget))
                 {
@@ -205,7 +205,7 @@ void HandleAction_UseMove(void)
                 else
                 {
                     gBattlerTarget = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(gBattlerAttacker)));
-                    if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+                    if (gAbsentBattlerFlags & (1U << gBattlerTarget))
                         gBattlerTarget = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gBattlerTarget)));
                 }
             }
@@ -236,7 +236,7 @@ void HandleAction_UseMove(void)
                 gBattlerTarget = GetBattlerAtPosition(B_POSITION_PLAYER_RIGHT);
         }
 
-        if (gAbsentBattlerFlags & gBitTable[gBattlerTarget]
+        if (gAbsentBattlerFlags & (1U << gBattlerTarget)
             && GetBattlerSide(gBattlerAttacker) != GetBattlerSide(gBattlerTarget))
         {
             gBattlerTarget = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gBattlerTarget)));
@@ -245,7 +245,7 @@ void HandleAction_UseMove(void)
     else
     {
         gBattlerTarget = *(gBattleStruct->moveTarget + gBattlerAttacker);
-        if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+        if (gAbsentBattlerFlags & (1U << gBattlerTarget))
         {
             if (GetBattlerSide(gBattlerAttacker) != GetBattlerSide(gBattlerTarget))
             {
@@ -254,7 +254,7 @@ void HandleAction_UseMove(void)
             else
             {
                 gBattlerTarget = GetBattlerAtPosition(BATTLE_OPPOSITE(GetBattlerPosition(gBattlerAttacker)));
-                if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+                if (gAbsentBattlerFlags & (1U << gBattlerTarget))
                     gBattlerTarget = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gBattlerTarget)));
             }
         }
@@ -829,31 +829,32 @@ static void UNUSED MarkAllBattlersForControllerExec(void)
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
     {
         for (i = 0; i < gBattlersCount; i++)
-            gBattleControllerExecFlags |= gBitTable[i] << (32 - MAX_BATTLERS_COUNT);
+            gBattleControllerExecFlags |= (1U << i) << (32 - MAX_BATTLERS_COUNT);
     }
     else
     {
         for (i = 0; i < gBattlersCount; i++)
-            gBattleControllerExecFlags |= gBitTable[i];
+            gBattleControllerExecFlags |= (1U << i);
     }
 }
 
 void MarkBattlerForControllerExec(u8 battlerId)
 {
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-        gBattleControllerExecFlags |= gBitTable[battlerId] << (32 - MAX_BATTLERS_COUNT);
+        gBattleControllerExecFlags |= (1U << (32 - (MAX_BATTLERS_COUNT - battlerId)));
     else
-        gBattleControllerExecFlags |= gBitTable[battlerId];
+        gBattleControllerExecFlags |= (1U << battlerId);
 }
 
 void MarkBattlerReceivedLinkData(u8 battlerId)
 {
-    s32 i;
+    u32 i;
+    u32 count =  GetLinkPlayerCount();
 
-    for (i = 0; i < GetLinkPlayerCount(); i++)
-        gBattleControllerExecFlags |= gBitTable[battlerId] << (i << 2);
+    for (i = 0; i < count; i++)
+        gBattleControllerExecFlags |= (1U << (battlerId + (i * 4)));
 
-    gBattleControllerExecFlags &= ~((1 << 28) << battlerId);
+    gBattleControllerExecFlags &= ~(1U << (32 - (MAX_BATTLERS_COUNT - battlerId)));
 }
 
 void CancelMultiTurnMoves(u8 battler)
@@ -894,14 +895,14 @@ void PrepareStringBattle(u16 stringId, u8 battler)
 
 void ResetSentPokesToOpponentValue(void)
 {
-    s32 i;
+    u32 i;
     u32 bits = 0;
 
     gSentPokesToOpponent[0] = 0;
     gSentPokesToOpponent[1] = 0;
 
     for (i = 0; i < gBattlersCount; i += 2)
-        bits |= gBitTable[gBattlerPartyIndexes[i]];
+        bits |= (1U << gBattlerPartyIndexes[i]);
 
     for (i = 1; i < gBattlersCount; i += 2)
         gSentPokesToOpponent[(i & BIT_FLANK) >> 1] = bits;
@@ -919,8 +920,8 @@ void OpponentSwitchInResetSentPokesToOpponentValue(u8 battler)
 
         for (i = 0; i < gBattlersCount; i += 2)
         {
-            if (!(gAbsentBattlerFlags & gBitTable[i]))
-                bits |= gBitTable[gBattlerPartyIndexes[i]];
+            if (!(gAbsentBattlerFlags & (1U << i)))
+                bits |= (1U << gBattlerPartyIndexes[i]);
         }
         gSentPokesToOpponent[flank] = bits;
     }
@@ -931,12 +932,13 @@ void UpdateSentPokesToOpponentValue(u8 battler)
     if (GetBattlerSide(battler) == B_SIDE_OPPONENT)
     {
         OpponentSwitchInResetSentPokesToOpponentValue(battler);
+        return;
     }
     else
     {
-        s32 i;
+        u32 i;
         for (i = 1; i < gBattlersCount; i++)
-            gSentPokesToOpponent[(i & BIT_FLANK) >> 1] |= gBitTable[gBattlerPartyIndexes[battler]];
+            gSentPokesToOpponent[(i & BIT_FLANK) >> 1] |= 1U << (gBattlerPartyIndexes[battler]);
     }
 }
 
@@ -1078,28 +1080,28 @@ u8 CheckMoveLimitations(u8 battlerId, u8 unusableMoves, u8 check)
     {
         // No move
         if (gBattleMons[battlerId].moves[i] == MOVE_NONE && check & MOVE_LIMITATION_ZEROMOVE)
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // No PP
         if (gBattleMons[battlerId].pp[i] == 0 && check & MOVE_LIMITATION_PP)
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // Disable
         if (gBattleMons[battlerId].moves[i] == gDisableStructs[battlerId].disabledMove && check & MOVE_LIMITATION_DISABLED)
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // Torment
         if (gBattleMons[battlerId].moves[i] == gLastMoves[battlerId] && check & MOVE_LIMITATION_TORMENTED && gBattleMons[battlerId].status2 & STATUS2_TORMENT)
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // Taunt
         if (gDisableStructs[battlerId].tauntTimer && check & MOVE_LIMITATION_TAUNT && gBattleMoves[gBattleMons[battlerId].moves[i]].power == 0)
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // Imprison
         if (GetImprisonedMovesCount(battlerId, gBattleMons[battlerId].moves[i]) && check & MOVE_LIMITATION_IMPRISON)
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // Encore
         if (gDisableStructs[battlerId].encoreTimer && gDisableStructs[battlerId].encoredMove != gBattleMons[battlerId].moves[i])
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
         // Choice Band
         if (holdEffect == HOLD_EFFECT_CHOICE_BAND && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != gBattleMons[battlerId].moves[i])
-            unusableMoves |= gBitTable[i];
+            unusableMoves |= (1U << i);
     }
     return unusableMoves;
 }
@@ -1165,11 +1167,16 @@ u8 DoFieldEndTurnEffects(void)
     u8 effect = 0;
     s32 i;
 
-    for (gBattlerAttacker = 0; gBattlerAttacker < gBattlersCount && gAbsentBattlerFlags & gBitTable[gBattlerAttacker]; gBattlerAttacker++)
+    if (!gAbsentBattlerFlags)
     {
+        gBattlerAttacker = gBattlerTarget = gBattlersCount;
     }
-    for (gBattlerTarget = 0; gBattlerTarget < gBattlersCount && gAbsentBattlerFlags & gBitTable[gBattlerTarget]; gBattlerTarget++)
+    else
     {
+        u8 temp = __builtin_ctz(gAbsentBattlerFlags);
+        if (temp > gBattlersCount)
+            temp = gBattlersCount;
+        gBattlerAttacker = gBattlerTarget = temp;
     }
 
     do
@@ -1446,7 +1453,7 @@ u8 DoBattlerEndTurnEffects(void)
     while (gBattleStruct->turnEffectsBattlerId < gBattlersCount && gBattleStruct->turnEffectsTracker <= ENDTURN_BATTLER_COUNT)
     {
         gActiveBattler = gBattlerAttacker = gBattlerByTurnOrder[gBattleStruct->turnEffectsBattlerId];
-        if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
+        if (gAbsentBattlerFlags & (1U << gActiveBattler))
         {
             gBattleStruct->turnEffectsBattlerId++;
         }
@@ -1769,7 +1776,7 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
         while (gBattleStruct->wishPerishSongBattlerId < gBattlersCount)
         {
             gActiveBattler = gBattleStruct->wishPerishSongBattlerId;
-            if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
+            if (gAbsentBattlerFlags & (1U << gActiveBattler))
             {
                 gBattleStruct->wishPerishSongBattlerId++;
                 continue;
@@ -1808,7 +1815,7 @@ bool8 HandleWishPerishSongOnTurnEnd(void)
         do 
         {
             gActiveBattler = gBattlerAttacker = gBattlerByTurnOrder[gBattleStruct->wishPerishSongBattlerId];
-            if (gAbsentBattlerFlags & gBitTable[gActiveBattler])
+            if (gAbsentBattlerFlags & (1U << gActiveBattler))
             {
                 gBattleStruct->wishPerishSongBattlerId++;
                 continue;
@@ -1876,8 +1883,8 @@ bool8 HandleFaintedMonActions(void)
             gBattleStruct->faintedActionsState++;
             for (i = 0; i < gBattlersCount; i++)
             {
-                if (gAbsentBattlerFlags & gBitTable[i] && !HasNoMonsToSwitch(i, PARTY_SIZE, PARTY_SIZE))
-                    gAbsentBattlerFlags &= ~(gBitTable[i]);
+                if (gAbsentBattlerFlags & (1U << i) && !HasNoMonsToSwitch(i, PARTY_SIZE, PARTY_SIZE))
+                    gAbsentBattlerFlags &= ~((1U << i));
             }
             // fall through
         case 1:
@@ -1885,8 +1892,8 @@ bool8 HandleFaintedMonActions(void)
             {
                 gBattlerFainted = gBattlerTarget = gBattleStruct->faintedActionsBattlerId;
                 if (gBattleMons[gBattleStruct->faintedActionsBattlerId].hp == 0
-                 && !(gBattleStruct->givenExpMons & gBitTable[gBattlerPartyIndexes[gBattleStruct->faintedActionsBattlerId]])
-                 && !(gAbsentBattlerFlags & gBitTable[gBattleStruct->faintedActionsBattlerId]))
+                 && !(gBattleStruct->givenExpMons & (1U << gBattlerPartyIndexes[gBattleStruct->faintedActionsBattlerId]))
+                 && !(gAbsentBattlerFlags & (1U << gBattleStruct->faintedActionsBattlerId)))
                 {
                     BattleScriptExecute(BattleScript_GiveExp);
                     gBattleStruct->faintedActionsState = 2;
@@ -1911,7 +1918,7 @@ bool8 HandleFaintedMonActions(void)
             {
                 gBattlerFainted = gBattlerTarget = gBattleStruct->faintedActionsBattlerId;
                 if (gBattleMons[gBattleStruct->faintedActionsBattlerId].hp == 0
-                 && !(gAbsentBattlerFlags & gBitTable[gBattleStruct->faintedActionsBattlerId]))
+                 && !(gAbsentBattlerFlags & (1U << gBattleStruct->faintedActionsBattlerId)))
                 {
                     BattleScriptExecute(BattleScript_HandleFaintedMon);
                     gBattleStruct->faintedActionsState = 5;
@@ -2205,7 +2212,7 @@ u8 AtkCanceller_UnableToUseMove(void)
                         gCurrentMove = MOVE_BIDE;
                         *bideDmg = gBideDmg[gBattlerAttacker] * 2;
                         gBattlerTarget = gBideTarget[gBattlerAttacker];
-                        if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+                        if (gAbsentBattlerFlags & (1U << gBattlerTarget))
                             gBattlerTarget = GetMoveTarget(MOVE_BIDE, MOVE_TARGET_SELECTED + 1);
                         gBattlescriptCurrInstr = BattleScript_BideAttack;
                     }
@@ -3812,7 +3819,7 @@ u8 GetMoveTarget(u16 move, u8 setTarget)
             do
             {
                 targetBattler = Random() % gBattlersCount;
-            } while (targetBattler == gBattlerAttacker || side == GetBattlerSide(targetBattler) || gAbsentBattlerFlags & gBitTable[targetBattler]);
+            } while (targetBattler == gBattlerAttacker || side == GetBattlerSide(targetBattler) || gAbsentBattlerFlags & (1U << targetBattler));
             if (gBattleMoves[move].type == TYPE_ELECTRIC
                 && AbilityBattleEffects(ABILITYEFFECT_COUNT_OTHER_SIDE, gBattlerAttacker, ABILITY_LIGHTNING_ROD, 0, 0)
                 && gBattleMons[targetBattler].ability != ABILITY_LIGHTNING_ROD)
@@ -3828,7 +3835,7 @@ u8 GetMoveTarget(u16 move, u8 setTarget)
     case MOVE_TARGET_FOES_AND_ALLY:
     case MOVE_TARGET_OPPONENTS_FIELD:
         targetBattler = GetBattlerAtPosition(BATTLE_OPPOSITE(GET_BATTLER_SIDE(gBattlerAttacker)));
-        if (gAbsentBattlerFlags & gBitTable[targetBattler])
+        if (gAbsentBattlerFlags & (1U << targetBattler))
             targetBattler ^= BIT_FLANK;
         break;
     case MOVE_TARGET_RANDOM:
@@ -3851,7 +3858,7 @@ u8 GetMoveTarget(u16 move, u8 setTarget)
                 else
                     targetBattler = GetBattlerAtPosition(B_POSITION_PLAYER_RIGHT);
             }
-            if (gAbsentBattlerFlags & gBitTable[targetBattler])
+            if (gAbsentBattlerFlags & (1U << targetBattler))
                 targetBattler ^= BIT_FLANK;
         }
         else
@@ -3931,7 +3938,7 @@ u8 IsMonDisobedient(void)
     calc = (gBattleMons[gBattlerAttacker].level + obedienceLevel) * rnd >> 8;
     if (calc < obedienceLevel)
     {
-        calc = CheckMoveLimitations(gBattlerAttacker, gBitTable[gCurrMovePos], MOVE_LIMITATIONS_ALL);
+        calc = CheckMoveLimitations(gBattlerAttacker, (1U << gCurrMovePos), MOVE_LIMITATIONS_ALL);
         if (calc == ALL_MOVES_MASK) // all moves cannot be used
         {
             // Randomly select, then print a disobedient string
@@ -3945,7 +3952,7 @@ u8 IsMonDisobedient(void)
             do
             {
                 gCurrMovePos = gChosenMovePos = MOD(Random(), MAX_MON_MOVES);
-            } while (gBitTable[gCurrMovePos] & calc);
+            } while (calc & (1U << gCurrMovePos));
 
             gCalledMove = gBattleMons[gBattlerAttacker].moves[gCurrMovePos];
             gBattlescriptCurrInstr = BattleScript_IgnoresAndUsesRandomMove;

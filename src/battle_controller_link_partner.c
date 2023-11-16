@@ -169,7 +169,7 @@ void SetControllerToLinkPartner(void)
 
 static void LinkPartnerBufferRunCommand(void)
 {
-    if (gBattleControllerExecFlags & gBitTable[gActiveBattler])
+    if (gBattleControllerExecFlags & (1U << gActiveBattler))
     {
         if (gBattleBufferA[gActiveBattler][0] < ARRAY_COUNT(sLinkPartnerBufferCommands))
             sLinkPartnerBufferCommands[gBattleBufferA[gActiveBattler][0]]();
@@ -404,7 +404,7 @@ static void LinkPartnerBufferExecCompleted(void)
     }
     else
     {
-        gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
+        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
     }
 }
 

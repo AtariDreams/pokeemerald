@@ -129,7 +129,7 @@
 #define STATUS2_WRAPPED               (1 << 13 | 1 << 14 | 1 << 15)
 #define STATUS2_WRAPPED_TURN(num)     ((num) << 13)
 #define STATUS2_INFATUATION           (1 << 16 | 1 << 17 | 1 << 18 | 1 << 19)  // 4 bits, one for every battler
-#define STATUS2_INFATUATED_WITH(battler) (gBitTable[battler] << 16)
+#define STATUS2_INFATUATED_WITH(battler) (1U << (battler + 16))
 #define STATUS2_FOCUS_ENERGY          (1 << 20)
 #define STATUS2_TRANSFORMED           (1 << 21)
 #define STATUS2_RECHARGE              (1 << 22)

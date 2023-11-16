@@ -137,10 +137,11 @@ static bool8 FindMonThatAbsorbsOpponentsMove(void)
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
         battlerIn1 = gActiveBattler;
-        if (gAbsentBattlerFlags & gBitTable[GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)))])
+        u32 position = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)));
+        if (gAbsentBattlerFlags & (1U << position))
             battlerIn2 = gActiveBattler;
         else
-            battlerIn2 = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)));
+            battlerIn2 = position;
     }
     else
     {
@@ -266,7 +267,7 @@ static bool8 HasSuperEffectiveMoveAgainstOpponents(bool8 noRng)
     opposingPosition = BATTLE_OPPOSITE(GetBattlerPosition(gActiveBattler));
     opposingBattler = GetBattlerAtPosition(opposingPosition);
 
-    if (!(gAbsentBattlerFlags & gBitTable[opposingBattler]))
+    if (!(gAbsentBattlerFlags & (1U << opposingBattler)))
     {
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
@@ -289,7 +290,7 @@ static bool8 HasSuperEffectiveMoveAgainstOpponents(bool8 noRng)
 
     opposingBattler = GetBattlerAtPosition(BATTLE_PARTNER(opposingPosition));
 
-    if (!(gAbsentBattlerFlags & gBitTable[opposingBattler]))
+    if (!(gAbsentBattlerFlags & (1U << opposingBattler)))
     {
         for (i = 0; i < MAX_MON_MOVES; i++)
         {
@@ -347,10 +348,11 @@ static bool8 FindMonWithFlagsAndSuperEffective(u8 flags, u8 moduloPercent)
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
         battlerIn1 = gActiveBattler;
-        if (gAbsentBattlerFlags & gBitTable[GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)))])
-            battlerIn2 = gActiveBattler;
+        u32 position = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(battlerIn1)));
+        if (gAbsentBattlerFlags & (1U << position))
+            battlerIn2 = battlerIn1;
         else
-            battlerIn2 = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)));
+            battlerIn2 = position;
     }
     else
     {
@@ -456,10 +458,11 @@ static bool8 ShouldSwitch(void)
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
         battlerIn1 = *activeBattlerPtr;
-        if (gAbsentBattlerFlags & gBitTable[GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(*activeBattlerPtr)))])
+        u32 position = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(battlerIn1)));
+        if (gAbsentBattlerFlags & (1U << position))
             battlerIn2 = *activeBattlerPtr;
         else
-            battlerIn2 = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(*activeBattlerPtr)));
+            battlerIn2 = position;
     }
     else
     {
@@ -629,11 +632,7 @@ static void ModulateByTypeEffectiveness(u8 atkType, u8 defType1, u8 defType2, u8
 u8 GetMostSuitableMonToSwitchInto(void)
 {
     u8 opposingBattler;
-#ifdef BUGFIX
     s32 bestDmg;
-#else
-    u8 bestDmg; // Note: should be changed to s32 since it is also used for the actual damage done later
-#endif
     u8 bestMonId;
     u8 battlerIn1, battlerIn2;
     s32 firstId;
@@ -651,14 +650,15 @@ u8 GetMostSuitableMonToSwitchInto(void)
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
         battlerIn1 = gActiveBattler;
-        if (gAbsentBattlerFlags & gBitTable[GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)))])
+        u32 position = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(battlerIn1)));
+        if (gAbsentBattlerFlags & (1U << position))
             battlerIn2 = gActiveBattler;
         else
-            battlerIn2 = GetBattlerAtPosition(BATTLE_PARTNER(GetBattlerPosition(gActiveBattler)));
+            battlerIn2 = position;
 
         // UB: It considers the opponent only player's side even though it can battle alongside player.
         opposingBattler = Random() & BIT_FLANK;
-        if (gAbsentBattlerFlags & gBitTable[opposingBattler])
+        if (gAbsentBattlerFlags & (1U << opposingBattler))
             opposingBattler ^= BIT_FLANK;
     }
     else
@@ -687,7 +687,7 @@ u8 GetMostSuitableMonToSwitchInto(void)
 
     invalidMons = 0;
 
-    while (invalidMons != (1 << PARTY_SIZE) - 1) // All mons are invalid.
+    while (invalidMons != (1U << PARTY_SIZE) - 1) // All mons are invalid.
     {
         bestDmg = TYPE_MUL_NO_EFFECT;
         bestMonId = PARTY_SIZE;
@@ -697,7 +697,7 @@ u8 GetMostSuitableMonToSwitchInto(void)
             u16 species = GetMonData(&party[i], MON_DATA_SPECIES);
             if (species != SPECIES_NONE
                 && GetMonData(&party[i], MON_DATA_HP) != 0
-                && !(gBitTable[i] & invalidMons)
+                && !((1U << i) & invalidMons)
                 && gBattlerPartyIndexes[battlerIn1] != i
                 && gBattlerPartyIndexes[battlerIn2] != i
                 && i != *(gBattleStruct->monToSwitchIntoId + battlerIn1)
@@ -720,7 +720,7 @@ u8 GetMostSuitableMonToSwitchInto(void)
             }
             else
             {
-                invalidMons |= gBitTable[i];
+                invalidMons |= (1U << i);
             }
         }
 
@@ -737,11 +737,11 @@ u8 GetMostSuitableMonToSwitchInto(void)
             if (i != MAX_MON_MOVES)
                 return bestMonId; // Has both the typing and at least one super effective move.
 
-            invalidMons |= gBitTable[bestMonId]; // Sorry buddy, we want something better.
+            invalidMons |= (1U << bestMonId); // Sorry buddy, we want something better.
         }
         else
         {
-            invalidMons = (1 << PARTY_SIZE) - 1; // No viable mon to switch.
+            invalidMons = (1U << PARTY_SIZE) - 1; // No viable mon to switch.
         }
     }
 

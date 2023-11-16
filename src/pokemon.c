@@ -3331,21 +3331,21 @@ u8 CountAliveMonsInBattle(u8 caseId)
     case BATTLE_ALIVE_EXCEPT_ACTIVE:
         for (i = 0; i < MAX_BATTLERS_COUNT; i++)
         {
-            if (i != gActiveBattler && !(gAbsentBattlerFlags & gBitTable[i]))
+            if (i != gActiveBattler && !(gAbsentBattlerFlags & (1U << i)))
                 retVal++;
         }
         break;
     case BATTLE_ALIVE_ATK_SIDE:
         for (i = 0; i < MAX_BATTLERS_COUNT; i++)
         {
-            if (GetBattlerSide(i) == GetBattlerSide(gBattlerAttacker) && !(gAbsentBattlerFlags & gBitTable[i]))
+            if (GetBattlerSide(i) == GetBattlerSide(gBattlerAttacker) && !(gAbsentBattlerFlags & (1U << i)))
                 retVal++;
         }
         break;
     case BATTLE_ALIVE_DEF_SIDE:
         for (i = 0; i < MAX_BATTLERS_COUNT; i++)
         {
-            if (GetBattlerSide(i) == GetBattlerSide(gBattlerTarget) && !(gAbsentBattlerFlags & gBitTable[i]))
+            if (GetBattlerSide(i) == GetBattlerSide(gBattlerTarget) && !(gAbsentBattlerFlags & (1U << i)))
                 retVal++;
         }
         break;
@@ -3373,7 +3373,7 @@ u8 GetDefaultMoveTarget(u8 battlerId)
     }
     else
     {
-        if ((gAbsentBattlerFlags & gBitTable[opposing]))
+        if ((gAbsentBattlerFlags & (1U << opposing)))
             return GetBattlerAtPosition(BATTLE_PARTNER(opposing));
         else
             return GetBattlerAtPosition(opposing);
@@ -3840,7 +3840,7 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
                  || boxMon->substruct1.moves[1] == move
                  || boxMon->substruct1.moves[2] == move
                  || boxMon->substruct1.moves[3] == move)
-                    retVal |= gBitTable[i];
+                    retVal |= (1U << i);
                 i++;
             }
         }
@@ -4790,14 +4790,14 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                             {
                                 if (battlerId != MAX_BATTLERS_COUNT)
                                 {
-                                    gAbsentBattlerFlags &= ~gBitTable[battlerId];
+                                    gAbsentBattlerFlags &= ~(1U << battlerId);
                                     CopyPlayerPartyMonToBattleData(battlerId, GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[battlerId]));
                                     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleResults.numRevivesUsed < 255)
                                         gBattleResults.numRevivesUsed++;
                                 }
                                 else
                                 {
-                                    gAbsentBattlerFlags &= ~gBitTable[gActiveBattler ^ 2];
+                                    gAbsentBattlerFlags &= ~(1U << (gActiveBattler ^ 2));
                                     if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleResults.numRevivesUsed < 255)
                                         gBattleResults.numRevivesUsed++;
                                 }

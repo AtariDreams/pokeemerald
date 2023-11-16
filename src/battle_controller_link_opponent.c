@@ -170,7 +170,7 @@ void SetControllerToLinkOpponent(void)
 
 static void LinkOpponentBufferRunCommand(void)
 {
-    if (gBattleControllerExecFlags & gBitTable[gActiveBattler])
+    if (gBattleControllerExecFlags & (1U << gActiveBattler))
     {
         if (gBattleBufferA[gActiveBattler][0] < ARRAY_COUNT(sLinkOpponentBufferCommands))
             sLinkOpponentBufferCommands[gBattleBufferA[gActiveBattler][0]]();
@@ -522,7 +522,7 @@ static void LinkOpponentBufferExecCompleted(void)
     }
     else
     {
-        gBattleControllerExecFlags &= ~gBitTable[gActiveBattler];
+        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
     }
 }
 

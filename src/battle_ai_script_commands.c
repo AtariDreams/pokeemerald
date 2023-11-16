@@ -330,7 +330,7 @@ void BattleAI_SetupAIData(u8 defaultScoreMoves)
     // Ignore moves that aren't possible to use.
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        if (gBitTable[i] & moveLimitations)
+        if (moveLimitations & (1U << i))
             AI_THINKING_STRUCT->score[i] = 0;
 
         AI_THINKING_STRUCT->simulatedRNG[i] = 100 - (Random() % 16);
@@ -343,7 +343,7 @@ void BattleAI_SetupAIData(u8 defaultScoreMoves)
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
         gBattlerTarget = (Random() & BIT_FLANK) + BATTLE_OPPOSITE(GetBattlerSide(gActiveBattler));
-        if (gAbsentBattlerFlags & gBitTable[gBattlerTarget])
+        if (gAbsentBattlerFlags & (1U << gBattlerTarget))
             gBattlerTarget ^= BIT_FLANK;
     }
     // There's only one choice in single battles.
