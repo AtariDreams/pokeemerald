@@ -3126,9 +3126,8 @@ void SwitchInClearSetData(void)
 
     for (i = 0; i < gBattlersCount; i++)
     {
-        if (gBattleMons[i].status2 & STATUS2_INFATUATED_WITH(gActiveBattler))
-            gBattleMons[i].status2 &= ~STATUS2_INFATUATED_WITH(gActiveBattler);
-        if ((gBattleMons[i].status2 & STATUS2_WRAPPED) && *(gBattleStruct->wrappedBy + i) == gActiveBattler)
+        gBattleMons[i].status2 &= ~STATUS2_INFATUATED_WITH(gActiveBattler);
+        if (gBattleStruct->wrappedBy[i] == gActiveBattler)
             gBattleMons[i].status2 &= ~STATUS2_WRAPPED;
     }
 
@@ -3840,7 +3839,7 @@ static void HandleEndTurn_ContinueBattle(void)
 
 void BattleTurnPassed(void)
 {
-    s32 i;
+    u32 i;
 
     TurnValuesCleanUp(TRUE);
     if (gBattleOutcome == 0)
@@ -3857,10 +3856,7 @@ void BattleTurnPassed(void)
         return;
 
     TurnValuesCleanUp(FALSE);
-    gHitMarker &= ~HITMARKER_NO_ATTACKSTRING;
-    gHitMarker &= ~HITMARKER_UNABLE_TO_USE_MOVE;
-    gHitMarker &= ~HITMARKER_PLAYER_FAINTED;
-    gHitMarker &= ~HITMARKER_PASSIVE_DAMAGE;
+    gHitMarker &= ~(HITMARKER_NO_ATTACKSTRING|HITMARKER_UNABLE_TO_USE_MOVE|HITMARKER_PLAYER_FAINTED|HITMARKER_PASSIVE_DAMAGE);
     gBattleScripting.animTurn = 0;
     gBattleScripting.animTargetsHit = 0;
     gBattleScripting.moveendState = 0;
@@ -3890,9 +3886,9 @@ void BattleTurnPassed(void)
     }
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
-        *(gBattleStruct->monToSwitchIntoId + i) = PARTY_SIZE;
+        gBattleStruct->monToSwitchIntoId[i] = PARTY_SIZE;
 
-    *(&gBattleStruct->absentBattlerFlags) = gAbsentBattlerFlags;
+    gBattleStruct->absentBattlerFlags = gAbsentBattlerFlags;
     BattlePutTextOnWindow(gText_EmptyString3, B_WIN_MSG);
     gBattleMainFunc = HandleTurnActionSelectionState;
     gRandomTurnNumber = Random();
@@ -4075,15 +4071,15 @@ static void HandleTurnActionSelectionState(void)
                     if (AreAllMovesUnusable())
                     {
                         gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
-                        *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
-                        *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
-                        *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
+                        gBattleStruct->selectionScriptFinished[gActiveBattler] = FALSE;
+                        gBattleStruct->stateIdAfterSelScript[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
+                        gBattleStruct->moveTarget[gActiveBattler] = gBattleBufferB[gActiveBattler][3];
                         return;
                     }
                     else if (gDisableStructs[gActiveBattler].encoredMove != 0)
                     {
                         gChosenMoveByBattler[gActiveBattler] = gDisableStructs[gActiveBattler].encoredMove;
-                        *(gBattleStruct->chosenMovePositions + gActiveBattler) = gDisableStructs[gActiveBattler].encoredMovePos;
+                        gBattleStruct->chosenMovePositions[gActiveBattler] = gDisableStructs[gActiveBattler].encoredMovePos;
                         gBattleCommunication[gActiveBattler] = STATE_WAIT_ACTION_CONFIRMED_STANDBY;
                         return;
                     }
@@ -4129,7 +4125,7 @@ static void HandleTurnActionSelectionState(void)
                     }
                     break;
                 case B_ACTION_SWITCH:
-                    *(gBattleStruct->battlerPartyIndexes + gActiveBattler) = gBattlerPartyIndexes[gActiveBattler];
+                    gBattleStruct->battlerPartyIndexes[gActiveBattler] = gBattlerPartyIndexes[gActiveBattler];
                     if (gBattleMons[gActiveBattler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
                         || gBattleTypeFlags & BATTLE_TYPE_ARENA
                         || gStatuses3[gActiveBattler] & STATUS3_ROOTED)
@@ -4161,8 +4157,8 @@ static void HandleTurnActionSelectionState(void)
                     {
                         gSelectionBattleScripts[gActiveBattler] = BattleScript_PrintFullBox;
                         gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
-                        *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
-                        *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_BEFORE_ACTION_CHOSEN;
+                        gBattleStruct->selectionScriptFinished[gActiveBattler] = FALSE;
+                        gBattleStruct->stateIdAfterSelScript[gActiveBattler] = STATE_BEFORE_ACTION_CHOSEN;
                         return;
                     }
                     break;
@@ -4216,8 +4212,8 @@ static void HandleTurnActionSelectionState(void)
                 {
                     gSelectionBattleScripts[gActiveBattler] = BattleScript_AskIfWantsToForfeitMatch;
                     gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT_MAY_RUN;
-                    *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
-                    *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_BEFORE_ACTION_CHOSEN;
+                    gBattleStruct->selectionScriptFinished[gActiveBattler] = FALSE;
+                    gBattleStruct->stateIdAfterSelScript[gActiveBattler] = STATE_BEFORE_ACTION_CHOSEN;
                     return;
                 }
                 else if (gBattleTypeFlags & BATTLE_TYPE_TRAINER
@@ -4232,8 +4228,8 @@ static void HandleTurnActionSelectionState(void)
                 {
                     gSelectionBattleScripts[gActiveBattler] = BattleScript_PrintCantEscapeFromBattle;
                     gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
-                    *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
-                    *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_BEFORE_ACTION_CHOSEN;
+                    gBattleStruct->selectionScriptFinished[gActiveBattler] = FALSE;
+                    gBattleStruct->stateIdAfterSelScript[gActiveBattler] = STATE_BEFORE_ACTION_CHOSEN;
                     return;
                 }
                 else
@@ -4274,9 +4270,9 @@ static void HandleTurnActionSelectionState(void)
                         {
                             RecordedBattle_ClearBattlerAction(gActiveBattler, 1);
                             gBattleCommunication[gActiveBattler] = STATE_SELECTION_SCRIPT;
-                            *(gBattleStruct->selectionScriptFinished + gActiveBattler) = FALSE;
+                            gBattleStruct->selectionScriptFinished[gActiveBattler] = FALSE;
                             gBattleBufferB[gActiveBattler][1] = B_ACTION_USE_MOVE;
-                            *(gBattleStruct->stateIdAfterSelScript + gActiveBattler) = STATE_WAIT_ACTION_CHOSEN;
+                            gBattleStruct->stateIdAfterSelScript[gActiveBattler] = STATE_WAIT_ACTION_CHOSEN;
                             return;
                         }
                         else
@@ -4286,9 +4282,9 @@ static void HandleTurnActionSelectionState(void)
                                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][2]);
                                 RecordedBattle_SetBattlerAction(gActiveBattler, gBattleBufferB[gActiveBattler][3]);
                             }
-                            *(gBattleStruct->chosenMovePositions + gActiveBattler) = gBattleBufferB[gActiveBattler][2];
+                            gBattleStruct->chosenMovePositions[gActiveBattler] = gBattleBufferB[gActiveBattler][2];
                             gChosenMoveByBattler[gActiveBattler] = gBattleMons[gActiveBattler].moves[*(gBattleStruct->chosenMovePositions + gActiveBattler)];
-                            *(gBattleStruct->moveTarget + gActiveBattler) = gBattleBufferB[gActiveBattler][3];
+                            gBattleStruct->moveTarget[gActiveBattler] = gBattleBufferB[gActiveBattler][3];
                             gBattleCommunication[gActiveBattler]++;
                         }
                         break;
