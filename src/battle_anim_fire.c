@@ -474,7 +474,7 @@ static void AnimFireSpiralInward(struct Sprite *sprite)
     StoreSpriteCallbackInData6(sprite, DestroyAnimSprite);
 
     sprite->callback = TranslateSpriteInGrowingCircle;
-    sprite->callback(sprite);
+    TranslateSpriteInGrowingCircle(sprite);
 }
 
 // For the impact spread of fire sprites for moves like Blaze Kick or Fire Punch
@@ -629,7 +629,7 @@ static void AnimEmberFlare(struct Sprite *sprite)
             gBattleAnimArgs[2] = -gBattleAnimArgs[2];
 
     sprite->callback = AnimTravelDiagonally;
-    sprite->callback(sprite);
+    AnimTravelDiagonally(sprite);
 }
 
 static void AnimBurnFlame(struct Sprite *sprite)
@@ -688,7 +688,7 @@ static void AnimFireRing_Step2(struct Sprite *sprite)
         sprite->x2 = 0;
 
         sprite->callback = AnimFireRing_Step3;
-        sprite->callback(sprite);
+        AnimFireRing_Step3(sprite);
     }
     else
     {
@@ -756,7 +756,7 @@ static void AnimFireSpiralOutward_Step1(struct Sprite *sprite)
     sprite->data[1] = 0;
 
     sprite->callback = AnimFireSpiralOutward_Step2;
-    sprite->callback(sprite);
+    AnimFireSpiralOutward_Step2(sprite);
 }
 
 static void AnimFireSpiralOutward_Step2(struct Sprite *sprite)
