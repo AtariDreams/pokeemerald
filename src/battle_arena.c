@@ -591,11 +591,10 @@ void BattleArena_AddSkillPoints(u8 battler)
 
     if (gHitMarker & HITMARKER_OBEYS)
     {
-        u8 *failedMoveBits = &gBattleStruct->alreadyStatusedMoveAttempt;
-        if (*failedMoveBits & gBitTable[battler])
+        if (gBattleStruct->alreadyStatusedMoveAttempt & (1U << battler))
         {
-            *failedMoveBits &= ~(gBitTable[battler]);
             skillPoints[battler] -= 2;
+            gBattleStruct->alreadyStatusedMoveAttempt &= ~((1U << battler));
         }
         else if (gMoveResultFlags & MOVE_RESULT_NO_EFFECT)
         {

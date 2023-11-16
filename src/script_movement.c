@@ -142,17 +142,17 @@ static void LoadObjectEventIdFromMovementScript(u8 taskId, u8 moveScrId, u8 *obj
 
 static void ClearMovementScriptFinished(u8 taskId, u8 moveScrId)
 {
-    gTasks[taskId].data[0] &= ~((u16)gBitTable[moveScrId]);
+    gTasks[taskId].data[0] &= ~((u16)(1U << moveScrId));
 }
 
 static void SetMovementScriptFinished(u8 taskId, u8 moveScrId)
 {
-    gTasks[taskId].data[0] |= (u16)gBitTable[moveScrId];
+    gTasks[taskId].data[0] |= (u16)(1U << moveScrId);
 }
 
 static bool8 IsMovementScriptFinished(u8 taskId, u8 moveScrId)
 {
-    if ((u16)gTasks[taskId].data[0] & (u16)gBitTable[moveScrId])
+    if ((u16)gTasks[taskId].data[0] & (u16)(1U << moveScrId))
         return TRUE;
     else
         return FALSE;

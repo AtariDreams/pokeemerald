@@ -2405,8 +2405,8 @@ static void InitDomeTrainers(void)
         rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPDEF, NULL);
         rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPEED, NULL);
         rankingScores[0] += GetMonData(&gPlayerParty.party[trainerId], MON_DATA_MAX_HP, NULL);
-        monTypesBits |= gBitTable[gSpeciesInfo[GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPECIES, NULL)].types[0]];
-        monTypesBits |= gBitTable[gSpeciesInfo[GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPECIES, NULL)].types[1]];
+        monTypesBits |= (1U << gSpeciesInfo[GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPECIES, NULL)].types[0]);
+        monTypesBits |= (1U << gSpeciesInfo[GetMonData(&gPlayerParty.party[trainerId], MON_DATA_SPECIES, NULL)].types[1]);
     }
 
     // Count the number of types in the players party, to factor into the ranking
@@ -2442,8 +2442,8 @@ static void InitDomeTrainers(void)
             rankingScores[i] += statValues[STAT_SPDEF];
             rankingScores[i] += statValues[STAT_SPEED];
             rankingScores[i] += statValues[STAT_HP];
-            monTypesBits |= gBitTable[gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[0]];
-            monTypesBits |= gBitTable[gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[1]];
+            monTypesBits |= 1U << gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[0];
+            monTypesBits |= 1U << gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[1];
         }
 
         monTypesCount = __builtin_popcount(monTypesBits);
@@ -2749,9 +2749,9 @@ static int SelectOpponentMonsFromParty(int *partyMovePoints, bool8 allowRandom)
             while (i != DOME_BATTLE_PARTY_SIZE)
             {
                 u32 rand = Random() & FRONTIER_PARTY_SIZE;
-                if (rand != FRONTIER_PARTY_SIZE && !(selectedMonBits & gBitTable[rand]))
+                if (rand != FRONTIER_PARTY_SIZE && !(selectedMonBits & (1U << rand)))
                 {
-                    selectedMonBits |= gBitTable[rand];
+                    selectedMonBits |= 1U << rand;
                     i++;
                 }
             }
@@ -2781,7 +2781,7 @@ static int SelectOpponentMonsFromParty(int *partyMovePoints, bool8 allowRandom)
 
         for (i = 0; i < DOME_BATTLE_PARTY_SIZE; i++)
         {
-            selectedMonBits |= gBitTable[partyPositions[i]];
+            selectedMonBits |= (1U << partyPositions[i]);
         }
     }
 
@@ -5937,17 +5937,13 @@ static void InitRandomTourneyTreeResults(void)
             statSums[i] += statValues[STAT_SPDEF];
             statSums[i] += statValues[STAT_SPEED];
             statSums[i] += statValues[STAT_HP];
-            monTypesBits |= gBitTable[gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[0]];
-            monTypesBits |= gBitTable[gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[1]];
+            monTypesBits |= (1U << gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[0]);
+            monTypesBits |= (1U << gSpeciesInfo[gFacilityTrainerMons[DOME_MONS[i][j]].species].types[1]);
         }
 
         // Because GF hates temporary vars, trainerId acts like monTypesCount here.
-        for (trainerId = 0, j = 0; j < 32; j++)
-        {
-            if (monTypesBits & 1)
-                trainerId++;
-            monTypesBits >>= 1;
-        }
+
+        trainerId = __builtin_popcount(monTypesBits);
         statSums[i] += (trainerId * monLevel) / 20;
     }
 
