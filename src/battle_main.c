@@ -3052,20 +3052,16 @@ static void BattleStartClearSetData(void)
     gBattleStruct->wildVictorySong = 0;
     gBattleStruct->moneyMultiplier = 1;
 
+    memset(gBattleStruct->lastTakenMove, 0, sizeof(gBattleStruct->lastTakenMove));
+
     for (i = 0; i < 4; i++)
     {
-        gBattleStruct->lastTakenMove[0][i]= MOVE_NONE;
-        gBattleStruct->lastTakenMove[1][i]= MOVE_NONE;
-        gBattleStruct->lastTakenMove[2][i]= MOVE_NONE;
-        gBattleStruct->lastTakenMove[3][i]= MOVE_NONE;
         gBattleStruct->usedHeldItems[i] = ITEM_NONE;
         gBattleStruct->choicedMove[i] = MOVE_NONE;
         gBattleStruct->changedItems[i] = ITEM_NONE;
-        gBattleStruct->lastTakenMoveFrom[0][i] = 0;
-        gBattleStruct->lastTakenMoveFrom[1][i] = 0;
-        gBattleStruct->lastTakenMoveFrom[2][i] = 0;
-        gBattleStruct->lastTakenMoveFrom[3][i] = 0;
     }
+
+    memset(gBattleStruct->lastTakenMoveFrom, 0, sizeof(gBattleStruct->lastTakenMoveFrom));
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
     {
@@ -3160,17 +3156,12 @@ void SwitchInClearSetData(void)
     gLastPrintedMoves[gActiveBattler] = MOVE_NONE;
     gLastHitBy[gActiveBattler] = 0xFF;
 
-    gBattleStruct->lastTakenMove[gActiveBattler][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMove[gActiveBattler][1]=MOVE_NONE;
+    gBattleStruct->lastTakenMove[gActiveBattler]=MOVE_NONE;
 
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][0][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][0][1]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][1][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][1][1]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][2][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][2][1]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][3][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][3][1]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][0]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][1]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][2]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][3]=MOVE_NONE;
 
     gBattleStruct->palaceFlags &= ~(gBitTable[gActiveBattler]);
 
@@ -3178,11 +3169,9 @@ void SwitchInClearSetData(void)
     {
         if (i != gActiveBattler && GetBattlerSide(i) != GetBattlerSide(gActiveBattler))
         {
-            gBattleStruct->lastTakenMove[i][0]= MOVE_NONE;
-            gBattleStruct->lastTakenMove[i][1]= MOVE_NONE;
+            gBattleStruct->lastTakenMove[i]= MOVE_NONE;
         }
-        gBattleStruct->lastTakenMoveFrom[i][gActiveBattler][0] = MOVE_NONE;
-        gBattleStruct->lastTakenMoveFrom[i][gActiveBattler][1] = MOVE_NONE;
+        gBattleStruct->lastTakenMoveFrom[i][gActiveBattler] = MOVE_NONE;
     }
 
     gBattleStruct->choicedMove[gActiveBattler] = 0;
@@ -3250,17 +3239,12 @@ void FaintClearSetData(void)
     gLastHitBy[gActiveBattler] = 0xFF;
 
     gBattleStruct->choicedMove[gActiveBattler] = 0;
-    gBattleStruct->lastTakenMove[gActiveBattler][0] = 0;
-    gBattleStruct->lastTakenMove[gActiveBattler][1] = 0;
+    gBattleStruct->lastTakenMove[gActiveBattler] = 0;
     
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][0][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][0][1]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][1][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][1][1]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][2][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][2][1]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][3][0]=MOVE_NONE;
-    gBattleStruct->lastTakenMoveFrom[gActiveBattler][3][1]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][0]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][1]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][2]=MOVE_NONE;
+    gBattleStruct->lastTakenMoveFrom[gActiveBattler][3]=MOVE_NONE;
 
     gBattleStruct->palaceFlags &= ~(gBitTable[gActiveBattler]);
 
@@ -3268,11 +3252,9 @@ void FaintClearSetData(void)
     {
         if (i != gActiveBattler && GetBattlerSide(i) != GetBattlerSide(gActiveBattler))
         {
-            gBattleStruct->lastTakenMove[i][0] = 0;
-            gBattleStruct->lastTakenMove[i][1] = 0;
+            gBattleStruct->lastTakenMove[i] = 0;
         }
-        gBattleStruct->lastTakenMoveFrom[i][gActiveBattler][0] = MOVE_NONE;
-        gBattleStruct->lastTakenMoveFrom[i][gActiveBattler][1] = MOVE_NONE;
+        gBattleStruct->lastTakenMoveFrom[i][gActiveBattler] = MOVE_NONE;
     }
 
     gBattleResources->flags->flags[gActiveBattler] = 0;
@@ -3333,7 +3315,7 @@ static void BattleIntroDrawTrainersOrMonsSprites(void)
         if ((gBattleTypeFlags & BATTLE_TYPE_SAFARI)
             && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
         {
-            memset(gBattleMons[gActiveBattler], 0, sizeof(struct BattlePokemon));
+            memset(&gBattleMons[gActiveBattler], 0, sizeof(struct BattlePokemon));
         }
         else
         {
