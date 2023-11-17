@@ -1556,10 +1556,10 @@ static void OpponentHandleChooseMove(void)
             switch (chosenMoveId)
             {
             case AI_CHOICE_WATCH:
-                BtlController_EmitTwoReturnValues(B_ACTION_SAFARI_WATCH_CAREFULLY, 0);
+                BtlController_EmitAction(B_ACTION_SAFARI_WATCH_CAREFULLY);
                 break;
             case AI_CHOICE_FLEE:
-                BtlController_EmitTwoReturnValues(B_ACTION_RUN, 0);
+                BtlController_EmitAction(B_ACTION_RUN);
                 break;
             case 6:
                 BtlController_EmitTwoReturnValues(15, gBattlerTarget);
