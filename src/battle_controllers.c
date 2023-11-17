@@ -641,7 +641,7 @@ static void SetBattlePartyIds(void)
 
 static void PrepareBufferDataTransfer(u8 bufferId, u8 *data, u16 size)
 {
-    s32 i;
+    u32 i;
 
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
     {
