@@ -224,7 +224,7 @@ void BtlController_EmitExpUpdate(u8 bufferId, u8 partyId, s16 expPoints);
 void BtlController_EmitStatusIconUpdate(u8 bufferId, u32 status1, u32 status2);
 void BtlController_EmitStatusAnimation(u8 bufferId, bool8 type, u32 status);
 void BtlController_EmitDataTransfer(u8 bufferId, u16 size, void *data);
-void BtlController_EmitTwoReturnValues(u8 bufferId, u8 ret8, u16 ret16);
+void BtlController_EmitTwoReturnValues(u8 ret8, u16 ret16);
 void BtlController_EmitChosenMonReturnValue(u8 bufferId, u8 partyId, u8 *battlePartyOrder);
 void BtlController_EmitOneReturnValue(u8 bufferId, u16 ret);
 void BtlController_EmitOneReturnValue_Duplicate(u8 bufferId, u16 ret);

@@ -246,16 +246,16 @@ static void HandleInputChooseAction(void)
         switch (gActionSelectionCursor[gActiveBattler])
         {
         case 0: // Top left
-            BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_USE_MOVE, 0);
+            BtlController_EmitTwoReturnValues(B_ACTION_USE_MOVE, 0);
             break;
         case 1: // Top right
-            BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_USE_ITEM, 0);
+            BtlController_EmitTwoReturnValues(B_ACTION_USE_ITEM, 0);
             break;
         case 2: // Bottom left
-            BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_SWITCH, 0);
+            BtlController_EmitTwoReturnValues(B_ACTION_SWITCH, 0);
             break;
         case 3: // Bottom right
-            BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_RUN, 0);
+            BtlController_EmitTwoReturnValues(B_ACTION_RUN, 0);
             break;
         }
         PlayerBufferExecCompleted();
@@ -316,7 +316,7 @@ static void HandleInputChooseAction(void)
                     return;
             }
             PlaySE(SE_SELECT);
-            BtlController_EmitTwoReturnValues(BUFFER_B, B_ACTION_CANCEL_PARTNER, 0);
+            BtlController_EmitTwoReturnValues(B_ACTION_CANCEL_PARTNER, 0);
             PlayerBufferExecCompleted();
         }
     }
@@ -341,16 +341,10 @@ static void HandleInputChooseTarget(void)
 
     DoBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX, 15, 1);
 
-    // what a weird loop
-    i = 0;
-    if (gBattlersCount != 0)
+    for (i = 0; i < gBattlersCount; i++)
     {
-        do
-        {
-            if (i != gMultiUsePlayerCursor)
-                EndBounceEffect(i, BOUNCE_HEALTHBOX);
-            i++;
-        } while (i < gBattlersCount);
+        if (i != gMultiUsePlayerCursor)
+            EndBounceEffect(i, BOUNCE_HEALTHBOX);
     }
 
     if (JOY_HELD(DPAD_ANY) && gSaveBlock2.optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
@@ -362,7 +356,7 @@ static void HandleInputChooseTarget(void)
     {
         PlaySE(SE_SELECT);
         gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_HideAsMoveTarget;
-        BtlController_EmitTwoReturnValues(BUFFER_B, 10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
+        BtlController_EmitTwoReturnValues(10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
         EndBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX);
         PlayerBufferExecCompleted();
     }
@@ -516,7 +510,7 @@ static void HandleInputChooseMove(void)
 
         if (!canSelectTarget)
         {
-            BtlController_EmitTwoReturnValues(BUFFER_B, 10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
+            BtlController_EmitTwoReturnValues(10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
             PlayerBufferExecCompleted();
         }
         else
@@ -536,7 +530,7 @@ static void HandleInputChooseMove(void)
     else if (JOY_NEW(B_BUTTON) || gPlayerDpadHoldFrames > 59)
     {
         PlaySE(SE_SELECT);
-        BtlController_EmitTwoReturnValues(BUFFER_B, 10, 0xFFFF);
+        BtlController_EmitTwoReturnValues(10, 0xFFFF);
         PlayerBufferExecCompleted();
     }
     else if (JOY_NEW(DPAD_LEFT))
@@ -1167,7 +1161,7 @@ static void Task_GiveExpToMon(u8 taskId)
             gainedExp -= nextLvlExp - currExp;
             savedActiveBattler = gActiveBattler;
             gActiveBattler = battlerId;
-            BtlController_EmitTwoReturnValues(BUFFER_B, RET_VALUE_LEVELED_UP, gainedExp);
+            BtlController_EmitTwoReturnValues(RET_VALUE_LEVELED_UP, gainedExp);
             gActiveBattler = savedActiveBattler;
 
             if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
@@ -1246,7 +1240,7 @@ static void Task_GiveExpWithExpBar(u8 taskId)
                 gainedExp -= expOnNextLvl - currExp;
                 savedActiveBattler = gActiveBattler;
                 gActiveBattler = battlerId;
-                BtlController_EmitTwoReturnValues(BUFFER_B, RET_VALUE_LEVELED_UP, gainedExp);
+                BtlController_EmitTwoReturnValues(RET_VALUE_LEVELED_UP, gainedExp);
                 gActiveBattler = savedActiveBattler;
                 gTasks[taskId].func = Task_LaunchLvlUpAnim;
             }
@@ -1432,9 +1426,9 @@ static void PlayerHandleYesNoInput(void)
         PlaySE(SE_SELECT);
 
         if (gMultiUsePlayerCursor != 0)
-            BtlController_EmitTwoReturnValues(BUFFER_B, 0xE, 0);
+            BtlController_EmitTwoReturnValues(0xE, 0);
         else
-            BtlController_EmitTwoReturnValues(BUFFER_B, 0xD, 0);
+            BtlController_EmitTwoReturnValues(0xD, 0);
 
         PlayerBufferExecCompleted();
     }
@@ -2608,7 +2602,7 @@ static void PlayerChooseMoveInBattlePalace(void)
     if (--*(gBattleStruct->arenaMindPoints + gActiveBattler) == 0)
     {
         gBattlePalaceMoveSelectionRngValue = gRngValue;
-        BtlController_EmitTwoReturnValues(BUFFER_B, 10, ChooseMoveAndTargetInBattlePalace());
+        BtlController_EmitTwoReturnValues(10, ChooseMoveAndTargetInBattlePalace());
         PlayerBufferExecCompleted();
     }
 }
@@ -2815,7 +2809,7 @@ static void PlayerHandleCmd32(void)
 
 static void PlayerHandleTwoReturnValues(void)
 {
-    BtlController_EmitTwoReturnValues(BUFFER_B, 0, 0);
+    BtlController_EmitTwoReturnValues(0, 0);
     PlayerBufferExecCompleted();
 }
 

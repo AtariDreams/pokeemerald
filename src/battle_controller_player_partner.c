@@ -332,7 +332,7 @@ static void Task_GiveExpToMon(u8 taskId)
             gainedExp -= nextLvlExp - currExp;
             savedActiveBank = gActiveBattler;
             gActiveBattler = battlerId;
-            BtlController_EmitTwoReturnValues(BUFFER_B, RET_VALUE_LEVELED_UP, gainedExp);
+            BtlController_EmitTwoReturnValues(RET_VALUE_LEVELED_UP, gainedExp);
             gActiveBattler = savedActiveBank;
 
             if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
@@ -411,7 +411,7 @@ static void Task_GiveExpWithExpBar(u8 taskId)
                 gainedExp -= expOnNextLvl - currExp;
                 savedActiveBank = gActiveBattler;
                 gActiveBattler = battlerId;
-                BtlController_EmitTwoReturnValues(BUFFER_B, RET_VALUE_LEVELED_UP, gainedExp);
+                BtlController_EmitTwoReturnValues(RET_VALUE_LEVELED_UP, gainedExp);
                 gActiveBattler = savedActiveBank;
                 gTasks[taskId].func = Task_LaunchLvlUpAnim;
             }
@@ -1522,7 +1522,7 @@ static void PlayerPartnerHandleChooseMove(void)
             gBattlerTarget = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
     }
 
-    BtlController_EmitTwoReturnValues(BUFFER_B, 10, chosenMoveId | (gBattlerTarget << 8));
+    BtlController_EmitTwoReturnValues(10, chosenMoveId | (gBattlerTarget << 8));
     PlayerPartnerBufferExecCompleted();
 }
 
