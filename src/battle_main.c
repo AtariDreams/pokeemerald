@@ -613,7 +613,7 @@ void CB2_InitBattle(void)
 
 static void CB2_InitBattleInternal(void)
 {
-    s32 i;
+    u32 i;
 
     SetHBlankCallback(NULL);
     SetVBlankCallback(NULL);
