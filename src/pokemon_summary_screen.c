@@ -4145,7 +4145,7 @@ static void SetMainMoveSelectorColor(u8 which)
 
 static void KeepMoveSelectorVisible(u8 firstSpriteId)
 {
-    u8 i;
+    u32 i;
     u8 *spriteIds = &sMonSummaryScreen->spriteIds[firstSpriteId];
 
     for (i = 0; i < MOVE_SELECTOR_SPRITES_COUNT; i++)
