@@ -3070,10 +3070,13 @@ static bool8 LoadEasyChatScreen(void)
                                        | WINOUT_WIN01_BG3
                                        | WINOUT_WIN01_OBJ
                                        | WINOUT_WIN01_CLR);
-            ShowBg(3);
+
+            
+            
+            ShowBg(0);
             ShowBg(1);
             ShowBg(2);
-            ShowBg(0);
+            ShowBg(3);
             CreateScrollIndicatorSprites();
             CreateStartSelectButtonSprites();
             TryAddInterviewObjectEvents();
