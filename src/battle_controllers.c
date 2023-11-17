@@ -1277,13 +1277,13 @@ static void UNUSED BtlController_EmitCmd32(u8 bufferId, u16 size, void *data)
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 3);
 }
 
-void BtlController_EmitTwoReturnValues(u8 bufferId, u8 ret8, u16 ret16)
+void BtlController_EmitTwoReturnValues(u8 ret8, u16 ret16)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_TWORETURNVALUES;
     sBattleBuffersTransferData[1] = ret8;
     sBattleBuffersTransferData[2] = ret16;
     sBattleBuffersTransferData[3] = ret16 >> 8;
-    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
+    PrepareBufferDataTransfer(BUFFER_B, sBattleBuffersTransferData, 4);
 }
 
 void BtlController_EmitChosenMonReturnValue(u8 bufferId, u8 partyId, u8 *battlePartyOrder)
