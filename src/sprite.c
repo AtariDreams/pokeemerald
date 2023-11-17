@@ -520,6 +520,59 @@ u8 CreateInvisibleSprite(void (*callback)(struct Sprite *))
     }
 }
 
+struct Sprite * CreateSpritePointer(u8 index, const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority)
+{
+    struct Sprite *sprite = &gSprites[index];
+
+    ResetSprite(sprite);
+
+    sprite->inUse = TRUE;
+    sprite->animBeginning = TRUE;
+    sprite->affineAnimBeginning = TRUE;
+    sprite->usingSheet = TRUE;
+
+    sprite->subpriority = subpriority;
+    sprite->oam = *template->oam;
+    sprite->anims = template->anims;
+    sprite->affineAnims = template->affineAnims;
+    sprite->template = template;
+    sprite->callback = template->callback;
+    sprite->x = x;
+    sprite->y = y;
+
+    CalcCenterToCornerVec(sprite, sprite->oam.shape, sprite->oam.size, sprite->oam.affineMode);
+
+    if (template->tileTag == TAG_NONE)
+    {
+        s16 tileNum;
+        sprite->images = template->images;
+
+        tileNum = AllocSpriteTiles((u8)(sprite->images->size / TILE_SIZE_4BPP));
+        if (tileNum == -1)
+        {
+            ResetSprite(sprite);
+            return NULL;
+        }
+        sprite->oam.tileNum = tileNum;
+        sprite->usingSheet = FALSE;
+        sprite->sheetTileStart = 0;
+    }
+    else
+    {
+        sprite->sheetTileStart = GetSpriteTileStartByTag(template->tileTag);
+        SetSpriteSheetFrameTileNum(sprite);
+    }
+
+    if (sprite->oam.affineMode & ST_OAM_AFFINE_ON_MASK)
+        InitSpriteAffineAnim(sprite);
+
+    if (template->paletteTag != TAG_NONE)
+        sprite->oam.paletteNum = IndexOfSpritePaletteTag(template->paletteTag);
+
+    return sprite;
+}
+
+
 u8 CreateSpriteAt(u8 index, const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority)
 {
     struct Sprite *sprite = &gSprites[index];
