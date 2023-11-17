@@ -5332,11 +5332,11 @@ static u16 GetEasyChatWordStringLength(u16 easyChatWord)
 
 static bool8 CanPhraseFitInXRowsYCols(const u16 *easyChatWords, u8 numRows, u8 numColumns, u16 maxLength)
 {
-    u8 i, j;
+    u32 i, j;
 
     for (i = 0; i < numColumns; i++)
     {
-        u16 totalLength = numRows - 1;
+        u32 totalLength = numRows - 1;
         for (j = 0; j < numRows; j++)
             totalLength += GetEasyChatWordStringLength(*(easyChatWords++));
 
