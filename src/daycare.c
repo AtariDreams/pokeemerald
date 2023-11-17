@@ -212,7 +212,7 @@ static void ShiftDaycareSlots(struct DayCare *daycare)
 
 static void ApplyDaycareExperience(struct Pokemon *mon)
 {
-    s32 i;
+    u32 i;
     bool8 firstMove;
     u16 learnedMove;
 

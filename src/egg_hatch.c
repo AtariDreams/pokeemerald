@@ -616,8 +616,9 @@ static void CB2_EggHatch(void)
         sEggHatchData->eggSpriteId = CreateSprite(&sSpriteTemplate_Egg, EGG_X, EGG_Y, 5);
         ShowBg(0);
         ShowBg(1);
-        sEggHatchData->state++;
+        // putting it here saves an instruction 
         CreateTask(Task_EggHatchPlayBGM, 5);
+        sEggHatchData->state++;
         break;
     case 1:
         if (!gPaletteFade.active)
@@ -655,14 +656,15 @@ static void CB2_EggHatch(void)
         StringExpandPlaceholders(gStringVar4, gText_HatchedFromEgg);
         EggHatchPrintMessage(sEggHatchData->windowId, gStringVar4, 0, 3, TEXT_SKIP_DRAW);
         PlayFanfare(MUS_EVOLVED);
-        sEggHatchData->state++;
         PutWindowTilemap(sEggHatchData->windowId);
         CopyWindowToVram(sEggHatchData->windowId, COPYWIN_FULL);
+        sEggHatchData->state++;
         break;
     case 6:
         if (IsFanfareTaskInactive())
             sEggHatchData->state++;
         break;
+        // TODO: remove this redundancy
     case 7: // Twice?
         if (IsFanfareTaskInactive())
             sEggHatchData->state++;
@@ -781,10 +783,10 @@ static void SpriteCB_Egg_Shake3(struct Sprite *sprite)
     {
         if (++sprite->sTimer > 38)
         {
-            u16 UNUSED species;
+            //u16 UNUSED species;
             sprite->callback = SpriteCB_Egg_WaitHatch;
             sprite->sTimer = 0;
-            species = GetMonData(&gPlayerParty.party[sEggHatchData->eggPartyId], MON_DATA_SPECIES);
+            //species = GetMonData(&gPlayerParty.party[sEggHatchData->eggPartyId], MON_DATA_SPECIES);
             gSprites[sEggHatchData->monSpriteId].x2 = 0;
             gSprites[sEggHatchData->monSpriteId].y2 = 0;
         }
@@ -799,11 +801,7 @@ static void SpriteCB_Egg_Shake3(struct Sprite *sprite)
                 // This ineffectually sets the animation to the frame it's already using.
                 // They likely meant to use the 3rd and final cracked frame of the egg, which goes unused as a result.
                 PlaySE(SE_BALL);
-            #ifdef BUGFIX
                 StartSpriteAnim(sprite, EGG_ANIM_CRACKED_3);
-            #else
-                StartSpriteAnim(sprite, EGG_ANIM_CRACKED_2);
-            #endif
                 CreateRandomEggShardSprite();
                 CreateRandomEggShardSprite();
             }
@@ -831,7 +829,7 @@ static void SpriteCB_Egg_Hatch(struct Sprite *sprite)
         BeginNormalPaletteFade(PALETTES_ALL, -1, 0, 16, RGB_WHITEALPHA);
 
     // Create a shower of 16 egg shards in 4 groups of 4
-    if ((u32)sprite->sTimer < 4)
+    if (sprite->sTimer >= 0 && sprite->sTimer<=3)
     {
         for (i = 0; i < 4; i++)
             CreateRandomEggShardSprite();
@@ -862,7 +860,7 @@ static void SpriteCB_Egg_Reveal(struct Sprite *sprite)
     if (sprite->sTimer == 8)
         BeginNormalPaletteFade(PALETTES_ALL, -1, 16, 0, RGB_WHITEALPHA);
 
-    if (sprite->sTimer <= 9)
+    if (sprite->sTimer < 10)
         gSprites[sEggHatchData->monSpriteId].y--;
 
     if (sprite->sTimer > 40)
@@ -887,7 +885,7 @@ static void SpriteCB_EggShard(struct Sprite *sprite)
 
     sprite->sVelocY += sprite->sAccelY;
 
-    if (sprite->y + sprite->y2 > sprite->y + 20 && sprite->sVelocY > 0)
+    if ((sprite->y + sprite->y2) > (sprite->y + 20) && sprite->sVelocY > 0)
         DestroySprite(sprite);
 }
 
@@ -925,7 +923,7 @@ static void EggHatchPrintMessage(u8 windowId, u8 *string, u8 x, u8 y, u8 speed)
 
 u8 GetEggCyclesToSubtract(void)
 {
-    u8 count, i;
+    u32 count, i;
     for (count = CalculatePlayerPartyCount(), i = 0; i < count; i++)
     {
         if (!GetMonData(&gPlayerParty.party[i], MON_DATA_SANITY_IS_EGG))
