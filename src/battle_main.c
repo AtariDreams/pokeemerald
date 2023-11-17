@@ -4444,18 +4444,14 @@ static void HandleTurnActionSelectionState(void)
 
 static bool8 AllAtActionConfirmed(void)
 {
-    s32 i, count;
+    u32 i;
 
-    for (count = 0, i = 0; i < gBattlersCount; i++)
+    for (i = 0; i < gBattlersCount; i++)
     {
-        if (gBattleCommunication[i] == STATE_WAIT_ACTION_CONFIRMED)
-            count++;
+        if (gBattleCommunication[i] != STATE_WAIT_ACTION_CONFIRMED)
+            return FALSE;
     }
-
-    if (count + 1 == gBattlersCount)
-        return TRUE;
-    else
-        return FALSE;
+    return TRUE;
 }
 
 static void UpdateBattlerPartyOrdersOnSwitch(void)
