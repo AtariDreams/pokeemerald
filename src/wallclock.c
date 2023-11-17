@@ -728,7 +728,7 @@ void CB2_StartWallClock(void)
 void CB2_ViewWallClock(void)
 {
     u8 taskId;
-    u8 spriteId;
+    struct Sprite* sprite;
     u8 angle1;
     u8 angle2;
 
@@ -748,23 +748,23 @@ void CB2_ViewWallClock(void)
         angle2 = 135;
     }
 
-    spriteId = CreateSprite(&sSpriteTemplate_MinuteHand, 120, 80, 1);
-    gSprites[spriteId].sTaskId = taskId;
-    gSprites[spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
-    gSprites[spriteId].oam.matrixNum = 0;
+    sprite = &gSprites[CreateSprite(&sSpriteTemplate_MinuteHand, 120, 80, 1)];
+    sprite->sTaskId = taskId;
+    sprite->oam.affineMode = ST_OAM_AFFINE_NORMAL;
+    sprite->oam.matrixNum = 0;
 
-    spriteId = CreateSprite(&sSpriteTemplate_HourHand, 120, 80, 0);
-    gSprites[spriteId].sTaskId = taskId;
-    gSprites[spriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
-    gSprites[spriteId].oam.matrixNum = 1;
+    sprite = &gSprites[CreateSprite(&sSpriteTemplate_HourHand, 120, 80, 0)];
+    sprite->sTaskId = taskId;
+    sprite->oam.affineMode = ST_OAM_AFFINE_NORMAL;
+    sprite->oam.matrixNum = 1;
 
-    spriteId = CreateSprite(&sSpriteTemplate_PM, 120, 80, 2);
-    gSprites[spriteId].sTaskId = taskId;
-    gSprites[spriteId].data[1] = angle1;
+    sprite = &gSprites[CreateSprite(&sSpriteTemplate_PM, 120, 80, 2)];
+    sprite->sTaskId = taskId;
+    sprite->data[1] = angle1;
 
-    spriteId = CreateSprite(&sSpriteTemplate_AM, 120, 80, 2);
-    gSprites[spriteId].sTaskId = taskId;
-    gSprites[spriteId].data[1] = angle2;
+    sprite = &gSprites[CreateSprite(&sSpriteTemplate_AM, 120, 80, 2)];
+    sprite->sTaskId = taskId;
+    sprite->data[1] = angle2;
 
     WallClockInit();
 
