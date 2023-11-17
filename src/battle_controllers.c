@@ -16,7 +16,8 @@
 static EWRAM_DATA u8 sLinkSendTaskId = 0;
 static EWRAM_DATA u8 sLinkReceiveTaskId = 0;
 EWRAM_DATA struct UnusedControllerStruct gUnusedControllerStruct = {}; // Debug? Unused code that writes to it, never read
-static EWRAM_DATA u8 sBattleBuffersTransferData[0x100] = {};
+
+static EWRAM_DATA ALIGNED(4) u8 sBattleBuffersTransferData[0x100] = {};
 
 static void CreateTasksForSendRecvLinkBuffers(void);
 static void InitLinkBtlControllers(void);
@@ -1313,6 +1314,15 @@ void BtlController_EmitOneReturnValue_Duplicate(u8 bufferId, u16 ret)
     sBattleBuffersTransferData[2] = ret >> 8;
     sBattleBuffersTransferData[3] = 0;
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, 4);
+}
+
+void BtlController_EmitAction(u8 action)
+{
+    sBattleBuffersTransferData[0] = CONTROLLER_TWORETURNVALUES;
+    sBattleBuffersTransferData[1] = action;
+    sBattleBuffersTransferData[2] = 0;
+    sBattleBuffersTransferData[3] = 0;
+    PrepareBufferDataTransfer(BUFFER_B, sBattleBuffersTransferData, 4);
 }
 
 static void UNUSED BtlController_EmitClearUnkVar(u8 bufferId)

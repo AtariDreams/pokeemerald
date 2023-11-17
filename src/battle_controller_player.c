@@ -246,16 +246,16 @@ static void HandleInputChooseAction(void)
         switch (gActionSelectionCursor[gActiveBattler])
         {
         case 0: // Top left
-            BtlController_EmitTwoReturnValues(B_ACTION_USE_MOVE, 0);
+            BtlController_EmitAction(B_ACTION_USE_MOVE);
             break;
         case 1: // Top right
-            BtlController_EmitTwoReturnValues(B_ACTION_USE_ITEM, 0);
+            BtlController_EmitAction(B_ACTION_USE_ITEM);
             break;
         case 2: // Bottom left
-            BtlController_EmitTwoReturnValues(B_ACTION_SWITCH, 0);
+            BtlController_EmitAction(B_ACTION_SWITCH);
             break;
         case 3: // Bottom right
-            BtlController_EmitTwoReturnValues(B_ACTION_RUN, 0);
+            BtlController_EmitAction(B_ACTION_RUN);
             break;
         }
         PlayerBufferExecCompleted();
@@ -316,7 +316,7 @@ static void HandleInputChooseAction(void)
                     return;
             }
             PlaySE(SE_SELECT);
-            BtlController_EmitTwoReturnValues(B_ACTION_CANCEL_PARTNER, 0);
+            BtlController_EmitAction(B_ACTION_CANCEL_PARTNER);
             PlayerBufferExecCompleted();
         }
     }
