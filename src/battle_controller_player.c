@@ -2856,6 +2856,7 @@ static void PlayerHandleHitAnimation(void)
     if (gSprites[gBattlerSpriteIds[gActiveBattler]].invisible == TRUE)
     {
         PlayerBufferExecCompleted();
+        return;
     }
     else
     {
