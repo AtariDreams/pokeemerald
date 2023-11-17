@@ -455,6 +455,14 @@ static void HandleInputChooseTarget(void)
     }
 }
 
+static void UpdateCursor(void)
+{
+    PlaySE(SE_SELECT);
+    MoveSelectionCreateCursorAt(gMoveSelectionCursor[gActiveBattler], 0);
+    MoveSelectionDisplayPpNumber();
+    MoveSelectionDisplayMoveType();
+}
+
 static void HandleInputChooseMove(void)
 {
     bool32 canSelectTarget = FALSE;
@@ -472,10 +480,10 @@ static void HandleInputChooseMove(void)
         PlaySE(SE_SELECT);
         if (moveInfo->moves[gMoveSelectionCursor[gActiveBattler]] == MOVE_CURSE)
         {
-            if (moveInfo->monType1 != TYPE_GHOST && moveInfo->monType2 != TYPE_GHOST)
-                moveTarget = MOVE_TARGET_USER;
-            else
+            if (moveInfo->monType1 == TYPE_GHOST || moveInfo->monType2 == TYPE_GHOST)
                 moveTarget = MOVE_TARGET_SELECTED;
+            else
+                moveTarget = MOVE_TARGET_USER;
         }
         else
         {
@@ -539,10 +547,7 @@ static void HandleInputChooseMove(void)
         {
             MoveSelectionDestroyCursorAt(gMoveSelectionCursor[gActiveBattler]);
             gMoveSelectionCursor[gActiveBattler] ^= 1;
-            PlaySE(SE_SELECT);
-            MoveSelectionCreateCursorAt(gMoveSelectionCursor[gActiveBattler], 0);
-            MoveSelectionDisplayPpNumber();
-            MoveSelectionDisplayMoveType();
+            UpdateCursor();
         }
     }
     else if (JOY_NEW(DPAD_RIGHT))
@@ -552,10 +557,7 @@ static void HandleInputChooseMove(void)
         {
             MoveSelectionDestroyCursorAt(gMoveSelectionCursor[gActiveBattler]);
             gMoveSelectionCursor[gActiveBattler] ^= 1;
-            PlaySE(SE_SELECT);
-            MoveSelectionCreateCursorAt(gMoveSelectionCursor[gActiveBattler], 0);
-            MoveSelectionDisplayPpNumber();
-            MoveSelectionDisplayMoveType();
+            UpdateCursor();
         }
     }
     else if (JOY_NEW(DPAD_UP))
@@ -564,10 +566,7 @@ static void HandleInputChooseMove(void)
         {
             MoveSelectionDestroyCursorAt(gMoveSelectionCursor[gActiveBattler]);
             gMoveSelectionCursor[gActiveBattler] ^= 2;
-            PlaySE(SE_SELECT);
-            MoveSelectionCreateCursorAt(gMoveSelectionCursor[gActiveBattler], 0);
-            MoveSelectionDisplayPpNumber();
-            MoveSelectionDisplayMoveType();
+            UpdateCursor();
         }
     }
     else if (JOY_NEW(DPAD_DOWN))
@@ -577,10 +576,7 @@ static void HandleInputChooseMove(void)
         {
             MoveSelectionDestroyCursorAt(gMoveSelectionCursor[gActiveBattler]);
             gMoveSelectionCursor[gActiveBattler] ^= 2;
-            PlaySE(SE_SELECT);
-            MoveSelectionCreateCursorAt(gMoveSelectionCursor[gActiveBattler], 0);
-            MoveSelectionDisplayPpNumber();
-            MoveSelectionDisplayMoveType();
+            UpdateCursor();
         }
     }
     else if (JOY_NEW(SELECT_BUTTON))
