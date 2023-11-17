@@ -2836,7 +2836,7 @@ static int FooterHasFourOptions_(void)
 
 static bool8 IsPhraseDifferentThanPlayerInput(const u16 *phrase, u8 phraseLength)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < phraseLength; i++)
     {
@@ -2880,7 +2880,7 @@ static bool32 IsCurrentPhraseEmpty(void)
 
 static bool32 IsCurrentPhraseFull(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < sEasyChatScreen->maxWords; i++)
     {
@@ -2893,7 +2893,7 @@ static bool32 IsCurrentPhraseFull(void)
 
 static int IsQuizQuestionEmpty(void)
 {
-    int i;
+    u32 i;
 
     if (sEasyChatScreen->type == EASY_CHAT_TYPE_QUIZ_SET_QUESTION)
         return IsCurrentPhraseEmpty();
