@@ -876,10 +876,7 @@ static void Task_HofPC_CopySaveData(u8 taskId)
                 break;
         }
 
-        if (i < HALL_OF_FAME_MAX_TEAMS)
-            gTasks[taskId].tCurrTeamNo = i - 1;
-        else
-            gTasks[taskId].tCurrTeamNo = HALL_OF_FAME_MAX_TEAMS - 1;
+        gTasks[taskId].tCurrTeamNo = i - 1;
 
         gTasks[taskId].tCurrPageNo = GetGameStat(GAME_STAT_ENTERED_HOF);
 

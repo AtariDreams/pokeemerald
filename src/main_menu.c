@@ -2012,14 +2012,10 @@ static void ClearMainMenuWindowTilemap(const struct WindowTemplate *template)
     CopyBgTilemapBufferToVram(template->bg);
 }
 
-static void NewGameBirchSpeech_ClearGenderWindowTilemap(u8 bg, u8 x, u8 y, u8 width, u8 height, u8 unused)
-{
-    FillBgTilemapBufferRect(bg, 0, x + 255, y + 255, width + 2, height + 2, 2);
-}
-
 static void NewGameBirchSpeech_ClearGenderWindow(u8 windowId, bool8 copyToVram)
 {
-    CallWindowFunction(windowId, NewGameBirchSpeech_ClearGenderWindowTilemap);
+    struct WindowTemplate *window = &gWindows[windowId].window;
+    FillBgTilemapBufferRect(window->bg, 0, window->tilemapLeft + 255, window->tilemapTop + 255, window->width + 2, window->height + 2, 2);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
     ClearWindowTilemap(windowId);
     if (copyToVram)
