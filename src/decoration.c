@@ -2281,7 +2281,7 @@ static void Task_PutAwayDecoration(u8 taskId)
 
 static bool8 HasDecorationsInUse(u8 taskId)
 {
-    u16 i;
+    u32 i;
     for (i = 0; i < sDecorationContext.size; i++)
     {
         if (sDecorationContext.items[i] != DECOR_NONE)
