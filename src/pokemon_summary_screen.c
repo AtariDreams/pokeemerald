@@ -1935,7 +1935,7 @@ static void Task_HandleInput_MoveSelect(u8 taskId)
 
 static bool8 HasMoreThanOneMove(void)
 {
-    u8 i;
+    u32 i;
     for (i = 1; i < MAX_MON_MOVES; i++)
     {
         if (sMonSummaryScreen->summary.moves[i] != 0)
@@ -2921,7 +2921,7 @@ static void ClearPageWindowTilemaps(u8 page)
     {
     case PSS_PAGE_INFO:
         ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_CANCEL);
-        if (InBattleFactory() == TRUE || InSlateportBattleTent() == TRUE)
+        if (InSlateportBattleTent() == TRUE || InBattleFactory() == TRUE)
             ClearWindowTilemap(PSS_LABEL_WINDOW_POKEMON_INFO_RENTAL);
         ClearWindowTilemap(PSS_LABEL_WINDOW_POKEMON_INFO_TYPE);
         break;
