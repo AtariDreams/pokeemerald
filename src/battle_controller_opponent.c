@@ -1652,12 +1652,12 @@ static void OpponentHandleChoosePokemon(void)
     }
     else
     {
-        chosenMonId = *(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler);
+        chosenMonId = gBattleStruct->AI_monToSwitchIntoId[gActiveBattler];
         *(gBattleStruct->AI_monToSwitchIntoId + gActiveBattler) = PARTY_SIZE;
     }
 
 
-    *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = chosenMonId;
+    gBattleStruct->monToSwitchIntoId[gActiveBattler] = chosenMonId;
     BtlController_EmitChosenMonReturnValue(BUFFER_B, chosenMonId, NULL);
     OpponentBufferExecCompleted();
 }
