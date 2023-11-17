@@ -514,10 +514,9 @@ static void SpriteCB_EvolutionMonSprite(struct Sprite *sprite)
 // Alternately grow/shrink the pre-evolution and post-evolution mon sprites
 u8 CycleEvolutionMonSprite(u8 preEvoSpriteId, u8 postEvoSpriteId)
 {
-    u16 i;
+    u32 i;
     u16 monPalette[16];
     u8 taskId;
-    s32 toDiv;
 
     for (i = 0; i < ARRAY_COUNT(monPalette); i++)
         monPalette[i] = RGB_WHITE;
@@ -528,9 +527,9 @@ u8 CycleEvolutionMonSprite(u8 preEvoSpriteId, u8 postEvoSpriteId)
     gTasks[taskId].tPreEvoScale = MON_MAX_SCALE;
     gTasks[taskId].tPostEvoScale = MON_MIN_SCALE;
 
-    toDiv = 65536;
+    s32 div = 65536 / gTasks[taskId].tPostEvoScale;
     SetOamMatrix(MATRIX_PRE_EVO, MON_MAX_SCALE, 0, 0, MON_MAX_SCALE);
-    SetOamMatrix(MATRIX_POST_EVO, toDiv / gTasks[taskId].tPostEvoScale, 0, 0, toDiv / gTasks[taskId].tPostEvoScale);
+    SetOamMatrix(MATRIX_POST_EVO, div, 0, 0, div);
 
     gSprites[preEvoSpriteId].callback = SpriteCB_EvolutionMonSprite;
     gSprites[preEvoSpriteId].oam.affineMode = ST_OAM_AFFINE_NORMAL;
