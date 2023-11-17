@@ -1366,7 +1366,7 @@ void UpdateDisguiseFieldEffect(struct Sprite *sprite)
 
     if (sprite->sState == 1)
     {
-        sprite->sState++;
+        sprite->sState = 2;
         StartSpriteAnim(sprite, 1);
     }
 
