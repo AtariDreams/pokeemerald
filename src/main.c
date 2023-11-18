@@ -299,9 +299,6 @@ static void VBlankIntr(void)
 
     gMain.vblankCounter1++;
 
-    if (gTrainerHillVBlankCounter && *gTrainerHillVBlankCounter < 0xFFFFFFFF)
-        (*gTrainerHillVBlankCounter)++;
-
     if (gMain.vblankCallback)
         gMain.vblankCallback();
 
@@ -345,16 +342,6 @@ static void VCountIntr(void)
 
 static void IntrDummy(void)
 {}
-
-void SetTrainerHillVBlankCounter(u32 *counter)
-{
-    gTrainerHillVBlankCounter = counter;
-}
-
-void ClearTrainerHillVBlankCounter(void)
-{
-    gTrainerHillVBlankCounter = NULL;
-}
 
 _Noreturn void DoSoftReset(void)
 {

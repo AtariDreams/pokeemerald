@@ -615,10 +615,8 @@ static u16 CalculateChecksum(void *data, u16 size)
 u8 HandleSavingData(u8 saveType)
 {
     u8 i;
-    u32 *backupVar = gTrainerHillVBlankCounter;
     u8 *tempAddr;
 
-    gTrainerHillVBlankCounter = NULL;
     switch (saveType)
     {
     case SAVE_HALL_OF_FAME_ERASE_BEFORE:
@@ -665,7 +663,6 @@ u8 HandleSavingData(u8 saveType)
         WriteSaveSectorOrSlot(FULL_SAVE_SLOT, sSaveBlockChunks);
         break;
     }
-    gTrainerHillVBlankCounter = backupVar;
     return 0;
 }
 
