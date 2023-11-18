@@ -2126,7 +2126,8 @@ static void AnimWishStar_Step(struct Sprite *sprite)
 
     if (++sprite->data[2] % 3 == 0)
     {
-        CreateSpriteAndAnimate(
+
+        CreateSpriteAndAnimatePointer(
             &gMiniTwinklingStarSpriteTemplate,
             sprite->x + sprite->x2,
             sprite->y + sprite->y2,
