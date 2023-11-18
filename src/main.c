@@ -129,7 +129,9 @@ _Noreturn void AgbMain(void)
     {
         VBlankIntrWait();
         ReadKeys();
-
+        if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
+            Random();
+        
         if (Overworld_SendKeysToLinkIsRunning())
         {
             gLinkTransferringData = TRUE;
@@ -309,9 +311,6 @@ static void VBlankIntr(void)
     ProcessDma3Requests();
 
     TryReceiveLinkBattleData();
-
-    if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
-        Random();
 
     UpdateWirelessStatusIndicatorSprite();
 
