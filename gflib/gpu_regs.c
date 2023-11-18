@@ -10,7 +10,7 @@
 
 static ALIGNED(4) u8 sGpuRegBuffer[GPU_REG_BUF_SIZE];
 static ALIGNED(4) u8 sGpuRegWaitingList[GPU_REG_BUF_SIZE];
-static volatile int sGpuRegBufferLocked;
+static int sGpuRegBufferLocked;
 
 static void CopyBufferedValueToGpuReg(u8 regOffset);
 static void SyncRegIE(void);
