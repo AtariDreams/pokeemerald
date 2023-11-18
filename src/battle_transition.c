@@ -3115,7 +3115,7 @@ static bool8 WhiteBarsFade_StartBars(struct Task *task)
 
     for (i = 0, posY = 0; i < NUM_WHITE_BARS; i++, posY += DISPLAY_HEIGHT / NUM_WHITE_BARS)
     {
-        sprite = &gSprites[CreateInvisibleSprite(SpriteCB_WhiteBarFade)];
+        sprite = CreateInvisibleSpritePointer(SpriteCB_WhiteBarFade);
         sprite->x = DISPLAY_WIDTH;
         sprite->y = posY;
         sprite->sDelay = sWhiteBarsFade_StartDelays[i];

@@ -954,7 +954,7 @@ void AnimTask_DrillPeckHitSplats(u8 task)
         gBattleAnimArgs[2] = 1;
         gBattleAnimArgs[3] = 3;
 
-        CreateSpriteAndAnimate(&gFlashingHitSplatSpriteTemplate,
+        CreateSpriteAndAnimatePointer(&gFlashingHitSplatSpriteTemplate,
                                GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_X_2),
                                GetBattlerSpriteCoord(gBattleAnimTarget, BATTLER_COORD_Y_PIC_OFFSET),
                                3);
