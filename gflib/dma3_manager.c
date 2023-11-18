@@ -19,7 +19,7 @@ struct Dma3Request
 
 static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
-static volatile int sDma3ManagerLocked;
+static int sDma3ManagerLocked;
 static s8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
@@ -36,6 +36,7 @@ void ClearDma3Requests(void)
         sDma3Requests[i].src = NULL;
         sDma3Requests[i].dest = NULL;
     }
+    asm volatile ("" : : : "memory");
     sDma3ManagerLocked = FALSE;
 }
 
@@ -164,6 +165,7 @@ s8 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
         else
             cursor++;
     }
+    asm volatile ("" : : : "memory");
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
 }
