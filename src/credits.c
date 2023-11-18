@@ -1049,10 +1049,10 @@ static void Task_CycleSceneryPalette(u8 taskId)
                 gTasks[taskId].tTimer = TIMER_STOP;
             }
         }
-        CycleSceneryPalette(0);
+        CycleSceneryPaletteMode0();
         break;
     case SCENE_OCEAN_SUNSET:
-        CycleSceneryPalette(0);
+        CycleSceneryPaletteMode0();
         break;
     case SCENE_FOREST_RIVAL_ARRIVE:
         if (gTasks[taskId].tTimer != TIMER_STOP)
@@ -1066,7 +1066,6 @@ static void Task_CycleSceneryPalette(u8 taskId)
                 gTasks[taskId].tTimer = TIMER_STOP;
             }
         }
-        CycleSceneryPalette(1);
         break;
     case SCENE_FOREST_CATCH_RIVAL:
         if (gTasks[taskId].tTimer != TIMER_STOP)
@@ -1082,10 +1081,9 @@ static void Task_CycleSceneryPalette(u8 taskId)
                 gTasks[taskId].tTimer++;
             }
         }
-        CycleSceneryPalette(1);
         break;
     case SCENE_CITY_NIGHT:
-        CycleSceneryPalette(2);
+        CycleSceneryPaletteMode2();
         break;
     }
 }

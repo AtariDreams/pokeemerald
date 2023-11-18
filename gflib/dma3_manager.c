@@ -19,7 +19,9 @@ struct Dma3Request
 
 static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
-static int sDma3ManagerLocked;
+// Okay this is somehow more performant by preventing a mov when volatile when it doesn't have to be
+// TODO: what about on clang?
+static volatile int sDma3ManagerLocked;
 static s8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)

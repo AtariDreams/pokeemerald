@@ -913,36 +913,39 @@ static void Task_BicycleBgAnimation(u8 taskId)
     }
 }
 
-void CycleSceneryPalette(u8 mode)
+void CycleSceneryPaletteMode0(void)
 {
-    u16 x;
-    u16 y;
-    switch (mode)
-    {
+    u16 x, y;
+    if (gPaletteFade.active)
+        return;
+    u32 count = gMain.vblankCounter1;
 
-        default:
-        case 0:
-            if (gMain.vblankCounter1 & 3 || gPaletteFade.active)
-                break;
-            if (gMain.vblankCounter1 & 4)
-            {
-                x = gPlttBufferUnfaded[BG_PLTT_ID(0) + 9];
-                y = gPlttBufferUnfaded[BG_PLTT_ID(0) + 10];
-            }
-            else
-            {
-                x = gPlttBufferUnfaded[BG_PLTT_ID(0) + 10];
-                y = gPlttBufferUnfaded[BG_PLTT_ID(0) + 9];
-            }
-            LoadPalette(&x, BG_PLTT_ID(0) + 9, sizeof(x));
-            LoadPalette(&y, BG_PLTT_ID(0) + 10, sizeof(y));
-            break;
-        case 1:
-            break;
-        case 2:
-            if (gMain.vblankCounter1 & 3 || gPaletteFade.active)
-                break;
-            if (gMain.vblankCounter1 & 4)
+    if (count & 3)
+        return;
+    if (count & 4)
+    {
+        x = gPlttBufferUnfaded[BG_PLTT_ID(0) + 9];
+        y = gPlttBufferUnfaded[BG_PLTT_ID(0) + 10];
+    }
+    else
+    {
+        x = gPlttBufferUnfaded[BG_PLTT_ID(0) + 10];
+        y = gPlttBufferUnfaded[BG_PLTT_ID(0) + 9];
+    }
+    LoadPalette(&x, BG_PLTT_ID(0) + 9, sizeof(x));
+    LoadPalette(&y, BG_PLTT_ID(0) + 10, sizeof(y));
+}
+void CycleSceneryPaletteMode2(void)
+
+{
+    u16 x, y;
+    if (gPaletteFade.active)
+        return;
+    u32 count = gMain.vblankCounter1;
+
+    if (count & 3)
+        return;
+            if (count & 4)
             {
                 x = RGB(7, 9, 15);
                 y = RGB(21, 20, 0);
@@ -954,8 +957,7 @@ void CycleSceneryPalette(u8 mode)
             }
             LoadPalette(&x, BG_PLTT_ID(0) + 12, sizeof(x));
             LoadPalette(&y, BG_PLTT_ID(0) + 13, sizeof(y));
-            break;
-    }
+    
 }
 
 #define tHasVerticalMove data[0]
