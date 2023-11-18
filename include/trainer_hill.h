@@ -41,8 +41,6 @@ struct TrainerHillChallenge
     struct TrainerHillFloor floors[0]; // Floor data is assumed to follow, so this will be intentionally read out of bounds
 };
 
-extern u32 *gTrainerHillVBlankCounter;
-
 void CallTrainerHillFunction(void);
 void ResetTrainerHillResults(void);
 u8 GetTrainerHillOpponentClass(u16 trainerId);

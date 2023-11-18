@@ -47,7 +47,6 @@ static EWRAM_DATA struct {
 } *sHillData = NULL;
 
 static EWRAM_DATA struct FloorTrainers *sFloorTrainers = NULL;
-EWRAM_DATA u32 *gTrainerHillVBlankCounter = NULL;
 
 // This file's functions.
 static void TrainerHillStartChallenge(void);
@@ -323,7 +322,7 @@ u8 GetTrainerHillTrainerFrontSpriteId(u16 trainerId)
 
 void InitTrainerHillBattleStruct(void)
 {
-    s32 i, j;
+    u32 i, j;
 
     SetUpDataStruct();
     sFloorTrainers = AllocZeroed(sizeof(*sFloorTrainers));
@@ -335,7 +334,6 @@ void InitTrainerHillBattleStruct(void)
 
         sFloorTrainers->facilityClass[i] = sHillData->floors[sHillData->floorId].trainers[i].facilityClass;
     }
-    SetTrainerHillVBlankCounter(&gSaveBlock1.trainerHill.timer);
     FreeDataStruct();
 }
 
@@ -402,7 +400,6 @@ static void TrainerHillStartChallenge(void)
         gSaveBlock1.trainerHill.field_3D6E_0f = 0;
 
     gSaveBlock1.trainerHill.unk_3D6C = 0;
-    SetTrainerHillVBlankCounter(&gSaveBlock1.trainerHill.timer);
     gSaveBlock1.trainerHill.timer = 0;
     gSaveBlock1.trainerHill.spokeToOwner = 0;
     gSaveBlock1.trainerHill.checkedFinalTime = 0;
@@ -414,7 +411,6 @@ static void TrainerHillStartChallenge(void)
 
 static void GetOwnerState(void)
 {
-    ClearTrainerHillVBlankCounter();
     gSpecialVar_Result = 0;
     if (gSaveBlock1.trainerHill.spokeToOwner)
         gSpecialVar_Result++;
@@ -471,10 +467,8 @@ static void TrainerHillResumeTimer(void)
 {
     if (!gSaveBlock1.trainerHill.spokeToOwner)
     {
-        if (gSaveBlock1.trainerHill.timer >= HILL_MAX_TIME)
+        if (gSaveBlock1.trainerHill.timer > HILL_MAX_TIME)
             gSaveBlock1.trainerHill.timer = HILL_MAX_TIME;
-        else
-            SetTrainerHillVBlankCounter(&gSaveBlock1.trainerHill.timer);
     }
 }
 
@@ -1025,9 +1019,9 @@ static u8 GetPrizeListId(bool8 allowTMs)
 
 static u16 GetPrizeItemId(void)
 {
-    u8 i;
+    u32 i;
     const u16 *prizeList;
-    s32 trainerNumSum = 0, prizeListSetId, minutes, id;
+    u32 trainerNumSum = 0, prizeListSetId, minutes, id;
 
     // First determine which set of prize lists to use. The sets of lists only differ in
     // what TMs they can offer as the "grand prize" for a time under 12 minutes.
@@ -1040,12 +1034,14 @@ static u16 GetPrizeItemId(void)
         trainerNumSum += sHillData->floors[i].trainerNum2;
     }
     prizeListSetId = trainerNumSum / 256;
-    prizeListSetId %= (int)ARRAY_COUNT(sPrizeListSets);
+    prizeListSetId %= ARRAY_COUNT(sPrizeListSets);
 
     // Now get which prize list to use from the set. See GetPrizeListId for details.
     // The below conditional will always be true, because a Trainer Hill challenge can't be entered
     // until the player has entered the Hall of Fame (FLAG_SYS_GAME_CLEAR is set) and because all
     // of the available challenge modes have the full 8 trainers (NUM_TRAINER_HILL_TRAINERS).
+
+    // TODO: maybe let people do the challenge before beating the game
     if (FlagGet(FLAG_SYS_GAME_CLEAR) && sHillData->challenge.numTrainers == NUM_TRAINER_HILL_TRAINERS)
         i = GetPrizeListId(TRUE);
     else
@@ -1072,7 +1068,7 @@ static u16 GetPrizeItemId(void)
     // As an additional note, if players were allowed to enter a Trainer Hill challenge before
     // entering the Hall of Fame, there would be 1 additional prize possibility (ITEM_MAX_ETHER)
     // as Normal / Unique modes would use sPrizeListSets[0][3] / sPrizeListSets[1][3] respectively.
-    minutes = (signed)(gSaveBlock1.trainerHill.timer) / (60 * 60);
+    minutes = (gSaveBlock1.trainerHill.timer) / (60 * 60);
     if (minutes < 12)
         id = 0; // Depends on list
     else if (minutes < 13)
