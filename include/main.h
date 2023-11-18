@@ -59,8 +59,6 @@ void SetHBlankCallback(IntrCallback callback);
 void SetVCountCallback(IntrCallback callback);
 void SetSerialCallback(IntrCallback callback);
 void InitFlashTimer(void);
-void SetTrainerHillVBlankCounter(u32 *var);
-void ClearTrainerHillVBlankCounter(void);
 void DoSoftReset(void);
 void RestoreSerialTimer3IntrHandlers(void);
 void StartTimer1(void);
