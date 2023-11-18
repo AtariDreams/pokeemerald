@@ -1470,7 +1470,7 @@ static void Task_Scene2_BikeRide(u8 taskId)
         gTasks[taskId].tFlygonTimer++;
 
     // Alternate colors of the trees
-    CycleSceneryPalette(0);
+    CycleSceneryPaletteMode0();
 }
 
 static void Task_Scene2_End(u8 taskId)
