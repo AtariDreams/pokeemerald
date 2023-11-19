@@ -1559,6 +1559,30 @@ u8 CreateObjectGraphicsSprite(u16 graphicsId, void (*callback)(struct Sprite *),
     return spriteId;
 }
 
+// Used to create a sprite using a graphicsId associated with object events.
+struct Sprite* CreateObjectGraphicsSpritePointer(u16 graphicsId, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority)
+{
+    struct SpriteTemplate *spriteTemplate;
+    const struct SubspriteTable *subspriteTables;
+    struct Sprite *sprite;
+
+    spriteTemplate = Alloc(sizeof(struct SpriteTemplate));
+    CopyObjectGraphicsInfoToSpriteTemplate(graphicsId, callback, spriteTemplate, &subspriteTables);
+    if (spriteTemplate->paletteTag != TAG_NONE)
+        LoadObjectEventPalette(spriteTemplate->paletteTag);
+
+    sprite = CreateSpriteReturnPointer(spriteTemplate, x, y, subpriority);
+    Free(spriteTemplate);
+
+    if (sprite != NULL && subspriteTables != NULL)
+    {
+        SetSubspriteTables(sprite, subspriteTables);
+        sprite->subspriteMode = SUBSPRITES_IGNORE_PRIORITY;
+    }
+    return sprite;
+}
+
+
 #define sVirtualObjId   data[0]
 #define sVirtualObjElev data[1]
 
