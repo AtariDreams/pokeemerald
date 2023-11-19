@@ -686,7 +686,6 @@ static void WallClockInit(void)
 void CB2_StartWallClock(void)
 {
     u8 taskId;
-    u8 spriteId;
 
     LoadWallClockGraphics();
     LZ77UnCompVram(gWallClockStart_Tilemap, (u16 *)BG_SCREEN_ADDR(7));
@@ -750,21 +749,21 @@ void CB2_ViewWallClock(void)
         angle2 = 135;
     }
 
-    sprite = &gSprites[CreateSprite(&sSpriteTemplate_MinuteHand, 120, 80, 1)];
+    sprite = CreateSpriteReturnPointer(&sSpriteTemplate_MinuteHand, 120, 80, 1);
     sprite->sTaskId = taskId;
     sprite->oam.affineMode = ST_OAM_AFFINE_NORMAL;
     sprite->oam.matrixNum = 0;
 
-    sprite = &gSprites[CreateSprite(&sSpriteTemplate_HourHand, 120, 80, 0)];
+    sprite = CreateSpriteReturnPointer(&sSpriteTemplate_HourHand, 120, 80, 0);
     sprite->sTaskId = taskId;
     sprite->oam.affineMode = ST_OAM_AFFINE_NORMAL;
     sprite->oam.matrixNum = 1;
 
-    sprite = &gSprites[CreateSprite(&sSpriteTemplate_PM, 120, 80, 2)];
+    sprite = CreateSpriteReturnPointer(&sSpriteTemplate_PM, 120, 80, 2);
     sprite->sTaskId = taskId;
     sprite->data[1] = angle1;
 
-    sprite = &gSprites[CreateSprite(&sSpriteTemplate_AM, 120, 80, 2)];
+    sprite = CreateSpriteReturnPointer(&sSpriteTemplate_AM, 120, 80, 2);
     sprite->sTaskId = taskId;
     sprite->data[1] = angle2;
 
@@ -1072,7 +1071,7 @@ static void SpriteCB_PMIndicator(struct Sprite *sprite)
     }
     else
     {
-        if (sprite->sAngle >= 46 && sprite->sAngle < 76)
+        if (sprite->sAngle > 45 && sprite->sAngle <= 75)
             sprite->sAngle -= 5;
         if (sprite->sAngle > 75)
             sprite->sAngle--;
@@ -1092,7 +1091,7 @@ static void SpriteCB_AMIndicator(struct Sprite *sprite)
     }
     else
     {
-        if (sprite->sAngle >= 91 && sprite->sAngle < 121)
+        if (sprite->sAngle > 90 && sprite->sAngle <= 120)
             sprite->sAngle -= 5;
         if (sprite->sAngle > 120)
             sprite->sAngle--;
