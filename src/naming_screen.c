@@ -1393,21 +1393,19 @@ static void NamingScreen_NoIcon(void)
 static void NamingScreen_CreatePlayerIcon(void)
 {
     u8 rivalGfxId;
-    u8 spriteId;
+    struct Sprite *sprite;
 
     rivalGfxId = GetRivalAvatarGraphicsIdByStateIdAndGender(PLAYER_AVATAR_STATE_NORMAL, sNamingScreen->monSpecies);
-    spriteId = CreateObjectGraphicsSprite(rivalGfxId, SpriteCallbackDummy, 56, 37, 0);
-    gSprites[spriteId].oam.priority = 3;
-    StartSpriteAnim(&gSprites[spriteId], ANIM_STD_GO_SOUTH);
+    sprite = CreateObjectGraphicsSpritePointer(rivalGfxId, SpriteCallbackDummy, 56, 37, 0);
+    sprite->oam.priority = 3;
+    StartSpriteAnim(sprite, ANIM_STD_GO_SOUTH);
 }
 
 static void NamingScreen_CreatePCIcon(void)
 {
-    u8 spriteId;
-
-    spriteId = CreateSprite(&sSpriteTemplate_PCIcon, 56, 41, 0);
-    SetSubspriteTables(&gSprites[spriteId], sSubspriteTable_PCIcon);
-    gSprites[spriteId].oam.priority = 3;
+    struct Sprite *sprite = CreateSpriteReturnPointer(&sSpriteTemplate_PCIcon, 56, 41, 0);
+    SetSubspriteTables(sprite, sSubspriteTable_PCIcon);
+    sprite->oam.priority = 3;
 }
 
 static void NamingScreen_CreateMonIcon(void)
@@ -1421,11 +1419,9 @@ static void NamingScreen_CreateMonIcon(void)
 
 static void NamingScreen_CreateWaldaDadIcon(void)
 {
-    u8 spriteId;
-
-    spriteId = CreateObjectGraphicsSprite(OBJ_EVENT_GFX_MAN_1, SpriteCallbackDummy, 56, 37, 0);
-    gSprites[spriteId].oam.priority = 3;
-    StartSpriteAnim(&gSprites[spriteId], ANIM_STD_GO_SOUTH);
+    struct Sprite *sprite = CreateObjectGraphicsSpritePointer(OBJ_EVENT_GFX_MAN_1, SpriteCallbackDummy, 56, 37, 0);
+    sprite->oam.priority = 3;
+    StartSpriteAnim(sprite, ANIM_STD_GO_SOUTH);
 }
 
 //--------------------------------------------------
