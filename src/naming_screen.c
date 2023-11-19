@@ -1684,7 +1684,7 @@ static void HandleDpadMovement(struct Task *task)
     {
         if (cursorY < 0)
             cursorY = KBROW_COUNT - 1;
-        if (cursorY > KBROW_COUNT - 1)
+        else if (cursorY > KBROW_COUNT - 1)
             cursorY = 0;
     }
     SetCursorPos(cursorX, cursorY);
