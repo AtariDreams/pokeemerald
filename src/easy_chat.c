@@ -4931,14 +4931,14 @@ static bool8 IsModeWindowAnimActive(void)
 
 static void CreateScrollIndicatorSprites(void)
 {
-    u8 spriteId = CreateSprite(&sSpriteTemplate_ScrollIndicator, 96, 80, 0);
-    if (spriteId != MAX_SPRITES)
-        sScreenControl->scrollIndicatorUpSprite = &gSprites[spriteId];
+    struct Sprite *sprite = CreateSpriteReturnPointer(&sSpriteTemplate_ScrollIndicator, 96, 80, 0);
+    if (sprite != NULL)
+        sScreenControl->scrollIndicatorUpSprite = sprite;
 
-    spriteId = CreateSprite(&sSpriteTemplate_ScrollIndicator, 96, 156, 0);
-    if (spriteId != MAX_SPRITES)
+    sprite = CreateSpriteReturnPointer(&sSpriteTemplate_ScrollIndicator, 96, 156, 0);
+    if (sprite != NULL)
     {
-        sScreenControl->scrollIndicatorDownSprite = &gSprites[spriteId];
+        sScreenControl->scrollIndicatorDownSprite = sprite;
         sScreenControl->scrollIndicatorDownSprite->vFlip = TRUE;
     }
 
@@ -4976,14 +4976,14 @@ static void SetScrollIndicatorXPos(bool32 inWordSelect)
 // The Start/Select buttons are used as page scroll indicators
 static void CreateStartSelectButtonSprites(void)
 {
-    u8 spriteId = CreateSprite(&sSpriteTemplate_StartSelectButton, 220, 84, 1);
-    if (spriteId != MAX_SPRITES)
-        sScreenControl->startButtonSprite = &gSprites[spriteId];
+    struct Sprite* sprite = CreateSpriteReturnPointer(&sSpriteTemplate_StartSelectButton, 220, 84, 1);
+    if (sprite != NULL)
+        sScreenControl->startButtonSprite = sprite;
 
-    spriteId = CreateSprite(&sSpriteTemplate_StartSelectButton, 220, 156, 1);
-    if (spriteId != MAX_SPRITES)
+    sprite = CreateSpriteReturnPointer(&sSpriteTemplate_StartSelectButton, 220, 156, 1);
+    if (sprite != NULL)
     {
-        sScreenControl->selectButtonSprite = &gSprites[spriteId];
+        sScreenControl->selectButtonSprite = sprite;
         StartSpriteAnim(sScreenControl->selectButtonSprite, 1);
     }
 
@@ -5006,6 +5006,7 @@ static void TryAddInterviewObjectEvents(void)
 {
     int graphicsId;
     u8 spriteId;
+    struct Sprite * sprite;
 
     switch (GetDisplayedPersonType())
     {
@@ -5026,25 +5027,25 @@ static void TryAddInterviewObjectEvents(void)
         return;
 
     // Add object for reporter/interviewing fan (facing left)
-    spriteId = CreateObjectGraphicsSprite(graphicsId, SpriteCallbackDummy, 76, 40, 0);
-    if (spriteId != MAX_SPRITES)
+    sprite = CreateObjectGraphicsSpritePointer(graphicsId, SpriteCallbackDummy, 76, 40, 0);
+    if (sprite != NULL)
     {
-        gSprites[spriteId].oam.priority = 0;
-        StartSpriteAnim(&gSprites[spriteId], 2);
+        sprite->oam.priority = 0;
+        StartSpriteAnim(sprite, 2);
     }
 
     // Add object for player (facing right)
-    spriteId = CreateObjectGraphicsSprite(
+    sprite = CreateObjectGraphicsSpritePointer(
         gSaveBlock2.playerGender == MALE ? OBJ_EVENT_GFX_RIVAL_BRENDAN_NORMAL : OBJ_EVENT_GFX_RIVAL_MAY_NORMAL,
         SpriteCallbackDummy,
         52,
         40,
         0);
 
-    if (spriteId != MAX_SPRITES)
+    if (sprite != NULL)
     {
-        gSprites[spriteId].oam.priority = 0;
-        StartSpriteAnim(&gSprites[spriteId], 3);
+        sprite->oam.priority = 0;
+        StartSpriteAnim(sprite, 3);
     }
 }
 
