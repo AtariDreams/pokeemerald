@@ -1236,7 +1236,8 @@ static void Task_ClosePartyMenu(u8 taskId)
 
 static void Task_ClosePartyMenuAndSetCB2(u8 taskId)
 {
-    if (!gPaletteFade.active)
+    if (gPaletteFade.active)
+        return;
     {
         if (gPartyMenu.menuType == PARTY_MENU_TYPE_IN_BATTLE)
             UpdatePartyToFieldOrder();
@@ -1264,7 +1265,7 @@ u8 GetPartyMenuType(void)
 
 void Task_HandleChooseMonInput(u8 taskId)
 {
-    if (!gPaletteFade.active && MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
+    if (!gPaletteFade.active && MenuHelpers_ShouldWaitForLinkRecv())
     {
         s8 *slotPtr = GetCurrentPartySlotPtr();
 
@@ -1361,9 +1362,10 @@ static void HandleChooseMonSelection(u8 taskId, s8 *slotPtr)
             TryEnterMonForMinigame(taskId, (u8)*slotPtr);
         }
         break;
-    default:
+
     case PARTY_ACTION_ABILITY_PREVENTS:
     case PARTY_ACTION_SWITCHING:
+    default:
         PlaySE(SE_SELECT);
         Task_TryCreateSelectionWindow(taskId);
         break;
@@ -1548,7 +1550,6 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
                 *slotPtr = gPlayerParty.count - 1;
             break;
         }
-        else
         (*slotPtr)--;
         break;
     case MENU_DIR_DOWN:
@@ -1888,6 +1889,7 @@ static void ResetHPTaskData(u8 taskId, u32 hp)
 #undef tPartyId
 #undef tStartHP
 
+// TODO: Make this an enum
 u8 GetAilmentFromStatus(u32 status)
 {
     if (status & STATUS1_PSN_ANY)
@@ -1923,7 +1925,7 @@ static void SetPartyMonsAllowedInMinigame(void)
 
     if (gPartyMenu.menuType == PARTY_MENU_TYPE_MINIGAME)
     {
-        u8 i;
+        u32 i;
 
         ptr = &gPartyMenu.data1;
         *ptr = 0;
@@ -1957,7 +1959,7 @@ static bool16 IsMonAllowedInDodrioBerryPicking(struct Pokemon *mon)
 
 static bool8 IsMonAllowedInMinigame(u8 slot)
 {
-    if (!((gPartyMenu.data1 >> slot) & 1))
+    if (!((gPartyMenu.data1 & (1U << slot))))
         return FALSE;
     return TRUE;
 }
@@ -1989,7 +1991,7 @@ static void CancelParticipationPrompt(u8 taskId)
 
 static void Task_CancelParticipationYesNo(u8 taskId)
 {
-    if (IsPartyMenuTextPrinterActive() != TRUE)
+    if (!IsPartyMenuTextPrinterActive())
     {
         PartyMenuDisplayYesNoMenu();
         gTasks[taskId].func = Task_HandleCancelParticipationYesNoInput;
@@ -2024,21 +2026,20 @@ static u8 CanMonLearnTMTutor(struct Pokemon *mon, u16 item, u8 tutor)
     {
         if (!CanMonLearnTMHM(mon, item - ITEM_TM01))
             return CANNOT_LEARN_MOVE;
-        else
-            move = ItemIdToBattleMoveId(item);
+        
+        move = ItemIdToBattleMoveId(item);
     }
     else
     {
         if (!CanLearnTutorMove(GetMonData(mon, MON_DATA_SPECIES), tutor))
             return CANNOT_LEARN_MOVE;
-        else
-            move = GetTutorMove(tutor);
+        move = GetTutorMove(tutor);
     }
 
-    if (MonKnowsMove(mon, move) == TRUE)
+    if (MonKnowsMove(mon, move))
         return ALREADY_KNOWS_MOVE;
-    else
-        return CAN_LEARN_MOVE;
+    
+    return CAN_LEARN_MOVE;
 }
 
 static u16 GetTutorMove(u8 tutor)
@@ -2048,7 +2049,7 @@ static u16 GetTutorMove(u8 tutor)
 
 static bool8 CanLearnTutorMove(u16 species, u8 tutor)
 {
-    return (sTutorLearnsets[species] >> tutor) & 1;
+    return (sTutorLearnsets[species] & (1U << tutor));
 }
 
 static void InitPartyMenuWindows(u8 layout)
