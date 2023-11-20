@@ -17,7 +17,7 @@ struct Dma3Request
     u32 value;
 };
 
-static ALIGNED(4) struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
+static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 // Okay this is somehow more performant by preventing a mov when volatile when it doesn't have to be
 // TODO: what about on clang?
@@ -26,13 +26,12 @@ static s8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
-    unsigned int i;
-
     // sDma3ManagerLocked = TRUE;
     // asm volatile ("" : : : "memory");
 
     // DMA should prevent interrupts
     DmaFill32(3, 0, sDma3Requests, sizeof(sDma3Requests));
+    asm volatile ("" : : : "memory");
     // Hence I put this here so that the compiler cannot try any funny stuff.
     sDma3RequestCursor = 0;
 

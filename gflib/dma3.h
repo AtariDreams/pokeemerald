@@ -1,6 +1,8 @@
 #ifndef GUARD_DMA3_H
 #define GUARD_DMA3_H
 
+#include "global.h"
+
 #define Dma3CopyLarge_(src, dest, size, blocksize, bit)               \
 {                                                          \
     const void *_src = src;                                \
