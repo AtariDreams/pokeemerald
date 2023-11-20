@@ -1292,7 +1292,7 @@ u8 GetPartyMenuType(void)
 
 void Task_HandleChooseMonInput(u8 taskId)
 {
-    if (!gPaletteFade.active && MenuHelpers_ShouldWaitForLinkRecv())
+    if (!gPaletteFade.active && !MenuHelpers_ShouldWaitForLinkRecv())
     {
         s8 *slotPtr = GetCurrentPartySlotPtr();
 
