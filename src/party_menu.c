@@ -496,7 +496,7 @@ static bool8 SetUpFieldMove_Dive(void);
 // code
 static void InitPartyMenu(u8 menuType, u8 layout, u8 partyAction, bool8 keepCursorPos, u8 messageId, TaskFunc task, MainCallback callback)
 {
-    u16 i;
+    u32 i;
 
     ResetPartyMenu();
     sPartyMenuInternal = Alloc(sizeof(struct PartyMenuInternal));
@@ -531,7 +531,7 @@ static void InitPartyMenu(u8 menuType, u8 layout, u8 partyAction, bool8 keepCurs
 
     if (!keepCursorPos)
         gPartyMenu.slotId = 0;
-    else if (gPartyMenu.slotId > PARTY_SIZE - 1 || GetMonData(&gPlayerParty.party[gPartyMenu.slotId], MON_DATA_SPECIES) == SPECIES_NONE)
+    else if (gPartyMenu.slotId >= PARTY_SIZE || GetMonData(&gPlayerParty.party[gPartyMenu.slotId], MON_DATA_SPECIES) == SPECIES_NONE)
         gPartyMenu.slotId = 0;
 
     gTextFlags.autoScroll = 0;
@@ -559,7 +559,7 @@ static void CB2_InitPartyMenu(void)
 {
     while (TRUE)
     {
-        if (MenuHelpers_ShouldWaitForLinkRecv() == TRUE || ShowPartyMenu() == TRUE || MenuHelpers_IsLinkActive() == TRUE)
+        if (MenuHelpers_ShouldWaitForLinkRecv()|| ShowPartyMenu()|| MenuHelpers_IsLinkActive())
             break;
     }
 }
@@ -572,33 +572,34 @@ static bool8 ShowPartyMenu(void)
         SetVBlankHBlankCallbacksToNull();
         ResetVramOamAndBgCntRegs();
         ClearScheduledBgCopiesToVram();
-        gMain.state++;
+        gMain.state = 1;
         break;
     case 1:
         ScanlineEffect_Stop();
-        gMain.state++;
+        gMain.state = 2;
         break;
     case 2:
         ResetPaletteFade();
         gPaletteFade.bufferTransferDisabled = TRUE;
-        gMain.state++;
+        asm volatile ("" : : : "memory");
+        gMain.state = 3;
         break;
     case 3:
         ResetSpriteData();
-        gMain.state++;
+        gMain.state= 4;
         break;
     case 4:
         FreeAllSpritePalettes();
-        gMain.state++;
+        gMain.state = 5;
         break;
     case 5:
         if (!MenuHelpers_IsLinkActive())
             ResetTasks();
-        gMain.state++;
+        gMain.state = 6;
         break;
     case 6:
         SetPartyMonsAllowedInMinigame();
-        gMain.state++;
+        gMain.state = 7;
         break;
     case 7:
         if (!AllocPartyMenuBg())
@@ -608,75 +609,75 @@ static bool8 ShowPartyMenu(void)
         }
 
         sPartyMenuInternal->data[0] = 0;
-        gMain.state++;
+        gMain.state = 8;
         break;
     case 8:
         if (AllocPartyMenuBgGfx())
-            gMain.state++;
+            gMain.state = 9;
         break;
     case 9:
         InitPartyMenuWindows(gPartyMenu.layout);
-        gMain.state++;
+        gMain.state = 10;
         break;
     case 10:
         InitPartyMenuBoxes(gPartyMenu.layout);
         sPartyMenuInternal->data[0] = 0;
-        gMain.state++;
+        gMain.state = 11;
         break;
     case 11:
         LoadHeldItemIcons();
-        gMain.state++;
+        gMain.state = 12;
         break;
     case 12:
         LoadPartyMenuPokeballGfx();
-        gMain.state++;
+        gMain.state = 13;
         break;
     case 13:
         LoadPartyMenuAilmentGfx();
-        gMain.state++;
+        gMain.state = 14;
         break;
     case 14:
         LoadMonIconPalettes();
-        gMain.state++;
+        gMain.state = 15;
         break;
     case 15:
         if (CreatePartyMonSpritesLoop())
         {
             sPartyMenuInternal->data[0] = 0;
-            gMain.state++;
+            gMain.state = 16;
         }
         break;
     case 16:
         if (RenderPartyMenuBoxes())
         {
             sPartyMenuInternal->data[0] = 0;
-            gMain.state++;
+            gMain.state = 17;
         }
         break;
     case 17:
         CreateCancelConfirmPokeballSprites();
-        gMain.state++;
+        gMain.state = 18;
         break;
     case 18:
         CreateCancelConfirmWindows(sPartyMenuInternal->chooseHalf);
-        gMain.state++;
+        gMain.state = 19;
         break;
     case 19:
-        gMain.state++;
+        gMain.state = 20;
         break;
     case 20:
         CreateTask(sPartyMenuInternal->task, 0);
         DisplayPartyMenuStdMessage(sPartyMenuInternal->messageId);
-        gMain.state++;
+        gMain.state = 21;
         break;
     case 21:
         BlendPalettes(PALETTES_ALL, 16, 0);
         gPaletteFade.bufferTransferDisabled = FALSE;
-        gMain.state++;
+        gMain.state = 22;
         break;
     case 22:
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
-        gMain.state++;
+        gMain.state = 23;
         break;
     default:
         SetVBlankCallback(VBlankCB_PartyMenu);
@@ -714,11 +715,10 @@ static void ResetPartyMenu(void)
 
 static bool8 AllocPartyMenuBg(void)
 {
-    sPartyBgTilemapBuffer = Alloc(0x800);
+    sPartyBgTilemapBuffer = AllocZeroed(0x800);
     if (sPartyBgTilemapBuffer == NULL)
         return FALSE;
 
-    memset(sPartyBgTilemapBuffer, 0, 0x800);
     ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sPartyMenuBgTemplates, ARRAY_COUNT(sPartyMenuBgTemplates));
     SetBgTilemapBuffer(1, sPartyBgTilemapBuffer);
@@ -741,39 +741,39 @@ static bool8 AllocPartyMenuBgGfx(void)
     case 0:
         sPartyBgGfxTilemap = malloc_and_decompress(gPartyMenuBg_Gfx, &sizeout);
         LoadBgTiles(1, sPartyBgGfxTilemap, sizeout, 0);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 1;
         break;
     case 1:
         if (!IsDma3ManagerBusyWithBgCopy())
         {
             LZ77UnCompWram(gPartyMenuBg_Tilemap, sPartyBgTilemapBuffer);
-            sPartyMenuInternal->data[0]++;
+            sPartyMenuInternal->data[0] = 2;
         }
         break;
     case 2:
         LoadCompressedPalette(gPartyMenuBg_Pal, BG_PLTT_ID(0), 11 * PLTT_SIZE_4BPP);
         CpuCopy16(gPlttBufferUnfaded, sPartyMenuInternal->palBuffer, 11 * PLTT_SIZE_4BPP);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 3;
         break;
     case 3:
         PartyPaletteBufferCopy(4);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 4;
         break;
     case 4:
         PartyPaletteBufferCopy(5);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 5;
         break;
     case 5:
         PartyPaletteBufferCopy(6);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 6;
         break;
     case 6:
         PartyPaletteBufferCopy(7);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 7;
         break;
     case 7:
         PartyPaletteBufferCopy(8);
-        sPartyMenuInternal->data[0]++;
+        sPartyMenuInternal->data[0] = 8;
         break;
     default:
         return TRUE;
@@ -820,9 +820,12 @@ static void InitPartyMenuBoxes(u8 layout)
     // The first party mon goes in the left column
     sPartyMenuBoxes[0].infoRects = &sPartyBoxInfoRects[PARTY_BOX_LEFT_COLUMN];
 
-    if (layout == PARTY_LAYOUT_MULTI_SHOWCASE)
+    if (layout == PARTY_LAYOUT_MULTI_SHOWCASE) {
         sPartyMenuBoxes[3].infoRects = &sPartyBoxInfoRects[PARTY_BOX_LEFT_COLUMN];
-    else if (layout != PARTY_LAYOUT_SINGLE)
+        return;
+    }
+    
+    if (layout != PARTY_LAYOUT_SINGLE)
         sPartyMenuBoxes[1].infoRects = &sPartyBoxInfoRects[PARTY_BOX_LEFT_COLUMN];
 }
 
@@ -840,9 +843,7 @@ static void RenderPartyMenuBox(u8 slot)
         ScheduleBgCopyTilemapToVram(2);
         return;
     }
-    else
-    {
-        if (GetMonData(&gPlayerParty.party[slot], MON_DATA_SPECIES) == SPECIES_NONE)
+    if (GetMonData(&gPlayerParty.party[slot], MON_DATA_SPECIES) == SPECIES_NONE)
         {
             DrawEmptySlot(sPartyMenuBoxes[slot].windowId);
             LoadPartyBoxPalette(&sPartyMenuBoxes[slot], PARTY_PAL_NO_MON);
@@ -872,7 +873,6 @@ static void RenderPartyMenuBox(u8 slot)
         }
         PutWindowTilemap(sPartyMenuBoxes[slot].windowId);
         ScheduleBgCopyTilemapToVram(0);
-    }
 }
 
 static void DisplayPartyPokemonData(u8 slot)
@@ -883,16 +883,14 @@ static void DisplayPartyPokemonData(u8 slot)
         DisplayPartyPokemonNickname(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
         return;
     }
-    else
-    {
-        sPartyMenuBoxes[slot].infoRects->blitFunc(sPartyMenuBoxes[slot].windowId, 0, 0, 0, 0, FALSE);
-        DisplayPartyPokemonNickname(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
-        DisplayPartyPokemonLevelCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
-        DisplayPartyPokemonGenderNidoranCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
-        DisplayPartyPokemonHPCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
-        DisplayPartyPokemonMaxHPCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
-        DisplayPartyPokemonHPBarCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot]);
-    }
+
+    sPartyMenuBoxes[slot].infoRects->blitFunc(sPartyMenuBoxes[slot].windowId, 0, 0, 0, 0, FALSE);
+    DisplayPartyPokemonNickname(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
+    DisplayPartyPokemonLevelCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
+    DisplayPartyPokemonGenderNidoranCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
+    DisplayPartyPokemonHPCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
+    DisplayPartyPokemonMaxHPCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot], 0);
+    DisplayPartyPokemonHPBarCheck(&gPlayerParty.party[slot], &sPartyMenuBoxes[slot]);
 }
 
 static void DisplayPartyPokemonDescriptionData(u8 slot, u8 stringID)
@@ -911,7 +909,7 @@ static void DisplayPartyPokemonDescriptionData(u8 slot, u8 stringID)
 
 static void DisplayPartyPokemonDataForChooseHalf(u8 slot)
 {
-    u8 i;
+    u32 i;
     struct Pokemon *mon = &gPlayerParty.party[slot];
     u8 *order = gSelectedOrderFromParty;
 
@@ -927,7 +925,7 @@ static void DisplayPartyPokemonDataForChooseHalf(u8 slot)
         {
             if (order[i] != 0 && (order[i] - 1) == slot)
             {
-                DisplayPartyPokemonDescriptionData(slot, i + PARTYBOX_DESC_FIRST);
+                DisplayPartyPokemonDescriptionData(slot, PARTYBOX_DESC_FIRST + i);
                 return;
             }
         }
@@ -1200,7 +1198,7 @@ static bool8 PartyBoxPal_ParnterOrDisqualifiedInArena(u8 slot)
     if (gPartyMenu.layout == PARTY_LAYOUT_MULTI && (slot == 1 || slot == 4 || slot == 5))
         return TRUE;
 
-    if (slot < MULTI_PARTY_SIZE && (gBattleTypeFlags & BATTLE_TYPE_ARENA) && gMain.inBattle && (gBattleStruct->arenaLostPlayerMons >> GetPartyIdFromBattleSlot(slot) & 1))
+    if (slot < MULTI_PARTY_SIZE && (gBattleTypeFlags & BATTLE_TYPE_ARENA) && gMain.inBattle && (gBattleStruct->arenaLostPlayerMons & (1U << GetPartyIdFromBattleSlot(slot))))
         return TRUE;
 
     return FALSE;
@@ -1223,7 +1221,7 @@ bool8 IsMultiBattle(void)
 
 static void SwapPartyPokemon(struct Pokemon *mon1, struct Pokemon *mon2)
 {
-    struct Pokemon temp = {0};
+    struct Pokemon temp;
 
     temp = *mon1;
     *mon1 = *mon2;
