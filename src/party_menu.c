@@ -3978,7 +3978,7 @@ static void CreatePartyMonIconSprite(struct Pokemon *mon, struct PartyMenuBox *m
     bool32 handleDeoxys = TRUE;
 
     // If in a multi battle, show partners Deoxys icon as Normal forme
-    if (IsMultiBattle() == TRUE && gMain.inBattle && sMultiBattlePartnersPartyMask[slot] == TRUE)
+    if (IsMultiBattle() && sMultiBattlePartnersPartyMask[slot] == TRUE)
         handleDeoxys = FALSE;
 
     CreatePartyMonIconSpriteParameterized(GetMonData(mon, MON_DATA_SPECIES_OR_EGG), GetMonData(mon, MON_DATA_PERSONALITY), menuBox, 1, handleDeoxys);
@@ -4052,7 +4052,7 @@ static void SpriteCB_BouncePartyMonIcon(struct Sprite *sprite)
 
     if (animCmd != 0)
     {
-        if (animCmd & 1) // % 2 also matches
+        if (animCmd & 1)
             sprite->y2 = -3;
         else
             sprite->y2 = 1;
