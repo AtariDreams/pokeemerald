@@ -3007,21 +3007,39 @@ static void SwitchMenuBoxSprites(u8 *spriteIdPtr1, u8 *spriteIdPtr2)
     gSprites[*spriteIdPtr2].y2 = yBuffer2;
 }
 
+void memswap(void * restrict v1, void * restrict v2, u32 size)
+{
+    u32 sizeLeftover = size & 3;
+    u32 *x = v1, *y = v2;
+    size >>= 2;
+
+    for (; size; size--)
+    {
+        *x ^= *y;
+        *y ^= *x;
+        *x++ ^= *y++;
+    }
+
+    u8 *x2 = (u8 *)x;
+    u8 *y2 = (u8 *)y;
+    for (; sizeLeftover; sizeLeftover--)
+    {
+        *x2 ^= *y2;
+        *y2 ^= *x2;
+        *x2++ ^= *y2++;
+    }
+
+    
+}
+
 static void SwitchPartyMon(void)
 {
     struct PartyMenuBox *menuBoxes[2];
-    struct Pokemon *mon[2];
-    struct Pokemon *monBuffer;
+
+    memswap(&gPlayerParty.party[gPartyMenu.slotId], &gPlayerParty.party[gPartyMenu.slotId2], sizeof(struct Pokemon));
 
     menuBoxes[0] = &sPartyMenuBoxes[gPartyMenu.slotId];
     menuBoxes[1] = &sPartyMenuBoxes[gPartyMenu.slotId2];
-    mon[0] = &gPlayerParty.party[gPartyMenu.slotId];
-    mon[1] = &gPlayerParty.party[gPartyMenu.slotId2];
-    monBuffer = Alloc(sizeof(struct Pokemon));
-    *monBuffer = *mon[0];
-    *mon[0]= *mon[1];
-    *mon[1] = *monBuffer;
-    Free(monBuffer);
     SwitchMenuBoxSprites(&menuBoxes[0]->pokeballSpriteId, &menuBoxes[1]->pokeballSpriteId);
     SwitchMenuBoxSprites(&menuBoxes[0]->itemSpriteId, &menuBoxes[1]->itemSpriteId);
     SwitchMenuBoxSprites(&menuBoxes[0]->monSpriteId, &menuBoxes[1]->monSpriteId);
