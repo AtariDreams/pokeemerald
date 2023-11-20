@@ -1213,19 +1213,46 @@ static void DrawCancelConfirmButtons(void)
 
 bool8 IsMultiBattle(void)
 {
-    if (gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_DOUBLE && gBattleTypeFlags & BATTLE_TYPE_TRAINER && gMain.inBattle)
+    if (gMain.inBattle && (gBattleTypeFlags & (BATTLE_TYPE_MULTI | BATTLE_TYPE_DOUBLE | BATTLE_TYPE_TRAINER)))
         return TRUE;
     else
         return FALSE;
 }
 
+void NAKED memswap(void * restrict v1, void * restrict v2, u32 size)
+{
+    asm_unified("\
+        push    {r4, lr}\n\
+        cmp     r2, #4\n\
+        blo     .LBB0_3\n\
+.LBB0_1:\n\
+        ldr     r3, [r0]\n\
+        ldr     r4, [r1]\n\
+        stm     r0!, {r4}\n\
+        stm     r1!, {r3}\n\
+        subs    r2, r2, #4\n\
+        cmp     r2, #3\n\
+        bhi     .LBB0_1\n\
+        b       .LBB0_3\n\
+.LBB0_2:\n\
+        ldrb    r3, [r1]\n\
+        ldrb    r4, [r0]\n\
+        strb    r4, [r1]\n\
+        strb    r3, [r0]\n\
+        subs    r2, r2, #1\n\
+        adds    r0, r0, #1\n\
+        adds    r1, r1, #1\n\
+.LBB0_3:\n\
+        cmp     r2, #0\n\
+        bne     .LBB0_2\n\
+        pop     {r4}\n\
+        pop     {r0}\n\
+        bx      r0\n");
+}
+
 static void SwapPartyPokemon(struct Pokemon *mon1, struct Pokemon *mon2)
 {
-    struct Pokemon temp;
-
-    temp = *mon1;
-    *mon1 = *mon2;
-    *mon2 = temp;
+    memswap(mon1, mon2, sizeof(*mon1));
 }
 
 static void Task_ClosePartyMenu(u8 taskId)
@@ -3032,37 +3059,6 @@ static void SwitchMenuBoxSprites(u8 *spriteIdPtr1, u8 *spriteIdPtr2)
 
 //TODO: compile with clang one day
 
-void NAKED memswap(void * restrict v1, void * restrict v2, u32 size)
-{
-    asm_unified("\
-        push    {r4, lr}\n\
-        cmp     r2, #4\n\
-        blo     .LBB0_3\n\
-.LBB0_1:\n\
-        ldr     r3, [r0]\n\
-        ldr     r4, [r1]\n\
-        stm     r0!, {r4}\n\
-        stm     r1!, {r3}\n\
-        subs    r2, r2, #4\n\
-        cmp     r2, #3\n\
-        bhi     .LBB0_1\n\
-        b       .LBB0_3\n\
-.LBB0_2:\n\
-        ldrb    r3, [r1]\n\
-        ldrb    r4, [r0]\n\
-        strb    r4, [r1]\n\
-        strb    r3, [r0]\n\
-        subs    r2, r2, #1\n\
-        adds    r0, r0, #1\n\
-        adds    r1, r1, #1\n\
-.LBB0_3:\n\
-        cmp     r2, #0\n\
-        bne     .LBB0_2\n\
-        pop     {r4}\n\
-        pop     {r0}\n\
-        bx      r0\n");
-}
-
 static void SwitchPartyMon(void)
 {
     struct PartyMenuBox *menuBoxes[2];
@@ -3528,9 +3524,8 @@ static void Task_HandleLoseMailMessageYesNoInput(u8 taskId)
 
 static void CursorCb_Cancel2(u8 taskId)
 {
-    struct Pokemon *mon = &gPlayerParty.party[gPartyMenu.slotId];
-
     PlaySE(SE_SELECT);
+    struct Pokemon *mon = &gPlayerParty.party[gPartyMenu.slotId];
     PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[0]);
     PartyMenuRemoveWindow(&sPartyMenuInternal->windowId[1]);
     SetPartyMonSelectionActions(gPartyMenu.slotId, GetPartyMenuActionsType(mon));
