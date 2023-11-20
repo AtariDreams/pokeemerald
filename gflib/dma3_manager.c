@@ -91,10 +91,7 @@ void ProcessDma3Requests(void)
         sDma3Requests[sDma3RequestCursor].size = 0;
         sDma3Requests[sDma3RequestCursor].mode = 0;
         sDma3Requests[sDma3RequestCursor].value = 0;
-        if (sDma3RequestCursor == MAX_DMA_REQUESTS - 1) // loop back to the first DMA request
-             sDma3RequestCursor = 0;
-        else
-             sDma3RequestCursor++;
+        sDma3RequestCursor = (sDma3RequestCursor + 1) & 127;
     }
 }
 
@@ -125,10 +122,8 @@ s8 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
             return cursor;
         }
         // loop back to start.
-        if (cursor == MAX_DMA_REQUESTS - 1)
-            cursor = 0;
-        else
-            cursor++;
+
+        cursor = (cursor + 1) & 127;
     }
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
@@ -162,10 +157,8 @@ s8 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
             sDma3ManagerLocked = FALSE;
             return cursor;
         }
-        if (cursor == MAX_DMA_REQUESTS - 1) // loop back to start.
-            cursor = 0;
-        else
-            cursor++;
+
+        cursor = (cursor + 1) & 127;
     }
     asm volatile ("" : : : "memory");
     sDma3ManagerLocked = FALSE;
