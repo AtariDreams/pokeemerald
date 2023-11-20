@@ -3007,29 +3007,60 @@ static void SwitchMenuBoxSprites(u8 *spriteIdPtr1, u8 *spriteIdPtr2)
     gSprites[*spriteIdPtr2].y2 = yBuffer2;
 }
 
-void memswap(void * restrict v1, void * restrict v2, u32 size)
-{
-    u32 sizeLeftover = size & 3;
-    u32 *x = v1, *y = v2;
-    size >>= 2;
+// void memswap(void * restrict v1, void * restrict v2, u32 size)
+// {
+//     u32 *x = v1, *y = v2;
 
-    for (; size; size--)
-    {
-        *x ^= *y;
-        *y ^= *x;
-        *x++ ^= *y++;
-    }
+//     for (; size>=sizeof(u32); size -= sizeof(u32))
+//     {
+//         *x ^= *y;
+//         *y ^= *x;
+//         *x++ ^= *y++;
+//     }
 
-    u8 *x2 = (u8 *)x;
-    u8 *y2 = (u8 *)y;
-    for (; sizeLeftover; sizeLeftover--)
-    {
-        *x2 ^= *y2;
-        *y2 ^= *x2;
-        *x2++ ^= *y2++;
-    }
+//     u8 *x2 = (u8 *)x;
+//     u8 *y2 = (u8 *)y;
+//     for (; size; size--)
+//     {
+//         *x2 ^= *y2;
+//         *y2 ^= *x2;
+//         *x2++ ^= *y2++;
+//     }
 
     
+// }
+
+//TODO: compile with clang one day
+
+void NAKED memswap(void * restrict v1, void * restrict v2, u32 size)
+{
+    asm_unified("\
+        push    {r4, lr}\n\
+        cmp     r2, #4\n\
+        blo     .LBB0_3\n\
+.LBB0_1:\n\
+        ldr     r3, [r0]\n\
+        ldr     r4, [r1]\n\
+        stm     r0!, {r4}\n\
+        stm     r1!, {r3}\n\
+        subs    r2, r2, #4\n\
+        cmp     r2, #3\n\
+        bhi     .LBB0_1\n\
+        b       .LBB0_3\n\
+.LBB0_2:\n\
+        ldrb    r3, [r1]\n\
+        ldrb    r4, [r0]\n\
+        strb    r4, [r1]\n\
+        strb    r3, [r0]\n\
+        subs    r2, r2, #1\n\
+        adds    r0, r0, #1\n\
+        adds    r1, r1, #1\n\
+.LBB0_3:\n\
+        cmp     r2, #0\n\
+        bne     .LBB0_2\n\
+        pop     {r4}\n\
+        pop     {r0}\n\
+        bx      r0\n");
 }
 
 static void SwitchPartyMon(void)
