@@ -28,18 +28,20 @@ void ClearDma3Requests(void)
 {
     unsigned int i;
 
-    sDma3ManagerLocked = TRUE;
-    asm volatile ("" : : : "memory");
+    // sDma3ManagerLocked = TRUE;
+    // asm volatile ("" : : : "memory");
+
+    // DMA should prevent interrupts
+    DmaFill32(3, 0, sDma3Requests, sizeof(sDma3Requests));
+    // Hence I put this here so that the compiler cannot try any funny stuff.
     sDma3RequestCursor = 0;
 
-    for (i = 0; i < MAX_DMA_REQUESTS; i++)
-    {
-        sDma3Requests[i].size = 0;
-        sDma3Requests[i].src = NULL;
-        sDma3Requests[i].dest = NULL;
-    }
-    asm volatile ("" : : : "memory");
-    sDma3ManagerLocked = FALSE;
+    // for (i = 0; i < MAX_DMA_REQUESTS; i++)
+    // {
+    //     sDma3Requests[i].size = 0;
+    // }
+    // asm volatile ("" : : : "memory");
+    // sDma3ManagerLocked = FALSE;
 }
 
 void ProcessDma3Requests(void)
