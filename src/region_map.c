@@ -38,6 +38,11 @@
  *
  */
 
+#define BLOCK_XMIN    (1)
+#define BLOCK_XMAX    (28)
+#define BLOCK_YMIN    (2)
+#define BLOCK_YMAX    (16)
+
 #define MAP_WIDTH 28
 #define MAP_HEIGHT 16
 #define MAPCURSOR_X_MIN 1
@@ -977,7 +982,8 @@ void PokedexAreaScreen_UpdateRegionMapVariablesAndVideoRegs(s16 x, s16 y)
 
 static u16 GetMapSecIdAt(u16 x, u16 y)
 {
-    if (y < MAPCURSOR_Y_MIN || y > MAPCURSOR_Y_MAX || x < MAPCURSOR_X_MIN || x > MAPCURSOR_X_MAX)
+    if(y < BLOCK_YMIN || y > BLOCK_YMAX ||
+	   x < BLOCK_XMIN || x > BLOCK_XMAX)
     {
         return MAPSEC_NONE;
     }
@@ -1046,7 +1052,7 @@ static void InitMapBasedOnPlayerLocation(void)
         }
         break;
     case MAP_TYPE_SECRET_BASE:
-        mapHeader = Overworld_GetMapHeaderByGroupAndId((u16)gSaveBlock1.dynamicWarp.mapGroup, (u16)gSaveBlock1.dynamicWarp.mapNum);
+        mapHeader = Overworld_GetMapHeaderByGroupAndId(gSaveBlock1.dynamicWarp.mapGroup, gSaveBlock1.dynamicWarp.mapNum);
         sRegionMap->mapSecId = mapHeader->regionMapSectionId;
         sRegionMap->playerIsInCave = TRUE;
         mapWidth = mapHeader->mapLayout->width;
@@ -1068,10 +1074,10 @@ static void InitMapBasedOnPlayerLocation(void)
             sRegionMap->mapSecId = mapHeader->regionMapSectionId;
         }
 
-        if (IsPlayerInAquaHideout(sRegionMap->mapSecId))
-            sRegionMap->playerIsInCave = TRUE;
-        else
-            sRegionMap->playerIsInCave = FALSE;
+        //if (IsPlayerInAquaHideout(sRegionMap->mapSecId))
+       //     sRegionMap->playerIsInCave = TRUE;
+       // else
+        sRegionMap->playerIsInCave = FALSE;
 
         mapWidth = mapHeader->mapLayout->width;
         mapHeight = mapHeader->mapLayout->height;
@@ -1137,8 +1143,8 @@ static void InitMapBasedOnPlayerLocation(void)
         GetMarineCaveCoords(&sRegionMap->cursorPosX, &sRegionMap->cursorPosY);
         return;
     }
-    sRegionMap->cursorPosX = gRegionMapEntries[sRegionMap->mapSecId].x + x + MAPCURSOR_X_MIN;
-    sRegionMap->cursorPosY = gRegionMapEntries[sRegionMap->mapSecId].y + y + MAPCURSOR_Y_MIN;
+    sRegionMap->cursorPosX = gRegionMapEntries[sRegionMap->mapSecId].x + x + BLOCK_XMIN;
+    sRegionMap->cursorPosY = gRegionMapEntries[sRegionMap->mapSecId].y + y + BLOCK_YMIN;
 }
 
 static void RegionMap_InitializeStateBasedOnSSTidalLocation(void)
@@ -1189,8 +1195,8 @@ static void RegionMap_InitializeStateBasedOnSSTidalLocation(void)
         break;
     }
     sRegionMap->playerIsInCave = FALSE;
-    sRegionMap->cursorPosX = gRegionMapEntries[sRegionMap->mapSecId].x + x + MAPCURSOR_X_MIN;
-    sRegionMap->cursorPosY = gRegionMapEntries[sRegionMap->mapSecId].y + y + MAPCURSOR_Y_MIN;
+    sRegionMap->cursorPosX = gRegionMapEntries[sRegionMap->mapSecId].x + x + BLOCK_XMIN;
+    sRegionMap->cursorPosY = gRegionMapEntries[sRegionMap->mapSecId].y + y + BLOCK_YMIN;
 }
 
 static u8 GetMapsecType(u16 mapSecId)
@@ -1324,6 +1330,7 @@ static void GetPositionOfCursorWithinMapSec(void)
         sRegionMap->posWithinMapSec = 0;
         return;
     }
+
     if (!sRegionMap->zoomed)
     {
         x = sRegionMap->cursorPosX;
@@ -1337,7 +1344,7 @@ static void GetPositionOfCursorWithinMapSec(void)
     posWithinMapSec = 0;
     while (1)
     {
-        while (x > MAPCURSOR_X_MIN)
+        while (x > BLOCK_XMIN)
         {
             if (GetMapSecIdAt(--x, y) == sRegionMap->mapSecId)
             {
@@ -1348,7 +1355,7 @@ static void GetPositionOfCursorWithinMapSec(void)
             break;
 
         y--;
-        x = MAPCURSOR_X_MAX + 1;
+        x = BLOCK_XMAX + 1;
     }
     sRegionMap->posWithinMapSec = posWithinMapSec;
 }
@@ -1909,8 +1916,8 @@ static void TryCreateRedOutlineFlyDestIcons(void)
         {
             mapSecId = sRedOutlineFlyDestinations[i][1];
             GetMapSecDimensions(mapSecId, &x, &y, &width, &height);
-            x = (x + MAPCURSOR_X_MIN) * 8;
-            y = (y + MAPCURSOR_Y_MIN) * 8;
+			x = ((BLOCK_XMIN+x) * 8);
+			y = ((BLOCK_YMIN+y) * 8);
             sprite = CreateSpriteReturnPointer(&sFlyDestIconSpriteTemplate, x, y, 10);
             if (sprite != NULL)
             {
