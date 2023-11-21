@@ -767,7 +767,7 @@ void FishingWildEncounter(u8 rod)
 {
     u16 species;
 
-    if (CheckFeebas() == TRUE)
+    if (CheckFeebas())
     {
         u8 level = ChooseWildMonLevel(&sWildFeebas);
 
