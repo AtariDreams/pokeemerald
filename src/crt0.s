@@ -19,7 +19,7 @@ Init::
 	mov r0, #255 @ RESET_ALL
 	svc #1 << 16
 	.endif @ MODERN
-	ldr r1, =AgbMain
+	ldr r1, =AgbMain + 1
 	mov     lr, pc
 	bx r1
 	b Init
@@ -115,7 +115,7 @@ IntrMain_RetAddr:
 	orr r3, r3, #PSR_I_BIT | PSR_IRQ_MODE
 	msr cpsr_cf, r3
 	pop {r0-r3,lr}
-	strh r2, [r3]
+	strh r2, [r3, #0]
 	strh r1, [r3, #REG_IME - REG_IE]
 	msr spsr_cf, r0
 	bx lr
