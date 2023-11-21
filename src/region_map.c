@@ -762,22 +762,22 @@ static u8 ProcessRegionMapInput_Zoomed(void)
     input = MAP_INPUT_NONE;
     sRegionMap->zoomedCursorDeltaX = 0;
     sRegionMap->zoomedCursorDeltaY = 0;
-    if (JOY_HELD(DPAD_UP) && sRegionMap->scrollY > -0x34)
+    if (JOY_HELD(DPAD_UP) && sRegionMap->scrollY > ZOOM_T_LIMIT)
     {
         sRegionMap->zoomedCursorDeltaY = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    else if (JOY_HELD(DPAD_DOWN) && sRegionMap->scrollY < 0x3c)
+    else if (JOY_HELD(DPAD_DOWN) && sRegionMap->scrollY < ZOOM_B_LIMIT)
     {
         sRegionMap->zoomedCursorDeltaY = +1;
         input = MAP_INPUT_MOVE_START;
     }
-    if (JOY_HELD(DPAD_LEFT) && sRegionMap->scrollX > -0x2c)
+    if (JOY_HELD(DPAD_LEFT) && sRegionMap->scrollX > ZOOM_L_LIMIT)
     {
         sRegionMap->zoomedCursorDeltaX = -1;
         input = MAP_INPUT_MOVE_START;
     }
-    else if (JOY_HELD(DPAD_RIGHT) && sRegionMap->scrollX < 0xac)
+    else if (JOY_HELD(DPAD_RIGHT) && sRegionMap->scrollX < ZOOM_R_LIMIT)
     {
         sRegionMap->zoomedCursorDeltaX = +1;
         input = MAP_INPUT_MOVE_START;
@@ -808,7 +808,7 @@ static u8 MoveRegionMapCursor_Zoomed(void)
     sRegionMap->scrollX += sRegionMap->zoomedCursorDeltaX;
     RegionMap_SetBG2XAndBG2Y(sRegionMap->scrollX, sRegionMap->scrollY);
     sRegionMap->zoomedCursorMovementFrameCounter++;
-    if (sRegionMap->zoomedCursorMovementFrameCounter == 8)
+    if (++sRegionMap->zoomedCursorMovementFrameCounter == 8)
     {
         x = ZOOM_TO_XPOS(sRegionMap->scrollX);
         y = ZOOM_TO_YPOS(sRegionMap->scrollY);
@@ -1864,8 +1864,8 @@ static void CreateFlyDestIcons(void)
     for (mapSecId = MAPSEC_LITTLEROOT_TOWN; mapSecId <= MAPSEC_EVER_GRANDE_CITY; mapSecId++)
     {
         GetMapSecDimensions(mapSecId, &x, &y, &width, &height);
-        x = (x + MAPCURSOR_X_MIN) * 8 + 4;
-        y = (y + MAPCURSOR_Y_MIN) * 8 + 4;
+        x = (MAPCURSOR_X_MIN + x) * 8 + 4;
+        y = (MAPCURSOR_Y_MIN + y) * 8 + 4;
 
         if (width == 2)
             shape = SPRITE_SHAPE(16x8);
