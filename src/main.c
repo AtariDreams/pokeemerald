@@ -34,7 +34,7 @@ const u8 gGameVersion = GAME_VERSION;
 
 const u8 gGameLanguage = GAME_LANGUAGE; // English
 
-ALIGNED(4) const IntrFunc gIntrTableTemplate[] =
+const IntrFunc gIntrTableTemplate[] =
 {
     VCountIntr, // V-count interrupt
     SerialCB, // Serial interrupt
@@ -59,9 +59,9 @@ bool8 gLinkTransferringData;
 struct Main gMain;
 u16 gKeyRepeatContinueDelay;
 bool8 gSoftResetDisabled;
-ALIGNED(4) IntrFunc gIntrTable[INTR_COUNT];
+IntrFunc gIntrTable[INTR_COUNT];
 u8 gLinkVSyncDisabled;
-ALIGNED(4) u32 IntrMain_Buffer[0x200];
+u32 IntrMain_Buffer[0x200];
 s8 gPcmDmaCounter;
 
 static EWRAM_DATA u16 sTrainerId = 0;
@@ -92,15 +92,19 @@ _Noreturn void AgbMain(void)
     REG_IE = INTR_FLAG_VBLANK;
     REG_DISPSTAT = DISPSTAT_VBLANK_INTR;
 
-    m4aSoundInit();
-    InitKeys();
+    gKeyRepeatContinueDelay = 5;
+    gKeyRepeatStartDelay = 40;
+
     InitRFU();
-    RtcInit();
+
     CheckForFlashMemory();
     // Works because of null initialization
+    
     if (gFlashMemoryPresent)
         gMain.callback2 = CB2_InitCopyrightScreenAfterBootup;
-
+    
+    m4aSoundInit();
+    RtcInit();
     SeedRngWithRtc(); // see comment at SeedRngWithRtc definition below
 
     // 0 initialization
@@ -291,10 +295,6 @@ void RestoreSerialTimer3IntrHandlers(void)
 static void VBlankIntr(void)
 {
     m4aSoundVSync();
-    if (gWirelessCommType != 0)
-        RfuVSync();
-    else if (gLinkVSyncDisabled == FALSE)
-        LinkVSync();
 
     gMain.vblankCounter1++;
 
