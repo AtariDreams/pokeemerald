@@ -112,58 +112,58 @@ static u16 GetFeebasFishingSpotId(s16 targetX, s16 targetY, u8 section)
 
 static bool8 CheckFeebas(void)
 {
-    u8 i;
+    u32 i;
     u16 feebasSpots[NUM_FEEBAS_SPOTS];
     s16 x, y;
     u8 route119Section = 0;
     u16 spotId;
 
-    if (gSaveBlock1.location.mapGroup == MAP_GROUP(ROUTE119)
-     && gSaveBlock1.location.mapNum == MAP_NUM(ROUTE119))
+    if (gSaveBlock1.location.mapGroup != MAP_GROUP(ROUTE119) || gSaveBlock1.location.mapNum == MAP_NUM(ROUTE119))
+        return FALSE;
+
+    GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
+    x -= MAP_OFFSET;
+    y -= MAP_OFFSET;
+
+    // Get which third of the map the player is in
+    if (y >= sRoute119WaterTileData[3 * 0 + 0] && y <= sRoute119WaterTileData[3 * 0 + 1])
+        route119Section = 0;
+    if (y >= sRoute119WaterTileData[3 * 1 + 0] && y <= sRoute119WaterTileData[3 * 1 + 1])
+        route119Section = 1;
+    if (y >= sRoute119WaterTileData[3 * 2 + 0] && y <= sRoute119WaterTileData[3 * 2 + 1])
+        route119Section = 2;
+
+    // 50% chance of encountering Feebas (assuming this is a Feebas spot)
+    if (Random() & 1)
+        return FALSE;
+
+    FeebasSeedRng(gSaveBlock1.dewfordTrends[0].rand);
+
+    // Assign each Feebas spot to a random fishing spot.
+    // Randomness is fixed depending on the seed above.
+    for (i = 0; i < NUM_FEEBAS_SPOTS;)
     {
-        GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
-        x -= MAP_OFFSET;
-        y -= MAP_OFFSET;
+        feebasSpots[i] = FeebasRandom() % NUM_FISHING_SPOTS;
+        if (feebasSpots[i] == 0)
+            feebasSpots[i] = NUM_FISHING_SPOTS;
 
-        // Get which third of the map the player is in
-        if (y >= sRoute119WaterTileData[3 * 0 + 0] && y <= sRoute119WaterTileData[3 * 0 + 1])
-            route119Section = 0;
-        if (y >= sRoute119WaterTileData[3 * 1 + 0] && y <= sRoute119WaterTileData[3 * 1 + 1])
-            route119Section = 1;
-        if (y >= sRoute119WaterTileData[3 * 2 + 0] && y <= sRoute119WaterTileData[3 * 2 + 1])
-            route119Section = 2;
-
-        // 50% chance of encountering Feebas (assuming this is a Feebas spot)
-        if (Random() & 1)
-            return FALSE;
-
-        FeebasSeedRng(gSaveBlock1.dewfordTrends[0].rand);
-
-        // Assign each Feebas spot to a random fishing spot.
-        // Randomness is fixed depending on the seed above.
-        for (i = 0; i != NUM_FEEBAS_SPOTS;)
-        {
-            feebasSpots[i] = FeebasRandom() % NUM_FISHING_SPOTS;
-            if (feebasSpots[i] == 0)
-                feebasSpots[i] = NUM_FISHING_SPOTS;
-
-            // < 1 below is a pointless check, it will never be TRUE.
-            // >= 4 to skip fishing spots 1-3, because these are inaccessible
-            // spots at the top of the map, at (9,7), (7,13), and (15,16).
-            // The first accessible fishing spot is spot 4 at (18,18).
-            if (feebasSpots[i] >= 4)
-                i++;
-        }
-
-        // Check which fishing spot the player is at, and see if
-        // it matches any of the Feebas spots.
-        spotId = GetFeebasFishingSpotId(x, y, route119Section);
-        for (i = 0; i < NUM_FEEBAS_SPOTS; i++)
-        {
-            if (spotId == feebasSpots[i])
-                return TRUE;
-        }
+        // < 1 below is a pointless check, it will never be TRUE.
+        // >= 4 to skip fishing spots 1-3, because these are inaccessible
+        // spots at the top of the map, at (9,7), (7,13), and (15,16).
+        // The first accessible fishing spot is spot 4 at (18,18).
+        if (feebasSpots[i] >= 4)
+            i++;
     }
+
+    // Check which fishing spot the player is at, and see if
+    // it matches any of the Feebas spots.
+    spotId = GetFeebasFishingSpotId(x, y, route119Section);
+    for (i = 0; i < NUM_FEEBAS_SPOTS; i++)
+    {
+        if (spotId == feebasSpots[i])
+            return TRUE;
+    }
+
     return FALSE;
 }
 
@@ -185,25 +185,25 @@ static u8 ChooseWildMonIndex_Land(void)
 
     if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_0)
         return 0;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_0 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_1)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_1)
         return 1;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_1 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_2)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_2)
         return 2;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_2 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_3)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_3)
         return 3;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_3 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_4)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_4)
         return 4;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_4 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_5)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_5)
         return 5;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_5 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_6)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_6)
         return 6;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_6 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_7)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_7)
         return 7;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_7 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_8)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_8)
         return 8;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_8 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_9)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_9)
         return 9;
-    else if (rand >= ENCOUNTER_CHANCE_LAND_MONS_SLOT_9 && rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_10)
+    else if (rand < ENCOUNTER_CHANCE_LAND_MONS_SLOT_10)
         return 10;
     else
         return 11;
