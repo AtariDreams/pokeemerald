@@ -33,12 +33,12 @@ struct RegionMap {
     /*0x018*/ u8 (*inputCallback)(void);
     /*0x01c*/ struct Sprite *cursorSprite;
     /*0x020*/ struct Sprite *playerIconSprite;
-    /*0x024*/ s32 bg2x;
-    /*0x028*/ s32 bg2y;
-    /*0x02c*/ u32 bg2pa;
-    /*0x034*/ u32 bg2pc;
-    /*0x030*/ u32 bg2pb;
-    /*0x038*/ u32 bg2pd;
+    /*0x024*/ u32 bg2x;
+    /*0x028*/ u32 bg2y;
+    /*0x02c*/ s32 bg2pa;
+    /*0x034*/ s32 bg2pc;
+    /*0x030*/ s32 bg2pb;
+    /*0x038*/ s32 bg2pd;
     /*0x03c*/ s32 unk_03c;
     /*0x040*/ s32 unk_040;
     /*0x044*/ s32 unk_044;
@@ -112,7 +112,7 @@ void PokedexAreaScreen_UpdateRegionMapVariablesAndVideoRegs(s16 x, s16 y);
 void CB2_OpenFlyMap(void);
 bool8 IsRegionMapZoomed(void);
 void TrySetPlayerIconBlink(void);
-void BlendRegionMap(u16 color, u32 coeff);
+void BlendRegionMap(u16 color, u16 coeff);
 void SetRegionMapDataForZoom(void);
 
 extern const struct RegionMapLocation gRegionMapEntries[];
