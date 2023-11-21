@@ -617,7 +617,7 @@ bool8 LoadRegionMapGfx(void)
         GetMapName(sRegionMap->mapSecName, sRegionMap->mapSecId, MAP_NAME_LENGTH);
         break;
     case 6:
-        if (sRegionMap->zoomed == FALSE)
+        if (!sRegionMap->zoomed)
         {
             CalcZoomScrollParams(0, 0, 0, 0, 0x100, 0x100, 0);
         }
