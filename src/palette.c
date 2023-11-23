@@ -50,8 +50,8 @@ struct PaletteStruct
     u8 countdown2;
 };
 
-static void PaletteStruct_Reset(u8);
-static u8 PaletteStruct_GetPalNum(u16);
+static void PaletteStruct_Reset(u32);
+static u32 PaletteStruct_GetPalNum(u16);
 static u8 UpdateNormalPaletteFade(void);
 static void BeginFastPaletteFadeInternal(u8);
 static u8 UpdateFastPaletteFade(void);
@@ -190,12 +190,12 @@ bool8 BeginNormalPaletteFade(u32 selectedPalettes, s8 delay, u8 startY, u8 targe
 
 void PaletteStruct_ResetById(u16 id)
 {
-    u8 paletteNum = PaletteStruct_GetPalNum(id);
+    u32 paletteNum = PaletteStruct_GetPalNum(id);
     if (paletteNum != NUM_PALETTE_STRUCTS)
         PaletteStruct_Reset(paletteNum);
 }
 
-static void PaletteStruct_Reset(u8 paletteNum)
+static void PaletteStruct_Reset(u32 paletteNum)
 {
     sPaletteStructs[paletteNum].template = &sDummyPaletteStructTemplate;
     sPaletteStructs[paletteNum].active = FALSE;
@@ -226,29 +226,15 @@ void ResetPaletteFadeControl(void)
     gPaletteFade.deltaY = 2;
 }
 
-static void UNUSED PaletteStruct_SetUnusedFlag(u16 id)
+static u32 PaletteStruct_GetPalNum(u16 id)
 {
-    u8 paletteNum = PaletteStruct_GetPalNum(id);
-    if (paletteNum != NUM_PALETTE_STRUCTS)
-        sPaletteStructs[paletteNum].flag = TRUE;
-}
-
-static void UNUSED PaletteStruct_ClearUnusedFlag(u16 id)
-{
-    u8 paletteNum = PaletteStruct_GetPalNum(id);
-    if (paletteNum != NUM_PALETTE_STRUCTS)
-        sPaletteStructs[paletteNum].flag = FALSE;
-}
-
-static u8 PaletteStruct_GetPalNum(u16 id)
-{
-    u8 i;
+    u32 i;
 
     for (i = 0; i < NUM_PALETTE_STRUCTS; i++)
         if (sPaletteStructs[i].template->id == id)
-            return i;
+            break;
 
-    return NUM_PALETTE_STRUCTS;
+    return i;
 }
 
 static u8 UpdateNormalPaletteFade(void)
