@@ -1563,7 +1563,7 @@ void BattleTv_ClearExplosionFaintCause(void)
 
 u8 GetBattlerMoveSlotId(u8 battlerId, u16 moveId)
 {
-    s32 i;
+    u32 i;
     struct Pokemon *party;
 
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
@@ -1571,14 +1571,10 @@ u8 GetBattlerMoveSlotId(u8 battlerId, u16 moveId)
     else
         party = gEnemyParty.party;
 
-    i = 0;
-    while (1)
+    for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        if (i >= MAX_MON_MOVES)
-            break;
         if (GetMonData(&party[gBattlerPartyIndexes[battlerId]], MON_DATA_MOVE1 + i, NULL) == moveId)
             break;
-        i++;
     }
 
     return i;
