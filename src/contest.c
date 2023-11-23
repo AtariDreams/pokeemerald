@@ -5095,19 +5095,20 @@ static void SetBgForCurtainDrop(void)
 
 static void UpdateContestantBoxOrder(void)
 {
-    s32 i;
-    u16 bg1Cnt;
+    u32 i;
+    union BgCntU bg1Cnt;
+
 
     RequestDma3Fill(0,(void *)(BG_CHAR_ADDR(2)), 0x2000, 1);
-    CpuFill32(0, gContestResources->contestBgTilemaps[1], 0x1000);
+    CpuFastFill(0, gContestResources->contestBgTilemaps[1], 0x1000);
     Contest_SetBgCopyFlags(1);
-    bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
-    ((vBgCnt *) &bg1Cnt)->priority = 1;
-    ((vBgCnt *) &bg1Cnt)->screenSize = 0;
-    ((vBgCnt *) &bg1Cnt)->areaOverflowMode = 0;
-    ((vBgCnt *) &bg1Cnt)->charBaseBlock = 2;
+    bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+    bg1Cnt.bgCnt.priority = 1;
+    bg1Cnt.bgCnt.screenSize = 0;
+    bg1Cnt.bgCnt.areaOverflowMode = 0;
+    bg1Cnt.bgCnt.charBaseBlock = 2;
 
-    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt.raw);
 
     gBattle_BG1_X = 0;
     gBattle_BG1_Y = 0;
@@ -5129,7 +5130,8 @@ static void Task_StartDropCurtainAtRoundEnd(u8 taskId)
 
 static void Task_UpdateCurtainDropAtRoundEnd(u8 taskId)
 {
-    if ((s16)(gBattle_BG1_Y -= 7) < 0)
+    gBattle_BG1_Y -= 7;
+    if ((s16)gBattle_BG1_Y < 0)
         gBattle_BG1_Y = 0;
     if (gBattle_BG1_Y == 0)
     {
@@ -5142,7 +5144,7 @@ static void Task_UpdateCurtainDropAtRoundEnd(u8 taskId)
 
 static void Task_ResetForNextRound(u8 taskId)
 {
-    s32 i;
+    u32 i;
 
     switch (gTasks[taskId].data[0])
     {
@@ -5191,7 +5193,8 @@ static void Task_ResetForNextRound(u8 taskId)
 
 static void Task_UpdateRaiseCurtainAtRoundEnd(u8 taskId)
 {
-    if ((s16)(gBattle_BG1_Y += 7) > DISPLAY_HEIGHT)
+    gBattle_BG1_Y += 7;
+    if ((s16)gBattle_BG1_Y > DISPLAY_HEIGHT)
         gTasks[taskId].func = Task_UpdateContestantBoxOrder;
 }
 
@@ -5200,28 +5203,27 @@ static void Task_WaitRaiseCurtainAtRoundEnd(u8 taskId)
     if (gTasks[taskId].data[2] < 10)
     {
         gTasks[taskId].data[2]++;
+        return;
+    }
+
+    if (gTasks[taskId].data[1] == 0)
+    {
+        if (gTasks[taskId].data[0] == 16)
+            gTasks[taskId].data[1]++;
+        else
+            gTasks[taskId].data[0]++;
     }
     else
     {
-        if (gTasks[taskId].data[1] == 0)
+        if (gTasks[taskId].data[0] == 0)
         {
-            if (gTasks[taskId].data[0] == 16)
-                gTasks[taskId].data[1]++;
-            else
-                gTasks[taskId].data[0]++;
+            gTasks[taskId].data[1] = 0;
+            gTasks[taskId].data[2] = 0;
+            gTasks[taskId].func = Task_StartRaiseCurtainAtRoundEnd;
         }
         else
         {
-            if (gTasks[taskId].data[0] == 0)
-            {
-                gTasks[taskId].data[1] = 0;
-                gTasks[taskId].data[2] = 0;
-                gTasks[taskId].func = Task_StartRaiseCurtainAtRoundEnd;
-            }
-            else
-            {
-                gTasks[taskId].data[0]--;
-            }
+            gTasks[taskId].data[0]--;
         }
     }
 }
@@ -5244,7 +5246,7 @@ static void Task_StartRaiseCurtainAtRoundEnd(u8 taskId)
 
 static void AnimateSliderHearts(u8 animId)
 {
-    s32 i;
+    u32 i;
     u8 taskId;
 
     for (i = 0; i < CONTESTANT_COUNT; i++)
@@ -5265,11 +5267,12 @@ static void AnimateSliderHearts(u8 animId)
 
 static void Task_WaitForSliderHeartAnim(u8 taskId)
 {
-    s32 i;
+    u32 i;
 
     if (gSprites[eContestGfxState[0].sliderHeartSpriteId].affineAnimEnded)
     {
-        if ((u8)gTasks[taskId].tAnimId == SLIDER_HEART_ANIM_DISAPPEAR)
+        // TODO: code casts this to u8, but does it need to be?
+        if (gTasks[taskId].tAnimId == SLIDER_HEART_ANIM_DISAPPEAR)
         {
             for (i = 0; i < CONTESTANT_COUNT; i++)
                 gSprites[eContestGfxState[i].sliderHeartSpriteId].invisible = TRUE;
@@ -5299,12 +5302,12 @@ static u16 SanitizeSpecies(u16 species)
 
 static void SetMoveSpecificAnimData(u8 contestant)
 {
-    s32 i;
+    u32 i;
     u16 move = SanitizeMove(eContestantStatus[contestant].currMove);
     u16 species = SanitizeSpecies(gContestMons[contestant].species);
     u8 targetContestant;
 
-    memset(&gContestResources->moveAnim->species, 0, 20);
+    memset(&gContestResources->moveAnim, 0, sizeof(struct ContestMoveAnimData));
     ClearBattleAnimationVars();
     for (i = 0; i < CONTESTANT_COUNT; i++)
         gBattleMonForms[i] = 0;
@@ -5499,13 +5502,12 @@ static bool32 Contest_RunTextPrinters(void)
 
 static void Contest_SetBgCopyFlags(u32 flagIndex)
 {
-    sContestBgCopyFlags |= 1 << flagIndex;
+    sContestBgCopyFlags |= 1U << flagIndex;
 }
 
 void ResetContestLinkResults(void)
 {
-    s32 i;
-    s32 j;
+    u32 i, j;
 
     for(i = 0; i < CONTEST_CATEGORIES_COUNT; i++)
         for(j = 0; j < CONTESTANT_COUNT; j++)
@@ -5514,7 +5516,7 @@ void ResetContestLinkResults(void)
 
 bool8 SaveContestWinner(u8 rank)
 {
-    s32 i;
+    u32 i;
     u8 captionId = Random() % NUM_PAINTING_CAPTIONS;
 
     // Get the index of the winner among the contestants
@@ -5586,7 +5588,7 @@ bool8 SaveContestWinner(u8 rank)
 // If actually preparing to insert the winner into the saveblock, shift is TRUE
 u8 GetContestWinnerSaveIdx(u8 rank, bool8 shift)
 {
-    s32 i;
+    u32 i;
 
     switch (rank)
     {
@@ -5596,8 +5598,8 @@ u8 GetContestWinnerSaveIdx(u8 rank, bool8 shift)
     case CONTEST_RANK_MASTER:
         if (shift)
         {
-            for (i = NUM_CONTEST_HALL_WINNERS - 1; i > 0; i--)
-                memcpy(&gSaveBlock1.contestWinners[i], &gSaveBlock1.contestWinners[i - 1], sizeof(struct ContestWinner));
+            // Should work?
+            memmove(&gSaveBlock1.contestWinners[NUM_CONTEST_HALL_WINNERS - 1], &gSaveBlock1.contestWinners[NUM_CONTEST_HALL_WINNERS - 2], sizeof(struct ContestWinner) * (NUM_CONTEST_WINNERS - 2));
         }
         return CONTEST_WINNER_HALL_1 - 1;
     default:
@@ -5622,7 +5624,7 @@ u8 GetContestWinnerSaveIdx(u8 rank, bool8 shift)
 
 void ClearContestWinnerPicsInContestHall(void)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < MUSEUM_CONTEST_WINNERS_START; i++)
         gSaveBlock1.contestWinners[i] = gDefaultContestWinners[i];
@@ -5630,7 +5632,7 @@ void ClearContestWinnerPicsInContestHall(void)
 
 static void SetContestLiveUpdateFlags(u8 contestant)
 {
-    s32 i;
+    u32 i;
 
     if (!eContestExcitement.frozen
         && eContestExcitement.moveExcitement > 0
@@ -5692,15 +5694,15 @@ static void SetContestLiveUpdateFlags(u8 contestant)
 
 static void CalculateContestLiveUpdateData(void)
 {
-    u8 loser;
-    s32 i, j;
+    u32 loser;
+    u32 i, j;
     bool32 notLastInRound1, notLastInRound2;
     u16 appealMoves[CONTEST_NUM_APPEALS + 1];
     u8 numMoveUses[CONTEST_NUM_APPEALS + 1];
     u16 moveCandidates[CONTEST_NUM_APPEALS];
-    u8 winner;
-    u8 mostUses;
-    u8 numMoveCandidates;
+    u32 winner;
+    u32 mostUses;
+    u32 numMoveCandidates;
 
     loser = 0;
     winner = 0;
@@ -5759,22 +5761,20 @@ static void CalculateContestLiveUpdateData(void)
 
     for (i = 0; i < CONTEST_NUM_APPEALS; i++)
     {
-        if (gContestResources->tv[winner].appeals[i] != MOVE_NONE)
+        if (gContestResources->tv[winner].appeals[i] == MOVE_NONE)
+            continue;
+
+        for (j = 0; j < CONTEST_NUM_APPEALS; j++)
         {
-            for (j = 0; j < CONTEST_NUM_APPEALS; j++)
+            if (gContestResources->tv[winner].appeals[i] == appealMoves[j])
             {
-                if (gContestResources->tv[winner].appeals[i] != appealMoves[j])
-                {
-                    if (appealMoves[j] == MOVE_NONE)
-                    {
-                        appealMoves[j] = gContestResources->tv[winner].appeals[i];
-                        numMoveUses[j]++;
-                    }
-                }
-                else
-                {
-                    numMoveUses[j]++;
-                }
+                numMoveUses[j]++;
+            }
+
+            else if (appealMoves[j] == MOVE_NONE)
+            {
+                appealMoves[j] = gContestResources->tv[winner].appeals[i];
+                numMoveUses[j]++;
             }
         }
     }
@@ -5803,18 +5803,18 @@ static void CalculateContestLiveUpdateData(void)
 
 static void SetConestLiveUpdateTVData(void)
 {
-    s32 i;
+    u32 i;
     u32 flags;
-    u8 winner;
-    u8 round1Placing, round2Placing;
-    u8 count;
-    u8 randAction;
-    u8 numLoserCandidates;
-    u8 flagId;
-    u16 winnerFlag;
-    u8 loserFlag;
-    u8 loser;
-    u8 loserCandidates[CONTESTANT_COUNT - 1];
+    u32 winner;
+    u32 round1Placing, round2Placing;
+    u32 count;
+    u32 randAction;
+    u32 numLoserCandidates;
+    u32 flagId;
+    u32 winnerFlag;
+    u32 loserFlag;
+    u32 loser;
+    u32 loserCandidates[CONTESTANT_COUNT - 1];
 
     // Players mon didn't win, don't generate show
     if (gContestFinalStandings[gContestPlayerMonIndex] != 0)
@@ -5841,28 +5841,24 @@ static void SetConestLiveUpdateTVData(void)
 
     // Count how many TV comment-worthy actions the winner took
     flags = gContestResources->tv[winner].winnerFlags;
-    count = 0;
-    for (i = 0; i < 8; flags >>= 1, i++)
-    {
-        if (flags & 1)
-            count++;
-    }
+    count = __builtin_popcount(flags);
 
     // Randomly choose one of these actions to comment on
     randAction = Random() % count;
     flags = gContestResources->tv[winner].winnerFlags;
     count = 0;
     flagId = 0;
-    for (i = 0; i < 8; flags >>= 1, flagId++, i++)
+    for (i = 0; i < 8; flagId++, i++)
     {
-        if (!(flags & 1))
+        winnerFlag = (1U << flagId);
+        if (!(flags & winnerFlag))
             continue;
         if (randAction == count)
-            break;
+            goto skip;
         count++;
     }
-    winnerFlag = 1 << flagId;
-
+    winnerFlag <<= 1U;
+skip:
     // Pick a losing player with the highest severity of bad actions to comment on
     if (winner == 0)
     {
@@ -5900,19 +5896,13 @@ static void SetConestLiveUpdateTVData(void)
     loser = loserCandidates[Random() % numLoserCandidates];
 
     // Choose the "worst" action to comment on (flag with highest value)
-    flagId = CONTESTLIVE_FLAG_NO_APPEALS;
-    for (i = 0; i < 8; flagId >>= 1, i++)
-    {
-        loserFlag = gContestResources->tv[loser].loserFlags & flagId;
-        if (loserFlag)
-            break;
-    }
+    flagId = gContestResources->tv[loser].loserFlags & ~(gContestResources->tv[loser].loserFlags - 1);
 
     ContestLiveUpdates_Init(round1Placing);
     ContestLiveUpdates_SetRound2Placing(round2Placing);
     ContestLiveUpdates_SetWinnerAppealFlag(winnerFlag);
     ContestLiveUpdates_SetWinnerMoveUsed(gContestResources->tv[winner].move);
-    ContestLiveUpdates_SetLoserData(loserFlag, loser);
+    ContestLiveUpdates_SetLoserData(flagId, loser);
 }
 
 // Unused
