@@ -58,6 +58,12 @@ struct PlttData
     u16 unused_15:1;
 };
 
+union colorWork
+{
+    struct PlttData data;
+    u16 raw;
+};
+
 struct OamData
 {
     /*0x00*/ u32 y:8;
