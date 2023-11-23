@@ -61,7 +61,7 @@ void AnimTask_BlendBattleAnimPalExclude(u8 taskId)
     u32 selectedPalettes;
     u8 animBattlers[2];
 
-    animBattlers[1] = 0xFF;
+    animBattlers[1] = 0xFF; // invalid client number
     selectedPalettes = UnpackSelectedBattlePalettes(F_PAL_BG);
     switch (gBattleAnimArgs[0])
     {
@@ -69,9 +69,7 @@ void AnimTask_BlendBattleAnimPalExclude(u8 taskId)
         selectedPalettes = 0;
         // fall through
     case ANIM_ATTACKER:
-#ifdef UBFIX
     default:
-#endif
         animBattlers[0] = gBattleAnimAttacker;
         break;
     case 3:
@@ -149,7 +147,7 @@ void AnimTask_SetCamouflageBlend(u8 taskId)
 void AnimTask_BlendParticle(u8 taskId)
 {
     u8 paletteIndex = IndexOfSpritePaletteTag(gBattleAnimArgs[0]);
-    u32 selectedPalettes = 1 << (paletteIndex + 16);
+    u32 selectedPalettes = 1U << (paletteIndex + 16);
     StartBlendAnimSpriteColor(taskId, selectedPalettes);
 }
 
@@ -163,7 +161,7 @@ void StartBlendAnimSpriteColor(u8 taskId, u32 selectedPalettes)
     gTasks[taskId].data[5] = gBattleAnimArgs[4];
     gTasks[taskId].data[10] = gBattleAnimArgs[2];
     gTasks[taskId].func = AnimTask_BlendSpriteColor_Step2;
-    gTasks[taskId].func(taskId);
+    AnimTask_BlendSpriteColor_Step2(taskId);
 }
 
 static void AnimTask_BlendSpriteColor_Step2(u8 taskId)
@@ -804,7 +802,7 @@ void StartMonScrollingBgMask(u8 taskId, int UNUSED unused, u16 scrollSpeed, u8 b
 {
     u16 species;
     u8 spriteId, spriteId2;
-    u16 bg1Cnt;
+    union BgCntU bg1Cnt;
     struct BattleAnimBgData animBgData;
     u8 battler2;
 
@@ -823,16 +821,16 @@ void StartMonScrollingBgMask(u8 taskId, int UNUSED unused, u16 scrollSpeed, u8 b
     SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
     SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG1 | BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND);
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(0, 16));
-    bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
-    ((vBgCnt *)&bg1Cnt)->priority = 0;
-    ((vBgCnt *)&bg1Cnt)->screenSize = 0;
-    ((vBgCnt *)&bg1Cnt)->areaOverflowMode = 1;
+    bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+    bg1Cnt.bgCnt.priority = 0;
+    bg1Cnt.bgCnt.screenSize = 0;
+    bg1Cnt.bgCnt.areaOverflowMode = 1;
     if (!IsContest())
     {
-        ((vBgCnt *)&bg1Cnt)->charBaseBlock = 1;
+        bg1Cnt.bgCnt.charBaseBlock = 1;
     }
 
-    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt.raw);
 
     if (IsContest())
         species = gContestResources->moveAnim->species;
@@ -907,9 +905,10 @@ static void UpdateMonScrollingBgMask(u8 taskId)
             SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG_ALL | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
             if (!IsContest())
             {
-                u16 bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
-                ((vBgCnt *)&bg1Cnt)->charBaseBlock = 0;
-                SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+                union BgCntU bg1Cnt;
+                bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+                bg1Cnt.bgCnt.charBaseBlock = 0;
+                SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt.raw);
             }
 
             SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) ^ DISPCNT_OBJWIN_ON);

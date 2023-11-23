@@ -44,6 +44,12 @@ struct BgCnt
 };
 typedef volatile struct BgCnt vBgCnt;
 
+union BgCntU
+{
+    u16 raw;
+    struct BgCnt bgCnt;
+};
+
 struct PlttData
 {
     u16 r:5; // red
@@ -62,6 +68,7 @@ struct OamData
              u32 shape:2;       // 0x40, 0x80 -> 0xC0
 
     /*0x02*/ u32 x:9;
+    // Todo: make it the agb standard
              u32 matrixNum:5;   // bits 3/4 are h-flip/v-flip if not in affine mode
              u32 size:2;        // 0x4000, 0x8000 -> 0xC000
 
