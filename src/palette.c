@@ -352,12 +352,6 @@ void InvertPlttBuffer(u32 selectedPalettes)
     }
 }
 
-union colorWork
-{
-    struct PlttData data;
-    u16 raw;
-};
-
 void TintPlttBuffer(u32 selectedPalettes, s8 r, s8 g, s8 b)
 {
     u32 paletteOffset = 0;
