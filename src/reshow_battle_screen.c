@@ -171,13 +171,14 @@ static void CB2_ReshowBattleScreenAfterMenu(void)
 
 static void ClearBattleBgCntBaseBlocks(void)
 {
-    vBgCnt *regBgcnt1, *regBgcnt2;
-
-    regBgcnt1 = (vBgCnt *)(&REG_BG1CNT);
-    regBgcnt1->charBaseBlock = 0;
-
-    regBgcnt2 = (vBgCnt *)(&REG_BG2CNT);
-    regBgcnt2->charBaseBlock = 0;
+    union BgCntU regBgcnt1, regBgcnt2;
+    regBgcnt1.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+    regBgcnt2.raw = GetGpuReg(REG_OFFSET_BG2CNT);
+    regBgcnt1.bgCnt.charBaseBlock = 0;
+    regBgcnt2.bgCnt.charBaseBlock = 0;
+    SetGpuReg(REG_OFFSET_BG1CNT, regBgcnt1.raw);
+    SetGpuReg(REG_OFFSET_BG2CNT, regBgcnt2.raw);
+    
 }
 
 static bool8 LoadBattlerSpriteGfx(u8 battler)

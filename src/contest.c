@@ -2630,14 +2630,14 @@ static void Task_UpdateContestantBoxOrder(u8 taskId)
 
 static void Task_TryStartNextRoundOfAppeals(u8 taskId)
 {
-    vu16 sp0 = GetGpuReg(REG_OFFSET_BG0CNT);
-    vu16 sp2 = GetGpuReg(REG_OFFSET_BG2CNT);
-    ((vBgCnt *)&sp0)->priority = 0;
-    ((vBgCnt *)&sp2)->priority = 0;
-    SetGpuReg(REG_OFFSET_BG0CNT, sp0);
-    SetGpuReg(REG_OFFSET_BG2CNT, sp2);
-    eContest.appealNumber++;
-    if (eContest.appealNumber == CONTEST_NUM_APPEALS)
+    union BgCntU sp0, sp2;
+    sp0.raw = GetGpuReg(REG_OFFSET_BG0CNT);
+    sp2.raw = GetGpuReg(REG_OFFSET_BG2CNT);
+    sp0.bgCnt.priority = 0;
+    sp2.bgCnt.priority = 0;
+    SetGpuReg(REG_OFFSET_BG0CNT, sp0.raw);
+    SetGpuReg(REG_OFFSET_BG2CNT, sp2.raw);
+    if (++eContest.appealNumber == CONTEST_NUM_APPEALS)
     {
         gTasks[taskId].func = Task_EndAppeals;
     }
@@ -5057,24 +5057,24 @@ bool8 IsContestantAllowedToCombo(u8 contestant)
 
 static void SetBgForCurtainDrop(void)
 {
-    s32 i;
-    u16 bg0Cnt, bg1Cnt, bg2Cnt;
+    u32 i;
+    union BgCntU bg0Cnt, bg1Cnt, bg2Cnt;
 
-    bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
-    ((vBgCnt *)&bg1Cnt)->priority = 0;
-    ((vBgCnt *)&bg1Cnt)->screenSize = 2;
-    ((vBgCnt *)&bg1Cnt)->areaOverflowMode = 0;
-    ((vBgCnt *)&bg1Cnt)->charBaseBlock = 0;
+    bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+    bg1Cnt.bgCnt.priority = 0;
+    bg1Cnt.bgCnt.screenSize = 2;
+    bg1Cnt.bgCnt.areaOverflowMode = 0;
+    bg1Cnt.bgCnt.charBaseBlock = 0;
 
-    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt.raw);
 
-    bg0Cnt = GetGpuReg(REG_OFFSET_BG0CNT);
-    bg2Cnt = GetGpuReg(REG_OFFSET_BG2CNT);
-    ((vBgCnt *)&bg0Cnt)->priority = 1;
-    ((vBgCnt *)&bg2Cnt)->priority = 1;
+    bg0Cnt.raw = GetGpuReg(REG_OFFSET_BG0CNT);
+    bg2Cnt.raw = GetGpuReg(REG_OFFSET_BG2CNT);
+    bg0Cnt.bgCnt.priority = 1;
+    bg2Cnt.bgCnt.priority = 1;
 
-    SetGpuReg(REG_OFFSET_BG0CNT, bg0Cnt);
-    SetGpuReg(REG_OFFSET_BG2CNT, bg2Cnt);
+    SetGpuReg(REG_OFFSET_BG0CNT, bg0Cnt.raw);
+    SetGpuReg(REG_OFFSET_BG2CNT, bg2Cnt.raw);
 
     gBattle_BG1_X = DISPLAY_WIDTH;
     gBattle_BG1_Y = DISPLAY_HEIGHT;
