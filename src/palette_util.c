@@ -52,46 +52,51 @@ static u8 UNUSED RouletteFlash_Remove(struct RouletteFlashUtil *flash, u8 id)
 
 static u8 RouletteFlash_FadePalette(struct RouletteFlashPalette *pal)
 {
-    u8 i;
+    u32 i;
+    union colorWork faded, unfaded;
+    u16 * fadeOff = &gPlttBufferFaded[pal->settings.paletteOffset];
+    u16 * unfadeOff = &gPlttBufferUnfaded[pal->settings.paletteOffset];
 
     for (i = 0; i < pal->settings.numColors; i++)
     {
-        struct PlttData *faded =   (struct PlttData *)&gPlttBufferFaded[pal->settings.paletteOffset + i];
-        struct PlttData *unfaded = (struct PlttData *)&gPlttBufferUnfaded[pal->settings.paletteOffset + i];
+        faded.raw = fadeOff[i];
+        unfaded.raw = unfadeOff[i];
 
         switch (pal->state)
         {
         case 1:
             // Fade color
-            if (faded->r + pal->colorDelta >= 0 && faded->r + pal->colorDelta < 32)
-                faded->r += pal->colorDelta;
-            if (faded->g + pal->colorDelta >= 0 && faded->g + pal->colorDelta < 32)
-                faded->g += pal->colorDelta;
-            if (faded->b + pal->colorDelta >= 0 && faded->b + pal->colorDelta < 32)
-                faded->b += pal->colorDelta;
+            if (faded.data.r + pal->colorDelta >= 0 && faded.data.r + pal->colorDelta < 32)
+                faded.data.r += pal->colorDelta;
+            if (faded.data.g + pal->colorDelta >= 0 && faded.data.g + pal->colorDelta < 32)
+                faded.data.g += pal->colorDelta;
+            if (faded.data.b + pal->colorDelta >= 0 && faded.data.b + pal->colorDelta < 32)
+                faded.data.b += pal->colorDelta;
             break;
         case 2:
             // Fade back to original color
             if (pal->colorDelta < 0)
             {
-                if (faded->r + pal->colorDelta >= unfaded->r)
-                    faded->r += pal->colorDelta;
-                if (faded->g + pal->colorDelta >= unfaded->g)
-                    faded->g += pal->colorDelta;
-                if (faded->b + pal->colorDelta >= unfaded->b)
-                    faded->b += pal->colorDelta;
+                if (faded.data.r + pal->colorDelta >= unfaded.data.r)
+                    faded.data.r += pal->colorDelta;
+                if (faded.data.g + pal->colorDelta >= unfaded.data.g)
+                    faded.data.g += pal->colorDelta;
+                if (faded.data.b + pal->colorDelta >= unfaded.data.b)
+                    faded.data.b += pal->colorDelta;
             }
             else
             {
-                if (faded->r + pal->colorDelta <= unfaded->r)
-                    faded->r += pal->colorDelta;
-                if (faded->g + pal->colorDelta <= unfaded->g)
-                    faded->g += pal->colorDelta;
-                if (faded->b + pal->colorDelta <= unfaded->b)
-                    faded->b += pal->colorDelta;
+                if (faded.data.r + pal->colorDelta <= unfaded.data.r)
+                    faded.data.r += pal->colorDelta;
+                if (faded.data.g + pal->colorDelta <= unfaded.data.g)
+                    faded.data.g += pal->colorDelta;
+                if (faded.data.b + pal->colorDelta <= unfaded.data.b)
+                    faded.data.b += pal->colorDelta;
             }
             break;
         }
+        fadeOff[i] = faded.raw;
+        unfadeOff[i] = unfaded.raw;
     }
     if (pal->fadeCycleCounter++ != (u8)pal->settings.numFadeCycles)
     {
