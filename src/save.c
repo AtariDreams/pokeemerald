@@ -259,17 +259,15 @@ error:
 
 static u8 HandleReplaceSectorAndVerify(u16 sectorId, const struct SaveBlockChunk *locations)
 {
-    u8 status = SAVE_STATUS_OK;
-
     HandleReplaceSector(sectorId - 1, locations);
 
     if (gDamagedSaveSectors)
     {
-        status = SAVE_STATUS_ERROR;
         gLastWrittenSector = gLastKnownGoodSector;
         gSaveCounter = gLastSaveCounter;
+        return SAVE_STATUS_ERROR;
     }
-    return status;
+    return SAVE_STATUS_OK;
 }
 
 // Similar to HandleWriteSector, but fully erases the sector first, and skips writing the first signature byte
