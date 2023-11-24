@@ -671,10 +671,10 @@ static void AnimTask_Flash_Step(u8 taskId)
 
             for (i = 0; i < 16; i++)
             {
-                if (task->data[15] & (1 << i))
+                if (task->data[15] & (1U << i))
                     BlendPalette(BG_PLTT_ID(i), 16, task->data[2], 0xFFFF);
 
-                if (task->data[14] & (1 << i))
+                if (task->data[14] & (1U << i))
                     BlendPalette(OBJ_PLTT_ID(i), 16, task->data[2], 0);
             }
 
@@ -690,11 +690,11 @@ static void AnimTask_Flash_Step(u8 taskId)
 
 static void SetPalettesToColor(u32 selectedPalettes, u16 color)
 {
-    u16 i, curOffset, paletteOffset;
+    u32 i, curOffset, paletteOffset;
 
     for (i = 0; i < 32; i++)
     {
-        if (selectedPalettes & 1)
+        if (selectedPalettes & (1U << i))
         {
             paletteOffset = PLTT_ID(i);
             for (curOffset = paletteOffset; curOffset < paletteOffset + 16; curOffset++)
@@ -702,8 +702,6 @@ static void SetPalettesToColor(u32 selectedPalettes, u16 color)
                 gPlttBufferFaded[curOffset] = color;
             }
         }
-
-        selectedPalettes >>= 1;
     }
 }
 
