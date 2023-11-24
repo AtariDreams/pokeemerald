@@ -153,7 +153,7 @@ void ReadFlash(u16 sectorNum, u32 offset, volatile void *dest, u32 size)
 {
     vu8 *src;
     u32 i;
-    u32 readFlash_Core_Buffer[0x10];
+    u32 readFlash_Core_Buffer[8];
     void (*readFlash_Core)(vu8 *, vu8 *, u32);
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
