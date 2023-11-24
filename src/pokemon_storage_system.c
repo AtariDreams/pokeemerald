@@ -6715,30 +6715,16 @@ static void SetSelectionAfterSummaryScreen(void)
         sCursorPosition = gLastViewedMonIndex;
 }
 
-s16 CompactPartySlots(void)
+void CompactPartySlots(void)
 {
-    s16 retVal = -1;
-    u16 i, last;
-
-    for (i = 0, last = 0; i < PARTY_SIZE; i++)
+    for (int i = PARTY_SIZE - 2; i >= 0; i--)
     {
-        u16 species = GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES);
-        if (species != SPECIES_NONE)
+        if (GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES) == SPECIES_NONE)
         {
-            if (i != last)
-                gPlayerParty.party[last] = gPlayerParty.party[i];
-            last++;
-        }
-        else if (retVal == -1)
-        {
-            retVal = i;
+            memmove(&gPlayerParty.party[i], &gPlayerParty.party[i + 1], sizeof(struct Pokemon) * (PARTY_SIZE - 1 - i));
+            ZeroMonData(&gPlayerParty.party[PARTY_SIZE - 1]);
         }
     }
-    for (; last < PARTY_SIZE; last++) {
-        RemoveMonFromParty(last);
-    }
-
-    return retVal;
 }
 
 static void SetMonMarkings(u8 markings)
