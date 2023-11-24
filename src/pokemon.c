@@ -2376,13 +2376,10 @@ void CreateMonWithEVSpread(struct Pokemon *mon, u16 species, u8 level, u8 fixedI
 
     evAmount = MAX_TOTAL_EVS / __builtin_popcount(evSpread);
 
-    evsBits = 1;
-
     for (i = 0; i < NUM_STATS; i++)
     {
-        if (evSpread & evsBits)
+        if (evSpread & (1U << i))
             SetMonData(mon, MON_DATA_HP_EV + i, &evAmount);
-        evsBits <<= 1;
     }
 
     CalculateMonStats(mon);

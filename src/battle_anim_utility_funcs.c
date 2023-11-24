@@ -277,51 +277,46 @@ void AnimTask_DrawFallingWhiteLinesOnAttacker(u8 taskId)
 {
     u16 species;
     u8 spriteId, newSpriteId;
-    u16 bg1Cnt;
+    union BgCntU bg1Cnt;
     struct BattleAnimBgData animBgData;
 
     u8 var0 = 0;
     gBattle_WIN0H = 0;
     gBattle_WIN0V = 0;
-    SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR
-                              | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
-    SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR
-                               | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
+    SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR | WININ_WIN1_BG_ALL | WININ_WIN1_OBJ | WININ_WIN1_CLR);
+    SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG2 | WINOUT_WIN01_BG3 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
     SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
     SetGpuReg(REG_OFFSET_BLDCNT, BLDCNT_TGT1_BG1 | BLDCNT_TGT2_ALL | BLDCNT_EFFECT_BLEND);
     SetGpuReg(REG_OFFSET_BLDALPHA, BLDALPHA_BLEND(8, 12));
-    bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
-    ((struct BgCnt *)&bg1Cnt)->priority = 0;
-    ((struct BgCnt *)&bg1Cnt)->screenSize = 0;
-    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+    bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+    bg1Cnt.bgCnt.priority = 0;
+    bg1Cnt.bgCnt.screenSize = 0;
 
     if (!IsContest())
     {
-        ((struct BgCnt *)&bg1Cnt)->charBaseBlock = 1;
-        SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
-    }
+        bg1Cnt.bgCnt.charBaseBlock = 1;
 
-    if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && !IsContest())
-    {
-        if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_RIGHT
-         || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT)
+        if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE))
         {
-            if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)) == TRUE)
+            if (GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_OPPONENT_RIGHT || GetBattlerPosition(gBattleAnimAttacker) == B_POSITION_PLAYER_LEFT)
             {
-                gSprites[gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimAttacker)]].oam.priority -= 1;
-                ((struct BgCnt *)&bg1Cnt)->priority = 1;
-                SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
-                var0 = 1;
+                if (IsBattlerSpriteVisible(BATTLE_PARTNER(gBattleAnimAttacker)) == TRUE)
+                {
+                    gSprites[gBattlerSpriteIds[BATTLE_PARTNER(gBattleAnimAttacker)]].oam.priority -= 1;
+                    bg1Cnt.bgCnt.priority = 1;
+                    var0 = 1;
+                }
             }
         }
+        if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
+            species = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+        else
+            species = GetMonData(&gEnemyParty.party[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
     }
-
-    if (IsContest())
-        species = gContestResources->moveAnim->species;
-    else if (GetBattlerSide(gBattleAnimAttacker) != B_SIDE_PLAYER)
-        species = GetMonData(&gEnemyParty.party[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
     else
-        species = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[gBattleAnimAttacker]], MON_DATA_SPECIES);
+        species = gContestResources->moveAnim->species;
+
+    SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt.raw);
 
     spriteId = GetAnimBattlerSpriteId(ANIM_ATTACKER);
     newSpriteId = CreateInvisibleSpriteCopy(gBattleAnimAttacker, spriteId, species);
@@ -341,7 +336,7 @@ static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8 taskId)
 {
     struct BattleAnimBgData animBgData;
     struct Sprite *sprite;
-    u16 bg1Cnt;
+    union BgCntU bg1Cnt;
 
     gTasks[taskId].data[10] += 4;
     gBattle_BG1_Y -= 4;
@@ -360,9 +355,9 @@ static void AnimTask_DrawFallingWhiteLinesOnAttacker_Step(u8 taskId)
                                        | WINOUT_WINOBJ_BG_ALL | WINOUT_WINOBJ_OBJ | WINOUT_WINOBJ_CLR);
             if (!IsContest())
             {
-                bg1Cnt = GetGpuReg(REG_OFFSET_BG1CNT);
-                ((struct BgCnt *)&bg1Cnt)->charBaseBlock = 0;
-                SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt);
+                bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);
+                bg1Cnt.bgCnt.charBaseBlock = 0;
+                SetGpuReg(REG_OFFSET_BG1CNT, bg1Cnt.raw);
             }
 
             SetGpuReg(REG_OFFSET_DISPCNT, GetGpuReg(REG_OFFSET_DISPCNT) ^ DISPCNT_OBJWIN_ON);
