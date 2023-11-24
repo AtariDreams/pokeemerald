@@ -2158,10 +2158,11 @@ void ZeroMonData(struct Pokemon *mon)
 
 void RemoveMonFromParty(u32 index)
 {
-    if (index > PARTY_SIZE)
+    if (index >= PARTY_SIZE)
         return;
     ZeroMonData(&gPlayerParty.party[index]);
     gPlayerParty.count--;
+    CompactPartySlots();
 }
 
 void ZeroPlayerPartyMons(void)

@@ -144,8 +144,16 @@ void InitDaycareMailRecordMixing(struct DayCare *daycare, struct RecordMixingDay
     mixMail->numDaycareMons = numDaycareMons;
 }
 
-static void StorePokemonInDaycare(struct Pokemon *mon, struct DaycareMon *daycareMon)
+void StoreSelectedPokemonInDaycare(void)
 {
+    struct Pokemon *mon = &gPlayerParty.party[GetCursorSelectionMonId()];
+    struct DaycareMon *daycareMon; 
+
+    if (GetBoxMonData(&gSaveBlock1.daycare.mons[0].mon, MON_DATA_SPECIES) == SPECIES_NONE)
+        daycareMon = &gSaveBlock1.daycare.mons[0];
+    else
+        daycareMon = &gSaveBlock1.daycare.mons[1];
+
     if (MonHasMail(mon))
     {
         u8 mailId;
@@ -167,16 +175,6 @@ static void StorePokemonInDaycare(struct Pokemon *mon, struct DaycareMon *daycar
     gPlayerParty.count--;
     CompactPartySlots();
     //CalculatePlayerPartyCount();
-}
-
-void StoreSelectedPokemonInDaycare(void)
-{
-    u8 monId = GetCursorSelectionMonId();
-    // 1 of 2 only
-    if (GetBoxMonData(gSaveBlock1.daycare.mons[0].mon, MON_DATA_SPECIES) == SPECIES_NONE)
-        StorePokemonInDaycare(gPlayerParty.party[monId], gSaveBlock1.daycare.mons[0]);
-    else
-        StorePokemonInDaycare(gPlayerParty.party[monId], gSaveBlock1.daycare.mons[1]);
 }
 
 // Shifts the second daycare Pokémon slot into the first slot.
