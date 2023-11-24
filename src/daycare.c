@@ -863,7 +863,7 @@ static bool8 TryProduceOrHatchEgg(struct DayCare *daycare)
     if (daycare->offspringPersonality == 0 && validEggs == DAYCARE_MON_COUNT && (daycare->mons[1].steps & 0xFF) == 0xFF)
     {
         u8 compatibility = GetDaycareCompatibilityScore(daycare);
-        if (compatibility > (Random() * 100u) / USHRT_MAX)
+        if (compatibility > (Random() * 100) / USHRT_MAX)
             TriggerPendingDaycareEgg();
     }
 
@@ -969,7 +969,7 @@ static u8 UNUSED GetDaycarePokemonCount(void)
 // same egg groups.
 static bool8 EggGroupsOverlap(u16 *eggGroups1, u16 *eggGroups2)
 {
-    s32 i, j;
+    u32 i, j;
 
     for (i = 0; i < EGG_GROUPS_PER_MON; i++)
     {
