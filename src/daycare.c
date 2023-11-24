@@ -439,7 +439,7 @@ static s32 GetParentToInheritNature(struct DayCare *daycare)
 static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
 {
     s32 parent;
-    s32 natureTries = 0;
+    u32 natureTries = 0;
 
     SeedRng2(gMain.vblankCounter2);
     parent = GetParentToInheritNature(daycare);
@@ -447,17 +447,18 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
     // don't inherit nature
     if (parent < 0)
     {
-        u32 personality = (Random2() << 16) | ((Random() % 0xfffe) + 1);
-        u32 otId = T1_READ_32(gSaveBlock2.playerTrainerId);
+        u16 hiHalf = Random2();
+        u16 lowHalf = ((Random() % 0xfffe) + 1);
+        u32 shinyValue = hiHalf ^ lowHalf ^ ((gSaveBlock2.playerTrainerId[3] << 16) | gSaveBlock2.playerTrainerId[2]) ^ ((gSaveBlock2.playerTrainerId[1] << 16) | gSaveBlock2.playerTrainerId[0]);
 
-        u32 shinyValue = GET_SHINY_VALUE(otId, personality);
         if (__builtin_expect_with_probability((shinyValue >= SHINY_ODDS), 0, 0.999755859375))
         {
             // 残りの４回はレアか？
             for (u32 i = 0; i < 4; i++)
             {
-                personality = (Random2() << 16) | ((Random() % 0xfffe) + 1);
-                shinyValue = GET_SHINY_VALUE(otId, personality);
+                hiHalf = Random2();
+                lowHalf = ((Random() % 0xfffe) + 1);
+                shinyValue = hiHalf ^ lowHalf ^ ((gSaveBlock2.playerTrainerId[3] << 16) | gSaveBlock2.playerTrainerId[2]) ^ ((gSaveBlock2.playerTrainerId[1] << 16) | gSaveBlock2.playerTrainerId[0]);
                 if (__builtin_expect_with_probability((shinyValue < SHINY_ODDS), 0, 0.999755859375))
                 {
                     break;
@@ -465,7 +466,7 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
             }
         }
 
-        daycare->offspringPersonality = personality;
+        daycare->offspringPersonality = (hiHalf << 16) | lowHalf;
     }
     // inherit nature
     else
@@ -478,9 +479,7 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
             personality = (Random2() << 16) | (Random());
             if (wantedNature == GetNatureFromPersonality(personality) && personality != 0)
                 break; // found a personality with the same nature
-
-            natureTries++;
-        } while (natureTries <= 2400);
+        } while (++natureTries <= 2400);
 
         daycare->offspringPersonality = personality;
     }
@@ -509,7 +508,7 @@ static void UNUSED TriggerPendingDaycareMaleEgg(void)
 // elements to the left.
 static void RemoveIVIndexFromList(u8 *ivs, u8 selectedIv)
 {
-    s32 i, j;
+    u32 i, j;
     u8 temp[NUM_STATS];
 
     ivs[selectedIv] = 0xFF;
