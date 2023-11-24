@@ -1,8 +1,5 @@
 ENTRY(Start)
 
-gNumMusicPlayers = 4;
-gMaxLines = 0;
-
 MEMORY
 {
     EWRAM (rwx) : ORIGIN = 0x2000000, LENGTH = 256K
@@ -17,21 +14,19 @@ SECTIONS {
     {
         gflib/malloc.o(ewram_data);
         src/decompress.o(ewram_data);
+        . = 0x20000;
+
         *.o(ewram_data);
-        *(.data)
-		*(.data.*)
+    } > EWRAM
 
     iwram 0x3000000 (NOLOAD) :
     ALIGN(4)
     {
-        /* .bss starts at 0x3000000 */
-		*(.dynbss)
+        *(.dynbss)
 		*(.bss)
 		*(.bss.*)
-		*(COMMON)	
-        end = .;
-        . = 0x8000;
-    }
+        *(COMMON)
+    } > IWRAM
 
     /* BEGIN ROM DATA */
     . = 0x8000000;
@@ -43,8 +38,10 @@ SECTIONS {
         src/rom_header_gf.o(.text.*);
         src/crt0.o(.text);
         src/main.o(.text);
-        *.o(.text);
-    } =0
+        *(.text)
+		*(.text.*)
+        asm/*.o(.text*);
+    } > ROM =0
 
     script_data :
     ALIGN(4)
@@ -75,9 +72,7 @@ SECTIONS {
     .rodata :
     ALIGN(4)
     {
-        src/*.o(.rodata*);
-        gflib/*.o(.rodata*);
-        data/*.o(.rodata*);
+        *(.rodata*)
     } > ROM =0
 
     song_data :
