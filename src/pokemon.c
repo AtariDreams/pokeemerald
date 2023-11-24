@@ -2537,7 +2537,6 @@ void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level,
 {
     u32 i;
     u32 statCount = 0;
-    u8 evsBits;
     u16 evAmount;
 
     // i is reused as personality value
@@ -2549,12 +2548,10 @@ void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level,
     CreateMon(mon, species, level, fixedIV, TRUE, i, OT_ID_PRESET, otId);
 
     evAmount = MAX_TOTAL_EVS / __builtin_popcount(evSpread);
-    evsBits = 1;
     for (i = 0; i < NUM_STATS; i++)
     {
-        if (evSpread & evsBits)
+        if (evSpread & (1U << i))
             SetMonData(mon, MON_DATA_HP_EV + i, &evAmount);
-        evsBits <<= 1;
     }
 
     CalculateMonStats(mon);
@@ -2562,7 +2559,7 @@ void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level,
 
 void ConvertPokemonToBattleTowerPokemon(struct Pokemon *mon, struct BattleTowerPokemon *dest)
 {
-    s32 i;
+    u32 i;
     u16 heldItem;
 
     dest->species = GetMonData(mon, MON_DATA_SPECIES, NULL);
