@@ -215,8 +215,10 @@ static u32 RestoreSaveBackupVarsAndIncrement(const struct SaveBlockChunk *locati
     gReadWriteSector = &gSaveDataBuffer;
     gLastKnownGoodSector = gLastWrittenSector;
     gLastSaveCounter = gSaveCounter;
-    gLastWrittenSector++;
-    gLastWrittenSector %= NUM_SECTORS_PER_SLOT;
+    if (gLastWrittenSector == NUM_SECTORS_PER_SLOT - 1)
+        gLastWrittenSector = 0;
+    else
+        gLastWrittenSector++;
     gSaveCounter++;
     gIncrementalSectorId = 0;
     gDamagedSaveSectors = 0;
