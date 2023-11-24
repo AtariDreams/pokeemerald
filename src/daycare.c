@@ -447,7 +447,25 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
     // don't inherit nature
     if (parent < 0)
     {
-        daycare->offspringPersonality = (Random2() << 16) | ((Random() % 0xfffe) + 1);
+        u32 personality = (Random2() << 16) | ((Random() % 0xfffe) + 1);
+        u32 otId = T1_READ_32(gSaveBlock2.playerTrainerId);
+
+        u32 shinyValue = GET_SHINY_VALUE(otId, personality);
+        if (__builtin_expect_with_probability((shinyValue >= SHINY_ODDS), 0, 0.999755859375))
+        {
+            // 残りの４回はレアか？
+            for (u32 i = 0; i < 4; i++)
+            {
+                personality = (Random2() << 16) | ((Random() % 0xfffe) + 1);
+                shinyValue = GET_SHINY_VALUE(otId, personality);
+                if (__builtin_expect_with_probability((shinyValue < SHINY_ODDS), 0, 0.999755859375))
+                {
+                    break;
+                }
+            }
+        }
+
+        daycare->offspringPersonality = personality;
     }
     // inherit nature
     else
