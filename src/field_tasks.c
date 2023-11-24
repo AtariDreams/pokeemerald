@@ -580,7 +580,6 @@ static void FortreeBridgePerStepCallback(u8 taskId)
             TryRaiseFortreeBridge(prevX, prevY);
         case 5:
         case 6:
-        case 7: // Not possible with % 7
             break;
         }
         if (tBounceTime == 0)
