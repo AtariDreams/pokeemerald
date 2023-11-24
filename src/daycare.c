@@ -129,10 +129,10 @@ void InitDaycareMailRecordMixing(struct DayCare *daycare, struct RecordMixingDay
         if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_SPECIES) != SPECIES_NONE)
         {
             numDaycareMons++;
-            if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_HELD_ITEM) == ITEM_NONE)
-                mixMail->cantHoldItem[i] = FALSE;
-            else
+            if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_HELD_ITEM) != ITEM_NONE)
                 mixMail->cantHoldItem[i] = TRUE;
+            else
+                mixMail->cantHoldItem[i] = FALSE;
         }
         else
         {
@@ -142,19 +142,6 @@ void InitDaycareMailRecordMixing(struct DayCare *daycare, struct RecordMixingDay
     }
 
     mixMail->numDaycareMons = numDaycareMons;
-}
-
-static s8 Daycare_FindEmptySpot(struct DayCare *daycare)
-{
-    u8 i;
-
-    for (i = 0; i < DAYCARE_MON_COUNT; i++)
-    {
-        if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_SPECIES) == SPECIES_NONE)
-            return i;
-    }
-
-    return -1;
 }
 
 static void StorePokemonInDaycare(struct Pokemon *mon, struct DaycareMon *daycareMon)
@@ -177,20 +164,19 @@ static void StorePokemonInDaycare(struct Pokemon *mon, struct DaycareMon *daycar
     BoxMonRestorePP(&daycareMon->mon);
     daycareMon->steps = 0;
     ZeroMonData(mon);
+    gPlayerParty.count--;
     CompactPartySlots();
-    CalculatePlayerPartyCount();
-}
-
-static void StorePokemonInEmptyDaycareSlot(struct Pokemon *mon, struct DayCare *daycare)
-{
-    s8 slotId = Daycare_FindEmptySpot(daycare);
-    StorePokemonInDaycare(mon, &daycare->mons[slotId]);
+    //CalculatePlayerPartyCount();
 }
 
 void StoreSelectedPokemonInDaycare(void)
 {
     u8 monId = GetCursorSelectionMonId();
-    StorePokemonInEmptyDaycareSlot(&gPlayerParty.party[monId], &gSaveBlock1.daycare);
+    // 1 of 2 only
+    if (GetBoxMonData(gSaveBlock1.daycare.mons[0].mon, MON_DATA_SPECIES) == SPECIES_NONE)
+        StorePokemonInDaycare(gPlayerParty.party[monId], gSaveBlock1.daycare.mons[0]);
+    else
+        StorePokemonInDaycare(gPlayerParty.party[monId], gSaveBlock1.daycare.mons[1]);
 }
 
 // Shifts the second daycare pokemon slot into the first slot.
@@ -258,6 +244,7 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
     }
 
     gPlayerParty.party[PARTY_SIZE - 1] = pokemon;
+    gPlayerParty.count++;
     if (daycareMon->mail.message.itemId)
     {
         GiveMailToMon(&gPlayerParty.party[PARTY_SIZE - 1], &daycareMon->mail.message);
@@ -267,7 +254,6 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
     ZeroBoxMonData(&daycareMon->mon);
     daycareMon->steps = 0;
     CompactPartySlots();
-    CalculatePlayerPartyCount();
     return species;
 }
 
