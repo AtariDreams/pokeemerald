@@ -2706,7 +2706,7 @@ static void CB2_EndBlenderGame(void)
                 sBerryBlender->playAgainState = CANT_PLAY_NO_BERRIES;
                 gSendCmd[BLENDER_COMM_RESP] = LINKCMD_BLENDER_NO_BERRIES;
             }
-            else if (GetFirstFreePokeblockSlot() == -1)
+            else if (GetFirstFreePokeblockSlot() == POKEBLOCKS_COUNT)
             {
                 // No space for pokeblocks
                 sBerryBlender->playAgainState = CANT_PLAY_NO_PKBLCK_SPACE;
