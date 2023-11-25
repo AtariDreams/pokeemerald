@@ -126,7 +126,6 @@ u16 MoveRotatingTileObjects(u8 puzzleNumber)
             puzzleTileStart = METATILE_TrickHousePuzzle_Arrow_YellowOnWhite_Right;
 
         // Object is on a metatile before the puzzle tile section
-        // UB: Because this is not if (metatile < puzzleTileStart), for the trick house (metatile - puzzleTileStart) below can result in casting a negative value to u8
         if (metatile < puzzleTileStart)
             continue;
 
