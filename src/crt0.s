@@ -6,9 +6,6 @@
 
 	.align 2, 0
 Init::
-	mov r0, #255 @ RESET_ALL
-	svc #1 << 16
-
 	mov r0, #PSR_IRQ_MODE
 	msr cpsr_cf, r0
 	ldr sp, sp_irq
@@ -19,6 +16,8 @@ Init::
 	ldr r1, =INTR_VECTOR
 	adr r0, IntrMain
 	str r0, [r1]
+	mov r0, #255 @ RESET_ALL
+	svc #1 << 16
 	ldr r1, =AgbMain + 1
 	mov lr, pc
 	bx r1
