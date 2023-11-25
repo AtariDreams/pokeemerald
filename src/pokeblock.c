@@ -1340,9 +1340,9 @@ u8 GetPokeblocksFeel(const struct Pokeblock *pokeblock)
     return feel;
 }
 
-s8 GetFirstFreePokeblockSlot(void)
+u16 GetFirstFreePokeblockSlot(void)
 {
-    u8 i;
+    u16 i;
 
     for (i = 0; i < POKEBLOCKS_COUNT; i++)
     {
@@ -1350,14 +1350,14 @@ s8 GetFirstFreePokeblockSlot(void)
             return i;
     }
 
-    return -1;
+    return POKEBLOCKS_COUNT;
 }
 
 bool32 AddPokeblock(const struct Pokeblock *pokeblock)
 {
-    s8 slot = GetFirstFreePokeblockSlot();
+    u16 slot = GetFirstFreePokeblockSlot();
 
-    if (slot == -1)
+    if (slot == POKEBLOCKS_COUNT)
     {
         return FALSE;
     }

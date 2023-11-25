@@ -64,7 +64,7 @@ u8 CreatePokeblockCaseSprite(s16 x, s16 y, u8 subpriority);
 void ClearPokeblocks(void);
 u8 GetHighestPokeblocksFlavorLevel(const struct Pokeblock *pokeblock);
 u8 GetPokeblocksFeel(const struct Pokeblock *pokeblock);
-s8 GetFirstFreePokeblockSlot(void);
+u16 GetFirstFreePokeblockSlot(void);
 bool32 AddPokeblock(const struct Pokeblock *pokeblock);
 bool32 TryClearPokeblock(u8 pkblId);
 s16 GetPokeblockData(const struct Pokeblock *pokeblock, u8 field);
