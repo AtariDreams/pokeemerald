@@ -74,8 +74,8 @@ void ScanlineEffect_InitHBlankDmaTransfer(void)
     if (gScanlineEffect.state == 3)
     {
         sShouldStopWaveTask = TRUE;
-        DmaStop(0);
         gScanlineEffect.state = 0;
+        DmaStop(0);
         return;
     }
 
