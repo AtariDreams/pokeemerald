@@ -5909,7 +5909,7 @@ static bool8 UpdateCursorPos(void)
 
         // Cursor flips vertically when moving on/off the top buttons
         if (sStorage->cursorFlipTimer && --sStorage->cursorFlipTimer == 0)
-            sStorage->cursorSprite->vFlip ^= 1;
+            sStorage->cursorSprite->vFlip = !sStorage->cursorSprite->vFlip;
     }
     else
     {
