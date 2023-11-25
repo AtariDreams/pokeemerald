@@ -1251,21 +1251,6 @@ static void UNUSED BtlController_EmitDMA3Transfer(u8 bufferId, void *dst, u16 si
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 7);
 }
 
-static void UNUSED BtlController_EmitPlayBGM(u8 bufferId, u16 songId, void *data)
-{
-    s32 i;
-
-    sBattleBuffersTransferData[0] = CONTROLLER_PLAYBGM;
-    sBattleBuffersTransferData[1] = songId;
-    sBattleBuffersTransferData[2] = (songId & 0xFF00) >> 8;
-
-    // Nonsense loop using songId as a size
-    // Would go out of bounds for any song id after SE_RG_BAG_POCKET (253)
-    for (i = 0; i < songId; i++)
-        sBattleBuffersTransferData[3 + i] = *(u8 *)(data++);
-    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, songId + 3);
-}
-
 static void UNUSED BtlController_EmitCmd32(u8 bufferId, u16 size, void *data)
 {
     s32 i;
