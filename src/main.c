@@ -311,7 +311,6 @@ static void VBlankIntr(void)
     UpdateWirelessStatusIndicatorSprite();
 
     gPcmDmaCounter = gSoundInfo.pcmDmaCounter;
-
     m4aSoundMain();
 
     INTR_CHECK |= INTR_FLAG_VBLANK;
