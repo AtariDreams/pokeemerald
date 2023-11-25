@@ -32,7 +32,7 @@ s16 Cos(s16 index, s16 amplitude)
 {
     asm_unified("\
     lsls    r0, r0, #1\n\
-    ldr     r2, = gSineTable\n\
+    ldr     r2, =gSineTable\n\
     adds    r0, r0, r2\n\
     movs    r2, #128\n\
     ldrsh   r0, [r0, r2]\n\
