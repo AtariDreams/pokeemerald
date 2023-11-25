@@ -258,6 +258,7 @@ u8 CreateSprite(const struct SpriteTemplate *template, s16 x, s16 y, u8 subprior
 struct Sprite * CreateSpritePointer(struct Sprite* sprite, const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority);
 struct Sprite* CreateSpriteReturnPointer(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority);
 u8 CreateSpriteAtEnd(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority);
+struct Sprite * CreateSpriteAtEndPointer(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority);
 u8 CreateInvisibleSprite(void (*callback)(struct Sprite *));
 struct Sprite * CreateInvisibleSpritePointer(void (*callback)(struct Sprite *));
 //u8 CreateSpriteAndAnimate(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority);
