@@ -1306,9 +1306,10 @@ static bool8 SetupContestGraphics(u8 *stateVar)
     {
     case 0:
         gPaletteFade.bufferTransferDisabled = TRUE;
-        RequestDma3Fill(0, (void *)VRAM, 0x8000, 1);
-        RequestDma3Fill(0, (void *)VRAM + 0x8000, 0x8000, 1);
-        RequestDma3Fill(0, (void *)VRAM + 0x10000, 0x8000, 1);
+        DmaFill32(3, 0, VRAM, VRAM_SIZE);
+        // RequestDma3Fill(0, (void *)VRAM, 0x8000, 1);
+        // RequestDma3Fill(0, (void *)VRAM + 0x8000, 0x8000, 1);
+        // RequestDma3Fill(0, (void *)VRAM + 0x10000, 0x8000, 1);
         break;
     case 1:
         LZ77UnCompVram(gContestInterfaceGfx, (void *)VRAM);
@@ -1325,7 +1326,8 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         ExtractToBgTilemapBuffer(2, gContestInterfaceTilemap, 0);
         CopyBgTilemapBufferToVram(2);
         // This is a bug, and copies random junk. savedJunk is never read.
-        DmaCopy32Defvars(3, gContestResources->contestBgTilemaps[2], eContestTempSave.savedJunk, sizeof(eContestTempSave.savedJunk));
+        // TODO: or is it?
+        //DmaCopy32(3, gContestResources->contestBgTilemaps[2], eContestTempSave.savedJunk, sizeof(eContestTempSave.savedJunk));
         break;
     case 5:
         LoadCompressedPalette(gContestInterfaceAudiencePalette, BG_PLTT_OFFSET, BG_PLTT_SIZE);
@@ -1333,7 +1335,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         CpuCopy32(&gPlttBufferUnfaded[BG_PLTT_ID(5 + gContestPlayerMonIndex)], tempPalette2, PLTT_SIZE_4BPP);
         CpuCopy32(tempPalette2, &gPlttBufferUnfaded[BG_PLTT_ID(8)], PLTT_SIZE_4BPP);
         CpuCopy32(tempPalette1, &gPlttBufferUnfaded[BG_PLTT_ID(5 + gContestPlayerMonIndex)], PLTT_SIZE_4BPP);
-        DmaCopy32Defvars(3, gPlttBufferUnfaded, eContestTempSave.cachedWindowPalettes, sizeof(eContestTempSave.cachedWindowPalettes));
+        DmaCopy16(3, gPlttBufferUnfaded, eContestTempSave.cachedWindowPalettes, sizeof(eContestTempSave.cachedWindowPalettes));
         LoadContestPalettes();
         break;
     case 6:
@@ -1362,8 +1364,8 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         CopyBgTilemapBufferToVram(1);
         ShowBg(3);
         ShowBg(2);
-        ShowBg(0);
         ShowBg(1);
+        ShowBg(0);
         break;
     default:
         *stateVar = 0;
@@ -1397,7 +1399,7 @@ static void Task_RaiseCurtainAtStart(u8 taskId)
         gTasks[taskId].data[0]++;
         break;
     case 1:
-        *(s16 *)&gBattle_BG1_Y += 7;
+        gBattle_BG1_Y += 7;
         if ((s16)gBattle_BG1_Y <= DISPLAY_HEIGHT)
             break;
         gTasks[taskId].data[0]++;
@@ -1408,12 +1410,13 @@ static void Task_RaiseCurtainAtStart(u8 taskId)
         break;
     case 3:
     {
-        u16 bg0Cnt = GetGpuReg(REG_OFFSET_BG0CNT);
-        u16 bg2Cnt = GetGpuReg(REG_OFFSET_BG2CNT);
-        ((struct BgCnt *)&bg0Cnt)->priority = 0;
-        ((struct BgCnt *)&bg2Cnt)->priority = 0;
-        SetGpuReg(REG_OFFSET_BG0CNT, bg0Cnt);
-        SetGpuReg(REG_OFFSET_BG2CNT, bg2Cnt);
+        union BgCntU bg0Cnt, bg2Cnt;
+        bg0Cnt.raw = GetGpuReg(REG_OFFSET_BG0CNT);
+        bg2Cnt.raw = GetGpuReg(REG_OFFSET_BG2CNT);
+        bg0Cnt.bgCnt.priority = 0;
+        bg2Cnt.bgCnt.priority = 0;
+        SetGpuReg(REG_OFFSET_BG0CNT, bg0Cnt.raw);
+        SetGpuReg(REG_OFFSET_BG2CNT, bg2Cnt.raw);
         SlideApplauseMeterIn();
         gTasks[taskId].data[0]++;
         break;
@@ -1431,7 +1434,7 @@ static void Task_RaiseCurtainAtStart(u8 taskId)
 
 static void CB2_ContestMain(void)
 {
-    s32 i;
+    u32 i;
 
     AnimateSprites();
     RunTasks();
@@ -1440,7 +1443,7 @@ static void CB2_ContestMain(void)
 
     for (i = 0; i < 4; i++)
     {
-        if ((sContestBgCopyFlags >> i) & 1)
+        if (sContestBgCopyFlags & (1U << i))
             CopyBgTilemapBufferToVram(i);
     }
     sContestBgCopyFlags = 0;
@@ -2656,7 +2659,7 @@ static void Task_StartNewRoundOfAppeals(u8 taskId)
 
 static void Task_EndAppeals(u8 taskId)
 {
-    s32 i;
+    u32 i;
 
     gBattle_BG0_Y = 0;
     gBattle_BG2_Y = 0;
@@ -3156,8 +3159,8 @@ bool8 IsSpeciesNotUnown(u16 species)
 // tiles are actually drawn on screen.
 static void SwapMoveDescAndContestTilemaps(void)
 {
-    CpuCopy16(gContestResources->contestBgTilemaps[0], gContestResources->contestBgTilemaps[0] + 0x500, 32 * 20);
-    CpuCopy16(gContestResources->contestBgTilemaps[2], gContestResources->contestBgTilemaps[2] + 0x500, 32 * 20);
+    CpuCopy16(gContestResources->contestBgTilemaps[0], gContestResources->contestBgTilemaps[0] + (256/8)*(160/8), (256/8)*(80/8)*2);
+    CpuCopy16(gContestResources->contestBgTilemaps[2], gContestResources->contestBgTilemaps[2] + (256/8)*(160/8), (256/8)*(80/8)*2);
 }
 
 // Functionally unused
@@ -5081,7 +5084,7 @@ static void SetBgForCurtainDrop(void)
     SetGpuReg(REG_OFFSET_BG1HOFS, gBattle_BG1_X);
     SetGpuReg(REG_OFFSET_BG1VOFS, gBattle_BG1_Y);
 
-    CpuFill32(0, gContestResources->contestBgTilemaps[1], 0x1000);
+    CpuFastFill(0, gContestResources->contestBgTilemaps[1], 0x1000);
 
     ExtractToBgTilemapBuffer(1, gContestCurtainTilemap, 0);
     Contest_SetBgCopyFlags(1);

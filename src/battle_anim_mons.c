@@ -416,14 +416,13 @@ u8 GetAnimBattlerSpriteId(u8 animBattler)
 
 void StoreSpriteCallbackInData6(struct Sprite *sprite, void (*callback)(struct Sprite *))
 {
-    sprite->data[6] = (u32)(callback) & 0xffff;
-    sprite->data[7] = (u32)(callback) >> 16;
+    sprite->data[6] = (s16)((u32)(callback));
+    sprite->data[7] = (s16)((u32)(callback) >> 16);
 }
 
 void SetCallbackToStoredInData6(struct Sprite *sprite)
 {
-    u32 callback = (u16)sprite->data[6] | (sprite->data[7] << 16);
-    sprite->callback = (void (*)(struct Sprite *))callback;
+    sprite->callback = (void*)((0xffff & sprite->data[6]) | (sprite->data[7] << 16));
 }
 
 // Sprite data for TranslateSpriteInCircle/Ellipse and related
@@ -579,13 +578,13 @@ static void AnimPosToTranslateLinear(struct Sprite *sprite)
 void ConvertPosDataToTranslateLinearData(struct Sprite *sprite)
 {
     s16 old;
-    int xDiff;
 
     if (sprite->sStartX > sprite->sTargetX)
         sprite->sStepsX = -sprite->sStepsX;
-    xDiff = sprite->sTargetX - sprite->sStartX;
+
     old = sprite->sStepsX;
-    sprite->sMoveSteps = abs(xDiff / sprite->sStepsX);
+
+    sprite->sMoveSteps = abs((sprite->sTargetX - sprite->sStartX) / sprite->sStepsX);
     sprite->sSpeedY = (sprite->sTargetY - sprite->sStartY) / sprite->sMoveSteps;
     sprite->sSpeedX = old;
 }
@@ -796,7 +795,7 @@ bool8 TranslateAnimHorizontalArc(struct Sprite *sprite)
     if (AnimTranslateLinear(sprite))
         return TRUE;
     sprite->data[7] += sprite->data[6];
-    sprite->y2 += Sin((u8)(sprite->data[7] >> 8), sprite->data[5]);
+    sprite->y2 += Sin((sprite->data[7] >> 8) & 0xff, sprite->data[5]);
     return FALSE;
 }
 
@@ -805,7 +804,7 @@ bool8 TranslateAnimVerticalArc(struct Sprite *sprite)
     if (AnimTranslateLinear(sprite))
         return TRUE;
     sprite->data[7] += sprite->data[6];
-    sprite->x2 += Sin((u8)(sprite->data[7] >> 8), sprite->data[5]);
+    sprite->x2 += Sin((sprite->data[7] >> 8) & 0xff, sprite->data[5]);
     return FALSE;
 }
 
@@ -908,7 +907,7 @@ void GetBattleAnimBg1Data(struct BattleAnimBgData *out)
     if (IsContest())
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_CONTEST;
         out->bgId = 1;
         out->tilesOffset = 0;
@@ -917,7 +916,7 @@ void GetBattleAnimBg1Data(struct BattleAnimBgData *out)
     else
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_1;
         out->bgId = 1;
         out->tilesOffset = 0x200;
@@ -930,7 +929,7 @@ void GetBattleAnimBgData(struct BattleAnimBgData *out, u32 bgId)
     if (IsContest())
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_CONTEST;
         out->bgId = 1;
         out->tilesOffset = 0;
@@ -943,7 +942,7 @@ void GetBattleAnimBgData(struct BattleAnimBgData *out, u32 bgId)
     else
     {
         out->bgTiles = gBattleAnimBgTileBuffer;
-        out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+        out->bgTilemap = gBattleAnimBgTilemapBuffer;
         out->paletteId = BG_ANIM_PAL_2;
         out->bgId = 2;
         out->tilesOffset = 0x300;
@@ -954,7 +953,7 @@ void GetBattleAnimBgData(struct BattleAnimBgData *out, u32 bgId)
 void GetBgDataForTransform(struct BattleAnimBgData *out, u8 battlerId)
 {
     out->bgTiles = gBattleAnimBgTileBuffer;
-    out->bgTilemap = (u16 *)gBattleAnimBgTilemapBuffer;
+    out->bgTilemap = gBattleAnimBgTilemapBuffer;
     if (IsContest())
     {
         out->paletteId = BG_ANIM_PAL_CONTEST;
@@ -2122,7 +2121,7 @@ u8 CreateAdditionalMonSpriteForMoveAnim(u16 species, bool8 isBackpic, u8 id, s16
                                  FALSE);
     }
 
-    RequestDma3Copy(gMonSpritesGfxPtr->buffer, (void *)(OBJ_VRAM0 + (sheet * 0x20)), MON_PIC_SIZE, 1);
+    DmaCopy32(3, gMonSpritesGfxPtr->buffer, (void *)(OBJ_VRAM0 + (sheet * 0x20)), MON_PIC_SIZE);
     FREE_AND_SET_NULL(gMonSpritesGfxPtr->buffer);
 
     if (!isBackpic)
