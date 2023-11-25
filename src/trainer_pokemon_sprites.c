@@ -271,9 +271,9 @@ u16 CreateMonPicSprite_Affine(u16 species, u32 otId, u32 personality, u8 flags, 
     return spriteId;
 }
 
-static u16 FreeAndDestroyPicSpriteInternal(u16 spriteId)
+static void FreeAndDestroyPicSpriteInternal(u16 spriteId)
 {
-    u8 i;
+    u32 i;
     u8 *framePics;
     struct SpriteFrameImage *images;
 
@@ -283,7 +283,7 @@ static u16 FreeAndDestroyPicSpriteInternal(u16 spriteId)
             break;
     }
     if (i == PICS_COUNT)
-        return 0xFFFF;
+        return;
 
     framePics = sSpritePics[i].frames;
     images = sSpritePics[i].images;
@@ -293,7 +293,6 @@ static u16 FreeAndDestroyPicSpriteInternal(u16 spriteId)
     Free(framePics);
     Free(images);
     sSpritePics[i] = sDummyPicData;
-    return 0;
 }
 
 static u16 CreateTrainerCardSprite(u16 species, u32 otId, u32 personality, bool8 isFrontPic, u16 destX, u16 destY, u8 paletteSlot, u8 windowId, bool8 isTrainer)
@@ -321,7 +320,7 @@ u16 CreateMonPicSprite_HandleDeoxys(u16 species, u32 otId, u32 personality, bool
     return CreateMonPicSprite(species, otId, personality, isFrontPic, x, y, paletteSlot, paletteTag, FALSE);
 }
 
-u16 FreeAndDestroyMonPicSprite(u16 spriteId)
+void FreeAndDestroyMonPicSprite(u16 spriteId)
 {
     return FreeAndDestroyPicSpriteInternal(spriteId);
 }
@@ -331,9 +330,9 @@ u16 CreateTrainerPicSprite(u16 species, bool8 isFrontPic, s16 x, s16 y, u8 palet
     return CreatePicSprite_HandleDeoxys(species, 0, 0, isFrontPic, x, y, paletteSlot, paletteTag, TRUE);
 }
 
-u16 FreeAndDestroyTrainerPicSprite(u16 spriteId)
+void FreeAndDestroyTrainerPicSprite(u16 spriteId)
 {
-    return FreeAndDestroyPicSpriteInternal(spriteId);
+    FreeAndDestroyPicSpriteInternal(spriteId);
 }
 
 u16 CreateTrainerCardTrainerPicSprite(u16 species, bool8 isFrontPic, u16 destX, u16 destY, u8 paletteSlot, u8 windowId)
