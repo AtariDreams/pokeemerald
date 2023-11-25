@@ -413,7 +413,7 @@ void CreateSwapLineSprites(u8 *spriteIds, u8 count)
 
 void DestroySwapLineSprites(u8 *spriteIds, u8 count)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < count; i++)
     {
