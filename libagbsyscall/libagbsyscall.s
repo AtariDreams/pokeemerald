@@ -322,10 +322,10 @@ ObjAffineSet:
 SoftResetRom:
 	ldr r3, =REG_IME
 	movs r2, #0
-	strb r2, [r3, #0]
+	strb r2, [r3]
 	ldr r3, =SOFT_RESET_DIRECT_BUF
 	movs r2, #0
-	strb r2, [r3, #0]
+	strb r2, [r3]
 	sub r3, #SOFT_RESET_DIRECT_BUF - 0x3007f00
 	mov sp, r3
 	svc #1
@@ -412,7 +412,7 @@ MusicPlayerContinue:
 SoftReset:
 	ldr r3, =REG_IME
 	movs r2, #0
-	strb r2, [r3, #0]
+	strb r2, [r3]
 	ldr r1, =0x3007f00
 	mov sp, r1
 	svc #1
