@@ -5909,7 +5909,7 @@ static bool8 UpdateCursorPos(void)
 
         // Cursor flips vertically when moving on/off the top buttons
         if (sStorage->cursorFlipTimer && --sStorage->cursorFlipTimer == 0)
-            sStorage->cursorSprite->vFlip = (sStorage->cursorSprite->vFlip == FALSE);
+            sStorage->cursorSprite->vFlip ^= 1;
     }
     else
     {
@@ -6090,7 +6090,7 @@ static void SetCursorInParty(void)
     else
     {
         partyCount = CalculatePlayerPartyCount();
-        if (partyCount >= PARTY_SIZE)
+        if (partyCount > PARTY_SIZE - 1)
             partyCount = PARTY_SIZE - 1;
     }
     if (sStorage->cursorSprite->vFlip)
@@ -6790,7 +6790,7 @@ static void TryRefreshDisplayMon(void)
     // If a Pokémon is currently being moved, don't start
     // mosaic or update display. Keep displaying the
     // currently held Pokémon.
-    sStorage->setMosaic = (sIsMonBeingMoved == FALSE);
+    sStorage->setMosaic = !sIsMonBeingMoved;
     if (sStorage->setMosaic)
     {
         // Update display Pokémon
@@ -9113,7 +9113,7 @@ static void SetItemIconActive(u8 id, bool8 active)
         return;
 
     sStorage->itemIcons[id].active = active;
-    sStorage->itemIcons[id].sprite->invisible = (active == FALSE);
+    sStorage->itemIcons[id].sprite->invisible = !active;
 }
 
 static const u32 *GetItemIconPic(u16 itemId)
