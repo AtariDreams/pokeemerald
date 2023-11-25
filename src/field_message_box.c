@@ -28,20 +28,19 @@ static void Task_DrawFieldMessage(u8 taskId)
 
     switch (task->tState)
     {
-        case 0:
-           LoadMessageBoxAndBorderGfx();
-           task->tState++;
-           break;
-        case 1:
-           DrawDialogueFrame(0, TRUE);
-           task->tState++;
-           break;
-        case 2:
-            if (RunTextPrintersAndIsPrinter0Active() != TRUE)
-            {
-                sFieldMessageBoxMode = FIELD_MESSAGE_BOX_HIDDEN;
-                DestroyTask(taskId);
-            }
+    case 0:
+        LoadMessageBoxAndBorderGfx();
+        task->tState++;
+        break;
+    case 1:
+        DrawDialogueFrame(0, TRUE);
+        task->tState++;
+        break;
+    case 2:
+        if (RunTextPrintersAndIsPrinter0Active())
+            break;
+        sFieldMessageBoxMode = FIELD_MESSAGE_BOX_HIDDEN;
+        DestroyTask(taskId);
     }
 }
 
