@@ -8957,7 +8957,7 @@ static u8 GetNewItemIconIdx(void)
 
 static bool32 IsItemIconAtPosition(u8 cursorArea, u8 cursorPos)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < MAX_ITEM_ICONS; i++)
     {
