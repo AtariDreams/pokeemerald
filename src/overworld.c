@@ -490,7 +490,7 @@ void SetObjEventTemplateCoords(u8 localId, s16 x, s16 y)
 
 void SetObjEventTemplateMovementType(u8 localId, u8 movementType)
 {
-    s32 i;
+    u32 i;
 
     struct ObjectEventTemplate *savObjTemplates = gSaveBlock1.objectEventTemplates;
     for (i = 0; i < OBJECT_EVENT_TEMPLATES_COUNT; i++)
