@@ -27,7 +27,7 @@
 #include "scanline_effect.h"
 #include "util.h"
 #include "contest_util.h"
-#include "dma3.h"
+
 #include "battle_message.h"
 #include "event_scripts.h"
 #include "event_data.h"

@@ -2,7 +2,7 @@
 #include "malloc.h"
 #include "bg.h"
 #include "blit.h"
-#include "dma3.h"
+
 #include "event_data.h"
 #include "graphics.h"
 #include "main.h"
