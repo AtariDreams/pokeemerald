@@ -1779,18 +1779,15 @@ void DecompressAndLoadBgGfxUsingHeap(u8 bgId, const void *src, u32 size, u16 off
     if (ptr)
     {
         u8 taskId = CreateTask(task_free_buf_after_copying_tile_data_to_vram, 0);
-        gTasks[taskId].data[0] = copy_decompressed_tile_data_to_vram(bgId, ptr, size, offset, mode);
+        copy_decompressed_tile_data_to_vram(bgId, ptr, size, offset, mode);
         SetWordTaskArg(taskId, 1, (u32)ptr);
     }
 }
 
 void task_free_buf_after_copying_tile_data_to_vram(u8 taskId)
 {
-    if (!CheckForSpaceForDma3Request(gTasks[taskId].data[0]))
-    {
-        Free((void *)GetWordTaskArg(taskId, 1));
-        DestroyTask(taskId);
-    }
+    Free((void *)GetWordTaskArg(taskId, 1));
+     DestroyTask(taskId);
 }
 
 void *malloc_and_decompress(const void *src, u32 *size)
@@ -1810,17 +1807,12 @@ void *malloc_and_decompress(const void *src, u32 *size)
     return ptr;
 }
 
-s8 copy_decompressed_tile_data_to_vram(u8 bgId, const void *src, u16 size, u16 offset, u8 mode)
+void copy_decompressed_tile_data_to_vram(u8 bgId, const void *src, u16 size, u16 offset, u8 mode)
 {
-    switch (mode)
-    {
-        case 0:
-            return LoadBgTiles(bgId, src, size, offset);
-        case 1:
-            return LoadBgTilemap(bgId, src, size, offset);
-        default:
-            return -1;
-    }
+    if (mode)
+        LoadBgTilemap(bgId, src, size, offset);
+    else
+        LoadBgTiles(bgId, src, size, offset);
 }
 
 void SetBgTilemapPalette(u8 bgId, u8 left, u8 top, u8 width, u8 height, u8 palette)
@@ -1886,7 +1878,7 @@ void BgDmaFill(u8 bg, u8 value, int offset, int size)
 {
     u32 temp = (!GetBgAttribute(bg, BG_ATTR_PALETTEMODE)) ? 32 : 64;
     u32 addr = (GetBgAttribute(bg, BG_ATTR_CHARBASEINDEX) * 0x4000) + ((GetBgAttribute(bg, BG_ATTR_BASETILE) + offset) * temp);
-    RequestDma3Fill(value << 24 | value << 16 | value << 8 | value, (void *)(VRAM + addr), size * temp, 1);
+    DmaFill32(3, value << 24 | value << 16 | value << 8 | value, (void *)(VRAM + addr), size * temp);
 }
 
 void AddTextPrinterParameterized3(u8 windowId, u8 fontId, u8 left, u8 top, const u8 *color, s8 speed, const u8 *str)
