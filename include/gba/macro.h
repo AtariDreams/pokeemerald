@@ -124,6 +124,13 @@
 #define DMA_CLEAR(dmaNum, dest, size, bit) DMA_CLEAR_UNCHECKED(dmaNum, dest, size, bit)
 #endif
 
+#define DMA_COPY_UNCHECKEDDelayed(dmaNum, src, dest, size, bit)                                    \
+    DmaSet(dmaNum,                                                                          \
+           src,                                                                             \
+           dest,                                                                            \
+           (DMA_ENABLE | DMA_START_VBLANK | DMA_##bit##BIT | DMA_SRC_INC | DMA_DEST_INC) << 16 \
+         | ((size)/(bit/8)))
+
 #define DmaClear16(dmaNum, dest, size) DMA_CLEAR(dmaNum, dest, size, 16)
 #define DmaClear32(dmaNum, dest, size) DMA_CLEAR(dmaNum, dest, size, 32)
 
