@@ -1233,6 +1233,8 @@ static void UpdateMonPic(u8 loadId)
     }
     else
     {
+        // Todo; is this safe? should be as it works in practice but what about guaranteed by c? idk
+        // decay to pointer does not happen here so the workaround is this:
         DmaCopy16(3, &sMenu->partySheets[loadId][0], sMenu->curMonTileStart, MON_PIC_SIZE);
         LoadPalette(sMenu->partyPalettes[loadId], sMenu->curMonPalette, PLTT_SIZE_4BPP);
     }
