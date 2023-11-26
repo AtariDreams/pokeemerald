@@ -438,12 +438,9 @@ static void SafariHandlePrintSelectionString(void)
 
 static void HandleChooseActionAfterDma3(void)
 {
-    if (!IsDma3ManagerBusyWithBgCopy())
-    {
-        gBattle_BG0_X = 0;
-        gBattle_BG0_Y = DISPLAY_HEIGHT;
-        gBattlerControllerFuncs[gActiveBattler] = HandleInputChooseAction;
-    }
+    gBattle_BG0_X = 0;
+    gBattle_BG0_Y = DISPLAY_HEIGHT;
+    gBattlerControllerFuncs[gActiveBattler] = HandleInputChooseAction;
 }
 
 static void SafariHandleChooseAction(void)

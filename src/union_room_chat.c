@@ -2150,7 +2150,7 @@ static bool8 TryAllocDisplay(void)
     sDisplay = Alloc(sizeof(*sDisplay));
     if (sDisplay && TryAllocSprites())
     {
-        ResetBgsAndClearDma3BusyFlags();
+        ResetBgs();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         InitWindows(sWinTemplates);
         ResetTempTileDataBuffers();
@@ -2268,12 +2268,9 @@ static bool32 Display_LoadGfx(u8 *state)
         LoadTextEntryWindow();
         break;
     case 6:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            CreateKeyboardCursorSprite();
-            CreateTextEntrySprites();
-            CreateRButtonSprites();
-        }
+        CreateKeyboardCursorSprite();
+        CreateTextEntrySprites();
+        CreateRButtonSprites();
         break;
     default:
         return FALSE;
@@ -2292,7 +2289,7 @@ static bool32 Display_ShowKeyboardSwapMenu(u8 *state)
         CopyWindowToVram(WIN_SWAP_MENU, COPYWIN_FULL);
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     (*state)++;
@@ -2308,7 +2305,7 @@ static bool32 Display_HideKeyboardSwapMenu(u8 *state)
         CopyWindowToVram(WIN_SWAP_MENU, COPYWIN_FULL);
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     (*state)++;
@@ -2328,8 +2325,6 @@ static bool32 Display_SwitchPages(u8 *state)
         CopyWindowToVram(WIN_KEYBOARD, COPYWIN_GFX);
         break;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return TRUE;
         break;
     case 2:
         if (SlideKeyboardPageIn())
@@ -2361,7 +2356,7 @@ static bool32 Display_AskQuitChatting(u8 *state)
         CopyWindowToVram(sDisplay->messageWindowId, COPYWIN_FULL);
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     (*state)++;
@@ -2378,8 +2373,6 @@ static bool32 Display_DestroyYesNoDialog(u8 *state)
         CopyBgTilemapBufferToVram(0);
         break;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return TRUE;
 
         DestroyStdMessageWindow();
         DestroyYesNoMenuWindow();
@@ -2405,12 +2398,8 @@ static bool32 Display_UpdateMessageBuffer(u8 *state)
         CopyWindowToVram(WIN_TEXT_ENTRY, COPYWIN_GFX);
         break;
     case 1:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            UpdateRButtonLabel();
-            return FALSE;
-        }
-        return TRUE;
+        UpdateRButtonLabel();
+        return FALSE;
     }
 
     (*state)++;
@@ -2434,21 +2423,13 @@ static bool32 Display_AskRegisterText(u8 *state)
         CopyWindowToVram(WIN_TEXT_ENTRY, COPYWIN_GFX);
         break;
     case 1:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            AddStdMessageWindow(STDMESSAGE_REGISTER_WHERE, 16);
-            CopyWindowToVram(sDisplay->messageWindowId, COPYWIN_FULL);
-        }
-        else
-        {
-            return TRUE;
-        }
+
+        AddStdMessageWindow(STDMESSAGE_REGISTER_WHERE, 16);
+        CopyWindowToVram(sDisplay->messageWindowId, COPYWIN_FULL);
+
         break;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy())
-            SetRegisteredTextPalette(TRUE);
-        else
-            return TRUE;
+        SetRegisteredTextPalette(TRUE);
         break;
     case 3:
         return FALSE;
@@ -2475,26 +2456,14 @@ static bool32 Display_CancelRegister(u8 *state)
         CopyWindowToVram(WIN_TEXT_ENTRY, COPYWIN_GFX);
         break;
     case 1:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
+
             HideStdMessageWindow();
             CopyWindowToVram(sDisplay->messageWindowId, COPYWIN_FULL);
-        }
-        else
-        {
-            return TRUE;
-        }
         break;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
+
             SetRegisteredTextPalette(FALSE);
             DestroyStdMessageWindow();
-        }
-        else
-        {
-            return TRUE;
-        }
         break;
     case 3:
         return FALSE;
@@ -2514,10 +2483,7 @@ static bool32 Display_ReturnToKeyboard(u8 *state)
         (*state)++;
         break;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return TRUE;
-        else
-            return FALSE;
+        return FALSE;
     }
 
     return TRUE;
@@ -2539,9 +2505,6 @@ static bool32 Display_ScrollChat(u8 *state)
         CopyWindowToVram(WIN_CHAT_HISTORY, COPYWIN_GFX);
         break;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return TRUE;
-
         if (sDisplay->currLine < 9)
         {
             sDisplay->currLine++;
@@ -2561,8 +2524,6 @@ static bool32 Display_ScrollChat(u8 *state)
         (*state)++;
         // fall through
     case 3:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return TRUE;
 
         if (sDisplay->scrollCount < 3)
         {
@@ -2605,7 +2566,7 @@ static bool32 Display_PrintInputText(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2621,7 +2582,7 @@ static bool32 Display_PrintExitingChat(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2642,7 +2603,7 @@ static bool32 Display_PrintLeaderLeft(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2659,7 +2620,7 @@ static bool32 Display_AskSave(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2676,7 +2637,7 @@ static bool32 Display_AskOverwriteSave(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2692,7 +2653,7 @@ static bool32 Display_PrintSavingDontTurnOff(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2710,7 +2671,7 @@ static bool32 Display_PrintSavedTheGame(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -2727,7 +2688,7 @@ static bool32 Display_AskConfirmLeaderLeave(u8 *state)
         (*state)++;
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;

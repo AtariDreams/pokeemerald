@@ -125,9 +125,6 @@ static u32 LoopedTask_CreatePokenavList(s32 state)
 {
     struct PokenavList *list;
 
-    if (IsDma3ManagerBusyWithBgCopy())
-        return LT_PAUSE;
-
     list = GetSubstructPtr(POKENAV_SUBSTRUCT_LIST);
 
     switch (state)
@@ -237,8 +234,6 @@ static u32 LoopedTask_PrintListItems(s32 state)
             return LT_CONTINUE;
         }
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         return LT_FINISH;
     }
     return LT_FINISH;
@@ -507,29 +502,24 @@ static u32 LoopedTask_EraseListForCheckPage(s32 state)
         list->eraseIndex++;
         return LT_INC_AND_PAUSE;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            if (list->eraseIndex != list->windowState.entriesOnscreen)
-                return LT_SET_STATE(1);
-            if (list->windowState.selectedIndexOffset != 0)
-                EraseListEntry(&list->window, list->eraseIndex, list->windowState.selectedIndexOffset);
 
+        if (list->eraseIndex != list->windowState.entriesOnscreen)
+            return LT_SET_STATE(1);
+        if (list->windowState.selectedIndexOffset != 0)
+            EraseListEntry(&list->window, list->eraseIndex, list->windowState.selectedIndexOffset);
+
+        return LT_INC_AND_PAUSE;
+    case 3:
+
+        if (list->windowState.selectedIndexOffset != 0)
+        {
+            MoveListWindow(list->windowState.selectedIndexOffset, FALSE);
             return LT_INC_AND_PAUSE;
         }
-        return LT_PAUSE;
-    case 3:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            if (list->windowState.selectedIndexOffset != 0)
-            {
-                MoveListWindow(list->windowState.selectedIndexOffset, FALSE);
-                return LT_INC_AND_PAUSE;
-            }
-            return LT_FINISH;
-        }
-        return LT_PAUSE;
+        return LT_FINISH;
+
     case 4:
-         if (PokenavList_IsMoveWindowTaskActive())
+        if (PokenavList_IsMoveWindowTaskActive())
             return LT_PAUSE;
 
         list->windowState.selectedIndexOffset = 0;
@@ -541,8 +531,6 @@ static u32 LoopedTask_EraseListForCheckPage(s32 state)
 static u32 LoopedTask_PrintCheckPageInfo(s32 state)
 {
     struct PokenavList *list = GetSubstructPtr(POKENAV_SUBSTRUCT_LIST);
-    if (IsDma3ManagerBusyWithBgCopy())
-        return LT_PAUSE;
 
     switch (state)
     {
@@ -581,9 +569,6 @@ static u32 LoopedTask_ReshowListFromCheckPage(s32 state)
     struct PokenavList *list;
     struct PokenavListWindowState *windowState;
     struct PokenavListMenuWindow *window;
-
-    if (IsDma3ManagerBusyWithBgCopy())
-        return LT_PAUSE;
 
     list = GetSubstructPtr(POKENAV_SUBSTRUCT_LIST);
     windowState = &list->windowState;

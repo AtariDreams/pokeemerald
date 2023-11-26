@@ -1226,7 +1226,7 @@ static bool32 InitSaveWindowAfterLinkBattle(void)
         gMain.state = 2;
         break;
     case 2:
-        ResetBgsAndClearDma3BusyFlags();
+        ResetBgs();
         InitBgsFromTemplates(0, sBgTemplates_LinkBattleSave, ARRAY_COUNT(sBgTemplates_LinkBattleSave));
         InitWindows(sWindowTemplates_LinkBattleSave);
         LoadUserWindowBorderGfx_(0, 8, BG_PLTT_ID(14));
