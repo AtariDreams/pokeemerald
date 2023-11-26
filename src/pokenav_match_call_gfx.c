@@ -49,7 +49,7 @@ struct Pokenav_MatchCallGfx
     // u8 unusedTilemapBuffer[BG_SCREEN_SIZE];
     u8 bgTilemapBuffer2[BG_SCREEN_SIZE];
     u8 *trainerPicGfxPtr;
-    u8 trainerPicGfx[TRAINER_PIC_SIZE];
+    u8 ALIGNED(4) trainerPicGfx[TRAINER_PIC_SIZE];
     u16 trainerPicPal[0x10];
 };
 
@@ -65,9 +65,7 @@ static void PrintMatchCallLocation(struct Pokenav_MatchCallGfx *, int);
 static void AllocMatchCallSprites(void);
 static void SetPokeballIconsFlashing(u8);
 static void PrintMatchCallSelectionOptions(struct Pokenav_MatchCallGfx *);
-static bool32 ShowOptionsCursor(struct Pokenav_MatchCallGfx *);
 static void UpdateCursorGfxPos(struct Pokenav_MatchCallGfx *, int);
-static bool32 IsDma3ManagerBusyWithBgCopy1(struct Pokenav_MatchCallGfx *);
 static void UpdateWindowsReturnToTrainerList(struct Pokenav_MatchCallGfx *);
 static void DrawMsgBoxForMatchCallMsg(struct Pokenav_MatchCallGfx *);
 static bool32 IsDma3ManagerBusyWithBgCopy2(struct Pokenav_MatchCallGfx *);
@@ -423,8 +421,6 @@ static u32 MatchCallListCursorDown(s32 state)
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
     case 3:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -457,8 +453,6 @@ static u32 MatchCallListCursorUp(s32 state)
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
     case 3:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -491,8 +485,6 @@ static u32 MatchCallListPageDown(s32 state)
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
     case 3:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -525,10 +517,6 @@ static u32 MatchCallListPageUp(s32 state)
     case 2:
         PrintMatchCallLocation(gfx, 0);
         return LT_INC_AND_PAUSE;
-    case 3:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
-        break;
     }
     return LT_FINISH;
 }
@@ -544,8 +532,7 @@ static u32 SelectMatchCallEntry(s32 state)
         PrintHelpBarText(HELPBAR_MC_CALL_MENU);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (ShowOptionsCursor(gfx))
-            return LT_PAUSE;
+         CreateOptionsCursorSprite(gfx, GetMatchCallOptionCursorPos());
         break;
     }
 
@@ -569,10 +556,6 @@ static u32 CancelMatchCallSelection(s32 state)
         UpdateWindowsReturnToTrainerList(gfx);
         PrintHelpBarText(HELPBAR_MC_TRAINER_LIST);
         return LT_INC_AND_PAUSE;
-    case 1:
-        if (IsDma3ManagerBusyWithBgCopy1(gfx))
-            return LT_PAUSE;
-        break;
     }
 
     return LT_FINISH;
@@ -660,17 +643,9 @@ static u32 CloseMatchCallMessage(s32 state)
         UpdateWindowsReturnToTrainerList(gfx);
         break;
     case 4:
-        if (IsDma3ManagerBusyWithBgCopy1(gfx))
-            result = LT_PAUSE;
-
         PrintHelpBarText(HELPBAR_MC_TRAINER_LIST);
         break;
     case 5:
-        if (WaitForHelpBar())
-        {
-            result = LT_PAUSE;
-        }
-        else
         {
             if (gfx->newRematchRequest)
             {
@@ -686,11 +661,6 @@ static u32 CloseMatchCallMessage(s32 state)
         }
         break;
     case 6:
-        if (IsDma3ManagerBusyWithBgCopy())
-        {
-            result = LT_PAUSE;
-        }
-        else
         {
             PokenavList_ToggleVerticalArrows(FALSE);
             result = LT_FINISH;
@@ -712,7 +682,7 @@ static u32 ShowCheckPage(s32 state)
         UpdateWindowsToShowCheckPage(gfx);
         return LT_INC_AND_PAUSE;
     case 1:
-        if (PokenavList_IsTaskActive() || IsDma3ManagerBusyWithBgCopy1(gfx))
+        if (PokenavList_IsTaskActive())
             return LT_PAUSE;
 
         PrintHelpBarText(HELPBAR_MC_CHECK_PAGE);
@@ -722,7 +692,7 @@ static u32 ShowCheckPage(s32 state)
         LoadCheckPageTrainerPic(gfx);
         return LT_INC_AND_PAUSE;
     case 3:
-        if (PokenavList_IsTaskActive() || WaitForTrainerPic(gfx) || WaitForHelpBar())
+        if (PokenavList_IsTaskActive() || WaitForTrainerPic(gfx))
             return LT_PAUSE;
         break;
     }
@@ -783,10 +753,6 @@ static u32 ExitCheckPage(s32 state)
         PrintHelpBarText(HELPBAR_MC_TRAINER_LIST);
         UpdateMatchCallInfoBox(gfx);
         return LT_INC_AND_PAUSE;
-    case 2:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
-        break;
     }
 
     return LT_FINISH;
@@ -1026,26 +992,10 @@ static void PrintMatchCallSelectionOptions(struct Pokenav_MatchCallGfx *gfx)
     CopyWindowToVram(gfx->infoBoxWindowId, COPYWIN_GFX);
 }
 
-static bool32 ShowOptionsCursor(struct Pokenav_MatchCallGfx *gfx)
-{
-    if (!IsDma3ManagerBusyWithBgCopy())
-    {
-        CreateOptionsCursorSprite(gfx, GetMatchCallOptionCursorPos());
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
 static void UpdateWindowsReturnToTrainerList(struct Pokenav_MatchCallGfx *gfx)
 {
     CloseMatchCallSelectOptionsWindow(gfx);
     UpdateMatchCallInfoBox(gfx);
-}
-
-static bool32 IsDma3ManagerBusyWithBgCopy1(struct Pokenav_MatchCallGfx *gfx)
-{
-    return IsDma3ManagerBusyWithBgCopy();
 }
 
 static void UpdateWindowsToShowCheckPage(struct Pokenav_MatchCallGfx *gfx)
@@ -1087,7 +1037,7 @@ static void DrawMsgBoxForCloseByMsg(struct Pokenav_MatchCallGfx *gfx)
 
 static bool32 IsDma3ManagerBusyWithBgCopy2(struct Pokenav_MatchCallGfx *gfx)
 {
-    return IsDma3ManagerBusyWithBgCopy();
+    return FALSE;
 }
 
 static void PrintCallingDots(struct Pokenav_MatchCallGfx *gfx)
@@ -1137,7 +1087,7 @@ static void EraseCallMessageBox(struct Pokenav_MatchCallGfx *gfx)
 
 static bool32 WaitForCallMessageBoxErase(struct Pokenav_MatchCallGfx *gfx)
 {
-    return IsDma3ManagerBusyWithBgCopy();
+    return FALSE;
 }
 
 static void AllocMatchCallSprites(void)
@@ -1222,9 +1172,8 @@ static void LoadCheckPageTrainerPic(struct Pokenav_MatchCallGfx *gfx)
         DecompressPicFromTable(&gTrainerFrontPicTable[trainerPic], gfx->trainerPicGfx, SPECIES_NONE);
         LZ77UnCompWram(gTrainerFrontPicPaletteTable[trainerPic].data, gfx->trainerPicPal);
         LoadPalette(gfx->trainerPicPal, gfx->trainerPicPalOffset, sizeof(gfx->trainerPicPal));
-        cursor = RequestDma3Copy(gfx->trainerPicGfx, gfx->trainerPicGfxPtr, sizeof(gfx->trainerPicGfx), 1);
+        DmaCopy32(3, gfx->trainerPicGfx, gfx->trainerPicGfxPtr, sizeof(gfx->trainerPicGfx));
         gfx->trainerPicSprite->data[0] = 0;
-        gfx->trainerPicSprite->data[7] = cursor;
         gfx->trainerPicSprite->callback = SpriteCB_TrainerPicSlideOnscreen;
     }
 }
@@ -1244,13 +1193,9 @@ static void SpriteCB_TrainerPicSlideOnscreen(struct Sprite *sprite)
     switch (sprite->data[0])
     {
     case 0:
-        if (CheckForSpaceForDma3Request(sprite->data[7]) == -1)
-            return;
-        {
-            sprite->x2 = -80;
-            sprite->invisible = FALSE;
-            sprite->data[0]++;
-        }
+        sprite->x2 = -80;
+        sprite->invisible = FALSE;
+        sprite->data[0]++;
         break;
     case 1:
         sprite->x2 += 8;

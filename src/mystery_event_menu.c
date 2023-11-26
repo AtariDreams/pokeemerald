@@ -85,7 +85,7 @@ void CB2_InitMysteryEventMenu(void)
     FreeAllSpritePalettes();
     ResetTasks();
     SetVBlankCallback(VBlankCB);
-    ResetBgsAndClearDma3BusyFlags();
+    ResetBgs();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     if (InitWindows(sWindowTemplates))
     {

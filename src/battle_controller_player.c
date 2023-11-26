@@ -2541,12 +2541,9 @@ static void PlayerHandlePrintSelectionString(void)
 
 static void HandleChooseActionAfterDma3(void)
 {
-    if (!IsDma3ManagerBusyWithBgCopy())
-    {
-        gBattle_BG0_X = 0;
-        gBattle_BG0_Y = DISPLAY_HEIGHT;
-        gBattlerControllerFuncs[gActiveBattler] = HandleInputChooseAction;
-    }
+    gBattle_BG0_X = 0;
+    gBattle_BG0_Y = DISPLAY_HEIGHT;
+    gBattlerControllerFuncs[gActiveBattler] = HandleInputChooseAction;
 }
 
 static void PlayerHandleChooseAction(void)
@@ -2583,12 +2580,10 @@ static void PlayerHandleYesNoBox(void)
 
 static void HandleChooseMoveAfterDma3(void)
 {
-    if (!IsDma3ManagerBusyWithBgCopy())
-    {
-        gBattle_BG0_X = 0;
-        gBattle_BG0_Y = DISPLAY_HEIGHT * 2;
-        gBattlerControllerFuncs[gActiveBattler] = HandleInputChooseMove;
-    }
+
+    gBattle_BG0_X = 0;
+    gBattle_BG0_Y = DISPLAY_HEIGHT * 2;
+    gBattlerControllerFuncs[gActiveBattler] = HandleInputChooseMove;
 }
 
 // arenaMindPoints is used here as a placeholder for a timer.
