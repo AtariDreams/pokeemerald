@@ -407,6 +407,8 @@ static void Task_DoPokeballSendOutAnim(u8 taskId)
     }
 
     // this will perform an unused ball throw animation
+
+    // Todo: is it unused?
     gSprites[ballSpriteId].data[0] = 34;
     gSprites[ballSpriteId].data[2] = GetBattlerSpriteCoord(gBattlerTarget, BATTLER_COORD_X);
     gSprites[ballSpriteId].data[4] = GetBattlerSpriteCoord(gBattlerTarget, BATTLER_COORD_Y) - 16;
@@ -472,8 +474,7 @@ static void SpriteCB_BallThrow_StartShrinkMon(struct Sprite *sprite)
 
 static void SpriteCB_BallThrow_ShrinkMon(struct Sprite *sprite)
 {
-    sprite->data[5]++;
-    if (sprite->data[5] == 11)
+    if (sprite->data[5]++ == 10)
         PlaySE(SE_BALL_TRADE);
 
     if (gSprites[gBattlerSpriteIds[sprite->sBattler]].affineAnimEnded)
@@ -569,7 +570,7 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
 
 static void SpriteCB_BallThrow_StartShakes(struct Sprite *sprite)
 {
-    if (++sprite->data[3] == 31)
+    if (sprite->data[3]++ == 30)
     {
         sprite->data[3] = 0;
         sprite->affineAnimPaused = TRUE;
@@ -947,10 +948,14 @@ static void SpriteCB_PlayerMonSendOut_2(struct Sprite *sprite)
             sprite->data[0] = r4 - 1;
         if (HIBYTE(sprite->data[7]) >= 80)
         {
-            r6 = sprite->data[1] & 1;
-            r7 = sprite->data[2] & 1;
-            sprite->data[1] = ((sprite->data[1] * 3) & ~1) | r6;
-            sprite->data[2] = ((sprite->data[2] * 3) & ~1) | r7;
+            // r6 = sprite->data[1] & 1;
+            // r7 = sprite->data[2] & 1;
+            // sprite->data[1] = ((sprite->data[1] * 3) & ~1) | r6;
+            // sprite->data[2] = ((sprite->data[2] * 3) & ~1) | r7;
+
+            // OK, so if sprite->data[1] is odd, * 3 is odd. else it is even, so this is redundant
+            sprite->data[1] = sprite->data[1] * 3;
+            sprite->data[2] = sprite->data[2] * 3;
         }
     }
     else
