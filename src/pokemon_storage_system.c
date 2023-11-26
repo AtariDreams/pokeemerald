@@ -8897,7 +8897,7 @@ static void MoveHeldItemWithPartyMenu(void)
 
 static bool8 IsItemIconAnimActive(void)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < MAX_ITEM_ICONS; i++)
     {
