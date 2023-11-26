@@ -569,14 +569,13 @@ static void SpriteCB_BallThrow_FallToGround(struct Sprite *sprite)
 
 static void SpriteCB_BallThrow_StartShakes(struct Sprite *sprite)
 {
-    sprite->data[3]++;
-    if (sprite->data[3] == 31)
+    if (++sprite->data[3] == 31)
     {
         sprite->data[3] = 0;
         sprite->affineAnimPaused = TRUE;
         StartSpriteAffineAnim(sprite, 1);
-        sprite->callback = SpriteCB_BallThrow_Shake;
         PlaySE(SE_BALL);
+        sprite->callback = SpriteCB_BallThrow_Shake;
     }
 }
 
@@ -635,8 +634,7 @@ static void SpriteCB_BallThrow_Shake(struct Sprite *sprite)
         break;
     case 4:
     default:
-        sprite->data[5]++;
-        if (sprite->data[5] == 31)
+        if (++sprite->data[5] == 31)
         {
             sprite->data[5] = 0;
             sprite->data[3] &= 0xFF00;
