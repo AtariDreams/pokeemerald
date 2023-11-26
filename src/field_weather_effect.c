@@ -1274,8 +1274,6 @@ static void UpdateThunderSound(void)
 // WEATHER_FOG_HORIZONTAL and WEATHER_UNDERWATER
 //------------------------------------------------------------------------------
 
-static const u16 sUnusedData[] = {0, 6, 6, 12, 18, 42, 300, 300};
-
 static const struct OamData sOamData_FogH =
 {
     .y = 0,
