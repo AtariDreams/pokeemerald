@@ -9,7 +9,7 @@
 #include "contest_painting.h"
 #include "data.h"
 #include "decompress.h"
-#include "dma3.h"
+
 #include "event_data.h"
 #include "event_object_movement.h"
 #include "field_specials.h"
