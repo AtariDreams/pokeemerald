@@ -378,14 +378,14 @@ struct ChooseBoxMenu
 {
     struct Sprite *menuSprite;
     struct Sprite *menuSideSprites[4];
-    u32 unused1[3];
+    //u32 unused1[3];
     struct Sprite *arrowSprites[2];
-    u8 unused2[0x214];
+    //u8 unused2[0x214];
     bool32 loadedPalette;
     u16 tileTag;
     u16 paletteTag;
     u8 curBox;
-    u8 unused3;
+    //u8 unused3;
     u8 subpriority;
 };
 
@@ -554,8 +554,8 @@ struct PokemonStorageSystemData
     u16 displayMonPalBuffer[0x40];
     u8 ALIGNED(4) tileBuffer[MON_PIC_SIZE * MAX_MON_PIC_FRAMES];
     u8 ALIGNED(4) itemIconBuffer[0x800];
-    u8 wallpaperBgTilemapBuffer[0x1000];
-    u8 displayMenuTilemapBuffer[0x800];
+    u8 ALIGNED(4) wallpaperBgTilemapBuffer[0x1000];
+    u8 ALIGNED(4) displayMenuTilemapBuffer[0x800];
 };
 
 static u32 sItemIconGfxBuffer[98];
@@ -867,7 +867,7 @@ static void TilemapUtil_SetPos(u8, u16, u16);
 static void TilemapUtil_Init(u8);
 static void TilemapUtil_Free(void);
 static void TilemapUtil_Update(u8);
-static void TilemapUtil_DrawPrev(u8);
+//static void TilemapUtil_DrawPrev(u8);
 static void TilemapUtil_Draw(u8);
 
 // Unknown utility
@@ -1337,8 +1337,8 @@ void DrawTextWindowAndBufferTiles(const u8 * restrict string, void *restrict dst
     winTemplate.height = 2;
     windowId = AddWindow(&winTemplate);
     FillWindowPixelBuffer(windowId, 0);
-    tileData1 = (u8 *) GetWindowAttribute(windowId, WINDOW_TILE_DATA);
-    tileData2 = (winTemplate.width * TILE_SIZE_4BPP) + tileData1;
+    tileData1 = gWindows[windowId].tileData;
+    tileData2 = tileData1 + (winTemplate.width * TILE_SIZE_4BPP);
 
     // if (!zero1)
     //     txtColor[0] = TEXT_COLOR_TRANSPARENT;
@@ -1349,7 +1349,7 @@ void DrawTextWindowAndBufferTiles(const u8 * restrict string, void *restrict dst
     txtColor[2] = TEXT_DYNAMIC_COLOR_5;
     AddTextPrinterParameterized4(windowId, FONT_NORMAL, 0, 1, 0, 0, txtColor, TEXT_SKIP_DRAW, string);
 
-    tileBytesToBuffer = bytesToBuffer < 6 ? bytesToBuffer : 6;
+    tileBytesToBuffer = bytesToBuffer <= 6 ? bytesToBuffer : 6;
 
     for (i = tileBytesToBuffer; i != 0; i--)
     {
@@ -1380,8 +1380,9 @@ static void UNUSED UnusedDrawTextWindow(const u8 *string, void *dst, u16 offset,
     tilesSize = winTemplate.width * TILE_SIZE_4BPP;
     windowId = AddWindow(&winTemplate);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(bgColor));
-    tileData1 = (u8 *) GetWindowAttribute(windowId, WINDOW_TILE_DATA);
-    tileData2 = (winTemplate.width * TILE_SIZE_4BPP) + tileData1;
+    
+    tileData1 = gWindows[windowId].tileData;
+    tileData2 = tileData1 + (winTemplate.width * TILE_SIZE_4BPP) ;
     txtColor[0] = bgColor;
     txtColor[1] = fgColor;
     txtColor[2] = shadowColor;
@@ -1925,14 +1926,12 @@ static void ChooseBoxMenu_MoveLeft(void)
 static void ChooseBoxMenu_PrintInfo(void)
 {
     u8 numBoxMonsText[16];
-    struct WindowTemplate template;
+    struct WindowTemplate template = {0};
     u8 windowId;
     u8 *boxName = GetBoxNamePtr(sChooseBoxMenu->curBox);
     u8 numInBox = CountMonsInBox(sChooseBoxMenu->curBox);
-    u32 winTileData;
     s32 center;
 
-    memset(&template, 0, sizeof(template));
     template.width = 8;
     template.height = 4;
 
@@ -1949,8 +1948,7 @@ static void ChooseBoxMenu_PrintInfo(void)
     center = GetStringCenterAlignXOffset(FONT_NORMAL, numBoxMonsText, 64);
     AddTextPrinterParameterized3(windowId, FONT_NORMAL, center, 17, sChooseBoxMenu_TextColors, TEXT_SKIP_DRAW, numBoxMonsText);
 
-    winTileData = GetWindowAttribute(windowId, WINDOW_TILE_DATA);
-    CpuCopy32((void *)winTileData, (void *)OBJ_VRAM0 + 0x100 + (GetSpriteTileStartByTag(sChooseBoxMenu->tileTag) * 32), 0x400);
+    CpuFastFill(gWindows[windowId].tileData, (void *)OBJ_VRAM0 + 0x100 + (GetSpriteTileStartByTag(sChooseBoxMenu->tileTag) * 32), 0x400);
 
     RemoveWindow(windowId);
 }
@@ -5194,12 +5192,11 @@ static void Task_InitBox(u8 taskId)
     case 0:
         sStorage->wallpaperOffset = 0;
         sStorage->bg2_X = 0;
-        task->tDmaIdx = RequestDma3Fill(0, sStorage->wallpaperBgTilemapBuffer, sizeof(sStorage->wallpaperBgTilemapBuffer), 1);
+        // Todo: is this even safe? As in would a compiler try to retrieve this when case is 1?
+        //DmaFill32(3, 0, sStorage->wallpaperBgTilemapBuffer,  sizeof(sStorage->wallpaperBgTilemapBuffer));
+        CpuFastFill(0, sStorage->wallpaperBgTilemapBuffer,  sizeof(sStorage->wallpaperBgTilemapBuffer));
         break;
     case 1:
-        if (CheckForSpaceForDma3Request(task->tDmaIdx) == -1)
-            return;
-
         SetBgTilemapBuffer(2, sStorage->wallpaperBgTilemapBuffer);
         ShowBg(2);
         break;
@@ -5625,15 +5622,14 @@ static s16 GetBoxTitleBaseX(const u8 *string)
 
 static void CreateBoxScrollArrows(void)
 {
-    u16 i;
+    u32 i;
 
     LoadSpriteSheet(&sSpriteSheet_Arrow);
     for (i = 0; i < 2; i++)
     {
-        u8 spriteId = CreateSprite(&sSpriteTemplate_Arrow, 92 + i * 136, 28, 22);
-        if (spriteId != MAX_SPRITES)
+        struct Sprite *sprite = CreateSpriteReturnPointer(&sSpriteTemplate_Arrow, 92 + i * 136, 28, 22);
+        if (sprite != NULL)
         {
-            struct Sprite *sprite = &gSprites[spriteId];
             StartSpriteAnim(sprite, i);
             sprite->sSpeed = (i == 0) ? -1 : 1;
             sStorage->arrowSprites[i] = sprite;
@@ -8297,13 +8293,13 @@ static bool8 MultiMove_TryMoveGroup(u8 dir)
         if (sMultiMove->minColumn == 0)
             return FALSE;
         sMultiMove->minColumn--;
-        MultiMove_InitMove(1024, 0, 6);
+        MultiMove_InitMove(0x400, 0, 6);
         break;
     case 3: // Right
         if (sMultiMove->minColumn + sMultiMove->columnsTotal >= IN_BOX_COLUMNS)
             return FALSE;
         sMultiMove->minColumn++;
-        MultiMove_InitMove(-1024, 0, 6);
+        MultiMove_InitMove(-0x400, 0, 6);
         break;
     }
     return TRUE;
@@ -8317,7 +8313,7 @@ static void MultiMove_UpdateSelectedIcons(void)
     if (columnChange > 0)
         MultiMove_SelectColumn(sMultiMove->cursorColumn, sMultiMove->fromRow, sMultiMove->toRow);
 
-    if (columnChange < 0)
+    else if (columnChange < 0)
     {
         MultiMove_DeselectColumn(sMultiMove->toColumn, sMultiMove->fromRow, sMultiMove->toRow);
         MultiMove_SelectColumn(sMultiMove->cursorColumn, sMultiMove->fromRow, sMultiMove->toRow);
@@ -8326,7 +8322,7 @@ static void MultiMove_UpdateSelectedIcons(void)
     if (rowChange > 0)
         MultiMove_SelectRow(sMultiMove->cursorRow, sMultiMove->fromColumn, sMultiMove->toColumn);
 
-    if (rowChange < 0)
+    else if (rowChange < 0)
     {
         MultiMove_DeselectRow(sMultiMove->toRow, sMultiMove->fromColumn, sMultiMove->toColumn);
         MultiMove_SelectRow(sMultiMove->cursorRow, sMultiMove->fromColumn, sMultiMove->toColumn);
@@ -9701,7 +9697,7 @@ struct TilemapUtil
 {
     struct TilemapUtil_RectData prev; // Only read in unused function
     struct TilemapUtil_RectData cur;
-    const void *savedTilemap; // Only written in unused function
+    //const void *savedTilemap; // Only written in unused function
     const void *tilemap;
     u16 altWidth;
     u16 altHeight; // Never read
@@ -9724,7 +9720,7 @@ static void TilemapUtil_Init(u8 count)
     sNumTilemapUtilIds = (sTilemapUtil == NULL) ? 0 : count;
     for (i = 0; i < sNumTilemapUtilIds; i++)
     {
-        sTilemapUtil[i].savedTilemap = NULL;
+        //sTilemapUtil[i].savedTilemap = NULL;
         sTilemapUtil[i].active = FALSE;
     }
 }
@@ -9772,7 +9768,7 @@ static void TilemapUtil_SetMap(u8 id, u8 bg, const void *tilemap, u16 width, u16
     if (id >= sNumTilemapUtilIds)
         return;
 
-    sTilemapUtil[id].savedTilemap = NULL;
+    //sTilemapUtil[id].savedTilemap = NULL;
     sTilemapUtil[id].tilemap = tilemap;
     sTilemapUtil[id].bg = bg;
     sTilemapUtil[id].width = width;
@@ -9803,7 +9799,7 @@ static void UNUSED TilemapUtil_SetSavedMap(u8 id, const void *tilemap)
     if (id >= sNumTilemapUtilIds)
         return;
 
-    sTilemapUtil[id].savedTilemap = tilemap;
+    //sTilemapUtil[id].savedTilemap = tilemap;
     sTilemapUtil[id].active = TRUE;
 }
 
@@ -9868,31 +9864,31 @@ static void TilemapUtil_Update(u8 id)
     if (id >= sNumTilemapUtilIds)
         return;
 
-    if (sTilemapUtil[id].savedTilemap != NULL)
-        TilemapUtil_DrawPrev(id); // Never called, above always FALSE
+    // if (sTilemapUtil[id].savedTilemap != NULL)
+    //     TilemapUtil_DrawPrev(id); // Never called, above always FALSE
 
     TilemapUtil_Draw(id);
     sTilemapUtil[id].prev = sTilemapUtil[id].cur;
 }
 
-static void TilemapUtil_DrawPrev(u8 id)
-{
-    s32 i;
-    u32 adder = sTilemapUtil[id].tileSize * sTilemapUtil[id].altWidth;
-    const void *tiles = (sTilemapUtil[id].savedTilemap + (adder * sTilemapUtil[id].prev.destY))
-                      + (sTilemapUtil[id].tileSize * sTilemapUtil[id].prev.destX);
+// static void TilemapUtil_DrawPrev(u8 id)
+// {
+//     s32 i;
+//     u32 adder = sTilemapUtil[id].tileSize * sTilemapUtil[id].altWidth;
+//     const void *tiles = (sTilemapUtil[id].savedTilemap + (adder * sTilemapUtil[id].prev.destY))
+//                       + (sTilemapUtil[id].tileSize * sTilemapUtil[id].prev.destX);
 
-    for (i = 0; i < sTilemapUtil[id].prev.height; i++)
-    {
-        CopyToBgTilemapBufferRect(sTilemapUtil[id].bg,
-                                  tiles,
-                                  sTilemapUtil[id].prev.destX,
-                                  sTilemapUtil[id].prev.destY + i,
-                                  sTilemapUtil[id].prev.width,
-                                  1);
-        tiles += adder;
-    }
-}
+//     for (i = 0; i < sTilemapUtil[id].prev.height; i++)
+//     {
+//         CopyToBgTilemapBufferRect(sTilemapUtil[id].bg,
+//                                   tiles,
+//                                   sTilemapUtil[id].prev.destX,
+//                                   sTilemapUtil[id].prev.destY + i,
+//                                   sTilemapUtil[id].prev.width,
+//                                   1);
+//         tiles += adder;
+//     }
+// }
 
 static void TilemapUtil_Draw(u8 id)
 {
