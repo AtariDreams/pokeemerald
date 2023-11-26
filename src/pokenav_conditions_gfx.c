@@ -819,7 +819,7 @@ static void CreateConditionMonPic(u8 id)
     }
     else
     {
-        DmaCopy16Defvars(3, GetConditionMonPicGfx(id), menu->monGfxPtr, MON_PIC_SIZE);
+        DmaCopy16(3, GetConditionMonPicGfx(id), menu->monGfxPtr, MON_PIC_SIZE);
         LoadPalette(GetConditionMonPal(id), menu->monPalIndex, PLTT_SIZE_4BPP);
     }
 }
