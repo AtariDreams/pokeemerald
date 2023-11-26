@@ -3,7 +3,7 @@
 #include "bg.h"
 #include "data.h"
 #include "decompress.h"
-#include "dma3.h"
+
 #include "dynamic_placeholder_text_util.h"
 #include "event_data.h"
 #include "field_screen_effect.h"
@@ -1504,16 +1504,6 @@ static void UNUSED UnusedWriteRectCpu(u16 *dest, u16 dest_left, u16 dest_top, co
         dest += 0x20;
         src += src_width;
     }
-}
-
-static void UNUSED UnusedWriteRectDma(u16 *dest, u16 dest_left, u16 dest_top, u16 width, u16 height)
-{
-    u16 i;
-
-    dest += dest_top * 0x20 + dest_left;
-    width *= sizeof(u16);
-    for (i = 0; i < height; dest += 0x20, i++)
-        Dma3FillLarge16_(0, dest, width);
 }
 
 
