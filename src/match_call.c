@@ -1285,14 +1285,9 @@ static bool32 MatchCall_DrawWindow(u8 taskId)
 static bool32 MatchCall_ReadyIntro(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
-    if (!IsDma3ManagerBusyWithBgCopy())
-    {
         // Note that "..." is not printed yet, just readied
         InitMatchCallTextPrinter(tWindowId, sText_PokenavCallEllipsis);
         return TRUE;
-    }
-
-    return FALSE;
 }
 
 static bool32 MatchCall_SlideWindowIn(u8 taskId)
@@ -1355,7 +1350,7 @@ static bool32 MatchCall_SlideWindowOut(u8 taskId)
 static bool32 MatchCall_EndCall(u8 taskId)
 {
     u32 playerObjectId;
-    if (!IsDma3ManagerBusyWithBgCopy() && !IsSEPlaying())
+    if (!IsSEPlaying())
     {
         ChangeBgY(0, 0, BG_COORD_SET);
         if (!sMatchCallState.triggeredFromScript)

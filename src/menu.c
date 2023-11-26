@@ -1742,14 +1742,10 @@ bool8 FreeTempTileDataBuffersIfPossible(void)
 {
     unsigned int i;
 
-    if (!IsDma3ManagerBusyWithBgCopy())
-    {
-        for (i = 0; i < sTempTileDataBufferIdx; i++)
-            FREE_AND_SET_NULL(sTempTileDataBuffer[i]);
-        sTempTileDataBufferIdx = 0;
-        return FALSE;
-    }
-    return TRUE;
+    for (i = 0; i < sTempTileDataBufferIdx; i++)
+        FREE_AND_SET_NULL(sTempTileDataBuffer[i]);
+    sTempTileDataBufferIdx = 0;
+    return FALSE;
 }
 
 void *DecompressAndCopyTileDataToVram(u8 bgId, const void *src, u32 size, u16 offset, u8 mode)

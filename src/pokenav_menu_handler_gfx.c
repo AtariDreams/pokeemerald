@@ -494,8 +494,6 @@ static u32 LoopedTask_OpenMenu(s32 state)
         DrawCurrentMenuOptionLabels();
         return LT_INC_AND_PAUSE;
     case 6:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         return LT_INC_AND_CONTINUE;
     case 7:
         ShowBg(1);
@@ -562,8 +560,6 @@ static u32 LoopedTask_MoveMenuCursor(s32 state)
     case 1:
         if (AreMenuOptionSpritesMoving())
             return LT_PAUSE;
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -600,8 +596,6 @@ static u32 LoopedTask_OpenConditionMenu(s32 state)
             return LT_PAUSE;
         if (IsTaskActive_UpdateBgDotsPalette())
             return LT_PAUSE;
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         InitMenuOptionGlow();
         break;
     }
@@ -637,8 +631,6 @@ static u32 LoopedTask_ReturnToMainMenu(s32 state)
         if (AreLeftHeaderSpritesMoving())
             return LT_PAUSE;
         if (IsTaskActive_UpdateBgDotsPalette())
-            return LT_PAUSE;
-        if (IsDma3ManagerBusyWithBgCopy())
             return LT_PAUSE;
         InitMenuOptionGlow();
         break;
@@ -719,8 +711,6 @@ static u32 LoopedTask_SelectRibbonsNoWinners(s32 state)
         PrintNoRibbonWinners();
         return LT_INC_AND_PAUSE;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -736,8 +726,6 @@ static u32 LoopedTask_ReShowDescription(s32 state)
         PrintCurrentOptionDescription();
         return LT_INC_AND_PAUSE;
     case 1:
-        if (IsDma3ManagerBusyWithBgCopy())
-            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -752,8 +740,6 @@ static u32 LoopedTask_OpenPokenavFeature(s32 state)
         PrintHelpBarText(GetHelpBarTextId());
         return LT_INC_AND_PAUSE;
     case 1:
-        if (WaitForHelpBar())
-            return LT_PAUSE;
         SlideMenuHeaderUp();
         ResetBldCnt();
         StartOptionAnimations_Exit();

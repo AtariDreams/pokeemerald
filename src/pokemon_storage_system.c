@@ -2052,7 +2052,7 @@ static void ResetForPokeStorage(void)
     ResetSpriteData();
     FreeSpriteTileRanges();
     FreeAllSpritePalettes();
-    ClearDma3Requests();
+    //ClearDma3Requests();
     gReservedSpriteTileCount = 0x280;
     //UnkUtil_Init(&sStorage->unkUtil, sStorage->unkUtilData, ARRAY_COUNT(sStorage->unkUtilData));
     gKeyRepeatStartDelay = 20;
@@ -2237,15 +2237,14 @@ static void Task_ReshowPokeStorage(u8 taskId)
         }
         break;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy() && JOY_NEW(A_BUTTON | B_BUTTON))
+        if (JOY_NEW(A_BUTTON | B_BUTTON))
         {
             ClearBottomWindow();
             sStorage->state++;
         }
         break;
     case 3:
-        if (!IsDma3ManagerBusyWithBgCopy())
-            SetPokeStorageTask(Task_PokeStorageMain);
+        SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
 }
@@ -3089,7 +3088,6 @@ static void Task_TakeItemForMoving(u8 taskId)
         }
         break;
     case 3:
-        if (!IsDma3ManagerBusyWithBgCopy())
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
@@ -3126,7 +3124,7 @@ static void Task_GiveMovingItemToMon(u8 taskId)
         }
         break;
     case 4:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
@@ -3167,7 +3165,7 @@ static void Task_ItemToBag(u8 taskId)
         }
         break;
     case 4:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     case 3:
@@ -3218,7 +3216,7 @@ static void Task_SwitchSelectedItem(u8 taskId)
         }
         break;
     case 4:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
@@ -3233,7 +3231,7 @@ static void Task_ShowItemInfo(u8 taskId)
         sStorage->state++;
         break;
     case 1:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
         {
             PlaySE(SE_WIN_OPEN);
             PrintItemDescription();
@@ -3246,7 +3244,7 @@ static void Task_ShowItemInfo(u8 taskId)
             sStorage->state++;
         break;
     case 3:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             sStorage->state++;
         break;
     case 4:
@@ -3261,7 +3259,7 @@ static void Task_ShowItemInfo(u8 taskId)
             sStorage->state++;
         break;
     case 6:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
@@ -3318,7 +3316,7 @@ static void Task_CloseBoxWhileHoldingItem(u8 taskId)
         }
         break;
     case 5:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
@@ -3352,8 +3350,8 @@ static void Task_PrintCantStoreMail(u8 taskId)
         sStorage->state++;
         break;
     case 1:
-        if (!IsDma3ManagerBusyWithBgCopy())
-            sStorage->state++;
+        // Todo: are these states needed?
+        sStorage->state++;
         break;
     case 2:
         if (JOY_NEW(A_BUTTON | B_BUTTON | DPAD_ANY))
@@ -3363,7 +3361,7 @@ static void Task_PrintCantStoreMail(u8 taskId)
         }
         break;
     case 3:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
             SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
@@ -3445,12 +3443,9 @@ static void Task_HandleWallpapers(u8 taskId)
         }
         break;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            AddWallpapersMenu(sStorage->wallpaperSetId);
-            PrintMessage(MSG_PICK_A_WALLPAPER);
-            sStorage->state++;
-        }
+        AddWallpapersMenu(sStorage->wallpaperSetId);
+        PrintMessage(MSG_PICK_A_WALLPAPER);
+        sStorage->state++;
         break;
     case 3:
         sStorage->wallpaperId = HandleMenuInput();
@@ -3479,7 +3474,7 @@ static void Task_HandleWallpapers(u8 taskId)
         }
         break;
     case 5:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
         {
             SetWallpaperForCurrentBox(sStorage->wallpaperId);
             sStorage->state = 4;
@@ -5401,9 +5396,6 @@ static void LoadWallpaperGfx(u8 boxId, s8 direction)
 
 static bool32 WaitForWallpaperGfxLoad(void)
 {
-    if (IsDma3ManagerBusyWithBgCopy())
-        return FALSE;
-
     TRY_FREE_AND_SET_NULL(sStorage->wallpaperTiles);
 
     return TRUE;
@@ -8128,7 +8120,7 @@ static bool8 MultiMove_Start(void)
         sMultiMove->state++;
         break;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
         {
             ShowBg(0);
             return FALSE;
@@ -8153,7 +8145,7 @@ static bool8 MultiMove_Cancel(void)
         sMultiMove->state++;
         break;
     case 2:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
         {
             SetCursorPriorityTo1();
             LoadPalette(GetTextWindowPalette(3), BG_PLTT_ID(13), PLTT_SIZE_4BPP);
@@ -8182,7 +8174,7 @@ static bool8 MultiMove_ChangeSelection(void)
         }
         break;
     case 1:
-        return IsDma3ManagerBusyWithBgCopy();
+        return FALSE;
     }
 
     return TRUE;
@@ -8260,7 +8252,7 @@ static bool8 MultiMove_PlaceMons(void)
         }
         break;
     case 3:
-        if (!IsDma3ManagerBusyWithBgCopy())
+        
         {
             LoadPalette(GetTextWindowPalette(3), BG_PLTT_ID(13), PLTT_SIZE_4BPP);
             SetCursorPriorityTo1();

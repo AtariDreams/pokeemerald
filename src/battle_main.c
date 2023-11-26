@@ -961,15 +961,14 @@ static void CB2_HandleStartBattle(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            ShowBg(0);
-            ShowBg(1);
-            ShowBg(2);
-            ShowBg(3);
-            FillAroundBattleWindows();
-            gBattleCommunication[MULTIUSE_STATE] = 1;
-        }
+
+        ShowBg(0);
+        ShowBg(1);
+        ShowBg(2);
+        ShowBg(3);
+        FillAroundBattleWindows();
+        gBattleCommunication[MULTIUSE_STATE] = 1;
+
         if (gWirelessCommType)
             LoadWirelessStatusIndicatorSpriteGfx();
         break;
@@ -1169,15 +1168,12 @@ static void CB2_HandleStartMultiPartnerBattle(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            ShowBg(0);
-            ShowBg(1);
-            ShowBg(2);
-            ShowBg(3);
-            FillAroundBattleWindows();
-            gBattleCommunication[MULTIUSE_STATE] = 1;
-        }
+        ShowBg(0);
+        ShowBg(1);
+        ShowBg(2);
+        ShowBg(3);
+        FillAroundBattleWindows();
+        gBattleCommunication[MULTIUSE_STATE] = 1;
         if (gWirelessCommType)
             LoadWirelessStatusIndicatorSpriteGfx();
         // fall through
@@ -1572,15 +1568,14 @@ static void CB2_HandleStartMultiBattle(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
-        if (!IsDma3ManagerBusyWithBgCopy())
-        {
-            ShowBg(0);
-            ShowBg(1);
-            ShowBg(2);
-            ShowBg(3);
-            FillAroundBattleWindows();
-            gBattleCommunication[MULTIUSE_STATE] = 1;
-        }
+
+        ShowBg(0);
+        ShowBg(1);
+        ShowBg(2);
+        ShowBg(3);
+        FillAroundBattleWindows();
+        gBattleCommunication[MULTIUSE_STATE] = 1;
+
         if (gWirelessCommType)
             LoadWirelessStatusIndicatorSpriteGfx();
         break;

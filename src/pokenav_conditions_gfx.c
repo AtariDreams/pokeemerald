@@ -513,8 +513,6 @@ static u32 LoopedTask_OpenMonMarkingsWindow(s32 state)
         PrintHelpBarText(HELPBAR_CONDITION_MARKINGS);
         return LT_INC_AND_CONTINUE;
     case 2:
-        if (WaitForHelpBar() == TRUE)
-            return LT_PAUSE;
         return LT_INC_AND_CONTINUE;
     }
 
@@ -532,8 +530,6 @@ static u32 LoopedTask_CloseMonMarkingsWindow(s32 state)
         PrintHelpBarText(HELPBAR_CONDITION_MON_STATUS);
         return LT_INC_AND_CONTINUE;
     case 2:
-        if (WaitForHelpBar() == TRUE)
-            return LT_PAUSE;
         return LT_INC_AND_CONTINUE;
     }
 
