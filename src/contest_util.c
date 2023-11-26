@@ -401,12 +401,12 @@ static const u8 sContestLinkTextColors[4] = {TEXT_COLOR_WHITE, TEXT_DYNAMIC_COLO
 
 static void InitContestResultsDisplay(void)
 {
-    int i;
+    u32 i;
 
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_1D_MAP);
     ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
-    for (i = 0; i < (int)ARRAY_COUNT(sContestResults->tilemapBuffers); i++)
+    for (i = 0; i < ARRAY_COUNT(sContestResults->tilemapBuffers); i++)
         SetBgTilemapBuffer(i, sContestResults->tilemapBuffers[i]);
 
     InitWindows(sWindowTemplates);
@@ -446,7 +446,7 @@ static void InitContestResultsDisplay(void)
 
 static void LoadContestResultsBgGfx(void)
 {
-    int i, j;
+    u32 i, j;
     s8 numStars, round2Points;
     u16 tile1, tile2;
 
@@ -466,14 +466,17 @@ static void LoadContestResultsBgGfx(void)
         {
             tile1 = 0x60B2;
             if (j < numStars)
-                tile1 += 2;
+                tile1 = 0x60B4;
+            else
+                tile1 = 0x60B2;
 
             // Abs of round2Points is number of hearts
             if (j < abs(round2Points))
             {
-                tile2 = 0x60A4;
                 if (round2Points < 0)
-                    tile2 += 2;
+                    tile2 = 0x60A6;
+                else
+                    tile2 = 0x60A4;
             }
             else
             {
@@ -511,7 +514,7 @@ static void LoadContestMonName(u8 monIndex)
 
 static void LoadAllContestMonNames(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < CONTESTANT_COUNT; i++)
         LoadContestMonName(i);
@@ -522,6 +525,9 @@ static void LoadAllContestMonNames(void)
 static void CB2_StartShowContestResults(void)
 {
     gPaletteFade.bufferTransferDisabled = TRUE;
+
+    // Todo: needed?
+    asm volatile ("" : : : "memory");
     SetVBlankCallback(NULL);
     AllocContestResults();
     InitContestResultsDisplay();
@@ -546,6 +552,8 @@ static void CB2_StartShowContestResults(void)
     gBattle_WIN1V = WIN_RANGE(DISPLAY_HEIGHT - 32, DISPLAY_HEIGHT);
     CreateTask(Task_SlideContestResultsBg, 20);
     CalculateContestantsResultData();
+    
+    // TODO: remove check when removing wireless
     if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_WIRELESS)
         gPaletteFade.bufferTransferDisabled = TRUE;
     else
@@ -976,7 +984,7 @@ static void Task_ShowWinnerMonBanner(u8 taskId)
 
 static void Task_SetSeenWinnerMon(u8 taskId)
 {
-    int i, nationalDexNum;
+    u32 i;
 
     if (JOY_NEW(A_BUTTON))
     {
@@ -984,8 +992,7 @@ static void Task_SetSeenWinnerMon(u8 taskId)
         {
             for (i = 0; i < CONTESTANT_COUNT; i++)
             {
-                nationalDexNum = SpeciesToNationalPokedexNum(gContestMons[i].species);
-                GetSetPokedexFlag(nationalDexNum, FLAG_SET_SEEN);
+                GetSetPokedexFlag(SpeciesToNationalPokedexNum(gContestMons[i].species), FLAG_SET_SEEN);
             }
         }
 
@@ -1106,31 +1113,25 @@ static void Task_FlashStarsAndHearts(u8 taskId)
 static void LoadContestMonIcon(u16 species, u8 monIndex, u8 srcOffset, u8 useDmaNow, u32 personality)
 {
     const u8 *iconPtr;
-    u16 var0, var1, frameNum;
+    u16 frameNum;
 
     if (monIndex == gContestPlayerMonIndex)
         frameNum = 1;
     else
         frameNum = 0;
 
-    iconPtr = GetMonIconPtr(species, personality, frameNum);
-    iconPtr += srcOffset * 0x200 + 0x80;
+    iconPtr = GetMonIconPtr(species, personality, frameNum) + srcOffset * 0x200 + 0x80;
+
+    DmaCopy32(3, iconPtr, (void *)BG_CHAR_ADDR(1) + monIndex * 0x200, 0x180);
     if (useDmaNow)
     {
-        RequestDma3Copy(iconPtr, (void *)BG_CHAR_ADDR(1) + monIndex * 0x200, 0x180, 1);
-        var0 = ((monIndex + 10) << 12);
-        var1 = (monIndex * 0x10 + 0x200);
-        WriteSequenceToBgTilemapBuffer(1, var1 | var0, 3, monIndex * 3 + 4, 4, 3, 17, 1);
-    }
-    else
-    {
-        RequestDma3Copy(iconPtr, (void *)BG_CHAR_ADDR(1) + monIndex * 0x200, 0x180, 1);
+        WriteSequenceToBgTilemapBuffer(1, ((monIndex + 10) << 12) | (monIndex * 0x10 + 0x200), 3, monIndex * 3 + 4, 4, 3, 17, 1);
     }
 }
 
 static void LoadAllContestMonIcons(u8 srcOffset, bool8 useDmaNow)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < CONTESTANT_COUNT; i++)
         LoadContestMonIcon(gContestMons[i].species, i, srcOffset, useDmaNow, gContestMons[i].personality);
@@ -1138,12 +1139,11 @@ static void LoadAllContestMonIcons(u8 srcOffset, bool8 useDmaNow)
 
 static void LoadAllContestMonIconPalettes(void)
 {
-    int i, species;
+    u32 i;
 
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
-        species = gContestMons[i].species;
-        LoadPalette(gMonIconPalettes[gMonIconPaletteIndices[GetIconSpecies(species, 0)]], BG_PLTT_ID(10 + i), PLTT_SIZE_4BPP);
+        LoadPalette(gMonIconPalettes[gMonIconPaletteIndices[GetIconSpecies(gContestMons[i].species, 0)]], BG_PLTT_ID(10 + i), PLTT_SIZE_4BPP);
     }
 }
 
@@ -1158,7 +1158,7 @@ static void TryCreateWirelessSprites(void)
         CreateWirelessStatusIndicatorSprite(8, 8);
         gSprites[gWirelessStatusIndicatorSpriteId].subpriority = 1;
         sheet = LoadSpriteSheet(&sSpriteSheet_WirelessIndicatorWindow);
-        RequestDma3Fill(0xFFFFFFFF, (void *)BG_CHAR_ADDR(4) + sheet * 0x20, 0x80, 1);
+        DmaFill32(3, 0xFFFFFFFF, (void *)BG_CHAR_ADDR(4) + sheet * 0x20, 0x80);
         spriteId = CreateSprite(&sSpriteTemplate_WirelessIndicatorWindow, 8, 8, 0);
         gSprites[spriteId].oam.objMode = ST_OAM_OBJ_WINDOW;
     }
@@ -1186,19 +1186,19 @@ static s32 DrawResultsTextWindow(const u8 *text, u8 spriteId)
 
     AddTextPrinterParameterized3(windowId, FONT_NORMAL, (tileWidth * 8 - strWidth) / 2, 1, sContestLinkTextColors, TEXT_SKIP_DRAW, text);
     {
-        s32 i;
+        u32 i;
         struct Sprite *sprite;
         const u8 *src, *windowTilesPtr;
         windowTilesPtr = gWindows[windowId].tileData;
         src = (u8 *)sResultsTextWindow_Gfx;
 
         sprite = &gSprites[spriteId];
-        spriteTilePtrs[0] = (u8 *)(sprite->oam.tileNum * 32 + OBJ_VRAM0);
+        spriteTilePtrs[0] = (u8 *)OBJ_VRAM0 + sprite->oam.tileNum * 32;
 
-        for (i = 1; i < (int)ARRAY_COUNT(spriteTilePtrs); i++)
-            spriteTilePtrs[i] = (void *)(gSprites[sprite->data[i - 1]].oam.tileNum * 32 + OBJ_VRAM0);
+        for (i = 1; i < ARRAY_COUNT(spriteTilePtrs); i++)
+            spriteTilePtrs[i] = (u8*)OBJ_VRAM0 + gSprites[sprite->data[i - 1]].oam.tileNum * 32;
 
-        for (i = 0; i < (int)ARRAY_COUNT(spriteTilePtrs); i++)
+        for (i = 0; i < ARRAY_COUNT(spriteTilePtrs); i++)
             CpuFill32(0, spriteTilePtrs[i], 0x400);
 
         dst = spriteTilePtrs[0];
@@ -1230,18 +1230,18 @@ static s32 DrawResultsTextWindow(const u8 *text, u8 spriteId)
 
 static void CreateResultsTextWindowSprites(void)
 {
-    int i;
+    u32 i;
     struct SpriteTemplate template;
     u8 spriteIds[ARRAY_COUNT(sSpriteSheets_ResultsTextWindow)];
 
     template = sSpriteTemplate_ResultsTextWindow;
-    for (i = 0; i < (int)ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
+    for (i = 0; i < ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
         LoadSpriteSheet(&sSpriteSheets_ResultsTextWindow[i]);
 
     LoadSpritePalette(&sSpritePalette_ResultsTextWindow);
 
     // Create sprites for the two window types, each made up of 4 sprites
-    for (i = 0; i < (int)ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
+    for (i = 0; i < ARRAY_COUNT(sSpriteSheets_ResultsTextWindow); i++)
     {
         spriteIds[i] = CreateSprite(&template, TEXT_BOX_X, TEXT_BOX_Y, 10);
         template.tileTag++;
@@ -1309,11 +1309,10 @@ static void EndTextBoxSlideOut(struct Sprite *sprite)
 
 static void SpriteCB_TextBoxSlideIn(struct Sprite *sprite)
 {
-    int i;
+    u32 i;
 
-    s16 delta = sprite->sDistance + sprite->sSlideIncrement;
-    sprite->x -= delta >> 8;
     sprite->sDistance += sprite->sSlideIncrement;
+    sprite->x -= sprite->sDistance >> 8;
     sprite->sDistance &= 0xFF;
 
     // Prevent overshooting target
@@ -1322,8 +1321,7 @@ static void SpriteCB_TextBoxSlideIn(struct Sprite *sprite)
 
     for (i = 0; i < 3; i++)
     {
-        struct Sprite *sprite2 = &gSprites[sprite->data[i]];
-        sprite2->x = sprite->x + sprite->x2 + (i + 1) * 64;
+        gSprites[sprite->data[i]].x = sprite->x + sprite->x2 + (i + 1) * 64;
     }
 
     if (sprite->x == sprite->sTargetX)
@@ -1333,26 +1331,25 @@ static void SpriteCB_TextBoxSlideIn(struct Sprite *sprite)
 static void SpriteCB_EndTextBoxSlideIn(struct Sprite *sprite)
 {
     sContestResults->data->slidingTextBoxState = SLIDING_TEXT_ARRIVED;
+
+    // TODO: maybe rework this so it doesn't go below 0?
     if ((u16)sprite->sSlideOutTimer != 0xFFFF)
     {
-        if (--sprite->sSlideOutTimer == -1)
+        if (sprite->sSlideOutTimer-- == 0)
             StartTextBoxSlideOut(sprite->sSlideIncrement);
     }
 }
 
 static void SpriteCB_TextBoxSlideOut(struct Sprite *sprite)
 {
-    int i;
-    s16 delta;
+    u32 i;
 
-    delta = sprite->sDistance + sprite->sSlideIncrement;
-    sprite->x -= delta >> 8;
     sprite->sDistance += sprite->sSlideIncrement;
+    sprite->x -= sprite->sDistance >> 8;
     sprite->sDistance &= 0xFF;
     for (i = 0; i < 3; i++)
     {
-        struct Sprite *sprite2 = &gSprites[sprite->data[i]];
-        sprite2->x = sprite->x + sprite->x2 + (i + 1) * 64;
+        gSprites[sprite->data[i]].x = sprite->x + sprite->x2 + (i + 1) * 64;
     }
 
     if (sprite->x + sprite->x2 < -224)
@@ -1361,7 +1358,7 @@ static void SpriteCB_TextBoxSlideOut(struct Sprite *sprite)
 
 static void ShowLinkResultsTextBox(const u8 *text)
 {
-    int i;
+    u32 i;
     u16 x;
     struct Sprite *sprite;
 
@@ -1385,7 +1382,7 @@ static void ShowLinkResultsTextBox(const u8 *text)
 
 static void HideLinkResultsTextBox(void)
 {
-    int i;
+    u32 i;
     struct Sprite *sprite;
 
     sprite = &gSprites[sContestResults->data->linkTextBoxSpriteId];
@@ -1403,65 +1400,55 @@ static void HideLinkResultsTextBox(void)
 
 static void LoadContestResultsTitleBarTilemaps(void)
 {
-    u8 palette;
-    int x, y;
-
-    x = 5;
-    y = 1;
+    u16 palette;
     if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_LINK)
     {
         CopyToBgTilemapBufferRect(2, gContestResultsTitle_Link_Tilemap, 5, 1, 5, 2);
-        x = 10;
     }
     else if (gSpecialVar_ContestRank == CONTEST_RANK_NORMAL)
     {
         CopyToBgTilemapBufferRect(2, gContestResultsTitle_Normal_Tilemap, 5, 1, 10, 2);
-        x = 15;
     }
     else if (gSpecialVar_ContestRank == CONTEST_RANK_SUPER)
     {
         CopyToBgTilemapBufferRect(2, gContestResultsTitle_Super_Tilemap, 5, 1, 10, 2);
-        x = 15;
     }
     else if (gSpecialVar_ContestRank == CONTEST_RANK_HYPER)
     {
         CopyToBgTilemapBufferRect(2, gContestResultsTitle_Hyper_Tilemap, 5, 1, 10, 2);
-        x = 15;
     }
     else // CONTEST_RANK_MASTER
     {
         CopyToBgTilemapBufferRect(2, gContestResultsTitle_Master_Tilemap, 5, 1, 10, 2);
-        x = 15;
     }
 
     if (gSpecialVar_ContestCategory == CONTEST_CATEGORY_COOL)
     {
         palette = 0;
-        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Cool_Tilemap, x, y, 5, 2);
+        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Cool_Tilemap, 15, 1, 5, 2);
     }
     else if (gSpecialVar_ContestCategory == CONTEST_CATEGORY_BEAUTY)
     {
         palette = 1;
-        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Beauty_Tilemap, x, y, 5, 2);
+        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Beauty_Tilemap, 15, 1, 5, 2);
     }
     else if (gSpecialVar_ContestCategory == CONTEST_CATEGORY_CUTE)
     {
         palette = 2;
-        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Cute_Tilemap, x, y, 5, 2);
+        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Cute_Tilemap, 15, 1, 5, 2);
     }
     else if (gSpecialVar_ContestCategory == CONTEST_CATEGORY_SMART)
     {
         palette = 3;
-        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Smart_Tilemap, x, y, 5, 2);
+        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Smart_Tilemap, 15, 1, 5, 2);
     }
     else // CONTEST_CATEGORY_TOUGH
     {
         palette = 4;
-        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Tough_Tilemap, x, y, 5, 2);
+        CopyToBgTilemapBufferRect(2, gContestResultsTitle_Tough_Tilemap, 15, 1, 5, 2);
     }
 
-    x += 5;
-    CopyToBgTilemapBufferRect(2, gContestResultsTitle_Tilemap, x, y, 6, 2);
+    CopyToBgTilemapBufferRect(2, gContestResultsTitle_Tilemap, 20, 1, 6, 2);
     CopyToBgTilemapBufferRect_ChangePalette(2, sContestResults->tilemapBuffers[2], 0, 0, 32, 4, palette);
 }
 
@@ -1491,11 +1478,7 @@ static s8 GetNumRound2Points(u8 monIndex, bool8 capPoints)
     s16 results;
     s8 points;
 
-    results = gContestMonRound2Points[monIndex];
-    if (results < 0)
-        r4 = -results << 16;
-    else
-        r4 = results << 16;
+    r4 = abs(gContestMonRound2Points[monIndex]) << 16;
 
     numHearts = r4 / 80;
     if (numHearts & 0xFFFF)
@@ -1529,7 +1512,7 @@ static void Task_DrawFinalStandingNumber(u8 taskId)
     }
     else if (gTasks[taskId].tState == 1)
     {
-        if (--gTasks[taskId].data[11] == -1)
+        if (gTasks[taskId].data[11]-- == 0)
         {
             firstTileNum = gTasks[taskId].tFinalStanding * 2 + 0x5043;
             WriteSequenceToBgTilemapBuffer(2, firstTileNum, 1, gTasks[taskId].tMonIndex * 3 + 5, 2, 1, 17, 1);
@@ -1558,7 +1541,7 @@ static void Task_StartHighlightWinnersBox(u8 taskId)
 
 static void Task_HighlightWinnersBox(u8 taskId)
 {
-    if (++gTasks[taskId].data[11] == 1)
+    if (gTasks[taskId].data[11]++ == 0)
     {
         gTasks[taskId].data[11] = 0;
         BlendPalette(BG_PLTT_ID(9) + 1, 1, gTasks[taskId].data[12], RGB(13, 28, 27));
@@ -1587,9 +1570,8 @@ static void SpriteCB_WinnerMonSlideIn(struct Sprite *sprite)
     }
     else
     {
-        s16 delta = sprite->data[1] + 0x600;
-        sprite->x -= delta >> 8;
         sprite->data[1] += 0x600;
+        sprite->x -= sprite->data[1] >> 8;
         sprite->data[1] &= 0xFF;
         if (sprite->x < DISPLAY_WIDTH / 2)
             sprite->x = DISPLAY_WIDTH / 2;
@@ -1605,9 +1587,8 @@ static void SpriteCB_WinnerMonSlideIn(struct Sprite *sprite)
 
 static void SpriteCB_WinnerMonSlideOut(struct Sprite *sprite)
 {
-    s16 delta = sprite->data[1] + 0x600;
-    sprite->x -= delta >> 8;
-    sprite->data[1] += + 0x600;
+    sprite->data[1] += 0x600;
+    sprite->x -= sprite->data[1] >> 8;
     sprite->data[1] &= 0xFF;
     if (sprite->x < -32)
     {
@@ -1639,13 +1620,10 @@ static void Task_CreateConfetti(u8 taskId)
 
 static void SpriteCB_Confetti(struct Sprite *sprite)
 {
-    s16 delta;
-
     sprite->data[3] += sprite->data[0];
     sprite->x2 = Sin(sprite->data[3] >> 8, sprite->data[1]);
-    delta = sprite->data[4] + sprite->data[2];
-    sprite->x += delta >> 8;
     sprite->data[4] += sprite->data[2];
+    sprite->x += sprite->data[4] >> 8;
     sprite->data[4] &= 0xff;
 
     sprite->y++;
@@ -1695,7 +1673,6 @@ static void CalculateContestantsResultData(void)
     int i, relativePoints;
     u32 barLength;
     s16 highestPoints;
-    s8 round2Points;
 
     highestPoints = gContestMonTotalPoints[0];
     for (i = 1; i < CONTESTANT_COUNT; i++)
@@ -1740,8 +1717,7 @@ static void CalculateContestantsResultData(void)
         (*sContestResults->monResults)[i].barLengthRound2 = barLength >> 8;
 
         (*sContestResults->monResults)[i].numStars = GetNumPreliminaryPoints(i, TRUE);
-        round2Points = GetNumRound2Points(i, TRUE);
-        (*sContestResults->monResults)[i].numHearts = abs(round2Points);
+        (*sContestResults->monResults)[i].numHearts = abs(GetNumRound2Points(i, TRUE));
 
         if (gContestFinalStandings[i])
         {
