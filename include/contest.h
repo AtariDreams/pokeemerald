@@ -113,10 +113,9 @@ struct ContestPokemon
 
 struct ContestTempSave
 {
-    u16 cachedWindowPalettes[16][16]; // Saved palette data before a move happens?
-    u16 cachedPlttBufferUnfaded[PLTT_BUFFER_SIZE];
-    u16 cachedPlttBufferFaded[PLTT_BUFFER_SIZE];
-    u8 savedJunk[0x800];
+    ALIGNED(4) u16 cachedWindowPalettes[16][16]; // Saved palette data before a move happens?
+    ALIGNED(4) u16 cachedPlttBufferUnfaded[PLTT_BUFFER_SIZE];
+    ALIGNED(4) u16 cachedPlttBufferFaded[PLTT_BUFFER_SIZE];
 };
 
 struct ContestMoveAnimData
