@@ -464,7 +464,6 @@ static void LoadContestResultsBgGfx(void)
         round2Points = GetNumRound2Points(i, TRUE);
         for (j = 0; j < 10; j++)
         {
-            tile1 = 0x60B2;
             if (j < numStars)
                 tile1 = 0x60B4;
             else
