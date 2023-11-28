@@ -5102,7 +5102,7 @@ static void UpdateContestantBoxOrder(void)
     union BgCntU bg1Cnt;
 
 
-    DmaFill32(3,0, (void *)(BG_CHAR_ADDR(2)), 0x2000);
+    RequestDma3Fill(0,(void *)(BG_CHAR_ADDR(2)), 0x2000, 1);
     CpuFastFill(0, gContestResources->contestBgTilemaps[1], 0x1000);
     Contest_SetBgCopyFlags(1);
     bg1Cnt.raw = GetGpuReg(REG_OFFSET_BG1CNT);

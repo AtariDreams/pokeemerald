@@ -144,27 +144,34 @@ static u16 GetBgControlAttribute(u8 bg, u8 attributeId)
     return 0xFF;
 }
 
-void LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
+s8 LoadBgVram(u8 bg, const void *src, u16 size, u16 destOffset, u8 mode)
 {
     // TODO: Does not happen in game normally, but maybe just in case keep it?
     if (!sGpuBgConfigs.configs[bg].visible)
-        return;
+        return -1;
 
     u16 offset;
+    s8 cursor;
 
     switch (mode)
     {
     default:
-        return;
+        return -1;
     case 0x1:
         offset = sGpuBgConfigs.configs[bg].charBaseIndex * BG_CHAR_SIZE + destOffset;
-        DmaCopy16(3, src, (void *)(BG_VRAM + offset), size);
+        cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
+        if (cursor == -1)
+            return -1;
         break;
     case 0x2:
         offset = sGpuBgConfigs.configs[bg].mapBaseIndex * BG_SCREEN_SIZE + destOffset;
-        DmaCopy16(3, src, (void *)(BG_VRAM + offset), size);
+        cursor = RequestDma3Copy(src, (void *)(offset + BG_VRAM), size, 0);
+        if (cursor == -1)
+            return -1;
         break;
     }
+
+    return cursor;
 }
 
 static void ShowBgInternal(u8 bg)
@@ -309,9 +316,10 @@ void SetBgMode(u8 bgMode)
     SetBgModeInternal(bgMode);
 }
 
-void LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
+s8 LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
 {
     u16 tileOffset;
+    s8 cursor;
 
     if (sGpuBgConfigs.configs[bg].paletteMode == 0)
     {
@@ -322,12 +330,30 @@ void LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
         tileOffset = (sGpuBgConfigs2[bg].baseTile + destOffset) * 0x40;
     }
 
-    LoadBgVram(bg, src, size, tileOffset, DISPCNT_MODE_1);
+    cursor = LoadBgVram(bg, src, size, tileOffset, DISPCNT_MODE_1);
+
+    if (cursor == -1)
+    {
+        return -1;
+    }
+
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
+
+    return cursor;
 }
 
-void LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
+s8 LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
 {
-    LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
+    s8 cursor = LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
+
+    if (cursor == -1)
+    {
+        return -1;
+    }
+
+    sDmaBusyBitfield[cursor / 0x20] |= (1U << (cursor & 31));
+
+    return cursor;
 }
 
 bool8 IsDma3ManagerBusyWithBgCopy(void)
