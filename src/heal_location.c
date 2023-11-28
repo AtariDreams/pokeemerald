@@ -11,7 +11,7 @@ u32 GetHealLocationIndexByMap(u16 mapGroup, u16 mapNum)
     for (i = 0; i < ARRAY_COUNT(sHealLocations); i++)
     {
         if (sHealLocations[i].group == mapGroup && sHealLocations[i].map == mapNum)
-            return i + 1;
+            return i;
     }
     return HEAL_LOCATION_NONE;
 }
@@ -22,8 +22,8 @@ const struct HealLocation *GetHealLocationByMap(u16 mapGroup, u16 mapNum)
 
     if (index == HEAL_LOCATION_NONE)
         return NULL;
-    else
-        return &sHealLocations[index - 1];
+    
+    return &sHealLocations[index];
 }
 
 const struct HealLocation *GetHealLocation(u32 index)
