@@ -45,11 +45,11 @@ struct Pokenav_MatchCallGfx
     u16 trainerPicPalOffset;
     struct Sprite *optionsCursorSprite;
     struct Sprite *trainerPicSprite;
-    u8 bgTilemapBuffer1[BG_SCREEN_SIZE];
+    u8 ALIGNED(4) bgTilemapBuffer1[BG_SCREEN_SIZE];
     // u8 unusedTilemapBuffer[BG_SCREEN_SIZE];
-    u8 bgTilemapBuffer2[BG_SCREEN_SIZE];
+    u8 ALIGNED(4) bgTilemapBuffer2[BG_SCREEN_SIZE];
     u8 *trainerPicGfxPtr;
-    u8 trainerPicGfx[TRAINER_PIC_SIZE];
+    u8 ALIGNED(4) trainerPicGfx[TRAINER_PIC_SIZE];
     u16 trainerPicPal[0x10];
 };
 
