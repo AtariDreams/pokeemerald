@@ -427,18 +427,11 @@ void SaveMapView(void)
 
 static bool32 SavedMapViewIsEmpty(void)
 {
-    u16 i;
-#ifndef UBFIX
-    // BUG: This loop extends past the bounds of the mapView array. Its size is only 0x100.
-    for (i = 0; i < 0x200; i++)
-        if (gSaveBlock1.mapView[i])
-            return FALSE;
-#else
-    // UBFIX: Only iterate over 0x100
+    u32 i;
+    // todo: maybe use memchr?
     for (i = 0; i < ARRAY_COUNT(gSaveBlock1.mapView); i++)
         if (gSaveBlock1.mapView[i])
             return FALSE;
-#endif
     
     return TRUE;
 }

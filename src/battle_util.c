@@ -1579,13 +1579,12 @@ u8 DoBattlerEndTurnEffects(void)
                     gBattleMons[gActiveBattler].status2 -= STATUS2_WRAPPED_TURN(1);
                     if (gBattleMons[gActiveBattler].status2 & STATUS2_WRAPPED)  // damaged by wrap
                     {
-                        // This is the only way I could get this array access to match.
-                        gBattleScripting.animArg1 = *(gBattleStruct->wrappedMove + gActiveBattler * 2 + 0);
-                        gBattleScripting.animArg2 = *(gBattleStruct->wrappedMove + gActiveBattler * 2 + 1);
+                        gBattleScripting.animArg1 = gBattleStruct->wrappedMove[gActiveBattler][0];
+                        gBattleScripting.animArg2 = gBattleStruct->wrappedMove[gActiveBattler][1];
                         gBattleTextBuff1[0] = B_BUFF_PLACEHOLDER_BEGIN;
                         gBattleTextBuff1[1] = B_BUFF_MOVE;
-                        gBattleTextBuff1[2] = *(gBattleStruct->wrappedMove + gActiveBattler * 2 + 0);
-                        gBattleTextBuff1[3] = *(gBattleStruct->wrappedMove + gActiveBattler * 2 + 1);
+                        gBattleTextBuff1[2] = gBattleStruct->wrappedMove[gActiveBattler][0];
+                        gBattleTextBuff1[3] = gBattleStruct->wrappedMove[gActiveBattler][1];
                         gBattleTextBuff1[4] = EOS;
                         gBattlescriptCurrInstr = BattleScript_WrapTurnDmg;
                         gBattleMoveDamage = gBattleMons[gActiveBattler].maxHP / 16;
@@ -1596,8 +1595,8 @@ u8 DoBattlerEndTurnEffects(void)
                     {
                         gBattleTextBuff1[0] = B_BUFF_PLACEHOLDER_BEGIN;
                         gBattleTextBuff1[1] = B_BUFF_MOVE;
-                        gBattleTextBuff1[2] = *(gBattleStruct->wrappedMove + gActiveBattler * 2 + 0);
-                        gBattleTextBuff1[3] = *(gBattleStruct->wrappedMove + gActiveBattler * 2 + 1);
+                        gBattleTextBuff1[2] = gBattleStruct->wrappedMove[gActiveBattler][0];
+                        gBattleTextBuff1[3] = gBattleStruct->wrappedMove[gActiveBattler][1];
                         gBattleTextBuff1[4] = EOS;
                         gBattlescriptCurrInstr = BattleScript_WrapEnds;
                     }

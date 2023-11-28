@@ -282,16 +282,13 @@ static void BuildColorMaps(void)
     sPaletteColorMapTypes = sBasePaletteColorMapTypes;
     for (i = 0; i < 2; i++)
     {
-        if (i == 0)
-            colorMaps = gWeatherPtr->darkenedContrastColorMaps;
-        else
-            colorMaps = gWeatherPtr->contrastColorMaps;
+        colorMaps = (i == 0) ? gWeatherPtr->darkenedContrastColorMaps : gWeatherPtr->contrastColorMaps;
 
         for (colorVal = 0; colorVal < 32; colorVal++)
         {
             curBrightness = colorVal << 8;
             if (i == 0)
-                brightnessDelta = (colorVal << 8) / 16;
+                brightnessDelta = curBrightness / (NUM_WEATHER_COLOR_MAPS - 3);
             else
                 brightnessDelta = 0;
 
@@ -343,25 +340,25 @@ static void BuildColorMaps(void)
 // towards the desired color map.
 static void UpdateWeatherColorMap(void)
 {
-    if (gWeatherPtr->palProcessingState != WEATHER_PAL_STATE_SCREEN_FADING_OUT)
+    if (gWeatherPtr->palProcessingState == WEATHER_PAL_STATE_SCREEN_FADING_OUT)
     {
-        if (gWeatherPtr->colorMapIndex == gWeatherPtr->targetColorMapIndex)
-        {
-            gWeatherPtr->palProcessingState = WEATHER_PAL_STATE_IDLE;
-        }
-        else
-        {
-            if (++gWeatherPtr->colorMapStepCounter >= gWeatherPtr->colorMapStepDelay)
-            {
-                gWeatherPtr->colorMapStepCounter = 0;
-                if (gWeatherPtr->colorMapIndex < gWeatherPtr->targetColorMapIndex)
-                    gWeatherPtr->colorMapIndex++;
-                else
-                    gWeatherPtr->colorMapIndex--;
+        return;
+    }
+    if (gWeatherPtr->colorMapIndex == gWeatherPtr->targetColorMapIndex)
+    {
+        gWeatherPtr->palProcessingState = WEATHER_PAL_STATE_IDLE;
+        return;
+    }
 
-                ApplyColorMap(0, 32, gWeatherPtr->colorMapIndex);
-            }
-        }
+    if (++gWeatherPtr->colorMapStepCounter >= gWeatherPtr->colorMapStepDelay)
+    {
+        gWeatherPtr->colorMapStepCounter = 0;
+        if (gWeatherPtr->colorMapIndex < gWeatherPtr->targetColorMapIndex)
+            gWeatherPtr->colorMapIndex++;
+        else
+            gWeatherPtr->colorMapIndex--;
+
+        ApplyColorMap(0, 32, gWeatherPtr->colorMapIndex);
     }
 }
 
@@ -461,7 +458,7 @@ static void ApplyColorMap(u8 startPalIndex, u8 numPalettes, s8 colorMapIndex)
     u16 curPalIndex;
     u16 palOffset;
     u8 *colorMap;
-    u16 i;
+    u32 i;
 
     if (colorMapIndex > 0)
     {
@@ -471,35 +468,33 @@ static void ApplyColorMap(u8 startPalIndex, u8 numPalettes, s8 colorMapIndex)
         curPalIndex = startPalIndex;
 
         // Loop through the specified palette range and apply necessary color maps.
-        while (curPalIndex < numPalettes)
+        for (curPalIndex = startPalIndex; curPalIndex < numPalettes;curPalIndex++ )
         {
             if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_NONE)
             {
                 // No palette change.
                 CpuFastCopy(&gPlttBufferUnfaded[palOffset], &gPlttBufferFaded[palOffset], PLTT_SIZE_4BPP);
                 palOffset += 16;
+                continue;
             }
+
+            u8 r, g, b;
+
+            if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_CONTRAST || (curPalIndex - 16) == gWeatherPtr->contrastColorMapSpritePalIndex)
+                colorMap = gWeatherPtr->contrastColorMaps[colorMapIndex];
             else
+                colorMap = gWeatherPtr->darkenedContrastColorMaps[colorMapIndex];
+
+            for (i = 0; i < 16; i++)
             {
-                u8 r, g, b;
-
-                if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_CONTRAST || curPalIndex - 16 == gWeatherPtr->contrastColorMapSpritePalIndex)
-                    colorMap = gWeatherPtr->contrastColorMaps[colorMapIndex];
-                else
-                    colorMap = gWeatherPtr->darkenedContrastColorMaps[colorMapIndex];
-
-                for (i = 0; i < 16; i++)
-                {
-                    // Apply color map to the original color.
-                    struct RGBColor baseColor = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                    r = colorMap[baseColor.r];
-                    g = colorMap[baseColor.g];
-                    b = colorMap[baseColor.b];
-                    gPlttBufferFaded[palOffset++] = RGB(r, g, b);
-                }
+                // Apply color map to the original color.
+                union colorWork baseColor;
+                baseColor.raw = gPlttBufferUnfaded[palOffset];
+                r = colorMap[baseColor.data.r];
+                g = colorMap[baseColor.data.g];
+                b = colorMap[baseColor.data.b];
+                gPlttBufferFaded[palOffset++] = RGB(r, g, b);
             }
-
-            curPalIndex++;
         }
     }
     else if (colorMapIndex < 0)
@@ -508,15 +503,15 @@ static void ApplyColorMap(u8 startPalIndex, u8 numPalettes, s8 colorMapIndex)
         colorMapIndex = -colorMapIndex - 1;
         palOffset = PLTT_ID(startPalIndex);
         numPalettes += startPalIndex;
-        curPalIndex = startPalIndex;
 
-        while (curPalIndex < numPalettes)
+        for (curPalIndex = startPalIndex; curPalIndex < numPalettes;curPalIndex++ )
         {
             if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_NONE)
             {
                 // No palette change.
                 CpuFastCopy(&gPlttBufferUnfaded[palOffset], &gPlttBufferFaded[palOffset], PLTT_SIZE_4BPP);
                 palOffset += 16;
+                continue;
             }
             else
             {
@@ -526,8 +521,6 @@ static void ApplyColorMap(u8 startPalIndex, u8 numPalettes, s8 colorMapIndex)
                     palOffset++;
                 }
             }
-
-            curPalIndex++;
         }
     }
     else
@@ -541,68 +534,67 @@ static void ApplyColorMapWithBlend(u8 startPalIndex, u8 numPalettes, s8 colorMap
 {
     u16 palOffset;
     u16 curPalIndex;
-    u16 i;
-    struct RGBColor color = *(struct RGBColor *)&blendColor;
-    u8 rBlend = color.r;
-    u8 gBlend = color.g;
-    u8 bBlend = color.b;
+    u32 i;
+    union colorWork color;
+    color.raw = blendColor;
+    u8 rBlend = color.data.r;
+    u8 gBlend = color.data.g;
+    u8 bBlend = color.data.b;
 
     palOffset = PLTT_ID(startPalIndex);
     numPalettes += startPalIndex;
     colorMapIndex--;
-    curPalIndex = startPalIndex;
 
-    while (curPalIndex < numPalettes)
+    for (curPalIndex = startPalIndex; curPalIndex < numPalettes; curPalIndex++)
     {
         if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_NONE)
         {
             // No color map. Simply blend the colors.
             BlendPalette(palOffset, 16, blendCoeff, blendColor);
             palOffset += 16;
+            continue;
         }
+
+        u8 *colorMap;
+
+        if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_DARK_CONTRAST)
+            colorMap = gWeatherPtr->darkenedContrastColorMaps[colorMapIndex];
         else
+            colorMap = gWeatherPtr->contrastColorMaps[colorMapIndex];
+
+        for (i = 0; i < 16; i++)
         {
-            u8 *colorMap;
+            union colorWork baseColor;
+            baseColor.raw = gPlttBufferUnfaded[palOffset];
+            u8 r = colorMap[baseColor.data.r];
+            u8 g = colorMap[baseColor.data.g];
+            u8 b = colorMap[baseColor.data.b];
 
-            if (sPaletteColorMapTypes[curPalIndex] == COLOR_MAP_DARK_CONTRAST)
-                colorMap = gWeatherPtr->darkenedContrastColorMaps[colorMapIndex];
-            else
-                colorMap = gWeatherPtr->contrastColorMaps[colorMapIndex];
-
-            for (i = 0; i < 16; i++)
-            {
-                struct RGBColor baseColor = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                u8 r = colorMap[baseColor.r];
-                u8 g = colorMap[baseColor.g];
-                u8 b = colorMap[baseColor.b];
-
-                // Apply color map and target blend color to the original color.
-                r += ((rBlend - r) * blendCoeff) >> 4;
-                g += ((gBlend - g) * blendCoeff) >> 4;
-                b += ((bBlend - b) * blendCoeff) >> 4;
-                gPlttBufferFaded[palOffset++] = RGB(r, g, b);
-            }
+            // Apply color map and target blend color to the original color.
+            r += ((rBlend - r) * blendCoeff) >> 4;
+            g += ((gBlend - g) * blendCoeff) >> 4;
+            b += ((bBlend - b) * blendCoeff) >> 4;
+            gPlttBufferFaded[palOffset++] = RGB(r, g, b);
         }
-
-        curPalIndex++;
     }
 }
 
 static void ApplyDroughtColorMapWithBlend(s8 colorMapIndex, u8 blendCoeff, u16 blendColor)
 {
-    struct RGBColor color;
+    union colorWork color;
     u8 rBlend;
     u8 gBlend;
     u8 bBlend;
     u16 curPalIndex;
     u16 palOffset;
     u16 i;
+    u16 offset;
 
     colorMapIndex = -colorMapIndex - 1;
-    color = *(struct RGBColor *)&blendColor;
-    rBlend = color.r;
-    gBlend = color.g;
-    bBlend = color.b;
+    color.raw = blendColor;
+    rBlend = color.data.r;
+    gBlend = color.data.g;
+    bBlend = color.data.b;
     palOffset = 0;
     for (curPalIndex = 0; curPalIndex < 32; curPalIndex++)
     {
@@ -611,33 +603,32 @@ static void ApplyDroughtColorMapWithBlend(s8 colorMapIndex, u8 blendCoeff, u16 b
             // No color map. Simply blend the colors.
             BlendPalette(palOffset, 16, blendCoeff, blendColor);
             palOffset += 16;
+            continue;
         }
         else
         {
             for (i = 0; i < 16; i++)
             {
-                u32 offset;
-                struct RGBColor color1;
-                struct RGBColor color2;
-                u8 r1, g1, b1;
-                u8 r2, g2, b2;
+                color.raw = gPlttBufferUnfaded[palOffset];
+                u8 r, g, b;
 
-                color1 = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                r1 = color1.r;
-                g1 = color1.g;
-                b1 = color1.b;
+                r = color.data.r;
+                g = color.data.g;
+                b = color.data.b;
 
-                offset = ((b1 & 0x1E) << 7) | ((g1 & 0x1E) << 3) | ((r1 & 0x1E) >> 1);
-                color2 = *(struct RGBColor *)&sDroughtWeatherColors[colorMapIndex][offset];
-                r2 = color2.r;
-                g2 = color2.g;
-                b2 = color2.b;
+                offset = ((b & 0x1E) << 7) | ((g & 0x1E) << 3) | ((r & 0x1E) >> 1);
 
-                r2 += ((rBlend - r2) * blendCoeff) >> 4;
-                g2 += ((gBlend - g2) * blendCoeff) >> 4;
-                b2 += ((bBlend - b2) * blendCoeff) >> 4;
+                color.raw = sDroughtWeatherColors[colorMapIndex][offset];
 
-                gPlttBufferFaded[palOffset++] = RGB(r2, g2, b2);
+                r = color.data.r;
+                g = color.data.g;
+                b = color.data.b;
+
+                r += ((rBlend - r) * blendCoeff) >> 4;
+                g += ((gBlend - g) * blendCoeff) >> 4;
+                b += ((bBlend - b) * blendCoeff) >> 4;
+
+                gPlttBufferFaded[palOffset++] = RGB(r, g, b);
             }
         }
     }
@@ -645,17 +636,17 @@ static void ApplyDroughtColorMapWithBlend(s8 colorMapIndex, u8 blendCoeff, u16 b
 
 static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
 {
-    struct RGBColor color;
+    union colorWork color;
     u8 rBlend;
     u8 gBlend;
     u8 bBlend;
     u16 curPalIndex;
 
     BlendPalette(BG_PLTT_ID(0), 16 * 16, blendCoeff, blendColor);
-    color = *(struct RGBColor *)&blendColor;
-    rBlend = color.r;
-    gBlend = color.g;
-    bBlend = color.b;
+    color.raw = blendColor;
+    rBlend = color.data.r;
+    gBlend = color.data.g;
+    bBlend = color.data.b;
 
     for (curPalIndex = 16; curPalIndex < 32; curPalIndex++)
     {
@@ -666,21 +657,22 @@ static void ApplyFogBlend(u8 blendCoeff, u16 blendColor)
 
             while (palOffset < palEnd)
             {
-                struct RGBColor color = *(struct RGBColor *)&gPlttBufferUnfaded[palOffset];
-                u8 r = color.r;
-                u8 g = color.g;
-                u8 b = color.b;
+                color.raw = gPlttBufferUnfaded[palOffset];
 
-                r += ((28 - r) * 3) >> 2;
-                g += ((31 - g) * 3) >> 2;
-                b += ((28 - b) * 3) >> 2;
+                u8 r = color.data.r;
+                u8 g = color.data.g;
+                u8 b = color.data.b;
+
+                // Todo: reduce?
+                r += ((28 - r) * 12) >> 4;
+                g += ((31 - g) * 12) >> 4;
+                b += ((28 - b) * 12) >> 4;
 
                 r += ((rBlend - r) * blendCoeff) >> 4;
                 g += ((gBlend - g) * blendCoeff) >> 4;
                 b += ((bBlend - b) * blendCoeff) >> 4;
 
-                gPlttBufferFaded[palOffset] = RGB(r, g, b);
-                palOffset++;
+                gPlttBufferFaded[palOffset++] = RGB(r, g, b);
             }
         }
         else
@@ -701,7 +693,7 @@ static void MarkFogSpritePalToLighten(u8 paletteIndex)
 
 static bool8 LightenSpritePaletteInFog(u8 paletteIndex)
 {
-    u16 i;
+    u32 i;
 
     for (i = 0; i < gWeatherPtr->lightenedFogSpritePalsCount; i++)
     {
@@ -809,8 +801,8 @@ bool8 IsWeatherNotFadingIn(void)
 
 void UpdateSpritePaletteWithWeather(u8 spritePaletteIndex)
 {
-    u16 paletteIndex = 16 + spritePaletteIndex;
-    u16 i;
+    u16 paletteIndex = spritePaletteIndex + 16;
+    u32 i;
 
     switch (gWeatherPtr->palProcessingState)
     {
@@ -918,8 +910,8 @@ void DroughtStateRun(void)
         }
         break;
     case 1:
-        gWeatherPtr->droughtTimer = (gWeatherPtr->droughtTimer + 3) & 0x7F;
-        gWeatherPtr->droughtBrightnessStage = ((gSineTable[gWeatherPtr->droughtTimer] - 1) >> 6) + 2;
+        gWeatherPtr->droughtTimer = (gWeatherPtr->droughtTimer + 3) & 127;
+        gWeatherPtr->droughtBrightnessStage = 2 + ((gSineTable[gWeatherPtr->droughtTimer] - 1) >> 6);
         if (gWeatherPtr->droughtBrightnessStage != gWeatherPtr->droughtLastBrightnessStage)
             SetDroughtColorMap(gWeatherPtr->droughtBrightnessStage);
         gWeatherPtr->droughtLastBrightnessStage = gWeatherPtr->droughtBrightnessStage;

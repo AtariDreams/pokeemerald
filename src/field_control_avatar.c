@@ -482,15 +482,15 @@ static bool32 TrySetupDiveEmergeScript(void)
 
 static bool8 TryStartStepBasedScript(struct MapPosition *position, u16 metatileBehavior, u16 direction)
 {
-    if (TryStartCoordEventScript(position) == TRUE)
+    if (TryStartCoordEventScript(position))
         return TRUE;
-    if (TryStartWarpEventScript(position, metatileBehavior) == TRUE)
+    if (TryStartWarpEventScript(position, metatileBehavior))
         return TRUE;
-    if (TryStartMiscWalkingScripts(metatileBehavior) == TRUE)
+    if (TryStartMiscWalkingScripts(metatileBehavior))
         return TRUE;
-    if (TryStartStepCountScript(metatileBehavior) == TRUE)
+    if (TryStartStepCountScript(metatileBehavior))
         return TRUE;
-    if (UpdateRepelCounter() == TRUE)
+    if (UpdateRepelCounter())
         return TRUE;
     return FALSE;
 }

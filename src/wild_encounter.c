@@ -847,6 +847,7 @@ bool8 UpdateRepelCounter(void)
         if (steps == 0)
         {
             ScriptContext_SetupScript(EventScript_RepelWoreOff);
+            // TODO: check for more repels
             return TRUE;
         }
     }
@@ -862,7 +863,7 @@ static bool8 IsWildLevelAllowedByRepel(u8 wildLevel)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (GetMonData(&gPlayerParty.party[i], MON_DATA_HP) && !GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG))
+        if (canPokeFight(&gPlayerParty.party[i]))
         {
             u8 ourLevel = GetMonData(&gPlayerParty.party[i], MON_DATA_LEVEL);
 

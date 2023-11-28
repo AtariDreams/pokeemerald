@@ -205,11 +205,12 @@ bool8 CheckForTrainersWantingBattle(void)
             continue;
 
         numTrainers = CheckTrainer(i);
-        if (numTrainers == 2)
-            break;
 
         if (numTrainers == 0)
             continue;
+        
+        if (numTrainers == 2)
+            break;
 
         if (gNoOfApproachingTrainers >= 2)
             break;

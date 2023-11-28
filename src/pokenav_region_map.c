@@ -301,7 +301,7 @@ static bool8 ShouldOpenRegionMapZoomed(void)
 
 static u32 LoopedTask_OpenRegionMap(s32 taskState)
 {
-    int menuGfxId;
+    u8 menuGfxId;
     struct RegionMap *regionMap;
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
     switch (taskState)
@@ -631,25 +631,24 @@ static u32 LoopedTask_DecompressCityMaps(s32 taskState)
 static void DrawCityMap(struct Pokenav_RegionMapGfx *state, int mapSecId, int pos)
 {
     int i;
-    for (i = 0; i < NUM_CITY_MAPS && (sPokenavCityMaps[i].mapSecId != mapSecId || sPokenavCityMaps[i].index != pos); i++)
-        ;
+    for (i = 0; i < NUM_CITY_MAPS; i++)
+    {
+        if (sPokenavCityMaps[i].mapSecId == mapSecId && sPokenavCityMaps[i].index == pos)
+        {
+            FillBgTilemapBufferRect_Palette0(1, 0x1041, 17, 6, 12, 11);
+            CopyToBgTilemapBufferRect(1, state->cityZoomPics[i], 18, 6, 10, 10);
+            break;
+        }
 
-    if (i == NUM_CITY_MAPS)
-        return;
-
-    FillBgTilemapBufferRect_Palette0(1, 0x1041, 17, 6, 12, 11);
-    CopyToBgTilemapBufferRect(1, state->cityZoomPics[i], 18, 6, 10, 10);
+    }
 }
 
 static void PrintLandmarkNames(struct Pokenav_RegionMapGfx *state, int mapSecId, int pos)
 {
+    const u8 *landmarkName;
     u32 i = 0;
-    while (1)
+    while ((landmarkName = GetLandmarkName(mapSecId, pos, i)) != NULL)
     {
-        const u8 *landmarkName = GetLandmarkName(mapSecId, pos, i);
-        if (!landmarkName)
-            break;
-
         StringCopyPadded(gStringVar1, landmarkName, CHAR_SPACE, 12);
         AddTextPrinterParameterized(state->infoWindowId, FONT_NARROW, gStringVar1, 0, i * 16 + 17, TEXT_SKIP_DRAW, NULL);
         i++;
@@ -720,10 +719,10 @@ static void SpriteCB_CityZoomText(struct Sprite *sprite)
 
 static void UpdateCityZoomTextPosition(void)
 {
-    int i;
+    u32 i;
     struct Pokenav_RegionMapGfx *state = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP_ZOOM);
     int y = 132 - (GetBgY(1) >> 8);
-    for (i = 0; i < (int)ARRAY_COUNT(state->cityZoomTextSprites); i++)
+    for (i = 0; i < ARRAY_COUNT(state->cityZoomTextSprites); i++)
         state->cityZoomTextSprites[i]->y = y;
 }
 
