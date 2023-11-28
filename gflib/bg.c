@@ -38,6 +38,7 @@ struct BgConfig2
 
 static struct BgControl sGpuBgConfigs;
 static struct BgConfig2 sGpuBgConfigs2[NUM_BACKGROUNDS];
+static ALIGNED(4) u32 sDmaBusyBitfield[NUM_BACKGROUNDS];
 static u32 GetTileMapIndexFromCoords(u32 x, u32 y, u32 screenSize, u32 screenWidth, u32 screenHeight);
 
 static u32 GetBgType(u8 bg);
@@ -246,6 +247,7 @@ static void SetBgAffineInternal(u8 bg, s32 srcCenterX, s32 srcCenterY, s16 dispC
 void ResetBgsAndClearDma3BusyFlags(void)
 {
     ResetBgs();
+    DmaFill32(3, 0, sDmaBusyBitfield, sizeof(sDmaBusyBitfield));
 }
 
 void InitBgsFromTemplates(u8 bgMode, const struct BgTemplate *templates, unsigned int numTemplates)
