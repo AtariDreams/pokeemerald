@@ -835,7 +835,7 @@ static void CompactPokeblockSlots(void)
 
 static void SwapPokeblockMenuItems(u32 id1, u32 id2)
 {
-    s16 i, count;
+    u32 count;
     struct Pokeblock *pokeblocks = gSaveBlock1.pokeblocks;
     struct Pokeblock *copyPokeblock1;
 
@@ -845,17 +845,16 @@ static void SwapPokeblockMenuItems(u32 id1, u32 id2)
     copyPokeblock1 = Alloc(sizeof(struct Pokeblock));
     *copyPokeblock1 = pokeblocks[id1];
 
-    if (id2 > id1)
+    if (id1 < id2)
     {
-        id2--;
-        for (count = id2, i = id1; i < count; i++)
-            pokeblocks[i] = pokeblocks[i + 1];
+        count = id2 - id1;
     }
     else
     {
-        for (count = id2, i = id1; i > count; i--)
-            pokeblocks[i] = pokeblocks[i - 1];
+        count = id1 - id2;
     }
+
+    memmove(&pokeblocks[id1], &pokeblocks[id2], count * sizeof(struct Pokeblock));
 
     pokeblocks[id2] = *copyPokeblock1;
     Free(copyPokeblock1);
