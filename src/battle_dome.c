@@ -5341,7 +5341,7 @@ static void Task_ShowTourneyTree(u8 taskId)
         SetVBlankCallback(NULL);
         SetHBlankCallback(NULL);
         EnableInterrupts(INTR_FLAG_HBLANK | INTR_FLAG_VBLANK);
-        CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
+        DmaClear16(0, (void *)(VRAM), VRAM_SIZE);
         ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sTourneyTreeBgTemplates, ARRAY_COUNT(sTourneyTreeBgTemplates));
         InitWindows(sTourneyTreeWindowTemplates);
