@@ -382,7 +382,7 @@ static void Cmd_createsprite(void)
 
     if (argVar & ANIMSPRITE_IS_TARGET)
     {
-        argVar ^= ANIMSPRITE_IS_TARGET;
+        argVar &= ~ANIMSPRITE_IS_TARGET;
         if (argVar >= 64)
             argVar -= 64;
         else
