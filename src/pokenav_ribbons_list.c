@@ -497,6 +497,10 @@ static u32 LoopedTask_RibbonsListMoveCursorUp(s32 state)
     case 2:
         UpdateIndexNumberDisplay(menu);
         return LT_INC_AND_PAUSE;
+    case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -526,6 +530,10 @@ static u32 LoopedTask_RibbonsListMoveCursorDown(s32 state)
     case 2:
         UpdateIndexNumberDisplay(menu);
         return LT_INC_AND_PAUSE;
+    case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -555,6 +563,10 @@ static u32 LoopedTask_RibbonsListMovePageUp(s32 state)
     case 2:
         UpdateIndexNumberDisplay(menu);
         return LT_INC_AND_PAUSE;
+    case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }
@@ -584,6 +596,10 @@ static u32 LoopedTask_RibbonsListMovePageDown(s32 state)
     case 2:
         UpdateIndexNumberDisplay(menu);
         return LT_INC_AND_PAUSE;
+    case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
+        break;
     }
     return LT_FINISH;
 }

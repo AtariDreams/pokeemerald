@@ -619,6 +619,5 @@ static struct Sprite *CreateMarkingComboSprite(u16 tileTag, u16 paletteTag, cons
 // Update what combination is shown, used for sprites created with CreateMonMarkingComboSprite
 void UpdateMonMarkingTiles(u8 markings, void *dest)
 {
-    // TODO: maybe do cpucopy
-    DmaCopy16(3, &sMonMarkings_Gfx[markings * 0x80], dest, 0x80);
+    RequestDma3Copy(&sMonMarkings_Gfx[markings * 0x80], dest, 0x80, 0x10);
 }

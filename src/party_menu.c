@@ -719,7 +719,7 @@ static bool8 AllocPartyMenuBg(void)
     if (sPartyBgTilemapBuffer == NULL)
         return FALSE;
 
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sPartyMenuBgTemplates, ARRAY_COUNT(sPartyMenuBgTemplates));
     SetBgTilemapBuffer(1, sPartyBgTilemapBuffer);
     ResetAllBgsCoordinates();
@@ -744,9 +744,11 @@ static bool8 AllocPartyMenuBgGfx(void)
         sPartyMenuInternal->data[0] = 1;
         break;
     case 1:
-
-        LZ77UnCompWram(gPartyMenuBg_Tilemap, sPartyBgTilemapBuffer);
-        sPartyMenuInternal->data[0] = 2;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            LZ77UnCompWram(gPartyMenuBg_Tilemap, sPartyBgTilemapBuffer);
+            sPartyMenuInternal->data[0] = 2;
+        }
         break;
     case 2:
         LoadCompressedPalette(gPartyMenuBg_Pal, BG_PLTT_ID(0), 11 * PLTT_SIZE_4BPP);

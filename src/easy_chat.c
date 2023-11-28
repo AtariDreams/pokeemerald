@@ -3022,7 +3022,7 @@ static bool8 LoadEasyChatScreen(void)
     switch (sScreenControl->funcState)
     {
     case 0:
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sEasyChatBgTemplates, ARRAY_COUNT(sEasyChatBgTemplates));
         SetBgTilemapBuffer(3, sScreenControl->bg3TilemapBuffer);
         SetBgTilemapBuffer(1, sScreenControl->bg1TilemapBuffer);
@@ -3057,6 +3057,12 @@ static bool8 LoadEasyChatScreen(void)
             CreateMainCursorSprite();
         break;
     case 5:
+        if (IsDma3ManagerBusyWithBgCopy())
+        {
+            return TRUE;
+        }
+        else
+        {
             SetWindowDimensions(0, 0, 0, 0);
             SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_BG_ALL | WININ_WIN0_OBJ | WININ_WIN0_CLR);
             SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0
@@ -3074,6 +3080,7 @@ static bool8 LoadEasyChatScreen(void)
             CreateScrollIndicatorSprites();
             CreateStartSelectButtonSprites();
             TryAddInterviewObjectEvents();
+        }
         break;
     default:
         return FALSE;
@@ -3149,7 +3156,7 @@ static bool8 ReprintPhrase(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3215,7 +3222,7 @@ static bool8 ShowConfirmExitPrompt(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3232,7 +3239,7 @@ static bool8 ShowConfirmPrompt(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3249,7 +3256,7 @@ static bool8 ShowConfirmDeleteAllPrompt(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3267,7 +3274,7 @@ static bool8 ClosePrompt(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3284,7 +3291,7 @@ static bool8 ClosePromptAfterDeleteAll(void)
         sScreenControl->funcState++;
         // Fall through
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3302,18 +3309,22 @@ static bool8 OpenKeyboard(void)
         sScreenControl->funcState++;
         break;
     case 1:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowAnim(WINANIM_OPEN_KEYBOARD);
             sScreenControl->funcState++;
+        }
         break;
     case 2:
-        if (!UpdateLowerWindowAnim())
+        if (!IsDma3ManagerBusyWithBgCopy() && !UpdateLowerWindowAnim())
             sScreenControl->funcState++;
         break;
     case 3:
-
-        CreateSideWindowSprites();
-        sScreenControl->funcState++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            CreateSideWindowSprites();
+            sScreenControl->funcState++;
+        }
         break;
     case 4:
         if (!ShowSideWindow())
@@ -3354,10 +3365,12 @@ static bool8 CloseKeyboard(void)
             sScreenControl->funcState++;
         break;
     case 3:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             StartMainCursorAnim();
             ShowBg(0);
             sScreenControl->funcState++;
+        }
         break;
     case 4:
         return FALSE;
@@ -3385,10 +3398,12 @@ static bool8 SwitchKeyboardMode(void)
         }
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowAnim(WINANIM_KEYBOARD_SWITCH_IN);
             UpdateModeWindowAnim();
             sScreenControl->funcState++;
+        }
         break;
     case 3:
         if (!UpdateLowerWindowAnim() && !IsModeWindowAnimActive())
@@ -3474,9 +3489,11 @@ static bool8 OpenWordSelect(void)
         }
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowAnim(WINANIM_OPEN_WORD_SELECT);
             sScreenControl->funcState++;
+        }
         break;
     case 3:
         if (!UpdateLowerWindowAnim())
@@ -3486,13 +3503,15 @@ static bool8 OpenWordSelect(void)
         }
         break;
     case 4:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             CreateWordSelectCursorSprite();
             SetScrollIndicatorXPos(TRUE);
             UpdateScrollIndicatorsVisibility();
             UpdateStartSelectButtonsVisibility();
             sScreenControl->funcState++;
             return FALSE;
+        }
         break;
     case 5:
         return FALSE;
@@ -3517,9 +3536,11 @@ static bool8 CloseWordSelect(void)
         sScreenControl->funcState++;
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowAnim(WINANIM_CLOSE_WORD_SELECT);
             sScreenControl->funcState++;
+        }
         break;
     case 3:
         if (!UpdateLowerWindowAnim())
@@ -3529,10 +3550,13 @@ static bool8 CloseWordSelect(void)
         }
         break;
     case 4:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             StartMainCursorAnim();
             sScreenControl->funcState++;
             return FALSE;
+        }
+        break;
     case 5:
         return FALSE;
     }
@@ -3556,9 +3580,11 @@ static bool8 ShowConfirmLyricsPrompt(void)
         sScreenControl->funcState++;
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowAnim(WINANIM_CLOSE_WORD_SELECT);
             sScreenControl->funcState++;
+        }
         break;
     case 3:
         if (!UpdateLowerWindowAnim())
@@ -3568,14 +3594,21 @@ static bool8 ShowConfirmLyricsPrompt(void)
         }
         break;
     case 4:
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             ShowBg(0);
             sScreenControl->funcState++;
+        }
         break;
     case 5:
-        StartMainCursorAnim();
-        sScreenControl->funcState++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            StartMainCursorAnim();
+            sScreenControl->funcState++;
+            return FALSE;
+        }
+        break;
     case 6:
-    default:
         return FALSE;
     }
 
@@ -3594,9 +3627,11 @@ static bool8 ReturnToKeyboard(void)
         sScreenControl->funcState++;
         break;
     case 1:
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowAnim(WINANIM_RETURN_TO_KEYBOARD);
             sScreenControl->funcState++;
-        
+        }
         break;
     case 2:
         if (!UpdateLowerWindowAnim())
@@ -3606,10 +3641,11 @@ static bool8 ReturnToKeyboard(void)
         }
         break;
     case 3:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             CreateSideWindowSprites();
             sScreenControl->funcState++;
-        
+        }
         break;
     case 4:
         if (!ShowSideWindow())
@@ -3641,9 +3677,11 @@ static bool8 WordSelectScrollDown(void)
         sScreenControl->funcState++;
         break;
     case 1:
-
-        InitLowerWindowScroll(1, 4);
-        sScreenControl->funcState++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            InitLowerWindowScroll(1, 4);
+            sScreenControl->funcState++;
+        }
         break;
     case 2:
         if (!UpdateLowerWindowScroll())
@@ -3671,10 +3709,11 @@ static bool8 WordSelectScrollUp(void)
         sScreenControl->funcState++;
         break;
     case 1:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             InitLowerWindowScroll(-1, 4);
             sScreenControl->funcState++;
-
+        }
         break;
     case 2:
         if (!UpdateLowerWindowScroll())
@@ -3701,6 +3740,7 @@ static bool8 WordSelectPageScrollDown(void)
         sScreenControl->funcState++;
         break;
     case 1:
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             s16 scrollChange = GetWordSelectScrollOffset() - GetLowerWindowScrollOffset();
             InitLowerWindowScroll(scrollChange, 8);
@@ -3733,10 +3773,12 @@ static bool8 WordSelectPageScrollUp(void)
         sScreenControl->funcState++;
         break;
     case 1:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             s16 scrollChange = GetWordSelectScrollOffset() - GetLowerWindowScrollOffset();
             InitLowerWindowScroll(scrollChange, 8);
             sScreenControl->funcState++;
+        }
         break;
     case 2:
         if (!UpdateLowerWindowScroll())
@@ -3764,7 +3806,7 @@ static bool8 ShowCreateQuizMsg(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3780,7 +3822,7 @@ static bool8 ShowSelectAnswerMsg(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3796,7 +3838,7 @@ static bool8 ShowSongTooShortMsg(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3812,7 +3854,7 @@ static bool8 ShowCantDeleteLyricsMsg(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3828,7 +3870,7 @@ static bool8 ShowCombineTwoWordsMsg(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;
@@ -3844,7 +3886,7 @@ static bool8 ShowCantExitMsg(void)
         sScreenControl->funcState++;
         break;
     case 1:
-        return FALSE;
+        return IsDma3ManagerBusyWithBgCopy();
     }
 
     return TRUE;

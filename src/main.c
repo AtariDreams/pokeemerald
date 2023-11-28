@@ -304,7 +304,7 @@ static void VBlankIntr(void)
     gMain.vblankCounter2++;
 
     CopyBufferedValuesToGpuRegs();
-    //ProcessDma3Requests();
+    ProcessDma3Requests();
 
     TryReceiveLinkBattleData();
 

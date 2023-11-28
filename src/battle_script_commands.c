@@ -5943,8 +5943,11 @@ static void Cmd_drawlvlupbox(void)
     case 5:
     case 7:
         // Wait for draw after each page
-        gBattle_BG1_Y = 0;
-        gBattleScripting.drawlvlupboxState++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            gBattle_BG1_Y = 0;
+            gBattleScripting.drawlvlupboxState++;
+        }
         break;
     case 6:
         if (gMain.newKeys != 0)
@@ -5981,11 +5984,14 @@ static void Cmd_drawlvlupbox(void)
         }
         break;
     case 10:
-        SetBgAttribute(0, BG_ATTR_PRIORITY, 0);
-        SetBgAttribute(1, BG_ATTR_PRIORITY, 1);
-        ShowBg(0);
-        ShowBg(1);
-        gBattlescriptCurrInstr++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            SetBgAttribute(0, BG_ATTR_PRIORITY, 0);
+            SetBgAttribute(1, BG_ATTR_PRIORITY, 1);
+            ShowBg(0);
+            ShowBg(1);
+            gBattlescriptCurrInstr++;
+        }
         break;
     }
 }
@@ -6021,6 +6027,8 @@ static void InitLevelUpBanner(void)
 
 static bool8 SlideInLevelUpBanner(void)
 {
+    if (IsDma3ManagerBusyWithBgCopy())
+        return TRUE;
 
     if (gBattle_BG2_X == LEVEL_UP_BANNER_END)
         return FALSE;
@@ -10029,12 +10037,13 @@ static void Cmd_displaydexinfo(void)
         gBattleCommunication[0]++;
         break;
     case 4:
-
-        BeginNormalPaletteFade(PALETTES_BG, 0, 16, 0, RGB_BLACK);
-        ShowBg(0);
-        ShowBg(3);
-        gBattleCommunication[0]++;
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            BeginNormalPaletteFade(PALETTES_BG, 0, 16, 0, RGB_BLACK);
+            ShowBg(0);
+            ShowBg(3);
+            gBattleCommunication[0]++;
+        }
         break;
     case 5:
         if (!gPaletteFade.active)

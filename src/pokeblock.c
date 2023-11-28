@@ -621,7 +621,7 @@ static bool8 InitPokeblockMenu(void)
 static void HandleInitBackgrounds(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplatesForPokeblockMenu, ARRAY_COUNT(sBgTemplatesForPokeblockMenu));
     SetBgTilemapBuffer(2, sPokeblockMenu->tilemap);
     ResetAllBgsCoordinates();

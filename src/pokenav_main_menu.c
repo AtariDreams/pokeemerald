@@ -341,7 +341,7 @@ static u32 LoopedTask_InitPokenavMenu(s32 state)
     case 0:
         SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
         FreeAllWindowBuffers();
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, gPokenavMainMenuBgTemplates, ARRAY_COUNT(gPokenavMainMenuBgTemplates));
         ResetBgPositions();
         ResetTempTileDataBuffers();
@@ -361,6 +361,8 @@ static u32 LoopedTask_InitPokenavMenu(s32 state)
         InitHelpBar();
         return LT_INC_AND_PAUSE;
     case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
 
         InitPokenavMainMenuResources();
         CreateLeftHeaderSprites();
@@ -570,7 +572,7 @@ void PrintHelpBarText(u32 textId)
 
 bool32 WaitForHelpBar(void)
 {
-    return FALSE;
+    return IsDma3ManagerBusyWithBgCopy();
 }
 
 static void DrawHelpBar(u32 windowId)
@@ -688,7 +690,7 @@ static void LoadLeftHeaderGfxForMenu(u32 menuGfxId)
     size = GetDecompressedDataSize(sMenuLeftHeaderSpriteSheets[menuGfxId].data);
     LoadPalette(&gPokenavLeftHeader_Pal[tag], OBJ_PLTT_ID(IndexOfSpritePaletteTag(1)), PLTT_SIZE_4BPP);
     LZ77UnCompWram(sMenuLeftHeaderSpriteSheets[menuGfxId].data, gDecompressionBuffer);
-    DmaCopy32(3, gDecompressionBuffer, (void *)OBJ_VRAM0 + (GetSpriteTileStartByTag(2) * 32), size);
+    RequestDma3Copy(gDecompressionBuffer, (void *)OBJ_VRAM0 + (GetSpriteTileStartByTag(2) * 32), size, 1);
     menu->leftHeaderSprites[1]->oam.tileNum = GetSpriteTileStartByTag(2) + sMenuLeftHeaderSpriteSheets[menuGfxId].size;
 
     if (menuGfxId == POKENAV_GFX_MAP_MENU_ZOOMED_OUT || menuGfxId == POKENAV_GFX_MAP_MENU_ZOOMED_IN)
@@ -708,7 +710,7 @@ static void LoadLeftHeaderGfxForSubMenu(u32 menuGfxId)
     size = GetDecompressedDataSize(sPokenavSubMenuLeftHeaderSpriteSheets[menuGfxId].data);
     LoadPalette(&gPokenavLeftHeader_Pal[tag], OBJ_PLTT_ID(IndexOfSpritePaletteTag(2)), PLTT_SIZE_4BPP);
     LZ77UnCompWram(sPokenavSubMenuLeftHeaderSpriteSheets[menuGfxId].data, &gDecompressionBuffer[0x1000]);
-    DmaCopy32(3, &gDecompressionBuffer[0x1000], (void *)OBJ_VRAM0 + 0x800 + (GetSpriteTileStartByTag(2) * 32), size);
+    RequestDma3Copy(&gDecompressionBuffer[0x1000], (void *)OBJ_VRAM0 + 0x800 + (GetSpriteTileStartByTag(2) * 32), size, 1);
 }
 
 void ShowLeftHeaderGfx(u32 menuGfxId, bool32 isMain, bool32 isOnRightSide)

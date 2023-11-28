@@ -1254,9 +1254,11 @@ static void ItemStorage_ProcessInput(u8 taskId)
 
 static void ItemStorage_ReturnToMenuSelect(u8 taskId)
 {
-        DrawDialogueFrame(0, FALSE);
 
+    if (!IsDma3ManagerBusyWithBgCopy())
+    {
         s16 *data = gTasks[taskId].data;
+        DrawDialogueFrame(0, FALSE);
 
         // Select Withdraw/Toss by default depending on which was just exited
         if (!tInTossMenu)
@@ -1264,6 +1266,7 @@ static void ItemStorage_ReturnToMenuSelect(u8 taskId)
         else
             InitItemStorageMenu(taskId, MENU_TOSS);
         gTasks[taskId].func = ItemStorageMenuProcessInput;
+    }
 }
 
 static void ItemStorage_ExitItemList(u8 taskId)

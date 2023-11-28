@@ -501,7 +501,7 @@ static void LoadUsePokeblockMenu(void)
         sInfo->mainState++;
         break;
     case 3:
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         InitWindows(sWindowTemplates);
         DeactivateAllTextPrinters();

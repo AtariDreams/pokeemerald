@@ -173,12 +173,14 @@ static const u8 sActivityGroupInfo[][3] = {
 
 static void CB2_RunWirelessCommunicationScreen(void)
 {
-
-    RunTasks();
-    RunTextPrinters();
-    AnimateSprites();
-    BuildOamBuffer();
-    UpdatePaletteFade();
+    if (!IsDma3ManagerBusyWithBgCopy())
+    {
+        RunTasks();
+        RunTextPrinters();
+        AnimateSprites();
+        BuildOamBuffer();
+        UpdatePaletteFade();
+    }
 }
 
 static void VBlankCB_WirelessCommunicationScreen(void)
@@ -198,7 +200,7 @@ static void CB2_InitWirelessCommunicationScreen(void)
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
     sStatusScreen = AllocZeroed(sizeof(struct WirelessCommunicationStatusScreen));
     SetVBlankCallback(NULL);
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     SetBgTilemapBuffer(1, Alloc(BG_SCREEN_SIZE));
     SetBgTilemapBuffer(0, Alloc(BG_SCREEN_SIZE));
