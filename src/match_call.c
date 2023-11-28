@@ -1251,7 +1251,12 @@ static bool32 MatchCall_LoadGfx(u8 taskId)
         return FALSE;
     }
 
-    LoadBgTiles(0, sMatchCallWindow_Gfx, sizeof(sMatchCallWindow_Gfx), TILE_MC_WINDOW);
+    if (LoadBgTiles(0, sMatchCallWindow_Gfx, sizeof(sMatchCallWindow_Gfx), TILE_MC_WINDOW) == 0xFFFF)
+    {
+        RemoveWindow(tWindowId);
+        DestroyTask(taskId);
+        return FALSE;
+    }
 
     if (!DecompressAndCopyTileDataToVram(0, sPokenavIcon_Gfx, 0, TILE_POKENAV_ICON, 0))
     {

@@ -2240,7 +2240,7 @@ static bool8 IsDisplaySubtaskActive(u8 id)
 
 static bool32 Display_LoadGfx(u8 *state)
 {
-    if (FreeTempTileDataBuffersIfPossible())
+    if (FreeTempTileDataBuffersIfPossible() == TRUE)
         return TRUE;
 
     switch (*state)
@@ -3057,7 +3057,7 @@ static void SetBgTilemapBuffers(void)
 
 static void ClearBg0(void)
 {
-    DmaFill32(3, 0, (void *)BG_CHAR_ADDR(0), 0x20);
+    RequestDma3Fill(0, (void *)BG_CHAR_ADDR(0), 0x20, 1);
     FillBgTilemapBufferRect_Palette0(0, 0, 0, 0, 32, 32);
     CopyBgTilemapBufferToVram(0);
 }
@@ -3094,7 +3094,7 @@ static void LoadChatWindowGfx(void)
 static void LoadChatUnkPalette(void)
 {
     LoadPalette(sUnusedPalette, BG_PLTT_ID(8), sizeof(sUnusedPalette));
-    DmaFill32(3, 0, (void *)BG_CHAR_ADDR(1) + TILE_SIZE_4BPP, TILE_SIZE_4BPP);
+    RequestDma3Fill(0, (void *)BG_CHAR_ADDR(1) + TILE_SIZE_4BPP, TILE_SIZE_4BPP, 1);
 }
 
 static void LoadChatMessagesWindow(void)
