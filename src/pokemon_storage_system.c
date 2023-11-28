@@ -5133,6 +5133,7 @@ static struct Sprite *CreateMonIconSprite(u16 species, u32 personality, s16 x, s
     u16 tileNum;
     u8 spriteId;
     struct SpriteTemplate template = sSpriteTemplate_MonIcon;
+    struct Sprite *sprite;
 
     species = GetIconSpecies(species, personality);
     template.paletteTag = PALTAG_MON_ICON_0 + gMonIconPaletteIndices[species];
@@ -5140,17 +5141,17 @@ static struct Sprite *CreateMonIconSprite(u16 species, u32 personality, s16 x, s
     if (tileNum == 0xFFFF)
         return NULL;
 
-    spriteId = CreateSprite(&template, x, y, subpriority);
-    if (spriteId == MAX_SPRITES)
+    sprite = CreateSpriteReturnPointer(&template, x, y, subpriority);
+    if (sprite == NULL)
     {
         RemoveSpeciesFromIconList(species);
         return NULL;
     }
 
-    gSprites[spriteId].oam.tileNum = tileNum;
-    gSprites[spriteId].oam.priority = oamPriority;
-    gSprites[spriteId].data[0] = species;
-    return &gSprites[spriteId];
+    sprite->oam.tileNum = tileNum;
+    sprite->oam.priority = oamPriority;
+    sprite->data[0] = species;
+    return sprite;
 }
 
 static void DestroyBoxMonIcon(struct Sprite *sprite)
