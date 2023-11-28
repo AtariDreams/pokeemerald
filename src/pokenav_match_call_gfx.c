@@ -2,7 +2,7 @@
 #include "bg.h"
 #include "data.h"
 #include "decompress.h"
-
+#include "dma3.h"
 #include "international_string_util.h"
 #include "main.h"
 #include "match_call.h"
@@ -68,6 +68,7 @@ static void PrintMatchCallSelectionOptions(struct Pokenav_MatchCallGfx *);
 static void UpdateCursorGfxPos(struct Pokenav_MatchCallGfx *, int);
 static void UpdateWindowsReturnToTrainerList(struct Pokenav_MatchCallGfx *);
 static void DrawMsgBoxForMatchCallMsg(struct Pokenav_MatchCallGfx *);
+static bool32 IsDma3ManagerBusyWithBgCopy2(struct Pokenav_MatchCallGfx *);
 static void PrintCallingDots(struct Pokenav_MatchCallGfx *);
 static bool32 WaitForCallingDotsText(struct Pokenav_MatchCallGfx *);
 static void PrintMatchCallMessage(struct Pokenav_MatchCallGfx *);
@@ -570,6 +571,8 @@ static u32 DoMatchCallMessage(s32 state)
         DrawMsgBoxForMatchCallMsg(gfx);
         return LT_INC_AND_PAUSE;
     case 1:
+        if (IsDma3ManagerBusyWithBgCopy2(gfx))
+            return LT_PAUSE;
 
         PrintCallingDots(gfx);
         PlaySE(SE_POKENAV_CALL);
@@ -602,6 +605,9 @@ static u32 DoTrainerCloseByMessage(s32 state)
         gfx->skipHangUpSE = TRUE;
         return LT_INC_AND_PAUSE;
     case 1:
+        if (IsDma3ManagerBusyWithBgCopy2(gfx))
+            return LT_PAUSE;
+
         PrintTrainerIsCloseBy(gfx);
         return LT_INC_AND_PAUSE;
     case 2:
@@ -1027,6 +1033,11 @@ static void DrawMsgBoxForCloseByMsg(struct Pokenav_MatchCallGfx *gfx)
     FillWindowPixelBuffer(gfx->msgBoxWindowId, PIXEL_FILL(1));
     PutWindowTilemap(gfx->msgBoxWindowId);
     CopyWindowToVram(gfx->msgBoxWindowId, COPYWIN_FULL);
+}
+
+static bool32 IsDma3ManagerBusyWithBgCopy2(struct Pokenav_MatchCallGfx *gfx)
+{
+    return FALSE;
 }
 
 static void PrintCallingDots(struct Pokenav_MatchCallGfx *gfx)

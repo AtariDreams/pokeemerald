@@ -1,7 +1,7 @@
 #include <limits.h>
 #include "global.h"
 #include "bg.h"
-
+#include "dma3.h"
 #include "gpu_regs.h"
 
 #define FRMSYS_REG_MODEMASK 7
@@ -328,6 +328,29 @@ void LoadBgTiles(u8 bg, const void *src, u16 size, u16 destOffset)
 void LoadBgTilemap(u8 bg, const void *src, u16 size, u16 destOffset)
 {
     LoadBgVram(bg, src, size, destOffset * 2, DISPCNT_MODE_2);
+}
+
+bool8 IsDma3ManagerBusyWithBgCopy(void)
+{
+    s16 i;
+
+    for (i = 0; i < 0x80; i++)
+    {
+        u8 div = i / 0x20;
+        u8 mod = i & 31;
+
+        if ((sDmaBusyBitfield[div] & (1U << mod)))
+        {
+            if (CheckForSpaceForDma3Request(i) == -1)
+            {
+                return TRUE;
+            }
+
+            sDmaBusyBitfield[div] &= ~(1U << mod);
+        }
+    }
+
+    return FALSE;
 }
 
 void ShowBg(u8 bg)

@@ -11,7 +11,7 @@
 #include "decompress.h"
 #include "gpu_regs.h"
 #include "menu.h"
-
+#include "dma3.h"
 
 struct Pokenav_MainMenu
 {
