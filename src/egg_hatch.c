@@ -420,23 +420,10 @@ bool8 CheckDaycareMonReceivedMail(void)
     return _CheckDaycareMonReceivedMail(&gSaveBlock1.daycare, gSpecialVar_0x8004);
 }
 
-static u8 EggHatchCreateMonSprite(u8 useAlt, u8 state, u8 partyId, u16 *speciesLoc)
+static u8 EggHatchCreateMonSprite(u8 state, u8 partyId, u16 *speciesLoc)
 {
-    u8 position = 0;
     u8 spriteId = 0;
-    struct Pokemon *mon = NULL;
-
-    if (useAlt == FALSE)
-    {
-        mon = &gPlayerParty.party[partyId];
-        position = B_POSITION_OPPONENT_LEFT;
-    }
-    if (useAlt == TRUE)
-    {
-        // Alternate sprite allocation position. Never reached.
-        mon = &gPlayerParty.party[partyId];
-        position = B_POSITION_OPPONENT_RIGHT;
-    }
+    struct Pokemon *mon = &gPlayerParty.party[partyId];
     switch (state)
     {
     case 0:
@@ -445,7 +432,7 @@ static u8 EggHatchCreateMonSprite(u8 useAlt, u8 state, u8 partyId, u16 *speciesL
             u16 species = GetMonData(mon, MON_DATA_SPECIES);
             u32 pid = GetMonData(mon, MON_DATA_PERSONALITY);
             HandleLoadSpecialPokePic_DontHandleDeoxys(&gMonFrontPicTable[species],
-                                                      gMonSpritesGfxPtr->sprites.ptr[(useAlt * 2) + B_POSITION_OPPONENT_LEFT],
+                                                      gMonSpritesGfxPtr->sprites.ptr[B_POSITION_OPPONENT_LEFT],
                                                       species, pid);
             LoadCompressedSpritePalette(GetMonSpritePalStruct(mon));
             *speciesLoc = species;
@@ -453,7 +440,7 @@ static u8 EggHatchCreateMonSprite(u8 useAlt, u8 state, u8 partyId, u16 *speciesL
         break;
     case 1:
         // Create mon sprite
-        SetMultiuseSpriteTemplateToPokemon(GetMonSpritePalStruct(mon)->tag, position);
+        SetMultiuseSpriteTemplateToPokemon(GetMonSpritePalStruct(mon)->tag, B_POSITION_OPPONENT_LEFT);
         spriteId = CreateSprite(&gMultiuseSpriteTemplate, EGG_X, EGG_Y, 6);
         gSprites[spriteId].invisible = TRUE;
         gSprites[spriteId].callback = SpriteCallbackDummy;
@@ -547,11 +534,11 @@ static void CB2_LoadEggHatch(void)
         gMain.state++;
         break;
     case 5:
-        EggHatchCreateMonSprite(FALSE, 0, sEggHatchData->eggPartyId, &sEggHatchData->species);
+        EggHatchCreateMonSprite(0, sEggHatchData->eggPartyId, &sEggHatchData->species);
         gMain.state++;
         break;
     case 6:
-        sEggHatchData->monSpriteId = EggHatchCreateMonSprite(FALSE, 1, sEggHatchData->eggPartyId, &sEggHatchData->species);
+        sEggHatchData->monSpriteId = EggHatchCreateMonSprite(1, sEggHatchData->eggPartyId, &sEggHatchData->species);
         gMain.state++;
         break;
     case 7:
