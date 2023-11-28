@@ -115,7 +115,7 @@ void TryFieldPoisonWhiteOut(void)
 
 s32 DoPoisonFieldEffect(void)
 {
-    int i;
+    u32 i;
     u32 hp;
     struct Pokemon *pokemon = gPlayerParty.party;
     u32 numPoisoned = 0;
