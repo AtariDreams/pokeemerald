@@ -2240,7 +2240,7 @@ static bool8 IsDisplaySubtaskActive(u8 id)
 
 static bool32 Display_LoadGfx(u8 *state)
 {
-    if (FreeTempTileDataBuffersIfPossible() == TRUE)
+    if (FreeTempTileDataBuffersIfPossible())
         return TRUE;
 
     switch (*state)

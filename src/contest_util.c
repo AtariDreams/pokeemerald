@@ -1157,7 +1157,7 @@ static void TryCreateWirelessSprites(void)
         CreateWirelessStatusIndicatorSprite(8, 8);
         gSprites[gWirelessStatusIndicatorSpriteId].subpriority = 1;
         sheet = LoadSpriteSheet(&sSpriteSheet_WirelessIndicatorWindow);
-        DmaFill32(3, 0xFFFFFFFF, (void *)BG_CHAR_ADDR(4) + sheet * 0x20, 0x80);
+        RequestDma3Fill(0xFFFFFFFF, (void *)BG_CHAR_ADDR(4) + sheet * 0x20, 0x80, 1);
         spriteId = CreateSprite(&sSpriteTemplate_WirelessIndicatorWindow, 8, 8, 0);
         gSprites[spriteId].oam.objMode = ST_OAM_OBJ_WINDOW;
     }
