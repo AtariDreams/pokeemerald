@@ -496,7 +496,7 @@ static void NamingScreen_InitBGs(void)
 {
     u32 i;
 
-    DmaClearLarge16(3, (void *)VRAM, VRAM_SIZE, 0x1000);
+    DmaClear16(3, (void *)VRAM, VRAM_SIZE);
     DmaClear32(3, (void *)OAM, OAM_SIZE);
     DmaClear16(3, (void *)PLTT, PLTT_SIZE);
 
