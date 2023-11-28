@@ -5,7 +5,7 @@
 #include "contest.h"
 #include "data.h"
 #include "decompress.h"
-
+#include "dma3.h"
 #include "gpu_regs.h"
 #include "malloc.h"
 #include "palette.h"

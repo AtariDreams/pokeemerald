@@ -1,6 +1,6 @@
 #include "global.h"
 #include "main.h"
-
+#include "dma3.h"
 #include "pokeblock.h"
 #include "malloc.h"
 #include "decompress.h"
@@ -85,12 +85,11 @@ struct UsePokeblockMenuPokemon
 
 struct UsePokeblockMenu
 {
-    //u32 unused;
+    u32 unused;
     u16 partyPalettes[PARTY_SIZE][0x40];
-    u8 ALIGNED(2) partySheets[NUM_SELECTIONS_LOADED][MON_PIC_SIZE * MAX_MON_PIC_FRAMES];
-    //u8 unusedBuffer[0x1000];
-    u8 tilemapBuffer[BG_SCREEN_SIZE];
-    // u16 infowinindex
+    u8 partySheets[NUM_SELECTIONS_LOADED][MON_PIC_SIZE * MAX_MON_PIC_FRAMES];
+    u8 unusedBuffer[0x1000];
+    u8 tilemapBuffer[BG_SCREEN_SIZE + 2];
     u8 selectionIconSpriteIds[PARTY_SIZE + 1];
     s16 curMonXOffset;
     u8 curMonSpriteId;
@@ -431,7 +430,7 @@ static void CB2_ReturnAndChooseMonToGivePokeblock(void)
     sInfo->pokeblock = sPokeblock;
     sInfo->exitCallback = sExitCallback;
     gPokeblockMonId = GetSelectionIdFromPartyId(gPokeblockMonId);
-    sInfo->monInTopHalf = gPokeblockMonId > (PARTY_SIZE / 2);
+    sInfo->monInTopHalf = (gPokeblockMonId <= PARTY_SIZE / 2) ? FALSE : TRUE;
     SetUsePokeblockCallback(LoadUsePokeblockMenu);
     SetMainCallback2(CB2_ReturnToUsePokeblockMenu);
 }
@@ -497,7 +496,7 @@ static void LoadUsePokeblockMenu(void)
         break;
     case 2:
         SetVBlankCallback(NULL);
-        DmaFill16(3, 0, (void *)(VRAM), VRAM_SIZE);
+        CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
         sInfo->mainState++;
         break;
     case 3:
@@ -573,8 +572,8 @@ static void ShowUsePokeblockMenu(void)
         SetVBlankCallback(VBlankCB_UsePokeblockMenu);
         ShowBg(0);
         ShowBg(1);
-        ShowBg(2);
         ShowBg(3);
+        ShowBg(2);
         sInfo->mainState++;
         break;
     case 1:
@@ -606,6 +605,8 @@ enum {
 
 static void UsePokeblockMenu(void)
 {
+    bool8 loading;
+
     switch (sInfo->mainState)
     {
     case STATE_HANDLE_INPUT:
@@ -640,7 +641,8 @@ static void UsePokeblockMenu(void)
         }
         break;
     case STATE_UPDATE_SELECTION:
-        if (!sMenu->info.loadNewSelection())
+        loading = sMenu->info.loadNewSelection();
+        if (!loading)
             sInfo->mainState = STATE_HANDLE_INPUT;
         break;
     case STATE_2:
@@ -704,8 +706,8 @@ static void FeedPokeblockToMon(void)
             FREE_AND_SET_NULL(sMonFrame_TilemapPtr);
             FREE_AND_SET_NULL(sMenu);
             FreeAllWindowBuffers();
-            PreparePokeblockFeedScene();
             gMain.savedCallback = CB2_ReturnAndChooseMonToGivePokeblock;
+            PreparePokeblockFeedScene();
         }
         break;
     }
@@ -742,8 +744,8 @@ static void ShowUsePokeblockMenuForResults(void)
     case 4:
         ShowBg(0);
         ShowBg(1);
-        ShowBg(2);
         ShowBg(3);
+        ShowBg(2);
         sInfo->mainState++;
         break;
     case 5:
@@ -816,7 +818,7 @@ static void ShowPokeblockResults(void)
 
 static void CloseUsePokeblockMenu(void)
 {
-    u32 i;
+    u8 i;
 
     switch (sInfo->mainState)
     {
@@ -965,20 +967,26 @@ static void PrintMenuWindowText(const u8 *message)
 
 static void BufferEnhancedText(u8 *dest, u8 condition, s16 enhancement)
 {
-    if (enhancement)
+    switch (enhancement)
     {
+    case 1 ... 32767: // if > 0
+        enhancement = 0;
+        // fallthrough
+    case -32768 ... -1: // if < 0
+        if (enhancement)
+            dest[(u16)enhancement] += 0; // something you can't imagine
         StringCopy(dest, sConditionNames[condition]);
         StringAppend(dest, gText_WasEnhanced);
-    }
-    else
-    {
-         StringCopy(dest, gText_NothingChanged);
+        break;
+    case 0:
+        StringCopy(dest, gText_NothingChanged);
+        break;
     }
 }
 
 static void GetMonConditions(struct Pokemon *mon, u8 *data)
 {
-    u32 i;
+    u16 i;
 
     for (i = 0; i < CONDITION_COUNT; i++)
         data[i] = GetMonData(mon, sConditionToMonData[i]);
@@ -986,7 +994,7 @@ static void GetMonConditions(struct Pokemon *mon, u8 *data)
 
 static void AddPokeblockToConditions(struct Pokeblock *pokeblock, struct Pokemon *mon)
 {
-    u32 i;
+    u16 i;
     s16 stat;
     u8 data;
 
@@ -996,18 +1004,16 @@ static void AddPokeblockToConditions(struct Pokeblock *pokeblock, struct Pokemon
         for (i = 0; i < CONDITION_COUNT; i++)
         {
             data = GetMonData(mon, sConditionToMonData[i]);
-            stat = data + sInfo->pokeblockStatBoosts[i];
-
-            // Todo: is this needed? 
+            stat = data +  sInfo->pokeblockStatBoosts[i];
             if (stat < 0)
                 stat = 0;
-            else if (stat > MAX_CONDITION)
+            if (stat > MAX_CONDITION)
                 stat = MAX_CONDITION;
             data = stat;
             SetMonData(mon, sConditionToMonData[i], &data);
         }
 
-        stat = GetMonData(mon, MON_DATA_SHEEN) + pokeblock->feel;
+        stat = (u8)(GetMonData(mon, MON_DATA_SHEEN)) + pokeblock->feel;
         if (stat > MAX_SHEEN)
             stat = MAX_SHEEN;
 
@@ -1018,7 +1024,7 @@ static void AddPokeblockToConditions(struct Pokeblock *pokeblock, struct Pokemon
 
 static void CalculateConditionEnhancements(void)
 {
-    u32 i;
+    u16 i;
     struct Pokemon *mon = gPlayerParty.party;
     mon += sMenu->party[sMenu->info.curSelection].monId;
 
@@ -1031,8 +1037,7 @@ static void CalculateConditionEnhancements(void)
 
 static void CalculatePokeblockEffectiveness(struct Pokeblock *pokeblock, struct Pokemon *mon)
 {
-    u32 i;
-    s8 direction, flavor, boost;
+    s8 i, direction, flavor;
 
     sInfo->pokeblockStatBoosts[CONDITION_COOL] = pokeblock->spicy;
     sInfo->pokeblockStatBoosts[CONDITION_TOUGH] = pokeblock->sour;
@@ -1049,14 +1054,15 @@ static void CalculatePokeblockEffectiveness(struct Pokeblock *pokeblock, struct 
 
     for (i = 0; i < CONDITION_COUNT; i++)
     {
-        boost = sInfo->pokeblockStatBoosts[i] / 10;
+        s16 amount = sInfo->pokeblockStatBoosts[i];
+        s8 boost = amount / 10;
 
-        if (sInfo->pokeblockStatBoosts[i] % 10 >= 5) // round to the nearest
+        if (amount % 10 >= 5) // round to the nearest
             boost++;
 
         flavor = GetMonFlavorRelation(mon, sConditionToFlavor[i]);
         if (flavor == direction)
-            sInfo->pokeblockStatBoosts[i] += direction * boost;
+            sInfo->pokeblockStatBoosts[i] += boost * flavor;
     }
 }
 
@@ -1118,11 +1124,11 @@ static void LoadAndCreateUpDownSprites(void)
     {
         if (sInfo->enhancements[i] != 0)
         {
-            struct Sprite * sprite = CreateSpriteReturnPointer(&sSpriteTemplate_UpDown, sUpDownCoordsOnGraph[i][0], sUpDownCoordsOnGraph[i][1], 0);
-            if (sprite != NULL)
+            u16 spriteId = CreateSprite(&sSpriteTemplate_UpDown, sUpDownCoordsOnGraph[i][0], sUpDownCoordsOnGraph[i][1], 0);
+            if (spriteId != MAX_SPRITES)
             {
-                //if (sInfo->enhancements[i] != 0) // Always true here
-                sprite->callback = SpriteCB_UpDown;
+                if (sInfo->enhancements[i] != 0) // Always true here
+                    gSprites[spriteId].callback = SpriteCB_UpDown;
                 sInfo->numEnhancements++;
             }
         }
@@ -1149,10 +1155,10 @@ static void SpriteCB_UpDown(struct Sprite *sprite)
 
 static void LoadPartyInfo(void)
 {
-    u32 i;
+    u16 i;
     u16 numMons;
 
-    for (i = 0, numMons = 0; i < gPlayerParty.count; i++)
+    for (i = 0, numMons = 0; i < CalculatePlayerPartyCount(); i++)
     {
         if (!GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG))
         {
@@ -1216,20 +1222,21 @@ static void UpdateMonPic(u8 loadId)
         sMenu->curMonPalette = LoadSpritePalette(&spritePal);
         sMenu->curMonSheet = LoadSpriteSheet(&spriteSheet);
         spriteId = CreateSprite(&spriteTemplate, 38, 104, 0);
+        sMenu->curMonSpriteId = spriteId;
         if (spriteId == MAX_SPRITES)
         {
             FreeSpriteTilesByTag(TAG_CONDITION_MON);
             FreeSpritePaletteByTag(TAG_CONDITION_MON);
             sMenu->curMonSpriteId = SPRITE_NONE;
-            return;
         }
-
+        else
+        {
             sMenu->curMonSpriteId = spriteId;
             gSprites[sMenu->curMonSpriteId].callback = SpriteCB_MonPic;
             gSprites[sMenu->curMonSpriteId].y2 -= 34;
             sMenu->curMonTileStart = (void *)(OBJ_VRAM0 + (sMenu->curMonSheet * 32));
             sMenu->curMonPalette = OBJ_PLTT_ID(sMenu->curMonPalette);
-    
+        }
     }
     else
     {
@@ -1242,8 +1249,7 @@ static void UpdateMonPic(u8 loadId)
 
 static void LoadAndCreateSelectionIcons(void)
 {
-    u16 i;
-    u8 spriteId;
+    u16 i, spriteId;
     struct SpriteSheet spriteSheets[4];
     struct SpriteTemplate spriteTemplate;
     struct SpritePalette spritePals[3];
@@ -1617,22 +1623,21 @@ static void CreateConditionSprite(void)
 {
     u16 i;
     s16 xDiff, xStart;
-    s16 yStart = 17;
-    s16 speed = 8;
-    struct Sprite *sprite;
+    int yStart = 17;
+    int speed = 8;
     struct Sprite **sprites = sMenu->condition;
     const struct SpriteTemplate *template = &sSpriteTemplate_Condition;
 
     for (i = 0, xDiff = 64, xStart = -96; i < 2; i++)
     {
-        sprite = CreateSpriteReturnPointer(template, i * xDiff + xStart, yStart, 0);
-        if (sprite != NULL)
+        u8 spriteId = CreateSprite(template, i * xDiff + xStart, yStart, 0);
+        if (spriteId != MAX_SPRITES)
         {
-            sprite->sSpeed = speed;
-            sprite->sTargetX = (i * xDiff) | 0x20;
-            //gSprites[spriteId].data[2] = i; // Unused
-            StartSpriteAnim(sprite, i);
-            sprites[i] = sprite;
+            gSprites[spriteId].sSpeed = speed;
+            gSprites[spriteId].sTargetX = (i * xDiff) | 0x20;
+            gSprites[spriteId].data[2] = i; // Unused
+            StartSpriteAnim(&gSprites[spriteId], i);
+            sprites[i] = &gSprites[spriteId];
         }
     }
 }
