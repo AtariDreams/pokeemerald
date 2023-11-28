@@ -4604,9 +4604,9 @@ static void LoadGfx(void)
         break;
     case 3:
         ShowBg(BG_INTERFACE);
-        ShowBg(BG_SCENERY);
         ShowBg(BG_TREE_LEFT);
         ShowBg(BG_TREE_RIGHT);
+        ShowBg(BG_SCENERY);
         sGfx->state++;
         break;
     case 4:

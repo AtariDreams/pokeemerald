@@ -297,9 +297,9 @@ static void Task_WirelessCommunicationScreen(u8 taskId)
         break;
     case 1:
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
-        ShowBg(1);
         CopyBgTilemapBufferToVram(0);
         ShowBg(0);
+        ShowBg(1);
         gTasks[taskId].tState++;
         break;
     case 2:

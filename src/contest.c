@@ -1359,13 +1359,13 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         // Overwritten in APPEALSTATE_SLIDE_MON_IN with the attacking contest mon
         gBattlerSpriteIds[gBattlerAttacker] = CreateJudgeSprite();
         CreateInvisibleBattleTargetSprite();
-        CopyBgTilemapBufferToVram(3);
-        CopyBgTilemapBufferToVram(2);
         CopyBgTilemapBufferToVram(1);
-        ShowBg(3);
-        ShowBg(2);
-        ShowBg(1);
+        CopyBgTilemapBufferToVram(2);
+        CopyBgTilemapBufferToVram(3);
         ShowBg(0);
+        ShowBg(1);
+        ShowBg(2);
+        ShowBg(3);
         break;
     default:
         *stateVar = 0;
