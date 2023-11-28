@@ -284,7 +284,7 @@ void DestroyAnimSoundTask(u8 taskId)
 
 static void AddSpriteIndex(u16 index)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < ANIM_SPRITE_INDEX_COUNT; i++)
     {
@@ -298,7 +298,7 @@ static void AddSpriteIndex(u16 index)
 
 static void ClearSpriteIndex(u16 index)
 {
-    s32 i;
+    u32 i;
 
     for (i = 0; i < ANIM_SPRITE_INDEX_COUNT; i++)
     {
