@@ -970,33 +970,6 @@ u8 GetDaycareState(void)
     return DAYCARE_NO_MONS;
 }
 
-static u8 UNUSED GetDaycarePokemonCount(void)
-{
-    u8 ret = CountPokemonInDaycare(&gSaveBlock1.daycare);
-    if (ret)
-        return ret;
-
-    return 0;
-}
-
-// Determine if the two given egg group lists contain any of the
-// same egg groups.
-static bool8 EggGroupsOverlap(u16 *eggGroups1, u16 *eggGroups2)
-{
-    u32 i, j;
-
-    for (i = 0; i < EGG_GROUPS_PER_MON; i++)
-    {
-        for (j = 0; j < EGG_GROUPS_PER_MON; j++)
-        {
-            if (eggGroups1[i] == eggGroups2[j])
-                return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
 static u8 GetDaycareCompatibilityScore(struct DayCare *daycare)
 {
     u32 i;
@@ -1018,8 +991,15 @@ static u8 GetDaycareCompatibilityScore(struct DayCare *daycare)
     }
 
     // check unbreedable egg group
-    if (eggGroups[0][0] == EGG_GROUP_NO_EGGS_DISCOVERED || eggGroups[1][0] == EGG_GROUP_NO_EGGS_DISCOVERED)
-        return PARENTS_INCOMPATIBLE;
+    for (i = 0; i < DAYCARE_MON_COUNT; i++)
+    {
+        for (u32 j = 0; j < EGG_GROUPS_PER_MON; ++j)
+        {
+            if (eggGroups[i][j] == EGG_GROUP_NO_EGGS_DISCOVERED)
+                return PARENTS_INCOMPATIBLE;
+        }
+    }
+
     // two Ditto can't breed
     if (eggGroups[0][0] == EGG_GROUP_DITTO && eggGroups[1][0] == EGG_GROUP_DITTO)
         return PARENTS_INCOMPATIBLE;
@@ -1027,36 +1007,33 @@ static u8 GetDaycareCompatibilityScore(struct DayCare *daycare)
     // one parent is Ditto
     if (eggGroups[0][0] == EGG_GROUP_DITTO || eggGroups[1][0] == EGG_GROUP_DITTO)
     {
-        if (trainerIds[0] == trainerIds[1])
-            return PARENTS_LOW_COMPATIBILITY;
-
-        return PARENTS_MED_COMPATIBILITY;
+        int score = (species[0] == species[1]) + (trainerIds[0] == trainerIds[1]);
+        
+        if (score == 0)
+            return PARENTS_MAX_COMPATIBILITY;
+        if (score == 1)
+            return PARENTS_MED_COMPATIBILITY;
+        return PARENTS_LOW_COMPATIBILITY;
     }
     // neither parent is Ditto
-    else
+
+    if (genders[0] == genders[1] || genders[0] == MON_GENDERLESS || genders[1] == MON_GENDERLESS)
+        return PARENTS_INCOMPATIBLE;
+    if (genders[0] == MON_GENDERLESS || genders[1] == MON_GENDERLESS)
+        return PARENTS_INCOMPATIBLE;
+
+    if (eggGroups[0][0] == eggGroups[1][0] || eggGroups[0][0]  == eggGroups[1][1] || eggGroups[0][1] == eggGroups[1][0] || eggGroups[0][1] == eggGroups[1][1])
     {
-        if (genders[0] == genders[1])
-            return PARENTS_INCOMPATIBLE;
-        if (genders[0] == MON_GENDERLESS || genders[1] == MON_GENDERLESS)
-            return PARENTS_INCOMPATIBLE;
-        if (!EggGroupsOverlap(eggGroups[0], eggGroups[1]))
-            return PARENTS_INCOMPATIBLE;
-
-        if (species[0] == species[1])
-        {
-            if (trainerIds[0] == trainerIds[1])
-                return PARENTS_MED_COMPATIBILITY; // same species, same trainer
-
-            return PARENTS_MAX_COMPATIBILITY; // same species, different trainers
-        }
-        else
-        {
-            if (trainerIds[0] != trainerIds[1])
-                return PARENTS_MED_COMPATIBILITY; // different species, different trainers
-
-            return PARENTS_LOW_COMPATIBILITY; // different species, same trainer
-        }
+        int score = (species[0] == species[1]) + (trainerIds[0] == trainerIds[1]);
+        
+        if (score == 0)
+            return PARENTS_MAX_COMPATIBILITY;
+        if (score == 1)
+            return PARENTS_MED_COMPATIBILITY;
+        return PARENTS_LOW_COMPATIBILITY;
     }
+
+    return PARENTS_INCOMPATIBLE;
 }
 
 static u8 GetDaycareCompatibilityScoreFromSave(void)
