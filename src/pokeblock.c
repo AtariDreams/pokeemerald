@@ -1360,11 +1360,9 @@ bool32 AddPokeblock(const struct Pokeblock *pokeblock)
     {
         return FALSE;
     }
-    else
-    {
-        gSaveBlock1.pokeblocks[slot] = *pokeblock;
-        return TRUE;
-    }
+
+    gSaveBlock1.pokeblocks[slot] = *pokeblock;
+    return TRUE;
 }
 
 bool32 TryClearPokeblock(u8 pkblId)
