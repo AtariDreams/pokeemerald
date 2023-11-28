@@ -750,7 +750,7 @@ static bool32 InitFrontierPass(void)
         AllocateFrontierPassGfx();
         break;
     case 4:
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(1, sPassBgTemplates, ARRAY_COUNT(sPassBgTemplates));
         SetBgTilemapBuffer(1, sPassGfx->tilemapBuff1);
         SetBgTilemapBuffer(2, sPassGfx->tilemapBuff2);
@@ -1399,7 +1399,7 @@ static bool32 InitFrontierMap(void)
         ResetTempTileDataBuffers();
         break;
     case 3:
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sMapBgTemplates, ARRAY_COUNT(sMapBgTemplates));
         SetBgTilemapBuffer(0, sMapData->tilemapBuff0);
         SetBgTilemapBuffer(1, sMapData->tilemapBuff1);

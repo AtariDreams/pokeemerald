@@ -385,6 +385,10 @@ static void Task_TrainerCard(u8 taskId)
     {
     // Draw card initially
     case 0:
+        if (IsDma3ManagerBusyWithBgCopy())
+        {
+            return;
+        }
         FillWindowPixelBuffer(WIN_CARD_TEXT, PIXEL_FILL(0));
         sData->mainState++;
         break;
@@ -428,7 +432,7 @@ static void Task_TrainerCard(u8 taskId)
         sData->mainState++;
         break;
     case 8:
-        if (!UpdatePaletteFade())
+        if (!UpdatePaletteFade() && !IsDma3ManagerBusyWithBgCopy())
         {
             PlaySE(SE_RG_CARD_OPEN);
             sData->mainState = STATE_HANDLE_INPUT_FRONT;
@@ -905,7 +909,7 @@ static void ResetGpuRegs(void)
 
 static void InitBgsAndWindows(void)
 {
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sTrainerCardBgTemplates, ARRAY_COUNT(sTrainerCardBgTemplates));
     ChangeBgX(0, 0, BG_COORD_SET);
     ChangeBgY(0, 0, BG_COORD_SET);

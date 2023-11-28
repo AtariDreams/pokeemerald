@@ -1047,7 +1047,7 @@ static void InitContestInfoBgs(void)
 {
     s32 i;
 
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sContestBgTemplates, ARRAY_COUNT(sContestBgTemplates));
     SetBgAttribute(3, BG_ATTR_WRAPAROUND, 1);
     for (i = 0; i < CONTESTANT_COUNT; i++)
@@ -4140,13 +4140,15 @@ static u8 CreateContestantBoxBlinkSprites(u8 contestant)
     CpuFill32(0, gContestResources->boxBlinkTiles1 + 0x500, 0x300);
     CpuFill32(0, gContestResources->boxBlinkTiles2 + 0x500, 0x300);
 
-    DmaCopy32(3, gContestResources->boxBlinkTiles1,
+    RequestDma3Copy(gContestResources->boxBlinkTiles1,
                     (u8 *)(OBJ_VRAM0 + gSprites[spriteId1].oam.tileNum * 32),
-                    0x800);
+                    0x800,
+                    1);
 
-    DmaCopy32(3, gContestResources->boxBlinkTiles2,
+    RequestDma3Copy(gContestResources->boxBlinkTiles2,
                     (u8 *)(OBJ_VRAM0 + gSprites[spriteId2].oam.tileNum * 32),
-                    0x800);
+                    0x800,
+                    1);
 
     gSprites[spriteId1].data[0] = spriteId2;
     gSprites[spriteId2].data[0] = spriteId1;
@@ -4900,11 +4902,11 @@ static void Task_AnimateAudience(u8 taskId)
         gTasks[taskId].tDelay = 0;
         if (gTasks[taskId].tFrame == 0)
         {
-            DmaCopy32(3, eContestAudienceFrame2_Gfx, (void *)(BG_SCREEN_ADDR(4)), 0x1000);
+            RequestDma3Copy(eContestAudienceFrame2_Gfx, (void *)(BG_SCREEN_ADDR(4)), 0x1000, 1);
         }
         else
         {
-            DmaCopy32(3, eUnzippedContestAudience_Gfx, (void *)(BG_SCREEN_ADDR(4)), 0x1000);
+            RequestDma3Copy(eUnzippedContestAudience_Gfx, (void *)(BG_SCREEN_ADDR(4)), 0x1000, 1);
             gTasks[taskId].tCycles++;
         }
 

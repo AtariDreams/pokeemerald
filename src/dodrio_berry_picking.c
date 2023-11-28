@@ -2975,7 +2975,8 @@ static void Task_ShowDodrioBerryPickingRecords(u8 taskId)
         tState++;
         break;
     case 1:
-        tState++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+            tState++;
         break;
     case 2:
         if (JOY_NEW(A_BUTTON | B_BUTTON))
@@ -2986,11 +2987,12 @@ static void Task_ShowDodrioBerryPickingRecords(u8 taskId)
         }
         break;
     case 3:
-
-        RemoveWindow(tWindowId);
-        DestroyTask(taskId);
-        ScriptContext_Enable();
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            RemoveWindow(tWindowId);
+            DestroyTask(taskId);
+            ScriptContext_Enable();
+        }
         break;
     }
 }
@@ -4656,12 +4658,14 @@ static void ShowNames(void)
         sGfx->state++;
         break;
     case 1:
-
-        numPlayers = GetNumPlayers();
-        for (i = 0; i < numPlayers; i++)
-            PutWindowTilemap(sGfx->windowIds[i]);
-        CopyBgTilemapBufferToVram(BG_INTERFACE);
-        sGfx->state++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            numPlayers = GetNumPlayers();
+            for (i = 0; i < numPlayers; i++)
+                PutWindowTilemap(sGfx->windowIds[i]);
+            CopyBgTilemapBufferToVram(BG_INTERFACE);
+            sGfx->state++;
+        }
         break;
     default:
         if (++sGfx->state > 180)
@@ -4800,9 +4804,11 @@ static void ShowResults(void)
         sGfx->state++;
         break;
     case 3:
-
-        PutWindowTilemap(sGfx->windowIds[0]);
-        PutWindowTilemap(sGfx->windowIds[1]);
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            PutWindowTilemap(sGfx->windowIds[0]);
+            PutWindowTilemap(sGfx->windowIds[1]);
+        }
         CopyBgTilemapBufferToVram(BG_INTERFACE);
         SetBerryIconsInvisibility(FALSE);
         sGfx->state++;
@@ -4831,8 +4837,11 @@ static void ShowResults(void)
         sGfx->state++;
         break;
     case 7:
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             PutWindowTilemap(sGfx->windowIds[0]);
             PutWindowTilemap(sGfx->windowIds[1]);
+        }
         CopyBgTilemapBufferToVram(BG_INTERFACE);
         sGfx->state++;
         break;
@@ -4887,9 +4896,11 @@ static void ShowResults(void)
         sGfx->state++;
         break;
     case 10:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             PutWindowTilemap(sGfx->windowIds[0]);
             PutWindowTilemap(sGfx->windowIds[1]);
+        }
         CopyBgTilemapBufferToVram(BG_INTERFACE);
         FadeOutAndFadeInNewMapMusic(MUS_RG_VICTORY_WILD, 20, 10);
         sGfx->state++;
@@ -4946,9 +4957,11 @@ static void Msg_WantToPlayAgain(void)
         break;
     case 2:
         // Draw windows
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             PutWindowTilemap(sGfx->windowIds[WIN_PLAY_AGAIN]);
             PutWindowTilemap(sGfx->windowIds[WIN_YES_NO]);
+        }
         CopyBgTilemapBufferToVram(BG_INTERFACE);
         sGfx->state++;
         break;
@@ -5021,9 +5034,11 @@ static void Msg_SavingDontTurnOff(void)
         sGfx->state++;
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             CreateTask(Task_LinkFullSave, 0);
             sGfx->state++;
+        }
         break;
     case 3:
         if (!FuncIsActiveTask(Task_LinkFullSave))
@@ -5054,7 +5069,8 @@ static void Msg_CommunicationStandby(void)
         sGfx->state++;
         break;
     case 2:
-        PutWindowTilemap(sGfx->windowIds[0]);
+        if (!IsDma3ManagerBusyWithBgCopy())
+            PutWindowTilemap(sGfx->windowIds[0]);
         CopyBgTilemapBufferToVram(BG_INTERFACE);
         sGfx->state++;
         break;
@@ -5093,7 +5109,8 @@ static void Msg_SomeoneDroppedOut(void)
         sGfx->state++;
         break;
     case 2:
-        PutWindowTilemap(sGfx->windowIds[0]);
+        if (!IsDma3ManagerBusyWithBgCopy())
+            PutWindowTilemap(sGfx->windowIds[0]);
         CopyBgTilemapBufferToVram(BG_INTERFACE);
         sGfx->state++;
         break;
@@ -5154,7 +5171,7 @@ static void InitBgs(void)
     DmaClear32(3,(void *)OAM, OAM_SIZE);
     DmaClear16(3, (void *)PLTT, PLTT_SIZE);
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     ChangeBgX(0, 0, BG_COORD_SET);
     ChangeBgY(0, 0, BG_COORD_SET);

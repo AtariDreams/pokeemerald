@@ -351,6 +351,9 @@ static u32 LoopedTask_OpenRegionMap(s32 taskState)
         FadeToBlackExceptPrimary();
         return LT_INC_AND_PAUSE;
     case 5:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
+
         ShowBg(1);
         ShowBg(2);
         SetVBlankCallback_(VBlankCB_RegionMap);
@@ -383,6 +386,8 @@ static u32 LoopedTask_UpdateInfoAfterCursorMove(s32 taskState)
         UpdateMapSecInfoWindow(state);
         return LT_INC_AND_PAUSE;
     case 1:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
         break;
     }
 
@@ -405,6 +410,9 @@ static u32 LoopedTask_RegionMapZoomOut(s32 taskState)
         PrintHelpBarText(HELPBAR_MAP_ZOOMED_OUT);
         return LT_INC_AND_PAUSE;
     case 2:
+        if (WaitForHelpBar())
+            return LT_PAUSE;
+
         UpdateRegionMapRightHeaderTiles(POKENAV_GFX_MAP_MENU_ZOOMED_OUT);
         break;
     }
@@ -422,6 +430,9 @@ static u32 LoopedTask_RegionMapZoomIn(s32 taskState)
         UpdateMapSecInfoWindow(state);
         return LT_INC_AND_PAUSE;
     case 1:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
+
         ChangeBgYForZoom(TRUE);
         SetRegionMapDataForZoom();
         return LT_INC_AND_PAUSE;
@@ -432,6 +443,9 @@ static u32 LoopedTask_RegionMapZoomIn(s32 taskState)
         PrintHelpBarText(HELPBAR_MAP_ZOOMED_IN);
         return LT_INC_AND_PAUSE;
     case 3:
+        if (WaitForHelpBar())
+            return LT_PAUSE;
+
         UpdateRegionMapRightHeaderTiles(POKENAV_GFX_MAP_MENU_ZOOMED_IN);
         break;
     }

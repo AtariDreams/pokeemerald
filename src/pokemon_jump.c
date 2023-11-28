@@ -3177,7 +3177,7 @@ static void LoadPokeJumpGfx(void)
     switch (sPokemonJumpGfx->mainState)
     {
     case 0:
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
         InitWindows(sWindowTemplates);
         ResetTempTileDataBuffers();
@@ -3232,19 +3232,22 @@ static void PrintPlayerNamesNoHighlight(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             PrintPokeJumpPlayerNames(FALSE);
             sPokemonJumpGfx->mainState++;
-        
+        }
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             DrawPlayerNameWindows();
             sPokemonJumpGfx->mainState++;
-        
+        }
         break;
     case 3:
-        sPokemonJumpGfx->funcFinished = TRUE;
+        if (!IsDma3ManagerBusyWithBgCopy())
+            sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
 }
@@ -3258,21 +3261,21 @@ static void PrintPlayerNamesWithHighlight(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             PrintPokeJumpPlayerNames(TRUE);
             sPokemonJumpGfx->mainState++;
         }
         break;
     case 2:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             DrawPlayerNameWindows();
             sPokemonJumpGfx->mainState++;
         }
         break;
     case 3:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
             sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
@@ -3293,7 +3296,7 @@ static void ErasePlayerNames(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             for (i = 0; i < numPlayers; i++)
                 RemoveWindow(sPokemonJumpGfx->nameWindowIds[i]);
@@ -3315,7 +3318,7 @@ static void Msg_WantToPlayAgain(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             PutWindowTilemap(sPokemonJumpGfx->msgWindowId);
             DrawTextBorderOuter(sPokemonJumpGfx->msgWindowId, 1, 14);
@@ -3325,7 +3328,7 @@ static void Msg_WantToPlayAgain(void)
         }
         break;
     case 2:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
             sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
@@ -3342,7 +3345,7 @@ static void Msg_SavingDontTurnOff(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             PutWindowTilemap(sPokemonJumpGfx->msgWindowId);
             DrawTextBorderOuter(sPokemonJumpGfx->msgWindowId, 1, 14);
@@ -3351,7 +3354,7 @@ static void Msg_SavingDontTurnOff(void)
         }
         break;
     case 2:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
             sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
@@ -3368,7 +3371,7 @@ static void EraseMessage(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        if (!RemoveMessageWindow())
+        if (!RemoveMessageWindow() && !IsDma3ManagerBusyWithBgCopy())
             sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
@@ -3385,7 +3388,7 @@ static void Msg_SomeoneDroppedOut(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             PutWindowTilemap(sPokemonJumpGfx->msgWindowId);
             DrawTextBorderOuter(sPokemonJumpGfx->msgWindowId, 1, 14);
@@ -3394,7 +3397,7 @@ static void Msg_SomeoneDroppedOut(void)
         }
         break;
     case 2:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
             sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
@@ -3411,7 +3414,7 @@ static void Msg_CommunicationStandby(void)
         sPokemonJumpGfx->mainState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             PutWindowTilemap(sPokemonJumpGfx->msgWindowId);
             DrawTextBorderOuter(sPokemonJumpGfx->msgWindowId, 1, 14);
@@ -3420,7 +3423,7 @@ static void Msg_CommunicationStandby(void)
         }
         break;
     case 2:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
             sPokemonJumpGfx->funcFinished = TRUE;
         break;
     }
@@ -3521,7 +3524,7 @@ static bool32 DoPrizeMessageAndFanfare(void)
     switch (sPokemonJumpGfx->msgWindowState)
     {
     case 0:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             PutWindowTilemap(sPokemonJumpGfx->msgWindowId);
             DrawTextBorderOuter(sPokemonJumpGfx->msgWindowId, 1, 14);
@@ -3530,6 +3533,8 @@ static bool32 DoPrizeMessageAndFanfare(void)
         }
         break;
     case 1:
+        if (IsDma3ManagerBusyWithBgCopy())
+            break;
         if (sPokemonJumpGfx->fanfare == MUS_DUMMY)
         {
             sPokemonJumpGfx->msgWindowState += 2;
@@ -3558,7 +3563,6 @@ static void ClearMessageWindow(void)
     }
 }
 
-// TODO: What is going on with the state machine? can it be removed?
 static bool32 RemoveMessageWindow(void)
 {
     if (sPokemonJumpGfx->msgWindowId == WINDOW_NONE)
@@ -3567,12 +3571,14 @@ static bool32 RemoveMessageWindow(void)
     switch (sPokemonJumpGfx->msgWindowState)
     {
     case 0:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             RemoveWindow(sPokemonJumpGfx->msgWindowId);
             sPokemonJumpGfx->msgWindowId = WINDOW_NONE;
             sPokemonJumpGfx->msgWindowState++;
         }
+        else
+            break;
     case 1:
         return FALSE;
     }
@@ -4173,7 +4179,7 @@ static void Task_ShowPokemonJumpRecords(u8 taskId)
         tState++;
         break;
     case 1:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
             tState++;
         break;
     case 2:
@@ -4185,7 +4191,7 @@ static void Task_ShowPokemonJumpRecords(u8 taskId)
         }
         break;
     case 3:
-        
+        if (!IsDma3ManagerBusyWithBgCopy())
         {
             RemoveWindow(tWindowId);
             DestroyTask(taskId);

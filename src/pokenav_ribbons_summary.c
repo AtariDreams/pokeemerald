@@ -611,18 +611,26 @@ static u32 LoopedTask_OpenRibbonsSummaryMenu(s32 state)
         }
         return LT_PAUSE;
     case 5:
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             CopyBgTilemapBufferToVram(2);
             return LT_INC_AND_PAUSE;
+        }
+        return LT_PAUSE;
     case 6:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             ResetSpritesAndDrawMonFrontPic(menu);
             return LT_INC_AND_CONTINUE;
+        }
+        return LT_PAUSE;
     case 7:
         DrawAllRibbonsSmall(menu);
         PrintHelpBarText(HELPBAR_RIBBONS_LIST);
         return LT_INC_AND_PAUSE;
     case 8:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             CreateBigRibbonSprite(menu);
             ChangeBgX(1, 0, BG_COORD_SET);
             ChangeBgY(1, 0, BG_COORD_SET);
@@ -633,7 +641,8 @@ static u32 LoopedTask_OpenRibbonsSummaryMenu(s32 state)
             HideBg(3);
             PokenavFadeScreen(POKENAV_FADE_FROM_BLACK);
             return LT_INC_AND_PAUSE;
-    
+        }
+        return LT_PAUSE;
     case 9:
         if (IsPaletteFadeActive())
             return LT_PAUSE;
@@ -683,9 +692,12 @@ static u32 LoopedTask_SwitchRibbonsSummaryMon(s32 state)
         PrintCurrentMonRibbonCount(menu);
         return LT_INC_AND_CONTINUE;
     case 5:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             SlideMonSpriteOn(menu);
             return LT_INC_AND_PAUSE;
+        }
+        return LT_PAUSE;
     case 6:
         if (IsMonSpriteAnimating(menu))
             return LT_PAUSE;
@@ -710,6 +722,9 @@ static u32 LoopedTask_ExpandSelectedRibbon(s32 state)
             return LT_INC_AND_PAUSE;
         }
         return LT_PAUSE;
+    case 2:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
     }
     return LT_FINISH;
 }
@@ -737,6 +752,9 @@ static u32 LoopedTask_MoveRibbonsCursorExpanded(s32 state)
             return LT_INC_AND_PAUSE;
         }
         return LT_PAUSE;
+    case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
     }
     return LT_FINISH;
 }
@@ -758,6 +776,9 @@ static u32 LoopedTask_ShrinkExpandedRibbon(s32 state)
             return LT_INC_AND_PAUSE;
         }
         return LT_PAUSE;
+    case 2:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
     }
     return LT_FINISH;
 }

@@ -1187,9 +1187,12 @@ static void WallyHandlePrintSelectionString(void)
 
 static void HandleChooseActionAfterDma3(void)
 {
-    gBattle_BG0_X = 0;
-    gBattle_BG0_Y = DISPLAY_HEIGHT;
-    gBattlerControllerFuncs[gActiveBattler] = WallyHandleActions;
+    if (!IsDma3ManagerBusyWithBgCopy())
+    {
+        gBattle_BG0_X = 0;
+        gBattle_BG0_Y = DISPLAY_HEIGHT;
+        gBattlerControllerFuncs[gActiveBattler] = WallyHandleActions;
+    }
 }
 
 static void WallyHandleChooseAction(void)
@@ -1222,9 +1225,12 @@ static void WallyHandleChooseMove(void)
         gBattleStruct->wallyMoveFrames = 80;
         break;
     case 1:
-        gBattle_BG0_X = 0;
-        gBattle_BG0_Y = DISPLAY_HEIGHT * 2;
-        gBattleStruct->wallyMovesState++;
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
+            gBattle_BG0_X = 0;
+            gBattle_BG0_Y = DISPLAY_HEIGHT * 2;
+            gBattleStruct->wallyMovesState++;
+        }
         break;
     case 2:
         if (--gBattleStruct->wallyMoveFrames == 0)

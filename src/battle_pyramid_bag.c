@@ -549,7 +549,7 @@ static bool8 LoadPyramidBagMenu(void)
 static void InitPyramidBagBgs(void)
 {
     ResetVramOamAndBgCntRegs();
-    ResetBgs();
+    ResetBgsAndClearDma3BusyFlags();
     InitBgsFromTemplates(0, sBgTemplates, ARRAY_COUNT(sBgTemplates));
     SetBgTilemapBuffer(2, gPyramidBagMenu->tilemapBuffer);
     ResetAllBgsCoordinates();

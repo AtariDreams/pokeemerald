@@ -403,7 +403,8 @@ u8 BattleArena_ShowJudgmentWindow(u8 *state)
         }
         break;
     case 2:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             gBattleTextBuff1[0] = CHAR_0;
             gBattleTextBuff1[1] = EOS;
             gBattleTextBuff2[0] = CHAR_0;
@@ -419,19 +420,22 @@ u8 BattleArena_ShowJudgmentWindow(u8 *state)
             BattleStringExpandPlaceholdersToDisplayedString(gText_Judgment);
             BattlePutTextOnWindow(gDisplayedStringBattle, ARENA_WIN_JUDGMENT_TITLE);
             (*state)++;
+        }
         break;
     case 3:
-
+        if (!IsDma3ManagerBusyWithBgCopy())
+        {
             SetGpuReg(REG_OFFSET_WININ, WININ_WIN0_ALL | WININ_WIN1_ALL);
 
             // Create dividing line for the the score totals at the bottom
             for (i = 0; i < 8; i++)
             {
-                StartSpriteAnim(CreateSpriteReturnPointer(&sSpriteTemplate_JudgmentIcon, 64 + i * 16, 84, 0), ANIM_ICON_LINE);
+                u8 spriteId = CreateSprite(&sSpriteTemplate_JudgmentIcon, 64 + i * 16, 84, 0);
+                StartSpriteAnim(&gSprites[spriteId], ANIM_ICON_LINE);
             }
             result = ARENA_RESULT_STEP_DONE;
             (*state)++;
-    
+        }
         break;
     case 4:
         PlaySE(SE_ARENA_TIMEUP1);

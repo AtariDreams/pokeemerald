@@ -483,7 +483,7 @@ static void CB2_ShowTrainerHillRecords(void)
         break;
     case 2:
         sTilemapBuffer = AllocZeroed(BG_SCREEN_SIZE);
-        ResetBgs();
+        ResetBgsAndClearDma3BusyFlags();
         InitBgsFromTemplates(0, sTrainerHillRecordsBgTemplates, ARRAY_COUNT(sTrainerHillRecordsBgTemplates));
         SetBgTilemapBuffer(3, sTilemapBuffer);
         ResetBgCoordinates();
@@ -495,10 +495,13 @@ static void CB2_ShowTrainerHillRecords(void)
         gMain.state++;
         break;
     case 4:
-        ShowBg(0);
-        ShowBg(3);
-        CopyBgTilemapBufferToVram(3);
-        gMain.state++;
+        if (IsDma3ManagerBusyWithBgCopy() != TRUE)
+        {
+            ShowBg(0);
+            ShowBg(3);
+            CopyBgTilemapBufferToVram(3);
+            gMain.state++;
+        }
         break;
     case 5:
         InitWindows(sTrainerHillRecordsWindowTemplates);

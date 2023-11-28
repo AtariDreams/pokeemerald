@@ -506,6 +506,8 @@ static u32 LoopedTask_MoveSearchListCursorUp(s32 state)
         PrintSearchResultListMenuItems(gfx);
         return LT_INC_AND_PAUSE;
     case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -537,6 +539,8 @@ static u32 LoopedTask_MoveSearchListCursorDown(s32 state)
         PrintSearchResultListMenuItems(gfx);
         return LT_INC_AND_PAUSE;
     case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -568,6 +572,8 @@ static u32 LoopedTask_MoveSearchListPageUp(s32 state)
         PrintSearchResultListMenuItems(gfx);
         return LT_INC_AND_PAUSE;
     case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
@@ -599,6 +605,8 @@ static u32 LoopedTask_MoveSearchListPageDown(s32 state)
         PrintSearchResultListMenuItems(gfx);
         return LT_INC_AND_PAUSE;
     case 3:
+        if (IsDma3ManagerBusyWithBgCopy())
+            return LT_PAUSE;
         break;
     }
     return LT_FINISH;
