@@ -8,63 +8,62 @@
 
 	thumb_func_start SoundMain
 SoundMain:
-	ldr r0, =SOUND_INFO_PTR
-	ldr r0, [r0]
-	ldr r2, =ID_NUMBER
-	ldr r3, [r0, o_SoundInfo_ident]
-	cmp r2, r3
-	beq SoundMain_1
-	bx lr @ Exit the function if ident doesn't match ID_NUMBER.
-SoundMain_1:
-	adds r3, 1
-	str r3, [r0, o_SoundInfo_ident]
-	push {r4-r7,lr}
-	mov r1, r8
-	mov r2, r9
-	mov r3, r10
-	mov r4, r11
-	push {r0-r4}
-	sub sp, 0x18 @ sound area
-	ldrb r1, [r0, o_SoundInfo_maxLines]
-	cmp r1, 0 @ if maxLines is 0, there is no maximum
-	beq SoundMain_3
-	ldr r2, =REG_VCOUNT
-	ldrb r2, [r2]
-	cmp r2, VCOUNT_VBLANK
-	bhs SoundMain_2
-	adds r2, TOTAL_SCANLINES
+    ldr r0, =SOUND_INFO_PTR
+    ldr r0, [r0]
+    ldr r2, =ID_NUMBER
+    ldr r3, [r0, o_SoundInfo_ident]
+    cmp r2, r3
+    bne SoundMain_Exit
+    adds r3, 1
+    str r3, [r0, o_SoundInfo_ident]
+    push {r4-r7, lr}
+    mov r1, r8
+    mov r2, r9
+    mov r3, r10
+    mov r4, r11
+    push {r0-r4}
+    sub sp, 0x18 @ sound area
+    ldrb r1, [r0, o_SoundInfo_maxLines]
+    cmp r1, 0
+    beq SoundMain_3
+    ldr r2, =REG_VCOUNT
+    ldrb r2, [r2]
+    cmp r2, VCOUNT_VBLANK
+    bhs SoundMain_2
+    adds r2, TOTAL_SCANLINES
 SoundMain_2:
-	adds r1, r2
+    adds r1, r2
 SoundMain_3:
-	str r1, [sp, 0x14]
-	ldr r3, [r0, o_SoundInfo_MPlayMainHead]
-	cmp r3, 0
-	beq SoundMain_4
-	ldr r0, [r0, o_SoundInfo_musicPlayerHead]
-	bl _081DD25E
-	ldr r0, [sp, 0x18]
+    str r1, [sp, 0x14]
+    ldr r3, [r0, o_SoundInfo_MPlayMainHead]
+    cmp r3, 0
+    beq SoundMain_4
+    ldr r0, [r0, o_SoundInfo_musicPlayerHead]
+    bl _081DD25E
+    ldr r0, [sp, 0x18]
 SoundMain_4:
-	ldr r3, [r0, o_SoundInfo_CgbSound]
-	bl _081DD25E
-	ldr r0, [sp, 0x18]
-	ldr r3, [r0, o_SoundInfo_pcmSamplesPerVBlank]
-	mov r8, r3
-	ldr r5, =o_SoundInfo_pcmBuffer
-	adds r5, r0
-	ldrb r4, [r0, o_SoundInfo_pcmDmaCounter]
-	subs r7, r4, 1
-	bls SoundMain_5
-	ldrb r1, [r0, o_SoundInfo_pcmDmaPeriod]
-	subs r1, r7
-	mov r2, r8
-	muls r2, r1
-	adds r5, r2
+    ldr r3, [r0, o_SoundInfo_CgbSound]
+    bl _081DD25E
+    ldr r0, [sp, 0x18]
+    ldr r3, [r0, o_SoundInfo_pcmSamplesPerVBlank]
+    mov r8, r3
+    ldr r5, =o_SoundInfo_pcmBuffer
+    adds r5, r0
+    ldrb r4, [r0, o_SoundInfo_pcmDmaCounter]
+    subs r7, r4, 1
+    bls SoundMain_5
+    ldrb r1, [r0, o_SoundInfo_pcmDmaPeriod]
+    subs r1, r7
+    mov r2, r8
+    muls r2, r1
+    adds r5, r2
 SoundMain_5:
-	str r5, [sp, 0x8]
-	ldr r6, =PCM_DMA_BUF_SIZE
-	ldr r3, =SoundMainRAM_Buffer + 1
-	bx r3
-	.pool
+    str r5, [sp, 0x8]
+    ldr r6, =PCM_DMA_BUF_SIZE
+    ldr r3, =SoundMainRAM_Buffer + 1
+    bx r3
+SoundMain_Exit:
+    bx lr
 	thumb_func_end SoundMain
 
 	thumb_func_start SoundMainRAM
