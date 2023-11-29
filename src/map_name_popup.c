@@ -198,12 +198,12 @@ static const u8 * const sBattlePyramid_MapHeaderStrings[FRONTIER_STAGES_PER_CHAL
     sText_Pyramid,
 };
 
-static bool8 UNUSED StartMenu_ShowMapNamePopup(void)
-{
-    HideStartMenu();
-    ShowMapNamePopup();
-    return TRUE;
-}
+// static bool8 UNUSED DebugMapNameTest(void)
+// {
+//     HideStartMenu();
+//     ShowMapNamePopup();
+//     return TRUE;
+// }
 
 // States and data defines for Task_MapNamePopUpWindow
 enum {
@@ -227,13 +227,14 @@ enum {
 
 void ShowMapNamePopup(void)
 {
-    if (FlagGet(FLAG_HIDE_MAP_NAME_POPUP) == TRUE)
+    if (FlagGet(FLAG_HIDE_MAP_NAME_POPUP))
         return;
     if (!FuncIsActiveTask(Task_MapNamePopUpWindow))
     {
         // New pop up window
         sPopupTaskId = CreateTask(Task_MapNamePopUpWindow, 90);
         SetGpuReg(REG_OFFSET_BG0VOFS, POPUP_OFFSCREEN_Y);
+        
         gTasks[sPopupTaskId].tState = STATE_PRINT;
         gTasks[sPopupTaskId].tYOffset = POPUP_OFFSCREEN_Y;
     }
@@ -268,7 +269,9 @@ static void Task_MapNamePopUpWindow(u8 taskId)
         {
             task->tYOffset = 0;
             task->tState = STATE_WAIT;
-            gTasks[sPopupTaskId].data[1] = 0;
+
+            // Todo: bug or intentional?
+            gTasks[sPopupTaskId].tOnscreenTimer = 0;
         }
         break;
     case STATE_WAIT:

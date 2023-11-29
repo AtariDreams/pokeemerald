@@ -309,15 +309,13 @@ static void AnimStringWrap(struct Sprite *sprite)
 
 static void AnimStringWrap_Step(struct Sprite *sprite)
 {
-    if (sprite->data[0] == 2)
+    if (sprite->data[0]++ == 2)
     {
         sprite->data[0] = 0;
         sprite->invisible ^= 1;
     }
-    else
-        sprite->data[0]++;
 
-    if (++sprite->data[1] == 51)
+    if (sprite->data[1]++ == 50)
     {
         DestroyAnimSprite(sprite);
     }
@@ -377,8 +375,8 @@ static void AnimTranslateStinger(struct Sprite *sprite)
     }
     else if (GetBattlerSide(gBattleAnimAttacker))
     {
-        gBattleAnimArgs[2] = -gBattleAnimArgs[2];
         gBattleAnimArgs[1] = -gBattleAnimArgs[1];
+        gBattleAnimArgs[2] = -gBattleAnimArgs[2];
         gBattleAnimArgs[3] = -gBattleAnimArgs[3];
     }
 
