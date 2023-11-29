@@ -1312,16 +1312,14 @@ s8 BattleAnimAdjustPanning2(s8 pan)
     return pan;
 }
 
-s16 KeepPanInRange(s16 panArg, int oldPan)
+s16 KeepPanInRange(s16 panArg)
 {
-    s16 pan = panArg;
+    if (panArg > SOUND_PAN_TARGET)
+        panArg = SOUND_PAN_TARGET;
+    else if (panArg < SOUND_PAN_ATTACKER)
+        panArg = SOUND_PAN_ATTACKER;
 
-    if (pan > SOUND_PAN_TARGET)
-        pan = SOUND_PAN_TARGET;
-    else if (pan < SOUND_PAN_ATTACKER)
-        pan = SOUND_PAN_ATTACKER;
-
-    return pan;
+    return panArg;
 }
 
 s16 CalculatePanIncrement(s16 sourcePan, s16 targetPan, s16 incrementPan)
@@ -1329,9 +1327,9 @@ s16 CalculatePanIncrement(s16 sourcePan, s16 targetPan, s16 incrementPan)
     s16 ret;
 
     if (sourcePan < targetPan)
-        ret = ((incrementPan < 0) ? -incrementPan : incrementPan);
+        ret = abs(incrementPan);
     else if (sourcePan > targetPan)
-        ret = -((incrementPan < 0) ? -incrementPan : incrementPan);
+        ret = -abs(incrementPan);
     else
         ret = 0;
 
@@ -1370,20 +1368,20 @@ static void Cmd_setpan(void)
 static void Cmd_panse(void)
 {
     u16 songNum;
-    s8 currentPanArg, incrementPan, incrementPanArg, currentPan, targetPan;
+    s8 currentPan, targetPan, incrementPan;
     u8 framesToWait;
     u8 taskId;
 
     sBattleAnimScriptPtr++;
     songNum = T1_READ_16(sBattleAnimScriptPtr);
-    currentPanArg = sBattleAnimScriptPtr[2];
-    incrementPan = sBattleAnimScriptPtr[3]; // targetPan, var is re-used
-    incrementPanArg = sBattleAnimScriptPtr[4];
+    currentPan = sBattleAnimScriptPtr[2];
+    targetPan = sBattleAnimScriptPtr[3];
+    incrementPan = sBattleAnimScriptPtr[4];
     framesToWait = sBattleAnimScriptPtr[5];
 
-    currentPan = BattleAnimAdjustPanning(currentPanArg);
-    targetPan = BattleAnimAdjustPanning(incrementPan);
-    incrementPan = CalculatePanIncrement(currentPan, targetPan, incrementPanArg);
+    currentPan = BattleAnimAdjustPanning(currentPan);
+    targetPan = BattleAnimAdjustPanning(targetPan);
+    incrementPan = CalculatePanIncrement(currentPan, targetPan, incrementPan);
 
     taskId = CreateTask(Task_PanFromInitialToTarget, 1);
     gTasks[taskId].tInitialPan = currentPan;
@@ -1409,10 +1407,11 @@ void Task_PanFromInitialToTarget(u8 taskId)
         gTasks[taskId].tFrameCounter = 0;
         initialPanning = gTasks[taskId].tInitialPan;
         targetPanning = gTasks[taskId].tTargetPan;
-        currentPan = gTasks[taskId].tCurrentPan;
         incrementPan = gTasks[taskId].tIncrementPan;
-        pan = currentPan + incrementPan;
-        gTasks[taskId].tCurrentPan = pan;
+        currentPan = gTasks[taskId].tCurrentPan;
+        currentPan += incrementPan;
+
+        gTasks[taskId].tCurrentPan = currentPan;
 
         if (incrementPan == 0) // If we're not incrementing, just cancel the task immediately.
         {
@@ -1420,23 +1419,23 @@ void Task_PanFromInitialToTarget(u8 taskId)
         }
         else if (initialPanning < targetPanning) // Panning increasing.
         {
-            if (pan >= targetPanning) // Target reached.
+            if (currentPan >= targetPanning) // Target reached.
                 destroyTask = TRUE;
         }
         else // Panning decreasing.
         {
-            if (pan <= targetPanning) // Target reached.
+            if (currentPan <= targetPanning) // Target reached.
                 destroyTask = TRUE;
         }
 
         if (destroyTask)
         {
-            pan = targetPanning;
+            currentPan = targetPanning;
             DestroyTask(taskId);
             gAnimSoundTaskCount--;
         }
 
-        SE12PanpotControl(pan);
+        SE12PanpotControl(currentPan);
     }
 }
 
@@ -1631,8 +1630,9 @@ static void Cmd_waitsound(void)
     {
         sSoundAnimFramesToWait = 0;
         sAnimFramesToWait = 1;
+        return;
     }
-    else if (IsSEPlaying())
+    if (IsSEPlaying())
     {
         if (++sSoundAnimFramesToWait > 90)
         {
@@ -1643,6 +1643,7 @@ static void Cmd_waitsound(void)
         else
         {
             sAnimFramesToWait = 1;
+            return;
         }
     }
     else

@@ -1020,13 +1020,15 @@ static u8 GetDaycareCompatibilityScore(struct DayCare *daycare)
     // one parent is Ditto
     if (eggGroups[0][0] == EGG_GROUP_DITTO || eggGroups[1][0] == EGG_GROUP_DITTO)
     {
-        int score = (species[0] == species[1]) + (trainerIds[0] == trainerIds[1]);
-        
-        if (score == 0)
-            return PARENTS_MAX_COMPATIBILITY;
-        if (score == 1)
+        int a = (species[0] == species[1]);
+        int b = (trainerIds[0] == trainerIds[1]);
+
+        if (a && b)
+            return PARENTS_LOW_COMPATIBILITY;
+        if (a || b)
             return PARENTS_MED_COMPATIBILITY;
-        return PARENTS_LOW_COMPATIBILITY;
+        
+        return PARENTS_MAX_COMPATIBILITY;
     }
     // neither parent is Ditto
 
@@ -1037,13 +1039,15 @@ static u8 GetDaycareCompatibilityScore(struct DayCare *daycare)
 
     if (eggGroups[0][0] == eggGroups[1][0] || eggGroups[0][0]  == eggGroups[1][1] || eggGroups[0][1] == eggGroups[1][0] || eggGroups[0][1] == eggGroups[1][1])
     {
-        int score = (species[0] == species[1]) + (trainerIds[0] == trainerIds[1]);
-        
-        if (score == 0)
-            return PARENTS_MAX_COMPATIBILITY;
-        if (score == 1)
+        int a = (species[0] == species[1]);
+        int b = (trainerIds[0] == trainerIds[1]);
+
+        if (a && b)
+            return PARENTS_LOW_COMPATIBILITY;
+        if (a || b)
             return PARENTS_MED_COMPATIBILITY;
-        return PARENTS_LOW_COMPATIBILITY;
+        
+        return PARENTS_MAX_COMPATIBILITY;
     }
 
     return PARENTS_INCOMPATIBLE;
@@ -1074,8 +1078,7 @@ void SetDaycareCompatibilityString(void)
 bool8 NameHasGenderSymbol(const u8 *name, u8 genderRatio)
 {
     u32 i;
-    u8 symbolsCount[GENDER_COUNT];
-    symbolsCount[MALE] = symbolsCount[FEMALE] = 0;
+    u8 symbolsCount[GENDER_COUNT] = {0};
 
     for (i = 0; name[i] != EOS; i++)
     {
