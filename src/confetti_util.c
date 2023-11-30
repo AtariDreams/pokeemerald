@@ -22,7 +22,7 @@ bool32 ConfettiUtil_Init(u8 count)
     sWork = AllocZeroed(sizeof(*sWork));
     if (sWork == NULL)
         return FALSE;
-    sWork->array = AllocZeroed(count * sizeof(struct ConfettiUtil));
+    sWork->array = AllocZeroed(sizeof(struct ConfettiUtil) * count);
     if (sWork->array == NULL)
     {
         FREE_AND_SET_NULL(sWork);
@@ -74,15 +74,14 @@ bool32 ConfettiUtil_Update(void)
             if (sWork->array[i].dummied)
             {
                 memcpy(&gMain.oamBuffer[i + 64], &gDummyOamData, sizeof(struct OamData));
+                continue;
             }
-            else
-            {
-                sWork->array[i].oam.y = sWork->array[i].y + sWork->array[i].yDelta;
-                sWork->array[i].oam.x = sWork->array[i].x + sWork->array[i].xDelta;
-                sWork->array[i].oam.priority = sWork->array[i].priority;
-                sWork->array[i].oam.tileNum = sWork->array[i].tileNum;
-                memcpy(&gMain.oamBuffer[i + 64], &sWork->array[i], sizeof(struct OamData));
-            }
+
+            sWork->array[i].oam.y = sWork->array[i].y + sWork->array[i].yDelta;
+            sWork->array[i].oam.x = sWork->array[i].x + sWork->array[i].xDelta;
+            sWork->array[i].oam.priority = sWork->array[i].priority;
+            sWork->array[i].oam.tileNum = sWork->array[i].tileNum;
+            memcpy(&gMain.oamBuffer[i + 64], &sWork->array[i], sizeof(struct OamData));
         }
     }
 
@@ -91,17 +90,18 @@ bool32 ConfettiUtil_Update(void)
 
 static bool32 SetAnimAndTileNum(struct ConfettiUtil *structPtr, u8 animNum)
 {
-    u16 tileStart;
+    u16 tile;
 
     if (structPtr == NULL)
         return FALSE;
 
-    tileStart = GetSpriteTileStartByTag(structPtr->tileTag);
-    if (tileStart == 0xFFFF)
+    tile = GetSpriteTileStartByTag(structPtr->tileTag);
+    if (tile == 0xFFFF)
         return FALSE;
 
     structPtr->animNum = animNum;
-    structPtr->tileNum = (GetTilesPerImage(structPtr->oam.shape, structPtr->oam.size) * animNum) + tileStart;
+    tile += (GetTilesPerImage(structPtr->oam.shape, structPtr->oam.size) * animNum);
+    structPtr->tileNum = tile;
     return TRUE;
 }
 
