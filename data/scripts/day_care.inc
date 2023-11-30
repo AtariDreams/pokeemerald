@@ -250,18 +250,6 @@ Route117_PokemonDayCare_EventScript_TwoMonsInDaycare::
 	release
 	end
 
-@ Unused
-Route117_PokemonDayCare_EventScript_UnusedRetrieveMon::
-	special ShowDaycareLevelMenu
-	waitstate
-	goto_if_eq VAR_RESULT, 2, Route117_PokemonDayCare_EventScript_ComeAgain
-	copyvar VAR_0x8004, VAR_RESULT
-	specialvar VAR_RESULT, TakePokemonFromDaycare
-	msgbox Route117_PokemonDayCare_Text_HeresYourMon, MSGBOX_DEFAULT
-	msgbox Route117_PokemonDayCare_Text_ComeAgain, MSGBOX_DEFAULT
-	release
-	end
-
 EventScript_EggHatch::
 	lockall
 	msgbox Text_EggHatchHuh, MSGBOX_DEFAULT

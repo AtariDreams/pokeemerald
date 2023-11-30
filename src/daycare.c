@@ -242,17 +242,16 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
         ApplyDaycareExperience(&pokemon);
     }
 
-    gPlayerParty.party[PARTY_SIZE - 1] = pokemon;
-    gPlayerParty.count++;
     if (daycareMon->mail.message.itemId)
     {
-        GiveMailToMon(&gPlayerParty.party[PARTY_SIZE - 1], &daycareMon->mail.message);
+        GiveMailToMon(&pokemon, &daycareMon->mail.message);
         ClearDaycareMonMail(&daycareMon->mail);
     }
 
+    GiveMonToPlayer(&pokemon);
+
     ZeroBoxMonData(&daycareMon->mon);
     daycareMon->steps = 0;
-    CompactPartySlots();
     return species;
 }
 
