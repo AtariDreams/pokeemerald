@@ -600,10 +600,10 @@ void StartRegiBattle(void)
 
 static void CB2_EndWildBattle(void)
 {
-    CpuFill16(0, (void *)(BG_PLTT), BG_PLTT_SIZE);
+    DmaFill16(3, 0, (void *)(BG_PLTT), BG_PLTT_SIZE);
     ResetOam();
 
-    if (IsPlayerDefeated(gBattleOutcome) == TRUE && !InBattlePyramid() && !InBattlePike())
+    if (IsPlayerDefeated(gBattleOutcome) && !InBattlePyramid() && !InBattlePike())
     {
         SetMainCallback2(CB2_WhiteOut);
     }
@@ -616,10 +616,10 @@ static void CB2_EndWildBattle(void)
 
 static void CB2_EndScriptedWildBattle(void)
 {
-    CpuFill16(0, (void *)(BG_PLTT), BG_PLTT_SIZE);
+    DmaFill16(3, 0, (void *)(BG_PLTT), BG_PLTT_SIZE);
     ResetOam();
 
-    if (IsPlayerDefeated(gBattleOutcome) == TRUE)
+    if (IsPlayerDefeated(gBattleOutcome))
     {
         if (InBattlePyramid())
             SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
