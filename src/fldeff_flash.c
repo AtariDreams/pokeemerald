@@ -80,7 +80,8 @@ bool8 SetUpFieldMove_Flash(void)
         gPostMenuFieldCallback = SetUpPuzzleEffectRegisteel;
         return TRUE;
     }
-    else if (gMapHeader.cave == TRUE && !FlagGet(FLAG_SYS_USE_FLASH))
+    
+    if (gMapHeader.cave == TRUE && !FlagGet(FLAG_SYS_USE_FLASH))
     {
         gFieldCallback2 = FieldCallback_PrepareFadeInFromMenu;
         gPostMenuFieldCallback = FieldCallback_Flash;
@@ -122,8 +123,6 @@ static void VBC_ChangeMapVBlank(void)
 
 void CB2_DoChangeMap(void)
 {
-    u16 ime;
-
     SetVBlankCallback(NULL);
     SetGpuReg(REG_OFFSET_DISPCNT, 0);
     SetGpuReg(REG_OFFSET_BG2CNT, 0);
@@ -141,10 +140,8 @@ void CB2_DoChangeMap(void)
     ResetPaletteFade();
     ResetTasks();
     ResetSpriteData();
-    ime = REG_IME;
-    REG_IME = 0;
-    REG_IE |= INTR_FLAG_VBLANK;
-    REG_IME = ime;
+    REG_IE_SET( INTR_FLAG_VBLANK );
+
     SetVBlankCallback(VBC_ChangeMapVBlank);
     SetMainCallback2(CB2_ChangeMapMain);
     if (!TryDoMapTransition())
@@ -153,7 +150,7 @@ void CB2_DoChangeMap(void)
 
 static bool8 TryDoMapTransition(void)
 {
-    u8 i;
+    u32 i;
     u8 fromType = GetLastUsedWarpMapType();
     u8 toType = GetCurrentMapType();
 
@@ -171,7 +168,7 @@ static bool8 TryDoMapTransition(void)
 
 bool8 GetMapPairFadeToType(u8 _fromType, u8 _toType)
 {
-    u8 i;
+    u32 i;
     u8 fromType = _fromType;
     u8 toType = _toType;
 
@@ -188,7 +185,7 @@ bool8 GetMapPairFadeToType(u8 _fromType, u8 _toType)
 
 bool8 GetMapPairFadeFromType(u8 _fromType, u8 _toType)
 {
-    u8 i;
+    u32 i;
     u8 fromType = _fromType;
     u8 toType = _toType;
 
