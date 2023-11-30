@@ -19,6 +19,7 @@
 #include "party_menu.h"
 #include "list_menu.h"
 #include "overworld.h"
+#include "event_scripts.h"
 #include "constants/items.h"
 #include "constants/moves.h"
 #include "constants/region_map_sections.h"
@@ -105,14 +106,14 @@ u8 *GetBoxMonNickname(struct BoxPokemon *mon, u8 *dest)
     return StringCopy_Nickname(dest, nickname);
 }
 
-u8 CountPokemonInDaycare(struct DayCare *daycare)
+static u32 CountPokemonInDaycare(void)
 {
-    u8 i, count;
+    u32 i, count;
     count = 0;
 
     for (i = 0; i < DAYCARE_MON_COUNT; i++)
     {
-        if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_SPECIES) != 0)
+        if (GetBoxMonData(&gSaveBlock1.daycare.mons[i].mon, MON_DATA_SPECIES) != SPECIES_NONE)
             count++;
     }
 
@@ -876,59 +877,64 @@ bool16 GiveEggFromDaycare(void)
     return _GiveEggFromDaycare(&gSaveBlock1.daycare);
 }
 
-static bool8 TryProduceOrHatchEgg(struct DayCare *daycare)
+static void TryProduceOrHatchEgg(struct DayCare *daycare)
 {
-    u32 i, validEggs = 0;
+    u32 i;
 
-    for (i = 0; i < DAYCARE_MON_COUNT; i++)
+    if (++daycare->stepCounter <= 180)
     {
-        if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_SANITY_HAS_SPECIES))
-            daycare->mons[i].steps++, validEggs++;
+        return;
     }
+
+    // Reset the counter
+    daycare->stepCounter = 0;
+
+    if (CountPokemonInDaycare() < DAYCARE_MON_COUNT)
+        return;
+
 
     // Check if an egg should be produced
-    if (daycare->offspringPersonality == 0 && validEggs == DAYCARE_MON_COUNT && (daycare->mons[1].steps & 0xFF) == 0xFF)
+    if (daycare->offspringPersonality == 0)
     {
-        u8 compatibility = GetDaycareCompatibilityScore(daycare);
-        if (compatibility > (Random() * 100) / USHRT_MAX)
+        if (Random() % 100 < GetDaycareCompatibilityScore(daycare));
             TriggerPendingDaycareEgg();
     }
-
-    // Try to hatch Egg
-    if (++daycare->stepCounter == 255)
-    {
-        u32 eggCycles;
-        u8 toSub = GetEggCyclesToSubtract();
-
-        for (i = 0; i < gPlayerParty.count; i++)
-        {
-            if (!GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG))
-                continue;
-
-            eggCycles = GetMonData(&gPlayerParty.party[i], MON_DATA_FRIENDSHIP);
-            if (eggCycles != 0)
-            {
-                if (eggCycles >= toSub)
-                    eggCycles -= toSub;
-                else
-                    eggCycles -= 1;
-
-                SetMonData(&gPlayerParty.party[i], MON_DATA_FRIENDSHIP, &eggCycles);
-            }
-            else
-            {
-                gSpecialVar_0x8004 = i;
-                return TRUE;
-            }
-        }
-    }
-
-    return FALSE;
 }
 
-bool8 ShouldEggHatch(void)
+void UpdateEgg(void)
 {
-    return TryProduceOrHatchEgg(&gSaveBlock1.daycare);
+    u32 eggCycles;
+    u8 toSub = GetEggCyclesToSubtract();
+    u32 i;
+    for (i = 0; i < gPlayerParty.count; i++)
+    {
+        if (!GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG))
+            continue;
+
+        eggCycles = GetMonData(&gPlayerParty.party[i], MON_DATA_FRIENDSHIP);
+        if (eggCycles != 0)
+        {
+            if (eggCycles >= toSub)
+                eggCycles -= toSub;
+            else
+                eggCycles -= 1;
+
+            SetMonData(&gPlayerParty.party[i], MON_DATA_FRIENDSHIP, &eggCycles);
+        }
+        else
+        {
+            gSpecialVar_0x8004 = i;
+            // Todo: port EventScript_EggHatch to C
+            ScriptContext_SetupScript(EventScript_EggHatch);
+            IncrementGameStat(GAME_STAT_HATCHED_EGGS);
+        }
+    }
+}
+
+void UpdateEggCounter(void)
+{
+    TryProduceOrHatchEgg(&gSaveBlock1.daycare);
+    UpdateEgg();
 }
 
 static bool8 IsEggPending(struct DayCare *daycare)
@@ -974,7 +980,7 @@ u8 GetDaycareState(void)
         return DAYCARE_EGG_WAITING;
     }
 
-    numMons = CountPokemonInDaycare(&gSaveBlock1.daycare);
+    numMons = CountPokemonInDaycare();
     if (numMons != 0)
     {
         return numMons + 1; // DAYCARE_ONE_MON or DAYCARE_TWO_MONS

@@ -551,12 +551,7 @@ static bool8 TryStartStepCountScript(u16 metatileBehavior)
             ScriptContext_SetupScript(EventScript_FieldPoison);
             return TRUE;
         }
-        if (ShouldEggHatch())
-        {
-            IncrementGameStat(GAME_STAT_HATCHED_EGGS);
-            ScriptContext_SetupScript(EventScript_EggHatch);
-            return TRUE;
-        }
+        UpdateEggCounter();
         if (AbnormalWeatherHasExpired() == TRUE)
         {
             ScriptContext_SetupScript(AbnormalWeather_EventScript_EndEventAndCleanup_1);
