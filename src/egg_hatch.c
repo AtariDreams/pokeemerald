@@ -910,8 +910,8 @@ static void EggHatchPrintMessage(u8 windowId, u8 *string, u8 x, u8 y, u8 speed)
 
 u8 GetEggCyclesToSubtract(void)
 {
-    u32 count, i;
-    for (count = CalculatePlayerPartyCount(), i = 0; i < count; i++)
+    u32 i;
+    for (i = 0; i < gPlayerParty.count; i++)
     {
         if (!GetMonData(&gPlayerParty.party[i], MON_DATA_SANITY_IS_EGG))
         {
