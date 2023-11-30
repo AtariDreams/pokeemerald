@@ -373,9 +373,8 @@ void BuildSpritePriorities(void)
 
 void SortSprites(void)
 {
-    u32 i, j;
     u8 key, jmagic;
-    for (i = 1; i < MAX_SPRITES; i++) {
+    for (u32 i = 1; i < MAX_SPRITES; i++) {
         key = sSpriteOrder[i];
         jmagic = sSpriteOrder[i - 1];
         struct Sprite *sprite1 = &gSprites[jmagic];
@@ -417,10 +416,9 @@ void SortSprites(void)
           greater than key, to one position ahead
           of their current position */
 
-        j = i;
+        u32 j = i;
         while (((sprite1Priority > sprite2Priority)
              || (sprite1Priority == sprite2Priority && sprite1Y < sprite2Y))) {
-            
             jmagic = sSpriteOrder[j - 1];
             sSpriteOrder[j] = jmagic;
 
