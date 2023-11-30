@@ -618,6 +618,7 @@ static void Task_Hof_TryDisplayAnotherMon(u8 taskId)
     if (gTasks[taskId].tFrameCount != 0)
     {
         gTasks[taskId].tFrameCount--;
+        return;
     }
     else
     {
@@ -638,7 +639,7 @@ static void Task_Hof_TryDisplayAnotherMon(u8 taskId)
 
 static void Task_Hof_PaletteFadeAndPrintWelcomeText(u8 taskId)
 {
-    u16 i;
+    u32 i;
 
     BeginNormalPaletteFade(PALETTES_OBJECTS, 0, 0, 0, RGB_BLACK);
     for (i = 0; i < PARTY_SIZE; i++)
@@ -712,10 +713,12 @@ static void Task_Hof_WaitAndPrintPlayerInfo(u8 taskId)
     if (gTasks[taskId].tFrameCount != 0)
     {
         gTasks[taskId].tFrameCount--;
+        return;
     }
     else if (gSprites[gTasks[taskId].tPlayerSpriteID].x != 192)
     {
         gSprites[gTasks[taskId].tPlayerSpriteID].x++;
+        return;
     }
     else
     {
@@ -748,7 +751,7 @@ static void Task_Hof_HandleExit(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
-        s32 i;
+        u32 i;
 
         for (i = 0; i < PARTY_SIZE; i++)
         {
@@ -761,7 +764,7 @@ static void Task_Hof_HandleExit(u8 taskId)
         }
 
         FreeAndDestroyTrainerPicSprite(gTasks[taskId].tPlayerSpriteID);
-         DestroyTask(taskId);
+
         HideBg(0);
         HideBg(1);
         HideBg(3);
@@ -769,6 +772,7 @@ static void Task_Hof_HandleExit(u8 taskId)
         UnsetBgTilemapBuffer(1);
         UnsetBgTilemapBuffer(3);
         ResetBgsAndClearDma3BusyFlags();
+        DestroyTask(taskId);
 
         TRY_FREE_AND_SET_NULL(sHofGfxPtr);
         TRY_FREE_AND_SET_NULL(sHofMonPtr);
@@ -862,6 +866,7 @@ static void Task_HofPC_CopySaveData(u8 taskId)
     if (LoadGameSave(SAVE_HALL_OF_FAME) != SAVE_STATUS_OK)
     {
         gTasks[taskId].func = Task_HofPC_PrintDataIsCorrupted;
+        return;
     }
     else
     {
@@ -1051,7 +1056,7 @@ static void Task_HofPC_HandleExit(u8 taskId)
 {
     if (!IsComputerScreenCloseEffectActive())
     {
-        u8 i;
+        u32 i;
 
         for (i = 0; i < PARTY_SIZE; i++)
         {
@@ -1126,21 +1131,17 @@ static void HallOfFame_PrintMonInfo(struct HallofFameMon* currMon, u8 unused1, u
         dexNumber = SpeciesToPokedexNum(currMon->species);
         if (dexNumber != 0xFFFF)
         {
-            stringPtr[0] = (dexNumber / 100) + CHAR_0;
-            stringPtr++;
-            dexNumber %= 100;
-            stringPtr[0] = (dexNumber / 10) + CHAR_0;
-            stringPtr++;
-            stringPtr[0] = (dexNumber % 10) + CHAR_0;
-            stringPtr++;
+            *stringPtr++ = (dexNumber / 100) + CHAR_0;
+            *stringPtr++ = ((dexNumber % 100)/ 10) + CHAR_0;
+            *stringPtr++ = (dexNumber % 10) + CHAR_0;
         }
         else
         {
-            *(stringPtr)++ = CHAR_QUESTION_MARK;
-            *(stringPtr)++ = CHAR_QUESTION_MARK;
-            *(stringPtr)++ = CHAR_QUESTION_MARK;
+            *stringPtr++ = CHAR_QUESTION_MARK;
+            *stringPtr++ = CHAR_QUESTION_MARK;
+            *stringPtr++ = CHAR_QUESTION_MARK;
         }
-        stringPtr[0] = EOS;
+        *stringPtr = EOS;
         AddTextPrinterParameterized3(0, FONT_NORMAL, 0x10, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
     }
 
@@ -1166,17 +1167,15 @@ static void HallOfFame_PrintMonInfo(struct HallofFameMon* currMon, u8 unused1, u
             switch (GetGenderFromSpeciesAndPersonality(currMon->species, currMon->personality))
             {
             case MON_MALE:
-                stringPtr[0] = CHAR_MALE;
-                stringPtr++;
+                *stringPtr++ = CHAR_MALE;
                 break;
             case MON_FEMALE:
-                stringPtr[0] = CHAR_FEMALE;
-                stringPtr++;
+                *stringPtr++ = CHAR_FEMALE;
                 break;
             }
         }
 
-        stringPtr[0] = EOS;
+        *stringPtr = EOS;
         AddTextPrinterParameterized3(0, FONT_NORMAL, 0x80, 1, sMonInfoTextColors, TEXT_SKIP_DRAW, text);
 
         stringPtr = StringCopy(text, gText_Level);
@@ -1211,7 +1210,7 @@ static void HallOfFame_PrintPlayerInfo(u8 unused1, u8 unused2)
     text[1] = (trainerId % 10000) / 1000 + CHAR_0;
     text[2] = (trainerId % 1000) / 100 + CHAR_0;
     text[3] = (trainerId % 100) / 10 + CHAR_0;
-    text[4] = (trainerId % 10) / 1 + CHAR_0;
+    text[4] = (trainerId % 10) + CHAR_0;
     text[5] = EOS;
     width = GetStringRightAlignXOffset(FONT_NORMAL, text, 0x70);
     AddTextPrinterParameterized3(1, FONT_NORMAL, width, 0x11, sPlayerInfoTextColors, TEXT_SKIP_DRAW, text);
@@ -1325,6 +1324,7 @@ static void SpriteCB_GetOnScreenAndAnimate(struct Sprite *sprite)
             sprite->y += 10;
         if (sprite->y > sprite->tDestinationY)
             sprite->y -= 10;
+        return;
     }
     else
     {
@@ -1433,21 +1433,18 @@ static void UpdateDomeConfetti(struct ConfettiUtil *util)
         // Destroy confetti after it falls far enough
         gTasks[util->data[CONFETTI_TASK_ID]].tConfettiCount--;
         ConfettiUtil_Remove(util->id);
+        return;
     }
     else
     {
         // Move confetti down
-        u8 sineIdx;
-        s32 rand;
+        u8 sineIdx, rand;
 
-        util->yDelta++;
-        util->yDelta += util->data[CONFETTI_EXTRA_Y];
+        util->yDelta += util->data[CONFETTI_EXTRA_Y] + 1;
 
         sineIdx = util->data[CONFETTI_SINE_IDX];
-        rand = Random();
-        rand &= 3;
-        rand += 8;
-        util->xDelta = (rand) * ((gSineTable[sineIdx])) / 256;
+        rand = 8 +(Random() % 4);
+        util->xDelta = rand * gSineTable[sineIdx] / 256;
 
         util->data[CONFETTI_SINE_IDX] += 4;
     }
@@ -1455,8 +1452,8 @@ static void UpdateDomeConfetti(struct ConfettiUtil *util)
 
 static void Task_DoDomeConfetti(u8 taskId)
 {
-    u32 id = 0;
-    s16 *data = gTasks[taskId].data;
+    u16 id = 0;
+    u16 *data = gTasks[taskId].data;
 
     switch (tState)
     {
@@ -1482,13 +1479,13 @@ static void Task_DoDomeConfetti(u8 taskId)
                               Random() % DISPLAY_WIDTH,
                               -(Random() % 8),
                               Random() % ARRAY_COUNT(sAnims_Confetti),
-                              id);
+                              0);
             if (id != 0xFF)
             {
                 ConfettiUtil_SetCallback(id, UpdateDomeConfetti);
 
                 // 1/4 of the confetti move an extra y coord every frame
-                if ((Random() % 4) == 0)
+                if ((Random() & 3) == 0)
                     ConfettiUtil_SetData(id, CONFETTI_EXTRA_Y, 1);
 
                 ConfettiUtil_SetData(id, CONFETTI_TASK_ID, taskId);
@@ -1497,10 +1494,13 @@ static void Task_DoDomeConfetti(u8 taskId)
         }
 
         ConfettiUtil_Update();
-        if (tTimer > 0)
+        if (tTimer > 0) {
             tTimer--;
-        else if (tConfettiCount == 0)
-            tState = 0xFF;
+            return;
+        }
+        if (tConfettiCount > 0)
+            return;
+        tState = 0xFF;
         break;
     case 0xFF:
         StopDomeConfetti();
