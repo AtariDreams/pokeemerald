@@ -627,7 +627,7 @@ static bool32 IsIcePuzzleCoordVisited(s16 x, s16 y)
         return FALSE;
 
     var = VarGet(sSootopolisGymIceRowVars[y]);
-    if (var &= (1 << (x - ICE_PUZZLE_L)))
+    if (var &= (1U << (x - ICE_PUZZLE_L)))
         return TRUE;
     else
         return FALSE;

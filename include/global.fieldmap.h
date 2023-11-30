@@ -131,14 +131,14 @@ struct MapEvents
 struct MapConnection
 {
     u8 direction;
-    u32 offset;
+    int offset;
     u8 mapGroup;
     u8 mapNum;
 };
 
 struct MapConnections
 {
-    s32 count;
+    u32 count;
     const struct MapConnection *connections;
 };
 
