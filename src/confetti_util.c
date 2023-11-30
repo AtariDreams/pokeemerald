@@ -96,7 +96,7 @@ static bool32 SetAnimAndTileNum(struct ConfettiUtil *structPtr, u8 animNum)
         return FALSE;
 
     tile = GetSpriteTileStartByTag(structPtr->tileTag);
-    if (tile == 0xFFFF)
+    if (tile == 0xFFFF) // Cell not registered?
         return FALSE;
 
     structPtr->animNum = animNum;
