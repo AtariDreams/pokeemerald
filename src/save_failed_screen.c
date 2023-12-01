@@ -332,7 +332,7 @@ static void VBlankCB_UpdateClockGraphics(void)
     gMain.oamBuffer[0].x = 112;
     gMain.oamBuffer[0].y = (CLOCK_WIN_TOP + 1) * 8;
 
-    u32 n = (gMain.vblankCounter2 >> 3) & 7;
+    u32 n = (gMain.vblankCounter1 >> 3) & 7;
     if (sClockInfo)
     {
         gMain.oamBuffer[0].tileNum = sClockFrames[n][0];

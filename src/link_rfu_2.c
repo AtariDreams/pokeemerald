@@ -2578,7 +2578,7 @@ static void UNUSED Debug_RfuIdle(void)
         gLinkType = LINKTYPE_TRADE;
         SetWirelessCommType1();
         OpenLink();
-        SeedRng(gMain.vblankCounter2);
+        SeedRng(gMain.vblankCounter1);
         for (i = 0; i < TRAINER_ID_LENGTH; i++)
             gSaveBlock2.playerTrainerId[i] = Random() % 256;
 

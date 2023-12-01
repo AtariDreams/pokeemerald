@@ -17,8 +17,7 @@ struct Main
     /*0x014*/ IntrCallback vcountCallback;
     /*0x018*/ //IntrCallback serialCallback;
 
-    /*0x020*/ volatile u32 vblankCounter1;
-    /*0x024*/ volatile u32 vblankCounter2;
+    /*0x020*/ u32 vblankCounter1;
 
               u16 oldKeys;
     /*0x02C*/ u16 heldKeys;              // held keys with L=A remapping

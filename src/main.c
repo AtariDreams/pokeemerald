@@ -36,11 +36,11 @@ const u8 gGameLanguage = GAME_LANGUAGE; // English
 
 const IntrFunc gIntrTableTemplate[] =
 {
-    VCountIntr, // V-count interrupt
     SerialCB, // Serial interrupt
     Timer3Intr, // Timer 3 interrupt
     HBlankIntr, // H-blank interrupt
     VBlankIntr, // V-blank interrupt
+    IntrDummy, // V-count interrupt
     IntrDummy,  // Timer 0 interrupt
     IntrDummy,  // Timer 1 interrupt
     IntrDummy,  // Timer 2 interrupt
@@ -131,6 +131,8 @@ _Noreturn void AgbMain(void)
     for (;;)
     {
         VBlankIntrWait();
+        // Todo: interrupts might cause race issues with this. volatile?
+        gMain.vblankCounter1++;
         ReadKeys();
         if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
             Random();
@@ -170,7 +172,7 @@ static void UpdateLinkAndCallCallbacks(void)
 // static void InitMainCallbacks(void)
 // {
 //     gMain.vblankCounter1 = 0;
-//     gMain.vblankCounter2 = 0;
+//     gMain.vblankCounter1 = 0;
 //     gMain.callback1 = NULL;
 // }
 
@@ -288,20 +290,16 @@ void SetVCountCallback(IntrCallback callback)
 
 void RestoreSerialTimer3IntrHandlers(void)
 {
-    gIntrTable[1] = SerialCB;
-    gIntrTable[2] = Timer3Intr;
+    gIntrTable[0] = SerialCB;
+    gIntrTable[1] = Timer3Intr;
 }
 
 static void VBlankIntr(void)
 {
     m4aSoundVSync();
 
-    gMain.vblankCounter1++;
-
     if (gMain.vblankCallback)
         gMain.vblankCallback();
-
-    gMain.vblankCounter2++;
 
     CopyBufferedValuesToGpuRegs();
     ProcessDma3Requests();
