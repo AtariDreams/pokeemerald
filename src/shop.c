@@ -453,8 +453,8 @@ static void Task_GoToBuyOrSellMenu(u8 taskId)
     s16 *data = gTasks[taskId].data;
     if (!gPaletteFade.active)
     {
-        DestroyTask(taskId);
         SetMainCallback2((void *)((u16)tCallbackHi << 16 | (u16)tCallbackLo));
+        DestroyTask(taskId);
     }
 }
 
