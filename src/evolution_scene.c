@@ -549,30 +549,31 @@ static void CB2_TradeEvolutionSceneUpdate(void)
 
 static void CreateShedinja(u16 preEvoSpecies, struct Pokemon *mon)
 {
-    u32 data = 0;
-    if (gEvolutionTable[preEvoSpecies][0].method == EVO_LEVEL_NINJASK && gPlayerParty.count < PARTY_SIZE)
+
+    if (gEvolutionTable[preEvoSpecies][0].method == EVO_LEVEL_NINJASK)
     {
-        s32 i;
+        u32 data;
+        u32 i;
+        struct Pokemon shedninja; 
         struct Pokemon *shedinja = &gPlayerParty.party[gPlayerParty.count];
 
-        CopyMon(&gPlayerParty.party[gPlayerParty.count], mon, sizeof(struct Pokemon));
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_SPECIES, &gEvolutionTable[preEvoSpecies][1].targetSpecies);
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_NICKNAME, gSpeciesNames[gEvolutionTable[preEvoSpecies][1].targetSpecies]);
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_HELD_ITEM, &data);
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_MARKINGS, &data);
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_ENCRYPT_SEPARATOR, &data);
+        CopyMon(shedinja, mon, sizeof(struct Pokemon));
+        SetMonData(shedinja, MON_DATA_NICKNAME, gSpeciesNames[gEvolutionTable[preEvoSpecies][1].targetSpecies]);
+        SetMonData(shedinja, MON_DATA_HELD_ITEM, &data);
+        SetMonData(shedinja, MON_DATA_MARKINGS, &data);
+        SetMonData(shedinja, MON_DATA_ENCRYPT_SEPARATOR, &data);
 
         for (i = MON_DATA_COOL_RIBBON; i < MON_DATA_COOL_RIBBON + CONTEST_CATEGORIES_COUNT; i++)
-            SetMonData(&gPlayerParty.party[gPlayerParty.count], i, &data);
+            SetMonData(shedinja, i, &data);
         for (i = MON_DATA_CHAMPION_RIBBON; i <= MON_DATA_UNUSED_RIBBONS; i++)
-            SetMonData(&gPlayerParty.party[gPlayerParty.count], i, &data);
+            SetMonData(shedinja, i, &data);
 
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_STATUS, &data);
+        SetMonData(shedinja, MON_DATA_STATUS, &data);
         data = MAIL_NONE;
-        SetMonData(&gPlayerParty.party[gPlayerParty.count], MON_DATA_MAIL, &data);
+        SetMonData(shedinja, MON_DATA_MAIL, &data);
 
-        CalculateMonStats(&gPlayerParty.party[gPlayerParty.count]);
-        gPlayerParty.count++;
+        CalculateMonStats(shedinja);
+
 
         GetSetPokedexFlag(SpeciesToNationalPokedexNum(gEvolutionTable[preEvoSpecies][1].targetSpecies), FLAG_SET_SEEN);
         GetSetPokedexFlag(SpeciesToNationalPokedexNum(gEvolutionTable[preEvoSpecies][1].targetSpecies), FLAG_SET_CAUGHT);
@@ -581,6 +582,8 @@ static void CreateShedinja(u16 preEvoSpecies, struct Pokemon *mon)
             && GetMonData(shedinja, MON_DATA_LANGUAGE) == LANGUAGE_JAPANESE
             && GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NINJASK)
                 SetMonData(shedinja, MON_DATA_NICKNAME, sText_ShedinjaJapaneseName);
+        
+        GiveMonToPlayer(shedinja);
     }
 }
 
