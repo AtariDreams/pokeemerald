@@ -880,7 +880,7 @@ static void InitGpuRegs(void)
     SetGpuReg(REG_OFFSET_WIN0V, DISPLAY_HEIGHT);
     SetGpuReg(REG_OFFSET_WIN0H, DISPLAY_WIDTH);
     if (gReceivedRemoteLinkPlayers)
-        EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_HBLANK | INTR_FLAG_VCOUNT | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
+        EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_HBLANK | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
     else
         EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_HBLANK);
 }

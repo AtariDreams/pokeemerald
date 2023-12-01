@@ -733,7 +733,7 @@ void BattleInitBgsAndWindows(void)
 void InitBattleBgsVideo(void)
 {
     DisableInterrupts(INTR_FLAG_HBLANK);
-    EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_VCOUNT | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
+    EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
     BattleInitBgsAndWindows();
     SetGpuReg(REG_OFFSET_BLDCNT, 0);
     SetGpuReg(REG_OFFSET_BLDALPHA, 0);

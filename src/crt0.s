@@ -45,10 +45,6 @@ IntrMain::
 	and r1, r2, r2, lsr #16
 	mov r12, #0
 
-	ands r0, r1, #INTR_FLAG_VCOUNT
-	bne IntrMain_FoundIntr
-	add r12, r12, 0x4
-
 	mov r0, 0x1
 	strh r0, [r3, #REG_IME - REG_IE]
 
@@ -65,6 +61,10 @@ IntrMain::
 	add r12, r12, 0x4
 
 	ands r0, r1, #INTR_FLAG_VBLANK
+	bne IntrMain_FoundIntr
+	add r12, r12, 0x4
+
+    ands r0, r1, #INTR_FLAG_VCOUNT
 	bne IntrMain_FoundIntr
 	add r12, r12, 0x4
 

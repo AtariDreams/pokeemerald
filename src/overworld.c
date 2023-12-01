@@ -1739,7 +1739,7 @@ static void FieldClearVBlankHBlankCallbacks(void)
     if (gWirelessCommType != 0)
     {
         DisableInterrupts(INTR_FLAG_HBLANK);
-        EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_VCOUNT | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
+        EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
     }
     else
     {

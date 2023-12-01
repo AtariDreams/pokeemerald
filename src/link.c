@@ -298,7 +298,7 @@ static void UNUSED LinkTestScreen(void)
     ResetBlockSend();
     gLinkType = LINKTYPE_TRADE;
     OpenLink();
-    SeedRng(gMain.vblankCounter2);
+    SeedRng(gMain.vblankCounter1);
     for (i = 0; i < TRAINER_ID_LENGTH; i++)
         gSaveBlock2.playerTrainerId[i] = Random() % 256;
 
@@ -468,7 +468,7 @@ static void LinkTestProcessKeyInput(void)
     }
     if (sLinkTestDebugValuesEnabled)
     {
-        SetLinkDebugValues(gMain.vblankCounter2, gLinkCallback ? gLinkVSyncDisabled : gLinkVSyncDisabled | 0x10);
+        SetLinkDebugValues(gMain.vblankCounter1, gLinkCallback ? gLinkVSyncDisabled : gLinkVSyncDisabled | 0x10);
     }
 }
 
