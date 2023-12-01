@@ -438,7 +438,7 @@ void CB2_ExitSellMenu(void)
 
 static void Task_HandleShopMenuQuit(u8 taskId)
 {
-    ClearStdWindowAndFrameToTransparent(sMartInfo.windowId, 2); // Incorrect use, making it not copy it to vram.
+    ClearStdWindowAndFrameToTransparent(sMartInfo.windowId, TRUE);
     RemoveWindow(sMartInfo.windowId);
     TryPutSmartShopperOnAir();
     UnlockPlayerFieldControls();
