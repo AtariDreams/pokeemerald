@@ -1145,8 +1145,8 @@ static void Task_ReturnToItemListAfterItemPurchase(u8 taskId)
 {
     if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
-        s16 *data = gTasks[taskId].data;
         PlaySE(SE_SELECT);
+        s16 *data = gTasks[taskId].data;
 
         // Purchasing 10+ Balls gets the player a Premier Ball
         if (ITEM_ULTRA_BALL <= tItemId && tItemId <= ITEM_LUXURY_BALL && tItemCount >= 10 && AddBagItem(ITEM_PREMIER_BALL, 1) == TRUE)
