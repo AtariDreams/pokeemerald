@@ -1325,7 +1325,7 @@ static const u8 sHandCursorShadow_Gfx[] = INCBIN_U8("graphics/pokemon_storage/ha
 //------------------------------------------------------------------------------
 
 
-void DrawTextWindowAndBufferTiles(const u8 * restrict string, void *restrict dst, u32 bytesToBuffer)
+void DrawTextWindowAndBufferTiles(const u8 * restrict string, u8 *restrict dst, u32 bytesToBuffer)
 {
     u32 i, tileBytesToBuffer;
     u16 windowId;
