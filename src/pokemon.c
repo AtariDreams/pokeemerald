@@ -2741,9 +2741,14 @@ void CreateEnemyEventMon(void)
     CreateEventMon(&gEnemyParty.party[0], species, level, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
     if (itemId)
     {
+#ifndef UBFIX
         u8 heldItem[2];
         heldItem[0] = itemId;
         heldItem[1] = itemId >> 8;
+#else
+        // gSpecialVar_0x8006 is a u16
+        u16 *heldItem = &gSpecialVar_0x8006;
+#endif
         SetMonData(&gEnemyParty.party[0], MON_DATA_HELD_ITEM, heldItem);
     }
 }
@@ -3897,13 +3902,19 @@ u32 GetBoxMonData2(struct BoxPokemon *boxMon, s32 field)
     return GetBoxMonData3(boxMon, field, NULL);
 }
 
+#ifndef UBFIX
 #define SET8(lhs) (lhs) = *data
 #define SET16(lhs) (lhs) = data[0] | (data[1] << 8)
 #define SET32(lhs) (lhs) = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24)
+#else
+#define SET8(lhs) (lhs) = *(u8 *)data
+#define SET16(lhs) (lhs) = *(u16 *)data
+#define SET32(lhs) (lhs) = *(u32 *)data
+#endif
 
 void SetMonData(struct Pokemon *mon, s32 field, const void *dataArg)
 {
-    const u8 *data = dataArg;
+    const void *data = dataArg;
 
     switch (field)
     {
@@ -3947,7 +3958,11 @@ void SetMonData(struct Pokemon *mon, s32 field, const void *dataArg)
 
 void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
 {
+    #ifndef UBFIX
     const u8 *data = dataArg;
+    #else
+    const void* data = dataArg;
+    #endif
 
     switch (field)
     {
@@ -3959,10 +3974,14 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_NICKNAME:
     {
+        #ifndef UBFIX
         u32 i;
         for (i = 0; i < POKEMON_NAME_LENGTH; i++)
             boxMon->nickname[i] = data[i];
         break;
+        #else
+        memcpy(boxMon->nickname, data, POKEMON_NAME_LENGTH);
+        #endif
     }
     case MON_DATA_LANGUAGE:
         SET8(boxMon->language);
@@ -3978,9 +3997,13 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_OT_NAME:
     {
+        #ifndef UBFIX
         u32 i;
         for (i = 0; i < PLAYER_NAME_LENGTH; i++)
             boxMon->otName[i] = data[i];
+        #else
+        memcpy(boxMon->otName, data, PLAYER_NAME_LENGTH);
+        #endif
         break;
     }
     case MON_DATA_MARKINGS:
@@ -4069,7 +4092,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_MET_LEVEL:
     {
-        boxMon->substruct3.metLevel = *data;
+        SET8(boxMon->substruct3.metLevel);
         break;
     }
     case MON_DATA_MET_GAME:
@@ -4077,7 +4100,7 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_POKEBALL:
     {
-        boxMon->substruct3.pokeball = *data;
+        SET8(boxMon->substruct3.pokeball);
         break;
     }
     case MON_DATA_OT_GENDER:
@@ -4170,7 +4193,8 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         break;
     case MON_DATA_IVS:
     {
-        u32 ivs = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+        u32 ivs;
+        SET32(ivs);
         boxMon->substruct3.hpIV = ivs & MAX_IV_MASK;
         boxMon->substruct3.attackIV = (ivs >> 5) & MAX_IV_MASK;
         boxMon->substruct3.defenseIV = (ivs >> 10) & MAX_IV_MASK;
@@ -4869,10 +4893,10 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                                 if (dataUnsigned != CalculatePPWithBonus(moveId, GetMonData(mon, MON_DATA_PP_BONUSES, NULL), temp2))
                                 {
                                     dataUnsigned += itemEffect[itemEffectParam];
-                                    moveId = GetMonData(mon, MON_DATA_MOVE1 + temp2, NULL); // Redundant
+                                    //moveId = GetMonData(mon, MON_DATA_MOVE1 + temp2, NULL); // Redundant
                                     if (dataUnsigned > CalculatePPWithBonus(moveId, GetMonData(mon, MON_DATA_PP_BONUSES, NULL), temp2))
                                     {
-                                        moveId = GetMonData(mon, MON_DATA_MOVE1 + temp2, NULL); // Redundant
+                                        //moveId = GetMonData(mon, MON_DATA_MOVE1 + temp2, NULL); // Redundant
                                         dataUnsigned = CalculatePPWithBonus(moveId, GetMonData(mon, MON_DATA_PP_BONUSES, NULL), temp2);
                                     }
                                     SetMonData(mon, MON_DATA_PP1 + temp2, &dataUnsigned);
@@ -4895,10 +4919,10 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                             if (dataUnsigned != CalculatePPWithBonus(moveId, GetMonData(mon, MON_DATA_PP_BONUSES, NULL), moveIndex))
                             {
                                 dataUnsigned += itemEffect[itemEffectParam++];
-                                moveId = GetMonData(mon, MON_DATA_MOVE1 + moveIndex, NULL); // Redundant
+                                //moveId = GetMonData(mon, MON_DATA_MOVE1 + moveIndex, NULL); // Redundant
                                 if (dataUnsigned > CalculatePPWithBonus(moveId, GetMonData(mon, MON_DATA_PP_BONUSES, NULL), moveIndex))
                                 {
-                                    moveId = GetMonData(mon, MON_DATA_MOVE1 + moveIndex, NULL); // Redundant
+                                    //moveId = GetMonData(mon, MON_DATA_MOVE1 + moveIndex, NULL); // Redundant
                                     dataUnsigned = CalculatePPWithBonus(moveId, GetMonData(mon, MON_DATA_PP_BONUSES, NULL), moveIndex);
                                 }
                                 SetMonData(mon, MON_DATA_PP1 + moveIndex, &dataUnsigned);

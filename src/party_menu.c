@@ -1828,15 +1828,25 @@ static void DisplaySwitchedHeldItemMessage(u16 item, u16 item2, bool8 keepOpen)
 
 static void GiveItemToMon(struct Pokemon *mon, u16 item)
 {
+    #ifndef UBFIX
     u8 itemBytes[2];
+    #else
+    u16 *itemBytes;
+    #endif
 
     if (ItemIsMail(item) == TRUE)
     {
         if (GiveMailToMonByItemId(mon, item) == MAIL_NONE)
             return;
     }
+
+#ifndef UBFIX
     itemBytes[0] = item & 0xff;
     itemBytes[1] = item >> 8;
+#else
+    itemBytes = &item;
+#endif
+
     SetMonData(mon, MON_DATA_HELD_ITEM, itemBytes);
 }
 

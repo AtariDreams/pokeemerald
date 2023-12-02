@@ -552,24 +552,25 @@ static void CreateShedinja(u16 preEvoSpecies, struct Pokemon *mon)
 
     if (gEvolutionTable[preEvoSpecies][0].method == EVO_LEVEL_NINJASK)
     {
-        u32 data;
+        u32 data = 0;
+        u16 data2 = 0;
+        u8 data3 = 0;
         u32 i;
-        struct Pokemon shedninja; 
         struct Pokemon *shedinja = &gPlayerParty.party[gPlayerParty.count];
 
         CopyMon(shedinja, mon, sizeof(struct Pokemon));
         SetMonData(shedinja, MON_DATA_NICKNAME, gSpeciesNames[gEvolutionTable[preEvoSpecies][1].targetSpecies]);
-        SetMonData(shedinja, MON_DATA_HELD_ITEM, &data);
-        SetMonData(shedinja, MON_DATA_MARKINGS, &data);
+        SetMonData(shedinja, MON_DATA_HELD_ITEM, &data2);
+        SetMonData(shedinja, MON_DATA_MARKINGS, &data3);
         SetMonData(shedinja, MON_DATA_ENCRYPT_SEPARATOR, &data);
 
         for (i = MON_DATA_COOL_RIBBON; i < MON_DATA_COOL_RIBBON + CONTEST_CATEGORIES_COUNT; i++)
-            SetMonData(shedinja, i, &data);
+            SetMonData(shedinja, i, &data3);
         for (i = MON_DATA_CHAMPION_RIBBON; i <= MON_DATA_UNUSED_RIBBONS; i++)
-            SetMonData(shedinja, i, &data);
+            SetMonData(shedinja, i, &data3);
 
         SetMonData(shedinja, MON_DATA_STATUS, &data);
-        data = MAIL_NONE;
+        data2 = MAIL_NONE;
         SetMonData(shedinja, MON_DATA_MAIL, &data);
 
         CalculateMonStats(shedinja);
