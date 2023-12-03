@@ -4275,13 +4275,14 @@ s8 GetSetPokedexFlag(u16 nationalDexNo, u8 caseID)
             }
         }
         break;
+// Caught implies seen
+    case FLAG_SET_CAUGHT:
+        gSaveBlock2.pokedex.owned[index] |= mask;
+        // Fall through
     case FLAG_SET_SEEN:
         gSaveBlock2.pokedex.seen[index] |= mask;
         gSaveBlock1.seen1[index] |= mask;
         gSaveBlock1.seen2[index] |= mask;
-        break;
-    case FLAG_SET_CAUGHT:
-        gSaveBlock2.pokedex.owned[index] |= mask;
         break;
     }
     return retVal;
