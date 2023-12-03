@@ -547,19 +547,22 @@ static void CB2_TradeEvolutionSceneUpdate(void)
     RunTasks();
 }
 
-static void CreateShedinja(u16 preEvoSpecies, struct Pokemon *mon)
+static void CreateShedinja(struct Pokemon *mon)
 {
-
-    if (gEvolutionTable[preEvoSpecies][0].method == EVO_LEVEL_NINJASK)
+    // TODO: Pokeball requirement?
+    if ((GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NINJASK) && gPlayerParty.count < PARTY_SIZE)
     {
         u32 data = 0;
         u16 data2 = 0;
         u8 data3 = 0;
-        u32 i;
-        struct Pokemon *shedinja = &gPlayerParty.party[gPlayerParty.count];
 
-        CopyMon(shedinja, mon, sizeof(struct Pokemon));
-        SetMonData(shedinja, MON_DATA_NICKNAME, gSpeciesNames[gEvolutionTable[preEvoSpecies][1].targetSpecies]);
+        struct Pokemon &shedinja = gPlayerParty[gPlayerParty.count++];
+        memcpy(shedinja, mon, sizeof(mon));
+
+        u16 species = SPECIES_SHEDINJA;
+        SetMonData(shedinja, MON_DATA_SPECIES, &species);
+    
+        SetMonData(shedinja, MON_DATA_NICKNAME, gSpeciesNames[SPECIES_SHEDINJA]);
         SetMonData(shedinja, MON_DATA_HELD_ITEM, &data2);
         SetMonData(shedinja, MON_DATA_MARKINGS, &data3);
         SetMonData(shedinja, MON_DATA_ENCRYPT_SEPARATOR, &data);
@@ -570,21 +573,17 @@ static void CreateShedinja(u16 preEvoSpecies, struct Pokemon *mon)
             SetMonData(shedinja, i, &data3);
 
         SetMonData(shedinja, MON_DATA_STATUS, &data);
+
         data2 = MAIL_NONE;
-        SetMonData(shedinja, MON_DATA_MAIL, &data);
+        SetMonData(shedinja, MON_DATA_MAIL, &data2);
+
+        data3 = ITEM_POKE_BALL;
+        SetMonData(shedinja, MON_DATA_MAIL, &data3);
 
         CalculateMonStats(shedinja);
 
-
-        GetSetPokedexFlag(SpeciesToNationalPokedexNum(gEvolutionTable[preEvoSpecies][1].targetSpecies), FLAG_SET_SEEN);
-        GetSetPokedexFlag(SpeciesToNationalPokedexNum(gEvolutionTable[preEvoSpecies][1].targetSpecies), FLAG_SET_CAUGHT);
-
-        if (GetMonData(shedinja, MON_DATA_SPECIES) == SPECIES_SHEDINJA
-            && GetMonData(shedinja, MON_DATA_LANGUAGE) == LANGUAGE_JAPANESE
-            && GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NINJASK)
-                SetMonData(shedinja, MON_DATA_NICKNAME, sText_ShedinjaJapaneseName);
-        
-        GiveMonToPlayer(shedinja);
+        GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_SHEDINJA), FLAG_SET_SEEN);
+        GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_SHEDINJA), FLAG_SET_CAUGHT);
     }
 }
 
@@ -766,13 +765,14 @@ static void Task_EvolutionScene(u8 taskId)
             StringExpandPlaceholders(gStringVar4, gText_CongratsPkmnEvolved);
             BattlePutTextOnWindow(gStringVar4, B_WIN_MSG);
             PlayBGM(MUS_EVOLVED);
-            gTasks[taskId].tState++;
             SetMonData(mon, MON_DATA_SPECIES, (void *)(&gTasks[taskId].tPostEvoSpecies));
             CalculateMonStats(mon);
             EvolutionRenameMon(mon, gTasks[taskId].tPreEvoSpecies, gTasks[taskId].tPostEvoSpecies);
             GetSetPokedexFlag(SpeciesToNationalPokedexNum(gTasks[taskId].tPostEvoSpecies), FLAG_SET_SEEN);
             GetSetPokedexFlag(SpeciesToNationalPokedexNum(gTasks[taskId].tPostEvoSpecies), FLAG_SET_CAUGHT);
             IncrementGameStat(GAME_STAT_EVOLVED_POKEMON);
+            CreateShedinja(mon);
+            gTasks[taskId].tState++;
         }
         break;
     case EVOSTATE_TRY_LEARN_MOVE:
@@ -816,8 +816,6 @@ static void Task_EvolutionScene(u8 taskId)
                 StopMapMusic();
                 Overworld_PlaySpecialMapMusic();
             }
-            if (!gTasks[taskId].tEvoWasStopped)
-                CreateShedinja(gTasks[taskId].tPreEvoSpecies, mon);
 
             DestroyTask(taskId);
             FreeMonSpritesGfx();
