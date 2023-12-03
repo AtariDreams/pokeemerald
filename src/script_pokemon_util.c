@@ -144,16 +144,7 @@ void CreateScriptedWildMon(u16 species, u8 level, u16 item)
     ZeroEnemyPartyMons();
     CreateMon(&gEnemyParty.party[0], species, level, USE_RANDOM_IVS, 0, 0, OT_ID_PLAYER_ID, 0);
     if (item)
-    {
-#ifndef UBFIX
-        u8 heldItem[2];
-        heldItem[0] = item;
-        heldItem[1] = item >> 8;
-#else
-        u16 *heldItem = &item;
-#endif
-        SetMonData(&gEnemyParty.party[0], MON_DATA_HELD_ITEM, heldItem);
-    }
+        SetMonData(&gEnemyParty.party[0], MON_DATA_HELD_ITEM, &item);
 }
 
 void ScriptSetMonMoveSlot(u8 monIndex, u16 move, u8 slot)
