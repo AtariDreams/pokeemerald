@@ -117,7 +117,7 @@ void DoBgAffineSet(struct BgAffineDstData *dest, u32 texX, u32 texY, s16 scrX, s
 void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
 {
     u8 x, y;
-    s8 i, j;
+    int i, j;
     u8 ALIGNED(4) xflip[32];
     u8 h = sSpriteDimensions[shape][size][1];
     u8 w = sSpriteDimensions[shape][size][0];
@@ -131,7 +131,7 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
 
             if ((*tilemap & 0xc00) == 0)
             {
-                CpuCopy32(tiles + tile, output, 32);
+                CpuFastCopy(tiles + tile, output, 32);
             }
             else if ((*tilemap & 0xc00) == 0x800)  // yflip
             {
@@ -144,7 +144,7 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
                 {
                     for (j = 0; j < 4; j++)
                     {
-                        u8 i2 = i * 4;
+                        int i2 = i * 4;
                         xflip[i2 + (3-j)] = ((tiles[tile + i2 + j] & 0xf) << 4) | (tiles[tile + i2 + j] >> 4);
                     }
                 }
@@ -155,7 +155,7 @@ void CopySpriteTiles(u8 shape, u8 size, u8 *tiles, u16 *tilemap, u8 *output)
                 }
                 else
                 {
-                    CpuCopy32(xflip, output, 32);
+                    CpuFastCopy(xflip, output, 32);
                 }
             }
             tilemap++;
