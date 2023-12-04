@@ -2712,7 +2712,7 @@ static void FieldMoveShowMonOutdoorsEffect_ShrinkBanner(struct Task *task)
 static void FieldMoveShowMonOutdoorsEffect_RestoreBg(struct Task *task)
 {
     u16 bg0cnt = GetGpuReg(REG_OFFSET_BG0CNT);
-    DmaFill16(3, 0, (void *)VRAM + (bg0cnt & 0x1f00), 0x800);
+    DmaFill16(3, 0, (void *)BG_VRAM + (bg0cnt & BG_SCREEN_BASE_MASK), 0x800);
     task->tWinHoriz = DISPLAY_WIDTH + 1;
     task->tWinVert = DISPLAY_HEIGHT + 1;
     task->tWinIn = task->data[11];
