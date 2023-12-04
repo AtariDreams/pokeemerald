@@ -1010,7 +1010,7 @@ void AnimLoadCompressedBgTilemap(u32 bgId, const void *src)
 void AnimLoadCompressedBgTilemapHandleContest(struct BattleAnimBgData *data, const void *src, bool32 largeScreen)
 {
     InitAnimBgTilemapBuffer(data->bgId, src);
-    if (IsContest() == TRUE)
+    if (IsContest())
         RelocateBattleBgPal(data->paletteId, data->bgTilemap, 0, largeScreen);
     CopyBgTilemapBufferToVram(data->bgId);
 }
