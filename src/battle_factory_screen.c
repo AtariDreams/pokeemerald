@@ -4075,11 +4075,7 @@ static void Swap_ShowSummaryMonSprite(void)
     personality = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
     otId = GetMonData(mon, MON_DATA_OT_ID, NULL);
 
-#ifdef BUGFIX
     sFactorySwapScreen->monPic.monSpriteId = CreateMonPicSprite_HandleDeoxys(species, otId, personality, TRUE, 88, 32, 15, TAG_NONE);
-#else
-    sFactorySwapScreen->monPic.monSpriteId = CreateMonPicSprite_HandleDeoxys(species, personality, otId, TRUE, 88, 32, 15, TAG_NONE);
-#endif
     gSprites[sFactorySwapScreen->monPic.monSpriteId].centerToCornerVecX = 0;
     gSprites[sFactorySwapScreen->monPic.monSpriteId].centerToCornerVecY = 0;
 
