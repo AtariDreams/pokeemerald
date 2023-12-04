@@ -2747,8 +2747,8 @@ static void VBlankCB_FieldMoveShowMonOutdoors(void)
 static void LoadFieldMoveOutdoorStreaksTilemap(u16 offs)
 {
     u32 i;
-    u16 *dest;
-    dest = (u16 *)(VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + offs);
+    vu16 *dest;
+    dest = (vu16 *)(VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + offs);
     for (i = 0; i < ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap); i++, dest++)
     {
         *dest = sFieldMoveStreaksOutdoors_Tilemap[i] | 0xF000;
@@ -2876,9 +2876,9 @@ static void AnimateIndoorShowMonBg(struct Task *task)
 static bool8 SlideIndoorBannerOnscreen(struct Task *task)
 {
     u32 i;
-    u16 srcOffs;
+    u16 srccOffs;
     u16 dstOffs;
-    u16 *dest;
+    vu16 *dest;
 
     if (task->tBgOffset >= 32)
         return TRUE;
@@ -2888,7 +2888,7 @@ static bool8 SlideIndoorBannerOnscreen(struct Task *task)
     {
         dstOffs = (32 - dstOffs) & 0x1f;
         srcOffs = (32 - task->tBgOffset) & 0x1f;
-        dest = (u16 *)(BG_VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
+        dest = (vu16 *)(BG_VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
         for (i = 0; i < 10; i++)
         {
             dest[(i << 5) + dstOffs] = sFieldMoveStreaksIndoors_Tilemap[srcOffs + (i << 5)] | 0xf000;
@@ -2903,7 +2903,7 @@ static bool8 SlideIndoorBannerOffscreen(struct Task *task)
 {
     u32 i;
     u16 dstOffs;
-    u16 *dest;
+    vu16 *dest;
 
     if (task->tBgOffset >= 32)
         return TRUE;
@@ -2912,7 +2912,7 @@ static bool8 SlideIndoorBannerOffscreen(struct Task *task)
     if (dstOffs >= task->tBgOffset)
     {
         dstOffs = (task->tBgHoriz >> 3) & 0x1f;
-        dest = (u16 *)(BG_VRAM +  ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
+        dest = (vu16 *)(BG_VRAM +  ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
         for (i = 0; i < 10; i++)
         {
             dest[(i << 5) + dstOffs] = 0xf000;
@@ -3708,8 +3708,8 @@ static void Task_DestroyDeoxysRock(u8 taskId)
 static void DestroyDeoxysRockEffect_CameraShake(s16 *data, u8 taskId)
 {
     u8 newTaskId = CreateTask(Task_DeoxysRockCameraShake, 90);
-    PlaySE(SE_THUNDER2);
     tCameraTaskId = newTaskId;
+    PlaySE(SE_THUNDER2);
     tState++;
 }
 

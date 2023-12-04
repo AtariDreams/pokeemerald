@@ -1012,10 +1012,7 @@ void CB2_ReturnFromCableClubBattle(void)
         }
     }
 
-    if (InUnionRoom() == TRUE)
-        gMain.savedCallback = CB2_ReturnFromUnionRoomBattle;
-    else
-        gMain.savedCallback = CB2_ReturnToFieldFromMultiplayer;
+    gMain.savedCallback = CB2_ReturnToFieldFromMultiplayer;
 
     SetMainCallback2(CB2_SetUpSaveAfterLinkBattle);
 }

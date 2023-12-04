@@ -3244,8 +3244,6 @@ static void Task_RunUnionRoom(u8 taskId)
 
 void SetUsingUnionRoomStartMenu(void)
 {
-    if (InUnionRoom() == TRUE)
-        gSpecialVar_Result = UR_INTERACT_START_MENU;
 }
 
 static void ReceiveUnionRoomActivityPacket(struct WirelessLink_URoom *data)
@@ -4302,8 +4300,7 @@ static bool32 PollPartnerYesNoResponse(struct WirelessLink_URoom *data)
 
 bool32 InUnionRoom(void)
 {
-    return gSaveBlock1.location.mapGroup == MAP_GROUP(UNION_ROOM)
-        && gSaveBlock1.location.mapNum == MAP_NUM(UNION_ROOM);
+    return FALSE;
 }
 
 static bool32 HasAtLeastTwoMonsOfLevel30OrLower(void)

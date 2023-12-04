@@ -2350,15 +2350,15 @@ static void ParentResetChildRecvMetadata(s32 slot)
 static u8 GetNewChildrenInUnionRoomChat(s32 emptySlotMask)
 {
     u8 ret = 0;
-    u8 i;
+    u32 i;
 
     for (i = 0; i < RFU_CHILD_MAX; i++)
     {
-        if ((emptySlotMask >> i) & 1)
+        if (emptySlotMask & (1U << i))
         {
             struct RfuGameData *data = (void *)gRfuLinkStatus->partner[i].gname;
             if (data->activity == (ACTIVITY_CHAT | IN_UNION_ROOM))
-                ret |= (1 << i);
+                ret |= (1U << i);
         }
     }
 
