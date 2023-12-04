@@ -315,26 +315,26 @@ void ResetLinkRfuGFLayer(void)
 
 void InitRFU(void)
 {
-    IntrFunc serialIntr = gIntrTable[1];
-    IntrFunc timerIntr = gIntrTable[2];
+    IntrFunc serialIntr = gIntrTable[0];
+    IntrFunc timerIntr = gIntrTable[1];
     InitRFUAPI();
     rfu_REQ_stopMode();
     rfu_waitREQComplete();
     REG_IME = 0;
-    gIntrTable[1] = serialIntr;
-    gIntrTable[2] = timerIntr;
+    gIntrTable[0] = serialIntr;
+    gIntrTable[1] = timerIntr;
     REG_IME = INTR_FLAG_VBLANK;
 }
 
 void InitRFUAPI(void)
 {
-    if (!rfu_initializeAPI((void *)gRfuAPIBuffer, sizeof(gRfuAPIBuffer), &gIntrTable[1], TRUE))
+    if (!rfu_initializeAPI((void *)gRfuAPIBuffer, sizeof(gRfuAPIBuffer), &gIntrTable[0], TRUE))
     {
         gLinkType = 0;
         ClearSavedLinkPlayers();
         RfuSetIgnoreError(FALSE);
         ResetLinkRfuGFLayer();
-        rfu_setTimerInterrupt(3, &gIntrTable[2]);
+        rfu_setTimerInterrupt(3, &gIntrTable[1]);
     }
 }
 

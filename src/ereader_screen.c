@@ -49,8 +49,8 @@ static void EReader_Load(struct EReaderData *eReader, int size, u32 *data)
 {
     volatile u16 backupIME = REG_IME;
     REG_IME = 0;
-    gIntrTable[1] = EReaderHelper_SerialCallback;
-    gIntrTable[2] = EReaderHelper_Timer3Callback;
+    gIntrTable[0] = EReaderHelper_SerialCallback;
+    gIntrTable[1] = EReaderHelper_Timer3Callback;
     EReaderHelper_SaveRegsState();
     EReaderHelper_ClearSendRecvMgr();
     REG_IE |= INTR_FLAG_VCOUNT;
