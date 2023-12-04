@@ -1734,12 +1734,10 @@ static void SpriteCB_FldEffPokeballTrail(struct Sprite *sprite)
         // If Pokéball moved forward clear trail behind it
         if (posX != sprite->sPrevX)
         {
-            u16 var;
-            vu16 *ptr;
+            u16 *ptr;
 
             sprite->sPrevX = posX;
-            var = ((REG_BG0CNT >> 8) & 0x1F);
-            ptr = (vu16 *)(BG_VRAM + (var << 11));
+            ptr = (u16 *)(BG_VRAM + (GetGpuReg(REG_OFFSET_BG0CNT) & BG_SCREEN_BASE_MASK));
 
             SET_TILE(ptr, posY - 2, posX, 1);
             SET_TILE(ptr, posY - 1, posX, 1);
@@ -1794,7 +1792,7 @@ static bool8 ClockwiseWipe_TopRight(struct Task *task)
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, sTransitionData->tWipeEndX, -1, 1, 1);
     do
     {
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (sTransitionData->tWipeCurrX + 1) | ((DISPLAY_WIDTH / 2) << 8);
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = ((DISPLAY_WIDTH / 2) << 8) | (sTransitionData->tWipeCurrX + 1);
     } while (!UpdateBlackWipe(&sTransitionData->line, TRUE, TRUE));
 
     sTransitionData->tWipeEndX += 16;
@@ -1811,18 +1809,21 @@ static bool8 ClockwiseWipe_TopRight(struct Task *task)
 static bool8 ClockwiseWipe_Right(struct Task *task)
 {
     s16 start, end;
+    int flag = 0;
 
     sTransitionData->VBlank_DMA = FALSE;
 
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, DISPLAY_WIDTH, sTransitionData->tWipeEndY, 1, 1);
 
-    do {
+    for (;;) {
         start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX + 1;
         if (sTransitionData->tWipeEndY >= DISPLAY_HEIGHT / 2)
             start = sTransitionData->tWipeCurrX, end = DISPLAY_WIDTH;
         gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = end | (start << 8);
-        
-    } while (!UpdateBlackWipe(&sTransitionData->line, TRUE, TRUE));
+        if (flag)
+            break;
+        flag = UpdateBlackWipe(&sTransitionData->line, TRUE, TRUE);
+    }
 
     sTransitionData->tWipeEndY += 8;
     if (sTransitionData->tWipeEndY >= DISPLAY_HEIGHT)
@@ -1864,12 +1865,13 @@ static bool8 ClockwiseWipe_Bottom(struct Task *task)
 static bool8 ClockwiseWipe_Left(struct Task *task)
 {
     s16 end, start;
+    int flag = 0;
 
     sTransitionData->VBlank_DMA = FALSE;
 
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, 0, sTransitionData->tWipeEndY, 1, 1);
 
-    do{
+    for (;;) {
         if (sTransitionData->tWipeEndY <= DISPLAY_HEIGHT / 2)
             start = DISPLAY_WIDTH / 2, end = sTransitionData->tWipeCurrX;
         else
@@ -1878,8 +1880,11 @@ static bool8 ClockwiseWipe_Left(struct Task *task)
             end = start & 0xFF;
             start = sTransitionData->tWipeCurrX;
         }
-        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = end | (start << 8);
-    } while (!UpdateBlackWipe(&sTransitionData->line, TRUE, TRUE));
+        gScanlineEffectRegBuffers[0][sTransitionData->tWipeCurrY] = (start << 8) | end;
+        if (flag)
+            break;
+        flag = UpdateBlackWipe(&sTransitionData->line, TRUE, TRUE);
+    }
 
     sTransitionData->tWipeEndY -= 8;
     if (sTransitionData->tWipeEndY <= 0)
@@ -3551,18 +3556,16 @@ static void VBlankCB_BattleTransition(void)
 
 static void GetBg0TilemapDst(u16 **tileset)
 {
-    u16 charBase = REG_BG0CNT >> 2;
-    charBase <<= 14;
-    *tileset = (u16 *)(BG_VRAM + charBase);
+    *tileset = (u16 *)(BG_VRAM + (GetGpuReg(REG_OFFSET_BG0CNT) & BG_CHAR_BASE_MASK));
 }
 
 void GetBg0TilesDst(u16 **tilemap, u16 **tileset)
 {
-    u16 screenBase = REG_BG0CNT >> 8;
-    u16 charBase = REG_BG0CNT >> 2;
+    u16 bg0cnt = GetGpuReg(REG_OFFSET_BG0CNT);
 
-    screenBase <<= 11;
-    charBase <<= 14;
+
+    u16 screenBase = bg0cnt & BG_SCREEN_BASE_MASK;
+    u16 charBase = bg0cnt & BG_CHAR_BASE_MASK;
 
     *tilemap = (u16 *)(BG_VRAM + screenBase);
     *tileset = (u16 *)(BG_VRAM + charBase);
