@@ -1969,7 +1969,7 @@ u16 GetBattlePyramidPickupItemId(void)
             break;
     }
 
-    if (i >= PICKUP_ITEMS_PER_ROUND)
+    if (i > PICKUP_ITEMS_PER_ROUND - 1)
         i = PICKUP_ITEMS_PER_ROUND - 1;
 
     if (lvlMode != FRONTIER_LVL_50)
