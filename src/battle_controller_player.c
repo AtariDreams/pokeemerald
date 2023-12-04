@@ -2773,7 +2773,7 @@ static void PlayerHandleDMA3Transfer(void)
             | (gBattleBufferA[gActiveBattler][4] << 24);
     u16 sizeArg = gBattleBufferA[gActiveBattler][5] | (gBattleBufferA[gActiveBattler][6] << 8);
 
-    DmaCopyLarge16(3, &gBattleBufferA[gActiveBattler][7], dstArg, sizeArg);
+    DmaCopyLarge16(3, &gBattleBufferA[gActiveBattler][7], (void *)dstArg, sizeArg);
     PlayerBufferExecCompleted();
 }
 
