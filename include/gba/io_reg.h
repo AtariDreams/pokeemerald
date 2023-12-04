@@ -546,6 +546,16 @@
 #define BGCNT_AFF512x512        0x8000
 #define BGCNT_AFF1024x1024      0xC000
 
+#define BG_PRIORITY_MASK        0x0003      // ＢＧ間優先順位
+#define BG_CHAR_BASE_MASK       0x000c      // キャラクタ ベースアドレス
+#define BG_SCREEN_BASE_MASK     0x1f00      // スクリーン ベースアドレス
+#define BG_SCREEN_SIZE_MASK     0xc000      // スクリーンサイズ(256/512)
+
+#define BG_PRIORITY_SHIFT       0
+#define BG_CHAR_BASE_SHIFT      2
+#define BG_SCREEN_BASE_SHIFT    8
+#define BG_SCREEN_SIZE_SHIFT    14
+
 // WININ/OUT
 #define WININ_WIN0_BG0      (1 << 0)
 #define WININ_WIN0_BG1      (1 << 1)
@@ -772,5 +782,7 @@
 
 #define WAITCNT_AGB (0 << 15)
 #define WAITCNT_CGB (1 << 15)
+
+
 
 #endif // GUARD_GBA_IO_REG_H

@@ -2637,12 +2637,13 @@ static void FieldMoveShowMonOutdoorsEffect_Init(struct Task *task)
 static void FieldMoveShowMonOutdoorsEffect_LoadGfx(struct Task *task)
 {
     u16 bgCount = GetGpuReg(REG_OFFSET_BG0CNT);
-    u16 delta = (bgCount & 0xc000);
+    u16 ch = bgCount & BG_CHAR_BASE_MASK;
+    u16 map =  bgCount & BG_SCREEN_BASE_MASK;
 
-    DmaCopy16(3, sFieldMoveStreaksOutdoors_Gfx, (void *)(VRAM + (bgCount & 0x000c)), 0x200);
-    DmaFill16(3, 0, (void *)(VRAM + delta), 0x800);
+    DmaCopy16(3, sFieldMoveStreaksOutdoors_Gfx, (void *)(BG_VRAM + ch), 0x200);
+    DmaFill16(3, 0, (void *)(BG_VRAM + map), 0x800);
     LoadPalette(sFieldMoveStreaksOutdoors_Pal, BG_PLTT_ID(15), sizeof(sFieldMoveStreaksOutdoors_Pal));
-    LoadFieldMoveOutdoorStreaksTilemap(delta);
+    LoadFieldMoveOutdoorStreaksTilemap(map);
     task->tState++;
 }
 
@@ -2799,10 +2800,11 @@ static void FieldMoveShowMonIndoorsEffect_Init(struct Task *task)
 static void FieldMoveShowMonIndoorsEffect_LoadGfx(struct Task *task)
 {
     u16 bgCount = GetGpuReg(REG_OFFSET_BG0CNT);
-    u16 delta = bgCount & 0x000c;
-    task->data[12] = delta;
-    DmaCopy16(3, sFieldMoveStreaksIndoors_Gfx, (void *)(VRAM + (bgCount & 0x000c)), 0x80);
-    DmaFill16(3, 0, (void *)(VRAM + delta), 0x800);
+    u16 ch = bgCount & BG_CHAR_BASE_MASK;
+    u16 map =  bgCount & BG_SCREEN_BASE_MASK;
+    task->data[12] = map;
+    DmaCopy16(3, sFieldMoveStreaksIndoors_Gfx, (void *)(VRAM + ch), 0x80);
+    DmaFill16(3, 0, (void *)(BG_VRAM + map), 0x800);
     LoadPalette(sFieldMoveStreaksIndoors_Pal, BG_PLTT_ID(15), sizeof(sFieldMoveStreaksIndoors_Pal));
     task->tState++;
 }
@@ -2847,7 +2849,8 @@ static void FieldMoveShowMonIndoorsEffect_End(struct Task *task)
 {
     IntrCallback intrCallback;
     u16 bgCount = GetGpuReg(REG_OFFSET_BG0CNT);
-    DmaFill16(3, 0, (void *)BG_VRAM + (bgCount & 0x1f00), 0x800);
+    u16 map =  bgCount & BG_SCREEN_BASE_MASK;
+    DmaFill16(3, 0, (void *)BG_VRAM + map, 0x800);
     LoadWordFromTwoHalfwords(&task->data[13], &intrCallback);
     SetVBlankCallback(intrCallback);
     InitTextBoxGfxAndPrinters();
