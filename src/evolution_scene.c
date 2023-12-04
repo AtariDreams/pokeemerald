@@ -46,7 +46,7 @@ struct EvoInfo
 };
 
 static EWRAM_DATA struct EvoInfo *sEvoStructPtr = NULL;
-static EWRAM_DATA u16 *sBgAnimPal = NULL;
+static EWRAM_DATA u16 (*sBgAnimPal)[16] = NULL;
 
 extern const struct BgTemplate gBattleBgTemplates[];
 
@@ -555,8 +555,9 @@ static void CreateShedinja(struct Pokemon *mon)
         u32 data = 0;
         u16 data2 = 0;
         u8 data3 = 0;
+        u32 i;
 
-        struct Pokemon &shedinja = gPlayerParty[gPlayerParty.count++];
+        struct Pokemon *shedinja = &gPlayerParty.party[gPlayerParty.count++];
         memcpy(shedinja, mon, sizeof(mon));
 
         u16 species = SPECIES_SHEDINJA;
@@ -1505,13 +1506,13 @@ static void Task_UpdateBgPalette(u8 taskId)
         else
         {
             // Haven't reached final palette in current stage, load the current palette
-            LoadPalette(&sBgAnimPal[tPalStage * 16], BG_PLTT_ID(10), PLTT_SIZE_4BPP);
+            LoadPalette(sBgAnimPal[tPalStage], BG_PLTT_ID(10), PLTT_SIZE_4BPP);
             tCycleTimer = 0;
             tPalStage++;
         }
     }
 
-    if (tControlStage == (int)ARRAY_COUNT(sBgAnim_PaletteControl[0]))
+    if (tControlStage == ARRAY_COUNT(sBgAnim_PaletteControl[0]))
         DestroyTask(taskId);
 }
 
@@ -1575,25 +1576,22 @@ static void Task_AnimateBg(u8 taskId)
 
 #undef tIsLink
 
-static void InitMovingBgPalette(u16 *palette)
+
+static void StartBgAnimation(bool8 isLink)
 {
+    u8 innerBgId, outerBgId;
+
+    sBgAnimPal = Alloc(sizeof(sBgAnimPal));
+
     u32 i, j;
 
     for (i = 0; i < ARRAY_COUNT(sBgAnim_PalIndexes); i++)
     {
         for (j = 0; j < 16; j++)
         {
-            palette[i * 16 + j] = sBgAnim_Pal[sBgAnim_PalIndexes[i][j]];
+            sBgAnimPal[i][j] = sBgAnim_Pal[sBgAnim_PalIndexes[i][j]];
         }
     }
-}
-
-static void StartBgAnimation(bool8 isLink)
-{
-    u8 innerBgId, outerBgId;
-
-    sBgAnimPal = AllocZeroed(0x640);
-    InitMovingBgPalette(sBgAnimPal);
 
     if (!isLink)
         innerBgId = 1, outerBgId = 2;
