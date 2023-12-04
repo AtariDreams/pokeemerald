@@ -11,8 +11,6 @@
 #include "trig.h"
 #include "constants/trainers.h"
 
-static EWRAM_DATA u16 sBgCnt = 0;
-
 extern const u8 gBattleAnimBgCntSet[];
 extern const u8 gBattleAnimBgCntGet[];
 
@@ -38,62 +36,56 @@ static const TaskFunc sBattleIntroSlideFuncs[] =
 
 void SetAnimBgAttribute(u8 bgId, u8 attributeId, u8 value)
 {
-    if (bgId < 4)
+    union BgCntU sBgCnt;
+    sBgCnt.raw = GetGpuReg(gBattleAnimBgCntSet[bgId]);
+    switch (attributeId)
     {
-        sBgCnt = GetGpuReg(gBattleAnimBgCntSet[bgId]);
-        switch (attributeId)
-        {
-        case BG_ANIM_SCREEN_SIZE:
-            ((struct BgCnt *)&sBgCnt)->screenSize = value;
-            break;
-        case BG_ANIM_AREA_OVERFLOW_MODE:
-            ((struct BgCnt *)&sBgCnt)->areaOverflowMode = value;
-            break;
-        case BG_ANIM_MOSAIC:
-            ((struct BgCnt *)&sBgCnt)->mosaic = value;
-            break;
-        case BG_ANIM_CHAR_BASE_BLOCK:
-            ((struct BgCnt *)&sBgCnt)->charBaseBlock = value;
-            break;
-        case BG_ANIM_PRIORITY:
-            ((struct BgCnt *)&sBgCnt)->priority = value;
-            break;
-        case BG_ANIM_PALETTES_MODE:
-            ((struct BgCnt *)&sBgCnt)->palettes = value;
-            break;
-        case BG_ANIM_SCREEN_BASE_BLOCK:
-            ((struct BgCnt *)&sBgCnt)->screenBaseBlock = value;
-            break;
-        }
-
-        SetGpuReg(gBattleAnimBgCntSet[bgId], sBgCnt);
+    case BG_ANIM_SCREEN_SIZE:
+        sBgCnt.bgCnt.screenSize = value;
+        break;
+    case BG_ANIM_AREA_OVERFLOW_MODE:
+        sBgCnt.bgCnt.areaOverflowMode = value;
+        break;
+    case BG_ANIM_MOSAIC:
+        sBgCnt.bgCnt.mosaic = value;
+        break;
+    case BG_ANIM_CHAR_BASE_BLOCK:
+        sBgCnt.bgCnt.charBaseBlock = value;
+        break;
+    case BG_ANIM_PRIORITY:
+        sBgCnt.bgCnt.priority = value;
+        break;
+    case BG_ANIM_PALETTES_MODE:
+        sBgCnt.bgCnt.palettes = value;
+        break;
+    case BG_ANIM_SCREEN_BASE_BLOCK:
+        sBgCnt.bgCnt.screenBaseBlock = value;
+        break;
     }
+
+    SetGpuReg(gBattleAnimBgCntSet[bgId], sBgCnt.raw);
 }
 
-int GetAnimBgAttribute(u8 bgId, u8 attributeId)
+u32 GetAnimBgAttribute(u8 bgId, u8 attributeId)
 {
-    u16 bgCnt;
-
-    if (bgId < 4)
+    union BgCntU bgCnt;
+    bgCnt.raw = GetGpuReg(gBattleAnimBgCntGet[bgId]);
+    switch (attributeId)
     {
-        bgCnt = GetGpuReg(gBattleAnimBgCntGet[bgId]);
-        switch (attributeId)
-        {
-        case BG_ANIM_SCREEN_SIZE:
-            return ((struct BgCnt *)&bgCnt)->screenSize;
-        case BG_ANIM_AREA_OVERFLOW_MODE:
-            return ((struct BgCnt *)&bgCnt)->areaOverflowMode;
-        case BG_ANIM_MOSAIC:
-            return ((struct BgCnt *)&bgCnt)->mosaic;
-        case BG_ANIM_CHAR_BASE_BLOCK:
-            return ((struct BgCnt *)&bgCnt)->charBaseBlock;
-        case BG_ANIM_PRIORITY:
-            return ((struct BgCnt *)&bgCnt)->priority;
-        case BG_ANIM_PALETTES_MODE:
-            return ((struct BgCnt *)&bgCnt)->palettes;
-        case BG_ANIM_SCREEN_BASE_BLOCK:
-            return ((struct BgCnt *)&bgCnt)->screenBaseBlock;
-        }
+    case BG_ANIM_SCREEN_SIZE:
+        return bgCnt.bgCnt.screenSize;
+    case BG_ANIM_AREA_OVERFLOW_MODE:
+        return bgCnt.bgCnt.areaOverflowMode;
+    case BG_ANIM_MOSAIC:
+        return bgCnt.bgCnt.mosaic;
+    case BG_ANIM_CHAR_BASE_BLOCK:
+        return bgCnt.bgCnt.charBaseBlock;
+    case BG_ANIM_PRIORITY:
+        return bgCnt.bgCnt.priority;
+    case BG_ANIM_PALETTES_MODE:
+        return bgCnt.bgCnt.palettes;
+    case BG_ANIM_SCREEN_BASE_BLOCK:
+        return bgCnt.bgCnt.screenBaseBlock;
     }
 
     return 0;
@@ -223,7 +215,7 @@ static void BattleIntroSlide1(u8 taskId)
         {
             gScanlineEffect.state = 3;
             gTasks[taskId].tState++;
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            DmaFill16(3, 0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);
             SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(0) | BGCNT_CHARBASE(0) | BGCNT_16COLOR | BGCNT_SCREENBASE(28) | BGCNT_TXT256x512);
@@ -332,7 +324,7 @@ static void BattleIntroSlide2(u8 taskId)
         {
             gScanlineEffect.state = 3;
             gTasks[taskId].tState++;
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            DmaFill16(3, 0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);
             SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(0) | BGCNT_CHARBASE(0) | BGCNT_16COLOR | BGCNT_SCREENBASE(28) | BGCNT_TXT256x512);
@@ -420,7 +412,7 @@ static void BattleIntroSlide3(u8 taskId)
         {
             gScanlineEffect.state = 3;
             gTasks[taskId].tState++;
-            CpuFill32(0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
+            DmaFill16(3, 0, (void *)BG_SCREEN_ADDR(28), BG_SCREEN_SIZE);
             SetBgAttribute(1, BG_ATTR_CHARBASEINDEX, 0);
             SetBgAttribute(2, BG_ATTR_CHARBASEINDEX, 0);
             SetGpuReg(REG_OFFSET_BG1CNT, BGCNT_PRIORITY(0) | BGCNT_CHARBASE(0) | BGCNT_16COLOR | BGCNT_SCREENBASE(28) | BGCNT_TXT256x512);
@@ -594,8 +586,7 @@ void DrawBattlerOnBg(u8 bgId, u8 x, u8 y, u8 battlerPosition, u8 paletteId, u8 *
     {
         for (j = x; j < x + 8; j++)
         {
-            tilemap[j + i * 32] = offset | (paletteId << 12);
-            offset++;
+            tilemap[j + i * 32] = offset++ | (paletteId << 12);
         }
     }
     LoadBgTilemap(bgId, tilemap, BG_SCREEN_SIZE, 0);
