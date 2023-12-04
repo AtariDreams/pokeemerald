@@ -2748,8 +2748,8 @@ static void VBlankCB_FieldMoveShowMonOutdoors(void)
 static void LoadFieldMoveOutdoorStreaksTilemap(u16 offs)
 {
     u32 i;
-    vu16 *dest;
-    dest = (vu16 *)(VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + offs);
+    u16 *dest;
+    dest = (u16 *)(VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + offs);
     for (i = 0; i < ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap); i++, dest++)
     {
         *dest = sFieldMoveStreaksOutdoors_Tilemap[i] | 0xF000;
@@ -2881,7 +2881,7 @@ static bool8 SlideIndoorBannerOnscreen(struct Task *task)
     u32 i;
     u16 srcOffs;
     u16 dstOffs;
-    vu16 *dest;
+    u16 *dest;
 
     if (task->tBgOffset >= 32)
         return TRUE;
@@ -2891,7 +2891,7 @@ static bool8 SlideIndoorBannerOnscreen(struct Task *task)
     {
         dstOffs = (32 - dstOffs) & 0x1f;
         srcOffs = (32 - task->tBgOffset) & 0x1f;
-        dest = (vu16 *)(BG_VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
+        dest = (u16 *)(BG_VRAM + ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
         for (i = 0; i < 10; i++)
         {
             dest[(i << 5) + dstOffs] = sFieldMoveStreaksIndoors_Tilemap[srcOffs + (i << 5)] | 0xf000;
@@ -2906,7 +2906,7 @@ static bool8 SlideIndoorBannerOffscreen(struct Task *task)
 {
     u32 i;
     u16 dstOffs;
-    vu16 *dest;
+    u16 *dest;
 
     if (task->tBgOffset >= 32)
         return TRUE;
@@ -2915,7 +2915,7 @@ static bool8 SlideIndoorBannerOffscreen(struct Task *task)
     if (dstOffs >= task->tBgOffset)
     {
         dstOffs = (task->tBgHoriz >> 3) & 0x1f;
-        dest = (vu16 *)(BG_VRAM +  ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
+        dest = (u16 *)(BG_VRAM +  ARRAY_COUNT(sFieldMoveStreaksOutdoors_Tilemap) + (u16)task->data[12]);
         for (i = 0; i < 10; i++)
         {
             dest[(i << 5) + dstOffs] = 0xf000;
@@ -3107,15 +3107,15 @@ u8 FldEff_RayquazaSpotlight(void)
     {
         for (j = 12; j < 18; j++)
         {
-            ((vu16 *)(BG_SCREEN_ADDR(31)))[i * 32 + j] = 0xc000 + i * 6 + j - 12 + 1;
+            ((u16 *)(BG_SCREEN_ADDR(31)))[i * 32 + j] = 0xc000 + i * 6 + j - 12 + 1;
         }
     }
     for (k = 0; k < 90; k++)
     {
         for (i = 0; i < 8; i++)
         {
-            *(vu16 *)(BG_CHAR_ADDR(2) + (k + 1) * 32 + i * 4) = (sSpotlight_Gfx[k * 32 + i * 4 + 1] << 8) + sSpotlight_Gfx[k * 32 + i * 4];
-            *(vu16 *)(BG_CHAR_ADDR(2) + (k + 1) * 32 + i * 4 + 2) = (sSpotlight_Gfx[k * 32 + i * 4 + 3] << 8) + sSpotlight_Gfx[k * 32 + i * 4 + 2];
+            *(u16 *)(BG_CHAR_ADDR(2) + (k + 1) * 32 + i * 4) = (sSpotlight_Gfx[k * 32 + i * 4 + 1] << 8) + sSpotlight_Gfx[k * 32 + i * 4];
+            *(u16 *)(BG_CHAR_ADDR(2) + (k + 1) * 32 + i * 4 + 2) = (sSpotlight_Gfx[k * 32 + i * 4 + 3] << 8) + sSpotlight_Gfx[k * 32 + i * 4 + 2];
         }
     }
     return spriteId;
