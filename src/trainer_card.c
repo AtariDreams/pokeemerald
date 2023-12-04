@@ -458,7 +458,7 @@ static void Task_TrainerCard(u8 taskId)
         }
         else if (JOY_NEW(B_BUTTON))
         {
-            if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
+            if (gReceivedRemoteLinkPlayers && sData->isLink)
             {
                 sData->mainState = STATE_WAIT_LINK_PARTNER;
                 return;
@@ -480,7 +480,7 @@ static void Task_TrainerCard(u8 taskId)
     case STATE_HANDLE_INPUT_BACK:
         if (JOY_NEW(B_BUTTON))
         {
-            if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
+            if (gReceivedRemoteLinkPlayers && sData->isLink)
             {
                 sData->mainState = STATE_WAIT_LINK_PARTNER;
             }
@@ -500,7 +500,7 @@ static void Task_TrainerCard(u8 taskId)
         }
         else if (JOY_NEW(A_BUTTON))
         {
-           if (gReceivedRemoteLinkPlayers && sData->isLink && InUnionRoom() == TRUE)
+           if (gReceivedRemoteLinkPlayers && sData->isLink)
            {
                sData->mainState = STATE_WAIT_LINK_PARTNER;
                return;
@@ -1821,10 +1821,7 @@ void ShowPlayerTrainerCard(void (*callback)(void))
     else
         sData->blendColor = RGB_BLACK;
 
-    if (InUnionRoom() == TRUE)
-        sData->isLink = TRUE;
-    else
-        sData->isLink = FALSE;
+    sData->isLink = FALSE;
 
     sData->language = GAME_LANGUAGE;
     TrainerCard_GenerateCardForPlayer(&sData->trainerCard);
@@ -1898,22 +1895,10 @@ static u8 VersionToCardType(u8 version)
 
 static void CreateTrainerCardTrainerPic(void)
 {
-    if (InUnionRoom() == TRUE && gReceivedRemoteLinkPlayers == 1)
-    {
-        CreateTrainerCardTrainerPicSprite(FacilityClassToPicIndex(sData->trainerCard.unionRoomClass),
-                    TRUE,
-                    sTrainerPicOffset[sData->isHoenn][sData->trainerCard.basic.gender][0],
-                    sTrainerPicOffset[sData->isHoenn][sData->trainerCard.basic.gender][1],
-                    8,
-                    WIN_TRAINER_PIC);
-    }
-    else
-    {
-        CreateTrainerCardTrainerPicSprite(FacilityClassToPicIndex(sTrainerPicFacilityClass[sData->cardType][sData->trainerCard.basic.gender]),
-                    TRUE,
-                    sTrainerPicOffset[sData->isHoenn][sData->trainerCard.basic.gender][0],
-                    sTrainerPicOffset[sData->isHoenn][sData->trainerCard.basic.gender][1],
-                    8,
-                    WIN_TRAINER_PIC);
-    }
+    CreateTrainerCardTrainerPicSprite(FacilityClassToPicIndex(sTrainerPicFacilityClass[sData->cardType][sData->trainerCard.basic.gender]),
+                                      TRUE,
+                                      sTrainerPicOffset[sData->isHoenn][sData->trainerCard.basic.gender][0],
+                                      sTrainerPicOffset[sData->isHoenn][sData->trainerCard.basic.gender][1],
+                                      8,
+                                      WIN_TRAINER_PIC);
 }

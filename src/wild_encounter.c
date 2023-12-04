@@ -835,7 +835,7 @@ bool8 UpdateRepelCounter(void)
 {
     u16 steps;
 
-    if (InBattlePike() || InBattlePyramid() || InUnionRoom())
+    if (InBattlePike() || InBattlePyramid())
         return FALSE;
 
     steps = VarGet(VAR_REPEL_STEP_COUNT);

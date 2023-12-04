@@ -4693,8 +4693,7 @@ static void CB2_SaveAndEndTrade(void)
         DrawTextOnTradeWindow(0, gStringVar4, 0);
         break;
     case 50:
-        if (!InUnionRoom())
-            IncrementGameStat(GAME_STAT_POKEMON_TRADES);
+        IncrementGameStat(GAME_STAT_POKEMON_TRADES);
         if (gWirelessCommType)
             MysteryGift_TryIncrementStat(CARD_STAT_NUM_TRADES, gLinkPlayers[GetMultiplayerId() ^ 1].trainerId);
 

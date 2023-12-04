@@ -280,9 +280,8 @@ bool8 IsHoldingItemAllowed(u16 itemId)
 {
     // Enigma Berry can't be held in link areas
     if (itemId == ITEM_ENIGMA_BERRY
-     && ((gSaveBlock1.location.mapGroup == MAP_GROUP(TRADE_CENTER)
-       && gSaveBlock1.location.mapNum == MAP_NUM(TRADE_CENTER))
-       || InUnionRoom() == TRUE))
+     && (gSaveBlock1.location.mapGroup == MAP_GROUP(TRADE_CENTER)
+       && gSaveBlock1.location.mapNum == MAP_NUM(TRADE_CENTER)))
         return FALSE;
     else
         return TRUE;
@@ -290,7 +289,7 @@ bool8 IsHoldingItemAllowed(u16 itemId)
 
 bool8 IsWritingMailAllowed(u16 itemId)
 {
-    if ((IsOverworldLinkActive() == TRUE || InUnionRoom() == TRUE) && ItemIsMail(itemId) == TRUE)
+    if ((IsOverworldLinkActive() == TRUE) && ItemIsMail(itemId) == TRUE)
         return FALSE;
     else
         return TRUE;

@@ -281,10 +281,6 @@ static void BuildStartMenuActions(void)
     {
         BuildLinkModeStartMenu();
     }
-    else if (InUnionRoom() == TRUE)
-    {
-        BuildUnionRoomStartMenu();
-    }
     else if (GetSafariZoneFlag() == TRUE)
     {
         BuildSafariZoneStartMenu();
@@ -565,9 +561,6 @@ void Task_ShowStartMenu(u8 taskId)
     switch(task->data[0])
     {
     case 0:
-        if (InUnionRoom() == TRUE)
-            SetUsingUnionRoomStartMenu();
-
         gMenuCallback = HandleStartMenuInput;
         task->data[0]++;
         break;
@@ -711,7 +704,7 @@ static bool8 StartMenuPlayerNameCallback(void)
         RemoveExtraStartMenuWindows();
         CleanupOverworldWindowsAndTilemaps();
 
-        if (IsOverworldLinkActive() || InUnionRoom())
+        if (IsOverworldLinkActive())
             ShowPlayerTrainerCard(CB2_ReturnToFieldWithOpenMenu); // Display trainer card
         else if (FlagGet(FLAG_SYS_FRONTIER_PASS))
             ShowFrontierPass(CB2_ReturnToFieldWithOpenMenu); // Display frontier pass
@@ -1273,34 +1266,21 @@ static void Task_SaveAfterLinkBattle(u8 taskId)
         case 0:
             FillWindowPixelBuffer(0, PIXEL_FILL(1));
             AddTextPrinterParameterized2(0,
-                                        FONT_NORMAL,
-                                        gText_SavingDontTurnOffPower,
-                                        TEXT_SKIP_DRAW,
-                                        NULL,
-                                        TEXT_COLOR_DARK_GRAY,
-                                        TEXT_COLOR_WHITE,
-                                        TEXT_COLOR_LIGHT_GRAY);
+                                         FONT_NORMAL,
+                                         gText_SavingDontTurnOffPower,
+                                         TEXT_SKIP_DRAW,
+                                         NULL,
+                                         TEXT_COLOR_DARK_GRAY,
+                                         TEXT_COLOR_WHITE,
+                                         TEXT_COLOR_LIGHT_GRAY);
             DrawTextBorderOuter(0, 8, 14);
             PutWindowTilemap(0);
             CopyWindowToVram(0, COPYWIN_FULL);
             BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
 
-            if (gWirelessCommType != 0 && InUnionRoom())
-            {
-                if (Link_AnyPartnersPlayingFRLG_JP())
-                {
-                    *state = 1;
-                }
-                else
-                {
-                    *state = 5;
-                }
-            }
-            else
-            {
-                gSoftResetDisabled = TRUE;
-                *state = 1;
-            }
+            gSoftResetDisabled = TRUE;
+            *state = 1;
+
             break;
         case 1:
             SetContinueGameWarpStatusToDynamicWarp();
