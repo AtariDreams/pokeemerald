@@ -561,6 +561,9 @@ static void CreateShedinja(struct Pokemon *mon)
 
         u16 species = SPECIES_SHEDINJA;
         SetMonData(shedinja, MON_DATA_SPECIES, &species);
+
+        u16 ball = ITEM_POKE_BALL;
+        SetMonData(shedinja, MON_DATA_POKEBALL, &ball);
     
         SetMonData(shedinja, MON_DATA_NICKNAME, gSpeciesNames[SPECIES_SHEDINJA]);
         SetMonData(shedinja, MON_DATA_HELD_ITEM, &data2);
@@ -577,12 +580,7 @@ static void CreateShedinja(struct Pokemon *mon)
         data2 = MAIL_NONE;
         SetMonData(shedinja, MON_DATA_MAIL, &data2);
 
-        data3 = ITEM_POKE_BALL;
-        SetMonData(shedinja, MON_DATA_MAIL, &data3);
-
         CalculateMonStats(shedinja);
-
-        GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_SHEDINJA), FLAG_SET_SEEN);
         GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_SHEDINJA), FLAG_SET_CAUGHT);
     }
 }
