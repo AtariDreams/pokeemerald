@@ -4199,7 +4199,7 @@ static bool8 FrontierSquaresScroll_Draw(struct Task *task)
                                   15, 0, 0);
     CopyBgTilemapBufferToVram(0);
 
-    if (++task->tSquareNum >= (int)ARRAY_COUNT(sFrontierSquaresScroll_Positions))
+    if (++task->tSquareNum >= ARRAY_COUNT(sFrontierSquaresScroll_Positions))
         task->tState++;
     return 0;
 }
