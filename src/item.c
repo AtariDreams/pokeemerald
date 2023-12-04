@@ -117,7 +117,7 @@ bool8 HasAtLeastOneBerry(void)
 
     for (i = FIRST_BERRY_INDEX; i < ITEM_BRIGHT_POWDER; i++)
     {
-        if (CheckBagHasItem(i, 1) == TRUE)
+        if (CheckBagHasItem(i, 1))
         {
             gSpecialVar_Result = TRUE;
             return TRUE;

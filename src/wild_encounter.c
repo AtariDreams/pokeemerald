@@ -14,6 +14,7 @@
 #include "tv.h"
 #include "link.h"
 #include "script.h"
+#include "item.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
 #include "constants/abilities.h"
@@ -23,6 +24,7 @@
 #include "constants/weather.h"
 
 extern const u8 EventScript_RepelWoreOff[];
+extern const u8 EventScript_RepelWoreOffAskForMore[];
 
 #define MAX_ENCOUNTER_RATE 2880
 
@@ -846,8 +848,13 @@ bool8 UpdateRepelCounter(void)
         VarSet(VAR_REPEL_STEP_COUNT, steps);
         if (steps == 0)
         {
+            u16 repelId = VarGet(VAR_REPEL_LAST_USED);
+            if (CheckBagHasItem(repelId, 1))
+            {
+                ScriptContext_SetupScript(EventScript_RepelWoreOffAskForMore);
+                return TRUE;
+            }
             ScriptContext_SetupScript(EventScript_RepelWoreOff);
-            // TODO: check for more repels
             return TRUE;
         }
     }

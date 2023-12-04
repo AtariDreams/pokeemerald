@@ -4254,6 +4254,14 @@ void SetPlayerGotFirstFans(void)
     SET_TRAINER_FAN_CLUB_FLAG(FANCLUB_GOT_FIRST_FANS);
 }
 
+void UseRepelAgain(void)
+{
+    u16 item = VarGet(VAR_REPEL_LAST_USED);
+    RemoveBagItem(item, 1);
+    PlaySE(SE_REPEL);
+    VarSet(VAR_REPEL_STEP_COUNT, ItemId_GetHoldEffectParam(item));
+}
+
 // return value is always ignored
 u8 Script_TryGainNewFanFromCounter(void)
 {
