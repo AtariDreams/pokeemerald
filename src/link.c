@@ -235,17 +235,6 @@ static const u8 sTextColors[] = { TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE, TEXT
 
 bool8 IsWirelessAdapterConnected(void)
 {
-    SetWirelessCommType1();
-    InitRFUAPI();
-    if (rfu_LMAN_REQBN_softReset_and_checkID() == RFU_ID)
-    {
-        rfu_REQ_stopMode();
-        rfu_waitREQComplete();
-        return TRUE;
-    }
-    SetWirelessCommType0_Internal();
-    CloseLink();
-    RestoreSerialTimer3IntrHandlers();
     return FALSE;
 }
 

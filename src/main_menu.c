@@ -633,8 +633,6 @@ static void Task_MainMenuCheckSaveFile(u8 taskId)
     SetGpuReg(REG_OFFSET_BLDALPHA, 0);
     SetGpuReg(REG_OFFSET_BLDY, 7);
 
-    if (IsWirelessAdapterConnected())
-        tWirelessAdapterConnected = TRUE;
     switch (gSaveFileStatus)
     {
     case SAVE_STATUS_OK:
@@ -895,7 +893,7 @@ static void Task_HandleMainMenuAPressed(u8 taskId)
     ClearStdWindowAndFrame(5, TRUE);
     ClearStdWindowAndFrame(6, TRUE);
     ClearStdWindowAndFrame(7, TRUE);
-    wirelessAdapterConnected = IsWirelessAdapterConnected();
+    wirelessAdapterConnected = FALSE;
 
     if (gTasks[taskId].tMenuType == HAS_SAVED_GAME)
     {
