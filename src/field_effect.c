@@ -2876,7 +2876,7 @@ static void AnimateIndoorShowMonBg(struct Task *task)
 static bool8 SlideIndoorBannerOnscreen(struct Task *task)
 {
     u32 i;
-    u16 srccOffs;
+    u16 srcOffs;
     u16 dstOffs;
     vu16 *dest;
 
@@ -3325,7 +3325,7 @@ static void StartFlyBirdSwoopDown(u8 spriteId)
     sprite->y = 0;
     sprite->x2 = 0;
     sprite->y2 = 0;
-    memset(&sprite->data[0], 0, sizeof(sprite->data) /* zero all data cells */);
+    memset(&sprite->data[0], 0, 16 /* zero some data cells */); // TODO: zero them all?
     sprite->sPlayerSpriteId = MAX_SPRITES;
 }
 
@@ -3801,12 +3801,12 @@ static void CreateDeoxysRockFragments(struct Sprite *sprite)
 
     for (i = 0; i < 4; i++)
     {
-        struct Sprite *sprite = CreateSpriteReturnPointer(&sSpriteTemplate_DeoxysRockFragment, xPos, yPos, 0);
-        if (sprite != NULL)
+        struct Sprite *sprite2 = CreateSpriteReturnPointer(&sSpriteTemplate_DeoxysRockFragment, xPos, yPos, 0);
+        if (sprite2 != NULL)
         {
-            StartSpriteAnim(sprite, i);
-            sprite->data[0] = i;
-            sprite->oam.paletteNum = sprite->oam.paletteNum;
+            StartSpriteAnim(sprite2, i);
+            sprite2->data[0] = i;
+            sprite2->oam.paletteNum = sprite->oam.paletteNum;
         }
     }
 }
