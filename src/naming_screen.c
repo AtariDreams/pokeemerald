@@ -396,6 +396,7 @@ void DoNamingScreen(u8 templateNum, u8 *destBuffer, u16 monSpecies, u16 monGende
     if (!sNamingScreen)
     {
         SetMainCallback2(returnCallback);
+        return;
     }
     else
     {
@@ -407,7 +408,7 @@ void DoNamingScreen(u8 templateNum, u8 *destBuffer, u16 monSpecies, u16 monGende
         sNamingScreen->returnCallback = returnCallback;
 
         if (templateNum == NAMING_SCREEN_PLAYER)
-            StartTimer1();
+            REG_TM1CNT_H = 0x80;
 
         SetMainCallback2(CB2_LoadNamingScreen);
     }
