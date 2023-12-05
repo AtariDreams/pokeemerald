@@ -136,27 +136,33 @@ _Noreturn void AgbMain(void)
         ReadKeys();
         if (!gMain.inBattle || !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
             Random();
-        
-        if (Overworld_SendKeysToLinkIsRunning())
-        {
-            gLinkTransferringData = TRUE;
-            UpdateLinkAndCallCallbacks();
-            gLinkTransferringData = FALSE;
-        }
-        else
-        {
-            gLinkTransferringData = FALSE;
-            UpdateLinkAndCallCallbacks();
 
-            if (Overworld_RecvKeysFromLinkIsRunning())
-            {
-                gMain.newKeys = 0;
-                ClearSpriteCopyRequests();
-                gLinkTransferringData = TRUE;
-                UpdateLinkAndCallCallbacks();
-                gLinkTransferringData = FALSE;
-            }
-        }
+        if (gMain.callback1)
+            gMain.callback1();
+
+        if (gMain.callback2)
+            gMain.callback2();
+        
+        // if (Overworld_SendKeysToLinkIsRunning())
+        // {
+        //     gLinkTransferringData = TRUE;
+        //     UpdateLinkAndCallCallbacks();
+        //     gLinkTransferringData = FALSE;
+        // }
+        // else
+        // {
+        //     gLinkTransferringData = FALSE;
+        //     UpdateLinkAndCallCallbacks();
+
+        //     if (Overworld_RecvKeysFromLinkIsRunning())
+        //     {
+        //         gMain.newKeys = 0;
+        //         ClearSpriteCopyRequests();
+        //         gLinkTransferringData = TRUE;
+        //         UpdateLinkAndCallCallbacks();
+        //         gLinkTransferringData = FALSE;
+        //     }
+        // }
 
         PlayTimeCounter_Update();
         MapMusicMain();
