@@ -685,7 +685,7 @@ static void BuildSendCmd(u16 command)
             gSendCmd[0] = LINKCMD_DUMMY_2;
             break;
         case LINKCMD_SEND_HELD_KEYS:
-            if (gHeldKeyCodeToSend == 0 || gLinkTransferringData)
+            if (gHeldKeyCodeToSend == 0)
                 break;
 
             gSendCmd[0] = LINKCMD_SEND_HELD_KEYS;
