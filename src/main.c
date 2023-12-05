@@ -111,7 +111,7 @@ _Noreturn void AgbMain(void)
    // InitMapMusic();
     // ClearDma3Requests();
     ResetBgs();
-    InitHeap(gHeap, HEAP_SIZE);
+    InitHeap();
 
     // TODO: redundant?
     // gTrainerHillVBlankCounter = NULL;

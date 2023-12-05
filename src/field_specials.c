@@ -18,6 +18,7 @@
 #include "field_weather.h"
 #include "graphics.h"
 #include "international_string_util.h"
+#include "item.h"
 #include "item_icon.h"
 #include "link.h"
 #include "list_menu.h"
