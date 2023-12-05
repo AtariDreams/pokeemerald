@@ -60,7 +60,6 @@ void SetSerialCallback(IntrCallback callback);
 void InitFlashTimer(void);
 void DoSoftReset(void);
 void RestoreSerialTimer3IntrHandlers(void);
-void StartTimer1(void);
 void SeedRngAndSetTrainerId(void);
 u16 GetGeneratedTrainerIdLower(void);
 
