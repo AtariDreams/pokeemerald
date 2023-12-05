@@ -582,7 +582,7 @@ const u8 * const gStatusConditionStringsTable[][2] =
 
 void CB2_InitBattle(void)
 {
-    InitHeap(gHeap, HEAP_SIZE); // Needs to be here to avoid glitches
+    InitHeap(); // Needs to be here to avoid glitches. TODO: revisit this
     AllocateBattleResources();
     AllocateBattleSpritesData();
     AllocateMonSpritesGfx();
