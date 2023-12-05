@@ -1034,8 +1034,7 @@ static u8 LoadLinkPlayerIds(const u8 *ids)
 static void SendKeysToRfu(void)
 {
     if (gReceivedRemoteLinkPlayers
-        && gHeldKeyCodeToSend != LINK_KEY_CODE_NULL
-        && gLinkTransferringData != TRUE)
+        && gHeldKeyCodeToSend != LINK_KEY_CODE_NULL)
     {
         sHeldKeyCount++;
         gHeldKeyCodeToSend |= (sHeldKeyCount << 8);

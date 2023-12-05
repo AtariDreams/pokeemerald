@@ -55,7 +55,6 @@ const IntrFunc gIntrTableTemplate[] =
 #define INTR_COUNT ((sizeof(gIntrTableTemplate)/sizeof(IntrFunc)))
 
 u16 gKeyRepeatStartDelay;
-bool8 gLinkTransferringData;
 struct Main gMain;
 u16 gKeyRepeatContinueDelay;
 bool8 gSoftResetDisabled;
