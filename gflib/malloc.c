@@ -51,7 +51,7 @@ void* Alloc (u32 nbytes)
   Header*   p, *prevp;
   u32  nunits;
 
-  nunits = (nbytes+sizeof(Header)-1)/sizeof(Header) + 1;
+  nunits = (nbytes+sizeof(Header)-1)/sizeof(Header) + 2;
 
   if ((prevp = freep) == NULL)           /* no free list yet */
   {
@@ -188,7 +188,8 @@ void *AllocZeroed(u32 size)
     void *mem = Alloc(size);
 
     if (mem != NULL) {
-        memset(mem, 0, size);
+        size = (size + 7) & ~7;
+        DmaClear32(3, mem, size);
     }
 
     return mem;
