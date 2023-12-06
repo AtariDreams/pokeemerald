@@ -18,7 +18,7 @@ static u32 current_break = 0; // Some global variable for your application.
 
 static Header *incbreak(u32 incr)
 {
-        if ((current_break + incr) <= (HEAP_SIZE / sizeof(Header)))
+        if ((current_break + incr) < (HEAP_SIZE / sizeof(Header)))
         {
                 Header *ret = base + current_break;
                 current_break += incr;
@@ -55,7 +55,7 @@ void* Alloc (u32 nbytes)
   if ((prevp = freep) == NULL)           /* no free list yet */
   {
     base->ptr = prevp = freep = base;
-    base->size = current_break = 0;
+    base->size = 0;
   }
 
   for (p = prevp->ptr; ; prevp = p, p = p->ptr)
@@ -104,15 +104,21 @@ void Free(void *ap) {
 void InitHeap(void)
 {
     freep = NULL;
+    current_break = 0;
 }
 
 void *AllocZeroed(u32 size)
 {
     void *mem = Alloc(size);
 
+    // do not touch the hyper optimized code
     if (mem != NULL) {
-        size = (size + 3) & ~3;
-        DmaClear32(3, mem, size);
+        vu32 tmp = 0;
+        CpuSet((void *)&tmp, mem, 0x04000000 | 0x01000000 | ((size + 3)/4));
+        //size = (size + 7) & ~7;
+        //CpuFill32(0, mem, size + 3);
+        //memset(mem, 0, size);
+       // DmaClear32(3, mem, size);
     }
 
     return mem;
