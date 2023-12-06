@@ -18,7 +18,7 @@ static u32 current_break = 0; // Some global variable for your application.
 
 static Header *incbreak(u32 incr)
 {
-        if ((current_break + incr) < (HEAP_SIZE / sizeof(Header)))
+        if (__builtin_expect_with_probability(current_break + incr < (HEAP_SIZE / sizeof(Header)), 1, 0.9999999999999))
         {
                 Header *ret = base + current_break;
                 current_break += incr;
@@ -33,7 +33,7 @@ static Header *morecore(u32 nu)
         nu = 1024;
     Header *cp;
     cp = incbreak(nu);
-    if (cp == NULL)  /* no space at all */
+    if (__builtin_expect_with_probability(cp == NULL, 0, 0.99999999999999999))
         return NULL;
     /* make the new block point to the start of the free list */
     cp->ptr = freep->ptr; 
@@ -75,9 +75,11 @@ void* Alloc (u32 nbytes)
       return (void *)(p->d);
     }
 
-    if (p == freep)                      /* wrapped around free list */
-        if ((p = morecore(nunits)) == NULL)
+    if (p == freep) {
+        p = morecore(nunits);
+        if (__builtin_expect_with_probability(p == NULL, 0, 0.99999999999999999))
                 return NULL;                     /* none left */
+    }
   }
 }
 
@@ -112,7 +114,7 @@ void *AllocZeroed(u32 size)
     void *mem = Alloc(size);
 
     // do not touch the hyper optimized code
-    if (mem != NULL) {
+    if (__builtin_expect_with_probability(mem != NULL, 1, 0.99999999999999)) {
         vu32 tmp = 0;
         CpuSet((void *)&tmp, mem, 0x04000000 | 0x01000000 | ((size + 3)/4));
         //size = (size + 7) & ~7;
