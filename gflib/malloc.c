@@ -55,7 +55,7 @@ void* Alloc (u32 nbytes)
   if ((prevp = freep) == NULL)           /* no free list yet */
   {
     base->ptr = prevp = freep = base;
-    base->size = 0;
+    base->size = current_break = 0;
   }
 
   for (p = prevp->ptr; ; prevp = p, p = p->ptr)
@@ -81,81 +81,6 @@ void* Alloc (u32 nbytes)
   }
 }
 
-// {
-//     asm_unified("\
-//         push    {r4, r5, r6, r7, lr}\n\
-//         sub     sp, #4\n\
-//         ldr     r1, =freep\n\
-//         str     r1, [sp]\n\
-//         ldr     r2, [r1]\n\
-//         movs    r3, r0\n\
-//         subs    r3, #8\n\
-//         movs    r1, #1\n\
-//         movs    r6, #0\n\
-// .LBB1_1:\n\
-//         movs    r4, r2\n\
-//         ldr     r2, [r2]\n\
-//         cmp     r3, r4\n\
-//         bls     .LBB1_3\n\
-//         cmp     r3, r2\n\
-//         blo     .LBB1_9\n\
-// .LBB1_3:\n\
-//         cmp     r3, r2\n\
-//         push    {r1}\n\
-//         pop     {r7}\n\
-//         bhs     .LBB1_6\n\
-//         cmp     r3, r4\n\
-//         push    {r1}\n\
-//         pop     {r5}\n\
-//         bls     .LBB1_7\n\
-// .LBB1_5:\n\
-//         cmp     r4, r2\n\
-//         bhs     .LBB1_8\n\
-//         b       .LBB1_1\n\
-// .LBB1_6:\n\
-//         movs    r7, r6\n\
-//         cmp     r3, r4\n\
-//         push    {r1}\n\
-//         pop     {r5}\n\
-//         bhi     .LBB1_5\n\
-// .LBB1_7:\n\
-//         movs    r5, r6\n\
-//         cmp     r4, r2\n\
-//         blo     .LBB1_1\n\
-// .LBB1_8:\n\
-//         orrs    r5, r7\n\
-//         beq     .LBB1_1\n\
-// .LBB1_9:\n\
-//         subs    r1, r0, #4\n\
-//         ldr     r0, [r1]\n\
-//         lsls    r5, r0, #3\n\
-//         adds    r5, r3, r5\n\
-//         cmp     r5, r2\n\
-//         bne     .LBB1_11\n\
-//         ldr     r5, [r2, #4]\n\
-//         adds    r0, r5, r0\n\
-//         str     r0, [r1]\n\
-//         ldr     r2, [r2]\n\
-// .LBB1_11:\n\
-//         str     r2, [r3]\n\
-//         ldr     r1, [r4, #4]\n\
-//         lsls    r5, r1, #3\n\
-//         adds    r5, r4, r5\n\
-//         cmp     r5, r3\n\
-//         bne     .LBB1_13\n\
-//         adds    r0, r0, r1\n\
-//         str     r0, [r4, #4]\n\
-//         movs    r3, r2\n\
-// .LBB1_13:\n\
-//         str     r3, [r4]\n\
-//         ldr     r0, [sp]\n\
-//         str     r4, [r0]\n\
-//         add     sp, #4\n\
-//         pop     {r4, r5, r6, r7}\n\
-//         pop     {r0}\n\
-//         bx      r0\n");
-// }
-/* free: put block ap in free list */
 void Free(void *ap) {
   Header *bp, *p;
   bp = (Header *)ap - 1; /* point to block header */
@@ -179,7 +104,6 @@ void Free(void *ap) {
 void InitHeap(void)
 {
     freep = NULL;
-    current_break = 0; 
 }
 
 void *AllocZeroed(u32 size)
@@ -193,79 +117,6 @@ void *AllocZeroed(u32 size)
 
     return mem;
 }
-
-
-
-// NAKED void *AllocZeroed(u32 size)
-// {
-//     asm_unified("\
-//         push    {r4, r5, r6, r7, lr}\n\
-//         sub     sp, #4\n\
-//         ldr     r2, =freep\n\
-//         ldr     r3, [r2]\n\
-//         subs    r1, r0, #1\n\
-//         lsrs    r1, r1, #3\n\
-//         cmp     r3, #0\n\
-//         bne     .LBB3_2\n\
-//         ldr     r3, =gHeap\n\
-//         str     r3, [r2]\n\
-//         movs    r4, #7\n\
-//         lsls    r4, r4, #11\n\
-//         str     r3, [r3]\n\
-//         str     r4, [r3, #4]\n\
-// .LBB3_2:\n\
-//         adds    r5, r1, #2\n\
-//         movs    r6, #0\n\
-//         movs    r4, r3\n\
-// .LBB3_3:                                @ =>This Inner Loop Header: Depth=1\n\
-//         ldr     r1, [r4]\n\
-//         ldr     r7, [r1, #4]\n\
-//         cmp     r7, r5\n\
-//         bhs     .LBB3_6\n\
-//         cmp     r1, r3\n\
-//         push    {r1}\n\
-//         pop     {r4}\n\
-//         bne     .LBB3_3\n\
-//         movs    r1, r6\n\
-//         b       .LBB3_10\n\
-// .LBB3_6:\n\
-//         bne     .LBB3_8\n\
-//         ldr     r3, [r1]\n\
-//         str     r3, [r4]\n\
-//         b       .LBB3_9\n\
-// .LBB3_8:\n\
-//         subs    r3, r7, r5\n\
-//         str     r3, [r1, #4]\n\
-//         lsls    r3, r3, #3\n\
-//         adds    r1, r1, r3\n\
-//         str     r5, [r1, #4]\n\
-// .LBB3_9:\n\
-//         str     r4, [r2]\n\
-//         movs    r2, #0\n\
-//         str     r2, [sp]\n\
-//         ldr     r2, =67109084 @DMA Setting. Do not mess with this\n\
-//         movs    r3, r2\n\
-//         subs    r3, #8\n\
-//         mov     r4, sp\n\
-//         str     r4, [r3]\n\
-//         subs    r3, r2, #4\n\
-//         adds    r1, #8\n\
-//         str     r1, [r3]\n\
-//         movs    r3, #133\n\
-//         lsls    r3, r3, #24\n\
-//         adds    r0, r0, #7\n\
-//         lsrs    r0, r0, #3\n\
-//         lsls    r0, r0, #1\n\
-//         orrs    r0, r3\n\
-//         str     r0, [r2]\n\
-//         ldr     r0, [r2]\n\
-// .LBB3_10:\n\
-//         movs    r0, r1\n\
-//         add     sp, #4\n\
-//         pop     {r4, r5, r6, r7}\n\
-//         pop     {r1}\n\
-//         bx      r1\n");
-// }
 
 /* realloc: resize block of memory */
 // void *realloc(void *ptr, size_t new_size) {
