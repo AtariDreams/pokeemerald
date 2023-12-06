@@ -50,7 +50,7 @@ void* Alloc (u32 nbytes)
   Header*   p, *prevp;
   u32  nunits;
 
-  nunits = (nbytes+sizeof(Header)-1)/sizeof(Header) + 2;
+  nunits = (nbytes+sizeof(Header)-1)/sizeof(Header) + 1;
 
   if ((prevp = freep) == NULL)           /* no free list yet */
   {
