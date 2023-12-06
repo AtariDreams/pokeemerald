@@ -31,16 +31,15 @@ static Header *morecore(u32 nu)
 {
     if (nu < 1024)
         nu = 1024;
-    Header *cp, *up;
+    Header *cp;
     cp = incbreak(nu);
     if (cp == NULL)  /* no space at all */
         return NULL;
-    up = freep; /* remember the old tail of the free list */
     /* make the new block point to the start of the free list */
     cp->ptr = freep->ptr; 
     cp->size = nu;
     /* make the old tail of the free list point to the new block */
-    up->ptr = cp; 
+    freep->ptr = cp; 
     freep = cp; /* the new block is now the tail of the free list */
     return freep;
 }
