@@ -187,7 +187,7 @@ void *AllocZeroed(u32 size)
     void *mem = Alloc(size);
 
     if (mem != NULL) {
-        size = (size + 7) & ~7;
+        size = (size + 3) & ~3;
         DmaClear32(3, mem, size);
     }
 
