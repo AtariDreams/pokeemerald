@@ -2165,23 +2165,17 @@ void RemoveMonFromParty(u32 index)
 
 void ZeroPlayerPartyMons(void)
 {
-    memset(gPlayerParty, 0, sizeof(gPlayerParty));
+    memset(&gPlayerParty, 0, sizeof(gPlayerParty));
 }
 
 void ZeroEnemyPartyMons(void)
 {
-    memset(gEnemyParty, 0, sizeof(gEnemyParty));
+    memset(&gEnemyParty, 0, sizeof(gEnemyParty));
 }
 
 void CreateMonDefault(struct Pokemon *mon, u16 species, u8 level)
 {
-    CreateMon(mon, species, level, USE_RANDOM_IVS);
-    CreateBoxMonDefault(&mon->box, species, level);
-}
-
-void CreateBoxMonDefault(struct BoxPokemon *mon, u16 species, u8 level)
-{
-    CreateBoxMon(mon, species, USE_RANDOM_IVS, OT_ID_PLAYER_ID)
+    CreateMon(mon, species, level, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
 }
 
 void CreateMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
