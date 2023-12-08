@@ -220,44 +220,6 @@ const u32 gItemIconPalette_Nugget[] = INCBIN_U32("graphics/items/icon_palettes/n
 const u32 gItemIcon_HeartScale[] = INCBIN_U32("graphics/items/icons/heart_scale.4bpp.lz");
 const u32 gItemIconPalette_HeartScale[] = INCBIN_U32("graphics/items/icon_palettes/heart_scale.gbapal.lz");
 
-// Mail
-
-const u32 gItemIcon_OrangeMail[] = INCBIN_U32("graphics/items/icons/orange_mail.4bpp.lz");
-const u32 gItemIconPalette_OrangeMail[] = INCBIN_U32("graphics/items/icon_palettes/orange_mail.gbapal.lz");
-
-const u32 gItemIcon_HarborMail[] = INCBIN_U32("graphics/items/icons/harbor_mail.4bpp.lz");
-const u32 gItemIconPalette_HarborMail[] = INCBIN_U32("graphics/items/icon_palettes/harbor_mail.gbapal.lz");
-
-const u32 gItemIcon_GlitterMail[] = INCBIN_U32("graphics/items/icons/glitter_mail.4bpp.lz");
-const u32 gItemIconPalette_GlitterMail[] = INCBIN_U32("graphics/items/icon_palettes/glitter_mail.gbapal.lz");
-
-const u32 gItemIcon_MechMail[] = INCBIN_U32("graphics/items/icons/mech_mail.4bpp.lz");
-const u32 gItemIconPalette_MechMail[] = INCBIN_U32("graphics/items/icon_palettes/mech_mail.gbapal.lz");
-
-const u32 gItemIcon_WoodMail[] = INCBIN_U32("graphics/items/icons/wood_mail.4bpp.lz");
-const u32 gItemIconPalette_WoodMail[] = INCBIN_U32("graphics/items/icon_palettes/wood_mail.gbapal.lz");
-
-const u32 gItemIcon_WaveMail[] = INCBIN_U32("graphics/items/icons/wave_mail.4bpp.lz");
-const u32 gItemIconPalette_WaveMail[] = INCBIN_U32("graphics/items/icon_palettes/wave_mail.gbapal.lz");
-
-const u32 gItemIcon_BeadMail[] = INCBIN_U32("graphics/items/icons/bead_mail.4bpp.lz");
-const u32 gItemIconPalette_BeadMail[] = INCBIN_U32("graphics/items/icon_palettes/bead_mail.gbapal.lz");
-
-const u32 gItemIcon_ShadowMail[] = INCBIN_U32("graphics/items/icons/shadow_mail.4bpp.lz");
-const u32 gItemIconPalette_ShadowMail[] = INCBIN_U32("graphics/items/icon_palettes/shadow_mail.gbapal.lz");
-
-const u32 gItemIcon_TropicMail[] = INCBIN_U32("graphics/items/icons/tropic_mail.4bpp.lz");
-const u32 gItemIconPalette_TropicMail[] = INCBIN_U32("graphics/items/icon_palettes/tropic_mail.gbapal.lz");
-
-const u32 gItemIcon_DreamMail[] = INCBIN_U32("graphics/items/icons/dream_mail.4bpp.lz");
-const u32 gItemIconPalette_DreamMail[] = INCBIN_U32("graphics/items/icon_palettes/dream_mail.gbapal.lz");
-
-const u32 gItemIcon_FabMail[] = INCBIN_U32("graphics/items/icons/fab_mail.4bpp.lz");
-const u32 gItemIconPalette_FabMail[] = INCBIN_U32("graphics/items/icon_palettes/fab_mail.gbapal.lz");
-
-const u32 gItemIcon_RetroMail[] = INCBIN_U32("graphics/items/icons/retro_mail.4bpp.lz");
-const u32 gItemIconPalette_RetroMail[] = INCBIN_U32("graphics/items/icon_palettes/retro_mail.gbapal.lz");
-
 // Berries
 
 const u32 gItemIcon_CheriBerry[] = INCBIN_U32("graphics/items/icons/cheri_berry.4bpp.lz");

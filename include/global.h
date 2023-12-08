@@ -754,28 +754,9 @@ struct ContestWinner
     //u8 padding;
 };
 
-struct Mail
-{
-    /*0x00*/ u16 words[MAIL_WORDS_COUNT];
-    /*0x12*/ u8 playerName[PLAYER_NAME_LENGTH + 1];
-    /*0x1A*/ u8 trainerId[TRAINER_ID_LENGTH];
-    /*0x1E*/ u16 species;
-    /*0x20*/ u16 itemId;
-};
-
-struct DaycareMail
-{
-    struct Mail message;
-    u8 otName[PLAYER_NAME_LENGTH + 1];
-    u8 monName[POKEMON_NAME_LENGTH + 1];
-    u8 gameLanguage:4;
-    u8 monLanguage:4;
-};
-
 struct DaycareMon
 {
     struct BoxPokemon mon;
-    struct DaycareMail mail;
     u32 steps;
 };
 
@@ -1043,7 +1024,6 @@ struct SaveBlock1
     /*0x2BBC*/ u16 easyChatBattleStart[EASY_CHAT_BATTLE_WORDS_COUNT];
     /*0x2BC8*/ u16 easyChatBattleWon[EASY_CHAT_BATTLE_WORDS_COUNT];
     /*0x2BD4*/ u16 easyChatBattleLost[EASY_CHAT_BATTLE_WORDS_COUNT];
-    /*0x2BE0*/ struct Mail mail[MAIL_COUNT];
     /*0x2E20*/ u8 unlockedTrendySayings[NUM_TRENDY_SAYING_BYTES]; // Bitfield for unlockable Easy Chat words in EC_GROUP_TRENDY_SAYING
     /*0x2E25*/ //u8 padding5[3];
     /*0x2E28*/ OldMan oldMan;

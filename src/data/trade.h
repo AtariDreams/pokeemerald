@@ -12,18 +12,6 @@
 #define PALTAG_GBA       5555
 #define PALTAG_POKEBALL  5558
 
-// Exists unused in RS as well
-static const u32 sUnusedStructSizes[] =
-{
-    sizeof(struct SaveBlock2),
-    sizeof(struct SaveBlock1),
-    sizeof(struct MapHeader),
- // 0x00000530, in RS
-    sizeof(struct Mail),        //or ObjectEvent / ObjectEventGraphicsInfo
-    sizeof(struct Pokemon),     //or TrainerCard
-    0x00000528  // 0x000004D8, in RS
-};
-
 static const u16 sTradeMovesBoxTilemap[] = INCBIN_U16("graphics/trade/moves_box_map.bin");
 static const u16 sTradePartyBoxTilemap[] = INCBIN_U16("graphics/trade/party_box_map.bin");
 static const u8 sTradeStripesBG2Tilemap[] = INCBIN_U8("graphics/trade/stripes_bg2_map.bin");
@@ -993,7 +981,6 @@ static const struct InGameTrade sIngameTrades[] =
         .conditions = {30, 5, 5, 5, 5},
         .personality = 0x84,
         .heldItem = ITEM_CHESTO_BERRY,
-        .mailNum = -1,
         .otName = _("KOBE"),
         .otGender = MALE,
         .sheen = 10,
@@ -1008,8 +995,7 @@ static const struct InGameTrade sIngameTrades[] =
         .otId = 73996,
         .conditions = {5, 5, 30, 5, 5},
         .personality = 0x6F,
-        .heldItem = ITEM_WOOD_MAIL,
-        .mailNum = 0,
+        .heldItem = ITEM_ULTRA_BALL,
         .otName = _("ROMAN"),
         .otGender = MALE,
         .sheen = 10,
@@ -1024,8 +1010,7 @@ static const struct InGameTrade sIngameTrades[] =
         .otId = 46285,
         .conditions = {5, 5, 5, 5, 30},
         .personality = 0x7F,
-        .heldItem = ITEM_WAVE_MAIL,
-        .mailNum = 1,
+        .heldItem = ITEM_MAX_REVIVE,
         .otName = _("SKYLAR"),
         .otGender = MALE,
         .sheen = 10,
@@ -1040,8 +1025,7 @@ static const struct InGameTrade sIngameTrades[] =
         .otId = 91481,
         .conditions = {5, 5, 5, 30, 5},
         .personality = 0x8B,
-        .heldItem = ITEM_RETRO_MAIL,
-        .mailNum = 2,
+        .heldItem = ITEM_MASTER_BALL,
         .otName = _("ISIS"),
         .otGender = FEMALE,
         .sheen = 10,

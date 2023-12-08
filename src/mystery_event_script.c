@@ -3,7 +3,7 @@
 #include "battle_tower.h"
 #include "easy_chat.h"
 #include "event_data.h"
-#include "mail.h"
+
 #include "mystery_event_script.h"
 #include "pokedex.h"
 #include "pokemon.h"
@@ -310,7 +310,6 @@ bool8 MEScrCmd_setrecordmixinggift(struct ScriptContext *ctx)
 
 bool8 MEScrCmd_givepokemon(struct ScriptContext *ctx)
 {
-    struct Mail mail;
     struct Pokemon pokemon;
     u16 species;
     u16 heldItem;
@@ -334,7 +333,6 @@ bool8 MEScrCmd_givepokemon(struct ScriptContext *ctx)
     else
     {
         memcpy(&gPlayerParty.party[PARTY_SIZE - 1], pokemonPtr, sizeof(struct Pokemon));
-        memcpy(&mail, mailPtr, sizeof(struct Mail));
 
         if (species != SPECIES_EGG)
         {
@@ -343,8 +341,6 @@ bool8 MEScrCmd_givepokemon(struct ScriptContext *ctx)
         }
 
         heldItem = GetMonData(&gPlayerParty.party[PARTY_SIZE - 1], MON_DATA_HELD_ITEM);
-        if (ItemIsMail(heldItem))
-            GiveMailToMon(&gPlayerParty.party[PARTY_SIZE - 1], &mail);
         CompactPartySlots();
         CalculatePlayerPartyCount();
         StringExpandPlaceholders(gStringVar4, gText_MysteryEventSentOver);

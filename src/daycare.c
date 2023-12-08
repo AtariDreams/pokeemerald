@@ -3,7 +3,7 @@
 #include "battle.h"
 #include "daycare.h"
 #include "string_util.h"
-#include "mail.h"
+
 #include "pokemon_storage_system.h"
 #include "event_data.h"
 #include "random.h"
@@ -26,7 +26,6 @@
 
 extern const struct Evolution gEvolutionTable[][EVOS_PER_MON];
 
-static void ClearDaycareMonMail(struct DaycareMail *mail);
 static void SetInitialEggData(struct Pokemon *mon, u16 species, struct DayCare *daycare);
 static u8 GetDaycareCompatibilityScore(struct DayCare *daycare);
 static void DaycarePrintMonInfo(u8 windowId, u32 daycareSlotId, u8 y);
@@ -120,31 +119,6 @@ static u32 CountPokemonInDaycare(void)
     return count;
 }
 
-void InitDaycareMailRecordMixing(struct DayCare *daycare, struct RecordMixingDaycareMail *mixMail)
-{
-    u8 i;
-    u8 numDaycareMons = 0;
-
-    for (i = 0; i < DAYCARE_MON_COUNT; i++)
-    {
-        if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_SPECIES) != SPECIES_NONE)
-        {
-            numDaycareMons++;
-            if (GetBoxMonData(&daycare->mons[i].mon, MON_DATA_HELD_ITEM) != ITEM_NONE)
-                mixMail->cantHoldItem[i] = TRUE;
-            else
-                mixMail->cantHoldItem[i] = FALSE;
-        }
-        else
-        {
-            // Daycare slot empty
-            mixMail->cantHoldItem[i] = TRUE;
-        }
-    }
-
-    mixMail->numDaycareMons = numDaycareMons;
-}
-
 void StoreSelectedPokemonInDaycare(void)
 {
     struct Pokemon *mon = &gPlayerParty.party[GetCursorSelectionMonId()];
@@ -154,20 +128,6 @@ void StoreSelectedPokemonInDaycare(void)
         daycareMon = &gSaveBlock1.daycare.mons[0];
     else
         daycareMon = &gSaveBlock1.daycare.mons[1];
-
-    if (MonHasMail(mon))
-    {
-        u8 mailId;
-
-        StringCopy(daycareMon->mail.otName, gSaveBlock2.playerName);
-        GetMonNickname2(mon, daycareMon->mail.monName);
-        StripExtCtrlCodes(daycareMon->mail.monName);
-        daycareMon->mail.gameLanguage = GAME_LANGUAGE;
-        daycareMon->mail.monLanguage = GetMonData(mon, MON_DATA_LANGUAGE);
-        mailId = GetMonData(mon, MON_DATA_MAIL);
-        daycareMon->mail.message = gSaveBlock1.mail[mailId];
-        TakeMailFromMon(mon);
-    }
 
     daycareMon->mon = mon->box;
     BoxMonRestorePP(&daycareMon->mon);
@@ -187,11 +147,8 @@ static void ShiftDaycareSlots(struct DayCare *daycare)
     {
         daycare->mons[0].mon = daycare->mons[1].mon;
         ZeroBoxMonData(&daycare->mons[1].mon);
-
-        daycare->mons[0].mail = daycare->mons[1].mail;
         daycare->mons[0].steps = daycare->mons[1].steps;
         daycare->mons[1].steps = 0;
-        ClearDaycareMonMail(&daycare->mons[1].mail);
     }
 }
 
@@ -240,12 +197,6 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
         experience = GetMonData(&pokemon, MON_DATA_EXP) + daycareMon->steps;
         SetMonData(&pokemon, MON_DATA_EXP, &experience);
         ApplyDaycareExperience(&pokemon);
-    }
-
-    if (daycareMon->mail.message.itemId)
-    {
-        GiveMailToMon(&pokemon, &daycareMon->mail.message);
-        ClearDaycareMonMail(&daycareMon->mail);
     }
 
     GiveMonToPlayer(&pokemon);
@@ -329,36 +280,10 @@ u8 GetNumLevelsGainedFromDaycare(void)
     return 0;
 }
 
-static void ClearDaycareMonMail(struct DaycareMail *mail)
-{
-    u32 i;
-
-    for (i = 0; i < PLAYER_NAME_LENGTH + 1; i++)
-        mail->otName[i] = 0;
-    for (i = 0; i < POKEMON_NAME_LENGTH + 1; i++)
-        mail->monName[i] = 0;
-
-    ClearMail(&mail->message);
-}
-
 static void ClearDaycareMon(struct DaycareMon *daycareMon)
 {
-    ZeroBoxMonData(&daycareMon->mon);
-    daycareMon->steps = 0;
-    ClearDaycareMonMail(&daycareMon->mail);
+    memset(&daycareMon, 0, sizeof(*daycareMon));
 }
-
-static void UNUSED ClearAllDaycareData(struct DayCare *daycare)
-{
-    u32 i;
-
-    for (i = 0; i < DAYCARE_MON_COUNT; i++)
-        ClearDaycareMon(&daycare->mons[i]);
-
-    daycare->offspringPersonality = 0;
-    daycare->stepCounter = 0;
-}
-
 // Determines what the species of an Egg would be based on the given species.
 // It determines this by working backwards through the evolution chain of the
 // given species.

@@ -4,7 +4,6 @@
 #include "link_rfu.h"
 #include "constants/trade.h"
 
-extern struct Mail gTradeMail[PARTY_SIZE];
 extern u8 gSelectedTradeMonPositions[2];
 
 extern const struct WindowTemplate gTradeEvolutionSceneYesNoWindowTemplate;

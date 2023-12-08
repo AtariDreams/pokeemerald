@@ -52,11 +52,11 @@ gTrickHouse_Mechadoll_Zubat2::
 gTrickHouse_Mechadoll_Carvanha::
 	.string "CARVANHA$"
 
-gTrickHouse_Mechadoll_BurnHeal::
-	.string "BURN HEAL$"
-
 gTrickHouse_Mechadoll_HarborMail::
 	.string "HARBOR MAIL$"
+
+gTrickHouse_Mechadoll_BurnHeal::
+	.string "BURN HEAL$"
 
 gTrickHouse_Mechadoll_SamePrice::
 	.string "Same price$"

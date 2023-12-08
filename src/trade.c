@@ -17,7 +17,7 @@
 #include "link.h"
 #include "link_rfu.h"
 #include "load_save.h"
-#include "mail.h"
+
 #include "main.h"
 #include "mystery_gift.h"
 #include "mystery_gift_menu.h"
@@ -156,7 +156,6 @@ struct InGameTrade {
     u8 conditions[CONTEST_CATEGORIES_COUNT];
     u32 personality;
     u16 heldItem;
-    u8 mailNum;
     u8 otName[TRAINER_NAME_LENGTH + 1];
     u8 otGender;
     u8 sheen;
@@ -172,7 +171,6 @@ static EWRAM_DATA u8 *sMenuTextTileBuffer = NULL;
 // See the corresponding GFXTAGs in src/data/trade.h
 static EWRAM_DATA u8 *sMenuTextTileBuffers[NUM_MENU_TEXT_SPRITES] = {NULL};
 
-EWRAM_DATA struct Mail gTradeMail[PARTY_SIZE] = {0};
 EWRAM_DATA u8 gSelectedTradeMonPositions[2] = {0};
 static EWRAM_DATA struct {
     u8 bg2hofs;
@@ -306,7 +304,6 @@ static void SpriteCB_BouncingPokeballDepart(struct Sprite *);
 static void SpriteCB_BouncingPokeballDepartEnd(struct Sprite *);
 static void SpriteCB_BouncingPokeballArrive(struct Sprite *);
 static void BufferInGameTradeMonName(void);
-static void GetInGameTradeMail(struct Mail *, const struct InGameTrade *);
 static void CB2_UpdateLinkTrade(void);
 static void CB2_WaitTradeComplete(void);
 static void CB2_SaveAndEndTrade(void);
@@ -1113,7 +1110,6 @@ static bool8 BufferTradeParties(void)
         }
         break;
     case 13:
-        memcpy(gBlockSendBuffer, gSaveBlock1.mail, PARTY_SIZE * sizeof(struct Mail) + 4);
         sTradeMenu->bufferPartyState++;
         break;
     case 15:
@@ -1124,7 +1120,6 @@ static bool8 BufferTradeParties(void)
     case 16:
         if (_GetBlockReceivedStatus() == 3)
         {
-            memcpy(gTradeMail, gBlockRecvBuffer[id ^ 1], PARTY_SIZE * sizeof(struct Mail));
             TradeResetReceivedFlags();
             sTradeMenu->bufferPartyState++;
         }
@@ -3094,25 +3089,19 @@ static void TradeMons(u8 playerPartyIdx, u8 partnerPartyIdx)
     u8 friendship;
 
     struct Pokemon *playerMon = &gPlayerParty.party[playerPartyIdx];
-    u16 playerMail = GetMonData(playerMon, MON_DATA_MAIL);
 
     struct Pokemon *partnerMon = &gEnemyParty.party[partnerPartyIdx];
-    u16 partnerMail = GetMonData(partnerMon, MON_DATA_MAIL);
-
-    // The mail attached to the sent Pokémon no longer exists in your file.
-    if (playerMail != MAIL_NONE)
-        ClearMail(&gSaveBlock1.mail[playerMail]);
 
     SWAP(*playerMon, *partnerMon, sTradeAnim->tempMon);
 
     // By default, a Pokémon received from a trade will have 70 Friendship.
     // Eggs use Friendship to track egg cycles, so don't set this on Eggs.
-    friendship = 70;
+  
     if (!GetMonData(playerMon, MON_DATA_IS_EGG))
+    {
+        friendship = 70;
         SetMonData(playerMon, MON_DATA_FRIENDSHIP, &friendship);
-
-    if (partnerMail != MAIL_NONE)
-        GiveMailToMon(playerMon, &gTradeMail[partnerMail]);
+    }
 
     UpdatePokedexForReceivedMon(playerPartyIdx);
     // if (gReceivedRemoteLinkPlayers)
@@ -4541,9 +4530,7 @@ static void CreateInGameTradePokemonInternal(u8 whichPlayerMon, u8 whichInGameTr
     const struct InGameTrade *inGameTrade = &sIngameTrades[whichInGameTrade];
     u8 level = GetMonData(&gPlayerParty.party[whichPlayerMon], MON_DATA_LEVEL);
 
-    struct Mail mail;
     u8 metLocation = METLOC_IN_GAME_TRADE;
-    u8 mailNum;
     struct Pokemon *pokemon = &gEnemyParty.party[0];
 
     CreateMon(pokemon, inGameTrade->species, level, USE_RANDOM_IVS, TRUE, inGameTrade->personality, OT_ID_PRESET, inGameTrade->otId);
@@ -4566,37 +4553,11 @@ static void CreateInGameTradePokemonInternal(u8 whichPlayerMon, u8 whichInGameTr
     SetMonData(pokemon, MON_DATA_SHEEN, &inGameTrade->sheen);
     SetMonData(pokemon, MON_DATA_MET_LOCATION, &metLocation);
 
-    mailNum = 0;
     if (inGameTrade->heldItem != ITEM_NONE)
     {
-        if (ItemIsMail(inGameTrade->heldItem))
-        {
-            GetInGameTradeMail(&mail, inGameTrade);
-            gTradeMail[0] = mail;
-            SetMonData(pokemon, MON_DATA_MAIL, &mailNum);
-        }
-
         SetMonData(pokemon, MON_DATA_HELD_ITEM, &inGameTrade->heldItem);
     }
     CalculateMonStats(&gEnemyParty.party[0]);
-}
-
-static void GetInGameTradeMail(struct Mail *mail, const struct InGameTrade *trade)
-{
-    u32 i;
-
-    for (i = 0; i < MAIL_WORDS_COUNT; i++)
-        mail->words[i] = sIngameTradeMail[trade->mailNum][i];
-
-    StringCopy(mail->playerName, trade->otName);
-    PadNameString(mail->playerName, CHAR_SPACE);
-
-    mail->trainerId[0] = trade->otId >> 24;
-    mail->trainerId[1] = trade->otId >> 16;
-    mail->trainerId[2] = trade->otId >> 8;
-    mail->trainerId[3] = trade->otId;
-    mail->species = trade->species;
-    mail->itemId = trade->heldItem;
 }
 
 u16 GetTradeSpecies(void)

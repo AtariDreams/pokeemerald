@@ -475,18 +475,6 @@ static const struct EasyChatScreenTemplate sEasyChatScreenTemplates[] = {
         .confirmText2 = gText_IsAsShownOkay,
     },
     {
-        .type = EASY_CHAT_TYPE_MAIL,
-        .numColumns = 2,
-        .numRows = 5,
-        .frameId = FRAMEID_MAIL,
-        .fourFooterOptions = FALSE,
-        .titleText = NULL,
-        .instructionsText1 = gText_CombineNineWordsOrPhrases,
-        .instructionsText2 = gText_AndMakeAMessage2,
-        .confirmText1 = gText_TheMailMessage,
-        .confirmText2 = gText_IsAsShownOkay,
-    },
-    {
         .type = EASY_CHAT_TYPE_INTERVIEW,
         .numColumns = 2,
         .numRows = 2,
@@ -1472,9 +1460,6 @@ void ShowEasyChatScreen(void)
         break;
     case EASY_CHAT_TYPE_BATTLE_LOST:
         words = gSaveBlock1.easyChatBattleLost;
-        break;
-    case EASY_CHAT_TYPE_MAIL:
-        words = gSaveBlock1.mail[gSpecialVar_0x8005].words;
         break;
     case EASY_CHAT_TYPE_BARD_SONG:
         bard = &gSaveBlock1.oldMan.bard;
@@ -2735,10 +2720,6 @@ static void GetEasyChatConfirmExitText(const u8 **str1, const u8 **str2)
 {
     switch (sEasyChatScreen->type)
     {
-    case EASY_CHAT_TYPE_MAIL:
-        *str1 = gText_StopGivingPkmnMail;
-        *str2 = NULL;
-        break;
     case EASY_CHAT_TYPE_QUIZ_ANSWER:
     case EASY_CHAT_TYPE_QUIZ_QUESTION:
         *str1 = gText_LikeToQuitQuiz;
@@ -5562,7 +5543,7 @@ static u16 GetRandomUnlockedEasyChatPokemon(void)
 
 void InitEasyChatPhrases(void)
 {
-    u16 i, j;
+    u32 i;
 
     for (i = 0; i < ARRAY_COUNT(sDefaultProfileWords); i++)
         gSaveBlock1.easyChatProfile[i] = sDefaultProfileWords[i];
@@ -5576,23 +5557,8 @@ void InitEasyChatPhrases(void)
     for (i = 0; i < EASY_CHAT_BATTLE_WORDS_COUNT; i++)
         gSaveBlock1.easyChatBattleLost[i] = sDefaultBattleLostWords[i];
 
-    for (i = 0; i < MAIL_COUNT; i++)
-    {
-        for (j = 0; j < MAIL_WORDS_COUNT; j++)
-            gSaveBlock1.mail[i].words[j] = EC_EMPTY_WORD;
-    }
-
-#ifndef UBFIX
-    // BUG: This is supposed to clear 64 bits, but this loop is clearing 64 bytes.
-    // However, this bug has no resulting effect on gameplay because only the
-    // Mauville old man data is corrupted, which is initialized directly after
-    // this function is called when starting a new game.
-    for (i = 0; i < 64; i++)
-        gSaveBlock1.unlockedTrendySayings[i] = 0;
-#else
     for (i = 0; i < ARRAY_COUNT(gSaveBlock1.unlockedTrendySayings); i++)
         gSaveBlock1.unlockedTrendySayings[i] = 0;
-#endif
 }
 
 static bool8 InitEasyChatScreenWordData(void)

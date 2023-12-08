@@ -23,7 +23,7 @@
 #include "lilycove_lady.h"
 #include "list_menu.h"
 #include "link.h"
-#include "mail.h"
+
 #include "main.h"
 #include "malloc.h"
 #include "map_name_popup.h"
@@ -1612,8 +1612,6 @@ static void OpenContextMenu(u8 taskId)
                 gBagMenu->contextMenuItemsPtr = gBagMenu->contextMenuItemsBuffer;
                 gBagMenu->contextMenuNumItems = ARRAY_COUNT(sContextMenuItems_ItemsPocket);
                 memcpy(&gBagMenu->contextMenuItemsBuffer, &sContextMenuItems_ItemsPocket, sizeof(sContextMenuItems_ItemsPocket));
-                if (ItemIsMail(gSpecialVar_ItemId) == TRUE)
-                    gBagMenu->contextMenuItemsBuffer[0] = ACTION_CHECK;
                 break;
             case KEYITEMS_POCKET:
                 gBagMenu->contextMenuItemsPtr = gBagMenu->contextMenuItemsBuffer;
@@ -1924,11 +1922,7 @@ static void ItemMenu_Register(u8 taskId)
 static void ItemMenu_Give(u8 taskId)
 {
     RemoveContextWindow();
-    if (!IsWritingMailAllowed(gSpecialVar_ItemId))
-    {
-        DisplayItemMessage(taskId, FONT_NORMAL, gText_CantWriteMail, HandleErrorMessage);
-    }
-    else if (!ItemId_GetImportance(gSpecialVar_ItemId))
+    if (!ItemId_GetImportance(gSpecialVar_ItemId))
     {
         if (CalculatePlayerPartyCount() == 0)
         {
@@ -2001,11 +1995,7 @@ void CB2_ReturnToBagMenuPocket(void)
 
 static void Task_ItemContext_GiveToParty(u8 taskId)
 {
-    if (!IsWritingMailAllowed(gSpecialVar_ItemId))
-    {
-        DisplayItemMessage(taskId, FONT_NORMAL, gText_CantWriteMail, HandleErrorMessage);
-    }
-    else if (!IsHoldingItemAllowed(gSpecialVar_ItemId))
+    if (!IsHoldingItemAllowed(gSpecialVar_ItemId))
     {
         CopyItemName(gSpecialVar_ItemId, gStringVar1);
         StringExpandPlaceholders(gStringVar4, gText_Var1CantBeHeldHere);
@@ -2024,9 +2014,7 @@ static void Task_ItemContext_GiveToParty(u8 taskId)
 // Selected item to give to a Pokémon in PC storage
 static void Task_ItemContext_GiveToPC(u8 taskId)
 {
-    if (ItemIsMail(gSpecialVar_ItemId) == TRUE)
-        DisplayItemMessage(taskId, FONT_NORMAL, gText_CantWriteMail, HandleErrorMessage);
-    else if (gBagPosition.pocket != KEYITEMS_POCKET && !ItemId_GetImportance(gSpecialVar_ItemId))
+    if (gBagPosition.pocket != KEYITEMS_POCKET && !ItemId_GetImportance(gSpecialVar_ItemId))
         gTasks[taskId].func = Task_FadeAndCloseBagMenu;
     else
         PrintItemCantBeHeld(taskId);

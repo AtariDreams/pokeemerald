@@ -269,9 +269,9 @@ static const u16 sQuizLadyQuizAnswers[] =
 
 static const u16 sQuizLadyPrizes[] =
 {
-    ITEM_GLITTER_MAIL,
-    ITEM_BEAD_MAIL,
-    ITEM_TROPIC_MAIL,
+    ITEM_ULTRA_BALL,
+    ITEM_ULTRA_BALL,
+    ITEM_ULTRA_BALL,
     ITEM_MAX_ETHER,
     ITEM_MAX_ETHER,
     ITEM_MAX_ETHER,
