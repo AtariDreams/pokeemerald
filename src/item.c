@@ -417,7 +417,7 @@ static u32 FindFreePCItemSlot(void)
 u8 CountUsedPCItemSlots(void)
 {
     u8 usedSlots = 0;
-    u8 i;
+    u32 i;
 
     for (i = 0; i < PC_ITEMS_COUNT; i++)
     {
@@ -441,7 +441,7 @@ bool8 CheckPCHasItem(u16 itemId, u16 count)
 
 bool8 AddPCItem(u16 itemId, u16 count)
 {
-    u8 i;
+    u32 i;
     s8 freeSlot;
     u16 ownedCount;
     struct ItemSlot *newItems;
@@ -467,15 +467,13 @@ bool8 AddPCItem(u16 itemId, u16 count)
             newItems[i].quantity = MAX_PC_ITEM_CAPACITY;
             if (count == 0)
             {
-                memcpy(gSaveBlock1.pcItems, newItems, sizeof(gSaveBlock1.pcItems));
-                Free(newItems);
-                return TRUE;
+                break;
             }
         }
     }
 
     // Put any remaining items into a new item slot.
-    if (count > 0)
+    if (count)
     {
         freeSlot = FindFreePCItemSlot();
         if (freeSlot == PC_ITEMS_COUNT)
@@ -508,8 +506,7 @@ void RemovePCItem(u8 index, u16 count)
 
 void CompactPCItems(void)
 {
-    u16 i;
-    u16 j;
+    u32 i, j;
 
     for (i = 0; i < PC_ITEMS_COUNT - 1; i++)
     {
@@ -614,7 +611,7 @@ void ClearBag(void)
 
 u16 CountTotalItemQuantityInBag(u16 itemId)
 {
-    u16 i;
+    u32 i;
     u16 ownedCount = 0;
     const struct BagPocket *bagPocket = &gBagPockets[ItemId_GetPocket(itemId) - 1];
 
@@ -629,7 +626,7 @@ u16 CountTotalItemQuantityInBag(u16 itemId)
 
 static bool8 CheckPyramidBagHasItem(u16 itemId, u16 count)
 {
-    u8 i;
+    u32 i;
     u16 *items = gSaveBlock2.frontier.pyramidBag.itemId[gSaveBlock2.frontier.lvlMode];
     u8 *quantities = gSaveBlock2.frontier.pyramidBag.quantity[gSaveBlock2.frontier.lvlMode];
 
@@ -651,7 +648,7 @@ static bool8 CheckPyramidBagHasItem(u16 itemId, u16 count)
 
 static bool8 CheckPyramidBagHasSpace(u16 itemId, u16 count)
 {
-    u8 i;
+    u32 i;
     u16 *items = gSaveBlock2.frontier.pyramidBag.itemId[gSaveBlock2.frontier.lvlMode];
     u8 *quantities = gSaveBlock2.frontier.pyramidBag.quantity[gSaveBlock2.frontier.lvlMode];
 
@@ -673,7 +670,7 @@ static bool8 CheckPyramidBagHasSpace(u16 itemId, u16 count)
 
 bool8 AddPyramidBagItem(u16 itemId, u16 count)
 {
-    u16 i;
+    u32 i;
 
     u16 *items = gSaveBlock2.frontier.pyramidBag.itemId[gSaveBlock2.frontier.lvlMode];
     u8 *quantities = gSaveBlock2.frontier.pyramidBag.quantity[gSaveBlock2.frontier.lvlMode];
@@ -704,7 +701,7 @@ bool8 AddPyramidBagItem(u16 itemId, u16 count)
         }
     }
 
-    if (count > 0)
+    if (count)
     {
         for (i = 0; i < PYRAMID_BAG_ITEMS_COUNT; i++)
         {
@@ -746,7 +743,7 @@ bool8 AddPyramidBagItem(u16 itemId, u16 count)
 
 bool8 RemovePyramidBagItem(u16 itemId, u16 count)
 {
-    u16 i;
+    u32 i;
 
     u16 *items = gSaveBlock2.frontier.pyramidBag.itemId[gSaveBlock2.frontier.lvlMode];
     u8 *quantities = gSaveBlock2.frontier.pyramidBag.quantity[gSaveBlock2.frontier.lvlMode];
