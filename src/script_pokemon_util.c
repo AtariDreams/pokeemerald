@@ -64,7 +64,7 @@ u8 ScriptGiveMon(u16 species, u8 level, u16 item, u32 unused1, u32 unused2, u8 u
     u16 *heldItem;
 #endif
 
-    CreateMon(&mon, species, level, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
+    CreateMonDefault(&mon, species, level);
 
 #ifndef UBFIX
     heldItem[0] = item;
