@@ -1737,7 +1737,8 @@ static void SpriteCB_FldEffPokeballTrail(struct Sprite *sprite)
             u16 *ptr;
 
             sprite->sPrevX = posX;
-            ptr = (u16 *)(BG_VRAM + (GetGpuReg(REG_OFFSET_BG0CNT) & BG_SCREEN_BASE_MASK));
+            u16 base_num = (GetGpuReg(REG_OFFSET_BG0CNT) >> BG_SCREEN_BASE_SHIFT) & 0x1f;
+			ptr = (u16*)(BG_VRAM + (base_num << 11));
 
             SET_TILE(ptr, posY - 2, posX, 1);
             SET_TILE(ptr, posY - 1, posX, 1);
@@ -3556,19 +3557,23 @@ static void VBlankCB_BattleTransition(void)
 
 static void GetBg0TilemapDst(u16 **tileset)
 {
-    *tileset = (u16 *)(BG_VRAM + (GetGpuReg(REG_OFFSET_BG0CNT) & BG_CHAR_BASE_MASK));
+    	u16 c_base;
+
+	c_base = (GetGpuReg(REG_OFFSET_BG0CNT) >> BG_CHAR_BASE_SHIFT) & 0x03;	
+	c_base <<= 14;										// 0x4000
+	*tileset = (u16*)(BG_VRAM + c_base);
 }
 
 void GetBg0TilesDst(u16 **tilemap, u16 **tileset)
 {
-    u16 bg0cnt = GetGpuReg(REG_OFFSET_BG0CNT);
+	u16 m_base,c_base;
 
-
-    u16 screenBase = bg0cnt & BG_SCREEN_BASE_MASK;
-    u16 charBase = bg0cnt & BG_CHAR_BASE_MASK;
-
-    *tilemap = (u16 *)(BG_VRAM + screenBase);
-    *tileset = (u16 *)(BG_VRAM + charBase);
+	m_base = (GetGpuReg(REG_OFFSET_BG0CNT) >> BG_SCREEN_BASE_SHIFT) & 0x1f;
+	c_base = (GetGpuReg(REG_OFFSET_BG0CNT) >> BG_CHAR_BASE_SHIFT) & 0x03;	
+	m_base <<= 11;										// 0x0800
+	c_base <<= 14;										// 0x4000
+	*tilemap = (u16*)(BG_VRAM + m_base);
+	*tileset = (u16*)(BG_VRAM + c_base);
 }
 
 static void FadeScreenBlack(void)
