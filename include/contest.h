@@ -289,7 +289,8 @@ struct ContestResources
     struct ContestGraphicsState *gfxState;
     struct ContestMoveAnimData *moveAnim;
     struct ContestTV *tv;
-    struct ContestUnused * unused;
+    // Unused debug
+    //struct ContestUnused * unused;
     u16 * contestBgTilemaps[CONTESTANT_COUNT];
     void * boxBlinkTiles1;
     void * boxBlinkTiles2;
