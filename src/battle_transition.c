@@ -47,7 +47,7 @@
 #define tWipeTemp   line.work
 
 #define SET_TILE(ptr, posY, posX, tile) \
-    ptr[((posY) << 5) + (posX)] = tile | (15 << 12)
+    ptr[((posY) * 32) + (posX)] = tile | (15 << 12)
 
 struct LINEWORK
 {
