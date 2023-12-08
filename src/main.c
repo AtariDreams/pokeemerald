@@ -110,8 +110,8 @@ _Noreturn void AgbMain(void)
     //InitMainCallbacks();
    // InitMapMusic();
     // ClearDma3Requests();
-    ResetBgs();
-    InitHeap();
+    // ResetBgs();
+    //InitHeap();
 
     // TODO: redundant?
     // gTrainerHillVBlankCounter = NULL;
