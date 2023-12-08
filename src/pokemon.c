@@ -2165,18 +2165,23 @@ void RemoveMonFromParty(u32 index)
 
 void ZeroPlayerPartyMons(void)
 {
-    u32 i;
-    for (i = 0; i < PARTY_SIZE; i++)
-        ZeroMonData(&gPlayerParty.party[i]);
-    gPlayerParty.count = 0;
+    memset(gPlayerParty, 0, sizeof(gPlayerParty));
 }
 
 void ZeroEnemyPartyMons(void)
 {
-    u32 i;
-    for (i = 0; i < PARTY_SIZE; i++)
-        ZeroMonData(&gEnemyParty.party[i]);
-    gEnemyParty.count = 0;
+    memset(gEnemyParty, 0, sizeof(gEnemyParty));
+}
+
+void CreateMonDefault(struct Pokemon *mon, u16 species, u8 level)
+{
+    CreateMon(mon, species, level, USE_RANDOM_IVS);
+    CreateBoxMonDefault(&mon->box, species, level);
+}
+
+void CreateBoxMonDefault(struct BoxPokemon *mon, u16 species, u8 level)
+{
+    CreateBoxMon(mon, species, USE_RANDOM_IVS, OT_ID_PLAYER_ID)
 }
 
 void CreateMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
@@ -2187,12 +2192,25 @@ void CreateMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFix
     CalculateMonStats(mon);
 }
 
+void CreateBoxMonNoPreset(struct BoxPokemon *boxMon, u16 species, u8 level)
+{
+    u32 personality, otID;
+    ZeroBoxMonData(boxMon);
+    
+    personality = Random32();
+    
+    SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
+
+    otID = T1_READ_32(gSaveBlock2.playerTrainerId);
+
+
+}
+
 void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
 {
     u8 speciesName[POKEMON_NAME_LENGTH + 1];
     u32 personality;
     u32 value;
-    u16 checksum;
 
     ZeroBoxMonData(boxMon);
 
@@ -2225,8 +2243,6 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     }
 
     SetBoxMonData(boxMon, MON_DATA_OT_ID, &value);
-
-    SetBoxMonData(boxMon, MON_DATA_CHECKSUM, &checksum);
     GetSpeciesName(speciesName, species);
     SetBoxMonData(boxMon, MON_DATA_NICKNAME, speciesName);
     SetBoxMonData(boxMon, MON_DATA_LANGUAGE, &gGameLanguage);
@@ -3639,9 +3655,6 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
     case MON_DATA_MARKINGS:
         retVal = boxMon->markings;
         break;
-    case MON_DATA_CHECKSUM:
-        retVal = boxMon->checksum;
-        break;
     case MON_DATA_ENCRYPT_SEPARATOR:
         retVal = boxMon->unknown;
         break;
@@ -3999,9 +4012,6 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
     }
     case MON_DATA_MARKINGS:
         SET8(boxMon->markings);
-        break;
-    case MON_DATA_CHECKSUM:
-        SET16(boxMon->checksum);
         break;
     case MON_DATA_ENCRYPT_SEPARATOR:
         SET16(boxMon->unknown);
