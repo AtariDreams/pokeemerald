@@ -110,7 +110,7 @@ static void CreateNextTurnSprites(void);
 static void CreateApplauseMeterSprite(void);
 static void CreateJudgeAttentionEyeTask(void);
 static void CreateUnusedBlendTask(void);
-static void ContestDebugDoPrint(void);
+//static void ContestDebugDoPrint(void);
 static void DrawContestantWindows(void);
 static void ApplyNextTurnOrder(void);
 static void SlideApplauseMeterIn(void);
@@ -1130,7 +1130,8 @@ static void AllocContestResources(void)
     gContestResources->gfxState = AllocZeroed(sizeof(struct ContestGraphicsState) * CONTESTANT_COUNT);
     gContestResources->moveAnim = AllocZeroed(sizeof(struct ContestMoveAnimData));
     gContestResources->tv = AllocZeroed(sizeof(struct ContestTV) * CONTESTANT_COUNT);
-    gContestResources->unused = AllocZeroed(sizeof(struct ContestUnused));
+    // We know this is debug
+    // gContestResources->unused = AllocZeroed(sizeof(struct ContestUnused));
     gContestResources->contestBgTilemaps[0] = AllocZeroed(0x1000);
     gContestResources->contestBgTilemaps[1] = AllocZeroed(0x1000);
     gContestResources->contestBgTilemaps[2] = AllocZeroed(0x1000);
@@ -1152,7 +1153,7 @@ static void FreeContestResources(void)
     FREE_AND_SET_NULL(gContestResources->gfxState);
     FREE_AND_SET_NULL(gContestResources->moveAnim);
     FREE_AND_SET_NULL(gContestResources->tv);
-    FREE_AND_SET_NULL(gContestResources->unused);
+    //FREE_AND_SET_NULL(gContestResources->unused);
     FREE_AND_SET_NULL(gContestResources->contestBgTilemaps[0]);
     FREE_AND_SET_NULL(gContestResources->contestBgTilemaps[1]);
     FREE_AND_SET_NULL(gContestResources->contestBgTilemaps[2]);
@@ -1186,7 +1187,7 @@ void CB2_StartContest(void)
         ResetTasks();
         FreeAllSpritePalettes();
         gReservedSpritePaletteCount = 4;
-        eContestDebugMode = CONTEST_DEBUG_MODE_OFF;
+        //eContestDebugMode = CONTEST_DEBUG_MODE_OFF;
         ClearBattleMonForms();
         InitContestResources();
         gMain.state++;
@@ -1358,7 +1359,7 @@ static bool8 SetupContestGraphics(u8 *stateVar)
         // Unclear why judge sprite is assigned here
         // Overwritten in APPEALSTATE_SLIDE_MON_IN with the attacking contest mon
         gBattlerSpriteIds[gBattlerAttacker] = CreateJudgeSprite();
-        CreateInvisibleBattleTargetSprite();
+        CreateInvisibleBattleTargetSprite(); // Register an invisible actor instead of an enemy Pokémon.
         CopyBgTilemapBufferToVram(1);
         CopyBgTilemapBufferToVram(2);
         CopyBgTilemapBufferToVram(3);
@@ -1400,9 +1401,8 @@ static void Task_RaiseCurtainAtStart(u8 taskId)
         break;
     case 1:
         gBattle_BG1_Y += 7;
-        if ((s16)gBattle_BG1_Y <= DISPLAY_HEIGHT)
-            break;
-        gTasks[taskId].data[0]++;
+        if ((s16)gBattle_BG1_Y > DISPLAY_HEIGHT)
+            gTasks[taskId].data[0]++;
         break;
     case 2:
         UpdateContestantBoxOrder();
@@ -1475,7 +1475,7 @@ static void Task_DisplayAppealNumberText(u8 taskId)
     {
         gBattle_BG0_Y = 0;
         gBattle_BG2_Y = 0;
-        ContestDebugDoPrint();
+        //ContestDebugDoPrint();
         CpuFastCopy(gPlttBufferUnfaded, eContestTempSave.cachedPlttBufferUnfaded, PLTT_SIZE);
         ConvertIntToDecimalStringN(gStringVar1, eContest.appealNumber + 1, STR_CONV_MODE_LEFT_ALIGN, 1);
         if (!Contest_IsMonsTurnDisabled(gContestPlayerMonIndex))
@@ -1735,7 +1735,7 @@ static void Task_DoAppeals(u8 taskId)
     switch (gTasks[taskId].tState)
     {
     case APPEALSTATE_START_TURN:
-        ContestDebugDoPrint();
+        //ContestDebugDoPrint();
         for (i = 0; eContest.turnNumber != eContestAppealResults.turnOrder[i]; i++)
             ;
         eContest.currentContestant = i;
@@ -2188,7 +2188,7 @@ static void Task_DoAppeals(u8 taskId)
         }
         return;
     case APPEALSTATE_WAIT_HEARTS_FROM_REPEAT:
-        ContestDebugDoPrint();
+        //ContestDebugDoPrint();
         if (!eContestGfxState[contestant].updatingAppealHearts)
         {
             gTasks[taskId].tCounter = 0;
@@ -2569,12 +2569,12 @@ static void Task_RestorePlttBufferUnfaded(u8 taskId)
 
 static void Task_WaitPrintRoundResult(u8 taskId)
 {
-    if (++gTasks[taskId].data[0] > 2)
-    {
-        gTasks[taskId].data[0] = 0;
-        if (--gTasks[taskId].data[1] == 0)
-            gTasks[taskId].func = Task_PrintRoundResultText;
-    }
+    if (++gTasks[taskId].data[0] < 3)
+        return;
+
+    gTasks[taskId].data[0] = 0;
+    if (--gTasks[taskId].data[1] == 0)
+        gTasks[taskId].func = Task_PrintRoundResultText;
 }
 
 static void Task_PrintRoundResultText(u8 taskId)
@@ -2595,7 +2595,7 @@ static void Task_PrintRoundResultText(u8 taskId)
         {
             gTasks[taskId].data[0] = 0;
             gTasks[taskId].func = Task_ReUpdateHeartSliders;
-            ContestDebugDoPrint();
+            //ContestDebugDoPrint();
         }
     }
 }
@@ -4220,76 +4220,76 @@ static void SpriteCB_EndBlinkContestantBox(struct Sprite *sprite)
     ResetBlendForContestantBoxBlink();
 }
 
-static void UNUSED ContestDebugTogglePointTotal(void)
-{
-    if(eContestDebugMode == CONTEST_DEBUG_MODE_PRINT_POINT_TOTAL)
-        eContestDebugMode = CONTEST_DEBUG_MODE_OFF;
-    else
-        eContestDebugMode = CONTEST_DEBUG_MODE_PRINT_POINT_TOTAL;
+// static void UNUSED ContestDebugTogglePointTotal(void)
+// {
+//     if(eContestDebugMode == CONTEST_DEBUG_MODE_PRINT_POINT_TOTAL)
+//         eContestDebugMode = CONTEST_DEBUG_MODE_OFF;
+//     else
+//         eContestDebugMode = CONTEST_DEBUG_MODE_PRINT_POINT_TOTAL;
 
-    if(eContestDebugMode == CONTEST_DEBUG_MODE_OFF)
-    {
-        DrawContestantWindowText();
-        SwapMoveDescAndContestTilemaps();
-    }
-    else
-    {
-        ContestDebugDoPrint();
-    }
-}
+//     if(eContestDebugMode == CONTEST_DEBUG_MODE_OFF)
+//     {
+//         DrawContestantWindowText();
+//         SwapMoveDescAndContestTilemaps();
+//     }
+//     else
+//     {
+//         ContestDebugDoPrint();
+//     }
+// }
 
-static void ContestDebugDoPrint(void)
-{
-    u8 i;
-    s16 value;
-    u8 *txtPtr;
-    u8 text[8];
+// static void ContestDebugDoPrint(void)
+// {
+//     u8 i;
+//     s16 value;
+//     u8 *txtPtr;
+//     u8 text[8];
 
-    if (!gEnableContestDebugging)
-        return;
+//     if (!gEnableContestDebugging)
+//         return;
 
-    switch (eContestDebugMode)
-    {
-    case CONTEST_DEBUG_MODE_OFF:
-        break;
-    case CONTEST_DEBUG_MODE_PRINT_WINNER_FLAGS:
-    case CONTEST_DEBUG_MODE_PRINT_LOSER_FLAGS:
-        ContestDebugPrintBitStrings();
-        break;
-    // The only other possible value is 1, which is only set by ContestDebugTogglePointTotal.
-    //
-    // case CONTEST_DEBUG_MODE_PRINT_POINT_TOTAL:
-    default:
-        for (i = 0; i < CONTESTANT_COUNT; i++)
-            FillWindowPixelBuffer(i, PIXEL_FILL(0));
-        for (i = 0; i < CONTESTANT_COUNT; i++)
-        {
-            value = eContestantStatus[i].pointTotal;
-            txtPtr = text;
-            if (eContestantStatus[i].pointTotal < 0)
-            {
-                value *= -1;
-                txtPtr = StringCopy(txtPtr, gText_OneDash);
-            }
-            ConvertIntToDecimalStringN(txtPtr, value, STR_CONV_MODE_LEFT_ALIGN, 4);
-            Contest_PrintTextToBg0WindowAt(gContestantTurnOrder[i], text, 55, 1, FONT_NARROW);
-        }
-        for (i = 0; i < CONTESTANT_COUNT; i++)
-        {
-            value = eContestantStatus[i].appeal;
-            txtPtr = text;
-            if (eContestantStatus[i].appeal < 0)
-            {
-                value *= -1;
-                txtPtr = StringCopy(txtPtr, gText_OneDash);
-            }
-            ConvertIntToDecimalStringN(txtPtr, value, STR_CONV_MODE_LEFT_ALIGN, 4);
-            Contest_PrintTextToBg0WindowAt(gContestantTurnOrder[i], text, 5, 1, FONT_NARROW);
-        }
-        SwapMoveDescAndContestTilemaps();
-        break;
-    }
-}
+//     switch (eContestDebugMode)
+//     {
+//     case CONTEST_DEBUG_MODE_OFF:
+//         break;
+//     case CONTEST_DEBUG_MODE_PRINT_WINNER_FLAGS:
+//     case CONTEST_DEBUG_MODE_PRINT_LOSER_FLAGS:
+//         ContestDebugPrintBitStrings();
+//         break;
+//     // The only other possible value is 1, which is only set by ContestDebugTogglePointTotal.
+//     //
+//     // case CONTEST_DEBUG_MODE_PRINT_POINT_TOTAL:
+//     default:
+//         for (i = 0; i < CONTESTANT_COUNT; i++)
+//             FillWindowPixelBuffer(i, PIXEL_FILL(0));
+//         for (i = 0; i < CONTESTANT_COUNT; i++)
+//         {
+//             value = eContestantStatus[i].pointTotal;
+//             txtPtr = text;
+//             if (eContestantStatus[i].pointTotal < 0)
+//             {
+//                 value *= -1;
+//                 txtPtr = StringCopy(txtPtr, gText_OneDash);
+//             }
+//             ConvertIntToDecimalStringN(txtPtr, value, STR_CONV_MODE_LEFT_ALIGN, 4);
+//             Contest_PrintTextToBg0WindowAt(gContestantTurnOrder[i], text, 55, 1, FONT_NARROW);
+//         }
+//         for (i = 0; i < CONTESTANT_COUNT; i++)
+//         {
+//             value = eContestantStatus[i].appeal;
+//             txtPtr = text;
+//             if (eContestantStatus[i].appeal < 0)
+//             {
+//                 value *= -1;
+//                 txtPtr = StringCopy(txtPtr, gText_OneDash);
+//             }
+//             ConvertIntToDecimalStringN(txtPtr, value, STR_CONV_MODE_LEFT_ALIGN, 4);
+//             Contest_PrintTextToBg0WindowAt(gContestantTurnOrder[i], text, 5, 1, FONT_NARROW);
+//         }
+//         SwapMoveDescAndContestTilemaps();
+//         break;
+//     }
+// }
 
 void SortContestants(bool8 useRanking)
 {
