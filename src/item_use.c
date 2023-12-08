@@ -342,20 +342,17 @@ static void Task_CloseItemfinderMessage(u8 taskId)
 
 static bool8 ItemfinderCheckForHiddenItems(const struct MapEvents *events, u8 taskId)
 {
-    int itemX, itemY;
-    s16 playerX, playerY, i, distanceX, distanceY;
+    s16 playerX, playerY, distanceX, distanceY;
     PlayerGetDestCoords(&playerX, &playerY);
     gTasks[taskId].tItemFound = FALSE;
-
+    u32 i;
     for (i = 0; i < events->bgEventCount; i++)
     {
         // Check if there are any hidden items on the current map that haven't been picked up
         if (events->bgEvents[i].kind == BG_EVENT_HIDDEN_ITEM && !FlagGet(events->bgEvents[i].bgUnion.hiddenItem.hiddenItemId + FLAG_HIDDEN_ITEMS_START))
         {
-            itemX = (u16)events->bgEvents[i].x + MAP_OFFSET;
-            distanceX = itemX - playerX;
-            itemY = (u16)events->bgEvents[i].y + MAP_OFFSET;
-            distanceY = itemY - playerY;
+            distanceX = events->bgEvents[i].x + MAP_OFFSET - playerX;
+            distanceY = events->bgEvents[i].y + MAP_OFFSET - playerY;
 
             // Player can see 7 metatiles on either side horizontally
             // and 5 metatiles on either side vertically
@@ -375,11 +372,11 @@ static bool8 IsHiddenItemPresentAtCoords(const struct MapEvents *events, s16 x, 
 {
     u8 bgEventCount = events->bgEventCount;
     const struct BgEvent *bgEvent = events->bgEvents;
-    int i;
+    u32 i;
 
     for (i = 0; i < bgEventCount; i++)
     {
-        if (bgEvent[i].kind == BG_EVENT_HIDDEN_ITEM && x == (u16)bgEvent[i].x && y == (u16)bgEvent[i].y) // hidden item and coordinates matches x and y passed?
+        if (bgEvent[i].kind == BG_EVENT_HIDDEN_ITEM && x == bgEvent[i].x && y == bgEvent[i].y) // hidden item and coordinates matches x and y passed?
         {
             if (!FlagGet(bgEvent[i].bgUnion.hiddenItem.hiddenItemId + FLAG_HIDDEN_ITEMS_START))
                 return TRUE;
@@ -392,39 +389,27 @@ static bool8 IsHiddenItemPresentAtCoords(const struct MapEvents *events, s16 x, 
 
 static bool8 IsHiddenItemPresentInConnection(const struct MapConnection *connection, int x, int y)
 {
-
-    u16 localX, localY;
-    u32 localOffset;
-    s32 localLength;
-
+    s16 localX, localY;
     struct MapHeader const *const mapHeader = GetMapHeaderFromConnection(connection);
 
     switch (connection->direction)
     {
     // same weird temp variable behavior seen in IsHiddenItemPresentAtCoords
     case CONNECTION_NORTH:
-        localOffset = connection->offset + MAP_OFFSET;
-        localX = x - localOffset;
-        localLength = mapHeader->mapLayout->height - MAP_OFFSET;
-        localY = localLength + y; // additions are reversed for some reason
+        localX = x - MAP_OFFSET - connection->offset;
+        localY = y - MAP_OFFSET + mapHeader->mapLayout->height;
         break;
     case CONNECTION_SOUTH:
-        localOffset = connection->offset + MAP_OFFSET;
-        localX = x - localOffset;
-        localLength = gMapHeader.mapLayout->height + MAP_OFFSET;
-        localY = y - localLength;
+        localX = x - MAP_OFFSET - connection->offset;
+        localY = y - MAP_OFFSET - gMapHeader.mapLayout->height;
         break;
     case CONNECTION_WEST:
-        localLength = mapHeader->mapLayout->width - MAP_OFFSET;
-        localX = localLength + x; // additions are reversed for some reason
-        localOffset = connection->offset + MAP_OFFSET;
-        localY = y - localOffset;
+        localX = x - MAP_OFFSET + mapHeader->mapLayout->width;
+        localY = y - MAP_OFFSET - connection->offset;
         break;
     case CONNECTION_EAST:
-        localLength = gMapHeader.mapLayout->width + MAP_OFFSET;
-        localX = x - localLength;
-        localOffset = connection->offset + MAP_OFFSET;
-        localY = y - localOffset;
+        localX = x - MAP_OFFSET - gMapHeader.mapLayout->width;
+        localY = y - MAP_OFFSET -  connection->offset;
         break;
     default:
         return FALSE;
@@ -439,9 +424,6 @@ static void CheckForHiddenItemsInMapConnection(u8 taskId)
     s16 width = gMapHeader.mapLayout->width + MAP_OFFSET;
     s16 height = gMapHeader.mapLayout->height + MAP_OFFSET;
 
-    s16 var1 = MAP_OFFSET;
-    s16 var2 = MAP_OFFSET;
-
     PlayerGetDestCoords(&playerX, &playerY);
 
     // Player can see 7 metatiles on either side horizontally
@@ -450,15 +432,12 @@ static void CheckForHiddenItemsInMapConnection(u8 taskId)
     {
         for (y = playerY - 5; y <= playerY + 5; y++)
         {
-            if (var1 > x
-             || x >= width
-             || var2 > y
-             || y >= height)
-            {
-                const struct MapConnection *conn = GetMapConnectionAtPos(x, y);
-                if (conn && IsHiddenItemPresentInConnection(conn, x, y) == TRUE)
-                    SetDistanceOfClosestHiddenItem(taskId, x - playerX, y - playerY);
-            }
+            if (MAP_OFFSET <= x && x < width && MAP_OFFSET <= y && y < height)
+                continue;
+
+            const struct MapConnection *conn = GetMapConnectionAtPos(x, y);
+            if (conn && IsHiddenItemPresentInConnection(conn, x, y))
+                SetDistanceOfClosestHiddenItem(taskId, x - playerX, y - playerY);
         }
     }
 }
@@ -474,38 +453,34 @@ static void SetDistanceOfClosestHiddenItem(u8 taskId, s16 itemDistanceX, s16 ite
         tItemDistanceX = itemDistanceX;
         tItemDistanceY = itemDistanceY;
         tItemFound = TRUE;
+        return;
     }
-    else
+
+    // Other items have been found, check if this one is closer
+
+    // Get absolute x distance of the already-found item
+
+    oldItemAbsX = abs(tItemDistanceX);
+
+    oldItemAbsY = abs(tItemDistanceY);
+
+    newItemAbsX = abs(itemDistanceX);
+
+    newItemAbsY = abs(itemDistanceY);
+
+    if (oldItemAbsX + oldItemAbsY > newItemAbsX + newItemAbsY)
     {
-        // Other items have been found, check if this one is closer
+        // New item is closer
+        tItemDistanceX = itemDistanceX;
+        tItemDistanceY = itemDistanceY;
+        return;
+    }
 
-        // Get absolute x distance of the already-found item
-
-        oldItemAbsX = abs(tItemDistanceX);
-
-        oldItemAbsY = abs(tItemDistanceY);
-
-        newItemAbsX = abs(itemDistanceX);
-
-        newItemAbsY = abs(itemDistanceY);
-
-
-        if (oldItemAbsX + oldItemAbsY > newItemAbsX + newItemAbsY)
-        {
-            // New item is closer
-            tItemDistanceX = itemDistanceX;
-            tItemDistanceY = itemDistanceY;
-        }
-        else
-        {
-            if (oldItemAbsX + oldItemAbsY == newItemAbsX + newItemAbsY
-            && (oldItemAbsY > newItemAbsY || (oldItemAbsY == newItemAbsY && tItemDistanceY < itemDistanceY)))
-            {
-                // If items are equal distance, use whichever is closer on the Y axis or further south
-                tItemDistanceX = itemDistanceX;
-                tItemDistanceY = itemDistanceY;
-            }
-        }
+    if (oldItemAbsX + oldItemAbsY == newItemAbsX + newItemAbsY && (oldItemAbsY > newItemAbsY || (oldItemAbsY == newItemAbsY && tItemDistanceY < itemDistanceY)))
+    {
+        // If items are equal distance, use whichever is closer on the Y axis or further south
+        tItemDistanceX = itemDistanceX;
+        tItemDistanceY = itemDistanceY;
     }
 }
 
