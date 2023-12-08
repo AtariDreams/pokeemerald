@@ -429,7 +429,6 @@ extern const u8 gText_Var1IsSelected[];
 extern const u8 gText_TossHowManyVar1s[];
 extern const u8 gText_ConfirmTossItems[];
 extern const u8 gText_ThrewAwayVar2Var1s[];
-extern const u8 gText_CantWriteMail[];
 extern const u8 gText_NoPokemon[];
 extern const u8 gText_Var1CantBeHeld[];
 extern const u8 gText_Var1CantBeHeldHere[];
@@ -457,11 +456,6 @@ extern const u8 gText_PkmnCantParticipate[];
 extern const u8 gText_PkmnNotHolding[];
 extern const u8 gText_ThrowAwayItem[];
 extern const u8 gText_ItemThrownAway[];
-extern const u8 gText_SendMailToPC[];
-extern const u8 gText_MailSentToPC[];
-extern const u8 gText_PCMailboxFull[];
-extern const u8 gText_MailMessageWillBeLost[];
-extern const u8 gText_MailTakenFromPkmn[];
 extern const u8 gText_NoMoreThanVar1Pkmn[];
 extern const u8 gText_PkmnCantBeTradedNow[];
 extern const u8 gText_EggCantBeTradedNow[];
@@ -498,9 +492,6 @@ extern const u8 gText_12PoofForgotMove[];
 extern const u8 gText_StopLearningMove2[];
 extern const u8 gText_MoveNotLearned[];
 extern const u8 gText_PkmnElevatedToLvVar2[];
-extern const u8 gText_RemoveMailBeforeItem[];
-extern const u8 gText_PkmnHoldingItemCantHoldMail[];
-extern const u8 gText_MailTransferredFromMailbox[];
 extern const u8 gText_CancelBattle[];
 extern const u8 gText_ReturnToWaitingRoom[];
 extern const u8 gText_CancelChallenge[];
@@ -559,7 +550,6 @@ extern const u8 gBirchDexRatingText_DexCompleted[];
 
 // player pc text
 extern const u8 gText_WhatWouldYouLike[];
-extern const u8 gText_NoMailHere[];
 
 extern const u8 gText_TakeOutItemsFromPC[];
 extern const u8 gText_StoreItemsInPC[];
@@ -567,7 +557,6 @@ extern const u8 gText_ThrowAwayItemsInPC[];
 extern const u8 gText_GoBackPrevMenu[];
 
 extern const u8 gText_ItemStorage[];
-extern const u8 gText_Mailbox[];
 extern const u8 gText_Decoration[];
 extern const u8 gText_TurnOff[];
 
@@ -582,11 +571,9 @@ extern const u8 gText_Give2[];
 extern const u8 gText_Cancel2[];
 
 extern const u8 gText_NoItems[];
-extern const u8 gText_WhatToDoWithVar1sMail[];
 extern const u8 gText_MessageWillBeLost[];
 extern const u8 gText_BagIsFull[];
 
-extern const u8 gText_MailToBagMessageErased[];
 extern const u8 gText_GoBackPrevMenu[];
 extern const u8 gText_WithdrawHowManyItems[];
 extern const u8 gText_WithdrawXItems[];
@@ -1999,14 +1986,12 @@ extern const u8 gText_ContinueBoxOperations[];
 extern const u8 gText_PkmnCameBack[];
 extern const u8 gText_WasItWorriedAboutYou[];
 extern const u8 gText_FourEllipsesExclamation[];
-extern const u8 gText_PleaseRemoveTheMail[];
 extern const u8 gText_GiveToAPkmn[];
 extern const u8 gText_PlacedItemInBag[];
 extern const u8 gText_BagIsFull2[];
 extern const u8 gText_PutItemInBag[];
 extern const u8 gText_ItemIsNowHeld[];
 extern const u8 gText_ChangedToNewItem[];
-extern const u8 gText_MailCantBeStored[];
 extern const u8 gPCText_Cancel[];
 extern const u8 gPCText_Store[];
 extern const u8 gPCText_Withdraw[];
@@ -2120,7 +2105,6 @@ extern const u8 gText_DoWhatWithPokemon[];
 extern const u8 gText_RestoreWhichMove[];
 extern const u8 gText_BoostPp[];
 extern const u8 gText_DoWhatWithItem[];
-extern const u8 gText_DoWhatWithMail[];
 extern const u8 gText_AlreadyHoldingOne[];
 extern const u8 gText_NoUse[];
 extern const u8 gText_Able[];
@@ -2136,7 +2120,7 @@ extern const u8 gText_Learned[];
 extern const u8 gText_Have[];
 extern const u8 gText_DontHave[];
 extern const u8 gText_Take[];
-extern const u8 gText_Mail[];
+
 extern const u8 gText_Take2[];
 extern const u8 gText_Read2[];
 extern const u8 gText_Cancel2[];
@@ -2587,7 +2571,6 @@ extern const u8 gText_Give[];
 extern const u8 gText_NoNeed[];
 
 // Easy Chat Entry
-extern const u8 gText_StopGivingPkmnMail[];
 extern const u8 gText_LikeToQuitQuiz[];
 extern const u8 gText_ChallengeQuestionMark[];
 extern const u8 gText_QuitEditing[];

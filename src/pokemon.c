@@ -2152,7 +2152,6 @@ void ZeroBoxMonData(struct BoxPokemon *boxMon)
 void ZeroMonData(struct Pokemon *mon)
 {
     memset(mon, 0, sizeof(*mon));
-    mon->mail = MAIL_NONE;
 }
 
 void RemoveMonFromParty(u32 index)
@@ -2836,8 +2835,6 @@ void BoxMonToMon(const struct BoxPokemon *src, struct Pokemon *dest)
     SetMonData(dest, MON_DATA_STATUS, &value);
     SetMonData(dest, MON_DATA_HP, &value);
     SetMonData(dest, MON_DATA_MAX_HP, &value);
-
-    dest->mail = MAIL_NONE;
     CalculateMonStats(dest);
 }
 
@@ -3547,9 +3544,6 @@ u32 GetMonData3(struct Pokemon *mon, s32 field, u8 *data)
     case MON_DATA_SPDEF2:
         ret = mon->spDefense;
         break;
-    case MON_DATA_MAIL:
-        ret = mon->mail;
-        break;
     default:
         ret = GetBoxMonData(&mon->box, field, data);
         break;
@@ -3944,9 +3938,6 @@ void SetMonData(struct Pokemon *mon, s32 field, const void *dataArg)
         break;
     case MON_DATA_SPDEF:
         SET16(mon->spDefense);
-        break;
-    case MON_DATA_MAIL:
-        SET8(mon->mail);
         break;
     case MON_DATA_SPECIES_OR_EGG:
         break;

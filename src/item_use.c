@@ -19,7 +19,7 @@
 #include "field_weather.h"
 #include "item.h"
 #include "item_menu.h"
-#include "mail.h"
+
 #include "main.h"
 #include "menu.h"
 #include "menu_helpers.h"
@@ -176,20 +176,6 @@ u8 CheckIfItemIsTMHMOrEvolutionStone(u16 itemId)
         return 2;
     else
         return 0;
-}
-
-// Mail in the bag menu can't have a message but it can be checked (view the mail background, no message)
-static void CB2_CheckMail(void)
-{
-    struct Mail mail;
-    mail.itemId = gSpecialVar_ItemId;
-    ReadMail(&mail, CB2_ReturnToBagMenuPocket, FALSE);
-}
-
-void ItemUseOutOfBattle_Mail(u8 taskId)
-{
-    gBagMenu->newScreenCallback = CB2_CheckMail;
-    Task_FadeAndCloseBagMenu(taskId);
 }
 
 void ItemUseOutOfBattle_Bike(u8 taskId)

@@ -23,7 +23,7 @@
 #include "string_util.h"
 #include "pokemon_icon.h"
 #include "m4a.h"
-#include "mail.h"
+
 #include "event_data.h"
 #include "pokemon_storage_system.h"
 #include "task.h"
@@ -2766,7 +2766,6 @@ void SetMoveEffect(bool8 primary, u8 certain)
                     }
                     else if (gBattleMons[gBattlerAttacker].item != ITEM_NONE
                         || gBattleMons[gBattlerTarget].item == ITEM_ENIGMA_BERRY
-                        || IS_ITEM_MAIL(gBattleMons[gBattlerTarget].item)
                         || gBattleMons[gBattlerTarget].item == ITEM_NONE)
                     {
                         gBattlescriptCurrInstr++;
@@ -9131,9 +9130,7 @@ static void Cmd_tryswapitems(void)
         // or if either of them is an enigma berry or a mail
         else if ((gBattleMons[gBattlerAttacker].item == ITEM_NONE && gBattleMons[gBattlerTarget].item == ITEM_NONE)
                  || gBattleMons[gBattlerAttacker].item == ITEM_ENIGMA_BERRY
-                 || gBattleMons[gBattlerTarget].item == ITEM_ENIGMA_BERRY
-                 || IS_ITEM_MAIL(gBattleMons[gBattlerAttacker].item)
-                 || IS_ITEM_MAIL(gBattleMons[gBattlerTarget].item))
+                 || gBattleMons[gBattlerTarget].item == ITEM_ENIGMA_BERRY)
         {
             gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
         }

@@ -87,14 +87,6 @@ struct ConditionGraph
     /*0x355*/ u8 scanlineResetState;
 };
 
-// Mailbox menu
-bool8 MailboxMenu_Alloc(u8 count);
-u8 MailboxMenu_AddWindow(u8 windowIdx);
-u8 MailboxMenu_CreateList(struct PlayerPCItemPageStruct *page);
-void MailboxMenu_AddScrollArrows(struct PlayerPCItemPageStruct *page);
-void MailboxMenu_Free(void);
-void MailboxMenu_RemoveWindow(u8 windowIdx);
-
 // Condition graph
 void ConditionGraph_Init(struct ConditionGraph *graph);
 void ConditionGraph_InitWindow(u8 bg);

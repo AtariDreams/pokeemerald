@@ -12,7 +12,7 @@
 #include "item_menu.h"
 #include "constants/items.h"
 #include "list_menu.h"
-#include "mail.h"
+
 #include "main.h"
 #include "malloc.h"
 #include "menu.h"
@@ -33,7 +33,6 @@
 // Top level PC menu options
 enum {
     MENU_ITEMSTORAGE,
-    MENU_MAILBOX,
     MENU_DECORATION,
     MENU_TURNOFF
 };
@@ -101,37 +100,9 @@ static void InitPlayerPCMenu(u8);
 static void PlayerPCProcessMenuInput(u8);
 static void InitItemStorageMenu(u8, u8);
 
-static u8 GetMailboxMailCount(void);
-static void Mailbox_CompactMailList(void);
-static void Mailbox_DrawMailboxMenu(u8);
-static void Mailbox_ProcessInput(u8);
-static void Mailbox_PrintWhatToDoWithPlayerMailText(u8);
-static void Mailbox_ReturnToPlayerPC(u8);
-static void Mailbox_PrintMailOptions(u8);
-static void Mailbox_MailOptionsProcessInput(u8);
-
 static void PlayerPC_ItemStorage(u8);
-static void PlayerPC_Mailbox(u8);
 static void PlayerPC_Decoration(u8);
 static void PlayerPC_TurnOff(u8);
-
-static void Mailbox_DoMailMoveToBag(u8);
-static void Mailbox_DoMailRead(u8);
-static void Mailbox_MoveToBag(u8);
-static void Mailbox_Give(u8);
-static void Mailbox_Cancel(u8);
-
-static void Mailbox_CancelMoveToBag(u8);
-static void Mailbox_HandleConfirmMoveToBag(u8);
-static void Mailbox_AskConfirmMoveToBag(u8);
-static void Mailbox_DoGiveMailPokeMenu(u8);
-static void Mailbox_NoPokemonForMail(u8);
-
-static void Mailbox_FadeAndReadMail(u8);
-static void Mailbox_ReturnToFieldFromReadMail(void);
-static void Mailbox_ReshowAfterMail(void);
-static void Mailbox_HandleReturnToProcessInput(u8);
-static void Mailbox_UpdateMailListAfterDeposit(void);
 
 static void ItemStorage_Withdraw(u8);
 static void ItemStorage_Deposit(u8);
@@ -192,7 +163,6 @@ static const u8 *const sItemStorage_OptionDescriptions[] =
 static const struct MenuAction sPlayerPCMenuActions[] =
 {
     [MENU_ITEMSTORAGE] = { gText_ItemStorage, {PlayerPC_ItemStorage} },
-    [MENU_MAILBOX]     = { gText_Mailbox,     {PlayerPC_Mailbox} },
     [MENU_DECORATION]  = { gText_Decoration,  {PlayerPC_Decoration} },
     [MENU_TURNOFF]     = { gText_TurnOff,     {PlayerPC_TurnOff} }
 };
@@ -200,7 +170,6 @@ static const struct MenuAction sPlayerPCMenuActions[] =
 static const u8 sBedroomPC_OptionOrder[] =
 {
     MENU_ITEMSTORAGE,
-    MENU_MAILBOX,
     MENU_DECORATION,
     MENU_TURNOFF
 };
@@ -209,7 +178,6 @@ static const u8 sBedroomPC_OptionOrder[] =
 static const u8 sPlayerPC_OptionOrder[] =
 {
     MENU_ITEMSTORAGE,
-    MENU_MAILBOX,
     MENU_TURNOFF
 };
 #define NUM_PLAYER_PC_OPTIONS ARRAY_COUNT(sPlayerPC_OptionOrder)
@@ -226,14 +194,6 @@ static const u16 sNewGamePCItems[][2] =
 {
     { ITEM_POTION, 1 },
     { ITEM_NONE, 0 }
-};
-
-const struct MenuAction gMailboxMailOptions[] =
-{
-    { gText_Read,      {Mailbox_DoMailRead} },
-    { gText_MoveToBag, {Mailbox_MoveToBag} },
-    { gText_Give2,     {Mailbox_Give} },
-    { gText_Cancel2,   {Mailbox_Cancel} }
 };
 
 static const struct WindowTemplate sWindowTemplates_MainMenus[] =
@@ -454,37 +414,6 @@ static void PlayerPC_ItemStorage(u8 taskId)
     gTasks[taskId].func = ItemStorageMenuProcessInput;
 }
 
-static void PlayerPC_Mailbox(u8 taskId)
-{
-    gPlayerPCItemPageInfo.count = GetMailboxMailCount();
-
-    if (gPlayerPCItemPageInfo.count == 0)
-    {
-        // Mailbox cannot be opened if no mail is in PC
-        DisplayItemMessageOnField(taskId, gText_NoMailHere, ReshowPlayerPC);
-        return;
-    }
-    else
-    {
-        gPlayerPCItemPageInfo.cursorPos = 0;
-        gPlayerPCItemPageInfo.itemsAbove = 0;
-        gPlayerPCItemPageInfo.scrollIndicatorTaskId = TASK_NONE;
-        Mailbox_CompactMailList();
-        SetPlayerPCListCount(taskId);
-        if (MailboxMenu_Alloc(gPlayerPCItemPageInfo.count) == TRUE)
-        {
-            ClearDialogWindowAndFrame(0, FALSE);
-            Mailbox_DrawMailboxMenu(taskId);
-            gTasks[taskId].func = Mailbox_ProcessInput;
-        }
-        else
-        {
-            // Alloc failed, exit Mailbox
-            DisplayItemMessageOnField(taskId, gText_NoMailHere, ReshowPlayerPC);
-        }
-    }
-}
-
 static void PlayerPC_Decoration(u8 taskId)
 {
     DoPlayerRoomDecorationMenu(taskId);
@@ -664,283 +593,6 @@ static void ItemStorage_EraseMainMenu(u8 taskId)
     ClearWindowTilemap(tWindowId);
     RemoveWindow(tWindowId);
     ScheduleBgCopyTilemapToVram(0);
-}
-
-static u8 GetMailboxMailCount(void)
-{
-    u8 mailInPC;
-    u32 i;
-
-    // Count mail in PC (by first skipping over mail in party)
-    for (mailInPC = 0, i = PARTY_SIZE; i < MAIL_COUNT; i++)
-        if (gSaveBlock1.mail[i].itemId != ITEM_NONE)
-            mailInPC++;
-
-    return mailInPC;
-}
-
-static void Mailbox_CompactMailList(void)
-{
-    struct Mail temp;
-    u32 i, j;
-
-    for (i = PARTY_SIZE; i < MAIL_COUNT - 1; i++)
-    {
-        for (j = i + 1; j < MAIL_COUNT; j++)
-        {
-            if (gSaveBlock1.mail[i].itemId == ITEM_NONE)
-                SWAP(gSaveBlock1.mail[i], gSaveBlock1.mail[j], temp);
-        }
-    }
-}
-
-static void Mailbox_DrawMailboxMenu(u8 taskId)
-{
-    u8 windowId = MailboxMenu_AddWindow(MAILBOXWIN_TITLE);
-    MailboxMenu_AddWindow(MAILBOXWIN_LIST);
-    AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_Mailbox, GetStringCenterAlignXOffset(FONT_NORMAL, gText_Mailbox, 0x40), 1, 0, NULL);
-    ScheduleBgCopyTilemapToVram(0);
-    gTasks[taskId].tListTaskId = MailboxMenu_CreateList(&gPlayerPCItemPageInfo);
-    MailboxMenu_AddScrollArrows(&gPlayerPCItemPageInfo);
-}
-
-static void Mailbox_ProcessInput(u8 taskId)
-{
-    s16 *data = gTasks[taskId].data;
-
-    if (!gPaletteFade.active)
-    {
-        s32 inputOptionId = ListMenu_ProcessInput(tListTaskId);
-        ListMenuGetScrollAndRow(tListTaskId, &gPlayerPCItemPageInfo.itemsAbove, &gPlayerPCItemPageInfo.cursorPos);
-
-        switch (inputOptionId)
-        {
-        case LIST_NOTHING_CHOSEN:
-            break;
-        case LIST_CANCEL:
-            PlaySE(SE_SELECT);
-            RemoveScrollIndicatorArrowPair(gPlayerPCItemPageInfo.scrollIndicatorTaskId);
-            Mailbox_ReturnToPlayerPC(taskId);
-            break;
-        default:
-            // Selected mail, ask what to do with it
-            PlaySE(SE_SELECT);
-            MailboxMenu_RemoveWindow(MAILBOXWIN_TITLE);
-            MailboxMenu_RemoveWindow(MAILBOXWIN_LIST);
-            DestroyListMenuTask(tListTaskId, &gPlayerPCItemPageInfo.itemsAbove, &gPlayerPCItemPageInfo.cursorPos);
-            ScheduleBgCopyTilemapToVram(0);
-            RemoveScrollIndicatorArrowPair(gPlayerPCItemPageInfo.scrollIndicatorTaskId);
-            gTasks[taskId].func = Mailbox_PrintWhatToDoWithPlayerMailText;
-            break;
-        }
-    }
-}
-
-static void Mailbox_PrintWhatToDoWithPlayerMailText(u8 taskId)
-{
-    StringCopy(gStringVar1, gSaveBlock1.mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos].playerName);
-    ConvertInternationalPlayerNameStripChar(gStringVar1, CHAR_SPACE);
-    StringExpandPlaceholders(gStringVar4, gText_WhatToDoWithVar1sMail);
-    DisplayItemMessageOnField(taskId, gStringVar4, Mailbox_PrintMailOptions);
-}
-
-static void Mailbox_ReturnToPlayerPC(u8 taskId)
-{
-    s16 *data = gTasks[taskId].data;
-
-    MailboxMenu_RemoveWindow(MAILBOXWIN_TITLE);
-    MailboxMenu_RemoveWindow(MAILBOXWIN_LIST);
-    DestroyListMenuTask(tListTaskId, NULL, NULL);
-    ScheduleBgCopyTilemapToVram(0);
-    MailboxMenu_Free();
-    ReshowPlayerPC(taskId);
-}
-
-static void Mailbox_PrintMailOptions(u8 taskId)
-{
-    u8 windowId = MailboxMenu_AddWindow(MAILBOXWIN_OPTIONS);
-    PrintMenuTable(windowId, ARRAY_COUNT(gMailboxMailOptions), gMailboxMailOptions);
-    InitMenuInUpperLeftCornerNormal(windowId, ARRAY_COUNT(gMailboxMailOptions), 0);
-    ScheduleBgCopyTilemapToVram(0);
-    gTasks[taskId].func = Mailbox_MailOptionsProcessInput;
-}
-
-static void Mailbox_MailOptionsProcessInput(u8 taskId)
-{
-    s8 inputOptionId = ProcessMenuInput_other();
-
-    switch (inputOptionId)
-    {
-    case MENU_NOTHING_CHOSEN:
-        break;
-    case MENU_B_PRESSED:
-        PlaySE(SE_SELECT);
-        Mailbox_Cancel(taskId);
-        break;
-    default:
-        PlaySE(SE_SELECT);
-        gMailboxMailOptions[inputOptionId].func.void_u8(taskId);
-        break;
-    }
-}
-
-static void Mailbox_DoMailRead(u8 taskId)
-{
-    FadeScreen(FADE_TO_BLACK, 0);
-    gTasks[taskId].func = Mailbox_FadeAndReadMail;
-}
-
-static void Mailbox_FadeAndReadMail(u8 taskId)
-{
-    if (!gPaletteFade.active)
-    {
-        MailboxMenu_Free();
-        CleanupOverworldWindowsAndTilemaps();
-        ReadMail(&gSaveBlock1.mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos], Mailbox_ReturnToFieldFromReadMail, TRUE);
-        DestroyTask(taskId);
-    }
-}
-
-static void Mailbox_ReturnToFieldFromReadMail(void)
-{
-    gFieldCallback = Mailbox_ReshowAfterMail;
-    SetMainCallback2(CB2_ReturnToField);
-}
-
-static void Mailbox_ReshowAfterMail(void)
-{
-    u8 taskId;
-
-    LoadMessageBoxAndBorderGfx();
-    taskId = CreateTask(Mailbox_HandleReturnToProcessInput, 0);
-    if (MailboxMenu_Alloc(gPlayerPCItemPageInfo.count) == TRUE)
-        Mailbox_DrawMailboxMenu(taskId);
-    else
-        DestroyTask(taskId);
-    FadeInFromBlack();
-}
-
-static void Mailbox_HandleReturnToProcessInput(u8 taskId)
-{
-    if (IsWeatherNotFadingIn() == TRUE)
-        gTasks[taskId].func = Mailbox_ProcessInput;
-}
-
-static void Mailbox_MoveToBag(u8 taskId)
-{
-    DisplayItemMessageOnField(taskId, gText_MessageWillBeLost, Mailbox_AskConfirmMoveToBag);
-}
-
-static void Mailbox_AskConfirmMoveToBag(u8 taskId)
-{
-    DisplayYesNoMenuDefaultYes();
-    gTasks[taskId].func = Mailbox_HandleConfirmMoveToBag;
-}
-
-static void Mailbox_HandleConfirmMoveToBag(u8 taskId)
-{
-    switch (Menu_ProcessInputNoWrapClearOnChoose())
-    {
-    case 0: // Yes
-        Mailbox_DoMailMoveToBag(taskId);
-        break;
-    case MENU_B_PRESSED:
-        PlaySE(SE_SELECT);
-    case 1: // No
-        Mailbox_CancelMoveToBag(taskId);
-        break;
-    case MENU_NOTHING_CHOSEN:
-    default:
-        break;
-    }
-}
-
-static void Mailbox_DoMailMoveToBag(u8 taskId)
-{
-    struct Mail *mail = &gSaveBlock1.mail[gPlayerPCItemPageInfo.itemsAbove + PARTY_SIZE + gPlayerPCItemPageInfo.cursorPos];
-    if (!AddBagItem(mail->itemId, 1))
-    {
-        DisplayItemMessageOnField(taskId, gText_BagIsFull, Mailbox_Cancel);
-    }
-    else
-    {
-        DisplayItemMessageOnField(taskId, gText_MailToBagMessageErased, Mailbox_Cancel);
-        ClearMail(mail);
-        Mailbox_CompactMailList();
-        gPlayerPCItemPageInfo.count--;
-        if (gPlayerPCItemPageInfo.count < (gPlayerPCItemPageInfo.pageItems + gPlayerPCItemPageInfo.itemsAbove) && gPlayerPCItemPageInfo.itemsAbove != 0)
-            gPlayerPCItemPageInfo.itemsAbove--;
-        SetPlayerPCListCount(taskId);
-    }
-}
-
-static void Mailbox_CancelMoveToBag(u8 taskId)
-{
-    Mailbox_Cancel(taskId);
-}
-
-static void Mailbox_Give(u8 taskId)
-{
-    if (CalculatePlayerPartyCount() == 0) {
-        Mailbox_NoPokemonForMail(taskId);
-        return;
-    }
-    else
-    {
-        FadeScreen(FADE_TO_BLACK, 0);
-        gTasks[taskId].func = Mailbox_DoGiveMailPokeMenu;
-    }
-}
-
-static void Mailbox_DoGiveMailPokeMenu(u8 taskId)
-{
-    if (!gPaletteFade.active)
-    {
-        MailboxMenu_Free();
-        CleanupOverworldWindowsAndTilemaps();
-        ChooseMonToGiveMailFromMailbox();
-        DestroyTask(taskId);
-    }
-}
-
-void Mailbox_ReturnToMailListAfterDeposit(void)
-{
-    gFieldCallback = Mailbox_UpdateMailListAfterDeposit;
-    SetMainCallback2(CB2_ReturnToField);
-}
-
-static void Mailbox_UpdateMailListAfterDeposit(void)
-{
-    u8 taskId;
-    u8 prevCount;
-    taskId = CreateTask(Mailbox_HandleReturnToProcessInput, 0);
-    prevCount = gPlayerPCItemPageInfo.count;
-    gPlayerPCItemPageInfo.count = GetMailboxMailCount();
-    Mailbox_CompactMailList();
-    if (prevCount != gPlayerPCItemPageInfo.count && (gPlayerPCItemPageInfo.count < (gPlayerPCItemPageInfo.pageItems + gPlayerPCItemPageInfo.itemsAbove))
-       && gPlayerPCItemPageInfo.itemsAbove != 0)
-        gPlayerPCItemPageInfo.itemsAbove--;
-    SetPlayerPCListCount(taskId);
-    LoadMessageBoxAndBorderGfx();
-    if (MailboxMenu_Alloc(gPlayerPCItemPageInfo.count) == TRUE)
-        Mailbox_DrawMailboxMenu(taskId);
-    else
-        DestroyTask(taskId);
-    FadeInFromBlack();
-}
-
-static void Mailbox_NoPokemonForMail(u8 taskId)
-{
-    DisplayItemMessageOnField(taskId, gText_NoPokemon, Mailbox_Cancel);
-}
-
-static void Mailbox_Cancel(u8 taskId)
-{
-    MailboxMenu_RemoveWindow(MAILBOXWIN_OPTIONS);
-    ClearDialogWindowAndFrame(0, FALSE);
-    Mailbox_DrawMailboxMenu(taskId);
-    ScheduleBgCopyTilemapToVram(0);
-    gTasks[taskId].func = Mailbox_ProcessInput;
 }
 
 static void ItemStorage_Init(void)

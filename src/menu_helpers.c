@@ -11,7 +11,7 @@
 #include "link.h"
 #include "string_util.h"
 #include "sound.h"
-#include "mail.h"
+
 #include "overworld.h"
 #include "decompress.h"
 #include "constants/songs.h"
@@ -282,14 +282,6 @@ bool8 IsHoldingItemAllowed(u16 itemId)
     if (itemId == ITEM_ENIGMA_BERRY
      && (gSaveBlock1.location.mapGroup == MAP_GROUP(TRADE_CENTER)
        && gSaveBlock1.location.mapNum == MAP_NUM(TRADE_CENTER)))
-        return FALSE;
-    else
-        return TRUE;
-}
-
-bool8 IsWritingMailAllowed(u16 itemId)
-{
-    if ((IsOverworldLinkActive() == TRUE) && ItemIsMail(itemId) == TRUE)
         return FALSE;
     else
         return TRUE;

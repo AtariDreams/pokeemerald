@@ -34,7 +34,6 @@ const u8 gEasyChatWord_Popular[] = _("POPULAR");
 const u8 gEasyChatWord_Party[] = _("PARTY");
 const u8 gEasyChatWord_Study[] = _("STUDY");
 const u8 gEasyChatWord_Machine[] = _("MACHINE");
-const u8 gEasyChatWord_Mail[] = _("MAIL");
 const u8 gEasyChatWord_Message[] = _("MESSAGE");
 const u8 gEasyChatWord_Promise[] = _("PROMISE");
 const u8 gEasyChatWord_Dream[] = _("DREAM");
@@ -259,12 +258,6 @@ const struct EasyChatWordInfo gEasyChatGroup_Lifestyle[] = {
     {
         .text = gEasyChatWord_Machine,
         .alphabeticalOrder = 34,
-        .enabled = TRUE,
-    },
-    [EC_INDEX(EC_WORD_MAIL)] =
-    {
-        .text = gEasyChatWord_Mail,
-        .alphabeticalOrder = 14,
         .enabled = TRUE,
     },
     [EC_INDEX(EC_WORD_MESSAGE)] =
