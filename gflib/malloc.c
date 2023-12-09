@@ -14,35 +14,7 @@ typedef struct header Header;
 static Header *const base = (void *)gHeap;
 static Header *freep = NULL; /* start of free list */
 
-static u32 current_break = 0; // Some global variable for your application.
-
-static Header *incbreak(u32 incr)
-{
-        if (__builtin_expect_with_probability(current_break + incr < (HEAP_SIZE / sizeof(Header)), 1, 0.9999999999999))
-        {
-                Header *ret = base + current_break;
-                current_break += incr;
-                return ret;
-        }
-        return NULL;
-}
-
-static Header *morecore(u32 nu)
-{
-    if (nu < 1024)
-        nu = 1024;
-    Header *cp;
-    cp = incbreak(nu);
-    if (__builtin_expect_with_probability(cp == NULL, 0, 0.99999999999999999))
-        return NULL;
-    /* make the new block point to the start of the free list */
-    cp->ptr = freep->ptr; 
-    cp->size = nu;
-    /* make the old tail of the free list point to the new block */
-    freep->ptr = cp; 
-    freep = cp; /* the new block is now the tail of the free list */
-    return freep;
-}
+#define HEAP_SPACE (HEAP_SIZE / sizeof(Header))
 
 /* Malloc: general-purpose storage allocator */
 void* Alloc (u32 nbytes)
@@ -55,7 +27,8 @@ void* Alloc (u32 nbytes)
   if ((prevp = freep) == NULL)           /* no free list yet */
   {
     base->ptr = prevp = freep = base;
-    base->size = 0;
+    // One for base block
+    base->size = HEAP_SPACE - 1;
   }
 
   for (p = prevp->ptr; ; prevp = p, p = p->ptr)
@@ -75,10 +48,8 @@ void* Alloc (u32 nbytes)
       return (void *)(p->d);
     }
 
-    if (p == freep) {
-        p = morecore(nunits);
-        if (__builtin_expect_with_probability(p == NULL, 0, 0.99999999999999999))
-                return NULL;                     /* none left */
+    if (__builtin_expect_with_probability(p == freep, 0, 0.99999999999999999)) {
+        return NULL;                     /* none left */
     }
   }
 }
@@ -106,7 +77,6 @@ void Free(void *ap) {
 void InitHeap(void)
 {
     freep = NULL;
-    current_break = 0;
 }
 
 void *AllocZeroed(u32 size)
