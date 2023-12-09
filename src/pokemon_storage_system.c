@@ -682,7 +682,9 @@ static bool8 CanShiftMon(void);
 static bool8 IsMonBeingMoved(void);
 static void TryRefreshDisplayMon(void);
 static void ReshowDisplayMon(void);
-static void SetDisplayMonData(void *, u8);
+static void SetDisplayMonData(struct Pokemon *);
+static void SetDisplayMonDataBox(struct BoxPokemon *);
+static void SetDisplayMonDataNULL(void);
 
 // Moving multiple Pokémon at once
 static void MultiMove_Free(void);
@@ -6336,7 +6338,7 @@ static void SetShiftedMonData(u8 boxId, u8 position)
 
     SetPlacedMonData(boxId, position);
     sStorage->movingMon = sStorage->tempMon;
-    SetDisplayMonData(&sStorage->movingMon, MODE_PARTY);
+    SetDisplayMonData(&sStorage->movingMon);
     sMovingMonOrigBoxId = boxId;
     sMovingMonOrigBoxPos = position;
 }
@@ -6753,16 +6755,16 @@ static void TryRefreshDisplayMon(void)
         case CURSOR_AREA_IN_PARTY:
             if (sCursorPosition < PARTY_SIZE)
             {
-                SetDisplayMonData(&gPlayerParty.party[sCursorPosition], MODE_PARTY);
+                SetDisplayMonData(&gPlayerParty.party[sCursorPosition]);
                 break;
             }
             // fallthrough
         case CURSOR_AREA_BUTTONS:
         case CURSOR_AREA_BOX_TITLE:
-            SetDisplayMonData(NULL, MODE_MOVE);
+            SetDisplayMonDataNULL();
             break;
         case CURSOR_AREA_IN_BOX:
-            SetDisplayMonData(GetBoxedMonPtr(StorageGetCurrentBox(), sCursorPosition), MODE_BOX);
+            SetDisplayMonDataBox(GetBoxedMonPtr(StorageGetCurrentBox(), sCursorPosition));
             break;
         }
     }
@@ -6771,62 +6773,32 @@ static void TryRefreshDisplayMon(void)
 static void ReshowDisplayMon(void)
 {
     if (sIsMonBeingMoved)
-        SetDisplayMonData(&sSavedMovingMon, MODE_PARTY);
+        SetDisplayMonData(&sSavedMovingMon);
     else
         TryRefreshDisplayMon();
 }
 
-static void SetDisplayMonData(void *pokemon, u8 mode)
+static void SetDisplayMonData(struct Pokemon *mon)
 {
     u8 *txtPtr;
     u16 gender;
 
     sStorage->displayMonItemId = ITEM_NONE;
     gender = MON_MALE;
-    if (mode == MODE_PARTY)
+
+    sStorage->displayMonSpecies = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
+    if (sStorage->displayMonSpecies != SPECIES_NONE)
     {
-        struct Pokemon *mon = (struct Pokemon *)pokemon;
+        sStorage->displayMonIsEgg = GetMonData(mon, MON_DATA_IS_EGG);
 
-        sStorage->displayMonSpecies = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
-        if (sStorage->displayMonSpecies != SPECIES_NONE)
-        {
-            sStorage->displayMonIsEgg = GetMonData(mon, MON_DATA_IS_EGG);
-
-            GetMonData(mon, MON_DATA_NICKNAME, sStorage->displayMonName);
-            StringGet_Nickname(sStorage->displayMonName);
-            sStorage->displayMonLevel = GetMonData(mon, MON_DATA_LEVEL);
-            sStorage->displayMonMarkings = GetMonData(mon, MON_DATA_MARKINGS);
-            sStorage->displayMonPersonality = GetMonData(mon, MON_DATA_PERSONALITY);
-            sStorage->displayMonPalette = GetMonFrontSpritePal(mon);
-            gender = GetMonGender(mon);
-            sStorage->displayMonItemId = GetMonData(mon, MON_DATA_HELD_ITEM);
-        }
-    }
-    else if (mode == MODE_BOX)
-    {
-        struct BoxPokemon *boxMon = (struct BoxPokemon *)pokemon;
-
-        sStorage->displayMonSpecies = GetBoxMonData(pokemon, MON_DATA_SPECIES_OR_EGG);
-        if (sStorage->displayMonSpecies != SPECIES_NONE)
-        {
-            u32 otId = GetBoxMonData(boxMon, MON_DATA_OT_ID);
-            sStorage->displayMonIsEgg = GetBoxMonData(boxMon, MON_DATA_IS_EGG);
-
-
-            GetBoxMonData(boxMon, MON_DATA_NICKNAME, sStorage->displayMonName);
-            StringGet_Nickname(sStorage->displayMonName);
-            sStorage->displayMonLevel = GetLevelFromBoxMonExp(boxMon);
-            sStorage->displayMonMarkings = GetBoxMonData(boxMon, MON_DATA_MARKINGS);
-            sStorage->displayMonPersonality = GetBoxMonData(boxMon, MON_DATA_PERSONALITY);
-            sStorage->displayMonPalette = GetMonSpritePalFromSpeciesAndPersonality(sStorage->displayMonSpecies, otId, sStorage->displayMonPersonality);
-            gender = GetGenderFromSpeciesAndPersonality(sStorage->displayMonSpecies, sStorage->displayMonPersonality);
-            sStorage->displayMonItemId = GetBoxMonData(boxMon, MON_DATA_HELD_ITEM);
-        }
-    }
-    else
-    {
-        sStorage->displayMonSpecies = SPECIES_NONE;
-        sStorage->displayMonItemId = ITEM_NONE;
+        GetMonData(mon, MON_DATA_NICKNAME, sStorage->displayMonName);
+        StringGet_Nickname(sStorage->displayMonName);
+        sStorage->displayMonLevel = GetMonData(mon, MON_DATA_LEVEL);
+        sStorage->displayMonMarkings = GetMonData(mon, MON_DATA_MARKINGS);
+        sStorage->displayMonPersonality = GetMonData(mon, MON_DATA_PERSONALITY);
+        sStorage->displayMonPalette = GetMonFrontSpritePal(mon);
+        gender = GetMonGender(mon);
+        sStorage->displayMonItemId = GetMonData(mon, MON_DATA_HELD_ITEM);
     }
 
     if (sStorage->displayMonSpecies == SPECIES_NONE)
@@ -6901,6 +6873,114 @@ static void SetDisplayMonData(void *pokemon, u8 mode)
     }
 }
 
+static void SetDisplayMonDataBox(struct BoxPokemon *boxMon)
+{
+    u8 *txtPtr;
+    u16 gender;
+
+    sStorage->displayMonItemId = ITEM_NONE;
+    gender = MON_MALE;
+
+    sStorage->displayMonSpecies = GetBoxMonData(boxMon, MON_DATA_SPECIES_OR_EGG);
+    if (sStorage->displayMonSpecies != SPECIES_NONE)
+    {
+        u32 otId = GetBoxMonData(boxMon, MON_DATA_OT_ID);
+        sStorage->displayMonIsEgg = GetBoxMonData(boxMon, MON_DATA_IS_EGG);
+
+        GetBoxMonData(boxMon, MON_DATA_NICKNAME, sStorage->displayMonName);
+        StringGet_Nickname(sStorage->displayMonName);
+        sStorage->displayMonLevel = GetLevelFromBoxMonExp(boxMon);
+        sStorage->displayMonMarkings = GetBoxMonData(boxMon, MON_DATA_MARKINGS);
+        sStorage->displayMonPersonality = GetBoxMonData(boxMon, MON_DATA_PERSONALITY);
+        sStorage->displayMonPalette = GetMonSpritePalFromSpeciesAndPersonality(sStorage->displayMonSpecies, otId, sStorage->displayMonPersonality);
+        gender = GetGenderFromSpeciesAndPersonality(sStorage->displayMonSpecies, sStorage->displayMonPersonality);
+        sStorage->displayMonItemId = GetBoxMonData(boxMon, MON_DATA_HELD_ITEM);
+    }
+
+    if (sStorage->displayMonSpecies == SPECIES_NONE)
+    {
+        StringFill(sStorage->displayMonName, CHAR_SPACE, 5);
+        StringFill(sStorage->displayMonNameText, CHAR_SPACE, 8);
+        StringFill(sStorage->displayMonSpeciesName, CHAR_SPACE, 8);
+        StringFill(sStorage->displayMonGenderLvlText, CHAR_SPACE, 8);
+        StringFill(sStorage->displayMonItemName, CHAR_SPACE, 8);
+    }
+    else if (sStorage->displayMonIsEgg)
+    {
+        StringCopyPadded(sStorage->displayMonNameText, gText_EggNickname, CHAR_SPACE, 8);
+
+        StringFill(sStorage->displayMonSpeciesName, CHAR_SPACE, 8);
+        StringFill(sStorage->displayMonGenderLvlText, CHAR_SPACE, 8);
+        StringFill(sStorage->displayMonItemName, CHAR_SPACE, 8);
+    }
+    else
+    {
+        if (sStorage->displayMonSpecies == SPECIES_NIDORAN_F || sStorage->displayMonSpecies == SPECIES_NIDORAN_M)
+            gender = MON_GENDERLESS;
+
+        StringCopyPadded(sStorage->displayMonNameText, sStorage->displayMonName, CHAR_SPACE, 5);
+
+        txtPtr = sStorage->displayMonSpeciesName;
+        *(txtPtr)++ = CHAR_SLASH;
+        StringCopyPadded(txtPtr, gSpeciesNames[sStorage->displayMonSpecies], CHAR_SPACE, 5);
+
+        txtPtr = sStorage->displayMonGenderLvlText;
+        *(txtPtr)++ = EXT_CTRL_CODE_BEGIN;
+        *(txtPtr)++ = EXT_CTRL_CODE_COLOR_HIGHLIGHT_SHADOW;
+        switch (gender)
+        {
+        case MON_MALE:
+            *(txtPtr)++ = TEXT_COLOR_RED;
+            *(txtPtr)++ = TEXT_COLOR_WHITE;
+            *(txtPtr)++ = TEXT_COLOR_LIGHT_RED;
+            *(txtPtr)++ = CHAR_MALE;
+            break;
+        case MON_FEMALE:
+            *(txtPtr)++ = TEXT_COLOR_GREEN;
+            *(txtPtr)++ = TEXT_COLOR_WHITE;
+            *(txtPtr)++ = TEXT_COLOR_LIGHT_GREEN;
+            *(txtPtr)++ = CHAR_FEMALE;
+            break;
+        default:
+            *(txtPtr)++ = TEXT_COLOR_DARK_GRAY;
+            *(txtPtr)++ = TEXT_COLOR_WHITE;
+            *(txtPtr)++ = TEXT_COLOR_LIGHT_GRAY;
+            *(txtPtr)++ = CHAR_SPACER; // Genderless
+            break;
+        }
+
+        *(txtPtr++) = EXT_CTRL_CODE_BEGIN;
+        *(txtPtr++) = EXT_CTRL_CODE_COLOR_HIGHLIGHT_SHADOW;
+        *(txtPtr++) = TEXT_COLOR_DARK_GRAY;
+        *(txtPtr++) = TEXT_COLOR_WHITE;
+        *(txtPtr++) = TEXT_COLOR_LIGHT_GRAY;
+        *(txtPtr++) = CHAR_SPACE;
+        *(txtPtr++) = CHAR_EXTRA_SYMBOL;
+        *(txtPtr++) = CHAR_LV_2;
+
+        txtPtr = ConvertIntToDecimalStringN(txtPtr, sStorage->displayMonLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
+        txtPtr[0] = CHAR_SPACE;
+        txtPtr[1] = EOS;
+
+        if (sStorage->displayMonItemId != ITEM_NONE)
+            StringCopyPadded(sStorage->displayMonItemName, ItemId_GetName(sStorage->displayMonItemId), CHAR_SPACE, 8);
+        else
+            StringFill(sStorage->displayMonItemName, CHAR_SPACE, 8);
+    }
+}
+
+static void SetDisplayMonDataNULL(void)
+{
+    sStorage->displayMonItemId = ITEM_NONE;
+
+    sStorage->displayMonSpecies = SPECIES_NONE;
+
+    StringFill(sStorage->displayMonName, CHAR_SPACE, 5);
+    StringFill(sStorage->displayMonNameText, CHAR_SPACE, 8);
+    StringFill(sStorage->displayMonSpeciesName, CHAR_SPACE, 8);
+    StringFill(sStorage->displayMonGenderLvlText, CHAR_SPACE, 8);
+    StringFill(sStorage->displayMonItemName, CHAR_SPACE, 8);
+}
 
 //------------------------------------------------------------------------------
 //  SECTION: Input handlers
