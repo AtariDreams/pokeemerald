@@ -9,7 +9,7 @@
 
 void RouletteFlash_Reset(struct RouletteFlashUtil *flash)
 {
-    memset(&flash, 0, sizeof(flash));
+    memset(flash, 0, sizeof(flash));
 }
 
 u8 RouletteFlash_Add(struct RouletteFlashUtil *flash, u8 id, const struct RouletteFlashSettings *settings)
@@ -39,9 +39,7 @@ u8 RouletteFlash_Add(struct RouletteFlashUtil *flash, u8 id, const struct Roulet
 
 static u8 UNUSED RouletteFlash_Remove(struct RouletteFlashUtil *flash, u8 id)
 {
-    if (id >= ARRAY_COUNT(flash->palettes))
-        return 0xFF;
-    if (!flash->palettes[id].available)
+    if (id >= ARRAY_COUNT(flash->palettes) || !flash->palettes[id].available)
         return 0xFF;
 
     memset(&flash->palettes[id], 0, sizeof(flash->palettes[id]));
@@ -139,7 +137,7 @@ void RouletteFlash_Run(struct RouletteFlashUtil *flash)
     {
         for (i = 0; i < ARRAY_COUNT(flash->palettes); i++)
         {
-            if ((flash->flags >> i) & 1)
+            if (flash->flags & (1U << i))
             {
                 if (flash->palettes[i].delayCounter == 0)
                 {
@@ -159,16 +157,16 @@ void RouletteFlash_Run(struct RouletteFlashUtil *flash)
 
 void RouletteFlash_Enable(struct RouletteFlashUtil *flash, u16 flags)
 {
-    u8 i = 0;
+    u32 i = 0;
 
     flash->enabled++;
     for (i = 0; i < ARRAY_COUNT(flash->palettes); i++)
     {
-        if ((flags >> i) & 1)
+        if (flags & (1U << i))
         {
             if (flash->palettes[i].available)
             {
-                flash->flags |= 1 << i;
+                flash->flags |= 1U << i;
                 flash->palettes[i].state = 1;
             }
         }
@@ -181,11 +179,11 @@ void RouletteFlash_Stop(struct RouletteFlashUtil *flash, u16 flags)
 
     for (i = 0; i < ARRAY_COUNT(flash->palettes); i++)
     {
-        if ((flash->flags >> i) & 1)
+        if (flash->flags & (1U << i))
         {
             if (flash->palettes[i].available)
             {
-                if ((flags >> i) & 1)
+                if (flags & (1U << i))
                 {
                     u32 offset = flash->palettes[i].settings.paletteOffset;
                     memcpy(&gPlttBufferFaded[offset],  &gPlttBufferUnfaded[offset], flash->palettes[i].settings.numColors * 2);
@@ -250,7 +248,7 @@ u32 InitPulseBlendPaletteSettings(struct PulseBlend *pulseBlend, const struct Pu
 
 static void ClearPulseBlendPalettesSettings(struct PulseBlendPalette *pulseBlendPalette)
 {
-    u16 i;
+    u32 i;
 
     if (!pulseBlendPalette->available && pulseBlendPalette->pulseBlendSettings.restorePaletteOnUnload)
     {
