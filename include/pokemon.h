@@ -103,7 +103,7 @@ struct PokemonSubstruct0
     u32 experience;
     u8 ppBonuses;
     u8 friendship;
-    u16 filler;
+    //u16 filler;
 };
 
 struct PokemonSubstruct1
@@ -133,10 +133,10 @@ struct PokemonSubstruct3
  /* 0x00 */ u8 pokerus;
  /* 0x01 */ u8 metLocation;
 
- /* 0x02 */ u16 metLevel:7;
- /* 0x02 */ u16 metGame:4;
- /* 0x03 */ u16 pokeball:4;
- /* 0x03 */ u16 otGender:1;
+ /* 0x02 */ u8 metLevel:7;
+            u8 otGender:1;
+ /* 0x02 */ u8 metGame:4;
+ /* 0x03 */ u8 pokeball:4;
 
  /* 0x04 */ u32 hpIV:5;
  /* 0x04 */ u32 attackIV:5;
@@ -172,6 +172,7 @@ struct PokemonSubstruct3
  // If set, a Pokémon is a fateful encounter in FRLG's summary screen if hatched & for all Pokémon in Gen 4+ summary screens.
  // Set for in-game event island legendaries, events distributed after a certain date, & Pokémon from XD: Gale of Darkness.
  // Not to be confused with METLOC_FATEFUL_ENCOUNTER.
+ // Todo: remove this bit
  /* 0x0B */ u32 modernFatefulEncounter:1;
 };
 
@@ -198,8 +199,8 @@ struct BoxPokemon
     u8 isBadEgg:1;
     u8 hasSpecies:1;
     u8 isEgg:1;
-    u8 blockBoxRS:1; // Unused, but Pokémon Box Ruby & Sapphire will refuse to deposit a Pokémon with this flag set
-    u8 unused:4;
+    //u8 PokemonBoxNoMove:1; // Unused, but Pokémon Box Ruby & Sapphire will refuse to deposit a Pokémon with this flag set
+    u8 :5;
     u8 otName[PLAYER_NAME_LENGTH];
     u8 markings;
     u16 checksum;
@@ -249,6 +250,18 @@ enum {
     MON_SPR_GFX_MANAGER_A,
     MON_SPR_GFX_MANAGER_B, // Nothing ever sets up this manager.
     MON_SPR_GFX_MANAGERS_COUNT
+};
+
+// Note: HP not in here on purpose
+struct variableParam
+{
+    s8  attack;     ///< こうげき
+    s8  defence;    ///< ぼうぎょ
+    s8  sp_attack;  ///< とくこう
+    s8  sp_defence; ///< とくぼう
+    s8  agility;    ///< すばやさ
+    s8  hit;        ///< 命中率
+    s8  avoid;      ///< 回避率
 };
 
 struct BattlePokemon

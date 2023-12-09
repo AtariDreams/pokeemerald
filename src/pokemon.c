@@ -2595,14 +2595,6 @@ void ConvertPokemonToBattleTowerPokemon(struct Pokemon *mon, struct BattleTowerP
     GetMonData(mon, MON_DATA_NICKNAME, dest->nickname);
 }
 
-static void CreateEventMon(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
-{
-    bool32 isModernFatefulEncounter = TRUE;
-
-    CreateMon(mon, species, level, fixedIV, hasFixedPersonality, fixedPersonality, otIdType, fixedOtId);
-    SetMonData(mon, MON_DATA_MODERN_FATEFUL_ENCOUNTER, &isModernFatefulEncounter);
-}
-
 // If FALSE, should load this game's Deoxys form. If TRUE, should load normal Deoxys form
 bool8 ShouldIgnoreDeoxysForm(u8 caseId, u8 battlerId)
 {
@@ -2740,7 +2732,7 @@ void CreateEnemyEventMon(void)
     s32 itemId = gSpecialVar_0x8006;
 
     ZeroEnemyPartyMons();
-    CreateEventMon(&gEnemyParty.party[0], species, level, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
+    CreateMon(&gEnemyParty.party[0], species, level, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
     if (itemId)
     {
 #ifndef UBFIX
@@ -3628,12 +3620,9 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
         break;
     case MON_DATA_OT_NAME:
     {
-        retVal = 0;
-
-        while (retVal < PLAYER_NAME_LENGTH)
+        for (retVal = 0; retVal < PLAYER_NAME_LENGTH; retVal++)
         {
             data[retVal] = boxMon->otName[retVal];
-            retVal++;
         }
 
         data[retVal] = EOS;
@@ -3642,9 +3631,7 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
     case MON_DATA_MARKINGS:
         retVal = boxMon->markings;
         break;
-    case MON_DATA_ENCRYPT_SEPARATOR:
-        retVal = boxMon->unknown;
-        break;
+
     case MON_DATA_SPECIES:
         retVal = boxMon->substruct0.species;
         break;
@@ -3999,9 +3986,6 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
     }
     case MON_DATA_MARKINGS:
         SET8(boxMon->markings);
-        break;
-    case MON_DATA_ENCRYPT_SEPARATOR:
-        SET16(boxMon->unknown);
         break;
     case MON_DATA_SPECIES:
     {

@@ -569,7 +569,6 @@ static void CreateShedinja(struct Pokemon *mon)
         SetMonData(shedinja, MON_DATA_NICKNAME, gSpeciesNames[SPECIES_SHEDINJA]);
         SetMonData(shedinja, MON_DATA_HELD_ITEM, &data2);
         SetMonData(shedinja, MON_DATA_MARKINGS, &data3);
-        SetMonData(shedinja, MON_DATA_ENCRYPT_SEPARATOR, &data);
 
         for (i = MON_DATA_COOL_RIBBON; i < MON_DATA_COOL_RIBBON + CONTEST_CATEGORIES_COUNT; i++)
             SetMonData(shedinja, i, &data3);
