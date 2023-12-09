@@ -2476,17 +2476,7 @@ s32 GetGameProgressForLinkTrade(void)
     return TRADE_BOTH_PLAYERS_READY;
 }
 
-static bool32 IsDeoxysOrMewUntradable(u16 species, bool8 isModernFatefulEncounter)
-{
-    if (species == SPECIES_DEOXYS || species == SPECIES_MEW)
-    {
-        if (!isModernFatefulEncounter)
-            return TRUE;
-    }
-    return FALSE;
-}
-
-int GetUnionRoomTradeMessageId(struct RfuGameCompatibilityData player, struct RfuGameCompatibilityData partner, u16 playerSpecies2, u16 partnerSpecies, u8 requestedType, u16 playerSpecies, bool8 isModernFatefulEncounter)
+int GetUnionRoomTradeMessageId(struct RfuGameCompatibilityData player, struct RfuGameCompatibilityData partner, u16 playerSpecies2, u16 partnerSpecies, u8 requestedType, u16 playerSpecies)
 {
     bool8 playerHasNationalDex = player.hasNationalDex;
     bool8 playerCanLinkNationally = player.canLinkNationally;
@@ -2503,10 +2493,6 @@ int GetUnionRoomTradeMessageId(struct RfuGameCompatibilityData player, struct Rf
         else if (!partnerCanLinkNationally)
             return UR_TRADE_MSG_CANT_TRADE_WITH_PARTNER_2;
     }
-
-    // Cannot trade illegitimate Deoxys/Mew
-    if (IsDeoxysOrMewUntradable(playerSpecies, isModernFatefulEncounter))
-        return UR_TRADE_MSG_MON_CANT_BE_TRADED_2;
 
     if (partnerSpecies == SPECIES_EGG)
     {
@@ -2548,12 +2534,9 @@ int GetUnionRoomTradeMessageId(struct RfuGameCompatibilityData player, struct Rf
     return UR_TRADE_MSG_NONE;
 }
 
-int CanRegisterMonForTradingBoard(struct RfuGameCompatibilityData player, u16 species2, u16 species, bool8 isModernFatefulEncounter)
+int CanRegisterMonForTradingBoard(struct RfuGameCompatibilityData player, u16 species2, u16 species)
 {
     bool8 hasNationalDex = player.hasNationalDex;
-
-    if (IsDeoxysOrMewUntradable(species, isModernFatefulEncounter))
-        return CANT_REGISTER_MON;
 
     if (hasNationalDex)
         return CAN_REGISTER_MON;
