@@ -9,9 +9,7 @@
 
 void RouletteFlash_Reset(struct RouletteFlashUtil *flash)
 {
-    flash->enabled = 0;
-    flash->flags = 0;
-    memset(&flash->palettes, 0, sizeof(flash->palettes));
+    memset(&flash, 0, sizeof(flash));
 }
 
 u8 RouletteFlash_Add(struct RouletteFlashUtil *flash, u8 id, const struct RouletteFlashSettings *settings)
