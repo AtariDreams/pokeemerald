@@ -6516,8 +6516,13 @@ static void InitCanReleaseMonVars(void)
 
 static bool32 AtLeastThreeUsableMons(void)
 {
-    s32 i, j;
-    s32 count = (sIsMonBeingMoved != FALSE);
+    u32 i, j;
+    u32 count = sIsMonBeingMoved;
+
+    if (sIsMonBeingMoved)
+        count = 1;
+    else
+        count = 0;
 
     // Check party for usable Pokémon
     for (j = 0; j < PARTY_SIZE; j++)
@@ -6530,19 +6535,7 @@ static bool32 AtLeastThreeUsableMons(void)
         return TRUE;
 
     // Check PC for usable Pokémon
-    for (i = 0; i < TOTAL_BOXES_COUNT; i++)
-    {
-        for (j = 0; j < IN_BOX_COUNT; j++)
-        {
-            if (CheckBoxMonSanityAt(i, j))
-            {
-                if (++count >= 3)
-                    return TRUE;
-            }
-        }
-    }
-
-    return FALSE;
+    return ((count + CountStorageNonEggMons()) >= 3);
 }
 
 static s8 RunCanReleaseMon(void)
