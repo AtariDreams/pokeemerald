@@ -2196,8 +2196,6 @@ void CreateBoxMonNoPreset(struct BoxPokemon *boxMon, u16 species, u8 level)
     SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
 
     otID = T1_READ_32(gSaveBlock2.playerTrainerId);
-
-
 }
 
 void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, u8 hasFixedPersonality, u32 fixedPersonality, u8 otIdType, u32 fixedOtId)
@@ -2216,24 +2214,19 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
 
     // Determine original trainer ID
-    if (otIdType == OT_ID_RANDOM_NO_SHINY)
+    switch (otIdType)
     {
-
+    case OT_ID_RANDOM_NO_SHINY:
         // Choose random OT IDs until one that results in a non-shiny Pokémon
         value = Random32();
         if (GET_SHINY_VALUE(value, personality) < SHINY_ODDS)
             value ^= 0x10000000;
-    }
-    else if (otIdType == OT_ID_PRESET)
-    {
+        break;
+    case OT_ID_PRESET:
         value = fixedOtId;
-    }
-    else // Player is the OT
-    {
-        value = gSaveBlock2.playerTrainerId[0]
-              | (gSaveBlock2.playerTrainerId[1] << 8)
-              | (gSaveBlock2.playerTrainerId[2] << 16)
-              | (gSaveBlock2.playerTrainerId[3] << 24);
+        break;
+    default:
+        value = T1_READ_32(gSaveBlock2.playerTrainerId);
     }
 
     SetBoxMonData(boxMon, MON_DATA_OT_ID, &value);
@@ -3566,7 +3559,7 @@ u32 GetMonData2(struct Pokemon *mon, s32 field)
    return GetMonData3(mon, field, NULL);
 }
 
-int canPokeFight(struct Pokemon *mon)
+bool32 canPokeFight(struct Pokemon *mon)
 {
     if (mon->hp == 0)
         return FALSE;
