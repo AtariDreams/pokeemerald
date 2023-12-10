@@ -4200,8 +4200,6 @@ u8 GiveMonToPlayer(struct Pokemon *mon)
     return MON_GIVEN_TO_PARTY;
 }
 
-void RemoveMon
-
 u8 CopyMonToPC(struct Pokemon *mon)
 {
     s32 boxNo, boxPos;
@@ -5528,10 +5526,9 @@ u16 SpeciesToCryId(u16 species)
         }                                                                                     \
     }
 
-void DrawSpindaSpots(u16 species, u32 personality, u8 *dest, bool8 isFrontPic)
+void DrawSpindaSpots(u32 personality, u8 *dest)
 {
-    if (species == SPECIES_SPINDA && isFrontPic)
-        DRAW_SPINDA_SPOTS(personality, dest);
+    DRAW_SPINDA_SPOTS(personality, dest);
 }
 
 void EvolutionRenameMon(struct Pokemon *mon, u16 oldSpecies, u16 newSpecies)
