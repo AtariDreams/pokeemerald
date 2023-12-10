@@ -773,12 +773,6 @@ u8 LoadGameSave(u8 saveType)
 {
     u8 status;
 
-    if (!gFlashMemoryPresent)
-    {
-        gSaveFileStatus = SAVE_STATUS_NO_FLASH;
-        return SAVE_STATUS_ERROR;
-    }
-
     switch (saveType)
     {
     case SAVE_NORMAL:
