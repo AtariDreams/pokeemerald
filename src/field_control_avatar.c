@@ -604,17 +604,13 @@ static void UNUSED ClearFriendshipStepCounter(void)
 static void UpdateFriendshipStepCounter(void)
 {
     u16 *ptr = GetVarPointer(VAR_FRIENDSHIP_STEP_COUNTER);
-    int i;
 
-    (*ptr)++;
-    (*ptr) %= 128;
+    (*ptr) = (*ptr + 1) & 127;
     if (*ptr == 0)
     {
-        struct Pokemon *mon = gPlayerParty.party;
-        for (i = 0; i < PARTY_SIZE; i++)
+        for (u32 i = 0; i < PARTY_SIZE; i++)
         {
-            AdjustFriendship(mon, FRIENDSHIP_EVENT_WALKING);
-            mon++;
+            AdjustFriendship(&gPlayerParty.party[i], FRIENDSHIP_EVENT_WALKING);
         }
     }
 }
@@ -631,8 +627,7 @@ static bool8 UpdatePoisonStepCounter(void)
     if (gMapHeader.mapType != MAP_TYPE_SECRET_BASE)
     {
         ptr = GetVarPointer(VAR_POISON_STEP_COUNTER);
-        (*ptr)++;
-        (*ptr) %= 4;
+        (*ptr) = (*ptr + 1) & 3;
         if (*ptr == 0)
         {
             switch (DoPoisonFieldEffect())
