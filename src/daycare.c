@@ -121,7 +121,8 @@ static u32 CountPokemonInDaycare(void)
 
 void StoreSelectedPokemonInDaycare(void)
 {
-    struct Pokemon *mon = &gPlayerParty.party[GetCursorSelectionMonId()];
+    u32 index = GetCursorSelectionMonId();
+    struct Pokemon *mon = &gPlayerParty.party[index];
     struct DaycareMon *daycareMon; 
 
     if (GetBoxMonData(&gSaveBlock1.daycare.mons[0].mon, MON_DATA_SPECIES) == SPECIES_NONE)
@@ -132,10 +133,7 @@ void StoreSelectedPokemonInDaycare(void)
     daycareMon->mon = mon->box;
     BoxMonRestorePP(&daycareMon->mon);
     daycareMon->steps = 0;
-    ZeroMonData(mon);
-    gPlayerParty.count--;
-    CompactPartySlots();
-    //CalculatePlayerPartyCount();
+    RemoveMonFromParty(index);
 }
 
 // Shifts the second daycare Pokémon slot into the first slot.
@@ -201,8 +199,7 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
 
     GiveMonToPlayer(&pokemon);
 
-    ZeroBoxMonData(&daycareMon->mon);
-    daycareMon->steps = 0;
+    memset(daycareMon, 0, sizeof(daycareMon));
     return species;
 }
 
