@@ -1004,22 +1004,10 @@ static u8 SaveConfirmInputCallback(void)
     switch (Menu_ProcessInputNoWrapClearOnChoose())
     {
     case 0: // Yes
-        switch (gSaveFileStatus)
-        {
-        case SAVE_STATUS_EMPTY:
-        case SAVE_STATUS_CORRUPT:
-            if (gDifferentSaveFile == FALSE)
-            {
-                sSaveDialogCallback = SaveFileExistsCallback;
-                return SAVE_IN_PROGRESS;
-            }
 
-            sSaveDialogCallback = SaveSavingMessageCallback;
-            return SAVE_IN_PROGRESS;
-        default:
-            sSaveDialogCallback = SaveFileExistsCallback;
-            return SAVE_IN_PROGRESS;
-        }
+        sSaveDialogCallback = SaveFileExistsCallback;
+        return SAVE_IN_PROGRESS;
+
     case MENU_B_PRESSED:
     case 1: // No
         HideSaveInfoWindow();
@@ -1033,14 +1021,7 @@ static u8 SaveConfirmInputCallback(void)
 // A different save file exists
 static u8 SaveFileExistsCallback(void)
 {
-    if (gDifferentSaveFile == TRUE)
-    {
-        ShowSaveMessage(gText_DifferentSaveFile, SaveConfirmOverwriteDefaultNoCallback);
-    }
-    else
-    {
-        sSaveDialogCallback = SaveSavingMessageCallback;
-    }
+    sSaveDialogCallback = SaveSavingMessageCallback;
 
     return SAVE_IN_PROGRESS;
 }

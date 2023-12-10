@@ -146,10 +146,7 @@ void ResetMenuAndMonGlobals(void)
 
 void NewGameInitData(void)
 {
-    if (gSaveFileStatus == SAVE_STATUS_EMPTY || gSaveFileStatus == SAVE_STATUS_CORRUPT)
-        RtcReset();
-
-    gDifferentSaveFile = TRUE;
+    RtcReset();
     ZeroPlayerPartyMons();
     ZeroEnemyPartyMons();
     ResetPokedex();

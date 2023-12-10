@@ -721,7 +721,6 @@ static void Task_DisplayMainMenu(u8 taskId)
         {
         case HAS_NO_SAVED_GAME:
         default:
-
             gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
             break;
         case HAS_SAVED_GAME:
