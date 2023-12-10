@@ -509,11 +509,14 @@ struct Sprite* CreateSpriteReturnPointer(const struct SpriteTemplate *template, 
 
 u8 CreateSpriteAtEnd(const struct SpriteTemplate *template, s16 x, s16 y, u8 subpriority)
 {
-    s16 i;
+    u32 i;
 
-    for (i = MAX_SPRITES - 1; i >= 0; i--)
+    for (i = MAX_SPRITES; i;)
+    {
+        i--;
         if (!gSprites[i].inUse)
             return CreateSpriteAt(i, template, x, y, subpriority);
+    }
 
     return MAX_SPRITES;
 }
