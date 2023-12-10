@@ -1033,7 +1033,7 @@ static void MainCB2_Intro(void)
     UpdatePaletteFade();
     if (gMain.newKeys != 0 && !gPaletteFade.active)
         SetMainCallback2(MainCB2_EndIntro);
-    else if (gIntroFrameCounter != -1)
+    else
         gIntroFrameCounter++;
 }
 
@@ -1211,38 +1211,51 @@ static void Task_Scene1_FadeIn(u8 taskId)
 
 static void Task_Scene1_WaterDrops(u8 taskId)
 {
-    if (gIntroFrameCounter == TIMER_BIG_DROP_START)
-        gSprites[gTasks[taskId].sBigDropSpriteId].sState = 1;
-
-    if (gIntroFrameCounter == TIMER_LOGO_APPEAR)
-        CreateTask(Task_BlendLogoIn, 0);
-
-    if (gIntroFrameCounter == TIMER_BIG_DROP_FALLS)
-        gSprites[gTasks[taskId].sBigDropSpriteId].sState = 2;
-
-    if (gIntroFrameCounter == TIMER_LOGO_BLEND_OUT)
-        CreateTask(Task_BlendLogoOut, 0);
-
-    if (gIntroFrameCounter == TIMER_SMALL_DROP_1)
-        CreateWaterDrop(48, 0, 0x400, 5, 0x70, TRUE);
-
-    if (gIntroFrameCounter == TIMER_SMALL_DROP_2)
-        CreateWaterDrop(200, 60, 0x400, 9, 0x80, TRUE);
-
-    if (gIntroFrameCounter == TIMER_SPARKLES)
-        CreateTask(Task_CreateSparkles, 0);
-
-    if (gIntroFrameCounter > TIMER_SPARKLES)
+    switch (gIntroFrameCounter)
     {
-        gTasks[taskId].tBg2PosHi = 80;
-        gTasks[taskId].tBg2PosLo = 0;
-        gTasks[taskId].tBg1PosHi = 24;
-        gTasks[taskId].tBg1PosLo = 0;
-        gTasks[taskId].tBg3PosHi = 40;
-        gTasks[taskId].tBg3PosLo = 0;
-        gTasks[taskId].func = Task_Scene1_PanUp;
+        case TIMER_BIG_DROP_START:
+            gSprites[gTasks[taskId].sBigDropSpriteId].sState = 1;
+            break;
+
+        case TIMER_LOGO_APPEAR:
+            CreateTask(Task_BlendLogoIn, 0);
+            break;
+
+        case TIMER_BIG_DROP_FALLS:
+            gSprites[gTasks[taskId].sBigDropSpriteId].sState = 2;
+            break;
+
+        case TIMER_LOGO_BLEND_OUT:
+            CreateTask(Task_BlendLogoOut, 0);
+            break;
+
+        case TIMER_SMALL_DROP_1:
+            CreateWaterDrop(48, 0, 0x400, 5, 0x70, TRUE);
+            break;
+
+        case TIMER_SMALL_DROP_2:
+            CreateWaterDrop(200, 60, 0x400, 9, 0x80, TRUE);
+            break;
+
+        case TIMER_SPARKLES:
+            CreateTask(Task_CreateSparkles, 0);
+            break;
+
+        default:
+            if (gIntroFrameCounter > TIMER_SPARKLES)
+            {
+                gTasks[taskId].tBg2PosHi = 80;
+                gTasks[taskId].tBg2PosLo = 0;
+                gTasks[taskId].tBg1PosHi = 24;
+                gTasks[taskId].tBg1PosLo = 0;
+                gTasks[taskId].tBg3PosHi = 40;
+                gTasks[taskId].tBg3PosLo = 0;
+                gTasks[taskId].func = Task_Scene1_PanUp;
+            }
+            break;
     }
 }
+
 
 #define tDelay       data[1]
 #define tTimer       data[2]
