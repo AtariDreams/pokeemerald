@@ -54,18 +54,49 @@ u32 ConvertBcdToBinary(u8 bcd)
         return 0xFF;
 }
 
-static bool32 IsLeapYear(u32 year)
-{
-    if (year % 400 == 0)
-        return TRUE;
+// static bool32 IsLeapYear(u32 year)
+// {
+//     if (year % 400 == 0)
+//         return TRUE;
     
-    if (year % 100 == 0)
-        return FALSE;
+//     if (year % 100 == 0)
+//         return FALSE;
 
-    if (year % 4 == 0)
-        return TRUE;
+//     if (year % 4 == 0)
+//         return TRUE;
 
-    return FALSE;
+//     return FALSE;
+// }
+
+static NAKED bool32 IsLeapYear(u32 year)
+{
+    asm_unified("\
+        ldr     r1, =3264175145\n\
+        muls    r1, r0, r1\n\
+        movs    r2, #4\n\
+        movs    r3, r1\n\
+        rors    r3, r2\n\
+        ldr     r2, =10737419\n\
+        cmp     r3, r2\n\
+        blo     .LBB0_3\n\
+        movs    r2, #2\n\
+        rors    r1, r2\n\
+        ldr     r2, =42949673\n\
+        cmp     r1, r2\n\
+        blo     .LBB0_4\n\
+        movs    r1, #3\n\
+        ands    r0, r1\n\
+        rsbs    r1, r0, #0\n\
+        adcs    r1, r0\n\
+        movs    r0, r1\n\
+        bx      lr\n\
+.LBB0_3:\n\
+        movs    r0, #1\n\
+        bx      lr\n\
+.LBB0_4:\n\
+        movs    r0, #0\n\
+        bx      lr\n\
+        .pool\n");
 }
 
 u16 ConvertDateToDayCount(u8 year, u8 month, u8 day)
