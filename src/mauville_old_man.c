@@ -278,8 +278,7 @@ void GenerateGiddyLine(void)
     if (giddy->randomWords[giddy->taleCounter] != EC_EMPTY_WORD)
     {
         u8 *stringPtr;
-        u32 adjective = Random();
-        adjective %= ARRAY_COUNT(sGiddyAdjectives);
+        u32 adjective = Random() % ARRAY_COUNT(sGiddyAdjectives);
 
         stringPtr = CopyEasyChatWord(gStringVar4, giddy->randomWords[giddy->taleCounter]);
         stringPtr = StringCopy(stringPtr, GiddyText_Is);
