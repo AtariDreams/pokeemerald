@@ -38,8 +38,7 @@ SECTIONS {
         src/rom_header_gf.o(.text.*);
         src/crt0.o(.text);
         src/main.o(.text);
-        *(.text)
-		*(.text.*)
+        *(.text*);
         asm/*.o(.text*);
     } > ROM =0
 
