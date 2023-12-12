@@ -109,8 +109,11 @@ void StopFlashTimer(void)
     REG_IME = sSavedIme;
 }
 
+#define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
+#define NAKED __attribute__((naked))
+
 __attribute__((target("arm")))
-u8 NAKED ReadFlash1(vu8 *addr)
+NAKED u8 ReadFlash1(vu8 *addr)
 {
     asm_unified("\
         ldrb    r0, [r0]\n\
@@ -119,13 +122,14 @@ u8 NAKED ReadFlash1(vu8 *addr)
 
 void SetReadFlash1(u32 *dest)
 {
-    CpuCopy32((u32 *)((u32)ReadFlash1), PollFlashStatus, 8); 
+    PollFlashStatus = (u8 (*)(vu8 *))((u8 *)dest);
+
+    CpuCopy32(&ReadFlash1, PollFlashStatus, 8); 
 }
 
 // Using volatile here to make sure the flash memory will ONLY be read as bytes, to prevent any compiler optimizations.
 
-#define asm_unified(x) asm(".syntax unified\n" x "\n.syntax divided")
-#define NAKED __attribute__((naked))
+
 
 __attribute__((target("arm")))
 NAKED void ReadFlash_Core(vu8 *dest, vu8 *src, u32 size)
