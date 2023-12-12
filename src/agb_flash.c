@@ -110,24 +110,16 @@ void StopFlashTimer(void)
 }
 
 __attribute__((target("arm")))
-u8 ReadFlash1(vu8 *addr)
+u8 NAKED ReadFlash1(vu8 *addr)
 {
-    return *addr;
+    asm_unified("\
+        ldrb    r0, [r0]\n\
+        bx      lr\n");
 }
 
 void SetReadFlash1(u32 *dest)
 {
-    u32 *src;
-    u32 i;
-
-    PollFlashStatus = (u8 (*)(vu8 *))((u8 *)dest);
-
-    src = (u32 *)((u32)ReadFlash1);
-
-    for(i=((u32)SetReadFlash1-(u32)ReadFlash1)>>2; i;i--)
-    {
-        *dest++ = *src++;
-    }
+    CpuCopy32((u32 *)((u32)ReadFlash1), PollFlashStatus, 8); 
 }
 
 // Using volatile here to make sure the flash memory will ONLY be read as bytes, to prevent any compiler optimizations.

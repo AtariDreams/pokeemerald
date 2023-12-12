@@ -113,7 +113,7 @@ u16 EraseFlashSector_MX(u16 sectorNum)
 u16 ProgramFlashByte_MX(u16 sectorNum, u32 offset, u8 data)
 {
     vu8 *addr;
-    u32 readFlash1Buffer[4];
+    u32 readFlash1Buffer[2];
 
     if (offset >= gFlash->sector.size)
         return RESULT_ERROR|PHASE_PARAMETER_CHECK;
