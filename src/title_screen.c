@@ -424,27 +424,28 @@ static void SpriteCB_PressStartCopyrightBanner(struct Sprite *sprite)
 static void CreatePressStartBanner(s16 x, s16 y)
 {
     u8 i;
-    u8 spriteId;
+    struct Sprite *sprite;
 
     x -= 64;
+    
     for (i = 0; i < NUM_PRESS_START_FRAMES; i++, x += 32)
     {
-        spriteId = CreateSprite(&sStartCopyrightBannerSpriteTemplate, x, y, 0);
-        StartSpriteAnim(&gSprites[spriteId], i);
-        gSprites[spriteId].sAnimate = TRUE;
+        sprite = CreateSpriteReturnPointer(&sStartCopyrightBannerSpriteTemplate, x, y, 0);
+        StartSpriteAnim(sprite, i);
+        sprite->sAnimate = TRUE;
     }
 }
 
 static void CreateCopyrightBanner(s16 x, s16 y)
 {
     u8 i;
-    u8 spriteId;
+    struct Sprite *sprite;
 
     x -= 64;
     for (i = 0; i < NUM_COPYRIGHT_FRAMES; i++, x += 32)
     {
-        spriteId = CreateSprite(&sStartCopyrightBannerSpriteTemplate, x, y, 0);
-        StartSpriteAnim(&gSprites[spriteId], i + NUM_PRESS_START_FRAMES);
+        sprite = CreateSpriteReturnPointer(&sStartCopyrightBannerSpriteTemplate, x, y, 0);
+        StartSpriteAnim(sprite, i + NUM_PRESS_START_FRAMES);
     }
 }
 
