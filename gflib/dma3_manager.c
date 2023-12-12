@@ -126,6 +126,7 @@ s8 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
 
         cursor = (cursor + 1) & 127;
     }
+    asm volatile ("" : : : "memory");
     sDma3ManagerLocked = FALSE;
     return -1;  // no free DMA request was found
 }
