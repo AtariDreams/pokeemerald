@@ -21,7 +21,7 @@ endif
 PREFIX := arm-none-eabi-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := clang -fno-integrated-as --sysroot $(DEVKITARM)/arm-none-eabi -c
+AS := clang -fno-integrated-as --sysroot <CFGDIR>/../lib/clang-runtimes/arm-none-eabi/armv4t
 
 LD := arm-none-eabi-ld
 
