@@ -21,13 +21,13 @@ endif
 PREFIX := arm-none-eabi-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := $(GBA_CC)/clang -fno-integrated-as --sysroot $(GBA_CC)/../lib/clang-runtimes/arm-none-eabi/armv4t
+AS := $(GBA_CC)/clang-18 -fno-integrated-as --sysroot $(GBA_CC)/../lib/clang-runtimes/arm-none-eabi/armv4t
 
 LD := arm-none-eabi-ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := $(GBA_CC)/clang -fno-exceptions -fno-rtti --sysroot $(GBA_CC)/../lib/clang-runtimes/arm-none-eabi/armv4t -D_LIBCPP_AVAILABILITY_HAS_NO_VERBOSE_ABORT
+MODERNCC := $(GBA_CC)/clang-18 -fno-exceptions -fno-rtti --sysroot $(GBA_CC)/../lib/clang-runtimes/arm-none-eabi/armv4t -D_LIBCPP_AVAILABILITY_HAS_NO_VERBOSE_ABORT
 PATH_MODERNCC := PATH="$(PATH)" arm-none-eabi-gcc
 
 ifeq ($(OS),Windows_NT)
