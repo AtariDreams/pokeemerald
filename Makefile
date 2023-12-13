@@ -27,7 +27,7 @@ LD := arm-none-eabi-ld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := clang -fno-exceptions -fno-rtti --sysroot <CFGDIR>/../lib/clang-runtimes/arm-none-eabi/armv4t -D_LIBCPP_AVAILABILITY_HAS_NO_VERBOSE_ABORT
+MODERNCC := $(GBA_CC) -fno-exceptions -fno-rtti --sysroot <CFGDIR>/../lib/clang-runtimes/arm-none-eabi/armv4t -D_LIBCPP_AVAILABILITY_HAS_NO_VERBOSE_ABORT
 PATH_MODERNCC := PATH="$(PATH)" arm-none-eabi-gcc
 
 ifeq ($(OS),Windows_NT)
