@@ -1094,11 +1094,6 @@ static void CB2_LoadBerryBlender(void)
                 sBerryBlender->playerArrowSpriteIds[i] = CreateSprite(&sSpriteTemplate_PlayerArrow, sPlayerArrowPos[i][0], sPlayerArrowPos[i][1], 1);
                 StartSpriteAnim(&gSprites[sBerryBlender->playerArrowSpriteIds[i]], i + 8);
             }
-            if (gReceivedRemoteLinkPlayers && gWirelessCommType)
-            {
-                LoadWirelessStatusIndicatorSpriteGfx();
-                CreateWirelessStatusIndicatorSprite(0, 0);
-            }
             SetVBlankCallback(VBlankCB_BerryBlender);
             sBerryBlender->mainState++;
         }
@@ -1324,11 +1319,6 @@ static void CB2_StartBlenderLink(void)
         {
             sBerryBlender->playerArrowSpriteIds2[i] = CreateSprite(&sSpriteTemplate_PlayerArrow, sPlayerArrowPos[i][0], sPlayerArrowPos[i][1], 1);
             StartSpriteAnim(&gSprites[sBerryBlender->playerArrowSpriteIds2[i]], i + 8);
-        }
-        if (gReceivedRemoteLinkPlayers && gWirelessCommType)
-        {
-            LoadWirelessStatusIndicatorSpriteGfx();
-            CreateWirelessStatusIndicatorSprite(0, 0);
         }
         sBerryBlender->mainState++;
         break;
@@ -2074,16 +2064,9 @@ static void UpdateSpeedFromHit(u16 cmd)
 // Return TRUE if the received command matches the corresponding Link or RFU command
 static bool32 CheckRecvCmdMatches(u16 recvCmd, u16 linkCmd, u16 rfuCmd)
 {
-    if (gReceivedRemoteLinkPlayers && gWirelessCommType)
-    {
-        if ((recvCmd & RFUCMD_MASK) == rfuCmd)
-            return TRUE;
-    }
-    else
-    {
-        if (recvCmd == linkCmd)
-            return TRUE;
-    }
+
+    if (recvCmd == linkCmd)
+        return TRUE;
 
     return FALSE;
 }
@@ -2542,10 +2525,7 @@ static void Debug_SetStageVars(void)
 
 static void SendContinuePromptResponse(u16 *cmd)
 {
-    if (gReceivedRemoteLinkPlayers && gWirelessCommType)
-        *cmd = RFUCMD_SEND_PACKET;
-    else
-        *cmd = LINKCMD_SEND_PACKET;
+    *cmd = LINKCMD_SEND_PACKET;
 }
 
 static void CB2_EndBlenderGame(void)
@@ -2591,27 +2571,11 @@ static void CB2_EndBlenderGame(void)
         }
         else if (IsLinkTaskFinished())
         {
-            if (gReceivedRemoteLinkPlayers && gWirelessCommType)
-            {
-                sBerryBlender->gameBlock.timeRPM.time = sBerryBlender->gameFrameTime;
-                sBerryBlender->gameBlock.timeRPM.maxRPM = sBerryBlender->maxRPM;
 
-                for (i = 0; i < BLENDER_MAX_PLAYERS; i++)
-                {
-                    for (j = 0; j < NUM_SCORE_TYPES; j++)
-                        sBerryBlender->gameBlock.scores[i][j] = sBerryBlender->scores[i][j];
-                }
-
-                if (SendBlock(0, &sBerryBlender->gameBlock, sizeof(sBerryBlender->gameBlock)))
-                    sBerryBlender->gameEndState++;
-            }
-            else
-            {
-                sBerryBlender->smallBlock.time = sBerryBlender->gameFrameTime;
-                sBerryBlender->smallBlock.maxRPM = sBerryBlender->maxRPM;
-                if (SendBlock(0, &sBerryBlender->smallBlock, sizeof(sBerryBlender->smallBlock) + 32))
-                    sBerryBlender->gameEndState++;
-            }
+            sBerryBlender->smallBlock.time = sBerryBlender->gameFrameTime;
+            sBerryBlender->smallBlock.maxRPM = sBerryBlender->maxRPM;
+            if (SendBlock(0, &sBerryBlender->smallBlock, sizeof(sBerryBlender->smallBlock) + 32))
+                sBerryBlender->gameEndState++;
         }
         break;
     case 4:
@@ -2620,20 +2584,7 @@ static void CB2_EndBlenderGame(void)
             ResetBlockReceivedFlags();
             sBerryBlender->gameEndState++;
 
-            if (gReceivedRemoteLinkPlayers && gWirelessCommType)
-            {
-                struct BlenderGameBlock *receivedBlock = (struct BlenderGameBlock *)(&gBlockRecvBuffer);
 
-                sBerryBlender->maxRPM = receivedBlock->timeRPM.maxRPM;
-                sBerryBlender->gameFrameTime = receivedBlock->timeRPM.time;
-
-                for (i = 0; i < BLENDER_MAX_PLAYERS; i++)
-                {
-                    for (j = 0; j < NUM_SCORE_TYPES; j++)
-                        sBerryBlender->scores[i][j] = receivedBlock->scores[i][j];
-                }
-            }
-            else
             {
                 struct TimeAndRPM *receivedBlock = (struct TimeAndRPM *)(&gBlockRecvBuffer);
 
@@ -3118,30 +3069,8 @@ static void UpdateBlenderCenter(void)
     if (gReceivedRemoteLinkPlayers)
         playerId = GetMultiplayerId();
 
-    if (gWirelessCommType && gReceivedRemoteLinkPlayers)
-    {
-        if (playerId == 0)
-        {
-            sBerryBlender->arrowPos += sBerryBlender->speed;
-            gSendCmd[BLENDER_COMM_PROGRESS_BAR] = sBerryBlender->progressBarValue;
-            gSendCmd[BLENDER_COMM_ARROW_POS] = sBerryBlender->arrowPos;
-            DrawBlenderCenter(&sBerryBlender->bgAffineSrc);
-        }
-        else
-        {
-            if ((gRecvCmds[0][BLENDER_COMM_INPUT_STATE] & RFUCMD_MASK) == RFUCMD_BLENDER_SEND_KEYS)
-            {
-                sBerryBlender->progressBarValue = gRecvCmds[0][BLENDER_COMM_PROGRESS_BAR];
-                sBerryBlender->arrowPos = gRecvCmds[0][BLENDER_COMM_ARROW_POS];
-                DrawBlenderCenter(&sBerryBlender->bgAffineSrc);
-            }
-        }
-    }
-    else
-    {
-        sBerryBlender->arrowPos += sBerryBlender->speed;
-        DrawBlenderCenter(&sBerryBlender->bgAffineSrc);
-    }
+    sBerryBlender->arrowPos += sBerryBlender->speed;
+    DrawBlenderCenter(&sBerryBlender->bgAffineSrc);
 }
 
 static void SetBgPos(void)

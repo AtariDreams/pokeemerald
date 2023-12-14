@@ -696,13 +696,9 @@ BerryBlender_EventScript_TryJoinGroup:
 	end
 
 BerryBlender_EventScript_TryBecomeLinkLeader:
-	special TryBecomeLinkLeader
-	waitstate
 	return
 
 BerryBlender_EventScript_TryJoinLinkGroup:
-	special TryJoinLinkGroup
-	waitstate
 	return
 
 BerryBlender_EventScript_LinkLeaderDecided:

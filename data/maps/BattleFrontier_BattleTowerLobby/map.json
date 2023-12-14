@@ -128,7 +128,7 @@
       "movement_range_y": 0,
       "trainer_type": "TRAINER_TYPE_NONE",
       "trainer_sight_or_berry_tree_id": "0",
-      "script": "BattleFrontier_BattleTowerLobby_EventScript_LinkMultisAttendant",
+      "script": "BattleFrontier_BattleTowerLobby_EventScript_MultisAttendant",
       "flag": "0"
     }
   ],
@@ -189,7 +189,7 @@
       "y": 5,
       "elevation": 0,
       "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
-      "script": "BattleFrontier_BattleTowerLobby_EventScript_ShowLinkMultisResults"
+      "script": "BattleFrontier_BattleTowerLobby_EventScript_ShowMultisResults"
     },
     {
       "type": "sign",

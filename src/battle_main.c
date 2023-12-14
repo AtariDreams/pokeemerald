@@ -59,7 +59,7 @@
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "constants/trainers.h"
-#include "cable_club.h"
+
 
 extern const struct WindowTemplate *const gBattleWindowTemplates[];
 
@@ -970,8 +970,6 @@ static void CB2_HandleStartBattle(void)
             FillAroundBattleWindows();
             gBattleCommunication[MULTIUSE_STATE] = 1;
         }
-        if (gWirelessCommType)
-            LoadWirelessStatusIndicatorSpriteGfx();
         break;
     case 1:
         if (gBattleTypeFlags & BATTLE_TYPE_LINK)
@@ -995,8 +993,6 @@ static void CB2_HandleStartBattle(void)
                     SendBlock(BitmaskAllOtherLinkPlayers(), &gBattleStruct->multiBuffer.linkBattlerHeader, sizeof(gBattleStruct->multiBuffer.linkBattlerHeader));
                     gBattleCommunication[MULTIUSE_STATE] = 2;
                 }
-                if (gWirelessCommType)
-                    CreateWirelessStatusIndicatorSprite(0, 0);
             }
         }
         else
@@ -1178,8 +1174,6 @@ static void CB2_HandleStartMultiPartnerBattle(void)
             FillAroundBattleWindows();
             gBattleCommunication[MULTIUSE_STATE] = 1;
         }
-        if (gWirelessCommType)
-            LoadWirelessStatusIndicatorSpriteGfx();
         // fall through
     case 1:
         if (gBattleTypeFlags & BATTLE_TYPE_LINK)
@@ -1209,9 +1203,6 @@ static void CB2_HandleStartMultiPartnerBattle(void)
                     SendBlock(BitmaskAllOtherLinkPlayers(), &gBattleStruct->multiBuffer.linkBattlerHeader, sizeof(gBattleStruct->multiBuffer.linkBattlerHeader));
                     gBattleCommunication[MULTIUSE_STATE] = 2;
                 }
-
-                if (gWirelessCommType)
-                    CreateWirelessStatusIndicatorSprite(0, 0);
             }
         }
         else
@@ -1492,24 +1483,11 @@ static void CB2_PreInitMultiBattle(void)
         if (IsLinkTaskFinished() && !gPaletteFade.active)
         {
             gBattleCommunication[MULTIUSE_STATE]++;
-            if (gWirelessCommType)
-                SetLinkStandbyCallback();
-            else
-                SetCloseLinkCallback();
+            SetCloseLinkCallback();
         }
         break;
     case 3:
-        if (gWirelessCommType)
-        {
-            if (IsLinkRfuTaskFinished())
-            {
-                gBattleTypeFlags = *savedBattleTypeFlags;
-                gMain.savedCallback = *savedCallback;
-                SetMainCallback2(CB2_InitBattleInternal);
-                FREE_AND_SET_NULL(sMultiPartnerPartyBuffer);
-            }
-        }
-        else if (gReceivedRemoteLinkPlayers == 0)
+        if (gReceivedRemoteLinkPlayers == 0)
         {
             gBattleTypeFlags = *savedBattleTypeFlags;
             gMain.savedCallback = *savedCallback;
@@ -1581,8 +1559,6 @@ static void CB2_HandleStartMultiBattle(void)
             FillAroundBattleWindows();
             gBattleCommunication[MULTIUSE_STATE] = 1;
         }
-        if (gWirelessCommType)
-            LoadWirelessStatusIndicatorSpriteGfx();
         break;
     case 1:
         if (gBattleTypeFlags & BATTLE_TYPE_LINK)
@@ -1600,8 +1576,6 @@ static void CB2_HandleStartMultiBattle(void)
                     SendBlock(BitmaskAllOtherLinkPlayers(), &gBattleStruct->multiBuffer.linkBattlerHeader, sizeof(gBattleStruct->multiBuffer.linkBattlerHeader));
                     gBattleCommunication[MULTIUSE_STATE]++;
                 }
-                if (gWirelessCommType)
-                    CreateWirelessStatusIndicatorSprite(0, 0);
             }
         }
         else
@@ -2166,91 +2140,6 @@ static void BufferPartyVsScreenHealth_AtEnd(u8 taskId)
     gTasks[taskId].data[4] = flags;
 }
 
-void CB2_InitEndLinkBattle(void)
-{
-    s32 i;
-    u8 taskId;
-
-    SetHBlankCallback(NULL);
-    SetVBlankCallback(NULL);
-    gBattleTypeFlags &= ~BATTLE_TYPE_LINK_IN_BATTLE;
-
-    if (gBattleTypeFlags & BATTLE_TYPE_FRONTIER)
-    {
-        SetMainCallback2(gMain.savedCallback);
-        FreeBattleResources();
-        FreeBattleSpritesData();
-        FreeMonSpritesGfx();
-        return;
-    }
-    else
-    {
-        CpuFastFill(0, (void *)(VRAM), VRAM_SIZE);
-        SetGpuReg(REG_OFFSET_MOSAIC, 0);
-        SetGpuReg(REG_OFFSET_WIN0H, DISPLAY_WIDTH);
-        SetGpuReg(REG_OFFSET_WIN0V, WIN_RANGE(DISPLAY_HEIGHT / 2, DISPLAY_HEIGHT / 2 + 1));
-        SetGpuReg(REG_OFFSET_WININ, 0);
-        SetGpuReg(REG_OFFSET_WINOUT, 0);
-        gBattle_WIN0H = DISPLAY_WIDTH;
-        gBattle_WIN0V = WIN_RANGE(DISPLAY_HEIGHT / 2, DISPLAY_HEIGHT / 2 + 1);
-        ScanlineEffect_Clear();
-
-        for(i=0;i<80;i++)
-        {
-            gScanlineEffectRegBuffers[0][i] = 0xF0;
-            gScanlineEffectRegBuffers[1][i] = 0xF0;
-        }
-
-        for(;i<160;i++)
-        {
-            gScanlineEffectRegBuffers[0][i] = -0xF0;
-            gScanlineEffectRegBuffers[1][i] = -0xF0;
-        }
-
-        ResetPaletteFade();
-
-        gBattle_BG0_X = 0;
-        gBattle_BG0_Y = 0;
-        gBattle_BG1_X = 0;
-        gBattle_BG1_Y = 0;
-        gBattle_BG2_X = 0;
-        gBattle_BG2_Y = 0;
-        gBattle_BG3_X = 0;
-        gBattle_BG3_Y = 0;
-
-        InitBattleBgsVideo();
-        LoadCompressedPalette(gBattleTextboxPalette, BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
-        LoadBattleMenuWindowGfx();
-        ResetSpriteData();
-        ResetTasks();
-        DrawBattleEntryBackground();
-        SetGpuReg(REG_OFFSET_WINOUT, WINOUT_WIN01_BG0 | WINOUT_WIN01_BG1 | WINOUT_WIN01_BG2 | WINOUT_WIN01_OBJ | WINOUT_WIN01_CLR);
-        FreeAllSpritePalettes();
-        gReservedSpritePaletteCount = MAX_BATTLERS_COUNT;
-        SetVBlankCallback(VBlankCB_Battle);
-
-        // Show end Vs screen with battle results
-        taskId = CreateTask(InitLinkBattleVsScreen, 0);
-        gTasks[taskId].data[1] = 270;
-        gTasks[taskId].data[2] = 90;
-        gTasks[taskId].data[5] = 1;
-        BufferPartyVsScreenHealth_AtEnd(taskId);
-
-        SetMainCallback2(CB2_EndLinkBattle);
-        gBattleCommunication[MULTIUSE_STATE] = 0;
-    }
-}
-
-static void CB2_EndLinkBattle(void)
-{
-    EndLinkBattleInSteps();
-    AnimateSprites();
-    BuildOamBuffer();
-    RunTextPrinters();
-    UpdatePaletteFade();
-    RunTasks();
-}
-
 static void EndLinkBattleInSteps(void)
 {
     s32 i;
@@ -2305,7 +2194,6 @@ static void EndLinkBattleInSteps(void)
                 {
                     // Player can't record battle but
                     // another player can, reconnect with them
-                    CreateTask(Task_ReconnectWithLinkPlayers, 5);
                     gBattleCommunication[MULTIUSE_STATE]++;
                 }
                 else
@@ -2336,8 +2224,7 @@ static void EndLinkBattleInSteps(void)
             gBattleCommunication[MULTIUSE_STATE]++;
         break;
     case 5:
-        if (!FuncIsActiveTask(Task_ReconnectWithLinkPlayers))
-            gBattleCommunication[MULTIUSE_STATE]++;
+        gBattleCommunication[MULTIUSE_STATE]++;
         break;
     case 6:
         if (IsLinkTaskFinished() == TRUE)
@@ -2355,12 +2242,11 @@ static void EndLinkBattleInSteps(void)
         }
         break;
     case 8:
-        if (!gWirelessCommType)
-            SetCloseLinkCallback();
+        SetCloseLinkCallback();
         gBattleCommunication[MULTIUSE_STATE]++;
         break;
     case 9:
-        if (!gMain.anyLinkBattlerHasFrontierPass || gWirelessCommType || gReceivedRemoteLinkPlayers != 1)
+        if (!gMain.anyLinkBattlerHasFrontierPass || gReceivedRemoteLinkPlayers != 1)
         {
             gMain.anyLinkBattlerHasFrontierPass = FALSE;
             SetMainCallback2(gMain.savedCallback);
@@ -2440,12 +2326,11 @@ static void AskRecordBattle(void)
         break;
     case STATE_LINK:
         if (gMain.anyLinkBattlerHasFrontierPass && gReceivedRemoteLinkPlayers == 0)
-            CreateTask(Task_ReconnectWithLinkPlayers, 5);
+
         gBattleCommunication[MULTIUSE_STATE]++;
         break;
     case STATE_WAIT_LINK:
-        if (!FuncIsActiveTask(Task_ReconnectWithLinkPlayers))
-            gBattleCommunication[MULTIUSE_STATE]++;
+        gBattleCommunication[MULTIUSE_STATE]++;
         break;
     case STATE_ASK_RECORD:
         if (!gPaletteFade.active)
@@ -2526,13 +2411,13 @@ static void AskRecordBattle(void)
     case STATE_WAIT_END:
         if (--gBattleCommunication[1] == 0)
         {
-            if (gMain.anyLinkBattlerHasFrontierPass && !gWirelessCommType)
+            if (gMain.anyLinkBattlerHasFrontierPass)
                 SetCloseLinkCallback();
             gBattleCommunication[MULTIUSE_STATE]++;
         }
         break;
     case STATE_END:
-        if (!gMain.anyLinkBattlerHasFrontierPass || gWirelessCommType || gReceivedRemoteLinkPlayers != 1)
+        if (!gMain.anyLinkBattlerHasFrontierPass || gReceivedRemoteLinkPlayers != 1)
         {
             gMain.anyLinkBattlerHasFrontierPass = FALSE;
             if (!gPaletteFade.active)

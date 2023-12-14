@@ -431,26 +431,7 @@ bool32 ValidateSavedRamScript(void)
 
 u8 *GetSavedRamScriptIfValid(void)
 {
-    struct RamScriptData *scriptData = &gSaveBlock1.ramScript.data;
-    if (!ValidateSavedWonderCard())
-        return NULL;
-    if (scriptData->magic != RAM_SCRIPT_MAGIC)
-        return NULL;
-    if (scriptData->mapGroup != MAP_GROUP(UNDEFINED))
-        return NULL;
-    if (scriptData->mapNum != MAP_NUM(UNDEFINED))
-        return NULL;
-    if (scriptData->objectId != NO_OBJECT)
-        return NULL;
-    if (CalculateRamScriptChecksum() != gSaveBlock1.ramScript.checksum)
-    {
-        ClearRamScript();
-        return NULL;
-    }
-    else
-    {
-        return scriptData->script;
-    }
+    return NULL;
 }
 
 void InitRamScript_NoObjectEvent(u8 *script, u16 scriptSize)

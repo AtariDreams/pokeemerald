@@ -361,77 +361,6 @@ BattleFrontier_BattleTowerLobby_EventScript_ExplainMultisChallenge::
 	goto BattleFrontier_BattleTowerLobby_EventScript_AskEnterMultisChallenge
 	end
 
-BattleFrontier_BattleTowerLobby_EventScript_LinkMultisAttendant::
-	lock
-	faceplayer
-	setvar VAR_FRONTIER_FACILITY, FRONTIER_FACILITY_TOWER
-	special SavePlayerParty
-	msgbox BattleFrontier_BattleTowerLobby_Text_WelcomeLinkMultiBattle, MSGBOX_DEFAULT
-BattleFrontier_BattleTowerLobby_EventScript_AskEnterLinkMultisChallenge::
-	message BattleFrontier_BattleTowerLobby_Text_TakeLinkMultisChallenge
-	waitmessage
-	multichoice 17, 6, MULTI_CHALLENGEINFO, FALSE
-	switch VAR_RESULT
-	case 0, BattleFrontier_BattleTowerLobby_EventScript_TryEnterLinkMultisChallenge
-	case 1, BattleFrontier_BattleTowerLobby_EventScript_ExplainLinkMultisChallenge
-	case 2, BattleFrontier_BattleTowerLobby_EventScript_CancelChallenge
-	case MULTI_B_PRESSED, BattleFrontier_BattleTowerLobby_EventScript_CancelChallenge
-
-BattleFrontier_BattleTowerLobby_EventScript_TryEnterLinkMultisChallenge::
-	setvar VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_LINK_MULTIS
-	message BattleFrontier_BattleTowerLobby_Text_WhichLevelMode
-	waitmessage
-	multichoice 17, 6, MULTI_LEVEL_MODE, FALSE
-	switch VAR_RESULT
-	case FRONTIER_LVL_TENT, BattleFrontier_BattleTowerLobby_EventScript_CancelChallenge
-	case MULTI_B_PRESSED, BattleFrontier_BattleTowerLobby_EventScript_CancelChallenge
-	frontier_checkineligible
-	goto_if_eq VAR_0x8004, TRUE, BattleFrontier_BattleTowerLobby_EventScript_NotEnoughValidMons
-	frontier_set FRONTIER_DATA_LVL_MODE, VAR_RESULT
-	msgbox BattleFrontier_BattleTowerLobby_Text_PleaseSelectTwoMons2, MSGBOX_DEFAULT
-	fadescreen FADE_TO_BLACK
-	call BattleFrontier_EventScript_GetLvlMode
-	copyvar VAR_0x8004, VAR_RESULT
-	setvar VAR_0x8005, FRONTIER_MULTI_PARTY_SIZE
-	special ChoosePartyForBattleFrontier
-	waitstate
-	goto_if_eq VAR_RESULT, 0, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
-	msgbox BattleFrontier_BattleTowerLobby_Text_OkayToSaveBeforeEntering, MSGBOX_YESNO
-	switch VAR_RESULT
-	case NO, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
-	case YES, BattleFrontier_BattleTowerLobby_EventScript_SaveBeforeLinkMultisChallenge
-	case MULTI_B_PRESSED, BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge
-
-BattleFrontier_BattleTowerLobby_EventScript_SaveBeforeLinkMultisChallenge::
-	frontier_set FRONTIER_DATA_SELECTED_MON_ORDER
-	setvar VAR_TEMP_CHALLENGE_STATUS, 0
-	tower_init
-	tower_set TOWER_DATA_WIN_STREAK_ACTIVE, TRUE
-	frontier_set FRONTIER_DATA_PAUSED, FALSE
-	special LoadPlayerParty
-	closemessage
-	delay 2
-@ The command tower_save ultimately calls TrySavingData(SAVE_LINK), which writes data in SaveBlock1 and SaveBlock2
-@ to the flash, but not data in PokemonStorage. The SaveGame script that follows asks the player to do a full save,
-@ which they can opt out of. As a result the player can save their party and quit without having saved the PC.
-@ This allows players to clone pokemon and their held items by withdrawing them (or erase them by despositing).
-#ifndef BUGFIX
-	tower_save 0
-#endif
-	call Common_EventScript_SaveGame
-	setvar VAR_TEMP_CHALLENGE_STATUS, 255
-	goto_if_eq VAR_RESULT, 0, BattleFrontier_BattleTowerLobby_EventScript_CancelChallengeSaveFailed
-@ GAME_STAT_ENTERED_BATTLE_TOWER should not be incremented here, for two reasons:
-@ 1. It is incremented again in BattleFrontier_BattleTowerLobby_EventScript_CableLinkSuccessful or BattleFrontier_BattleTowerLobby_EventScript_WirelessLinkSuccessful
-@ 2. If the player tries to connect, but fails, the counter will still be incremented even if the player never enters the tower.
-#ifndef BUGFIX
-	incrementgamestat GAME_STAT_ENTERED_BATTLE_TOWER
-#endif
-	specialvar VAR_RESULT, IsWirelessAdapterConnected
-	goto_if_eq VAR_RESULT, TRUE, BattleFrontier_BattleTowerLobby_EventScript_TryWirelessLink
-	goto BattleFrontier_BattleTowerLobby_EventScript_TryCableLink
-	end
-
 BattleFrontier_BattleTowerLobby_EventScript_FeelingsMan::
 	lock
 	faceplayer
@@ -526,14 +455,6 @@ BattleFrontier_BattleTowerLobby_EventScript_ShowMultisResults::
 	releaseall
 	end
 
-BattleFrontier_BattleTowerLobby_EventScript_ShowLinkMultisResults::
-	lockall
-	frontier_results FRONTIER_FACILITY_TOWER, FRONTIER_MODE_LINK_MULTIS
-	waitbuttonpress
-	special RemoveRecordsWindow
-	releaseall
-	end
-
 BattleFrontier_BattleTowerLobby_EventScript_NotEnoughValidMons::
 	switch VAR_RESULT
 	case FRONTIER_LVL_50, BattleFrontier_BattleTowerLobby_EventScript_NotEnoughValidMonsLv50
@@ -583,7 +504,6 @@ BattleFrontier_BattleTowerLobby_EventScript_CancelChallengeSaveFailed::
 BattleFrontier_BattleTowerLobby_EventScript_LoadPartyCancelChallenge::
 	special LoadPlayerParty
 BattleFrontier_BattleTowerLobby_EventScript_CancelChallenge::
-	special CloseLink
 	msgbox BattleFrontier_BattleTowerLobby_Text_LookForwardToAnotherChallenge, MSGBOX_DEFAULT
 BattleFrontier_BattleTowerLobby_EventScript_EndCancelChallenge::
 	release
@@ -595,10 +515,6 @@ BattleFrontier_BattleTowerLobby_EventScript_EnterElevator::
 	call BattleFrontier_BattleTowerLobby_EventScript_GetPartySize
 	special CallFrontierUtilFunc
 	setvar VAR_RESULT, 0
-BattleFrontier_BattleTowerLobby_EventScript_WaitForLinkOpponentLoad::
-	tower_loadlinkopponents
-	delay 1
-	goto_if_ne VAR_RESULT, 6, BattleFrontier_BattleTowerLobby_EventScript_WaitForLinkOpponentLoad
 	call BattleFrontier_BattleTowerLobby_EventScript_ShowYouToBattleRoom
 	clearflag FLAG_CANCEL_BATTLE_ROOM_CHALLENGE
 	warp MAP_BATTLE_FRONTIER_BATTLE_TOWER_ELEVATOR, 1, 6
@@ -608,15 +524,7 @@ BattleFrontier_BattleTowerLobby_EventScript_WaitForLinkOpponentLoad::
 
 BattleFrontier_BattleTowerLobby_EventScript_ShowYouToBattleRoom::
 	call BattleFrontier_BattleTowerLobby_EventScript_BufferModeText
-	goto_if_eq VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_LINK_MULTIS, BattleFrontier_BattleTowerLobby_EventScript_ShowYouToLinkMultiBattleRoom
 	msgbox BattleFrontier_BattleTowerLobby_Text_ShowYouToBattleRoom, MSGBOX_DEFAULT
-	goto BattleFrontier_BattleTowerLobby_EventScript_WalkToElevator
-
-BattleFrontier_BattleTowerLobby_EventScript_ShowYouToLinkMultiBattleRoom::
-	messageautoscroll BattleFrontier_BattleTowerLobby_Text_ShowYouToBattleRoom
-	waitmessage
-	delay 48
-BattleFrontier_BattleTowerLobby_EventScript_WalkToElevator::
 	closemessage
 	call BattleFrontier_BattleTowerLobby_EventScript_SetAttendantTalkedTo
 	call BattleFrontier_BattleTowerLobby_EventScript_GetDoorXCoord
@@ -1299,10 +1207,6 @@ BattleFrontier_BattleTowerLobby_Text_ChoseSameMonAsFriend:
 	.string "from your friend's, match the level\l"
 	.string "you wish to enter, and register again.$"
 
-BattleFrontier_BattleTowerLobby_Text_LinkMultiOnlyForTwoPlayers:
-	.string "The LINK MULTI BATTLE ROOM challenge\n"
-	.string "is only for two linked players.$"
-
 BattleFrontier_BattleTowerLobby_Text_FriendAlsoSelectedMon:
 	.string "Your friend has also selected\n"
 	.string "the POKéMON {STR_VAR_1}.$"
@@ -1385,15 +1289,3 @@ BattleFrontier_BattleTowerLobby_Text_ExplainSalonRules:
 	.string "You may choose a new tag partner\n"
 	.string "after winning seven straight matches.$"
 
-BattleFrontier_BattleTowerLobby_Text_ExplainMultiLinkRules:
-	.string "The LINK MULTI BATTLE Mode is for two\n"
-	.string "friends to mount a challenge together.\p"
-	.string "You and your friend must be linked with\n"
-	.string "Wireless Adapters or a GBA Game Link\l"
-	.string "cable.\p"
-	.string "You must choose two POKéMON at\n"
-	.string "the registration counter.\p"
-	.string "These POKéMON must be different\n"
-	.string "from those of your friend.\p"
-	.string "You may not interrupt this challenge\n"
-	.string "in the middle, unlike other modes.$"

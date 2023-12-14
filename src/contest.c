@@ -1211,11 +1211,6 @@ void CB2_StartContest(void)
         SetVBlankCallback(VBlankCB_Contest);
         eContest.mainTaskId = CreateTask(Task_StartContestWaitFade, 10);
         SetMainCallback2(CB2_ContestMain);
-        if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_WIRELESS)
-        {
-            LoadWirelessStatusIndicatorSpriteGfx();
-            CreateWirelessStatusIndicatorSprite(8, 8);
-        }
         break;
     }
 }

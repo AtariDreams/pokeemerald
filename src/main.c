@@ -94,8 +94,6 @@ _Noreturn void AgbMain(void)
     gKeyRepeatContinueDelay = 5;
     gKeyRepeatStartDelay = 40;
 
-    InitRFU();
-
     CheckForFlashMemory();
     // Works because of null initialization
     
@@ -304,11 +302,9 @@ static void VBlankIntr(void)
     CopyBufferedValuesToGpuRegs();
     ProcessDma3Requests();
 
-    TryReceiveLinkBattleData();
-
-    UpdateWirelessStatusIndicatorSprite();
-
     gPcmDmaCounter = gSoundInfo.pcmDmaCounter;
+    
+    TryReceiveLinkBattleData();
     m4aSoundMain();
 
     INTR_CHECK |= INTR_FLAG_VBLANK;

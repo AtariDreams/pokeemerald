@@ -1315,16 +1315,7 @@ static void StartEasyChatScreen(u8 taskId, TaskFunc taskFunc)
 
 static void Task_InitEasyChatScreen(u8 taskId)
 {
-    if (!IsOverworldLinkActive())
-    {
-        while (InitEasyChatScreen(taskId));
-    }
-    else
-    {
-        if (InitEasyChatScreen(taskId) == TRUE)
-            return;
-    }
-    StartEasyChatScreen(taskId, Task_EasyChatScreen);
+   while (InitEasyChatScreen(taskId));
 }
 
 // After loading, this is the 'main' Easy Chat task
@@ -1522,7 +1513,7 @@ void ShowEasyChatScreen(void)
         words = gSaveBlock2.apprentices[0].speechWon;
         break;
     case EASY_CHAT_TYPE_QUESTIONNAIRE:
-        words = GetQuestionnaireWordsPtr();
+        words = gSaveBlock1.mysteryGift.questionnaireWords;
         break;
     default:
         return;
@@ -5824,7 +5815,7 @@ void InitializeEasyChatWordArray(u16 *words, u16 length)
 void InitQuestionnaireWords(void)
 {
     int i;
-    u16 *words = GetQuestionnaireWordsPtr();
+    u16 *words = gSaveBlock1.mysteryGift.questionnaireWords;
     for (i = 0; i < NUM_QUESTIONNAIRE_WORDS; i++)
         words[i] = EC_EMPTY_WORD;
 }

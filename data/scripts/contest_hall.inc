@@ -198,7 +198,6 @@ LilycoveCity_ContestLobby_EventScript_EnterMon::
 	return
 
 ContestHall_EventScript_DoContest::
-	special LinkContestTryShowWirelessIndicator
 	setvar VAR_0x8006, 0
 	lockall
 	applymovement LOCALID_CONTESTANT_4, ContestHall_Movement_Player4FaceUp
@@ -775,9 +774,7 @@ ContestHall_EventScript_DoContestAppeals::
 	releaseall
 	call ContestHall_EventScript_TryWaitForLink
 	setvar VAR_TEMP_9, 1
-	special LinkContestTryHideWirelessIndicator
 	startcontest
-	special LinkContestTryShowWirelessIndicator
 	setvar VAR_TEMP_9, 0
 	lockall
 	applymovement LOCALID_MC, ContestHall_Movement_WalkStageRight
@@ -827,7 +824,6 @@ ContestHall_EventScript_ContestResults::
 	waitmovement 0
 	closemessage
 	releaseall
-	special LinkContestTryHideWirelessIndicator
 	setvar VAR_TEMP_9, 1
 	showcontestresults
 	setvar VAR_TEMP_9, 0

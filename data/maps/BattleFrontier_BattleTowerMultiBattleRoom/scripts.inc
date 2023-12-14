@@ -362,17 +362,9 @@ BattleFrontier_BattleTowerMultiBattleRoom_EventScript_AskRetireChallengeLink::
 	end
 
 BattleFrontier_BattleTowerMultiBattleRoom_EventScript_RetireChallengeLink::
-	setvar VAR_0x8004, BATTLE_TOWER_LINK_RETIRE
-	setvar VAR_0x8005, 0
-	message gText_LinkStandby3
-	waitmessage
-	special LinkRetireStatusWithBattleTowerPartner
-	waitstate
-	goto BattleFrontier_BattleTowerMultiBattleRoom_EventScript_WarpToLobbyLost
 	end
 
 BattleFrontier_BattleTowerMultiBattleRoom_EventScript_ReconnectLink::
-	special BattleTowerReconnectLink
 	return
 
 BattleFrontier_BattleTowerMultiBattleRoom_Movement_PlayerEnterRoom:

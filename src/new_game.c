@@ -23,6 +23,7 @@
 #include "coins.h"
 #include "text.h"
 #include "overworld.h"
+#include "strings.h"
 
 #include "battle_records.h"
 #include "item.h"
@@ -198,11 +199,40 @@ void NewGameInitData(void)
     ResetTrainerHillResults();
     ResetContestLinkResults();
 }
+void WipeTrainerNameRecords(void)
+{
+    s32 i;
+
+    for (i = 0; i < (int)ARRAY_COUNT(gSaveBlock1.trainerNameRecords); i++)
+    {
+        gSaveBlock1.trainerNameRecords[i].trainerId = 0;
+        CpuFill16(0, gSaveBlock1.trainerNameRecords[i].trainerName, PLAYER_NAME_LENGTH + 1);
+    }
+}
+
+void ClearMysteryGift(void)
+{
+    CpuFill32(0, &gSaveBlock1.mysteryGift, sizeof(gSaveBlock1.mysteryGift));
+    InitQuestionnaireWords();
+}
+
+void InitUnionRoomChatRegisteredTexts(void)
+{
+    StringCopy(gSaveBlock1.registeredTexts[0], gText_Hello);
+    StringCopy(gSaveBlock1.registeredTexts[1], gText_Pokemon2);
+    StringCopy(gSaveBlock1.registeredTexts[2], gText_Trade);
+    StringCopy(gSaveBlock1.registeredTexts[3], gText_Battle);
+    StringCopy(gSaveBlock1.registeredTexts[4], gText_Lets);
+    StringCopy(gSaveBlock1.registeredTexts[5], gText_Ok);
+    StringCopy(gSaveBlock1.registeredTexts[6], gText_Sorry);
+    StringCopy(gSaveBlock1.registeredTexts[7], gText_YaySmileEmoji);
+    StringCopy(gSaveBlock1.registeredTexts[8], gText_ThankYou);
+    StringCopy(gSaveBlock1.registeredTexts[9], gText_ByeBye);
+}
 
 static void ResetMiniGamesRecords(void)
 {
     CpuFill16(0, &gSaveBlock2.berryCrush, sizeof(struct BerryCrush));
     gSaveBlock2.berryCrush.berryPowderAmount = 0;
-    ResetPokemonJumpRecords();
     CpuFill16(0, &gSaveBlock2.berryPick, sizeof(struct BerryPickingResults));
 }

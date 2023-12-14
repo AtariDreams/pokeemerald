@@ -133,7 +133,6 @@ static void AllocContestResults(void);
 static void FreeContestResults(void);
 static void LoadAllContestMonIcons(u8, u8);
 static void CreateResultsTextWindowSprites(void);
-static void TryCreateWirelessSprites(void);
 static void Task_StartShowContestResults(u8 taskId);
 static void CB2_StartShowContestResults(void);
 static void Task_ShowContestResults(u8);
@@ -542,7 +541,6 @@ static void CB2_StartShowContestResults(void)
     memset(sContestResults->data, 0, sizeof(*sContestResults->data));
     memset(sContestResults->monResults, 0, sizeof(*sContestResults->monResults));
     CreateResultsTextWindowSprites();
-    TryCreateWirelessSprites();
     BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
     gPaletteFade.bufferTransferDisabled = FALSE;
     sContestResults->data->showResultsTaskId = CreateTask(Task_ShowContestResults, 5);
@@ -1021,8 +1019,6 @@ static void Task_WaitForLinkPartnersDisconnect(u8 taskId)
 {
     if (!gReceivedRemoteLinkPlayers)
     {
-        if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_WIRELESS)
-            DestroyWirelessStatusIndicatorSprite();
 
         HideLinkResultsTextBox();
         gTasks[taskId].func = Task_TrySetContestInterviewData;
@@ -1143,23 +1139,6 @@ static void LoadAllContestMonIconPalettes(void)
     for (i = 0; i < CONTESTANT_COUNT; i++)
     {
         LoadPalette(gMonIconPalettes[gMonIconPaletteIndices[GetIconSpecies(gContestMons[i].species, 0)]], BG_PLTT_ID(10 + i), PLTT_SIZE_4BPP);
-    }
-}
-
-static void TryCreateWirelessSprites(void)
-{
-    u16 sheet;
-    u8 spriteId;
-
-    if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_WIRELESS)
-    {
-        LoadWirelessStatusIndicatorSpriteGfx();
-        CreateWirelessStatusIndicatorSprite(8, 8);
-        gSprites[gWirelessStatusIndicatorSpriteId].subpriority = 1;
-        sheet = LoadSpriteSheet(&sSpriteSheet_WirelessIndicatorWindow);
-        RequestDma3Fill(0xFFFFFFFF, (void *)BG_CHAR_ADDR(4) + sheet * 0x20, 0x80, 1);
-        spriteId = CreateSprite(&sSpriteTemplate_WirelessIndicatorWindow, 8, 8, 0);
-        gSprites[spriteId].oam.objMode = ST_OAM_OBJ_WINDOW;
     }
 }
 
@@ -2705,27 +2684,6 @@ static void Task_LinkContestWaitForConnection(u8 taskId)
             DestroyTask(taskId);
         }
         break;
-    }
-}
-
-void LinkContestTryShowWirelessIndicator(void)
-{
-    if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_WIRELESS)
-    {
-        if (gReceivedRemoteLinkPlayers)
-        {
-            LoadWirelessStatusIndicatorSpriteGfx();
-            CreateWirelessStatusIndicatorSprite(8, 8);
-        }
-    }
-}
-
-void LinkContestTryHideWirelessIndicator(void)
-{
-    if (gLinkContestFlags & LINK_CONTEST_FLAG_IS_WIRELESS)
-    {
-        if (gReceivedRemoteLinkPlayers)
-            DestroyWirelessStatusIndicatorSprite();
     }
 }
 

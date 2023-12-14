@@ -4,7 +4,7 @@
 #include "battle_anim.h"
 #include "battle_controllers.h"
 #include "battle_message.h"
-#include "cable_club.h"
+
 #include "link.h"
 #include "link_rfu.h"
 #include "party_menu.h"
@@ -28,15 +28,7 @@ static void Task_HandleCopyReceivedLinkBuffersData(u8 taskId);
 
 void HandleLinkBattleSetup(void)
 {
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        if (gWirelessCommType)
-            SetWirelessCommType1();
-        if (!gReceivedRemoteLinkPlayers)
-            OpenLink();
-        CreateTask(Task_WaitForLinkPlayerConnection, 0);
-        CreateTasksForSendRecvLinkBuffers();
-    }
+
 }
 
 void SetUpBattleVarsAndBirchZigzagoon(void)
@@ -736,30 +728,25 @@ static void Task_HandleSendLinkBuffersData(u8 taskId)
             gTasks[taskId].data[11]++;
         break;
     case 2:
-        if (gWirelessCommType)
-        {
-            gTasks[taskId].data[11]++;
-        }
-        else
-        {
-            if (gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER)
-                numPlayers = 2;
-            else
-                numPlayers = (gBattleTypeFlags & BATTLE_TYPE_MULTI) ? 4 : 2;
 
-            if (GetLinkPlayerCount_2() >= numPlayers)
+        if (gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER)
+            numPlayers = 2;
+        else
+            numPlayers = (gBattleTypeFlags & BATTLE_TYPE_MULTI) ? 4 : 2;
+
+        if (GetLinkPlayerCount_2() >= numPlayers)
+        {
+            if (IsLinkMaster())
             {
-                if (IsLinkMaster())
-                {
-                    CheckShouldAdvanceLinkState();
-                    gTasks[taskId].data[11]++;
-                }
-                else
-                {
-                    gTasks[taskId].data[11]++;
-                }
+                CheckShouldAdvanceLinkState();
+                gTasks[taskId].data[11]++;
+            }
+            else
+            {
+                gTasks[taskId].data[11]++;
             }
         }
+
         break;
     case 3:
         if (gTasks[taskId].data[15] != gTasks[taskId].data[14])
@@ -810,7 +797,6 @@ void TryReceiveLinkBattleData(void)
 
     if (gReceivedRemoteLinkPlayers && (gBattleTypeFlags & BATTLE_TYPE_LINK_IN_BATTLE))
     {
-        DestroyTask_RfuIdle();
         for (i = 0; i < GetLinkPlayerCount(); i++)
         {
             if (GetBlockReceivedStatus() & (1U << i))

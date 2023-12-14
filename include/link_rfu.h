@@ -257,7 +257,6 @@ bool8 Rfu_IsMaster(void);
 void Rfu_SetCloseLinkCallback(void);
 void Rfu_SetLinkStandbyCallback(void);
 void ResetLinkRfuGFLayer(void);
-void UpdateWirelessStatusIndicatorSprite(void);
 void InitRFU(void);
 bool32 RfuMain1(void);
 bool32 RfuMain2(void);

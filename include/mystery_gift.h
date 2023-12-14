@@ -29,7 +29,6 @@ struct WonderNews *GetSavedWonderNews(void);
 struct WonderCard *GetSavedWonderCard(void);
 struct WonderCardMetadata *GetSavedWonderCardMetadata(void);
 struct WonderNewsMetadata *GetSavedWonderNewsMetadata(void);
-u16 *GetQuestionnaireWordsPtr(void);
 void ClearSavedWonderNewsAndRelated(void);
 void ClearSavedWonderCardAndRelated(void);
 bool32 SaveWonderNews(const struct WonderNews *news);

@@ -355,7 +355,6 @@ static void SetUpDataStruct(void)
         // e.g. for HILL_MODE_NORMAL, it will copy sChallenge_Normal to sHillData->challenge and
         // it will copy sFloors_Normal to sHillData->floors
         CpuCopy32(sChallengeData[gSaveBlock1.trainerHill.mode], &sHillData->challenge, sizeof(sHillData->challenge) + sizeof(sHillData->floors));
-        TrainerHillDummy();
     }
 }
 
@@ -393,11 +392,7 @@ void CopyTrainerHillTrainerText(u8 which, u16 trainerId)
 
 static void TrainerHillStartChallenge(void)
 {
-    TrainerHillDummy();
-    if (!ReadTrainerHillAndValidate())
-        gSaveBlock1.trainerHill.field_3D6E_0f = 1;
-    else
-        gSaveBlock1.trainerHill.field_3D6E_0f = 0;
+    gSaveBlock1.trainerHill.field_3D6E_0f = 0;
 
     gSaveBlock1.trainerHill.unk_3D6C = 0;
     gSaveBlock1.trainerHill.timer = 0;

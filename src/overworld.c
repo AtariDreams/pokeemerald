@@ -4,7 +4,7 @@
 #include "battle_setup.h"
 #include "berry.h"
 #include "bg.h"
-#include "cable_club.h"
+
 #include "clock.h"
 #include "event_data.h"
 #include "event_object_movement.h"
@@ -105,7 +105,6 @@ static void SpriteCB_LinkPlayer(struct Sprite *);
 static void ChooseAmbientCrySpecies(void);
 static void DoMapLoadLoop(u32 *);
 static bool32 LoadMapInStepsLocal(u32 *, bool32);
-static bool32 LoadMapInStepsLink(void);
 static bool32 ReturnToFieldLocal(void);
 static bool32 ReturnToFieldLink(u32 *);
 static void InitObjectEventsLink(void);
@@ -126,8 +125,6 @@ static void SetCameraToTrackGuestPlayer_2(void);
 static void CreateLinkPlayerSprites(void);
 static void ClearAllPlayerKeys(void);
 static void ResetAllPlayerLinkStates(void);
-static void UpdateHeldKeyCode(u16);
-static void UpdateAllLinkPlayers(u16 *, s32);
 static u8 FlipVerticalAndClearForced(u8, u8);
 static u8 LinkPlayerGetCollision(u8, u8, s16, s16);
 static void CreateLinkPlayerSprite(u8, u8);
@@ -143,7 +140,6 @@ static u8 GetSpriteForLinkedPlayer(u8);
 static void RunTerminateLinkScript(void);
 static u32 GetLinkSendQueueLength(void);
 static void ZeroLinkPlayerObjectEvent(struct LinkPlayerObjectEvent *);
-static const u8 *TryInteractWithPlayer(struct CableClubPlayer *);
 static u16 GetDirectionForEventScript(const u8 *);
 static void InitLinkPlayerQueueScript(void);
 static void InitLinkRoomStartMenuScript(void);
@@ -155,14 +151,14 @@ static bool32 IsCableClubPlayerUnfrozen(struct CableClubPlayer *);
 static bool32 CanCableClubPlayerPressStart(struct CableClubPlayer *);
 static const u8 *TryGetTileEventScript(struct CableClubPlayer *);
 static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *);
-static const u8 *TryInteractWithPlayer(struct CableClubPlayer *);
+
 static u16 KeyInterCB_DeferToRecvQueue(u32);
 static u16 KeyInterCB_DeferToSendQueue(u32);
 static void ResetPlayerHeldKeys(u16 *);
 static u16 KeyInterCB_SelfIdle(u32);
 static u16 KeyInterCB_DeferToEventScript(u32);
 static u16 GetDirectionForDpadKey(u16);
-static void CB1_OverworldLink(void);
+
 static void SetKeyInterceptCallback(u16 (*func)(u32));
 static void SetFieldVBlankCallback(void);
 static void FieldClearVBlankHBlankCallbacks(void);
@@ -1413,10 +1409,7 @@ static void ResetSafariZoneFlag_(void)
 
 bool32 IsOverworldLinkActive(void)
 {
-    if (gMain.callback1 == CB1_OverworldLink)
-        return TRUE;
-    else
-        return FALSE;
+    return FALSE;
 }
 
 static void DoCB1_Overworld(u16 newKeys, u16 heldKeys)
@@ -1582,35 +1575,11 @@ void CB2_ReturnToFieldContestHall(void)
     }
 }
 
-void CB2_ReturnToFieldCableClub(void)
-{
-    FieldClearVBlankHBlankCallbacks();
-    gFieldCallback = FieldCB_ReturnToFieldWirelessLink;
-    SetMainCallback2(CB2_LoadMapOnReturnToFieldCableClub);
-}
-
-static void CB2_LoadMapOnReturnToFieldCableClub(void)
-{
-    if (LoadMapInStepsLink())
-    {
-        SetFieldVBlankCallback();
-        SetMainCallback1(CB1_OverworldLink);
-        ResetAllMultiplayerState();
-        SetMainCallback2(CB2_Overworld);
-    }
-}
-
 void CB2_ReturnToField(void)
 {
-    if (IsOverworldLinkActive() == TRUE)
-    {
-        SetMainCallback2(CB2_ReturnToFieldLink);
-    }
-    else
-    {
-        FieldClearVBlankHBlankCallbacks();
-        SetMainCallback2(CB2_ReturnToFieldLocal);
-    }
+
+    FieldClearVBlankHBlankCallbacks();
+    SetMainCallback2(CB2_ReturnToFieldLocal);
 }
 
 static void CB2_ReturnToFieldLocal(void)
@@ -1622,28 +1591,6 @@ static void CB2_ReturnToFieldLocal(void)
     }
 }
 
-static void CB2_ReturnToFieldLink(void)
-{
-    if (!Overworld_IsRecvQueueAtMax() && ReturnToFieldLink(&gMain.state))
-        SetMainCallback2(CB2_Overworld);
-}
-
-void CB2_ReturnToFieldFromMultiplayer(void)
-{
-    FieldClearVBlankHBlankCallbacks();
-    StopMapMusic();
-    SetMainCallback1(CB1_OverworldLink);
-    ResetAllMultiplayerState();
-
-    if (gWirelessCommType != 0)
-        gFieldCallback = FieldCB_ReturnToFieldWirelessLink;
-    else
-        gFieldCallback = FieldCB_ReturnToFieldCableLink;
-
-    ScriptContext_Init();
-    UnlockPlayerFieldControls();
-    CB2_ReturnToField();
-}
 
 void CB2_ReturnToFieldWithOpenMenu(void)
 {
@@ -1736,15 +1683,7 @@ static void FieldClearVBlankHBlankCallbacks(void)
     if (UsedPokemonCenterWarp())
         CloseLink();
 
-    if (gWirelessCommType != 0)
-    {
-        DisableInterrupts(INTR_FLAG_HBLANK);
-        EnableInterrupts(INTR_FLAG_VBLANK | INTR_FLAG_TIMER3 | INTR_FLAG_SERIAL);
-    }
-    else
-    {
-        REG_IE_CHG(INTR_FLAG_VBLANK, INTR_FLAG_HBLANK);
-    }
+    REG_IE_CHG(INTR_FLAG_VBLANK, INTR_FLAG_HBLANK);
 
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
@@ -1779,83 +1718,6 @@ static void InitCurrentFlashLevelScanlineEffect(void)
         WriteFlashScanlineEffectBuffer(flashLevel);
         ScanlineEffect_SetParams(sFlashEffectParams);
     }
-}
-
-static bool32 LoadMapInStepsLink(void)
-{
-    switch (gMain.state)
-    {
-    case 0:
-        InitOverworldBgs();
-        ScriptContext_Init();
-        UnlockPlayerFieldControls();
-        ResetMirageTowerAndSaveBlockPtrs();
-        ResetScreenForMapLoad();
-        gMain.state = 1;
-        break;
-    case 1:
-        LoadMapFromWarp(TRUE);
-        gMain.state = 2;
-        break;
-    case 2:
-        ResumeMap(TRUE);
-        gMain.state = 3;
-        break;
-    case 3:
-        OffsetCameraFocusByLinkPlayerId();
-        InitObjectEventsLink();
-        SpawnLinkPlayers();
-        SetCameraToTrackGuestPlayer();
-        gMain.state = 4;
-        break;
-    case 4:
-        InitCurrentFlashLevelScanlineEffect();
-        InitOverworldGraphicsRegisters();
-        InitTextBoxGfxAndPrinters();
-        gMain.state = 5;
-        break;
-    case 5:
-        ResetFieldCamera();
-        gMain.state = 6;
-        break;
-    case 6:
-        CopyPrimaryTilesetToVram(gMapHeader.mapLayout);
-        gMain.state = 7;
-        break;
-    case 7:
-        CopySecondaryTilesetToVram(gMapHeader.mapLayout);
-        gMain.state = 8;
-        break;
-    case 8:
-        if (FreeTempTileDataBuffersIfPossible()) break;
-        LoadMapTilesetPalettes(gMapHeader.mapLayout);
-        gMain.state = 9;
-        break;
-    case 9:
-        DrawWholeMapView();
-        gMain.state = 10;
-        break;
-    case 10:
-        InitTilesetAnimations();
-         gMain.state = 11;
-        break;
-    case 11:
-        if (gWirelessCommType != 0)
-        {
-            LoadWirelessStatusIndicatorSpriteGfx();
-            CreateWirelessStatusIndicatorSprite(0, 0);
-        }
-        gMain.state = 12;
-        break;
-    case 12:
-        if (!RunFieldCallback()) break;
-        gMain.state = 13;
-        break;
-    case 13:
-        return TRUE;
-    }
-
-    return FALSE;
 }
 
 static bool32 LoadMapInStepsLocal(u32 *state, bool32 a2)
@@ -2012,11 +1874,6 @@ static bool32 ReturnToFieldLink(u32 *state)
         (*state)++;
         break;
     case 11:
-        if (gWirelessCommType != 0)
-        {
-            LoadWirelessStatusIndicatorSpriteGfx();
-            CreateWirelessStatusIndicatorSprite(0, 0);
-        }
         (*state)++;
         break;
     case 12:
@@ -2211,30 +2068,6 @@ static void CreateLinkPlayerSprites(void)
         CreateLinkPlayerSprite(i, gLinkPlayers[i].version);
 }
 
-
-static void CB1_OverworldLink(void)
-{
-    if (gWirelessCommType == 0 || !IsRfuRecvQueueEmpty() || !IsSendingKeysToLink())
-    {
-        u8 selfId = gLocalLinkPlayerId;
-        UpdateAllLinkPlayers(gLinkPartnersHeldKeys, selfId);
-
-        // Note: Because guestId is between 0 and 4, while the smallest key code is
-        // LINK_KEY_CODE_EMPTY, this is functionally equivalent to `sPlayerKeyInterceptCallback(0)`.
-        // It is expecting the callback to be KeyInterCB_SelfIdle, and that will
-        // completely ignore any input parameters.
-        //
-        // UpdateHeldKeyCode performs a sanity check on its input; if
-        // sPlayerKeyInterceptCallback echoes back the argument, which is selfId, then
-        // it'll use LINK_KEY_CODE_EMPTY instead.
-        //
-        // Note 2: There are some key intercept callbacks that treat the key as a player
-        // ID. It's so hacky.
-        UpdateHeldKeyCode(sPlayerKeyInterceptCallback(selfId));
-        ClearAllPlayerKeys();
-    }
-}
-
 void ResetAllMultiplayerState(void)
 {
     ResetAllPlayerLinkStates();
@@ -2258,8 +2091,7 @@ static void SetKeyInterceptCallback(u16 (*func)(u32))
 // still undocumented.
 static void CheckRfuKeepAliveTimer(void)
 {
-    if (gWirelessCommType != 0 && ++sRfuKeepAliveTimer > 60)
-        LinkRfu_FatalError();
+
 }
 
 static void ResetAllPlayerLinkStates(void)
@@ -2292,159 +2124,6 @@ static bool32 IsAnyPlayerInLinkState(u16 state)
     return FALSE;
 }
 
-static void HandleLinkPlayerKeyInput(u32 playerId, u16 key, struct CableClubPlayer *trainer, u16 *forceFacing)
-{
-    const u8 *script;
-
-    if (sPlayerLinkStates[playerId] == PLAYER_LINK_STATE_IDLE)
-    {
-        script = TryGetTileEventScript(trainer);
-        if (script)
-        {
-            *forceFacing = GetDirectionForEventScript(script);
-            sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-            if (trainer->isLocalPlayer)
-            {
-                SetKeyInterceptCallback(KeyInterCB_DeferToEventScript);
-                RunInteractLocalPlayerScript(script);
-            }
-            return;
-        }
-        if (IsAnyPlayerInLinkState(PLAYER_LINK_STATE_EXITING_ROOM) == TRUE)
-        {
-            sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-            if (trainer->isLocalPlayer)
-            {
-                SetKeyInterceptCallback(KeyInterCB_DeferToEventScript);
-                RunTerminateLinkScript();
-            }
-            return;
-        }
-
-        switch (key)
-        {
-        case LINK_KEY_CODE_START_BUTTON:
-            if (CanCableClubPlayerPressStart(trainer))
-            {
-                sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-                if (trainer->isLocalPlayer)
-                {
-                    SetKeyInterceptCallback(KeyInterCB_DeferToEventScript);
-                    InitLinkRoomStartMenuScript();
-                }
-            }
-            break;
-        case LINK_KEY_CODE_DPAD_DOWN:
-            if (PlayerIsAtSouthExit(trainer) == TRUE)
-            {
-                sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-                if (trainer->isLocalPlayer)
-                {
-                    SetKeyInterceptCallback(KeyInterCB_DeferToEventScript);
-                    RunConfirmLeaveCableClubScript();
-                }
-            }
-            break;
-        case LINK_KEY_CODE_A_BUTTON:
-            script = TryInteractWithPlayer(trainer);
-            if (script)
-            {
-                sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-                if (trainer->isLocalPlayer)
-                {
-                    SetKeyInterceptCallback(KeyInterCB_DeferToEventScript);
-                    InitMenuBasedScript(script);
-                }
-            }
-            break;
-        case LINK_KEY_CODE_HANDLE_RECV_QUEUE:
-            if (IsCableClubPlayerUnfrozen(trainer))
-            {
-                sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-                if (trainer->isLocalPlayer)
-                {
-                    SetKeyInterceptCallback(KeyInterCB_DeferToRecvQueue);
-                    InitLinkPlayerQueueScript();
-                }
-            }
-            break;
-        case LINK_KEY_CODE_HANDLE_SEND_QUEUE:
-            if (IsCableClubPlayerUnfrozen(trainer))
-            {
-                sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-                if (trainer->isLocalPlayer)
-                {
-                    SetKeyInterceptCallback(KeyInterCB_DeferToSendQueue);
-                    InitLinkPlayerQueueScript();
-                }
-            }
-            break;
-        }
-    }
-
-    switch (key)
-    {
-    case LINK_KEY_CODE_EXIT_ROOM:
-        sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_EXITING_ROOM;
-        break;
-    case LINK_KEY_CODE_READY:
-        sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_READY;
-        break;
-    case LINK_KEY_CODE_IDLE:
-        sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_IDLE;
-        if (trainer->isLocalPlayer)
-            SetKeyInterceptCallback(KeyInterCB_SelfIdle);
-        break;
-    case LINK_KEY_CODE_EXIT_SEAT:
-        if (sPlayerLinkStates[playerId] == PLAYER_LINK_STATE_READY)
-            sPlayerLinkStates[playerId] = PLAYER_LINK_STATE_BUSY;
-        break;
-    }
-}
-
-static void UpdateAllLinkPlayers(u16 *keys, s32 selfId)
-{
-    struct CableClubPlayer trainer;
-    s32 i;
-
-    for (i = 0; i < MAX_LINK_PLAYERS; i++)
-    {
-        u8 key = keys[i];
-        u16 setFacing = FACING_NONE;
-        LoadCableClubPlayer(i, selfId, &trainer);
-        HandleLinkPlayerKeyInput(i, key, &trainer, &setFacing);
-        if (sPlayerLinkStates[i] == PLAYER_LINK_STATE_IDLE)
-            setFacing = GetDirectionForDpadKey(key);
-        SetPlayerFacingDirection(i, setFacing);
-    }
-}
-
-static void UpdateHeldKeyCode(u16 key)
-{
-    if (key >= LINK_KEY_CODE_EMPTY && key < LINK_KEY_CODE_UNK_8)
-        gHeldKeyCodeToSend = key;
-    else
-        gHeldKeyCodeToSend = LINK_KEY_CODE_EMPTY;
-
-    if (gWirelessCommType != 0
-        && GetLinkSendQueueLength() > 1
-        && IsOverworldLinkActive() == TRUE
-        && IsSendingKeysToLink() == TRUE)
-    {
-        switch (key)
-        {
-        case LINK_KEY_CODE_EMPTY:
-        case LINK_KEY_CODE_DPAD_DOWN:
-        case LINK_KEY_CODE_DPAD_UP:
-        case LINK_KEY_CODE_DPAD_LEFT:
-        case LINK_KEY_CODE_DPAD_RIGHT:
-        case LINK_KEY_CODE_START_BUTTON:
-        case LINK_KEY_CODE_A_BUTTON:
-            gHeldKeyCodeToSend = LINK_KEY_CODE_NULL;
-            break;
-        }
-    }
-}
 
 static u16 KeyInterCB_ReadButtons(u32 key)
 {
@@ -2621,19 +2300,6 @@ static u16 KeyInterCB_InLinkActivity(u32 key)
     return LINK_KEY_CODE_EMPTY;
 }
 
-u32 GetCableClubPartnersReady(void)
-{
-    if (IsAnyPlayerInLinkState(PLAYER_LINK_STATE_EXITING_ROOM) == TRUE)
-        return CABLE_SEAT_FAILED;
-    if (sPlayerKeyInterceptCallback == KeyInterCB_Ready && sPlayerLinkStates[gLocalLinkPlayerId] != PLAYER_LINK_STATE_READY)
-        return CABLE_SEAT_WAITING;
-    if (sPlayerKeyInterceptCallback == KeyInterCB_ExitingSeat && sPlayerLinkStates[gLocalLinkPlayerId] == PLAYER_LINK_STATE_BUSY)
-        return CABLE_SEAT_FAILED;
-    if (AreAllPlayersInLinkState(PLAYER_LINK_STATE_READY))
-        return CABLE_SEAT_SUCCESS;
-    return CABLE_SEAT_WAITING;
-}
-
 static bool32 UNUSED IsAnyPlayerExitingCableClub(void)
 {
     return IsAnyPlayerInLinkState(PLAYER_LINK_STATE_EXITING_ROOM);
@@ -2665,40 +2331,6 @@ u16 SetStartedCableClubActivity(void)
     return 0;
 }
 
-static void LoadCableClubPlayer(s32 linkPlayerId, s32 myPlayerId, struct CableClubPlayer *trainer)
-{
-    s16 x, y;
-
-    trainer->playerId = linkPlayerId;
-    trainer->isLocalPlayer = (linkPlayerId == myPlayerId) ? 1 : 0;
-    trainer->movementMode = gLinkPlayerObjectEvents[linkPlayerId].movementMode;
-    trainer->facing = GetLinkPlayerFacingDirection(linkPlayerId);
-    GetLinkPlayerCoords(linkPlayerId, &x, &y);
-    trainer->pos.x = x;
-    trainer->pos.y = y;
-    trainer->pos.elevation = GetLinkPlayerElevation(linkPlayerId);
-    trainer->metatileBehavior = MapGridGetMetatileBehaviorAt(x, y);
-}
-
-static bool32 IsCableClubPlayerUnfrozen(struct CableClubPlayer *player)
-{
-    u8 mode = player->movementMode;
-    if (mode == MOVEMENT_MODE_SCRIPTED || mode == MOVEMENT_MODE_FREE)
-        return TRUE;
-    else
-        return FALSE;
-}
-
-// Identical to IsCableClubPlayerUnfrozen
-static bool32 CanCableClubPlayerPressStart(struct CableClubPlayer *player)
-{
-    u8 mode = player->movementMode;
-    if (mode == MOVEMENT_MODE_SCRIPTED || mode == MOVEMENT_MODE_FREE)
-        return TRUE;
-    else
-        return FALSE;
-}
-
 static const u8 *TryGetTileEventScript(struct CableClubPlayer *player)
 {
     if (player->movementMode != MOVEMENT_MODE_SCRIPTED)
@@ -2716,35 +2348,6 @@ static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *player)
         return FALSE;
     else
         return TRUE;
-}
-
-static const u8 *TryInteractWithPlayer(struct CableClubPlayer *player)
-{
-    struct MapPosition otherPlayerPos;
-    u8 linkPlayerId;
-
-    if (player->movementMode != MOVEMENT_MODE_FREE && player->movementMode != MOVEMENT_MODE_SCRIPTED)
-        return FACING_NONE;
-
-    otherPlayerPos = player->pos;
-    otherPlayerPos.x += gDirectionToVectors[player->facing].x;
-    otherPlayerPos.y += gDirectionToVectors[player->facing].y;
-    otherPlayerPos.elevation = 0;
-    linkPlayerId = GetLinkPlayerIdAt(otherPlayerPos.x, otherPlayerPos.y);
-
-    if (linkPlayerId != MAX_LINK_PLAYERS)
-    {
-        if (!player->isLocalPlayer)
-            return CableClub_EventScript_TooBusyToNotice;
-        else if (sPlayerLinkStates[linkPlayerId] != PLAYER_LINK_STATE_IDLE)
-            return CableClub_EventScript_TooBusyToNotice;
-        else if (!GetLinkTrainerCardColor(linkPlayerId))
-            return CableClub_EventScript_ReadTrainerCard;
-        else
-            return CableClub_EventScript_ReadTrainerCardColored;
-    }
-
-    return GetInteractedLinkPlayerScript(&otherPlayerPos, player->metatileBehavior, player->facing);
 }
 
 // This returns which direction to force the player to look when one of
@@ -2871,9 +2474,7 @@ bool32 Overworld_SendKeysToLinkIsRunning(void)
 
 bool32 IsSendingKeysOverCable(void)
 {
-    if (gWirelessCommType != 0)
-        return FALSE;
-    else if (!IsSendingKeysToLink())
+    if (!IsSendingKeysToLink())
         return FALSE;
     else
         return TRUE;
@@ -2881,10 +2482,7 @@ bool32 IsSendingKeysOverCable(void)
 
 static u32 GetLinkSendQueueLength(void)
 {
-    if (gWirelessCommType != 0)
-        return gRfu.sendQueue.count;
-    else
-        return gLink.sendQueue.count;
+    return gLink.sendQueue.count;
 }
 
 static void ZeroLinkPlayerObjectEvent(struct LinkPlayerObjectEvent *linkPlayerObjEvent)

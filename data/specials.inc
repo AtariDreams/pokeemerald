@@ -9,11 +9,6 @@
 		.align 2
 gSpecials::
 	def_special HealPlayerParty
-	def_special SetCableClubWarp
-	def_special DoCableClubWarp
-	def_special ReturnFromLinkRoom
-	def_special CleanupLinkRoomState
-	def_special ExitLinkRoom
 	def_special SetPlayerSecretBase
 	def_special CheckPlayerHasSecretBase
 	def_special EnterSecretBase
@@ -399,7 +394,6 @@ gSpecials::
 	def_special ClearQuizLadyQuestionAndAnswer
 	def_special QuizLadySetCustomQuestion
 	def_special QuizLadyTakePrizeForCustomQuiz
-	def_special GetMysteryGiftCardStat
 	def_special QuizLadyRecordCustomQuizData
 	def_special QuizLadySetWaitingForChallenger
 	def_special BufferQuizCorrectAnswer
@@ -421,29 +415,12 @@ gSpecials::
 	def_special SetMirageTowerVisibility
 	def_special StartPlayerDescendMirageTower
 	def_special BufferTMHMMoveName
-	def_special IsWirelessAdapterConnected
-	def_special TryBecomeLinkLeader
-	def_special TryJoinLinkGroup
-	def_special RunUnionRoom
-	def_special ShowWirelessCommunicationScreen
-	def_special InitUnionRoom
-	def_special BufferUnionRoomPlayerName
-	def_special WonderNews_GetRewardInfo
-	def_special ChooseMonForWirelessMinigame
-	def_special Script_ResetUnionRoomTrade
-	def_special ValidateSavedWonderCard
 	def_special HasAtLeastOneBerry
-	def_special IsPokemonJumpSpeciesInParty
-	def_special ShowPokemonJumpRecords
-	def_special IsDodrioInParty
-	def_special ShowDodrioBerryPickingRecords
 	def_special OffsetCameraForBattle
 	def_special GetDeptStoreDefaultFloorChoice
 	def_special BufferVarsForIVRater
 	def_special LinkContestWaitForConnection
 	def_special GetWirelessCommType
-	def_special LinkContestTryShowWirelessIndicator
-	def_special LinkContestTryHideWirelessIndicator
 	def_special IsWirelessContest
 	def_special ShowRankingHallRecordsWindow
 	def_special ScrollRankingHallRecordsWindow
@@ -475,7 +452,6 @@ gSpecials::
 	def_special PrintPlayerBerryPowderAmount
 	def_special ShowFrontierGamblerLookingMessage
 	def_special ShowFrontierGamblerGoMessage
-	def_special Script_DoRayquazaScene
 	def_special OpenPokenavForTutorial
 	def_special ScriptMenu_CreateStartMenuForPokenavTutorial
 	def_special CountPlayerTrainerStars
@@ -511,12 +487,10 @@ gSpecials::
 	def_special SetMewAboveGrass
 	def_special ShouldDistributeEonTicket
 	def_special LinkRetireStatusWithBattleTowerPartner
-	def_special BattleTowerReconnectLink
 	def_special CallTrainerHillFunction
 	def_special Script_DoRayquazaScene @ Listed twice
 	def_special LoopWingFlapSE
 	def_special DestroyMewEmergingGrassSprite
-	def_special ShowBerryCrushRankings
 	def_special TryBufferWaldaPhrase
 	def_special DoWaldaNamingScreen
 	def_special TryGetWallpaperWithWaldaPhrase
