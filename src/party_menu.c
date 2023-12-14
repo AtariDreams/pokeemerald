@@ -5302,9 +5302,9 @@ static void Task_HandleSwitchItemsFromBagYesNoInput(u8 taskId)
 
 static void RemoveItemToGiveFromBag(u16 item)
 {
-    if (gPartyMenu.action == PARTY_ACTION_GIVE_PC_ITEM) // Unused, never occurs
-        RemovePCItem(item, 1);
-    else
+    // if (gPartyMenu.action == PARTY_ACTION_GIVE_PC_ITEM) // Unused, never occurs
+    //     RemovePCItem(item, 1);
+    // else
         RemoveBagItem(item, 1);
 }
 
