@@ -3535,19 +3535,5 @@ bool32 ValidateBattleTowerRecord(u8 recordId) // unused
 
 void TrySetLinkBattleTowerEnemyPartyLevel(void)
 {
-    if (gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK))
-    {
-        s32 i;
-        u8 enemyLevel = SetFacilityPtrsGetLevel();
-
-        for (i = 0; i < PARTY_SIZE; i++)
-        {
-            u32 species = GetMonData(&gEnemyParty.party[i], MON_DATA_SPECIES, NULL);
-            if (species)
-            {
-                SetMonData(&gEnemyParty.party[i], MON_DATA_EXP, &gExperienceTables[gSpeciesInfo[species].growthRate][enemyLevel]);
-                CalculateMonStats(&gEnemyParty.party[i]);
-            }
-        }
-    }
+    
 }

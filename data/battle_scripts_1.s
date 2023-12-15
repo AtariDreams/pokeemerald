@@ -2844,8 +2844,6 @@ BattleScript_FaintedMonTryChoose::
 	openpartyscreen BS_FAINTED, BattleScript_FaintedMonEnd
 	switchhandleorder BS_FAINTED, 2
 	jumpifnotbattletype BATTLE_TYPE_TRAINER, BattleScript_FaintedMonSendOutNew
-	jumpifbattletype BATTLE_TYPE_LINK, BattleScript_FaintedMonSendOutNew
-	jumpifbattletype BATTLE_TYPE_RECORDED_LINK, BattleScript_FaintedMonSendOutNew
 	jumpifbattletype BATTLE_TYPE_FRONTIER, BattleScript_FaintedMonSendOutNew
 	jumpifbattletype BATTLE_TYPE_DOUBLE, BattleScript_FaintedMonSendOutNew
 	jumpifword CMP_COMMON_BITS, gHitMarker, HITMARKER_PLAYER_FAINTED, BattleScript_FaintedMonSendOutNew

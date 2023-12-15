@@ -308,16 +308,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     {
         if (!gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored)
         {
-            if ((gBattleTypeFlags & BATTLE_TYPE_LINK) && (gBattleTypeFlags & BATTLE_TYPE_MULTI))
-            {
-                if (GetBattlerPosition(gActiveBattler) == B_POSITION_PLAYER_LEFT)
-                    m4aMPlayContinue(&gMPlayInfo_BGM);
-            }
-            else
-            {
-                m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
-            }
-
+             m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
         }
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored = TRUE;
         bgmRestored = TRUE;
@@ -1167,17 +1158,7 @@ static void RecordedPlayerHandleDrawTrainerPic(void)
     s16 xPos, yPos;
     u32 trainerPicId;
 
-    if (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK)
-    {
-        if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
-            trainerPicId = GetActiveBattlerLinkPlayerGender();
-        else
-            trainerPicId = gLinkPlayers[gRecordedBattleMultiplayerId].gender;
-    }
-    else
-    {
-        trainerPicId = gLinkPlayers[0].gender;
-    }
+    trainerPicId = gLinkPlayers[0].gender;
 
     if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
     {
@@ -1649,10 +1630,7 @@ static void RecordedPlayerHandleIntroTrainerBallThrow(void)
     StartSpriteAnim(&gSprites[gBattlerSpriteIds[gActiveBattler]], 1);
 
     paletteNum = AllocSpritePalette(0xD6F9);
-    if (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK)
-        trainerPicId = gLinkPlayers[GetBattlerMultiplayerId(gActiveBattler)].gender;
-    else
-        trainerPicId = gSaveBlock2.playerGender;
+    trainerPicId = gSaveBlock2.playerGender;
 
     LoadCompressedPalette(gTrainerBackPicPaletteTable[trainerPicId].data, OBJ_PLTT_ID(paletteNum), PLTT_SIZE_4BPP);
 

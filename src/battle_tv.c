@@ -548,7 +548,7 @@ void BattleTv_SetDataBasedOnString(u16 stringId)
     u8 *perishCount;
     u16 *statStringId, *finishedMoveId;
 
-    if (!(gBattleTypeFlags & BATTLE_TYPE_LINK) && stringId != STRINGID_ITDOESNTAFFECT && stringId != STRINGID_NOTVERYEFFECTIVE)
+    if (stringId != STRINGID_ITDOESNTAFFECT && stringId != STRINGID_NOTVERYEFFECTIVE)
         return;
 
     tvPtr = &gBattleStruct->tv;
@@ -588,12 +588,11 @@ void BattleTv_SetDataBasedOnString(u16 stringId)
     {
     case STRINGID_ITDOESNTAFFECT:
         AddMovePoints(PTS_EFFECTIVENESS, moveSlot, 2, 0);
-        if (!(gBattleTypeFlags & BATTLE_TYPE_LINK))
-            TrySetBattleSeminarShow();
+        TrySetBattleSeminarShow();
         break;
     case STRINGID_NOTVERYEFFECTIVE:
         AddMovePoints(PTS_EFFECTIVENESS, moveSlot, 1, 0);
-        if (!(gBattleTypeFlags & BATTLE_TYPE_LINK) && GetMonData(defMon, MON_DATA_HP, NULL) != 0)
+        if (GetMonData(defMon, MON_DATA_HP, NULL) != 0)
             TrySetBattleSeminarShow();
         break;
     case STRINGID_SUPEREFFECTIVE:
@@ -963,177 +962,17 @@ static bool8 IsNotSpecialBattleString(u16 stringId)
 
 void BattleTv_SetDataBasedOnMove(u16 move, u16 weatherFlags, struct DisableStruct *disableStructPtr)
 {
-    struct BattleTv *tvPtr;
-    u32 atkSide, defSide;
-    u8 moveSlot;
 
-    if (!(gBattleTypeFlags & BATTLE_TYPE_LINK))
-        return;
-
-    tvPtr = &gBattleStruct->tv;
-
-    atkSide = GetBattlerSide(gBattlerAttacker);
-    defSide = GetBattlerSide(gBattlerTarget);
-    moveSlot = GetBattlerMoveSlotId(gBattlerAttacker, move);
-
-    if (moveSlot >= MAX_MON_MOVES)
-    {
-        tvPtr->side[atkSide].faintCause = FNT_OTHER;
-        return;
-    }
-
-    tvPtr->pos[defSide][GetBattlerPosition(gBattlerAttacker) / 2].attackedByMonId = gBattlerPartyIndexes[gBattlerAttacker] + 1;
-    tvPtr->pos[defSide][GetBattlerPosition(gBattlerAttacker) / 2].attackedByMoveSlot = moveSlot;
-    tvPtr->side[atkSide].usedMoveSlot = moveSlot;
-    AddMovePoints(PTS_MOVE_EFFECT, moveSlot, gBattleMoves[move].effect, 0);
-    AddPointsBasedOnWeather(weatherFlags, move, moveSlot);
-    if (disableStructPtr->chargeTimer != 0)
-        AddMovePoints(PTS_ELECTRIC, move, moveSlot, 0);
-
-    if (move == MOVE_WISH)
-    {
-        tvPtr->side[atkSide].wishMonId = gBattlerPartyIndexes[gBattlerAttacker] + 1;
-        tvPtr->side[atkSide].wishMoveSlot = moveSlot;
-    }
-    if (move == MOVE_SELF_DESTRUCT || move == MOVE_EXPLOSION)
-    {
-        tvPtr->side[atkSide ^ BIT_SIDE].explosionMonId = gBattlerPartyIndexes[gBattlerAttacker] + 1;
-        tvPtr->side[atkSide ^ BIT_SIDE].explosionMoveSlot = moveSlot;
-        tvPtr->side[atkSide ^ BIT_SIDE].faintCause = FNT_EXPLOSION;
-        tvPtr->side[atkSide ^ BIT_SIDE].explosion = TRUE;
-    }
-
-    AddMovePoints(PTS_REFLECT,      gBattleMoves[move].type, gBattleMoves[move].power, 0);
-    AddMovePoints(PTS_LIGHT_SCREEN, gBattleMoves[move].type, gBattleMoves[move].power, 0);
-    AddMovePoints(PTS_WATER_SPORT,  gBattleMoves[move].type, 0,                        0);
-    AddMovePoints(PTS_MUD_SPORT,    gBattleMoves[move].type, 0,                        0);
 }
 
 void BattleTv_SetDataBasedOnAnimation(u8 animationId)
 {
-    struct BattleTv *tvPtr;
-    u32 atkSide;
 
-    if (!(gBattleTypeFlags & BATTLE_TYPE_LINK))
-        return;
-
-    tvPtr = &gBattleStruct->tv;
-    atkSide = GetBattlerSide(gBattlerAttacker);
-    switch (animationId)
-    {
-    case B_ANIM_FUTURE_SIGHT_HIT:
-        if (tvPtr->side[atkSide].futureSightMonId != 0)
-        {
-            AddMovePoints(PTS_SET_UP, 0, atkSide,
-                        (tvPtr->side[atkSide].futureSightMonId - 1) * 4 + tvPtr->side[atkSide].futureSightMoveSlot);
-            tvPtr->side[atkSide].faintCause = FNT_FUTURE_SIGHT;
-        }
-        break;
-    case B_ANIM_DOOM_DESIRE_HIT:
-        if (tvPtr->side[atkSide].doomDesireMonId != 0)
-        {
-            AddMovePoints(PTS_SET_UP, 1, atkSide,
-                        (tvPtr->side[atkSide].doomDesireMonId - 1) * 4 + tvPtr->side[atkSide].doomDesireMoveSlot);
-            tvPtr->side[atkSide].faintCause = FNT_DOOM_DESIRE;
-        }
-        break;
-    }
 }
 
 void TryPutLinkBattleTvShowOnAir(void)
 {
-    u16 playerBestSpecies = 0, opponentBestSpecies = 0;
-    s16 playerBestSum = 0, opponentBestSum = SHRT_MAX;
-    u8 playerBestMonId = 0, opponentBestMonId = 0;
-    struct BattleTvMovePoints *movePoints = NULL;
-    u8 countPlayer = 0, countOpponent = 0;
-    s16 sum = 0;
-    u16 species = 0;
-    u16 moveId = 0;
-    s32 i, j;
-    int zero = 0, one = 1; //needed for matching
 
-    if (gBattleStruct->anyMonHasTransformed)
-        return;
-
-    movePoints = &gBattleStruct->tvMovePoints;
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        if (GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
-            countPlayer++;
-        if (GetMonData(&gEnemyParty.party[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
-            countOpponent++;
-    }
-
-    if (!(gBattleTypeFlags & BATTLE_TYPE_LINK) || countPlayer != countOpponent)
-        return;
-
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        species = GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES, NULL);
-        if (species != SPECIES_NONE && !GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG, NULL))
-        {
-            for (sum = 0, j = 0; j < MAX_MON_MOVES; j++)
-                sum += movePoints->points[zero][i * 4 + j];
-
-            if (playerBestSum < sum)
-            {
-                playerBestMonId = i;
-                playerBestSum = sum;
-                playerBestSpecies = species;
-            }
-        }
-
-        species = GetMonData(&gEnemyParty.party[i], MON_DATA_SPECIES, NULL);
-        if (species != SPECIES_NONE && !GetMonData(&gEnemyParty.party[i], MON_DATA_IS_EGG, NULL))
-        {
-            for (sum = 0, j = 0; j < MAX_MON_MOVES; j++)
-                sum += movePoints->points[one][i * 4 + j];
-
-            if (opponentBestSum == sum)
-            {
-                if (GetMonData(&gEnemyParty.party[i], MON_DATA_EXP, NULL) > GetMonData(&gEnemyParty.party[opponentBestMonId], MON_DATA_EXP, NULL))
-                {
-                    opponentBestMonId = i;
-                    opponentBestSum = sum;
-                    opponentBestSpecies = species;
-                }
-            }
-            else if (opponentBestSum > sum)
-            {
-                opponentBestMonId = i;
-                opponentBestSum = sum;
-                opponentBestSpecies = species;
-            }
-        }
-    }
-
-    for (sum = 0, i = 0, j = 0; j < MAX_MON_MOVES; j++)
-    {
-        if (sum < movePoints->points[zero][playerBestMonId * 4 + j])
-        {
-            sum = movePoints->points[zero][playerBestMonId * 4 + j];
-            i = j;
-        }
-    }
-
-    moveId = GetMonData(&gPlayerParty.party[playerBestMonId], MON_DATA_MOVE1 + i, NULL);
-    if (playerBestSum == 0 || moveId == 0)
-        return;
-
-    if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
-    {
-        if ((playerBestMonId < MULTI_PARTY_SIZE && !GetLinkTrainerFlankId(gBattleScripting.multiplayerId))
-         || (playerBestMonId >= MULTI_PARTY_SIZE && GetLinkTrainerFlankId(gBattleScripting.multiplayerId)))
-        {
-            j = (opponentBestMonId < MULTI_PARTY_SIZE) ? FALSE : TRUE;
-            PutBattleUpdateOnTheAir(GetOpposingLinkMultiBattlerId(j, gBattleScripting.multiplayerId), moveId, playerBestSpecies, opponentBestSpecies);
-        }
-    }
-    else
-    {
-        PutBattleUpdateOnTheAir(gBattleScripting.multiplayerId ^ 1, moveId, playerBestSpecies, opponentBestSpecies);
-    }
 }
 
 static void AddMovePoints(u8 caseId, u16 arg1, u8 arg2, u8 arg3)
@@ -1540,25 +1379,7 @@ static bool8 ShouldCalculateDamage(u16 moveId, s32 *dmg, u16 *powerOverride)
 
 void BattleTv_ClearExplosionFaintCause(void)
 {
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        struct BattleTv *tvPtr = &gBattleStruct->tv;
 
-        tvPtr->side[B_SIDE_PLAYER].faintCause = FNT_NONE;
-        tvPtr->side[B_SIDE_OPPONENT].faintCause = FNT_NONE;
-
-        tvPtr->side[B_SIDE_PLAYER].faintCauseMonId = 0;
-        tvPtr->side[B_SIDE_OPPONENT].faintCauseMonId = 0;
-
-        tvPtr->side[B_SIDE_PLAYER].explosionMonId = 0;
-        tvPtr->side[B_SIDE_OPPONENT].explosionMonId = 0;
-
-        tvPtr->side[B_SIDE_PLAYER].explosionMoveSlot = 0;
-        tvPtr->side[B_SIDE_OPPONENT].explosionMoveSlot = 0;
-
-        tvPtr->side[B_SIDE_PLAYER].explosion = FALSE;
-        tvPtr->side[B_SIDE_OPPONENT].explosion = FALSE;
-    }
 }
 
 u8 GetBattlerMoveSlotId(u8 battlerId, u16 moveId)

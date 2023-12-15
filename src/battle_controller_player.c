@@ -948,10 +948,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     {
         if (!gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored)
         {
-            if (gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_LINK)
-                m4aMPlayContinue(&gMPlayInfo_BGM);
-            else
-                m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
+            m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
         }
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored = TRUE;
         bgmRestored = TRUE;
@@ -1501,12 +1498,7 @@ static void CompleteOnFinishedBattleAnimation(void)
 
 static void PrintLinkStandbyMsg(void)
 {
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        gBattle_BG0_X = 0;
-        gBattle_BG0_Y = 0;
-        BattlePutTextOnWindow(gText_LinkStandby, B_WIN_MSG);
-    }
+
 }
 
 static void PlayerHandleGetMonData(void)
@@ -2192,27 +2184,9 @@ static void PlayerHandleDrawTrainerPic(void)
     s16 xPos, yPos;
     u32 trainerPicId;
 
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        if ((gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_FIRE_RED
-            || (gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_LEAF_GREEN)
-        {
-            trainerPicId = gLinkPlayers[GetMultiplayerId()].gender + TRAINER_BACK_PIC_RED;
-        }
-        else if ((gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_RUBY
-                 || (gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_SAPPHIRE)
-        {
-            trainerPicId = gLinkPlayers[GetMultiplayerId()].gender + TRAINER_BACK_PIC_RUBY_SAPPHIRE_BRENDAN;
-        }
-        else
-        {
-            trainerPicId = gLinkPlayers[GetMultiplayerId()].gender + TRAINER_BACK_PIC_BRENDAN;
-        }
-    }
-    else
-    {
-        trainerPicId = gSaveBlock2.playerGender;
-    }
+
+    trainerPicId = gSaveBlock2.playerGender;
+
 
     if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
     {
@@ -2274,27 +2248,8 @@ static void PlayerHandleTrainerSlide(void)
 {
     u32 trainerPicId;
 
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        if ((gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_FIRE_RED
-            || (gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_LEAF_GREEN)
-        {
-            trainerPicId = gLinkPlayers[GetMultiplayerId()].gender + TRAINER_BACK_PIC_RED;
-        }
-        else if ((gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_RUBY
-                 || (gLinkPlayers[GetMultiplayerId()].version & 0xFF) == VERSION_SAPPHIRE)
-        {
-            trainerPicId = gLinkPlayers[GetMultiplayerId()].gender + TRAINER_BACK_PIC_RUBY_SAPPHIRE_BRENDAN;
-        }
-        else
-        {
-            trainerPicId = gLinkPlayers[GetMultiplayerId()].gender + TRAINER_BACK_PIC_BRENDAN;
-        }
-    }
-    else
-    {
-        trainerPicId = gSaveBlock2.playerGender + TRAINER_BACK_PIC_BRENDAN;
-    }
+
+    trainerPicId = gSaveBlock2.playerGender + TRAINER_BACK_PIC_BRENDAN;
 
     DecompressTrainerBackPic(trainerPicId, gActiveBattler);
     SetMultiuseSpriteTemplateToTrainerBack(trainerPicId, GetBattlerPosition(gActiveBattler));
@@ -2997,7 +2952,6 @@ static void PlayerHandleBattleAnimation(void)
 
 static void PlayerHandleLinkStandbyMsg(void)
 {
-    RecordedBattle_RecordAllBattlerData(&gBattleBufferA[gActiveBattler][2]);
     switch (gBattleBufferA[gActiveBattler][1])
     {
     case LINK_STANDBY_MSG_STOP_BOUNCE:
@@ -3034,7 +2988,6 @@ static void PlayerHandleResetActionMoveSelection(void)
 
 static void PlayerHandleEndLinkBattle(void)
 {
-    RecordedBattle_RecordAllBattlerData(&gBattleBufferA[gActiveBattler][4]);
     gBattleOutcome = gBattleBufferA[gActiveBattler][1];
     gSaveBlock2.frontier.disableRecordBattle = gBattleBufferA[gActiveBattler][2];
     FadeOutMapMusic(5);

@@ -3558,46 +3558,8 @@ static void Cmd_checkteamslost(void)
     if (HP_count == 0)
         gBattleOutcome |= B_OUTCOME_WON;
 
-    // For link battles that haven't ended, count number of empty battler spots
-    // In link multi battles, jump to pointer if more than 1 spot empty
-    // In non-multi battles, jump to pointer if 1 spot is missing on both sides
-    if (gBattleOutcome == 0 && (gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)))
-    {
-        s32 emptyPlayerSpots = 0;
-        s32 emptyOpponentSpots;
 
-        for (i = 0; i < gBattlersCount; i += 2)
-        {
-            if ((gHitMarker & HITMARKER_FAINTED(i)) && (!gSpecialStatuses[i].faintedHasReplacement))
-                emptyPlayerSpots++;
-        }
-
-        emptyOpponentSpots = 0;
-        for (i = 1; i < gBattlersCount; i += 2)
-        {
-            if ((gHitMarker & HITMARKER_FAINTED(i)) && (!gSpecialStatuses[i].faintedHasReplacement))
-                emptyOpponentSpots++;
-        }
-
-        if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
-        {
-            if (emptyOpponentSpots + emptyPlayerSpots > 1)
-                gBattlescriptCurrInstr = T2_READ_PTR(gBattlescriptCurrInstr + 1);
-            else
-                gBattlescriptCurrInstr += 5;
-        }
-        else
-        {
-            if (emptyOpponentSpots != 0 && emptyPlayerSpots != 0)
-                gBattlescriptCurrInstr = T2_READ_PTR(gBattlescriptCurrInstr + 1);
-            else
-                gBattlescriptCurrInstr += 5;
-        }
-    }
-    else
-    {
-        gBattlescriptCurrInstr += 5;
-    }
+    gBattlescriptCurrInstr += 5;
 }
 
 static void MoveValuesCleanUp(void)
@@ -5137,7 +5099,7 @@ static void Cmd_switchhandleorder(void)
         {
             if (gBattleBufferB[i][0] == CONTROLLER_CHOSENMONRETURNVALUE)
             {
-                *(gBattleStruct->monToSwitchIntoId + i) = gBattleBufferB[i][1];
+                gBattleStruct->monToSwitchIntoId[i] = gBattleBufferB[i][1];
                 if (!(gBattleStruct->field_93 & (1U << i)))
                 {
                     RecordedBattle_SetBattlerAction(i, gBattleBufferB[i][1]);
@@ -5159,19 +5121,9 @@ static void Cmd_switchhandleorder(void)
         // fall through
     case 3:
         gBattleCommunication[0] = gBattleBufferB[gActiveBattler][1];
-        *(gBattleStruct->monToSwitchIntoId + gActiveBattler) = gBattleBufferB[gActiveBattler][1];
+        gBattleStruct->monToSwitchIntoId[gActiveBattler] = gBattleBufferB[gActiveBattler][1];
 
-        if (gBattleTypeFlags & BATTLE_TYPE_LINK && gBattleTypeFlags & BATTLE_TYPE_MULTI)
-        {
-            *(gActiveBattler * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 0) &= 0xF;
-            *(gActiveBattler * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 0) |= (gBattleBufferB[gActiveBattler][2] & 0xF0);
-            *(gActiveBattler * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 1) = gBattleBufferB[gActiveBattler][3];
-
-            *((BATTLE_PARTNER(gActiveBattler)) * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 0) &= (0xF0);
-            *((BATTLE_PARTNER(gActiveBattler)) * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 0) |= (gBattleBufferB[gActiveBattler][2] & 0xF0) >> 4;
-            *((BATTLE_PARTNER(gActiveBattler)) * 3 + (u8 *)(gBattleStruct->battlerPartyOrders) + 2) = gBattleBufferB[gActiveBattler][3];
-        }
-        else if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
+        if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
         {
             SwitchPartyOrderInGameMulti(gActiveBattler, *(gBattleStruct->monToSwitchIntoId + gActiveBattler));
         }
@@ -7175,29 +7127,9 @@ static void Cmd_forcerandomswitch(void)
         else
             party = gEnemyParty.party;
 
-        if ((gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER && gBattleTypeFlags & BATTLE_TYPE_LINK)
-            || (gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER && gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK)
-            || (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER))
+        if ((gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER))
         {
             if ((gBattlerTarget & BIT_FLANK) != B_FLANK_LEFT)
-            {
-                firstMonId = PARTY_SIZE / 2;
-                lastMonId = PARTY_SIZE;
-            }
-            else
-            {
-                firstMonId = 0;
-                lastMonId = PARTY_SIZE / 2;
-            }
-            monsCount = PARTY_SIZE / 2;
-            minNeeded = 1;
-            battler2PartyId = gBattlerPartyIndexes[gBattlerTarget];
-            battler1PartyId = gBattlerPartyIndexes[BATTLE_PARTNER(gBattlerTarget)];
-        }
-        else if ((gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_LINK)
-                 || (gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK))
-        {
-            if (GetLinkTrainerFlankId(GetBattlerMultiplayerId(gBattlerTarget)) == B_FLANK_RIGHT)
             {
                 firstMonId = PARTY_SIZE / 2;
                 lastMonId = PARTY_SIZE;
@@ -7293,15 +7225,6 @@ static void Cmd_forcerandomswitch(void)
             if (!IsMultiBattle())
                 SwitchPartyOrder(gBattlerTarget);
 
-            if ((gBattleTypeFlags & BATTLE_TYPE_LINK && gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER)
-                || (gBattleTypeFlags & BATTLE_TYPE_LINK && gBattleTypeFlags & BATTLE_TYPE_MULTI)
-                || (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK && gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER)
-                || (gBattleTypeFlags & BATTLE_TYPE_RECORDED_LINK && gBattleTypeFlags & BATTLE_TYPE_MULTI))
-            {
-                SwitchPartyOrderLinkMulti(gBattlerTarget, i, 0);
-                SwitchPartyOrderLinkMulti(BATTLE_PARTNER(gBattlerTarget), i, 1);
-            }
-
             if (gBattleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
                 SwitchPartyOrderInGameMulti(gBattlerTarget, i);
         }
@@ -7376,7 +7299,7 @@ static void Cmd_tryconversiontypechange(void)
 
 static void Cmd_givepaydaymoney(void)
 {
-    if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK)) && gPaydayMoney != 0)
+    if (gPaydayMoney != 0)
     {
         u32 bonusMoney = gPaydayMoney * gBattleStruct->moneyMultiplier;
         AddMoney(bonusMoney);

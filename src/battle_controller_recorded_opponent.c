@@ -291,15 +291,7 @@ static void Intro_TryShinyAnimShowHealthbox(void)
     {
         if (!gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored)
         {
-            if (gBattleTypeFlags & BATTLE_TYPE_MULTI && gBattleTypeFlags & BATTLE_TYPE_LINK)
-            {
-                if (GetBattlerPosition(gActiveBattler) == B_POSITION_OPPONENT_LEFT)
-                    m4aMPlayContinue(&gMPlayInfo_BGM);
-            }
-            else
-            {
-                m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
-            }
+            m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x100);
         }
         gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].bgmRestored = TRUE;
         bgmRestored = TRUE;

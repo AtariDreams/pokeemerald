@@ -1198,7 +1198,6 @@ static void Task_Scene1_FadeIn(u8 taskId)
     gTasks[taskId].func = Task_Scene1_WaterDrops;
     gIntroFrameCounter = 0;
     m4aSongNumStart(MUS_INTRO);
-    ResetSerial();
 }
 
 // Task data for Task_Scene1_PanUp
