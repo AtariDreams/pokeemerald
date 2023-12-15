@@ -56,45 +56,42 @@ u32 ConvertBcdToBinary(u8 bcd)
 
 // static bool32 IsLeapYear(u32 year)
 // {
-//     if (year % 400 == 0)
-//         return TRUE;
+    // if (__builtin_expect_with_probability((year & 3) != 0, 1, 0.75))
+    //     return FALSE;
     
-//     if (year % 100 == 0)
-//         return FALSE;
+    // if (__builtin_expect_with_probability(year % 400 == 0, 0, 0.90))
+    //     return TRUE;
 
-//     if (year % 4 == 0)
-//         return TRUE;
+    // if (__builtin_expect_with_probability(year % 100 == 0, 0, 0.000000000000001))
+    //     return FALSE;
 
-//     return FALSE;
+    // return TRUE;
 // }
 
 static NAKED bool32 IsLeapYear(u32 year)
 {
     asm_unified("\
-        ldr     r1, =3264175145\n\
-        muls    r1, r0, r1\n\
-        movs    r2, #4\n\
-        movs    r3, r1\n\
-        rors    r3, r2\n\
-        ldr     r2, =10737419\n\
-        cmp     r3, r2\n\
-        blo     .LBB0_3\n\
-        movs    r2, #2\n\
-        rors    r1, r2\n\
-        ldr     r2, =42949673\n\
-        cmp     r1, r2\n\
-        blo     .LBB0_4\n\
-        movs    r1, #3\n\
-        ands    r0, r1\n\
-        rsbs    r1, r0, #0\n\
-        adcs    r1, r0\n\
-        movs    r0, r1\n\
-        bx      lr\n\
-.LBB0_3:\n\
-        movs    r0, #1\n\
-        bx      lr\n\
-.LBB0_4:\n\
+        lsls    r1, r0, #30\n\
+        beq     .LBB2_2\n\
+.LBB2_1:\n\
         movs    r0, #0\n\
+        bx      lr\n\
+.LBB2_2:\n\
+        ldr     r1, =0xc28f5c29\n\
+        muls    r1, r0, r1\n\
+        movs    r0, #4\n\
+        movs    r2, r1\n\
+        rors    r2, r0\n\
+        ldr     r0, =10737419\n\
+        cmp     r2, r0\n\
+        blo     .LBB2_4\n\
+        movs    r0, #2\n\
+        rors    r1, r0\n\
+        ldr     r0, =42949672\n\
+        cmp     r1, r0\n\
+        bls     .LBB2_1\n\
+.LBB2_4:\n\
+        movs    r0, #1\n\
         bx      lr\n\
         .pool\n");
 }
