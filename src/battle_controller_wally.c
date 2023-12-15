@@ -1537,9 +1537,6 @@ static void WallyHandleEndLinkBattle(void)
     FadeOutMapMusic(5);
     BeginFastPaletteFade(3);
     WallyBufferExecCompleted();
-
-    if (!(gBattleTypeFlags & BATTLE_TYPE_IS_MASTER) && gBattleTypeFlags & BATTLE_TYPE_LINK)
-        gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void WallyCmdEnd(void)

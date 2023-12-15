@@ -140,7 +140,6 @@ static u8 GetSpriteForLinkedPlayer(u8);
 static void RunTerminateLinkScript(void);
 static u32 GetLinkSendQueueLength(void);
 static void ZeroLinkPlayerObjectEvent(struct LinkPlayerObjectEvent *);
-static u16 GetDirectionForEventScript(const u8 *);
 static void InitLinkPlayerQueueScript(void);
 static void InitLinkRoomStartMenuScript(void);
 static void RunInteractLocalPlayerScript(const u8 *);
@@ -2348,38 +2347,6 @@ static bool32 PlayerIsAtSouthExit(struct CableClubPlayer *player)
         return FALSE;
     else
         return TRUE;
-}
-
-// This returns which direction to force the player to look when one of
-// these event scripts runs.
-static u16 GetDirectionForEventScript(const u8 *script)
-{
-    if (script == EventScript_BattleColosseum_4P_PlayerSpot0)
-        return FACING_FORCED_RIGHT;
-    else if (script == EventScript_BattleColosseum_4P_PlayerSpot1)
-        return FACING_FORCED_LEFT;
-    else if (script == EventScript_BattleColosseum_4P_PlayerSpot2)
-        return FACING_FORCED_RIGHT;
-    else if (script == EventScript_BattleColosseum_4P_PlayerSpot3)
-        return FACING_FORCED_LEFT;
-    else if (script == EventScript_RecordCenter_Spot0)
-        return FACING_FORCED_RIGHT;
-    else if (script == EventScript_RecordCenter_Spot1)
-        return FACING_FORCED_LEFT;
-    else if (script == EventScript_RecordCenter_Spot2)
-        return FACING_FORCED_RIGHT;
-    else if (script == EventScript_RecordCenter_Spot3)
-        return FACING_FORCED_LEFT;
-    else if (script == EventScript_BattleColosseum_2P_PlayerSpot0)
-        return FACING_FORCED_RIGHT;
-    else if (script == EventScript_BattleColosseum_2P_PlayerSpot1)
-        return FACING_FORCED_LEFT;
-    else if (script == EventScript_TradeCenter_Chair0)
-        return FACING_FORCED_RIGHT;
-    else if (script == EventScript_TradeCenter_Chair1)
-        return FACING_FORCED_LEFT;
-    else
-        return FACING_NONE;
 }
 
 static void InitLinkPlayerQueueScript(void)

@@ -500,17 +500,7 @@ static void CompleteOnFinishedBattleAnimation(void)
 static void RecordedOpponentBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = RecordedOpponentBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
-
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
-    {
-        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
-    }
+gBattleControllerExecFlags &= ~(1U << gActiveBattler);
 }
 
 static void RecordedOpponentHandleGetMonData(void)
@@ -1766,7 +1756,6 @@ static void RecordedOpponentHandleEndLinkBattle(void)
     FadeOutMapMusic(5);
     BeginFastPaletteFade(3);
     RecordedOpponentBufferExecCompleted();
-    gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void RecordedOpponentCmdEnd(void)

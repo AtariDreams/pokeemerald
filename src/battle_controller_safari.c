@@ -250,16 +250,6 @@ static void CompleteOnHealthboxSpriteCallbackDummy(void)
         SafariBufferExecCompleted();
 }
 
-static void SafariSetBattleEndCallbacks(void)
-{
-    if (!gPaletteFade.active)
-    {
-        gMain.inBattle = FALSE;
-        gMain.callback1 = gPreBattleCallback1;
-        SetMainCallback2(gMain.savedCallback);
-    }
-}
-
 static void CompleteOnSpecialAnimDone(void)
 {
     if (!gDoingBattleAnim || !gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].specialAnimActive)
@@ -294,17 +284,7 @@ static void CompleteOnFinishedBattleAnimation(void)
 static void SafariBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = SafariBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
-
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
-    {
-        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
-    }
+gBattleControllerExecFlags &= ~(1U << gActiveBattler);
 }
 
 static void UNUSED CompleteOnFinishedStatusAnimation(void)
@@ -682,8 +662,6 @@ static void SafariHandleEndLinkBattle(void)
     FadeOutMapMusic(5);
     BeginFastPaletteFade(3);
     SafariBufferExecCompleted();
-    if ((gBattleTypeFlags & BATTLE_TYPE_LINK) && !(gBattleTypeFlags & BATTLE_TYPE_IS_MASTER))
-        gBattlerControllerFuncs[gActiveBattler] = SafariSetBattleEndCallbacks;
 }
 
 static void SafariCmdEnd(void)

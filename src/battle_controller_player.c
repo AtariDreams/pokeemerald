@@ -197,17 +197,7 @@ void SetControllerToPlayer(void)
 static void PlayerBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = PlayerBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
-
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
-    {
-        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
-    }
+    gBattleControllerExecFlags &= ~(1U << gActiveBattler);
 }
 
 static void PlayerBufferRunCommand(void)
@@ -581,7 +571,7 @@ static void HandleInputChooseMove(void)
     }
     else if (JOY_NEW(SELECT_BUTTON))
     {
-        if (gNumberOfMovesToChoose > 1 && !(gBattleTypeFlags & BATTLE_TYPE_LINK))
+        if (gNumberOfMovesToChoose > 1)
         {
             MoveSelectionCreateCursorAt(gMoveSelectionCursor[gActiveBattler], 29);
 
@@ -842,30 +832,6 @@ static void SetLinkBattleEndCallbacks(void)
         if (gBattleOutcome == B_OUTCOME_WON)
             TryPutLinkBattleTvShowOnAir();
         FreeAllWindowBuffers();
-    }
-}
-
-// Despite handling link battles separately, this is only ever used by link battles
-void SetBattleEndCallbacks(void)
-{
-    if (!gPaletteFade.active)
-    {
-        if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-        {
-            if (IsLinkTaskFinished())
-            {
-                SetCloseLinkCallback();
-
-                gBattlerControllerFuncs[gActiveBattler] = SetLinkBattleEndCallbacks;
-            }
-        }
-        else
-        {
-            m4aSongNumStop(SE_LOW_HEALTH);
-            gMain.inBattle = FALSE;
-            gMain.callback1 = gPreBattleCallback1;
-            SetMainCallback2(gMain.savedCallback);
-        }
     }
 }
 
@@ -3074,7 +3040,6 @@ static void PlayerHandleEndLinkBattle(void)
     FadeOutMapMusic(5);
     BeginFastPaletteFade(3);
     PlayerBufferExecCompleted();
-    gBattlerControllerFuncs[gActiveBattler] = SetBattleEndCallbacks;
 }
 
 static void PlayerCmdEnd(void)

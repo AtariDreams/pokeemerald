@@ -822,28 +822,9 @@ void PressurePPLoseOnUsingPerishSong(u8 attacker)
     }
 }
 
-static void UNUSED MarkAllBattlersForControllerExec(void)
-{
-    int i;
-
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        for (i = 0; i < gBattlersCount; i++)
-            gBattleControllerExecFlags |= (1U << i) << (32 - MAX_BATTLERS_COUNT);
-    }
-    else
-    {
-        for (i = 0; i < gBattlersCount; i++)
-            gBattleControllerExecFlags |= (1U << i);
-    }
-}
-
 void MarkBattlerForControllerExec(u8 battlerId)
 {
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-        gBattleControllerExecFlags |= (1U << (32 - (MAX_BATTLERS_COUNT - battlerId)));
-    else
-        gBattleControllerExecFlags |= (1U << battlerId);
+    gBattleControllerExecFlags |= (1U << battlerId);
 }
 
 void MarkBattlerReceivedLinkData(u8 battlerId)
