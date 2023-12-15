@@ -404,17 +404,8 @@ static void CompleteOnFinishedBattleAnimation(void)
 static void WallyBufferExecCompleted(void)
 {
     gBattlerControllerFuncs[gActiveBattler] = WallyBufferRunCommand;
-    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
-    {
-        u8 playerId = GetMultiplayerId();
+    gBattleControllerExecFlags &= ~(1U << gActiveBattler);
 
-        PrepareBufferDataTransferLink(2, 4, &playerId);
-        gBattleBufferA[gActiveBattler][0] = CONTROLLER_TERMINATOR_NOP;
-    }
-    else
-    {
-        gBattleControllerExecFlags &= ~(1U << gActiveBattler);
-    }
 }
 
 static void UNUSED CompleteOnFinishedStatusAnimation(void)

@@ -952,14 +952,6 @@ EventScript_CableClub_SetVarResult0::
 	setvar VAR_RESULT, 0
 	return
 
-Common_EventScript_UnionRoomAttendant::
-	call CableClub_EventScript_UnionRoomAttendant
-	end
-
-Common_EventScript_WirelessClubAttendant::
-	call CableClub_EventScript_WirelessClubAttendant
-	end
-
 Common_EventScript_DirectCornerAttendant::
 	call CableClub_EventScript_DirectCornerAttendant
 	end
