@@ -1999,7 +1999,6 @@ bool8 UsedPokemonCenterWarp(void)
         MAP_EVER_GRANDE_CITY_POKEMON_CENTER_1F,
         MAP_EVER_GRANDE_CITY_POKEMON_LEAGUE_1F,
         MAP_BATTLE_FRONTIER_POKEMON_CENTER_1F,
-        MAP_UNION_ROOM,
         MAP_UNDEFINED
     };
 
@@ -3733,13 +3732,12 @@ bool8 InPokemonCenter(void)
         MAP_BATTLE_FRONTIER_POKEMON_CENTER_1F,
         MAP_BATTLE_COLOSSEUM_2P,
         MAP_TRADE_CENTER,
-        MAP_RECORD_CORNER,
         MAP_BATTLE_COLOSSEUM_4P,
         MAP_UNDEFINED
     };
 
-    int i;
-    u16 map = (gSaveBlock1.location.mapGroup << 8) + gSaveBlock1.location.mapNum;
+    u32 i;
+    u16 map = (gSaveBlock1.location.mapGroup << 8) | gSaveBlock1.location.mapNum;
 
     for (i = 0; sPokemonCenters[i] != MAP_UNDEFINED; i++)
     {

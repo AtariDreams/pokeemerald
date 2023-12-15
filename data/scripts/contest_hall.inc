@@ -1012,7 +1012,6 @@ ContestHall_EventScript_VObjectAudienceLookAround::
 	return
 
 ContestHall_EventScript_GiveWinnerPrize::
-	goto_if_eq VAR_CONTEST_TYPE, CONTEST_TYPE_LINK, ContestHall_EventScript_EndLinkContest
 	call ContestHall_EventScript_CheckShouldSkipPrize
 	goto_if_set FLAG_TEMP_2, ContestHall_EventScript_SkipPrize
 	lockall
@@ -1062,23 +1061,6 @@ ContestHall_EventScript_SetSketchFlag::
 
 ContestHall_EventScript_SetReadyForContestArtist::
 	setvar VAR_LILYCOVE_CONTEST_LOBBY_STATE, 1
-	return
-
-ContestHall_EventScript_EndLinkContest::
-	delay 60
-	special GetContestPlayerId
-	special GetContestWinnerId
-	special ShouldReadyContestArtist
-	goto_if_eq VAR_0x8004, TRUE, ContestHall_EventScript_SetReadyForLinkContestArtist
-	closemessage
-	return
-
-ContestHall_EventScript_SetReadyForLinkContestArtist::
-	setvar VAR_LILYCOVE_CONTEST_LOBBY_STATE, 2
-	return
-
-@ Unused
-ContestHall_EventScript_Ret::
 	return
 
 ContestHall_EventScript_WinnerApproachForPrize::

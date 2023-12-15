@@ -643,7 +643,6 @@ static const struct MenuAction MultichoiceList_BattleTowerRules[] =
     {gText_TowerInfo},
     {gText_BattleMon},
     {gText_BattleSalon},
-    {gText_MultiLink2},
     {gText_Exit},
 };
 

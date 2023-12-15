@@ -218,16 +218,7 @@ void ClearMysteryGift(void)
 
 void InitUnionRoomChatRegisteredTexts(void)
 {
-    StringCopy(gSaveBlock1.registeredTexts[0], gText_Hello);
-    StringCopy(gSaveBlock1.registeredTexts[1], gText_Pokemon2);
-    StringCopy(gSaveBlock1.registeredTexts[2], gText_Trade);
-    StringCopy(gSaveBlock1.registeredTexts[3], gText_Battle);
-    StringCopy(gSaveBlock1.registeredTexts[4], gText_Lets);
-    StringCopy(gSaveBlock1.registeredTexts[5], gText_Ok);
-    StringCopy(gSaveBlock1.registeredTexts[6], gText_Sorry);
-    StringCopy(gSaveBlock1.registeredTexts[7], gText_YaySmileEmoji);
-    StringCopy(gSaveBlock1.registeredTexts[8], gText_ThankYou);
-    StringCopy(gSaveBlock1.registeredTexts[9], gText_ByeBye);
+    memset(gSaveBlock1.registeredTexts, 0, sizeof(gSaveBlock1.registeredTexts));
 }
 
 static void ResetMiniGamesRecords(void)

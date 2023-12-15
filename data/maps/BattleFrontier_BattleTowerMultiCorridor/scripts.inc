@@ -14,7 +14,7 @@ BattleFrontier_BattleTowerMultiCorridor_MapScripts::
 	@ The multi partner is represented by LOCALID_PARTNER, and has the gfx id VAR_OBJ_GFX_ID_E
 
 BattleFrontier_BattleTowerMultiCorridor_OnTransition:
-	call VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_MULTIS, BattleFrontier_BattleTowerMultiCorridor_EventScript_SetObjGfx
+	call_if_eq VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_MULTIS, BattleFrontier_BattleTowerMultiCorridor_EventScript_SetObjGfx
 	end
 
 BattleFrontier_BattleTowerMultiCorridor_EventScript_SetObjGfx::
@@ -26,10 +26,6 @@ BattleFrontier_BattleTowerMultiCorridor_EventScript_SetObjGfx::
 
 BattleFrontier_BattleTowerMultiCorridor_EventScript_SetPlayerGfxFemale::
 	setvar VAR_OBJ_GFX_ID_F, OBJ_EVENT_GFX_MAY_NORMAL
-	return
-
-BattleFrontier_BattleTowerMultiCorridor_EventScript_SetLinkPlayerGfx::
-	special SetBattleTowerLinkPlayerGfx
 	return
 
 BattleFrontier_BattleTowerMultiCorridor_OnWarp:
@@ -94,7 +90,6 @@ BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToBattleRoom::
 	call_if_eq VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_SINGLES, BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToNormalBattleRoom
 	call_if_eq VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_DOUBLES, BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToNormalBattleRoom
 	call_if_eq VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_MULTIS, BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToMultiBattleRoom
-	call_if_eq VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_LINK_MULTIS, BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToLinkMultiBattleRoom
 	return
 
 BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToNormalBattleRoom::
@@ -103,12 +98,6 @@ BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToNormalBattleRoom::
 	return
 
 BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToMultiBattleRoom::
-	warp MAP_BATTLE_FRONTIER_BATTLE_TOWER_MULTI_BATTLE_ROOM, 4, 5
-	waitstate
-	return
-
-@ Unnecessary duplicate of the above
-BattleFrontier_BattleTowerMultiCorridor_EventScript_WarpToLinkMultiBattleRoom::
 	warp MAP_BATTLE_FRONTIER_BATTLE_TOWER_MULTI_BATTLE_ROOM, 4, 5
 	waitstate
 	return
