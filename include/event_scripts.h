@@ -605,8 +605,6 @@ extern const u8 EventScript_RecordCenter_Spot0[];
 extern const u8 EventScript_RecordCenter_Spot1[];
 extern const u8 EventScript_RecordCenter_Spot2[];
 extern const u8 EventScript_RecordCenter_Spot3[];
-extern const u8 EventScript_BattleColosseum_2P_PlayerSpot0[];
-extern const u8 EventScript_BattleColosseum_2P_PlayerSpot1[];
 extern const u8 EventScript_TradeCenter_Chair1[];
 extern const u8 EventScript_TradeCenter_Chair0[];
 extern const u8 EventScript_ConfirmLeaveCableClubRoom[];

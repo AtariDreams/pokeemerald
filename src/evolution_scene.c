@@ -444,7 +444,7 @@ static void CB2_TradeEvolutionSceneLoadGraphics(void)
             gSprites[id].callback = SpriteCallbackDummy_2;
             gSprites[id].oam.paletteNum = 2;
             gMain.state++;
-            LinkTradeDrawWindow();
+            TradeDrawWindow();
         }
         break;
     case 6:
