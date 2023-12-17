@@ -917,7 +917,6 @@ static void CB2_HandleStartBattle(void)
         }
         break;
     case 2:
-        if ((GetBlockReceivedStatus() & 3) == 3)
         {
             u8 taskId;
 
@@ -937,63 +936,16 @@ static void CB2_HandleStartBattle(void)
         }
         break;
     case 3:
-        // Link battle, send/receive party Pokémon 2 at a time
-        if (IsLinkTaskFinished())
-        {
-            // Send Pokémon 1-2
-            SendBlock(BitmaskAllOtherLinkPlayers(), gPlayerParty.party, sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 4:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv Pokémon 1-2
-            ResetBlockReceivedFlags();
-            memcpy(gEnemyParty.party, gBlockRecvBuffer[enemyMultiplayerId], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 7:
-        if (IsLinkTaskFinished())
-        {
-            // Send Pokémon 3-4
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gPlayerParty.party[2], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 8:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv Pokémon 3-4
-            ResetBlockReceivedFlags();
-            memcpy(&gEnemyParty.party[2], gBlockRecvBuffer[enemyMultiplayerId], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 11:
-        if (IsLinkTaskFinished())
-        {
-            // Send Pokémon 5-6
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gPlayerParty.party[4], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 12:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv Pokémon 5-6
-            ResetBlockReceivedFlags();
-            memcpy(&gEnemyParty.party[4], gBlockRecvBuffer[enemyMultiplayerId], sizeof(struct Pokemon) * 2);
-
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[0]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[1]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[2]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[3]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[4]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[5]);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 15:
         InitBattleControllers();
@@ -1003,22 +955,8 @@ static void CB2_HandleStartBattle(void)
         gBattleCommunication[MULTIUSE_STATE] = 18;
         break;
     case 16:
-        // Both players are using Emerald, send rng seed for recorded battle
-        if (IsLinkTaskFinished())
-        {
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gRecordedBattleRngSeed, sizeof(gRecordedBattleRngSeed));
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 17:
-        // Receive rng seed for recorded battle (only read it if partner is the link master)
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            ResetBlockReceivedFlags();
-            if (!(gBattleTypeFlags & BATTLE_TYPE_IS_MASTER))
-                memcpy(&gRecordedBattleRngSeed, gBlockRecvBuffer[enemyMultiplayerId], sizeof(gRecordedBattleRngSeed));
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 18:
         // Finish, start battle
@@ -1033,13 +971,9 @@ static void CB2_HandleStartBattle(void)
     case 5:
     case 9:
     case 13:
-        gBattleCommunication[MULTIUSE_STATE]++;
-        gBattleCommunication[1] = 1;
     case 6:
     case 10:
     case 14:
-        if (--gBattleCommunication[1] == 0)
-            gBattleCommunication[MULTIUSE_STATE]++;
         break;
     }
 }
@@ -1078,141 +1012,26 @@ static void CB2_HandleStartMultiPartnerBattle(void)
             SetAllPlayersBerryData();
         break;
     case 2:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            u8 taskId;
-
-            ResetBlockReceivedFlags();
-            FindLinkBattleMaster(2, playerMultiplayerId);
-            SetAllPlayersBerryData();
-            taskId = CreateTask(InitLinkBattleVsScreen, 0);
-            gTasks[taskId].data[1] = 270;
-            gTasks[taskId].data[2] = 90;
-            gTasks[taskId].data[5] = 0;
-            gTasks[taskId].data[3] = 0x145;
-            gTasks[taskId].data[4] = 0x145;
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 3:
-        // Link battle, send/receive party Pokémon in groups
-        if (IsLinkTaskFinished())
-        {
-            // Send Pokémon 1-2
-            SendBlock(BitmaskAllOtherLinkPlayers(), gPlayerParty.party, sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 4:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv partner's Pokémon 1-2, and copy partner's and own Pokémon into party positions
-            ResetBlockReceivedFlags();
-            if (gLinkPlayers[playerMultiplayerId].id != 0)
-            {
-                memcpy(gPlayerParty.party, gBlockRecvBuffer[partnerMultiplayerId], sizeof(struct Pokemon) * 2);
-                memcpy(&gPlayerParty.party[MULTI_PARTY_SIZE], gBlockRecvBuffer[playerMultiplayerId], sizeof(struct Pokemon) * 2);
-            }
-            else
-            {
-                memcpy(gPlayerParty.party, gBlockRecvBuffer[playerMultiplayerId], sizeof(struct Pokemon) * 2);
-                memcpy(&gPlayerParty.party[MULTI_PARTY_SIZE], gBlockRecvBuffer[partnerMultiplayerId], sizeof(struct Pokemon) * 2);
-            }
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 5:
-        if (IsLinkTaskFinished())
-        {
-            // Send Pokémon 3
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gPlayerParty.party[2], sizeof(struct Pokemon));
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 6:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv partner's Pokémon 3, and copy partner's and own Pokémon into party positions
-            ResetBlockReceivedFlags();
-            if (gLinkPlayers[playerMultiplayerId].id != 0)
-            {
-                memcpy(&gPlayerParty.party[2], gBlockRecvBuffer[partnerMultiplayerId], sizeof(struct Pokemon));
-                memcpy(&gPlayerParty.party[2 + MULTI_PARTY_SIZE], gBlockRecvBuffer[playerMultiplayerId], sizeof(struct Pokemon));
-            }
-            else
-            {
-                memcpy(&gPlayerParty.party[2], gBlockRecvBuffer[playerMultiplayerId], sizeof(struct Pokemon));
-                memcpy(&gPlayerParty.party[2 + MULTI_PARTY_SIZE], gBlockRecvBuffer[partnerMultiplayerId], sizeof(struct Pokemon));
-            }
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 7:
-        if (IsLinkTaskFinished())
-        {
-            // Send enemy Pokémon 1-2 to partner
-            SendBlock(BitmaskAllOtherLinkPlayers(), gEnemyParty.party, sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 8:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv enemy Pokémon 1-2 (if not master)
-            ResetBlockReceivedFlags();
-            if (GetMultiplayerId() != 0)
-                memcpy(gEnemyParty.party, gBlockRecvBuffer[0], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 9:
-        if (IsLinkTaskFinished())
-        {
-            // Send enemy Pokémon 3-4 to partner
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gEnemyParty.party[2], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 10:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv enemy Pokémon 3-4 (if not master)
-            ResetBlockReceivedFlags();
-            if (GetMultiplayerId() != 0)
-                memcpy(&gEnemyParty.party[2], gBlockRecvBuffer[0], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 11:
-        if (IsLinkTaskFinished())
-        {
-            // Send enemy Pokémon 5-6 to partner
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gEnemyParty.party[4], sizeof(struct Pokemon) * 2);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 12:
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            // Recv enemy Pokémon 5-6 (if not master)
-            ResetBlockReceivedFlags();
-            if (GetMultiplayerId() != 0)
-                memcpy(&gEnemyParty.party[4], gBlockRecvBuffer[0], sizeof(struct Pokemon) * 2);
-
-            TryCorrectShedinjaLanguage(&gPlayerParty.party[0]);
-            TryCorrectShedinjaLanguage(&gPlayerParty.party[1]);
-            TryCorrectShedinjaLanguage(&gPlayerParty.party[2]);
-            TryCorrectShedinjaLanguage(&gPlayerParty.party[3]);
-            TryCorrectShedinjaLanguage(&gPlayerParty.party[4]);
-            TryCorrectShedinjaLanguage(&gPlayerParty.party[5]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[0]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[1]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[2]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[3]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[4]);
-            TryCorrectShedinjaLanguage(&gEnemyParty.party[5]);
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 13:
         InitBattleControllers();
@@ -1222,28 +1041,13 @@ static void CB2_HandleStartMultiPartnerBattle(void)
         gBattleCommunication[MULTIUSE_STATE] = 16;
         break;
     case 14:
-        // Send rng seed for recorded battle
-        if (IsLinkTaskFinished())
-        {
-            SendBlock(BitmaskAllOtherLinkPlayers(), &gRecordedBattleRngSeed, sizeof(gRecordedBattleRngSeed));
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 15:
-        // Receive rng seed for recorded battle (only read it if partner is the link master)
-        if ((GetBlockReceivedStatus() & 3) == 3)
-        {
-            ResetBlockReceivedFlags();
-            if (!(gBattleTypeFlags & BATTLE_TYPE_IS_MASTER))
-                memcpy(&gRecordedBattleRngSeed, gBlockRecvBuffer[partnerMultiplayerId], sizeof(gRecordedBattleRngSeed));
-            gBattleCommunication[MULTIUSE_STATE]++;
-        }
         break;
     case 16:
         // Finish, start battle
         if (BattleInitAllSprites(&gBattleCommunication[SPRITES_INIT_STATE1], &gBattleCommunication[SPRITES_INIT_STATE2]))
         {
-            TrySetLinkBattleTowerEnemyPartyLevel();
             gPreBattleCallback1 = gMain.callback1;
             gMain.callback1 = BattleMainCB1;
             SetMainCallback2(BattleMainCB2);
