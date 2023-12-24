@@ -23,25 +23,27 @@ static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 // TODO: what about on clang?
 
 // This is atomic, not volatile
-static volatile int sDma3ManagerLocked;
+static _Atomic(int) sDma3ManagerLocked;
 static s8 sDma3RequestCursor;
 
 void ClearDma3Requests(void)
 {
     // sDma3ManagerLocked = TRUE;
-    // asm volatile ("" : : : "memory");
 
+    atomic_store_explicit(&sDma3ManagerLocked, TRUE, memory_order_release);
     // DMA should prevent interrupts
     DmaFill32(3, 0, sDma3Requests, sizeof(sDma3Requests));
-    asm volatile ("" : : : "memory");
     // Hence I put this here so that the compiler cannot try any funny stuff.
+
     sDma3RequestCursor = 0;
+
+    atomic_store_explicit(&sDma3ManagerLocked, FALSE, memory_order_release);
 
     // for (i = 0; i < MAX_DMA_REQUESTS; i++)
     // {
     //     sDma3Requests[i].size = 0;
     // }
-    // asm volatile ("" : : : "memory");
+    
     // sDma3ManagerLocked = FALSE;
 }
 
@@ -49,7 +51,7 @@ void ProcessDma3Requests(void)
 {
     u32 bytesTransferred;
 
-    if (sDma3ManagerLocked)
+    if (atomic_load_explicit(&sDma3ManagerLocked, memory_order_acquire))
         return;
 
     bytesTransferred = 0;
@@ -103,8 +105,7 @@ s8 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
     s8 cursor;
     u32 i;
 
-    sDma3ManagerLocked = TRUE;
-    asm volatile ("" : : : "memory");
+    atomic_store_explicit(&sDma3ManagerLocked, TRUE, memory_order_release);
     cursor = sDma3RequestCursor;
 
     for (i = 0; i < MAX_DMA_REQUESTS; i++)
@@ -120,16 +121,14 @@ s8 RequestDma3Copy(const void *src, void *dest, u16 size, u8 mode)
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_COPY16;
 
-            asm volatile ("" : : : "memory");
-            sDma3ManagerLocked = FALSE;
+            atomic_store_explicit(&sDma3ManagerLocked, FALSE, memory_order_release);
             return cursor;
         }
         // loop back to start.
 
         cursor = (cursor + 1) & 127;
     }
-    asm volatile ("" : : : "memory");
-    sDma3ManagerLocked = FALSE;
+    atomic_store_explicit(&sDma3ManagerLocked, FALSE, memory_order_release);
     return -1;  // no free DMA request was found
 }
 
@@ -138,8 +137,7 @@ s8 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
     s8 cursor;
     u32 i;
 
-    sDma3ManagerLocked = TRUE;
-    asm volatile ("" : : : "memory");
+    atomic_store_explicit(&sDma3ManagerLocked, TRUE, memory_order_release);
     cursor = sDma3RequestCursor;
 
 
@@ -157,15 +155,13 @@ s8 RequestDma3Fill(u32 value, void *dest, u16 size, u8 mode)
             else
                 sDma3Requests[cursor].mode = DMA_REQUEST_FILL16;
 
-            asm volatile ("" : : : "memory");
-            sDma3ManagerLocked = FALSE;
+            atomic_store_explicit(&sDma3ManagerLocked, FALSE, memory_order_release);
             return cursor;
         }
 
         cursor = (cursor + 1) & 127;
     }
-    asm volatile ("" : : : "memory");
-    sDma3ManagerLocked = FALSE;
+    atomic_store_explicit(&sDma3ManagerLocked, FALSE, memory_order_release);
     return -1;  // no free DMA request was found
 }
 

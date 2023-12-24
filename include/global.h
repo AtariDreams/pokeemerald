@@ -4,6 +4,7 @@
 #include <string.h>
 #include <limits.h>
 #include <setjmp.h>
+#include <stdatomic.h>
 #include "config.h" // we need to define config before gba headers as print stuff needs the functions nulled before defines.
 #include "gba/gba.h"
 #include "constants/global.h"
