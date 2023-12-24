@@ -5,6 +5,7 @@
 #include "gba/gba.h"
 #include "siirtc.h"
 #include "config.h"
+#include <stdatomic.h>
 
 #define STATUS_INTFE  0x02 // frequency interrupt enable
 #define STATUS_INTME  0x08 // per-minute interrupt enable
@@ -116,23 +117,20 @@
 						  GPIO_P1_IN | GPIO_P0_OUT;	\
 }
 
-static vbool8 sLocked;
+static _Atomic(int) sLocked;
 
-#define rtc_lock_macro()                 \
-    {                                    \
-        if (sLocked)                     \
-        {                                \
-            return FALSE;                \
-        }                                \
-                                         \
-        sLocked = TRUE;                  \
-        asm volatile("" : : : "memory"); \
+#define rtc_lock_macro()                                                                                          \
+    {                                                                                                             \
+    int old = FALSE;                                                                                              \
+        if (__atomic_compare_exchange_n(&sLocked, &old, TRUE, FALSE, memory_order_acquire, memory_order_relaxed)) \
+        {                                                                                                         \
+            return FALSE;                                                                                         \
+        }                                                                                                         \
     }
 
 #define rtc_unlock_macro()               \
     {                                    \
-        asm volatile("" : : : "memory"); \
-        sLocked = FALSE;                 \
+        atomic_store_explicit(&sLocked, FALSE, memory_order_acquire); \
     }
 
 #define rtc_access_header_macro()        \
@@ -158,13 +156,13 @@ static const char AgbLibRtcVersion[] = "SIIRTC_V001";
 void SiiRtcUnprotect(void)
 {
     EnableGpioPortRead();
-    sLocked = FALSE;
+    atomic_store_explicit(&sLocked, FALSE, memory_order_acquire);
 }
 
 void SiiRtcProtect(void)
 {
     DisableGpioPortRead();
-    sLocked = TRUE;
+    atomic_store_explicit(&sLocked, TRUE, memory_order_acquire);
 }
 
 u8 SiiRtcProbe(void)
