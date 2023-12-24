@@ -66,7 +66,7 @@ struct LINEWORK
 
 struct TransitionData
 {
-    vu8 VBlank_DMA;
+    u8 VBlank_DMA;
     u16 WININ;
     u16 WINOUT;
     u16 WIN0H;
@@ -1100,6 +1100,7 @@ static bool8 Swirl_Init(struct Task *task)
 static bool8 Swirl_End(struct Task *task)
 {
     sTransitionData->VBlank_DMA = FALSE;
+    asm volatile ("" : : : "memory");
     task->tSinIndex += 4;
     task->tAmplitude += 8;
 
@@ -1110,6 +1111,7 @@ static bool8 Swirl_End(struct Task *task)
         DestroyTask(FindTaskIdByFunc(Task_Swirl));
     }
 
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
     return FALSE;
 }
@@ -1117,6 +1119,7 @@ static bool8 Swirl_End(struct Task *task)
 static void VBlankCB_Swirl(void)
 {
     VBlankCB_BattleTransition();
+    asm volatile ("" : : : "memory");
     if (sTransitionData->VBlank_DMA)
         DmaCopy16(3, gScanlineEffectRegBuffers[0], gScanlineEffectRegBuffers[1], DISPLAY_HEIGHT * 2);
 }
@@ -1170,15 +1173,17 @@ static bool8 Shuffle_End(struct Task *task)
     amplitude = (task->tAmplitude & 0xFFFF) >> 8;
     task->tSinVal += 4224;
     task->tAmplitude += 384;
-
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+    asm volatile ("" : : : "memory");
     for (i = 0; i < DISPLAY_HEIGHT; i++, sinVal += 4224)
     {
         s16 sinIndex = (sinVal & 0xFFFF) >> 8;;
         gScanlineEffectRegBuffers[0][i] = sTransitionData->cameraY + Sin(sinIndex, amplitude);
     }
-
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+    asm volatile ("" : : : "memory");
 
     if (!gPaletteFade.active)
         DestroyTask(FindTaskIdByFunc(Task_Shuffle));
@@ -1189,6 +1194,7 @@ static bool8 Shuffle_End(struct Task *task)
 static void VBlankCB_Shuffle(void)
 {
     VBlankCB_BattleTransition();
+     asm volatile ("" : : : "memory");
     if (sTransitionData->VBlank_DMA)
         DmaCopy16(3, gScanlineEffectRegBuffers[0], gScanlineEffectRegBuffers[1], DISPLAY_HEIGHT * 2);
 }
@@ -1499,7 +1505,9 @@ static bool8 WeatherDuo_End(struct Task *task)
 // formed by a shimmering weave effect.
 static bool8 PatternWeave_Blend1(struct Task *task)
 {
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+    asm volatile ("" : : : "memory");
     if (task->tBlendDelay == 0 || --task->tBlendDelay == 0)
     {
         task->tBlendTarget2++;
@@ -1514,13 +1522,16 @@ static bool8 PatternWeave_Blend1(struct Task *task)
 
     SetSinWave(gScanlineEffectRegBuffers[0], 0, task->tSinIndex, 132, task->tAmplitude >> 8, DISPLAY_HEIGHT);
 
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
     return FALSE;
 }
 
 static bool8 PatternWeave_Blend2(struct Task *task)
 {
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+    asm volatile ("" : : : "memory");
     if (task->tBlendDelay == 0 || --task->tBlendDelay == 0)
     {
         task->tBlendTarget1--;
@@ -1534,13 +1545,17 @@ static bool8 PatternWeave_Blend2(struct Task *task)
 
     SetSinWave(gScanlineEffectRegBuffers[0], 0, task->tSinIndex, 132, task->tAmplitude >> 8, DISPLAY_HEIGHT);
 
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+     asm volatile ("" : : : "memory");
     return FALSE;
 }
 
 static bool8 PatternWeave_FinishAppear(struct Task *task)
 {
+     asm volatile ("" : : : "memory");
         sTransitionData->VBlank_DMA = FALSE;
+         asm volatile ("" : : : "memory");
     task->tSinIndex += 8;
     task->tAmplitude -= 256;
 
@@ -1553,7 +1568,9 @@ static bool8 PatternWeave_FinishAppear(struct Task *task)
         task->tRadiusDelta = 1 << 8;
         task->tVBlankSet = FALSE;
     }
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+     asm volatile ("" : : : "memory");
 
     return FALSE;
 }
@@ -1600,10 +1617,13 @@ static bool8 PatternWeave_CircularMask(struct Task *task)
         DestroyTask(FindTaskIdByFunc(task->func));
         return FALSE;
     }
-
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+     asm volatile ("" : : : "memory");
     SetCircularMask(gScanlineEffectRegBuffers[0], DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, task->tRadius);
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+     asm volatile ("" : : : "memory");
     if (!task->tVBlankSet)
     {
         task->tVBlankSet = TRUE;
@@ -1618,6 +1638,7 @@ static void VBlankCB_SetWinAndBlend(void)
 {
     DmaStop(0);
     VBlankCB_BattleTransition();
+     asm volatile ("" : : : "memory");
     if (sTransitionData->VBlank_DMA)
         DmaCopy16(3, gScanlineEffectRegBuffers[0], gScanlineEffectRegBuffers[1], DISPLAY_HEIGHT * 2);
     REG_WININ = sTransitionData->WININ;
@@ -1788,7 +1809,9 @@ static bool8 ClockwiseWipe_Init(struct Task *task)
 
 static bool8 ClockwiseWipe_TopRight(struct Task *task)
 {
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+     asm volatile ("" : : : "memory");
 
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, sTransitionData->tWipeEndX, -1, 1, 1);
     do
@@ -1802,7 +1825,7 @@ static bool8 ClockwiseWipe_TopRight(struct Task *task)
         sTransitionData->tWipeEndY = 0;
         task->tState++;
     }
-
+ asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
     return FALSE;
 }
@@ -1811,8 +1834,9 @@ static bool8 ClockwiseWipe_Right(struct Task *task)
 {
     s16 start, end;
     int flag = 0;
-
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+     asm volatile ("" : : : "memory");
 
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, DISPLAY_WIDTH, sTransitionData->tWipeEndY, 1, 1);
 
@@ -1838,13 +1862,17 @@ static bool8 ClockwiseWipe_Right(struct Task *task)
             gScanlineEffectRegBuffers[0][++sTransitionData->tWipeCurrY] = end | (start << 8);
     }
 
+    asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+     asm volatile ("" : : : "memory");
     return FALSE;
 }
 
 static bool8 ClockwiseWipe_Bottom(struct Task *task)
 {
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+     asm volatile ("" : : : "memory");
 
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, sTransitionData->tWipeEndX, DISPLAY_HEIGHT, 1, 1);
     do
@@ -1858,8 +1886,9 @@ static bool8 ClockwiseWipe_Bottom(struct Task *task)
         sTransitionData->tWipeEndY = DISPLAY_HEIGHT;
         task->tState++;
     }
-
+     asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+     asm volatile ("" : : : "memory");
     return FALSE;
 }
 
@@ -1867,8 +1896,9 @@ static bool8 ClockwiseWipe_Left(struct Task *task)
 {
     s16 end, start;
     int flag = 0;
-
+ asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = FALSE;
+     asm volatile ("" : : : "memory");
 
     InitBlackWipe(&sTransitionData->line, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, 0, sTransitionData->tWipeEndY, 1, 1);
 
@@ -1898,8 +1928,9 @@ static bool8 ClockwiseWipe_Left(struct Task *task)
         while (sTransitionData->tWipeCurrY > sTransitionData->tWipeEndY)
             gScanlineEffectRegBuffers[0][--sTransitionData->tWipeCurrY] = end | (start << 8);
     }
-
+ asm volatile ("" : : : "memory");
     sTransitionData->VBlank_DMA = TRUE;
+     asm volatile ("" : : : "memory");
     return FALSE;
 }
 
