@@ -121,8 +121,7 @@ static _Atomic(int) sLocked;
 
 #define rtc_lock_macro()                                                                                          \
     {                                                                                                             \
-    int old = FALSE;                                                                                              \
-        if (__atomic_compare_exchange_n(&sLocked, &old, TRUE, FALSE, memory_order_acquire, memory_order_relaxed)) \
+        if (!atomic_exchange_explicit(&sLocked, TRUE, memory_order_acquire)) \
         {                                                                                                         \
             return FALSE;                                                                                         \
         }                                                                                                         \
@@ -130,7 +129,7 @@ static _Atomic(int) sLocked;
 
 #define rtc_unlock_macro()               \
     {                                    \
-        atomic_store_explicit(&sLocked, FALSE, memory_order_acquire); \
+        atomic_store_explicit(&sLocked, FALSE, memory_order_release); \
     }
 
 #define rtc_access_header_macro()        \
