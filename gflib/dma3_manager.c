@@ -21,6 +21,8 @@ static struct Dma3Request sDma3Requests[MAX_DMA_REQUESTS];
 
 // Okay this is somehow more performant by preventing a mov when volatile when it doesn't have to be
 // TODO: what about on clang?
+
+// This is atomic, not volatile
 static volatile int sDma3ManagerLocked;
 static s8 sDma3RequestCursor;
 

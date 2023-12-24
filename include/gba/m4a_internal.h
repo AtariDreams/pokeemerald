@@ -189,7 +189,7 @@ struct SoundInfo
     // values during sensitive operations for locking purposes.
     // This field should be volatile but isn't. This could potentially cause
     // race conditions.
-    vu32 ident;
+    u32 ident;
 
     vu8 pcmDmaCounter;
 
