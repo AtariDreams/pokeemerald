@@ -10,7 +10,7 @@
 
 static ALIGNED(4) u8 sGpuRegBuffer[GPU_REG_BUF_SIZE];
 static ALIGNED(4) u8 sGpuRegWaitingList[GPU_REG_BUF_SIZE];
-static int sGpuRegBufferLocked;
+static _Atomic(int) sGpuRegBufferLocked;
 
 static void CopyBufferedValueToGpuReg(u8 regOffset);
 static void SyncRegIE(void);
@@ -49,7 +49,7 @@ static void CopyBufferedValueToGpuReg(u8 regOffset)
 void CopyBufferedValuesToGpuRegs(void)
 {
     unsigned int i;
-    if (sGpuRegBufferLocked)
+    if (atomic_load_explicit(&sGpuRegBufferLocked, memory_order_acquire))
         return;
 
     for (i = 0; i < GPU_REG_BUF_SIZE; i++)
@@ -80,8 +80,8 @@ void SetGpuReg(u8 regOffset, u16 value)
 
     unsigned int i;
 
-    sGpuRegBufferLocked = TRUE;
-    asm volatile("" : : : "memory");
+    atomic_store_explicit(&sGpuRegBufferLocked, TRUE, memory_order_release);
+
     for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
     {
         if (sGpuRegWaitingList[i] == regOffset)
@@ -91,10 +91,9 @@ void SetGpuReg(u8 regOffset, u16 value)
     }
 
     sGpuRegWaitingList[i] = regOffset;
-
-    asm volatile("" : : : "memory");
 end:
-    sGpuRegBufferLocked = FALSE;
+    atomic_store_explicit(&sGpuRegBufferLocked, FALSE, memory_order_release);
+
 }
 
 void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
@@ -113,8 +112,7 @@ void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
 
     unsigned int i;
 
-    sGpuRegBufferLocked = TRUE;
-    asm volatile("" : : : "memory");
+    atomic_store_explicit(&sGpuRegBufferLocked, TRUE, memory_order_release);
 
     for (i = 0; i < GPU_REG_BUF_SIZE && sGpuRegWaitingList[i] != EMPTY_SLOT; i++)
     {
@@ -125,9 +123,8 @@ void SetGpuReg_ForcedBlank(u8 regOffset, u16 value)
     }
 
     sGpuRegWaitingList[i] = regOffset;
-    asm volatile("" : : : "memory");
 end:
-    sGpuRegBufferLocked = FALSE;
+    atomic_store_explicit(&sGpuRegBufferLocked, FALSE, memory_order_release);
 }
 
 u16 GetGpuReg(u8 regOffset)
