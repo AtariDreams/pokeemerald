@@ -121,7 +121,7 @@ static _Atomic(int) sLocked;
 
 #define rtc_lock_macro()                                                                                          \
     {                                                                                                             \
-        if (!atomic_exchange_explicit(&sLocked, TRUE, memory_order_acquire)) \
+        if (!atomic_flag_test_and_set_explicit(&sLocked, memory_order_acq_rel)) \
         {                                                                                                         \
             return FALSE;                                                                                         \
         }                                                                                                         \
