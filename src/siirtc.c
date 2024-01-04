@@ -117,7 +117,7 @@
 						  GPIO_P1_IN | GPIO_P0_OUT;	\
 }
 
-static _Atomic(int) sLocked;
+static _Atomic(u8) sLocked;
 
 #define rtc_lock_macro()                                                                                          \
     {                                                                                                             \
