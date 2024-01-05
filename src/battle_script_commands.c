@@ -3222,6 +3222,20 @@ static void Cmd_jumpifstatus3condition(void)
     }
 }
 
+static inline u32 CalcExp(int isSentIn)
+{
+    u32 calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 5;
+    if (calculatedExp == 0)
+        calculatedExp = 1;
+
+    if (!isSentIn)
+        calculatedExp /= 2;
+    
+    if (calculatedExp == 0)
+        calculatedExp = 1;
+    return calculatedExp;
+}
+
 static void Cmd_jumpiftype(void)
 {
     u8 battlerId = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
@@ -3236,6 +3250,43 @@ static void Cmd_jumpiftype(void)
 
 static void Cmd_getexp(void)
 {
+    if (gBattleTypeFlags &
+             (BATTLE_TYPE_LINK
+              | BATTLE_TYPE_RECORDED_LINK
+              | BATTLE_TYPE_TRAINER_HILL
+              | BATTLE_TYPE_FRONTIER
+              | BATTLE_TYPE_SAFARI
+              | BATTLE_TYPE_BATTLE_TOWER
+              | BATTLE_TYPE_EREADER_TRAINER))
+              {
+                gBattlescriptCurrInstr += 2;
+                return;
+              }
+    
+    int levelUp = FALSE;
+    CpuFill32(0, expCalc, sizeof(expCalc));
+    u8 sentIn = gSentPokesToOpponent[(gBattlerFainted & 2) >> 1];
+    u32 viaSentIn;
+    for (u32 i; i < PARTY_SIZE; i++)
+    {
+        u32 exp;
+        int isSentIn = FALSE;
+        if (!canPokeFight(&gPlayerParty.party[i]))
+            continue;
+        if ((1U << i) & sentIn)
+        {
+            viaSentIn++;
+            isSentIn = TRUE;
+        }
+
+        exp = CalcExp(isSentIn);
+
+        if (u32 j = 0; j < PARTY_MAX; j++)
+        {
+            
+        }
+    }
+
     u16 item;
     s32 i; // also used as stringId
     u8 holdEffect;

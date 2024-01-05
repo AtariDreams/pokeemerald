@@ -445,6 +445,21 @@ struct BattleStruct
     u8 alreadyStatusedMoveAttempt; // As bits for battlers; For example when using Thunder Wave on an already paralyzed Pokémon.
 };
 
+struct expCalculation
+{
+    u32 exp;
+    u32 hp;
+    u32 attack;
+    u32 defense;
+    u32 agility;
+    u32 spAttack;
+    u32 spDefense;
+    u32 bonus;
+    u32 fromExpShare;
+};
+
+struct expCalculation expCalc[PARTY_SIZE] = {0};
+
 // The palaceFlags member of struct BattleStruct contains 1 flag per move to indicate which moves the AI should consider,
 // and 1 flag per battler to indicate whether the battler is awake and at <= 50% HP (which affects move choice).
 // The assert below is to ensure palaceFlags is large enough to store these flags without overlap.
