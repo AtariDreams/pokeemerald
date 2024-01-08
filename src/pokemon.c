@@ -5758,8 +5758,10 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
     }
 }
 
-void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
+void MonGainEVs(struct Pokemon *mon, struct expCalculation *expCalc)
 {
+
+    gBattleMons[gBattlerFainted].species
     u8 evs[NUM_STATS];
     u32 evIncrease = 0;
     u32 totalEVs = 0;

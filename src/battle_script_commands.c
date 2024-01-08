@@ -3269,9 +3269,11 @@ static void Cmd_getexp(void)
     u32 viaSentIn;
     for (u32 i; i < PARTY_SIZE; i++)
     {
+        struct Pokemon *mon = &gPlayerParty.party[i];
         u32 exp;
         int isSentIn = FALSE;
-        if (!canPokeFight(&gPlayerParty.party[i]))
+        u32 bonus = FALSE;
+        if (!canPokeFight(mon))
             continue;
         if ((1U << i) & sentIn)
         {
@@ -3280,11 +3282,33 @@ static void Cmd_getexp(void)
         }
 
         exp = CalcExp(isSentIn);
+        u16 holdEffect;
+                u16 item = GetMonData(mon, MON_DATA_HELD_ITEM);
 
-        if (u32 j = 0; j < PARTY_MAX; j++)
-        {
-            
-        }
+                if (item == ITEM_ENIGMA_BERRY)
+                    holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
+                else
+                    holdEffect = ItemId_GetHoldEffect(item);
+                
+                if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
+                {
+                    exp += exp >> 1;
+                    bonus = TRUE;
+                }
+
+        expCalc[i] = (struct expCalculation) {
+            .exp = exp,
+            .hp = mon->hp,
+            .attack = mon->attack,
+            .defense = mon->defense,
+            .agility = mon->speed,
+            .spAttack = mon->spAttack,
+            .spDefense = mon->spDefense,
+            .bonus = bonus,
+            .fromExpShare = isSentIn ^ 1,
+        };
+        MonGainEVs(mon, gBattleMons[gBattlerFainted].species);
+
     }
 
     u16 item;
@@ -3340,7 +3364,7 @@ static void Cmd_getexp(void)
                     viaExpShare++;
             }
 
-            calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 7;
+            calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 5;
 
             if (viaExpShare) // at least one mon is getting exp via exp share
             {
@@ -3558,6 +3582,44 @@ static void Cmd_getexp(void)
             gBattlescriptCurrInstr += 2;
         }
         break;
+    }
+}
+
+static void expTallyUp(struct Pokemon *mon, struct expCalculation *expCalc)
+{
+    u16 species = gBattleMons[gBattlerFainted].species;
+    u8 level = gBattleMons[gBattlerFainted].level;
+    u32 exp = gSpeciesInfo[species].expYield;
+    u32 isBonus = FALSE;
+    if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+    {
+        exp += exp>>1;
+        isBonus = TRUE;
+    }
+
+    u16 item = GetMonData(mon, MON_DATA_HELD_ITEM);
+
+    if (item == ITEM_ENIGMA_BERRY)
+        holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
+    else
+        holdEffect = ItemId_GetHoldEffect(item);
+
+    if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
+    {
+        exp += exp >> 1;
+        isBonus = TRUE;
+    }
+
+    if(CheckPartyPokerus(mon))
+    {
+        exp *= 2;
+        isBonus = TRUE;
+    }
+
+    if (mon->level >= MAX_LEVEL)
+    {
+        exp = 0;
+        isBonus = FALSE;
     }
 }
 
