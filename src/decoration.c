@@ -1960,7 +1960,7 @@ static void CopyTile(u8 *dest, u16 tile)
     case BG_TILE_H_FLIP(BG_TILE_V_FLIP(0)) >> 10:
         for (i = 0; i < 32; i++)
         {
-            dest[i] = (buffer[31 - i] >> 4) + ((buffer[31 - i] & 0x0F) << 4);
+            dest[i] = (buffer[31 ^ i] >> 4) + ((buffer[31 ^ i] & 0x0F) << 4);
         }
         break;
     }

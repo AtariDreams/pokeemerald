@@ -3248,6 +3248,41 @@ static void Cmd_jumpiftype(void)
         gBattlescriptCurrInstr += 7;
 }
 
+void StartOfExp(void)
+{
+    for (u32 i = 0; i < gPlayerParty.count; i++)
+    {
+        if (!canPokeFight(mon))
+            continue;
+        expCalc[i] = (struct expCalculation){
+            .exp = exp,
+            .hp = mon->hp,
+            .attack = mon->attack,
+            .defense = mon->defense,
+            .agility = mon->speed,
+            .spAttack = mon->spAttack,
+            .spDefense = mon->spDefense,
+            .bonus = bonus,
+            .fromExpShare = isSentIn ^ 1,
+        };
+            if (item == ITEM_ENIGMA_BERRY)
+        holdEffect = gSaveBlock1.enigmaBerry.holdEffect;
+    else
+        holdEffect = ItemId_GetHoldEffect(item);
+
+    if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
+    {
+        expCalc[i].exp *=2;
+        expCalc[i].hp *= 2;
+        expCalc[i].attack *= 2;
+        expCalc[i].defense *=2;
+        expCalc[i].speed *=2;
+        expCalc[i].spAttack *=2;
+        expCalc[i].spDefense *=2;
+    }
+    }
+}
+
 static void Cmd_getexp(void)
 {
     if (gBattleTypeFlags &
@@ -3267,6 +3302,8 @@ static void Cmd_getexp(void)
     CpuFill32(0, expCalc, sizeof(expCalc));
     u8 sentIn = gSentPokesToOpponent[(gBattlerFainted & 2) >> 1];
     u32 viaSentIn;
+
+    m_flowSub.CalcExp( rule, this, party, bpp, m_calcExpWork );
     for (u32 i; i < PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gPlayerParty.party[i];
@@ -3585,12 +3622,42 @@ static void Cmd_getexp(void)
     }
 }
 
+// void ServerFlow::scproc_AddEffortPower( BTL_POKEPARAM* bpp, const ServerFlowSub::CALC_EXP_WORK* calcExp )
+// {
+//   const bool isFull_before = bpp->IsEffortValueFull();
+
+//   // この順番は変えてはいけません（HP->POW->DEF->SP_POW->SP_DEF->AGI）
+//   bpp->AddEffortPower( pml::pokepara::POWER_HP,    calcExp->hp );
+//   bpp->AddEffortPower( pml::pokepara::POWER_ATK,   calcExp->pow );
+//   bpp->AddEffortPower( pml::pokepara::POWER_DEF,   calcExp->def );
+//   bpp->AddEffortPower( pml::pokepara::POWER_SPATK, calcExp->sp_pow );
+//   bpp->AddEffortPower( pml::pokepara::POWER_SPDEF, calcExp->sp_def );
+//   bpp->AddEffortPower( pml::pokepara::POWER_AGI,   calcExp->agi );
+
+//   // なぜならクライアントもこのコマンドにより同じ順番で処理しているためです
+//   // （努力値飽和チェックの影響で、順番が変わると結果が変わりうるのです）
+//   u8 pokeID = bpp->GetID();
+//   SCQUE_PUT_OP_Doryoku( m_que, pokeID, calcExp->hp, calcExp->pow, calcExp->def, calcExp->sp_pow, calcExp->sp_def, calcExp->agi );
+
+//   BTL_PRINT("poke=%d, 加算する努力値 : hp=%d, pow=%d, def=%d, spow=%d, sdef=%d, agi=%d\n",
+//           pokeID, calcExp->hp, calcExp->pow, calcExp->def, calcExp->sp_pow, calcExp->sp_def, calcExp->agi );
+
+//   // ダイアリー
+//   const bool isFull_after = bpp->IsEffortValueFull();
+//   if( !isFull_before && isFull_after )
+//   {
+//     DiarySave::SetEffortValueFull( *bpp );
+//   }
+// }
+
+
 static void expTallyUp(struct Pokemon *mon, struct expCalculation *expCalc)
 {
     u16 species = gBattleMons[gBattlerFainted].species;
     u8 level = gBattleMons[gBattlerFainted].level;
     u32 exp = gSpeciesInfo[species].expYield;
     u32 isBonus = FALSE;
+    u16 
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
         exp += exp>>1;

@@ -610,9 +610,9 @@ static u16 QuantizePixel_Invert(u16 *color)
     u16 green = GET_G(*color);
     u16 blue =  GET_B(*color);
 
-    red   = 31 - red;
-    green = 31 - green;
-    blue  = 31 - blue;
+    red   = 31 ^ red;
+    green = 31 ^ green;
+    blue  = 31 ^ blue;
 
     return RGB(red, green, blue);
 }
