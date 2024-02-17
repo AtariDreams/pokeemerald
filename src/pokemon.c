@@ -5481,8 +5481,8 @@ u16 SpeciesToCryId(u16 species)
         for (i = 0; i < ARRAY_COUNT(gSpindaSpotGraphics); i++)                                \
         {                                                                                     \
             u32 row;                                                                          \
-            u8 x = gSpindaSpotGraphics[i].x + ((personality & 0x0F) - 8);                     \
-            u8 y = gSpindaSpotGraphics[i].y + (((personality & 0xF0) >> 4) - 8);              \
+            u8 x = gSpindaSpotGraphics[i].x + ((markingFrame[i] & 0x0F) - 8);                     \
+            u8 y = gSpindaSpotGraphics[i].y + (((markingFrame[i] & 0xF0) >> 4) - 8);              \
                                                                                               \
             for (row = 0; row < SPINDA_SPOT_HEIGHT; row++)                                    \
             {                                                                                 \
@@ -5522,13 +5522,21 @@ u16 SpeciesToCryId(u16 species)
                 y++;                                                                          \
             }                                                                                 \
                                                                                               \
-            personality >>= 8;                                                                \
         }                                                                                     \
     }
 
 void DrawSpindaSpots(u32 personality, u8 *dest)
 {
-    DRAW_SPINDA_SPOTS(personality, dest);
+    u8 markingFrame[4];
+        // loop01の固定フレームは上位16bit の 上位8bit
+    markingFrame[0] = (personality & 0x00FF0000) >> 16;
+    // loop02の固定フレームは上位16bit の 下位8bit
+    markingFrame[1] = (personality & 0xFF000000) >> 24;
+    // loop03の固定フレームは下位16bit の 上位8bit
+    markingFrame[2] = (personality & 0x000000FF);
+    // loop04の固定フレームは下位16bit の 下位8bit
+    markingFrame[3] = (personality & 0x0000FF00) >> 8;
+    DRAW_SPINDA_SPOTS(markingFrame, dest);
 }
 
 void EvolutionRenameMon(struct Pokemon *mon, u16 oldSpecies, u16 newSpecies)
