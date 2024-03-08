@@ -1,4 +1,4 @@
-TOOLCHAIN := $(DEVKITARM)
+TOOLCHAIN := /opt/homebrew/opt/llvm
 COMPARE ?= 0
 
 ifeq (compare,$(MAKECMDGOALS))
@@ -21,13 +21,13 @@ endif
 PREFIX := llvm-
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
-AS := $(PREFIX)as
+AS := $(PREFIX)mc
 
-LD := $(PREFIX)ld
+LD := lld
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := $(PREFIX)gcc
+MODERNCC := clang
 PATH_MODERNCC := PATH="$(PATH)" $(MODERNCC)
 
 ifeq ($(OS),Windows_NT)
@@ -55,12 +55,12 @@ endif
 # don't come with it
 ifneq ($(MODERN),1)
   ifeq ($(shell uname -s),Darwin)
-    CPP := $(PREFIX)cpp
+    CPP := clang -cc1
   else
     CPP := $(CC) -E
   endif
 else
-  CPP := $(PREFIX)cpp
+  CPP := clang -cc1
 endif
 
 ROM_NAME := pokeemerald.gba

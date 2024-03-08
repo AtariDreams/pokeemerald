@@ -10,19 +10,19 @@ COMPARE ?= 0
 
 ifneq (,$(TOOLCHAIN))
 ifneq ($(wildcard $(TOOLCHAIN)/bin),)
-export PATH := $(TOOLCHAIN)/bin:$(PATH)
+export PATH := /opt/homebrew/opt/llvm/bin
 endif
 endif
 
-PREFIX := arm-none-eabi-
+PREFIX := llvm-
 OBJCOPY := $(PREFIX)objcopy
-AS := $(PREFIX)as
-LD := $(PREFIX)ld
+AS := $(PREFIX)mc
+LD := lld
 AR := $(PREFIX)ar
 
 # note: the makefile must be set up so MODERNCC is never called
 # if MODERN=0
-MODERNCC := $(PREFIX)gcc
+MODERNCC := clang
 
 ifeq ($(OS),Windows_NT)
 EXE := .exe
@@ -39,7 +39,7 @@ endif
 # don't come with it
 ifneq ($(MODERN),1)
   ifeq ($(shell uname -s),Darwin)
-    CPP := $(PREFIX)cpp
+    CPP := clang -cc1
   else
     CPP := $(CC) -E
   endif
@@ -48,7 +48,7 @@ else
 endif
 
 ASFLAGS := -mcpu=arm7tdmi
-ARFLAGS := rc
+ARFLAGS := cru
 
 SYSCALLS := IntrWait \
             RegisterRamReset \
@@ -110,4 +110,4 @@ $(LIB): $(ASM_OBJS)
 	$(AR) $(ARFLAGS) $@ $^
 
 $(ASM_OBJS): libagbsyscall.s
-	arm-none-eabi-as -mcpu=arm7tdmi --defsym L_$(*F)=1 -o $@ $<
+	$(AR) $(ARFLAGS) $@ $<
