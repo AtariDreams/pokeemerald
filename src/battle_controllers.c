@@ -1251,18 +1251,6 @@ static void UNUSED BtlController_EmitDMA3Transfer(u8 bufferId, void *dst, u16 si
     PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 7);
 }
 
-static void UNUSED BtlController_EmitCmd32(u8 bufferId, u16 size, void *data)
-{
-    s32 i;
-
-    sBattleBuffersTransferData[0] = CONTROLLER_32;
-    sBattleBuffersTransferData[1] = size;
-    sBattleBuffersTransferData[2] = (size & 0xFF00) >> 8;
-    for (i = 0; i < size; i++)
-        sBattleBuffersTransferData[3 + i] = *(u8 *)(data++);
-    PrepareBufferDataTransfer(bufferId, sBattleBuffersTransferData, size + 3);
-}
-
 void BtlController_EmitTwoReturnValues(u8 ret8, u16 ret16)
 {
     sBattleBuffersTransferData[0] = CONTROLLER_TWORETURNVALUES;
