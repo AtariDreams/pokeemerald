@@ -244,18 +244,16 @@ static void ReadKeys(void)
 {
     u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;
     gMain.newKeysRaw = keyInput & ~gMain.heldKeysRaw;
-    gMain.newKeys = gMain.newKeysRaw;
-    gMain.newAndRepeatedKeys = gMain.newKeysRaw;
+    gMain.newKeys = keyInput;
+    gMain.newAndRepeatedKeys = keyInput;
 
     // BUG: Key repeat won't work when pressing L using L=A button mode
     // because it compares the raw key input with the remapped held keys.
     // Note that newAndRepeatedKeys is never remapped either.
 
-    if (keyInput != 0 && gMain.heldKeys == keyInput)
+    if (keyInput != 0 && gMain.heldKeysRaw == keyInput)
     {
-        gMain.keyRepeatCounter--;
-
-        if (gMain.keyRepeatCounter == 0)
+        if (--gMain.keyRepeatCounter == 0)
         {
             gMain.newAndRepeatedKeys = keyInput;
             gMain.keyRepeatCounter = gKeyRepeatContinueDelay;
@@ -286,7 +284,7 @@ static void ReadKeys(void)
 
 void InitIntrHandlers(void)
 {
-    int i;
+    u32 i;
 
     for (i = 0; i < INTR_COUNT; i++)
         gIntrTable[i] = gIntrTableTemplate[i];
