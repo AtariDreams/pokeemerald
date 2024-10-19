@@ -767,7 +767,7 @@ static void Task_TitleScreenPhase2(u8 taskId)
     if (!(gTasks[taskId].tCounter & 1) && gTasks[taskId].tBg2Y != 0)
         gTasks[taskId].tBg2Y++;
 
-    // Slide Pokémon logo up
+    // Slide Pokemon logo up
     yPos = gTasks[taskId].tBg2Y * 256;
     SetGpuReg(REG_OFFSET_BG2Y_L, yPos);
     SetGpuReg(REG_OFFSET_BG2Y_H, yPos / 0x10000);
@@ -782,6 +782,7 @@ static void Task_TitleScreenPhase3(u8 taskId)
     if (JOY_NEW(A_BUTTON) || JOY_NEW(START_BUTTON))
     {
         FadeOutBGM(4);
+        PlayCry_Normal(SPECIES_RAYQUAZA, 0);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_WHITEALPHA);
         SetMainCallback2(CB2_GoToMainMenu);
     }
