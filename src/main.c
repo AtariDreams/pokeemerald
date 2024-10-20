@@ -129,8 +129,6 @@ void AgbMain()
          && JOY_HELD_RAW(A_BUTTON)
          && JOY_HELD_RAW(B_START_SELECT) == B_START_SELECT)
         {
-            rfu_REQ_stopMode();
-            rfu_waitREQComplete();
             DoSoftReset();
         }
 
