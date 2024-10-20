@@ -108,7 +108,7 @@ bool8 RunScriptCommand(struct ScriptContext *ctx)
                 return FALSE;
             }
 
-            if ((*func)(ctx) == TRUE)
+            if (ctx->cmdTable[cmdCode](ctx) == TRUE)
                 break;
         }
     }
