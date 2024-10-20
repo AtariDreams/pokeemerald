@@ -4376,7 +4376,7 @@ void CopyMon(void *dest, void *src, size_t size)
 
 u8 GiveMonToPlayer(struct Pokemon *mon)
 {
-    s32 i;
+    u32 i;
 
     SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
     SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);
@@ -4583,17 +4583,17 @@ bool8 IsPokemonStorageFull(void)
 
 void GetSpeciesName(u8 *name, u16 species)
 {
-    s32 i;
+    u32 i;
+
+    if (species > NUM_SPECIES)
+        species = SPECIES_NONE;
 
     for (i = 0; i <= POKEMON_NAME_LENGTH; i++)
     {
-        if (species > NUM_SPECIES)
-            name[i] = gSpeciesNames[SPECIES_NONE][i];
-        else
-            name[i] = gSpeciesNames[species][i];
+        name[i] = gSpeciesNames[species][i];
 
         if (name[i] == EOS)
-            break;
+            return;
     }
 
     name[i] = EOS;
