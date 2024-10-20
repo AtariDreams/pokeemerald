@@ -2154,10 +2154,7 @@ static const struct SpriteTemplate sSpriteTemplate_64x64 =
 
 void ZeroBoxMonData(struct BoxPokemon *boxMon)
 {
-    u8 *raw = (u8 *)boxMon;
-    u32 i;
-    for (i = 0; i < sizeof(struct BoxPokemon); i++)
-        raw[i] = 0;
+    memset(boxMon, 0, sizeof(struct BoxPokemon));
 }
 
 void ZeroMonData(struct Pokemon *mon)
