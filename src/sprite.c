@@ -1426,16 +1426,7 @@ u8 AllocOamMatrix(void)
 
 void FreeOamMatrix(u8 matrixNum)
 {
-    u8 i = 0;
-    u32 bit = 1;
-
-    while (i < matrixNum)
-    {
-        i++;
-        bit <<= 1;
-    }
-
-    gOamMatrixAllocBitmap &= ~bit;
+    gOamMatrixAllocBitmap &= ~(1U << matrixNum);
     SetOamMatrix(matrixNum, 0x100, 0, 0, 0x100);
 }
 
