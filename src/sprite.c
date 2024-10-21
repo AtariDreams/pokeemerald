@@ -464,15 +464,12 @@ void CopyMatricesToOamBuffer(void)
 
 void AddSpritesToOamBuffer(void)
 {
-    u8 i = 0;
     u8 oamIndex = 0;
-
-    while (i < MAX_SPRITES)
+    for (u32 i = 0; i < MAX_SPRITES; i++)
     {
         struct Sprite *sprite = &gSprites[sSpriteOrder[i]];
         if (sprite->inUse && !sprite->invisible && AddSpriteToOamBuffer(sprite, &oamIndex))
             return;
-        i++;
     }
 
     while (oamIndex < gOamLimit)
@@ -497,7 +494,7 @@ u8 CreateSpriteAtEnd(const struct SpriteTemplate *template, s16 x, s16 y, u8 sub
 {
     s16 i;
 
-    for (i = MAX_SPRITES - 1; i > -1; i--)
+    for (i = MAX_SPRITES - 1; i >= 0; i--)
         if (!gSprites[i].inUse)
             return CreateSpriteAt(i, template, x, y, subpriority);
 
