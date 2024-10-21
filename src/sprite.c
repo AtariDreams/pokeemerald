@@ -1405,23 +1405,17 @@ void ResetAffineAnimData(void)
 
 u8 AllocOamMatrix(void)
 {
-    u8 i = 0;
-    u32 bit = 1;
-    u32 bitmap = gOamMatrixAllocBitmap;
+    u8 i;
 
-    while (i < OAM_MATRIX_COUNT)
+    if (gOamMatrixAllocBitmap == ~0)
     {
-        if (!(bitmap & bit))
-        {
-            gOamMatrixAllocBitmap |= bit;
-            return i;
-        }
-
-        i++;
-        bit <<= 1;
+        return OAM_MATRIX_COUNT;
     }
 
-    return 0xFF;
+    i = __builtin_ctz(~gOamMatrixAllocBitmap);
+
+    gOamMatrixAllocBitmap |= (1U << i);
+    return i;
 }
 
 void FreeOamMatrix(u8 matrixNum)
