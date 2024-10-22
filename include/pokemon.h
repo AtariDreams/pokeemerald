@@ -96,6 +96,94 @@ enum {
     MON_DATA_SPDEF2,
 };
 
+struct CorePokemon
+{
+    u32 personality;
+    u16 species;
+    u16 heldItem;
+    u32 experience;
+    u32 color_rnd;
+    u8 nature;
+    u8 gender : 2;
+    u8 formNo : 6;
+    u8 ppBonuses;
+    u8 friendship;
+    u8 markings;
+    u8 hpEV;
+    u8 attackEV;
+    u8 defenseEV;
+    u8 speedEV;
+    u8 spAttackEV;
+    u8 spDefenseEV;
+    u8 cool;
+    u8 beauty;
+    u8 cute;
+    u8 smart;
+    u8 tough;
+    u8 sheen;
+    u8 pokerus;
+    u8 metLocation;
+
+    /* 0x02 */ u16 metLevel : 7;
+    /* 0x02 */ u16 metGame : 4;
+    /* 0x03 */ u16 pokeball : 4;
+    /* 0x03 */ u16 otGender : 1;
+
+    /* 0x04 */ u32 hpIV : 5;
+    /* 0x04 */ u32 attackIV : 5;
+    /* 0x05 */ u32 defenseIV : 5;
+    /* 0x05 */ u32 speedIV : 5;
+    /* 0x05 */ u32 spAttackIV : 5;
+    /* 0x06 */ u32 spDefenseIV : 5;
+    /* 0x07 */ u32 isEgg : 1;
+    /* 0x07 */ u32 abilityNum : 1;
+
+    /* 0x08 */ u32 coolRibbon : 3;     // Stores the highest contest rank achieved in the Cool category.
+    /* 0x08 */ u32 beautyRibbon : 3;   // Stores the highest contest rank achieved in the Beauty category.
+    /* 0x08 */ u32 cuteRibbon : 3;     // Stores the highest contest rank achieved in the Cute category.
+    /* 0x09 */ u32 smartRibbon : 3;    // Stores the highest contest rank achieved in the Smart category.
+    /* 0x09 */ u32 toughRibbon : 3;    // Stores the highest contest rank achieved in the Tough category.
+    /* 0x09 */ u32 championRibbon : 1; // Given when defeating the Champion. Because both RSE and FRLG use it, later generations don't specify from which region it comes from.
+    /* 0x0A */ u32 winningRibbon : 1;  // Given at the Battle Tower's Level 50 challenge by winning a set of seven battles that extends the current streak to 56 or more.
+    /* 0x0A */ u32 victoryRibbon : 1;  // Given at the Battle Tower's Level 100 challenge by winning a set of seven battles that extends the current streak to 56 or more.
+    /* 0x0A */ u32 artistRibbon : 1;   // Given at the Contest Hall by winning a Master Rank contest with at least 800 points, and agreeing to have the Pok√©mon's portrait placed in the museum after being offered.
+    /* 0x0A */ u32 effortRibbon : 1;   // Given at Slateport's market to Pok√©mon with maximum EVs.
+    /* 0x0A */ u32 marineRibbon : 1;   // Never distributed.
+    /* 0x0A */ u32 landRibbon : 1;     // Never distributed.
+    /* 0x0A */ u32 skyRibbon : 1;      // Never distributed.
+    /* 0x0A */ u32 countryRibbon : 1;  // Distributed during Pok√©mon Festa '04 and '05 to tournament winners.
+    /* 0x0B */ u32 nationalRibbon : 1; // Given to purified Shadow Pok√©mon in Colosseum/XD.
+    /* 0x0B */ u32 earthRibbon : 1;    // Given to teams that have beaten Mt. Battle's 100-battle challenge in Colosseum/XD.
+    /* 0x0B */ u32 worldRibbon : 1;    // Distributed during Pok√©mon Festa '04 and '05 to tournament winners.
+    /* 0x0B */ u32 unusedRibbons : 4;  // Discarded in Gen 4.
+    u32 modernFatefulEncounter : 1;
+
+    u16 moves[MAX_MON_MOVES];
+    u8 pp[MAX_MON_MOVES];
+    u8 pointup_used_count[MAX_MON_MOVES];
+    u16 tamago_waza[MAX_MON_MOVES];
+};
+
+struct CalcData
+{
+    u32 sick;              ///< 04h èÛë‘àŸèÌ
+    u8 level;              ///< 05h ÉåÉxÉã
+    u8 dirt_type;          ///< 06h âòÇÍÇÃéÌóﬁ
+    u8 dirt_pos;           ///< 07h âòÇÍÇÃî≠ê∂à íu
+    u8 padding_1;          ///< 08h
+    u16 hp;                ///< 0ah HP
+    u16 max_hp;            ///< 0ch HPç≈ëÂíl
+    u16 atk;               ///< 0eh çUåÇóÕ
+    u16 def;               ///< 10h ñhå‰óÕ
+    u16 agi;               ///< 12h ëfëÅÇ≥
+    u16 spatk;             ///< 14h ì¡çU
+    u16 spdef;             ///< 16h ì¡ñh
+    u16 padding_2;         ///< 18h
+    u8 is_mega;            ///< 19h true:ÉÅÉKêiâªÇæÇÊ false:ÉÅÉKêiâªÇ∂Ç·Ç»Ç¢ÇÊ
+    u8 mega_before_formno; ///< 1ah ÉÅÉKêiâªÇ∑ÇÈëOÇÃÉtÉHÉãÉÄNo.
+    u16 padding_3;         ///< 1ch
+};
+
 struct PokemonSubstruct0
 {
     u16 species;
