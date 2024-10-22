@@ -1,8 +1,6 @@
 #include "global.h"
 #include "random.h"
 
-EWRAM_DATA static u32 sRandCount = 0;
-
 // IWRAM common
 COMMON_DATA u32 gRngValue = 0;
 COMMON_DATA u32 gRng2Value = 0;
@@ -10,7 +8,6 @@ COMMON_DATA u32 gRng2Value = 0;
 u16 Random(void)
 {
     gRngValue = ISO_RANDOMIZE1(gRngValue);
-    sRandCount++;
     return gRngValue >> 16;
 }
 
