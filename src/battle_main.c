@@ -3534,25 +3534,6 @@ static void BattleIntroDrawPartySummaryScreens(void)
     }
     else
     {
-        // The struct gets set here, but nothing is ever done with it since
-        // wild battles don't show the party summary.
-        // Still, there's no point in having dead code.
-
-        for (i = 0; i < PARTY_SIZE; i++)
-        {
-            if (GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES_OR_EGG) == SPECIES_NONE
-             || GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES_OR_EGG) == SPECIES_EGG)
-            {
-                hpStatus[i].hp = HP_EMPTY_SLOT;
-                hpStatus[i].status = 0;
-            }
-            else
-            {
-                hpStatus[i].hp = GetMonData(&gPlayerParty.party[i], MON_DATA_HP);
-                hpStatus[i].status = GetMonData(&gPlayerParty.party[i], MON_DATA_STATUS);
-            }
-        }
-
         gBattleMainFunc = BattleIntroPrintWildMonAttacked;
     }
 }
