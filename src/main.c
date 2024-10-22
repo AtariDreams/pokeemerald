@@ -327,7 +327,6 @@ void SetSerialCallback(IntrCallback callback)
 static void VBlankIntr(void)
 {
     m4aSoundVSync();
-    u16 savedIme;
     if (gLinkVSyncDisabled == FALSE)
         LinkVSync();
 

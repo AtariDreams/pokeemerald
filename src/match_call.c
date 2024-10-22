@@ -1859,7 +1859,7 @@ static const u16 sBadgeFlags[NUM_BADGES] =
     FLAG_BADGE08_GET,
 };
 
-static int GetNumOwnedBadges(void)
+static u32 GetNumOwnedBadges(void)
 {
     u32 i;
 
