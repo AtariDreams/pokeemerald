@@ -240,8 +240,8 @@ static void ReadKeys(void)
 {
     u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;
     gMain.newKeysRaw = keyInput & ~gMain.heldKeysRaw;
-    gMain.newKeys = keyInput;
-    gMain.newAndRepeatedKeys = keyInput;
+    gMain.newKeys = gMain.newKeysRaw;
+    gMain.newAndRepeatedKeys = gMain.newKeysRaw;
 
     // BUG: Key repeat won't work when pressing L using L=A button mode
     // because it compares the raw key input with the remapped held keys.

@@ -7096,7 +7096,7 @@ void DestroyMonSpritesGfxManager(u8 managerId)
         TRY_FREE_AND_SET_NULL(gfx->templates);
         TRY_FREE_AND_SET_NULL(gfx->spritePointers);
         TRY_FREE_AND_SET_NULL(gfx->spriteBuffer);
-        memset(gfx, 0, sizeof(*gfx));
+        // memset(gfx, 0, sizeof(*gfx));
         Free(gfx);
     }
 }
