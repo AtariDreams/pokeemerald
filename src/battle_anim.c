@@ -216,9 +216,9 @@ void LaunchBattleAnimation(const u8 *const animsTable[], u16 tableId, bool8 isMo
         for (i = 0; i < MAX_BATTLERS_COUNT; i++)
         {
             if (GetBattlerSide(i) != B_SIDE_PLAYER)
-                gAnimBattlerSpecies[i] = GetMonData(&gEnemyParty[gBattlerPartyIndexes[i]], MON_DATA_SPECIES);
+                gAnimBattlerSpecies[i] = GetMonData(&gEnemyParty.party[gBattlerPartyIndexes[i]], MON_DATA_SPECIES);
             else
-                gAnimBattlerSpecies[i] = GetMonData(&gPlayerParty[gBattlerPartyIndexes[i]], MON_DATA_SPECIES);
+                gAnimBattlerSpecies[i] = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[i]], MON_DATA_SPECIES);
         }
     }
     else

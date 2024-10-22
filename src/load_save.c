@@ -161,20 +161,20 @@ void SavePlayerParty(void)
 {
     int i;
 
-    gSaveBlock1Ptr->playerPartyCount = gPlayerPartyCount;
+    gSaveBlock1Ptr->playerPartyCount = gPlayerParty.partyCount;
 
     for (i = 0; i < PARTY_SIZE; i++)
-        gSaveBlock1Ptr->playerParty[i] = gPlayerParty[i];
+        gSaveBlock1Ptr->playerParty[i] = gPlayerParty.party[i];
 }
 
 void LoadPlayerParty(void)
 {
     int i;
 
-    gPlayerPartyCount = gSaveBlock1Ptr->playerPartyCount;
+    gPlayerParty.partyCount = gSaveBlock1Ptr->playerPartyCount;
 
     for (i = 0; i < PARTY_SIZE; i++)
-        gPlayerParty[i] = gSaveBlock1Ptr->playerParty[i];
+        gPlayerParty.party[i] = gSaveBlock1Ptr->playerParty[i];
 }
 
 void SaveObjectEvents(void)

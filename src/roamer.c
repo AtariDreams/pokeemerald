@@ -88,18 +88,18 @@ static void CreateInitialRoamerMon(bool16 createLatios)
     else
         ROAMER->species = SPECIES_LATIOS;
 
-    CreateMon(&gEnemyParty[0], ROAMER->species, 40, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
+    CreateMon(&gEnemyParty.party[0], ROAMER->species, 40, USE_RANDOM_IVS, FALSE, 0, OT_ID_PLAYER_ID, 0);
     ROAMER->level = 40;
     ROAMER->status = 0;
     ROAMER->active = TRUE;
-    ROAMER->ivs = GetMonData(&gEnemyParty[0], MON_DATA_IVS);
-    ROAMER->personality = GetMonData(&gEnemyParty[0], MON_DATA_PERSONALITY);
-    ROAMER->hp = GetMonData(&gEnemyParty[0], MON_DATA_MAX_HP);
-    ROAMER->cool = GetMonData(&gEnemyParty[0], MON_DATA_COOL);
-    ROAMER->beauty = GetMonData(&gEnemyParty[0], MON_DATA_BEAUTY);
-    ROAMER->cute = GetMonData(&gEnemyParty[0], MON_DATA_CUTE);
-    ROAMER->smart = GetMonData(&gEnemyParty[0], MON_DATA_SMART);
-    ROAMER->tough = GetMonData(&gEnemyParty[0], MON_DATA_TOUGH);
+    ROAMER->ivs = GetMonData(&gEnemyParty.party[0], MON_DATA_IVS);
+    ROAMER->personality = GetMonData(&gEnemyParty.party[0], MON_DATA_PERSONALITY);
+    ROAMER->hp = GetMonData(&gEnemyParty.party[0], MON_DATA_MAX_HP);
+    ROAMER->cool = GetMonData(&gEnemyParty.party[0], MON_DATA_COOL);
+    ROAMER->beauty = GetMonData(&gEnemyParty.party[0], MON_DATA_BEAUTY);
+    ROAMER->cute = GetMonData(&gEnemyParty.party[0], MON_DATA_CUTE);
+    ROAMER->smart = GetMonData(&gEnemyParty.party[0], MON_DATA_SMART);
+    ROAMER->tough = GetMonData(&gEnemyParty.party[0], MON_DATA_TOUGH);
     sRoamerLocation[MAP_GRP] = ROAMER_MAP_GROUP;
     sRoamerLocation[MAP_NUM] = sRoamerLocations[Random() % NUM_LOCATION_SETS][0];
 }
@@ -194,7 +194,7 @@ bool8 IsRoamerAt(u8 mapGroup, u8 mapNum)
 void CreateRoamerMonInstance(void)
 {
     u32 status;
-    struct Pokemon *mon = &gEnemyParty[0];
+    struct Pokemon *mon = &gEnemyParty.party[0];
     ZeroEnemyPartyMons();
     CreateMonWithIVsPersonality(mon, ROAMER->species, ROAMER->level, ROAMER->ivs, ROAMER->personality);
 // The roamer's status field is u8, but SetMonData expects status to be u32, so will set the roamer's status

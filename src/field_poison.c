@@ -29,7 +29,7 @@ static bool32 IsMonValidSpecies(struct Pokemon *pokemon)
 static bool32 AllMonsFainted(void)
 {
     int i;
-    struct Pokemon *pokemon = gPlayerParty;
+    struct Pokemon *pokemon = gPlayerParty.party;
 
     for (i = 0; i < PARTY_SIZE; i++, pokemon++)
     {
@@ -41,7 +41,7 @@ static bool32 AllMonsFainted(void)
 
 static void FaintFromFieldPoison(u8 partyIdx)
 {
-    struct Pokemon *pokemon = &gPlayerParty[partyIdx];
+    struct Pokemon *pokemon = &gPlayerParty.party[partyIdx];
     u32 status = STATUS1_NONE;
 
     AdjustFriendship(pokemon, FRIENDSHIP_EVENT_FAINT_FIELD_PSN);
@@ -52,7 +52,7 @@ static void FaintFromFieldPoison(u8 partyIdx)
 
 static bool32 MonFaintedFromPoison(u8 partyIdx)
 {
-    struct Pokemon *pokemon = &gPlayerParty[partyIdx];
+    struct Pokemon *pokemon = &gPlayerParty.party[partyIdx];
     if (IsMonValidSpecies(pokemon) && GetMonData(pokemon, MON_DATA_HP) == 0 && GetAilmentFromStatus(GetMonData(pokemon, MON_DATA_STATUS)) == AILMENT_PSN)
         return TRUE;
 
@@ -121,7 +121,7 @@ s32 DoPoisonFieldEffect(void)
 {
     int i;
     u32 hp;
-    struct Pokemon *pokemon = gPlayerParty;
+    struct Pokemon *pokemon = gPlayerParty.party;
     u32 numPoisoned = 0;
     u32 numFainted = 0;
 

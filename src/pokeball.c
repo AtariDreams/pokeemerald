@@ -367,9 +367,9 @@ static void Task_DoPokeballSendOutAnim(u8 taskId)
     battlerId = gTasks[taskId].tBattler;
 
     if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
-        itemId = GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
+        itemId = GetMonData(&gEnemyParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
     else
-        itemId = GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
+        itemId = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
 
     ballId = ItemIdToBallId(itemId);
     LoadBallGfx(ballId);
@@ -768,12 +768,12 @@ static void SpriteCB_ReleaseMonFromBall(struct Sprite *sprite)
 
         if (GetBattlerSide(battlerId) != B_SIDE_PLAYER)
         {
-            mon = &gEnemyParty[gBattlerPartyIndexes[battlerId]];
+            mon = &gEnemyParty.party[gBattlerPartyIndexes[battlerId]];
             pan = 25;
         }
         else
         {
-            mon = &gPlayerParty[gBattlerPartyIndexes[battlerId]];
+            mon = &gPlayerParty.party[gBattlerPartyIndexes[battlerId]];
             pan = -25;
         }
 
@@ -1338,7 +1338,7 @@ void FreeBallGfx(u8 ballId)
 static u16 GetBattlerPokeballItemId(u8 battlerId)
 {
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
-        return GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
+        return GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
     else
-        return GetMonData(&gEnemyParty[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
+        return GetMonData(&gEnemyParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_POKEBALL);
 }

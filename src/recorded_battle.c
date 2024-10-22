@@ -531,8 +531,8 @@ static void SetVariablesForRecordedBattle(struct RecordedBattleSave *src)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        gPlayerParty[i] = src->playerParty[i];
-        gEnemyParty[i] = src->opponentParty[i];
+        gPlayerParty.party[i] = src->playerParty[i];
+        gEnemyParty.party[i] = src->opponentParty[i];
     }
 
     for (i = 0; i < MAX_BATTLERS_COUNT; i++)
@@ -628,8 +628,8 @@ void RecordedBattle_SaveParties(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        sSavedPlayerParty[i] = gPlayerParty[i];
-        sSavedOpponentParty[i] = gEnemyParty[i];
+        sSavedPlayerParty[i] = gPlayerParty.party[i];
+        sSavedOpponentParty[i] = gEnemyParty.party[i];
     }
 }
 
@@ -639,8 +639,8 @@ static void RecordedBattle_RestoreSavedParties(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        gPlayerParty[i] = sSavedPlayerParty[i];
-        gEnemyParty[i] = sSavedOpponentParty[i];
+        gPlayerParty.party[i] = sSavedPlayerParty[i];
+        gEnemyParty.party[i] = sSavedOpponentParty[i];
     }
 }
 
@@ -783,24 +783,24 @@ void RecordedBattle_CheckMovesetChanges(u8 mode)
                     if (!(gBattleMons[battlerId].status2 & STATUS2_TRANSFORMED))
                     {
                         for (j = 0; j < MAX_MON_MOVES; j++)
-                            ppBonuses[j] = (GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_PP_BONUSES, NULL) & ((3 << (j << 1)))) >> (j << 1);
+                            ppBonuses[j] = (GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_PP_BONUSES, NULL) & ((3 << (j << 1)))) >> (j << 1);
 
                         for (j = 0; j < MAX_MON_MOVES; j++)
                         {
-                            movePp.moves[j] = GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_MOVE1 + moveSlots[j], NULL);
-                            movePp.currentPp[j] = GetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_PP1 + moveSlots[j], NULL);
+                            movePp.moves[j] = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_MOVE1 + moveSlots[j], NULL);
+                            movePp.currentPp[j] = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_PP1 + moveSlots[j], NULL);
                             movePp.maxPp[j] = ppBonuses[moveSlots[j]];
                         }
                         for (j = 0; j < MAX_MON_MOVES; j++)
                         {
-                            SetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_MOVE1 + j, &movePp.moves[j]);
-                            SetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_PP1 + j, &movePp.currentPp[j]);
+                            SetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_MOVE1 + j, &movePp.moves[j]);
+                            SetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_PP1 + j, &movePp.currentPp[j]);
                         }
                         ppBonusSet = 0;
                         for (j = 0; j < MAX_MON_MOVES; j++)
                             ppBonusSet |= movePp.maxPp[j] << (j << 1);
 
-                        SetMonData(&gPlayerParty[gBattlerPartyIndexes[battlerId]], MON_DATA_PP_BONUSES, &ppBonusSet);
+                        SetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_PP_BONUSES, &ppBonusSet);
                     }
                     gChosenMoveByBattler[battlerId] = gBattleMons[battlerId].moves[*(gBattleStruct->chosenMovePositions + battlerId)];
                 }

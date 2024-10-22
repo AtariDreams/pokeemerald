@@ -1289,8 +1289,8 @@ void UpdateAmbientCry(s16 *state, u16 *delayCounter)
         monsCount = CalculatePlayerPartyCount();
         for (i = 0; i < monsCount; i++)
         {
-            if (!GetMonData(&gPlayerParty[i], MON_DATA_SANITY_IS_EGG)
-                && GetMonAbility(&gPlayerParty[0]) == ABILITY_SWARM)
+            if (!GetMonData(&gPlayerParty.party[i], MON_DATA_SANITY_IS_EGG)
+                && GetMonAbility(&gPlayerParty.party[0]) == ABILITY_SWARM)
             {
                 divBy = 2;
                 break;

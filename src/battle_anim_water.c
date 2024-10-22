@@ -1143,7 +1143,7 @@ static u8 GetWaterSpoutPowerForAnim(void)
     if (GetBattlerSide(gBattleAnimAttacker) == B_SIDE_PLAYER)
     {
         partyIndex = gBattlerPartyIndexes[gBattleAnimAttacker];
-        slot =  &gPlayerParty[partyIndex];
+        slot =  &gPlayerParty.party[partyIndex];
         maxhp = GetMonData(slot, MON_DATA_MAX_HP);
         hp = GetMonData(slot, MON_DATA_HP);
         maxhp /= 4;
@@ -1151,7 +1151,7 @@ static u8 GetWaterSpoutPowerForAnim(void)
     else
     {
         partyIndex = gBattlerPartyIndexes[gBattleAnimAttacker];
-        slot =  &gEnemyParty[partyIndex];
+        slot =  &gEnemyParty.party[partyIndex];
         maxhp = GetMonData(slot, MON_DATA_MAX_HP);
         hp = GetMonData(slot, MON_DATA_HP);
         maxhp /= 4;

@@ -887,9 +887,9 @@ s32 GetBoxOrPartyMonData(u16 boxId, u16 monId, s32 request, u8 *dst)
     if (boxId == TOTAL_BOXES_COUNT) // Party mon.
     {
         if (request == MON_DATA_NICKNAME || request == MON_DATA_OT_NAME)
-            ret = GetMonData(&gPlayerParty[monId], request, dst);
+            ret = GetMonData(&gPlayerParty.party[monId], request, dst);
         else
-            ret = GetMonData(&gPlayerParty[monId], request);
+            ret = GetMonData(&gPlayerParty.party[monId], request);
     }
     else
     {
@@ -923,8 +923,8 @@ static u8 *GetConditionMenuMonString(u8 *dst, u16 boxId, u16 monId)
     species = GetBoxOrPartyMonData(box, mon, MON_DATA_SPECIES, NULL);
     if (box == TOTAL_BOXES_COUNT) // Party mon.
     {
-        level = GetMonData(&gPlayerParty[mon], MON_DATA_LEVEL);
-        gender = GetMonGender(&gPlayerParty[mon]);
+        level = GetMonData(&gPlayerParty.party[mon], MON_DATA_LEVEL);
+        gender = GetMonGender(&gPlayerParty.party[mon]);
     }
     else
     {

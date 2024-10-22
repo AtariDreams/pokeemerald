@@ -559,14 +559,14 @@ void BattleTv_SetDataBasedOnString(u16 stringId)
     scriptingSide = GetBattlerSide(gBattleMsgDataPtr->scrActive);
 
     if (atkSide == B_SIDE_PLAYER)
-        atkMon = &gPlayerParty[gBattlerPartyIndexes[gBattlerAttacker]];
+        atkMon = &gPlayerParty.party[gBattlerPartyIndexes[gBattlerAttacker]];
     else
-        atkMon = &gEnemyParty[gBattlerPartyIndexes[gBattlerAttacker]];
+        atkMon = &gEnemyParty.party[gBattlerPartyIndexes[gBattlerAttacker]];
 
     if (defSide == B_SIDE_PLAYER)
-        defMon = &gPlayerParty[gBattlerPartyIndexes[gBattlerTarget]];
+        defMon = &gPlayerParty.party[gBattlerPartyIndexes[gBattlerTarget]];
     else
-        defMon = &gEnemyParty[gBattlerPartyIndexes[gBattlerTarget]];
+        defMon = &gEnemyParty.party[gBattlerPartyIndexes[gBattlerTarget]];
 
     moveSlot = GetBattlerMoveSlotId(gBattlerAttacker, gBattleMsgDataPtr->currentMove);
 
@@ -1066,9 +1066,9 @@ void TryPutLinkBattleTvShowOnAir(void)
     movePoints = &gBattleStruct->tvMovePoints;
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
+        if (GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
             countPlayer++;
-        if (GetMonData(&gEnemyParty[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
+        if (GetMonData(&gEnemyParty.party[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
             countOpponent++;
     }
 
@@ -1077,8 +1077,8 @@ void TryPutLinkBattleTvShowOnAir(void)
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL);
-        if (species != SPECIES_NONE && !GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG, NULL))
+        species = GetMonData(&gPlayerParty.party[i], MON_DATA_SPECIES, NULL);
+        if (species != SPECIES_NONE && !GetMonData(&gPlayerParty.party[i], MON_DATA_IS_EGG, NULL))
         {
             for (sum = 0, j = 0; j < MAX_MON_MOVES; j++)
                 sum += movePoints->points[zero][i * 4 + j];
@@ -1091,15 +1091,15 @@ void TryPutLinkBattleTvShowOnAir(void)
             }
         }
 
-        species = GetMonData(&gEnemyParty[i], MON_DATA_SPECIES, NULL);
-        if (species != SPECIES_NONE && !GetMonData(&gEnemyParty[i], MON_DATA_IS_EGG, NULL))
+        species = GetMonData(&gEnemyParty.party[i], MON_DATA_SPECIES, NULL);
+        if (species != SPECIES_NONE && !GetMonData(&gEnemyParty.party[i], MON_DATA_IS_EGG, NULL))
         {
             for (sum = 0, j = 0; j < MAX_MON_MOVES; j++)
                 sum += movePoints->points[one][i * 4 + j];
 
             if (opponentBestSum == sum)
             {
-                if (GetMonData(&gEnemyParty[i], MON_DATA_EXP, NULL) > GetMonData(&gEnemyParty[opponentBestMonId], MON_DATA_EXP, NULL))
+                if (GetMonData(&gEnemyParty.party[i], MON_DATA_EXP, NULL) > GetMonData(&gEnemyParty.party[opponentBestMonId], MON_DATA_EXP, NULL))
                 {
                     opponentBestMonId = i;
                     opponentBestSum = sum;
@@ -1124,7 +1124,7 @@ void TryPutLinkBattleTvShowOnAir(void)
         }
     }
 
-    moveId = GetMonData(&gPlayerParty[playerBestMonId], MON_DATA_MOVE1 + i, NULL);
+    moveId = GetMonData(&gPlayerParty.party[playerBestMonId], MON_DATA_MOVE1 + i, NULL);
     if (playerBestSum == 0 || moveId == 0)
         return;
 
@@ -1494,8 +1494,8 @@ static void TrySetBattleSeminarShow(void)
                     bestMoveId = i;
             }
 
-            opponentSpecies = GetMonData(&gEnemyParty [gBattlerPartyIndexes[gBattlerTarget]],   MON_DATA_SPECIES, NULL);
-            playerSpecies   = GetMonData(&gPlayerParty[gBattlerPartyIndexes[gBattlerAttacker]], MON_DATA_SPECIES, NULL);
+            opponentSpecies = GetMonData(&gEnemyParty.party [gBattlerPartyIndexes[gBattlerTarget]],   MON_DATA_SPECIES, NULL);
+            playerSpecies   = GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[gBattlerAttacker]], MON_DATA_SPECIES, NULL);
             TryPutBattleSeminarOnAir(opponentSpecies, playerSpecies, gMoveSelectionCursor[gBattlerAttacker], gBattleMons[gBattlerAttacker].moves, gBattleMons[gBattlerAttacker].moves[bestMoveId]);
             break;
         }
@@ -1574,9 +1574,9 @@ u8 GetBattlerMoveSlotId(u8 battlerId, u16 moveId)
     struct Pokemon *party;
 
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     i = 0;
     while (1)

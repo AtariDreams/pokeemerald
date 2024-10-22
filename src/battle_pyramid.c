@@ -1173,7 +1173,7 @@ static void ClearPyramidPartyHeldItems(void)
         for (j = 0; j < MAX_FRONTIER_PARTY_SIZE; j++)
         {
             if (gSaveBlock2Ptr->frontier.selectedPartyMons[j] != 0 && gSaveBlock2Ptr->frontier.selectedPartyMons[j] - 1 == i)
-                SetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM, &item);
+                SetMonData(&gPlayerParty.party[i], MON_DATA_HELD_ITEM, &item);
         }
     }
 }
@@ -1207,19 +1207,19 @@ static void RestorePyramidPlayerParty(void)
         int partyIndex = gSaveBlock2Ptr->frontier.selectedPartyMons[i] - 1;
         for (j = 0; j < FRONTIER_PARTY_SIZE; j++)
         {
-            if (GetMonData(&gSaveBlock1Ptr->playerParty[partyIndex], MON_DATA_SPECIES, NULL) == GetMonData(&gPlayerParty[j], MON_DATA_SPECIES, NULL))
+            if (GetMonData(&gSaveBlock1Ptr->playerParty[partyIndex], MON_DATA_SPECIES, NULL) == GetMonData(&gPlayerParty.party[j], MON_DATA_SPECIES, NULL))
             {
                 for (k = 0; k < MAX_MON_MOVES; k++)
                 {
                     for (l = 0; l < MAX_MON_MOVES; l++)
                     {
-                        if (GetMonData(&gSaveBlock1Ptr->playerParty[partyIndex], MON_DATA_MOVE1 + l, NULL) == GetMonData(&gPlayerParty[j], MON_DATA_MOVE1 + k, NULL))
+                        if (GetMonData(&gSaveBlock1Ptr->playerParty[partyIndex], MON_DATA_MOVE1 + l, NULL) == GetMonData(&gPlayerParty.party[j], MON_DATA_MOVE1 + k, NULL))
                             break;
                     }
                     if (l == MAX_MON_MOVES)
-                        SetMonMoveSlot(&gPlayerParty[j], MOVE_SKETCH, k);
+                        SetMonMoveSlot(&gPlayerParty.party[j], MOVE_SKETCH, k);
                 }
-                gSaveBlock1Ptr->playerParty[partyIndex] = gPlayerParty[j];
+                gSaveBlock1Ptr->playerParty[partyIndex] = gPlayerParty.party[j];
                 gSelectedOrderFromParty[j] = partyIndex + 1;
                 break;
             }
@@ -1357,10 +1357,10 @@ void GenerateBattlePyramidWildMon(void)
     else
         wildMons = sLevel50WildMonPointers[round];
 
-    id = GetMonData(&gEnemyParty[0], MON_DATA_SPECIES, NULL) - 1;
-    SetMonData(&gEnemyParty[0], MON_DATA_SPECIES, &wildMons[id].species);
+    id = GetMonData(&gEnemyParty.party[0], MON_DATA_SPECIES, NULL) - 1;
+    SetMonData(&gEnemyParty.party[0], MON_DATA_SPECIES, &wildMons[id].species);
     GetSpeciesName(name, wildMons[id].species);
-    SetMonData(&gEnemyParty[0], MON_DATA_NICKNAME, &name);
+    SetMonData(&gEnemyParty.party[0], MON_DATA_NICKNAME, &name);
     if (lvl != FRONTIER_LVL_50)
     {
         lvl = SetFacilityPtrsGetLevel();
@@ -1371,7 +1371,7 @@ void GenerateBattlePyramidWildMon(void)
     {
         lvl = wildMons[id].lvl - 5 + ((Random() % 11));
     }
-    SetMonData(&gEnemyParty[0],
+    SetMonData(&gEnemyParty.party[0],
                MON_DATA_EXP,
                &gExperienceTables[gSpeciesInfo[wildMons[id].species].growthRate][lvl]);
 
@@ -1379,25 +1379,25 @@ void GenerateBattlePyramidWildMon(void)
     {
     case 0:
     case 1:
-        SetMonData(&gEnemyParty[0], MON_DATA_ABILITY_NUM, &wildMons[id].abilityNum);
+        SetMonData(&gEnemyParty.party[0], MON_DATA_ABILITY_NUM, &wildMons[id].abilityNum);
         break;
     case ABILITY_RANDOM:
     default:
         if (gSpeciesInfo[wildMons[id].species].abilities[1])
         {
-            i = GetMonData(&gEnemyParty[0], MON_DATA_PERSONALITY, NULL) % 2;
-            SetMonData(&gEnemyParty[0], MON_DATA_ABILITY_NUM, &i);
+            i = GetMonData(&gEnemyParty.party[0], MON_DATA_PERSONALITY, NULL) % 2;
+            SetMonData(&gEnemyParty.party[0], MON_DATA_ABILITY_NUM, &i);
         }
         else
         {
             i = 0;
-            SetMonData(&gEnemyParty[0], MON_DATA_ABILITY_NUM, &i);
+            SetMonData(&gEnemyParty.party[0], MON_DATA_ABILITY_NUM, &i);
         }
         break;
     }
 
     for (i = 0; i < MAX_MON_MOVES; i++)
-        SetMonMoveSlot(&gEnemyParty[0], wildMons[id].moves[i], i);
+        SetMonMoveSlot(&gEnemyParty.party[0], wildMons[id].moves[i], i);
 
     // UB: Reading outside the array as lvl was used for mon level instead of frontier lvl mode.
     #ifndef UBFIX
@@ -1408,9 +1408,9 @@ void GenerateBattlePyramidWildMon(void)
     {
         id = (Random() % 17) + 15;
         for (i = 0; i < NUM_STATS; i++)
-            SetMonData(&gEnemyParty[0], MON_DATA_HP_IV + i, &id);
+            SetMonData(&gEnemyParty.party[0], MON_DATA_HP_IV + i, &id);
     }
-    CalculateMonStats(&gEnemyParty[0]);
+    CalculateMonStats(&gEnemyParty.party[0]);
 }
 
 u8 GetPyramidRunMultiplier(void)

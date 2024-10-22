@@ -166,21 +166,21 @@ struct CorePokemon
 
 struct CalcData
 {
-    u32 sick;              ///< 04h ó‘ÔˆÙí
-    u8 level;              ///< 05h ƒŒƒxƒ‹
-    u8 dirt_type;          ///< 06h ‰˜‚ê‚ÌŽí—Þ
-    u8 dirt_pos;           ///< 07h ‰˜‚ê‚Ì”­¶ˆÊ’u
+    u32 sick;              ///< 04h ï¿½ï¿½ÔˆÙï¿½
+    u8 level;              ///< 05h ï¿½ï¿½ï¿½xï¿½ï¿½
+    u8 dirt_type;          ///< 06h ï¿½ï¿½ï¿½ï¿½ÌŽï¿½ï¿½
+    u8 dirt_pos;           ///< 07h ï¿½ï¿½ï¿½ï¿½Ì”ï¿½ï¿½ï¿½ï¿½Ê’u
     u8 padding_1;          ///< 08h
     u16 hp;                ///< 0ah HP
-    u16 max_hp;            ///< 0ch HPÅ‘å’l
-    u16 atk;               ///< 0eh UŒ‚—Í
-    u16 def;               ///< 10h –hŒä—Í
-    u16 agi;               ///< 12h ‘f‘‚³
-    u16 spatk;             ///< 14h “ÁU
-    u16 spdef;             ///< 16h “Á–h
+    u16 max_hp;            ///< 0ch HPï¿½Å‘ï¿½l
+    u16 atk;               ///< 0eh ï¿½Uï¿½ï¿½ï¿½ï¿½
+    u16 def;               ///< 10h ï¿½hï¿½ï¿½ï¿½
+    u16 agi;               ///< 12h ï¿½fï¿½ï¿½ï¿½ï¿½
+    u16 spatk;             ///< 14h ï¿½ï¿½ï¿½U
+    u16 spdef;             ///< 16h ï¿½ï¿½ï¿½h
     u16 padding_2;         ///< 18h
-    u8 is_mega;            ///< 19h true:ƒƒKi‰»‚¾‚æ false:ƒƒKi‰»‚¶‚á‚È‚¢‚æ
-    u8 mega_before_formno; ///< 1ah ƒƒKi‰»‚·‚é‘O‚ÌƒtƒHƒ‹ƒ€No.
+    u8 is_mega;            ///< 19h true:ï¿½ï¿½ï¿½Kï¿½iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ false:ï¿½ï¿½ï¿½Kï¿½iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½
+    u8 mega_before_formno; ///< 1ah ï¿½ï¿½ï¿½Kï¿½iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½Ìƒtï¿½Hï¿½ï¿½ï¿½ï¿½No.
     u16 padding_3;         ///< 1ch
 };
 
@@ -458,10 +458,13 @@ struct Evolution
 
 #define GET_SHINY_VALUE(otId, personality) (HIHALF(otId) ^ LOHALF(otId) ^ HIHALF(personality) ^ LOHALF(personality))
 
-extern u8 gPlayerPartyCount;
-extern struct Pokemon gPlayerParty[PARTY_SIZE];
-extern u8 gEnemyPartyCount;
-extern struct Pokemon gEnemyParty[PARTY_SIZE];
+struct PokeParty {
+    u8 partyCount;
+    struct Pokemon party[PARTY_SIZE];
+};
+
+extern struct PokeParty gPlayerParty;
+extern struct PokeParty gEnemyParty;
 extern struct SpriteTemplate gMultiuseSpriteTemplate;
 
 extern const struct BattleMove gBattleMoves[];

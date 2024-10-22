@@ -1304,9 +1304,9 @@ static void Cmd_count_usable_party_mons(void)
         battlerId = gBattlerTarget;
 
     if (GetBattlerSide(battlerId) == B_SIDE_PLAYER)
-        party = gPlayerParty;
+        party = gPlayerParty.party;
     else
-        party = gEnemyParty;
+        party = gEnemyParty.party;
 
     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
     {
@@ -1582,7 +1582,7 @@ static void Cmd_if_status_in_party(void)
         break;
     }
 
-    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty : gEnemyParty;
+    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty.party : gEnemyParty.party;
 
     statusToCompareTo = T1_READ_32(gAIScriptPtr + 2);
 
@@ -1619,7 +1619,7 @@ static void Cmd_if_status_not_in_party(void)
         break;
     }
 
-    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty : gEnemyParty;
+    party = (GetBattlerSide(battlerId) == B_SIDE_PLAYER) ? gPlayerParty.party : gEnemyParty.party;
 
     statusToCompareTo = T1_READ_32(gAIScriptPtr + 2);
 
