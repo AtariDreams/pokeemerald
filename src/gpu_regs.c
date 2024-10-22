@@ -9,7 +9,7 @@
 #define EMPTY_SLOT 0xFF
 
 static u8 sGpuRegBuffer[GPU_REG_BUF_SIZE];
-static u8 sGpuRegWaitingList[GPU_REG_BUF_SIZE];
+static u8 ALIGNED(4) sGpuRegWaitingList[GPU_REG_BUF_SIZE];
 static volatile bool8 sGpuRegBufferLocked;
 static volatile bool8 sShouldSyncRegIE;
 static vu16 sRegIE;
@@ -20,17 +20,7 @@ static void UpdateRegDispstatIntrBits(u16 regIE);
 
 void InitGpuRegManager(void)
 {
-    s32 i;
-
-    for (i = 0; i < GPU_REG_BUF_SIZE; i++)
-    {
-        sGpuRegBuffer[i] = 0;
-        sGpuRegWaitingList[i] = EMPTY_SLOT;
-    }
-
-    sGpuRegBufferLocked = FALSE;
-    sShouldSyncRegIE = FALSE;
-    sRegIE = 0;
+    CpuFastFill(-1, sGpuRegWaitingList, sizeof(sGpuRegWaitingList));
 }
 
 static void CopyBufferedValueToGpuReg(u8 regOffset)
