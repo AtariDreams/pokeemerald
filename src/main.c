@@ -153,9 +153,9 @@ void AgbMain()
             }
         }
 
+        MapMusicMain();
         PlayTimeCounter_Update();
         WaitForVBlank();
-        MapMusicMain();
     }
 }
 
