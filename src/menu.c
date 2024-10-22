@@ -1750,10 +1750,7 @@ void DoScheduledBgTilemapCopiesToVram(void)
 
 void ResetTempTileDataBuffers(void)
 {
-    int i;
-    for (i = 0; i < (int)ARRAY_COUNT(sTempTileDataBuffer); i++)
-        sTempTileDataBuffer[i] = NULL;
-    sTempTileDataBufferIdx = 0;
+    memset(sTempTileDataBuffer, 0, sizeof(sTempTileDataBuffer));
 }
 
 bool8 FreeTempTileDataBuffersIfPossible(void)
