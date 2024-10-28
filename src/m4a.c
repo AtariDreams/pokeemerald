@@ -1590,16 +1590,12 @@ void ply_xswee(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track
 
 void ply_xcmd_0C(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 unk;
+    union { u16 a; u8 d[2]; } u;
 
-#ifdef UBFIX
-    unk = 0;
-#endif
+    u.d[0] = *(track->cmdPtr + 0);
+    u.d[1] = *(track->cmdPtr + 1);
 
-    READ_XCMD_BYTE(unk, 0) // UB: uninitialized variable
-    READ_XCMD_BYTE(unk, 1)
-
-    if (track->unk_3A < (u16)unk)
+    if (track->unk_3A < u.a)
     {
         track->unk_3A++;
         track->cmdPtr -= 2;
