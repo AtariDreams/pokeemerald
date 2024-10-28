@@ -3897,6 +3897,23 @@ static bool32 IsBattlerModernFatefulEncounter(u8 battlerId)
     return GetMonData(&gPlayerParty.party[gBattlerPartyIndexes[battlerId]], MON_DATA_MODERN_FATEFUL_ENCOUNTER, NULL);
 }
 
+u8 MaxObedienceLevel(void)
+{
+    unsigned int i;
+    u8 badgeCount;
+    for (i = FLAG_BADGE01_GET; i < FLAG_BADGE01_GET + NUM_BADGES; i++)
+    {
+        if (FlagGet(i))
+            badgeCount++;
+    }
+
+    if (i >= 8) {
+        return 100;
+    }
+
+    return 20 + badgeCount * 5;
+}
+
 u8 IsMonDisobedient(void)
 {
     s32 rnd;

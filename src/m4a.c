@@ -1523,18 +1523,14 @@ void ply_xxx(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 
 void ply_xwave(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track)
 {
-    u32 wav;
+    union { u8 *a; u8 d[4]; } u;
 
-#ifdef UBFIX
-    wav = 0;
-#endif
+    u.d[0] = *(track->cmdPtr + 0);
+    u.d[1] = *(track->cmdPtr + 1);
+    u.d[2] = *(track->cmdPtr + 2);
+    u.d[3] = *(track->cmdPtr + 3);
 
-    READ_XCMD_BYTE(wav, 0) // UB: uninitialized variable
-    READ_XCMD_BYTE(wav, 1)
-    READ_XCMD_BYTE(wav, 2)
-    READ_XCMD_BYTE(wav, 3)
-
-    track->tone.wav = (struct WaveData *)wav;
+    track->tone.wav = (struct WaveData *)u.a;
     track->cmdPtr += 4;
 }
 
